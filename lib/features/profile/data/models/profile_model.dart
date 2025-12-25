@@ -1,0 +1,106 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../domain/entities/profile_entity.dart';
+
+part 'profile_model.freezed.dart';
+part 'profile_model.g.dart';
+
+@freezed
+class ProfileModel with _$ProfileModel {
+  const ProfileModel._();
+
+  const factory ProfileModel({
+    required String id,
+    required String email,
+    String? displayName,
+    String? photoUrl,
+    String? phoneNumber,
+    String? bio,
+    String? profession,
+    String? currentCity,
+    String? currentCountry,
+    String? currentRegion,
+    String? countryCode,
+    String? originRegion,
+    String? originCity,
+    double? latitude,
+    double? longitude,
+    @Default(true) bool isVisible,
+    @Default(true) bool notificationsEnabled,
+    @Default(true) bool shareLocation,
+    @Default('everyone') String phoneVisibility,
+    @Default(false) bool isPhoneVerified,
+    @Default([]) List<String> interests,
+    @Default([]) List<String> skills,
+    @Default([]) List<String> languages,
+    @Default(0) int connectionsCount,
+    @Default(0) int groupsCount,
+    @Default(0) int eventsCount,
+    DateTime? createdAt,
+    DateTime? lastLoginAt,
+  }) = _ProfileModel;
+
+  factory ProfileModel.fromJson(Map<String, dynamic> json) =>
+      _$ProfileModelFromJson(json);
+
+  ProfileEntity toEntity() => ProfileEntity(
+        id: id,
+        email: email,
+        displayName: displayName,
+        photoUrl: photoUrl,
+        phoneNumber: phoneNumber,
+        bio: bio,
+        profession: profession,
+        currentCity: currentCity,
+        currentCountry: currentCountry,
+        currentRegion: currentRegion,
+        countryCode: countryCode,
+        originRegion: originRegion,
+        originCity: originCity,
+        latitude: latitude,
+        longitude: longitude,
+        isVisible: isVisible,
+        notificationsEnabled: notificationsEnabled,
+        shareLocation: shareLocation,
+        phoneVisibility: phoneVisibility,
+        isPhoneVerified: isPhoneVerified,
+        interests: interests,
+        skills: skills,
+        languages: languages,
+        connectionsCount: connectionsCount,
+        groupsCount: groupsCount,
+        eventsCount: eventsCount,
+        createdAt: createdAt,
+        lastLoginAt: lastLoginAt,
+      );
+
+  factory ProfileModel.fromEntity(ProfileEntity entity) => ProfileModel(
+        id: entity.id,
+        email: entity.email,
+        displayName: entity.displayName,
+        photoUrl: entity.photoUrl,
+        phoneNumber: entity.phoneNumber,
+        bio: entity.bio,
+        profession: entity.profession,
+        currentCity: entity.currentCity,
+        currentCountry: entity.currentCountry,
+        currentRegion: entity.currentRegion,
+        countryCode: entity.countryCode,
+        originRegion: entity.originRegion,
+        originCity: entity.originCity,
+        latitude: entity.latitude,
+        longitude: entity.longitude,
+        isVisible: entity.isVisible,
+        notificationsEnabled: entity.notificationsEnabled,
+        shareLocation: entity.shareLocation,
+        phoneVisibility: entity.phoneVisibility,
+        isPhoneVerified: entity.isPhoneVerified,
+        interests: entity.interests,
+        skills: entity.skills,
+        languages: entity.languages,
+        connectionsCount: entity.connectionsCount,
+        groupsCount: entity.groupsCount,
+        eventsCount: entity.eventsCount,
+        createdAt: entity.createdAt,
+        lastLoginAt: entity.lastLoginAt,
+      );
+}

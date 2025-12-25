@@ -1,0 +1,37 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'profile_entity.freezed.dart';
+
+@freezed
+class ProfileEntity with _$ProfileEntity {
+  const factory ProfileEntity({
+    required String id,
+    required String email,
+    String? displayName,
+    String? photoUrl,
+    String? phoneNumber,
+    String? bio,
+    String? profession,
+    String? currentCity,
+    String? currentCountry,
+    String? currentRegion,
+    String? countryCode,
+    String? originRegion,
+    String? originCity,
+    double? latitude,
+    double? longitude,
+    @Default(true) bool isVisible,
+    @Default(true) bool notificationsEnabled,
+    @Default(true) bool shareLocation,
+    @Default('everyone') String phoneVisibility,
+    @Default(false) bool isPhoneVerified,
+    @Default([]) List<String> interests,
+    @Default([]) List<String> skills,
+    @Default([]) List<String> languages,
+    @Default(0) int connectionsCount,
+    @Default(0) int groupsCount,
+    @Default(0) int eventsCount,
+    DateTime? createdAt,
+    DateTime? lastLoginAt,
+  }) = _ProfileEntity;
+}

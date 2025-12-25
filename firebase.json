@@ -1,0 +1,29 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "diaspo-niger",
+                    "appId": "1:539228418594:android:64adecd6aa5e20368e507b",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "diaspo-niger",
+                    "configurations": {
+                        "android": "1:539228418594:android:64adecd6aa5e20368e507b",
+                        "ios": "1:539228418594:ios:6cdc9491c795c4a38e507b",
+                        "web": "1:539228418594:web:3b01752fce9a0e328e507b"
+                    }
+                }
+            }
+        }
+    },
+    "firestore": {
+        "indexes": "firestore.indexes.json"
+    },
+    "functions": {
+        "source": "functions"
+    }
+}

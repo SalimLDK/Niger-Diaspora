@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "539228418594",
+    "project_id": "diaspo-niger",
+    "storage_bucket": "diaspo-niger.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:539228418594:android:64adecd6aa5e20368e507b",
+        "android_client_info": {
+          "package_name": "com.diasponiger.diaspo_niger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJsOIAjUkFJ1LJybkfwknw5xaNSdZbh0E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
