@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/preferences_service.dart';
 
 part 'locale_provider.g.dart';
 
 @riverpod
 class LocaleNotifier extends _$LocaleNotifier {
-  static const String _localeKey = 'app_locale';
+  final _prefs = PreferencesService.instance;
 
-  static const List<Locale> supportedLocales = [
-    Locale('fr'),
-    Locale('en'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('fr'), Locale('en')];
 
   static const Map<String, String> localeNames = {
     'fr': 'Français',
@@ -25,8 +22,7 @@ class LocaleNotifier extends _$LocaleNotifier {
   }
 
   Future<void> _loadLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    final localeCode = prefs.getString(_localeKey);
+    final localeCode = _prefs.locale;
 
     if (localeCode != null) {
       final locale = supportedLocales.firstWhere(
@@ -39,8 +35,7 @@ class LocaleNotifier extends _$LocaleNotifier {
 
   Future<void> setLocale(Locale locale) async {
     state = locale;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_localeKey, locale.languageCode);
+    await _prefs.setLocale(locale.languageCode);
   }
 
   String get currentLocaleName {

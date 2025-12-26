@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Niger Diaspora - L'application qui connecte la diaspora nigérienne à travers le monde.">
+    <title>Niger Diaspora - Connectez-vous avec la diaspora nigérienne</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #E97424 0%, #15803d 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #E97424 0%, #15803d 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #E97424;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 30px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature h3 {
+            color: #E97424;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #E97424;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            padding: 40px 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-section h4 {
+            color: #E97424;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            line-height: 2;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: #E97424;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #555;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="/logo.png" alt="Niger Diaspora Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px; border-radius: 8px;">
+                Niger Diaspora
+            </div>
+            <ul>
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#about">À propos</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Connectez-vous avec la diaspora nigérienne</h1>
+        <p>L'application qui rassemble les Nigériens du monde entier</p>
+        <a href="#download" class="cta-button">Télécharger l'application</a>
+    </section>
+
+    <div class="container">
+        <section id="features">
+            <h2 class="section-title">Fonctionnalités</h2>
+            <p class="section-subtitle">Découvrez tout ce que Niger Diaspora a à offrir</p>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>Carte interactive</h3>
+                    <p>Trouvez des membres de la communauté près de chez vous grâce à notre carte interactive.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">👥</div>
+                    <h3>Groupes & Communautés</h3>
+                    <p>Rejoignez ou créez des groupes basés sur vos centres d'intérêt et votre région.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📅</div>
+                    <h3>Événements</h3>
+                    <p>Découvrez et participez à des événements organisés par la communauté.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">💬</div>
+                    <h3>Messagerie</h3>
+                    <p>Communiquez avec d'autres membres via notre système de messagerie sécurisé.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Annuaire d'entreprises</h3>
+                    <p>Trouvez et soutenez les entreprises de la diaspora nigérienne.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🛒</div>
+                    <h3>Marketplace</h3>
+                    <p>Achetez et vendez des produits au sein de la communauté.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" style="margin-top: 80px;">
+            <h2 class="section-title">À propos de Niger Diaspora</h2>
+            <p class="section-subtitle">Notre mission et nos valeurs</p>
+
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                    Niger Diaspora est une plateforme mobile conçue pour connecter les Nigériens vivant à travers le
+                    monde.
+                    Notre objectif est de créer une communauté solidaire et dynamique où chacun peut partager, échanger
+                    et
+                    s'entraider.
+                </p>
+                <p style="font-size: 1.1rem; line-height: 1.8;">
+                    Que vous cherchiez à retrouver des compatriotes dans votre ville, à participer à des événements
+                    culturels,
+                    ou simplement à rester connecté avec vos racines, Niger Diaspora est l'application qu'il vous faut.
+                </p>
+            </div>
+        </section>
+
+        <section id="download" style="margin-top: 80px; text-align: center;">
+            <h2 class="section-title">Téléchargez l'application</h2>
+            <p class="section-subtitle">Disponible sur Android et iOS (bientôt)</p>
+
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 40px;">
+                <a href="https://play.google.com/store" target="_blank" rel="noopener">
+                    <img src="/google-play-badge.png" alt="Télécharger sur Google Play" style="height: 80px;">
+                </a>
+                <a href="#" style="opacity: 0.6; cursor: not-allowed;">
+                    <img src="/app-store-badge.svg" alt="Télécharger sur l'App Store" style="height: 80px;">
+                </a>
+            </div>
+            <p style="margin-top: 20px; color: #666; font-size: 0.9rem;">
+                <em>L'application iOS sera bientôt disponible</em>
+            </p>
+        </section>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Niger Diaspora</h4>
+                <p>L'application qui connecte la diaspora nigérienne à travers le monde.</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Liens utiles</h4>
+                <ul>
+                    <li><a href="/privacy-policy.html">Politique de confidentialité</a></li>
+                    <li><a href="/terms-of-service.html">Conditions d'utilisation</a></li>
+                    <li><a href="/delete-account.html">Supprimer mon compte</a></li>
+                    <li><a href="/forgot-password.html">Mot de passe oublié</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="/contact.html">Contact</a></li>
+                    <li><a href="mailto:support@diasponiger.com">support@diasponiger.com</a></li>
+                    <li><a href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p>&copy; 2025 Niger Diaspora. Tous droits réservés.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

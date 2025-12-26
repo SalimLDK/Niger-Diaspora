@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_page.dart';
 
@@ -13,10 +14,15 @@ class OnboardingIntroScreen extends ConsumerStatefulWidget {
       _OnboardingIntroScreenState();
 }
 
-class _OnboardingIntroScreenState
-    extends ConsumerState<OnboardingIntroScreen> {
+class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.logEvent(name: 'onboarding_begin');
+  }
 
   final List<OnboardingPageData> _pages = const [
     OnboardingPageData(
@@ -76,11 +82,13 @@ class _OnboardingIntroScreenState
 
   void _completeIntro() {
     ref.read(onboardingNotifierProvider.notifier).completeIntro();
+    AnalyticsService.instance.logEvent(name: 'onboarding_complete');
     context.go('/home');
   }
 
   void _skip() {
     ref.read(onboardingNotifierProvider.notifier).skipAll();
+    AnalyticsService.instance.logEvent(name: 'onboarding_skip');
     context.go('/home');
   }
 
@@ -142,9 +150,10 @@ class _OnboardingIntroScreenState
                         height: 8,
                         width: _currentPage == index ? 32 : 8,
                         decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppColors.primary
-                              : AppColors.primary.withValues(alpha: 0.2),
+                          color:
+                              _currentPage == index
+                                  ? AppColors.primary
+                                  : AppColors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

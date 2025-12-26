@@ -169,6 +169,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required List<String> participantIds,
     required String groupName,
     String? groupImageUrl,
+    String? groupId, // Add groupId parameter
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -366,5 +367,223 @@ class MessageRepositoryImpl implements MessageRepository {
 
   void resetPagination() {
     // _lastDocument = null;
+  }
+
+  @override
+  Future<Either<Failure, MessageEntity>> sendAudioMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required File audioFile,
+    required int duration,
+    required List<double> waveform,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final message = await remoteDataSource.sendAudioMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        audioFile: audioFile,
+        duration: duration,
+        waveform: waveform,
+      );
+      return Right(message.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<MessageEntity>>> getMediaMessages({
+    required String conversationId,
+    int limit = 50,
+    String? beforeMessageId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final messages = await remoteDataSource.getMediaMessages(
+        conversationId: conversationId,
+        limit: limit,
+        beforeMessageId: beforeMessageId,
+      );
+      return Right(messages.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> findConversationWithUser({
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    try {
+      final conversation = await remoteDataSource.findIndividualConversation(
+        userId1: currentUserId,
+        userId2: otherUserId,
+      );
+      return Right(conversation?.id);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> findGroupConversationByName({
+    required String groupName,
+    required String userId,
+  }) async {
+    try {
+      final conversation = await remoteDataSource.findGroupConversationByName(
+        groupName: groupName,
+        userId: userId,
+      );
+      return Right(conversation?.id);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteMessageForMe({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      await remoteDataSource.deleteMessageForMe(
+        conversationId: conversationId,
+        messageId: messageId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteMessageForEveryone({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    try {
+      await remoteDataSource.deleteMessageForEveryone(
+        conversationId: conversationId,
+        messageId: messageId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> archiveConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.archiveConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> unarchiveConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.unarchiveConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> muteConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.muteConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> unmuteConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.unmuteConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
   }
 }

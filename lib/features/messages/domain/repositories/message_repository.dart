@@ -68,6 +68,7 @@ abstract class MessageRepository {
     required List<String> participantIds,
     required String groupName,
     String? groupImageUrl,
+    String? groupId, // Add groupId parameter
   });
 
   /// Marquer les messages comme lus
@@ -84,5 +85,72 @@ abstract class MessageRepository {
   getOrCreateIndividualConversation({
     required String currentUserId,
     required String otherUserId,
+  });
+
+  /// Envoyer un message audio
+  Future<Either<Failure, MessageEntity>> sendAudioMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required File audioFile,
+    required int duration,
+    required List<double> waveform,
+  });
+
+  /// Récupérer les médias d'une conversation (images et fichiers, pas audio)
+  Future<Either<Failure, List<MessageEntity>>> getMediaMessages({
+    required String conversationId,
+    int limit = 50,
+    String? beforeMessageId,
+  });
+
+  /// Trouver l'ID de la conversation avec un utilisateur donné
+  Future<Either<Failure, String?>> findConversationWithUser({
+    required String currentUserId,
+    required String otherUserId,
+  });
+
+  /// Trouver l'ID de la conversation de groupe par nom
+  Future<Either<Failure, String?>> findGroupConversationByName({
+    required String groupName,
+    required String userId,
+  });
+
+  /// Supprimer un message pour moi uniquement
+  Future<Either<Failure, void>> deleteMessageForMe({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  });
+
+  /// Supprimer un message pour tous les participants
+  Future<Either<Failure, void>> deleteMessageForEveryone({
+    required String conversationId,
+    required String messageId,
+  });
+
+  /// Archiver une conversation
+  Future<Either<Failure, void>> archiveConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Désarchiver une conversation
+  Future<Either<Failure, void>> unarchiveConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Mettre en sourdine une conversation
+  Future<Either<Failure, void>> muteConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Réactiver les notifications pour une conversation
+  Future<Either<Failure, void>> unmuteConversation({
+    required String conversationId,
+    required String userId,
   });
 }

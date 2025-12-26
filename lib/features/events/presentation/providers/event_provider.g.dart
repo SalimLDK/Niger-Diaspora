@@ -99,5 +99,25 @@ final myEventsNotifierProvider =
     );
 
 typedef _$MyEventsNotifier = Notifier<AsyncValue<List<EventEntity>>>;
+String _$pastEventsNotifierHash() =>
+    r'eea7cd87b126a9725bcdb7d4384c3faa3cf83f11';
+
+/// See also [PastEventsNotifier].
+@ProviderFor(PastEventsNotifier)
+final pastEventsNotifierProvider = NotifierProvider<
+  PastEventsNotifier,
+  AsyncValue<List<EventEntity>>
+>.internal(
+  PastEventsNotifier.new,
+  name: r'pastEventsNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pastEventsNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$PastEventsNotifier = Notifier<AsyncValue<List<EventEntity>>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

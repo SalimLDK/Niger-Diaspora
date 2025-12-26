@@ -7,7 +7,7 @@ part of 'message_provider.dart';
 // **************************************************************************
 
 String _$messageRemoteDataSourceHash() =>
-    r'e7fad2a654e5a1ba85e35378e5d23b70ab6a63a9';
+    r'3a057920f17c0ca5fecdccae492d310ea57091bf';
 
 /// See also [messageRemoteDataSource].
 @ProviderFor(messageRemoteDataSource)
@@ -378,10 +378,10 @@ final totalUnreadCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TotalUnreadCountRef = AutoDisposeProviderRef<int>;
-String _$paginatedMessagesHash() => r'b84aa9bb4398bdd99177c32ce5b411e0f1dafdd2';
+String _$paginatedMessagesHash() => r'3e09c002aa9a9c0e86f62f1318a88e22a24316f1';
 
 abstract class _$PaginatedMessages
-    extends BuildlessAutoDisposeNotifier<MessagePaginationState> {
+    extends BuildlessNotifier<MessagePaginationState> {
   late final String conversationId;
 
   MessagePaginationState build(String conversationId);
@@ -435,11 +435,7 @@ class PaginatedMessagesFamily extends Family<MessagePaginationState> {
 ///
 /// Copied from [PaginatedMessages].
 class PaginatedMessagesProvider
-    extends
-        AutoDisposeNotifierProviderImpl<
-          PaginatedMessages,
-          MessagePaginationState
-        > {
+    extends NotifierProviderImpl<PaginatedMessages, MessagePaginationState> {
   /// Notifier pour les messages paginés avec support offline
   ///
   /// Copied from [PaginatedMessages].
@@ -494,7 +490,7 @@ class PaginatedMessagesProvider
   }
 
   @override
-  AutoDisposeNotifierProviderElement<PaginatedMessages, MessagePaginationState>
+  NotifierProviderElement<PaginatedMessages, MessagePaginationState>
   createElement() {
     return _PaginatedMessagesProviderElement(this);
   }
@@ -516,18 +512,13 @@ class PaginatedMessagesProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin PaginatedMessagesRef
-    on AutoDisposeNotifierProviderRef<MessagePaginationState> {
+mixin PaginatedMessagesRef on NotifierProviderRef<MessagePaginationState> {
   /// The parameter `conversationId` of this provider.
   String get conversationId;
 }
 
 class _PaginatedMessagesProviderElement
-    extends
-        AutoDisposeNotifierProviderElement<
-          PaginatedMessages,
-          MessagePaginationState
-        >
+    extends NotifierProviderElement<PaginatedMessages, MessagePaginationState>
     with PaginatedMessagesRef {
   _PaginatedMessagesProviderElement(super.provider);
 
@@ -536,7 +527,7 @@ class _PaginatedMessagesProviderElement
       (origin as PaginatedMessagesProvider).conversationId;
 }
 
-String _$sendMessageHash() => r'5d13748e5a3df688ab09f3f788da6a0d3184769d';
+String _$sendMessageHash() => r'919403566e91c3d308e381b8d4754c083c6321ee';
 
 /// Notifier pour envoyer des messages
 ///
@@ -556,7 +547,7 @@ final sendMessageProvider =
 
 typedef _$SendMessage = AutoDisposeNotifier<AsyncValue<void>>;
 String _$createConversationHash() =>
-    r'5a8dbc4ae36edf333f19dc75ef097e92c7c646f8';
+    r'5809a448a78bfa5e6b1124eb7a2f1c7be8fe8811';
 
 /// Notifier pour créer des conversations
 ///
@@ -578,7 +569,7 @@ final createConversationProvider = AutoDisposeNotifierProvider<
 
 typedef _$CreateConversation =
     AutoDisposeNotifier<AsyncValue<ConversationEntity?>>;
-String _$markAsReadHash() => r'7d004bc0f57ca7e901a2e6d9bea9c705bc9ed982';
+String _$markAsReadHash() => r'626d5e9e6cecf7fa46ab50a367f875bb5ada2803';
 
 /// Marquer une conversation comme lue
 ///
@@ -597,5 +588,24 @@ final markAsReadProvider =
     );
 
 typedef _$MarkAsRead = AutoDisposeNotifier<AsyncValue<void>>;
+String _$deleteMessageHash() => r'f220687f766e4ecf553b5a02cf4189f355c0e80f';
+
+/// Notifier pour supprimer des messages
+///
+/// Copied from [DeleteMessage].
+@ProviderFor(DeleteMessage)
+final deleteMessageProvider =
+    AutoDisposeNotifierProvider<DeleteMessage, AsyncValue<void>>.internal(
+      DeleteMessage.new,
+      name: r'deleteMessageProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$deleteMessageHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$DeleteMessage = AutoDisposeNotifier<AsyncValue<void>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

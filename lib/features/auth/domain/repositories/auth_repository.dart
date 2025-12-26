@@ -20,6 +20,8 @@ abstract class AuthRepository {
 
   Future<Either<Failure, void>> deleteAccount();
 
+  Future<Either<Failure, void>> reauthenticateWithPassword(String password);
+
   Future<Either<Failure, UserEntity?>> getCurrentUser();
 
   Stream<UserEntity?> get authStateChanges;

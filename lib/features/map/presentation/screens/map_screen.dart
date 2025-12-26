@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +40,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   bool _hasLocationPermission = false;
   bool _mapsInitialized = false;
 
+  // Nouvelles variables pour Phase 2 & 3
+  String? _selectedMarkerId; // Pin sélectionné
+  double _currentZoom = 12.0; // Niveau de zoom actuel
+  int _lastZoomCategory =
+      1; // Catégorie de zoom précédente pour éviter rebuilds inutiles
+  final Map<String, DateTime> _cacheExpiration = {}; // Cache avec expiration
+
   // Filter keys for profession matching
   static const List<String> _filterKeys = [
     'all',
@@ -68,14 +76,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   // Options de rayon disponibles (en km) - 0 = pays entier (aucune limite)
   final List<double> _radiusOptions = [10, 25, 50, 100, 200, 500, 0];
 
-  // Cache pour les marqueurs personnalisés avec photos de profil
   final Map<String, BitmapDescriptor> _markerCache = {};
 
   bool _hasInitialized = false;
 
   @override
+  void dispose() {
+    debugPrint('🗺️ MapScreen: dispose');
+    _controller.future.then((c) => c.dispose());
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
+    debugPrint('🗺️ MapScreen: initState');
     _mapsInitialized = true; // Already initialized in main.dart
     _loadUserCountry();
   }
@@ -83,6 +98,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    debugPrint('🗺️ MapScreen: didChangeDependencies');
     // Initialiser la localisation après que le context soit disponible
     if (!_hasInitialized) {
       _hasInitialized = true;
@@ -169,6 +185,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         '📍 Position obtenue: ${position.latitude}, ${position.longitude}',
       );
 
+      // Mettre à jour la localisation de l'utilisateur dans Firebase
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        debugPrint('  💾 Updating user location in Firebase...');
+        try {
+          final dataSource = ProfileRemoteDataSourceImpl();
+          await dataSource.updateLocation(
+            currentUser.uid,
+            position.latitude,
+            position.longitude,
+          );
+          debugPrint('  ✅ Location updated successfully');
+        } catch (e) {
+          debugPrint('  ⚠️ Failed to update location: $e');
+        }
+      }
+
       // Déplacer la caméra vers la position actuelle
       if (_controller.isCompleted) {
         final controller = await _controller.future;
@@ -206,14 +239,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _loadNearbyMembers(double latitude, double longitude) async {
+    debugPrint('🗺️ MapScreen: Loading nearby members...');
+    debugPrint('  📍 Center position: ($latitude, $longitude)');
+    debugPrint('  📏 Selected radius: ${_selectedRadius}km');
+    debugPrint('  🔍 Selected filter: $_selectedFilter');
+
     try {
       final dataSource = ProfileRemoteDataSourceImpl();
       List<ProfileModel> members;
 
       // Si rayon = 0 et pays connu, chercher par pays
       if (_selectedRadius == 0 && _userCountry != null) {
+        debugPrint('  🌍 Searching by country: $_userCountry');
         members = await dataSource.getProfilesByCountry(_userCountry!);
       } else if (_selectedRadius == 0) {
+        debugPrint('  🌍 No country set, using large radius (5000km)');
         // Si pas de pays connu, utiliser un grand rayon par défaut
         members = await dataSource.getNearbyProfiles(
           latitude,
@@ -228,11 +268,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         );
       }
 
-      // Exclure l'utilisateur courant
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-      if (currentUserId != null) {
-        members = members.where((m) => m.id != currentUserId).toList();
-      }
+      debugPrint('  ✅ Total members loaded: ${members.length}');
 
       if (!mounted) return;
 
@@ -240,8 +276,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         _nearbyMembers = members;
         _updateMarkers();
       });
+
+      debugPrint(
+        '  🎯 After filter "$_selectedFilter": ${_getFilteredMembers().length} members',
+      );
     } catch (e) {
-      debugPrint('Erreur chargement membres: $e');
+      debugPrint('  ❌ Error loading members: $e');
       // En cas d'erreur, continuer avec une liste vide
       if (mounted) {
         setState(() {
@@ -252,20 +292,65 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  /// Vérifie si le cache pour un marqueur est valide (non expiré)
+  bool _isCacheValid(String cacheKey) {
+    final expiration = _cacheExpiration[cacheKey];
+    if (expiration == null) return false;
+    return DateTime.now().isBefore(expiration);
+  }
+
+  /// Nettoie les entrées de cache expirées
+  void _cleanExpiredCache() {
+    final now = DateTime.now();
+    final expiredKeys =
+        _cacheExpiration.entries
+            .where((entry) => now.isAfter(entry.value))
+            .map((entry) => entry.key)
+            .toList();
+
+    for (final key in expiredKeys) {
+      _markerCache.remove(key);
+      _cacheExpiration.remove(key);
+    }
+  }
+
+  /// Retourne la taille du marqueur adaptée au niveau de zoom
+  double _getMarkerSizeForZoom() {
+    if (_currentZoom < 10) {
+      return 60.0; // Zoom loin : pins petits
+    } else if (_currentZoom < 14) {
+      return 90.0; // Zoom moyen : pins normaux
+    } else {
+      return 110.0; // Zoom proche : pins détaillés
+    }
+  }
+
   /// Crée un marqueur personnalisé avec la photo de profil de l'utilisateur
   Future<BitmapDescriptor> _createMarkerFromPhoto(
     String? photoUrl,
     String userId,
+    bool isFriend,
+    String? profession,
+    DateTime? lastLoginAt,
+    bool isOnline,
   ) async {
-    // Si déjà en cache, retourner directement
-    if (_markerCache.containsKey(userId)) {
-      return _markerCache[userId]!;
+    // Si déjà en cache avec même config et non expiré, retourner directement
+    final cacheKey =
+        '${userId}_${isFriend}_${profession}_${lastLoginAt?.millisecondsSinceEpoch}_${isOnline}_${_currentZoom.toInt()}';
+    if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
+      return _markerCache[cacheKey]!;
     }
 
-    // Taille du marqueur
-    const double markerSize = 100;
-    const double borderWidth = 4;
-    const double photoSize = markerSize - (borderWidth * 2);
+    // Nettoyer le cache expiré périodiquement
+    _cleanExpiredCache();
+
+    // Taille adaptative selon le zoom
+    final markerSize = _getMarkerSizeForZoom();
+    final bool isSelected = userId == _selectedMarkerId;
+    final double borderWidth =
+        isSelected ? 8.0 : 4.0; // Bordure plus épaisse si sélectionné
+    final double photoSize = markerSize - (borderWidth * 2);
+    final double shadowWidth = 2.0;
 
     try {
       if (photoUrl != null) {
@@ -299,20 +384,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         final pictureRecorder = ui.PictureRecorder();
         final canvas = Canvas(pictureRecorder);
 
-        // Dessiner le fond avec bordure orange
+        // Dessiner une ombre douce pour meilleure visibilité
+        final shadowPaint =
+            Paint()
+              ..color = Colors.white.withValues(alpha: 0.6)
+              ..style = PaintingStyle.fill
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+        canvas.drawCircle(
+          Offset(markerSize / 2, markerSize / 2),
+          markerSize / 2 + shadowWidth,
+          shadowPaint,
+        );
+
+        // Déterminer les couleurs selon le statut d'ami
+        final borderColors =
+            isFriend
+                ? [AppColors.secondary, AppColors.secondaryDark]
+                : [AppColors.primary, AppColors.primaryDark];
+
+        // Dessiner le fond avec bordure dégradée (verte pour amis, orange pour non-amis)
+        final borderGradient = ui.Gradient.radial(
+          Offset(markerSize / 2, markerSize / 2),
+          markerSize / 2,
+          borderColors,
+          [0.0, 1.0],
+        );
         final borderPaint =
             Paint()
-              ..color = AppColors.primary
+              ..shader = borderGradient
               ..style = PaintingStyle.fill;
         canvas.drawCircle(
-          const Offset(markerSize / 2, markerSize / 2),
+          Offset(markerSize / 2, markerSize / 2),
           markerSize / 2,
           borderPaint,
         );
 
         // Créer un clip circulaire pour la photo
         final photoRect = Rect.fromCenter(
-          center: const Offset(markerSize / 2, markerSize / 2),
+          center: Offset(markerSize / 2, markerSize / 2),
           width: photoSize,
           height: photoSize,
         );
@@ -330,7 +439,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         canvas.drawImageRect(image, srcRect, photoRect, Paint());
         canvas.restore();
 
-        // Dessiner le petit triangle en bas (indicateur de position)
+        // Dessiner l'ombre du triangle
+        final triangleShadowPath =
+            Path()
+              ..moveTo(markerSize / 2 - 12, markerSize - 5)
+              ..lineTo(markerSize / 2, markerSize + 15)
+              ..lineTo(markerSize / 2 + 12, markerSize - 5)
+              ..close();
+        canvas.drawPath(triangleShadowPath, shadowPaint);
+
+        // Dessiner le triangle indicateur de position
         final trianglePath =
             Path()
               ..moveTo(markerSize / 2 - 10, markerSize - 5)
@@ -339,16 +457,34 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ..close();
         canvas.drawPath(trianglePath, borderPaint);
 
+        // Ajouter badge de profession en bas à droite
+        if (profession != null) {
+          _drawProfessionBadge(canvas, profession, markerSize);
+        }
+
+        // Ajouter indicateur de statut en ligne en haut à droite
+        if (lastLoginAt != null || isOnline) {
+          _drawOnlineStatus(
+            canvas,
+            lastLoginAt ?? DateTime.now(),
+            markerSize,
+            isOnline,
+          );
+        }
+
         final picture = pictureRecorder.endRecording();
         final img = await picture.toImage(
-          markerSize.toInt(),
-          (markerSize + 15).toInt(),
+          (markerSize + (shadowWidth * 2)).toInt(),
+          (markerSize + 18 + (shadowWidth * 2)).toInt(),
         );
         final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
         final bytes = byteData!.buffer.asUint8List();
 
         final descriptor = BitmapDescriptor.bytes(bytes);
-        _markerCache[userId] = descriptor;
+        _markerCache[cacheKey] = descriptor;
+        _cacheExpiration[cacheKey] = DateTime.now().add(
+          const Duration(minutes: 30),
+        );
         return descriptor;
       }
     } catch (e) {
@@ -356,29 +492,62 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
 
     // Marqueur par défaut si pas de photo ou erreur
-    return _createDefaultMarker(userId);
+    return _createDefaultMarker(
+      userId,
+      isFriend,
+      profession,
+      lastLoginAt,
+      isOnline,
+    );
   }
 
   /// Crée un marqueur par défaut avec une icône de personne
-  Future<BitmapDescriptor> _createDefaultMarker(String userId) async {
-    if (_markerCache.containsKey('default_$userId')) {
-      return _markerCache['default_$userId']!;
+  Future<BitmapDescriptor> _createDefaultMarker(
+    String userId,
+    bool isFriend,
+    String? profession,
+    DateTime? lastLoginAt,
+    bool isOnline,
+  ) async {
+    final cacheKey =
+        'default_${userId}_${isFriend}_${profession}_${lastLoginAt?.millisecondsSinceEpoch}_${isOnline}_${_currentZoom.toInt()}';
+    if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
+      return _markerCache[cacheKey]!;
     }
 
-    const double markerSize = 100;
+    final markerSize = _getMarkerSizeForZoom();
+
+    final double shadowWidth = 2.0;
 
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
 
-    // Fond orange avec dégradé
-    final gradient = ui.Gradient.linear(
-      const Offset(0, 0),
-      const Offset(markerSize, markerSize),
-      [AppColors.primary, AppColors.primaryDark],
+    // Dessiner une ombre douce
+    final shadowPaint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.fill
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawCircle(
+      Offset(markerSize / 2, markerSize / 2),
+      markerSize / 2 + shadowWidth,
+      shadowPaint,
+    );
+
+    // Fond avec dégradé radial (vert pour amis, orange pour non-amis)
+    final gradientColors =
+        isFriend
+            ? [AppColors.secondary, AppColors.secondaryDark]
+            : [AppColors.primary, AppColors.primaryDark];
+    final gradient = ui.Gradient.radial(
+      Offset(markerSize / 2, markerSize / 2),
+      markerSize / 2,
+      gradientColors,
+      [0.0, 1.0],
     );
     final paint = Paint()..shader = gradient;
     canvas.drawCircle(
-      const Offset(markerSize / 2, markerSize / 2),
+      Offset(markerSize / 2, markerSize / 2),
       markerSize / 2,
       paint,
     );
@@ -391,7 +560,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     // Tête
     canvas.drawCircle(
-      const Offset(markerSize / 2, markerSize / 2 - 8),
+      Offset(markerSize / 2, markerSize / 2 - 8),
       14,
       iconPaint,
     );
@@ -407,11 +576,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             markerSize / 2 + 28,
           )
           ..arcToPoint(
-            const Offset(markerSize / 2 - 22, markerSize / 2 + 28),
+            Offset(markerSize / 2 - 22, markerSize / 2 + 28),
             radius: const Radius.circular(24),
             clockwise: false,
           );
     canvas.drawPath(bodyPath, iconPaint);
+
+    // Dessiner l'ombre du triangle
+    final triangleShadowPath =
+        Path()
+          ..moveTo(markerSize / 2 - 12, markerSize - 5)
+          ..lineTo(markerSize / 2, markerSize + 15)
+          ..lineTo(markerSize / 2 + 12, markerSize - 5)
+          ..close();
+    canvas.drawPath(triangleShadowPath, shadowPaint);
 
     // Triangle indicateur en bas
     final trianglePaint = Paint()..shader = gradient;
@@ -423,17 +601,214 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ..close();
     canvas.drawPath(trianglePath, trianglePaint);
 
+    // Ajouter badge de profession en bas à droite
+    if (profession != null) {
+      _drawProfessionBadge(canvas, profession, markerSize);
+    }
+
+    // Ajouter indicateur de statut en ligne en haut à droite
+    if (lastLoginAt != null || isOnline) {
+      _drawOnlineStatus(
+        canvas,
+        lastLoginAt ?? DateTime.now(),
+        markerSize,
+        isOnline,
+      );
+    }
+
     final picture = pictureRecorder.endRecording();
     final img = await picture.toImage(
-      markerSize.toInt(),
-      (markerSize + 15).toInt(),
+      (markerSize + (shadowWidth * 2)).toInt(),
+      (markerSize + 18 + (shadowWidth * 2)).toInt(),
     );
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     final bytes = byteData!.buffer.asUint8List();
 
     final descriptor = BitmapDescriptor.bytes(bytes);
-    _markerCache['default_$userId'] = descriptor;
+    _markerCache[cacheKey] = descriptor;
+    _cacheExpiration[cacheKey] = DateTime.now().add(
+      const Duration(minutes: 30),
+    );
     return descriptor;
+  }
+
+  // --- Helpers d'affichage ---
+
+  Future<BitmapDescriptor> _createClusterMarker(int count) async {
+    final size = 80.0;
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Cercle de fond (Vert/Orange mix ou Secondaire)
+    final paint =
+        Paint()
+          ..color = AppColors.secondary
+          ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
+
+    // Bordure
+    final borderPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4;
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2 - 2, borderPaint);
+
+    // Texte du compteur (e.g. "5+")
+    final textSpan = TextSpan(
+      text: count > 99 ? '99+' : count.toString(),
+      style: const TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        size / 2 - textPainter.width / 2,
+        size / 2 - textPainter.height / 2,
+      ),
+    );
+
+    final picture = pictureRecorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
+  }
+
+  /// Dessine un badge de profession avec emoji
+  void _drawProfessionBadge(
+    Canvas canvas,
+    String profession,
+    double markerSize,
+  ) {
+    final String emoji = _getProfessionEmoji(profession);
+
+    const double badgeSize = 22;
+    final badgeX = markerSize - badgeSize / 2 + 2;
+    final badgeY = markerSize - badgeSize / 2 - 8;
+
+    // Cercle blanc pour le badge
+    final badgePaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(badgeX, badgeY), badgeSize / 2, badgePaint);
+
+    // Bordure subtile
+    final borderPaint =
+        Paint()
+          ..color = Colors.black.withValues(alpha: 0.1)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
+    canvas.drawCircle(Offset(badgeX, badgeY), badgeSize / 2, borderPaint);
+
+    // Dessiner l'emoji (utiliser un painter de texte)
+    final textPainter = TextPainter(
+      text: TextSpan(text: emoji, style: const TextStyle(fontSize: 14)),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(badgeX - textPainter.width / 2, badgeY - textPainter.height / 2),
+    );
+  }
+
+  /// Retourne l'emoji correspondant à la profession
+  String _getProfessionEmoji(String profession) {
+    final p = profession.toLowerCase();
+
+    // Entrepreneurs
+    if (p.contains('entrepreneur') ||
+        p.contains('commercant') ||
+        p.contains('business') ||
+        p.contains('fondateur') ||
+        p.contains('ceo') ||
+        p.contains('gérant')) {
+      return '👨‍💼';
+    }
+
+    // Étudiants
+    if (p.contains('etudiant') ||
+        p.contains('student') ||
+        p.contains('élève') ||
+        p.contains('stagiaire') ||
+        p.contains('apprenant')) {
+      return '🎓';
+    }
+
+    // Artistes
+    if (p.contains('artiste') ||
+        p.contains('artist') ||
+        p.contains('chanteur') ||
+        p.contains('musicien') ||
+        p.contains('peintre') ||
+        p.contains('acteur') ||
+        p.contains('écrivain') ||
+        p.contains('auteur') ||
+        p.contains('designer') ||
+        p.contains('créateur') ||
+        p.contains('artisan')) {
+      return '🎨';
+    }
+
+    // Professionnels (par défaut)
+    return '💼';
+  }
+
+  /// Dessine un indicateur de statut en ligne
+  void _drawOnlineStatus(
+    Canvas canvas,
+    DateTime lastLoginAt,
+    double markerSize,
+    bool isOnline,
+  ) {
+    Color statusColor;
+    if (isOnline) {
+      statusColor = AppColors.success; // Vert pour en ligne
+    } else {
+      final now = DateTime.now();
+      final difference = now.difference(lastLoginAt);
+
+      if (difference.inMinutes < 60) {
+        statusColor = AppColors.warning; // Orange pour récemment actif (< 1h)
+      } else {
+        statusColor = Colors.grey; // Gris pour inactif
+      }
+    }
+
+    const double statusSize = 14;
+    final statusX = markerSize - statusSize / 2 + 2;
+    final statusY = statusSize / 2 + 2;
+
+    // Cercle blanc de fond
+    final bgPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(statusX, statusY), statusSize / 2 + 1, bgPaint);
+
+    // Cercle de statut coloré
+    final statusPaint =
+        Paint()
+          ..color = statusColor
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(statusX, statusY), statusSize / 2, statusPaint);
+  }
+
+  void _updateMarkers() {
+    _updateMarkersAsync();
   }
 
   Future<void> _updateMarkersAsync() async {
@@ -454,27 +829,109 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     }
 
-    // Ajouter les marqueurs des membres avec leurs photos
+    // Clustering ou Affichage individuel
     final filteredMembers = _getFilteredMembers();
-    for (final member in filteredMembers) {
-      if (member.latitude != null && member.longitude != null) {
-        // Créer le marqueur avec la photo de profil
-        final icon = await _createMarkerFromPhoto(member.photoUrl, member.id);
 
-        markers.add(
-          Marker(
-            markerId: MarkerId(member.id),
-            position: LatLng(member.latitude!, member.longitude!),
-            icon: icon,
-            anchor: const Offset(0.5, 1.0),
-            onTap: () => _showMemberDetails(member),
-          ),
-        );
+    // Si zoom < 14, on active le clustering
+    if (_currentZoom < 14) {
+      final Map<Point<int>, List<ProfileModel>> clusters = {};
+      // Taille de la grille en degrés (approx) : 70px / 2^zoom
+      final double gridSize = 70.0 / pow(2, _currentZoom);
+
+      for (final member in filteredMembers) {
+        if (member.latitude != null && member.longitude != null) {
+          final int x = (member.latitude! / gridSize).floor();
+          final int y = (member.longitude! / gridSize).floor();
+          final key = Point(x, y);
+          clusters.putIfAbsent(key, () => []).add(member);
+        }
+      }
+
+      for (final entry in clusters.entries) {
+        final clusterMembers = entry.value;
+        if (clusterMembers.isEmpty) continue;
+
+        if (clusterMembers.length == 1) {
+          // Un seul membre : afficher le marqueur normal
+          await _addSingleMarker(markers, clusterMembers.first, ref);
+        } else {
+          // Cluster : afficher un marqueur de groupe
+          // Position moyenne
+          double latSum = 0;
+          double lngSum = 0;
+          for (final m in clusterMembers) {
+            latSum += m.latitude!;
+            lngSum += m.longitude!;
+          }
+          final center = LatLng(
+            latSum / clusterMembers.length,
+            lngSum / clusterMembers.length,
+          );
+
+          final icon = await _createClusterMarker(clusterMembers.length);
+
+          markers.add(
+            Marker(
+              markerId: MarkerId('cluster_${entry.key.x}_${entry.key.y}'),
+              position: center,
+              icon: icon,
+              onTap: () {
+                // Zoom sur le cluster
+                _controller.future.then((c) {
+                  c.animateCamera(
+                    CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
+                  );
+                });
+              },
+            ),
+          );
+        }
+      }
+    } else {
+      // Zoom élevé : afficher tous les marqueurs individuellement
+      for (final member in filteredMembers) {
+        await _addSingleMarker(markers, member, ref);
       }
     }
 
     if (mounted) {
       setState(() => _markers = markers);
+    }
+  }
+
+  Future<void> _addSingleMarker(
+    Set<Marker> markers,
+    ProfileModel member,
+    WidgetRef ref,
+  ) async {
+    if (member.latitude != null && member.longitude != null) {
+      // Vérifier si c'est un ami
+      final friendshipStatus = ref.read(friendshipStatusProvider(member.id));
+      final isFriend =
+          friendshipStatus.whenOrNull(
+            data: (status) => status == FriendshipStatus.friends,
+          ) ??
+          false;
+
+      // Créer le marqueur avec toutes les infos visuelles
+      final icon = await _createMarkerFromPhoto(
+        member.photoUrl,
+        member.id,
+        isFriend,
+        member.profession,
+        member.lastLoginAt,
+        member.isOnline,
+      );
+
+      markers.add(
+        Marker(
+          markerId: MarkerId(member.id),
+          position: LatLng(member.latitude!, member.longitude!),
+          icon: icon,
+          anchor: const Offset(0.5, 1.0),
+          onTap: () => _showMemberDetails(member),
+        ),
+      );
     }
   }
 
@@ -533,10 +990,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     return _nearbyMembers.where((member) {
       return _matchesFilter(member.profession, _selectedFilter);
     }).toList();
-  }
-
-  void _updateMarkers() {
-    _updateMarkersAsync();
   }
 
   void _showMemberDetails(ProfileModel member) {
@@ -956,7 +1409,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  @override
+  void _onCameraMove(CameraPosition position) {
+    _currentZoom = position.zoom;
+    // Rafraîchir les marqueurs seulement si le changement de zoom est significatif
+    // (changement de catégorie de taille)
+    final newCategory = _currZoomLevelCategory();
+    if (newCategory != _lastZoomCategory) {
+      _lastZoomCategory = newCategory;
+      _updateMarkers();
+    }
+  }
+
+  int _currZoomLevelCategory() {
+    if (_currentZoom < 10) return 0;
+    if (_currentZoom < 14) return 1;
+    return 2;
+  }
+
+  @override // Correction: override build method signature match
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
@@ -1023,8 +1493,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   GoogleMap(
                     initialCameraPosition: const CameraPosition(
                       target: _defaultPosition,
-                      zoom: 10,
+                      zoom: 12,
                     ),
+                    onCameraMove: _onCameraMove,
+                    onTap: (_) {
+                      if (_selectedMarkerId != null) {
+                        setState(() => _selectedMarkerId = null);
+                        _updateMarkers();
+                      }
+                    },
                     onMapCreated: (controller) {
                       _controller.complete(controller);
                       // Move camera to current position if available

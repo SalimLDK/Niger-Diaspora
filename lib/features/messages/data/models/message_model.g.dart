@@ -18,6 +18,12 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       fileName: json['fileName'] as String?,
       fileSize: (json['fileSize'] as num?)?.toInt(),
       mimeType: json['mimeType'] as String?,
+      audioDuration: (json['audioDuration'] as num?)?.toInt(),
+      audioWaveform:
+          (json['audioWaveform'] as List<dynamic>?)
+              ?.map((e) => (e as num).toDouble())
+              .toList() ??
+          const [],
       readBy:
           (json['readBy'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -28,6 +34,21 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
           json['createdAt'] == null
               ? null
               : DateTime.parse(json['createdAt'] as String),
+      deletedFor:
+          (json['deletedFor'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      deletedForEveryone: json['deletedForEveryone'] as bool? ?? false,
+      deletedAt:
+          json['deletedAt'] == null
+              ? null
+              : DateTime.parse(json['deletedAt'] as String),
+      reportedBy:
+          (json['reportedBy'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
@@ -42,7 +63,13 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'fileName': instance.fileName,
       'fileSize': instance.fileSize,
       'mimeType': instance.mimeType,
+      'audioDuration': instance.audioDuration,
+      'audioWaveform': instance.audioWaveform,
       'readBy': instance.readBy,
       'readAt': instance.readAt,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'deletedFor': instance.deletedFor,
+      'deletedForEveryone': instance.deletedForEveryone,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'reportedBy': instance.reportedBy,
     };

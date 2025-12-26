@@ -159,20 +159,20 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
         'addedAt': FieldValue.serverTimestamp(),
       });
 
-      // Update friend counts
+      // Update friend counts (use set with merge to create document if it doesn't exist)
       final senderRef = _firestore
           .collection(FirebaseCollections.users)
           .doc(senderId);
-      batch.update(senderRef, {
+      batch.set(senderRef, {
         'friendIds': FieldValue.arrayUnion([receiverId]),
-      });
+      }, SetOptions(merge: true));
 
       final receiverRef = _firestore
           .collection(FirebaseCollections.users)
           .doc(receiverId);
-      batch.update(receiverRef, {
+      batch.set(receiverRef, {
         'friendIds': FieldValue.arrayUnion([senderId]),
-      });
+      }, SetOptions(merge: true));
 
       await batch.commit();
     } on FirebaseException catch (e) {
@@ -379,20 +379,20 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
           .doc(userId);
       batch.delete(friendFriendRef);
 
-      // Update friendIds arrays
+      // Update friendIds arrays (use set with merge to create document if it doesn't exist)
       final userRef = _firestore
           .collection(FirebaseCollections.users)
           .doc(userId);
-      batch.update(userRef, {
+      batch.set(userRef, {
         'friendIds': FieldValue.arrayRemove([friendId]),
-      });
+      }, SetOptions(merge: true));
 
       final friendRef = _firestore
           .collection(FirebaseCollections.users)
           .doc(friendId);
-      batch.update(friendRef, {
+      batch.set(friendRef, {
         'friendIds': FieldValue.arrayRemove([userId]),
-      });
+      }, SetOptions(merge: true));
 
       await batch.commit();
     } on FirebaseException catch (e) {

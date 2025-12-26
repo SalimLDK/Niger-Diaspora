@@ -21,9 +21,15 @@ class MessageModel with _$MessageModel {
     String? fileName,
     int? fileSize,
     String? mimeType,
+    int? audioDuration,
+    @Default([]) List<double> audioWaveform,
     @Default([]) List<String> readBy,
     @Default({}) Map<String, dynamic> readAt,
     DateTime? createdAt,
+    @Default([]) List<String> deletedFor,
+    @Default(false) bool deletedForEveryone,
+    DateTime? deletedAt,
+    @Default([]) List<String> reportedBy,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>
@@ -36,6 +42,12 @@ class MessageModel with _$MessageModel {
       'id': doc.id,
       'createdAt': _timestampToIso(data['createdAt']),
       'readAt': _convertReadAtTimestamps(data['readAt']),
+      'deletedFor':
+          (data['deletedFor'] as List<dynamic>?)?.cast<String>() ?? [],
+      'deletedForEveryone': data['deletedForEveryone'] ?? false,
+      'deletedAt': _timestampToIso(data['deletedAt']),
+      'reportedBy':
+          (data['reportedBy'] as List<dynamic>?)?.cast<String>() ?? [],
     });
   }
 
@@ -61,36 +73,48 @@ class MessageModel with _$MessageModel {
   }
 
   MessageEntity toEntity() => MessageEntity(
-        id: id,
-        senderId: senderId,
-        senderName: senderName,
-        senderPhotoUrl: senderPhotoUrl,
-        content: content,
-        type: _parseMessageType(type),
-        fileUrl: fileUrl,
-        fileName: fileName,
-        fileSize: fileSize,
-        mimeType: mimeType,
-        readBy: readBy,
-        readAt: _parseReadAt(readAt),
-        createdAt: createdAt ?? DateTime.now(),
-      );
+    id: id,
+    senderId: senderId,
+    senderName: senderName,
+    senderPhotoUrl: senderPhotoUrl,
+    content: content,
+    type: _parseMessageType(type),
+    fileUrl: fileUrl,
+    fileName: fileName,
+    fileSize: fileSize,
+    mimeType: mimeType,
+    audioDuration: audioDuration,
+    audioWaveform: audioWaveform.isNotEmpty ? audioWaveform : null,
+    readBy: readBy,
+    readAt: _parseReadAt(readAt),
+    createdAt: createdAt ?? DateTime.now(),
+    deletedFor: deletedFor,
+    deletedForEveryone: deletedForEveryone,
+    deletedAt: deletedAt,
+    reportedBy: reportedBy,
+  );
 
   factory MessageModel.fromEntity(MessageEntity entity) => MessageModel(
-        id: entity.id,
-        senderId: entity.senderId,
-        senderName: entity.senderName,
-        senderPhotoUrl: entity.senderPhotoUrl,
-        content: entity.content,
-        type: entity.type.name,
-        fileUrl: entity.fileUrl,
-        fileName: entity.fileName,
-        fileSize: entity.fileSize,
-        mimeType: entity.mimeType,
-        readBy: entity.readBy,
-        readAt: entity.readAt.map((k, v) => MapEntry(k, v.toIso8601String())),
-        createdAt: entity.createdAt,
-      );
+    id: entity.id,
+    senderId: entity.senderId,
+    senderName: entity.senderName,
+    senderPhotoUrl: entity.senderPhotoUrl,
+    content: entity.content,
+    type: entity.type.name,
+    fileUrl: entity.fileUrl,
+    fileName: entity.fileName,
+    fileSize: entity.fileSize,
+    mimeType: entity.mimeType,
+    audioDuration: entity.audioDuration,
+    audioWaveform: entity.audioWaveform ?? [],
+    readBy: entity.readBy,
+    readAt: entity.readAt.map((k, v) => MapEntry(k, v.toIso8601String())),
+    createdAt: entity.createdAt,
+    deletedFor: entity.deletedFor,
+    deletedForEveryone: entity.deletedForEveryone,
+    deletedAt: entity.deletedAt,
+    reportedBy: entity.reportedBy,
+  );
 
   static MessageType _parseMessageType(String value) {
     return MessageType.values.firstWhere(

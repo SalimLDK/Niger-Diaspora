@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,10 +6,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../messages/presentation/providers/media_gallery_provider.dart';
+import '../../../messages/presentation/widgets/media_gallery_grid.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -317,6 +322,16 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Membres du groupe
+                  _buildMembersSection(context, group, l10n),
+
+                  const SizedBox(height: 24),
+
+                  // Médias partagés
+                  if (isMember) _buildMediaSection(group),
+
+                  const SizedBox(height: 24),
+
                   // Créateur
                   if (group.creatorName != null)
                     Row(
@@ -436,7 +451,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   Future<void> _joinGroup(String groupId) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);
@@ -444,6 +459,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final success = await ref
         .read(groupDetailNotifierProvider.notifier)
         .joinGroup(groupId, currentUser.id);
+
+    if (success) {
+      AnalyticsService.instance.logEvent(
+        name: 'join_group',
+        parameters: {'group_id': groupId},
+      );
+    }
 
     setState(() => _isLoading = false);
 
@@ -460,7 +482,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   Future<void> _leaveGroup(String groupId) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     final confirm = await showDialog<bool>(
@@ -491,6 +513,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         .read(groupDetailNotifierProvider.notifier)
         .leaveGroup(groupId, currentUser.id);
 
+    if (success) {
+      AnalyticsService.instance.logEvent(
+        name: 'leave_group',
+        parameters: {'group_id': groupId},
+      );
+    }
+
     setState(() => _isLoading = false);
 
     if (success && mounted) {
@@ -512,6 +541,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           participantIds: group.memberIds,
           groupName: group.name,
           groupImageUrl: group.imageUrl,
+          groupId: group.id, // Pass the group ID
         );
 
     setState(() => _isLoading = false);
@@ -523,6 +553,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           'name': group.name,
           'imageUrl': group.imageUrl,
           'isGroup': true,
+          'groupId': group.id, // Pass the actual group ID
         },
       );
     } else if (mounted) {
@@ -536,12 +567,253 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   }
 
   void _shareGroup(GroupEntity group) {
+    AnalyticsService.instance.logEvent(
+      name: 'share_group',
+      parameters: {'group_id': group.id},
+    );
     ShareGroupDialog.show(
       context,
       groupName: group.name,
       groupImageUrl: group.imageUrl,
       groupId: group.id,
       category: group.category,
+    );
+  }
+
+  Widget _buildMembersSection(
+    BuildContext context,
+    GroupEntity group,
+    AppLocalizations l10n,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.membersLabel,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '${group.memberIds.length}',
+              style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children:
+                group.memberIds.take(5).map((memberId) {
+                  return _MemberListItem(
+                    memberId: memberId,
+                    isAdmin: group.adminIds.contains(memberId),
+                    isCreator: group.creatorId == memberId,
+                    onTap: () => context.push('/profile/$memberId'),
+                  );
+                }).toList(),
+          ),
+        ),
+        if (group.memberIds.length > 5) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                context.push('/groups/${group.id}/members', extra: group);
+              },
+              child: Text(
+                'Voir tous les ${group.memberIds.length} membres',
+                style: TextStyle(color: context.adaptivePrimaryColor),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMediaSection(GroupEntity group) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final conversationIdAsync = ref.watch(
+          groupConversationIdProvider(group.name),
+        );
+
+        return conversationIdAsync.when(
+          data: (conversationId) {
+            if (conversationId == null) {
+              return const SizedBox.shrink();
+            }
+
+            return MediaGalleryCompact(
+              conversationId: conversationId,
+              onViewAll: () {
+                context.push('/messages/$conversationId/media');
+              },
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+    );
+  }
+}
+
+class _MemberListItem extends ConsumerWidget {
+  final String memberId;
+  final bool isAdmin;
+  final bool isCreator;
+  final VoidCallback onTap;
+
+  const _MemberListItem({
+    required this.memberId,
+    required this.isAdmin,
+    required this.isCreator,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userStreamProvider(memberId));
+
+    return profileAsync.when(
+      data: (profile) {
+        if (profile == null) return const SizedBox.shrink();
+
+        return ListTile(
+          onTap: onTap,
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child:
+                profile.photoUrl != null
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: profile.photoUrl!,
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (_, __) => Icon(
+                              Icons.person,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                        errorWidget:
+                            (_, __, ___) => Icon(
+                              Icons.person,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                      ),
+                    )
+                    : Icon(Icons.person, color: context.adaptivePrimaryColor),
+          ),
+          title: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  profile.displayName ?? 'Membre',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: context.textPrimaryColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isCreator) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Créateur',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ] else if (isAdmin) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.adaptiveSecondaryColor.withValues(
+                      alpha: 0.2,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Admin',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: context.adaptiveSecondaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          subtitle:
+              profile.profession != null
+                  ? Text(
+                    profile.profession!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textTertiaryColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                  : null,
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: context.textTertiaryColor,
+          ),
+        );
+      },
+      loading:
+          () => ListTile(
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: context.surfaceVariantColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            title: Container(
+              height: 14,
+              width: 100,
+              decoration: BoxDecoration(
+                color: context.surfaceVariantColor,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

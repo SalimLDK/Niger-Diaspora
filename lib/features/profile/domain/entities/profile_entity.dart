@@ -6,7 +6,7 @@ part 'profile_entity.freezed.dart';
 class ProfileEntity with _$ProfileEntity {
   const factory ProfileEntity({
     required String id,
-    required String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
@@ -33,5 +33,8 @@ class ProfileEntity with _$ProfileEntity {
     @Default(0) int eventsCount,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    @Default(false) bool isOnline,
+    DateTime? lastSeen,
+    @Default(true) bool showOnlineStatus,
   }) = _ProfileEntity;
 }

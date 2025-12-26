@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/event_entity.dart';
 
 part 'event_model.freezed.dart';
@@ -36,6 +37,11 @@ class EventModel with _$EventModel {
 
   factory EventModel.fromJson(Map<String, dynamic> json) =>
       _$EventModelFromJson(json);
+
+  factory EventModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return EventModel.fromJson({...data, 'id': doc.id});
+  }
 
   EventEntity toEntity() => EventEntity(
     id: id,

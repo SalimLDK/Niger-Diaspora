@@ -1,0 +1,13 @@
+{
+    "rules": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "messages": {
+            "$conversationId": {
+                ".indexOn": [
+                    "createdAt"
+                ]
+            }
+        }
+    }
+}

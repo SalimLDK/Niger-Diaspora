@@ -266,3 +266,217 @@ function formatTime(timestamp) {
     const minutes = date.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
 }
+
+/**
+ * Stripe Payment Intent Handler
+ * 
+ * This function watches for new documents in the 'payment_intents' collection
+ * and creates a Stripe payment intent on the server side.
+ * 
+ * IMPORTANT: Before deploying, set your Stripe secret key:
+ * firebase functions:config:set stripe.secret_key="sk_test_YOUR_SECRET_KEY"
+ * 
+ * For production, use your live secret key:
+ * firebase functions:config:set stripe.secret_key="sk_live_YOUR_SECRET_KEY"
+ */
+
+// Lazy load Stripe to avoid initialization errors if config is not set
+let stripe = null;
+
+function getStripe() {
+    if (!stripe) {
+        const stripeSecretKey = functions.config().stripe?.secret_key;
+
+        if (!stripeSecretKey) {
+            throw new Error(
+                "Stripe secret key not configured. " +
+                "Run: firebase functions:config:set stripe.secret_key=\"sk_test_...\""
+            );
+        }
+
+        // NOTE: You need to install stripe package first:
+        // cd functions && npm install stripe
+        const Stripe = require("stripe");
+        stripe = new Stripe(stripeSecretKey, {
+            apiVersion: "2023-10-16",
+        });
+    }
+    return stripe;
+}
+
+exports.createStripePaymentIntent = functions.firestore
+    .document("payment_intents/{intentId}")
+    .onCreate(async (snapshot, context) => {
+        const data = snapshot.data();
+        const intentId = context.params.intentId;
+
+        console.log(`Creating Stripe payment intent for: ${intentId}`);
+
+        try {
+            // Validate required fields
+            if (!data.amount || !data.currency || !data.userId) {
+                throw new Error("Missing required fields: amount, currency, or userId");
+            }
+
+            // Get Stripe instance
+            const stripeInstance = getStripe();
+
+            // Create payment intent
+            const paymentIntent = await stripeInstance.paymentIntents.create({
+                amount: Math.round(data.amount * 100), // Convert to cents
+                currency: data.currency.toLowerCase(),
+                metadata: {
+                    userId: data.userId,
+                    transactionId: data.transactionId || "",
+                    ...data.metadata,
+                },
+                automatic_payment_methods: {
+                    enabled: true,
+                },
+            });
+
+            console.log(`Payment intent created: ${paymentIntent.id}`);
+
+            // Update the document with the payment intent details
+            await snapshot.ref.update({
+                status: "created",
+                paymentIntentId: paymentIntent.id,
+                clientSecret: paymentIntent.client_secret,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            return {
+                success: true,
+                paymentIntentId: paymentIntent.id,
+            };
+        } catch (error) {
+            console.error("Error creating payment intent:", error);
+
+            // Update document with error status
+            await snapshot.ref.update({
+                status: "error",
+                error: error.message,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            return {
+                success: false,
+                error: error.message,
+            };
+        }
+    });
+
+/**
+ * Stripe Webhook Handler
+ * 
+ * Handles Stripe webhook events for payment status updates.
+ * This ensures your database stays in sync with Stripe's payment state.
+ * 
+ * To configure the webhook:
+ * 1. Go to https://dashboard.stripe.com/webhooks
+ * 2. Add endpoint: https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net/stripeWebhook
+ * 3. Select events: payment_intent.succeeded, payment_intent.payment_failed
+ * 4. Copy the webhook secret and set it:
+ *    firebase functions:config:set stripe.webhook_secret="whsec_..."
+ */
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    const webhookSecret = functions.config().stripe?.webhook_secret;
+
+    if (!webhookSecret) {
+        console.error("Webhook secret not configured");
+        return res.status(500).send("Webhook secret not configured");
+    }
+
+    let event;
+
+    try {
+        const stripeInstance = getStripe();
+        event = stripeInstance.webhooks.constructEvent(
+            req.rawBody,
+            sig,
+            webhookSecret
+        );
+    } catch (err) {
+        console.error("Webhook signature verification failed:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    console.log(`Received webhook event: ${event.type}`);
+
+    try {
+        switch (event.type) {
+            case "payment_intent.succeeded":
+                await handlePaymentSuccess(event.data.object);
+                break;
+
+            case "payment_intent.payment_failed":
+                await handlePaymentFailure(event.data.object);
+                break;
+
+            default:
+                console.log(`Unhandled event type: ${event.type}`);
+        }
+
+        res.json({ received: true });
+    } catch (error) {
+        console.error("Error processing webhook:", error);
+        res.status(500).send("Webhook processing error");
+    }
+});
+
+/**
+ * Handle successful payment
+ */
+async function handlePaymentSuccess(paymentIntent) {
+    console.log(`Payment succeeded: ${paymentIntent.id}`);
+
+    const transactionId = paymentIntent.metadata.transactionId;
+
+    if (!transactionId) {
+        console.log("No transaction ID in metadata");
+        return;
+    }
+
+    try {
+        // Update transaction status
+        await admin.firestore().collection("transactions").doc(transactionId).update({
+            status: "processing",
+            paymentIntentId: paymentIntent.id,
+            stripeChargeId: paymentIntent.charges?.data[0]?.id,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        console.log(`Transaction ${transactionId} marked as processing`);
+    } catch (error) {
+        console.error("Error updating transaction:", error);
+    }
+}
+
+/**
+ * Handle failed payment
+ */
+async function handlePaymentFailure(paymentIntent) {
+    console.log(`Payment failed: ${paymentIntent.id}`);
+
+    const transactionId = paymentIntent.metadata.transactionId;
+
+    if (!transactionId) {
+        console.log("No transaction ID in metadata");
+        return;
+    }
+
+    try {
+        // Update transaction status
+        await admin.firestore().collection("transactions").doc(transactionId).update({
+            status: "failed",
+            paymentIntentId: paymentIntent.id,
+            failureReason: paymentIntent.last_payment_error?.message || "Payment failed",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        console.log(`Transaction ${transactionId} marked as failed`);
+    } catch (error) {
+        console.error("Error updating transaction:", error);
+    }
+}

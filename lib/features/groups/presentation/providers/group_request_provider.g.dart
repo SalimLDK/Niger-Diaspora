@@ -341,7 +341,7 @@ class _GroupSentInvitesProviderElement
 }
 
 String _$groupRequestNotifierHash() =>
-    r'3673b27988b726e4068c3ef1a235568b63d8f9b2';
+    r'141ad80d392c60352ad61940e65545315de5f4ea';
 
 /// See also [GroupRequestNotifier].
 @ProviderFor(GroupRequestNotifier)
@@ -361,7 +361,7 @@ final groupRequestNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$GroupRequestNotifier = AutoDisposeNotifier<AsyncValue<void>>;
 String _$groupInviteNotifierHash() =>
-    r'f269677852e7f366b65b3fc892c84a211fe81d55';
+    r'ea3a2405f44e33fe35757b16509075eccadb82db';
 
 /// See also [GroupInviteNotifier].
 @ProviderFor(GroupInviteNotifier)

@@ -1,116 +1,150 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../data/datasources/notification_preferences_datasource.dart';
-import '../../data/repositories/notification_preferences_repository_impl.dart';
-import '../../domain/entities/notification_preferences_entity.dart';
-import '../../domain/repositories/notification_preferences_repository.dart';
+import '../../../../core/services/preferences_service.dart';
 
 part 'notification_preferences_provider.g.dart';
 
-@riverpod
-NotificationPreferencesDataSource notificationPreferencesDataSource(
-  Ref ref,
-) {
-  return NotificationPreferencesDataSourceImpl();
-}
+/// State class for notification preferences
+class NotificationPreferences {
+  final bool messagesEnabled;
+  final bool eventsEnabled;
+  final bool friendRequestsEnabled;
+  final bool groupsEnabled;
+  final bool eventRemindersEnabled;
+  final bool soundEnabled;
+  final bool vibrationEnabled;
+  final bool quietHoursEnabled;
+  final int quietHoursStartHour;
+  final int quietHoursStartMinute;
+  final int quietHoursEndHour;
+  final int quietHoursEndMinute;
 
-@riverpod
-NotificationPreferencesRepository notificationPreferencesRepository(
-  Ref ref,
-) {
-  return NotificationPreferencesRepositoryImpl(
-    dataSource: ref.watch(notificationPreferencesDataSourceProvider),
-  );
-}
+  const NotificationPreferences({
+    required this.messagesEnabled,
+    required this.eventsEnabled,
+    required this.friendRequestsEnabled,
+    required this.groupsEnabled,
+    required this.eventRemindersEnabled,
+    required this.soundEnabled,
+    required this.vibrationEnabled,
+    required this.quietHoursEnabled,
+    required this.quietHoursStartHour,
+    required this.quietHoursStartMinute,
+    required this.quietHoursEndHour,
+    required this.quietHoursEndMinute,
+  });
 
-@riverpod
-class NotificationPreferencesNotifier extends _$NotificationPreferencesNotifier {
-  @override
-  AsyncValue<NotificationPreferencesEntity> build() {
-    _loadPreferences();
-    return const AsyncValue.loading();
+  NotificationPreferences copyWith({
+    bool? messagesEnabled,
+    bool? eventsEnabled,
+    bool? friendRequestsEnabled,
+    bool? groupsEnabled,
+    bool? eventRemindersEnabled,
+    bool? soundEnabled,
+    bool? vibrationEnabled,
+    bool? quietHoursEnabled,
+    int? quietHoursStartHour,
+    int? quietHoursStartMinute,
+    int? quietHoursEndHour,
+    int? quietHoursEndMinute,
+  }) {
+    return NotificationPreferences(
+      messagesEnabled: messagesEnabled ?? this.messagesEnabled,
+      eventsEnabled: eventsEnabled ?? this.eventsEnabled,
+      friendRequestsEnabled:
+          friendRequestsEnabled ?? this.friendRequestsEnabled,
+      groupsEnabled: groupsEnabled ?? this.groupsEnabled,
+      eventRemindersEnabled:
+          eventRemindersEnabled ?? this.eventRemindersEnabled,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
+      quietHoursStartHour: quietHoursStartHour ?? this.quietHoursStartHour,
+      quietHoursStartMinute:
+          quietHoursStartMinute ?? this.quietHoursStartMinute,
+      quietHoursEndHour: quietHoursEndHour ?? this.quietHoursEndHour,
+      quietHoursEndMinute: quietHoursEndMinute ?? this.quietHoursEndMinute,
+    );
   }
+}
 
-  Future<void> _loadPreferences() async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
-    if (currentUser == null) {
-      state = const AsyncValue.data(NotificationPreferencesEntity());
-      return;
-    }
+@riverpod
+class NotificationPreferencesNotifier
+    extends _$NotificationPreferencesNotifier {
+  final _prefs = PreferencesService.instance;
 
-    final repository = ref.read(notificationPreferencesRepositoryProvider);
-    final result = await repository.getPreferences(currentUser.id);
-
-    result.fold(
-      (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
-      (prefs) => state = AsyncValue.data(prefs),
+  @override
+  NotificationPreferences build() {
+    return NotificationPreferences(
+      messagesEnabled: _prefs.notifyMessages,
+      eventsEnabled: _prefs.notifyEvents,
+      friendRequestsEnabled: _prefs.notifyFriendRequests,
+      groupsEnabled: _prefs.notifyGroups,
+      eventRemindersEnabled: _prefs.notifyEventReminders,
+      soundEnabled: _prefs.notificationSound,
+      vibrationEnabled: _prefs.notificationVibration,
+      quietHoursEnabled: _prefs.quietHoursEnabled,
+      quietHoursStartHour: _prefs.quietHoursStartHour,
+      quietHoursStartMinute: _prefs.quietHoursStartMinute,
+      quietHoursEndHour: _prefs.quietHoursEndHour,
+      quietHoursEndMinute: _prefs.quietHoursEndMinute,
     );
   }
 
-  Future<void> reload() async {
-    state = const AsyncValue.loading();
-    await _loadPreferences();
+  Future<void> setMessagesEnabled(bool enabled) async {
+    await _prefs.setNotifyMessages(enabled);
+    state = state.copyWith(messagesEnabled: enabled);
   }
 
-  Future<bool> updateMessages(bool value) async {
-    return _updatePreference((current) => NotificationPreferencesEntity(
-          messages: value,
-          newEvents: current.newEvents,
-          groupActivity: current.groupActivity,
-          eventReminders: current.eventReminders,
-        ));
+  Future<void> setEventsEnabled(bool enabled) async {
+    await _prefs.setNotifyEvents(enabled);
+    state = state.copyWith(eventsEnabled: enabled);
   }
 
-  Future<bool> updateNewEvents(bool value) async {
-    return _updatePreference((current) => NotificationPreferencesEntity(
-          messages: current.messages,
-          newEvents: value,
-          groupActivity: current.groupActivity,
-          eventReminders: current.eventReminders,
-        ));
+  Future<void> setFriendRequestsEnabled(bool enabled) async {
+    await _prefs.setNotifyFriendRequests(enabled);
+    state = state.copyWith(friendRequestsEnabled: enabled);
   }
 
-  Future<bool> updateGroupActivity(bool value) async {
-    return _updatePreference((current) => NotificationPreferencesEntity(
-          messages: current.messages,
-          newEvents: current.newEvents,
-          groupActivity: value,
-          eventReminders: current.eventReminders,
-        ));
+  Future<void> setGroupsEnabled(bool enabled) async {
+    await _prefs.setNotifyGroups(enabled);
+    state = state.copyWith(groupsEnabled: enabled);
   }
 
-  Future<bool> updateEventReminders(bool value) async {
-    return _updatePreference((current) => NotificationPreferencesEntity(
-          messages: current.messages,
-          newEvents: current.newEvents,
-          groupActivity: current.groupActivity,
-          eventReminders: value,
-        ));
+  Future<void> setEventRemindersEnabled(bool enabled) async {
+    await _prefs.setNotifyEventReminders(enabled);
+    state = state.copyWith(eventRemindersEnabled: enabled);
   }
 
-  Future<bool> _updatePreference(
-    NotificationPreferencesEntity Function(NotificationPreferencesEntity current) updater,
-  ) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
-    if (currentUser == null) return false;
+  Future<void> setSoundEnabled(bool enabled) async {
+    await _prefs.setNotificationSound(enabled);
+    state = state.copyWith(soundEnabled: enabled);
+  }
 
-    final currentPrefs = state.valueOrNull ?? const NotificationPreferencesEntity();
-    final newPrefs = updater(currentPrefs);
+  Future<void> setVibrationEnabled(bool enabled) async {
+    await _prefs.setNotificationVibration(enabled);
+    state = state.copyWith(vibrationEnabled: enabled);
+  }
 
-    // Optimistic update
-    state = AsyncValue.data(newPrefs);
+  Future<void> setQuietHoursEnabled(bool enabled) async {
+    await _prefs.setQuietHoursEnabled(enabled);
+    state = state.copyWith(quietHoursEnabled: enabled);
+  }
 
-    final repository = ref.read(notificationPreferencesRepositoryProvider);
-    final result = await repository.updatePreferences(currentUser.id, newPrefs);
+  Future<void> setQuietHoursStartTime(int hour, int minute) async {
+    await _prefs.setQuietHoursStartHour(hour);
+    await _prefs.setQuietHoursStartMinute(minute);
+    state = state.copyWith(
+      quietHoursStartHour: hour,
+      quietHoursStartMinute: minute,
+    );
+  }
 
-    return result.fold(
-      (failure) {
-        // Revert on failure
-        state = AsyncValue.data(currentPrefs);
-        return false;
-      },
-      (_) => true,
+  Future<void> setQuietHoursEndTime(int hour, int minute) async {
+    await _prefs.setQuietHoursEndHour(hour);
+    await _prefs.setQuietHoursEndMinute(minute);
+    state = state.copyWith(
+      quietHoursEndHour: hour,
+      quietHoursEndMinute: minute,
     );
   }
 }

@@ -23,7 +23,7 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
   }
 
   Future<String?> generateShareLink() async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
 
     if (currentUser == null) {
       state = AsyncValue.error('Utilisateur non connecté', StackTrace.current);
@@ -61,7 +61,7 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
   Future<void> shareViaSystem({String? customMessage}) async {
     final link = await generateShareLink();
     if (link != null) {
-      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       final message = customMessage ??
           'Découvrez mon profil sur Niger Diaspora: $link';
       await Share.share(

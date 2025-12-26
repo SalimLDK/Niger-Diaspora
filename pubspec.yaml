@@ -25,6 +25,9 @@ dependencies:
   firebase_storage: ^12.3.4
   firebase_messaging: ^15.1.3
   firebase_app_check: ^0.3.1+4
+  firebase_analytics:
+  firebase_crashlytics:
+  firebase_performance:
 
   # UI
   google_fonts: ^6.2.1
@@ -32,6 +35,8 @@ dependencies:
   shimmer: ^3.0.0
   flutter_svg: ^2.0.10
   tutorial_coach_mark: ^1.2.11
+  carousel_slider: ^5.0.0
+  photo_view: ^0.15.0
 
   # Maps
   google_maps_flutter: ^2.9.0
@@ -47,11 +52,13 @@ dependencies:
   equatable: ^2.0.5
   dartz: ^0.10.1
   intl: ^0.19.0
+  timeago: ^3.7.0
 
   # Local Storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.3.2
+  url_strategy: ^0.2.0
 
   # Image & Files
   image_picker: ^1.1.2
@@ -79,9 +86,26 @@ dependencies:
 
   # Networking
   dio: ^5.7.0
+  http: ^1.2.0
   connectivity_plus: ^6.1.0
   firebase_database: ^11.3.10
   flutter_local_notifications: ^19.5.0
+
+  # Audio
+  record: ^5.0.5
+  just_audio: ^0.9.37
+  audio_waveforms: ^1.0.5
+
+  # Download to Gallery
+  gal: ^2.3.0
+
+  # Payments & Monetization
+  flutter_stripe: ^11.0.0
+  uuid: ^4.2.1
+  firebase_remote_config: ^5.5.0
+  flutter_background_service: ^5.1.0
+  timezone: ^0.10.1
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_test:
@@ -122,3 +146,6 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+dependency_overrides:
+  record_linux: ^1.2.0

@@ -31,9 +31,15 @@ mixin _$MessageModel {
   String? get fileName => throw _privateConstructorUsedError;
   int? get fileSize => throw _privateConstructorUsedError;
   String? get mimeType => throw _privateConstructorUsedError;
+  int? get audioDuration => throw _privateConstructorUsedError;
+  List<double> get audioWaveform => throw _privateConstructorUsedError;
   List<String> get readBy => throw _privateConstructorUsedError;
   Map<String, dynamic> get readAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  List<String> get deletedFor => throw _privateConstructorUsedError;
+  bool get deletedForEveryone => throw _privateConstructorUsedError;
+  DateTime? get deletedAt => throw _privateConstructorUsedError;
+  List<String> get reportedBy => throw _privateConstructorUsedError;
 
   /// Serializes this MessageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -63,9 +69,15 @@ abstract class $MessageModelCopyWith<$Res> {
     String? fileName,
     int? fileSize,
     String? mimeType,
+    int? audioDuration,
+    List<double> audioWaveform,
     List<String> readBy,
     Map<String, dynamic> readAt,
     DateTime? createdAt,
+    List<String> deletedFor,
+    bool deletedForEveryone,
+    DateTime? deletedAt,
+    List<String> reportedBy,
   });
 }
 
@@ -94,9 +106,15 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? fileName = freezed,
     Object? fileSize = freezed,
     Object? mimeType = freezed,
+    Object? audioDuration = freezed,
+    Object? audioWaveform = null,
     Object? readBy = null,
     Object? readAt = null,
     Object? createdAt = freezed,
+    Object? deletedFor = null,
+    Object? deletedForEveryone = null,
+    Object? deletedAt = freezed,
+    Object? reportedBy = null,
   }) {
     return _then(
       _value.copyWith(
@@ -150,6 +168,16 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.mimeType
                     : mimeType // ignore: cast_nullable_to_non_nullable
                         as String?,
+            audioDuration:
+                freezed == audioDuration
+                    ? _value.audioDuration
+                    : audioDuration // ignore: cast_nullable_to_non_nullable
+                        as int?,
+            audioWaveform:
+                null == audioWaveform
+                    ? _value.audioWaveform
+                    : audioWaveform // ignore: cast_nullable_to_non_nullable
+                        as List<double>,
             readBy:
                 null == readBy
                     ? _value.readBy
@@ -165,6 +193,26 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.createdAt
                     : createdAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            deletedFor:
+                null == deletedFor
+                    ? _value.deletedFor
+                    : deletedFor // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            deletedForEveryone:
+                null == deletedForEveryone
+                    ? _value.deletedForEveryone
+                    : deletedForEveryone // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            deletedAt:
+                freezed == deletedAt
+                    ? _value.deletedAt
+                    : deletedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
+            reportedBy:
+                null == reportedBy
+                    ? _value.reportedBy
+                    : reportedBy // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -191,9 +239,15 @@ abstract class _$$MessageModelImplCopyWith<$Res>
     String? fileName,
     int? fileSize,
     String? mimeType,
+    int? audioDuration,
+    List<double> audioWaveform,
     List<String> readBy,
     Map<String, dynamic> readAt,
     DateTime? createdAt,
+    List<String> deletedFor,
+    bool deletedForEveryone,
+    DateTime? deletedAt,
+    List<String> reportedBy,
   });
 }
 
@@ -221,9 +275,15 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? fileName = freezed,
     Object? fileSize = freezed,
     Object? mimeType = freezed,
+    Object? audioDuration = freezed,
+    Object? audioWaveform = null,
     Object? readBy = null,
     Object? readAt = null,
     Object? createdAt = freezed,
+    Object? deletedFor = null,
+    Object? deletedForEveryone = null,
+    Object? deletedAt = freezed,
+    Object? reportedBy = null,
   }) {
     return _then(
       _$MessageModelImpl(
@@ -277,6 +337,16 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value.mimeType
                 : mimeType // ignore: cast_nullable_to_non_nullable
                     as String?,
+        audioDuration:
+            freezed == audioDuration
+                ? _value.audioDuration
+                : audioDuration // ignore: cast_nullable_to_non_nullable
+                    as int?,
+        audioWaveform:
+            null == audioWaveform
+                ? _value._audioWaveform
+                : audioWaveform // ignore: cast_nullable_to_non_nullable
+                    as List<double>,
         readBy:
             null == readBy
                 ? _value._readBy
@@ -292,6 +362,26 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        deletedFor:
+            null == deletedFor
+                ? _value._deletedFor
+                : deletedFor // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        deletedForEveryone:
+            null == deletedForEveryone
+                ? _value.deletedForEveryone
+                : deletedForEveryone // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        deletedAt:
+            freezed == deletedAt
+                ? _value.deletedAt
+                : deletedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
+        reportedBy:
+            null == reportedBy
+                ? _value._reportedBy
+                : reportedBy // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -311,11 +401,20 @@ class _$MessageModelImpl extends _MessageModel {
     this.fileName,
     this.fileSize,
     this.mimeType,
+    this.audioDuration,
+    final List<double> audioWaveform = const [],
     final List<String> readBy = const [],
     final Map<String, dynamic> readAt = const {},
     this.createdAt,
-  }) : _readBy = readBy,
+    final List<String> deletedFor = const [],
+    this.deletedForEveryone = false,
+    this.deletedAt,
+    final List<String> reportedBy = const [],
+  }) : _audioWaveform = audioWaveform,
+       _readBy = readBy,
        _readAt = readAt,
+       _deletedFor = deletedFor,
+       _reportedBy = reportedBy,
        super._();
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -342,6 +441,17 @@ class _$MessageModelImpl extends _MessageModel {
   final int? fileSize;
   @override
   final String? mimeType;
+  @override
+  final int? audioDuration;
+  final List<double> _audioWaveform;
+  @override
+  @JsonKey()
+  List<double> get audioWaveform {
+    if (_audioWaveform is EqualUnmodifiableListView) return _audioWaveform;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_audioWaveform);
+  }
+
   final List<String> _readBy;
   @override
   @JsonKey()
@@ -362,10 +472,32 @@ class _$MessageModelImpl extends _MessageModel {
 
   @override
   final DateTime? createdAt;
+  final List<String> _deletedFor;
+  @override
+  @JsonKey()
+  List<String> get deletedFor {
+    if (_deletedFor is EqualUnmodifiableListView) return _deletedFor;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_deletedFor);
+  }
+
+  @override
+  @JsonKey()
+  final bool deletedForEveryone;
+  @override
+  final DateTime? deletedAt;
+  final List<String> _reportedBy;
+  @override
+  @JsonKey()
+  List<String> get reportedBy {
+    if (_reportedBy is EqualUnmodifiableListView) return _reportedBy;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_reportedBy);
+  }
 
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, readBy: $readBy, readAt: $readAt, createdAt: $createdAt)';
+    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy)';
   }
 
   @override
@@ -389,15 +521,33 @@ class _$MessageModelImpl extends _MessageModel {
                 other.fileSize == fileSize) &&
             (identical(other.mimeType, mimeType) ||
                 other.mimeType == mimeType) &&
+            (identical(other.audioDuration, audioDuration) ||
+                other.audioDuration == audioDuration) &&
+            const DeepCollectionEquality().equals(
+              other._audioWaveform,
+              _audioWaveform,
+            ) &&
             const DeepCollectionEquality().equals(other._readBy, _readBy) &&
             const DeepCollectionEquality().equals(other._readAt, _readAt) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            const DeepCollectionEquality().equals(
+              other._deletedFor,
+              _deletedFor,
+            ) &&
+            (identical(other.deletedForEveryone, deletedForEveryone) ||
+                other.deletedForEveryone == deletedForEveryone) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            const DeepCollectionEquality().equals(
+              other._reportedBy,
+              _reportedBy,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     senderId,
@@ -409,10 +559,16 @@ class _$MessageModelImpl extends _MessageModel {
     fileName,
     fileSize,
     mimeType,
+    audioDuration,
+    const DeepCollectionEquality().hash(_audioWaveform),
     const DeepCollectionEquality().hash(_readBy),
     const DeepCollectionEquality().hash(_readAt),
     createdAt,
-  );
+    const DeepCollectionEquality().hash(_deletedFor),
+    deletedForEveryone,
+    deletedAt,
+    const DeepCollectionEquality().hash(_reportedBy),
+  ]);
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.
@@ -440,9 +596,15 @@ abstract class _MessageModel extends MessageModel {
     final String? fileName,
     final int? fileSize,
     final String? mimeType,
+    final int? audioDuration,
+    final List<double> audioWaveform,
     final List<String> readBy,
     final Map<String, dynamic> readAt,
     final DateTime? createdAt,
+    final List<String> deletedFor,
+    final bool deletedForEveryone,
+    final DateTime? deletedAt,
+    final List<String> reportedBy,
   }) = _$MessageModelImpl;
   const _MessageModel._() : super._();
 
@@ -470,11 +632,23 @@ abstract class _MessageModel extends MessageModel {
   @override
   String? get mimeType;
   @override
+  int? get audioDuration;
+  @override
+  List<double> get audioWaveform;
+  @override
   List<String> get readBy;
   @override
   Map<String, dynamic> get readAt;
   @override
   DateTime? get createdAt;
+  @override
+  List<String> get deletedFor;
+  @override
+  bool get deletedForEveryone;
+  @override
+  DateTime? get deletedAt;
+  @override
+  List<String> get reportedBy;
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.

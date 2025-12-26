@@ -10,7 +10,7 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$ProfileModelImpl(
   id: json['id'] as String,
-  email: json['email'] as String,
+  email: json['email'] as String?,
   displayName: json['displayName'] as String?,
   photoUrl: json['photoUrl'] as String?,
   phoneNumber: json['phoneNumber'] as String?,
@@ -49,6 +49,12 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
       json['lastLoginAt'] == null
           ? null
           : DateTime.parse(json['lastLoginAt'] as String),
+  isOnline: json['isOnline'] as bool? ?? false,
+  lastSeen:
+      json['lastSeen'] == null
+          ? null
+          : DateTime.parse(json['lastSeen'] as String),
+  showOnlineStatus: json['showOnlineStatus'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
@@ -81,4 +87,7 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'eventsCount': instance.eventsCount,
       'createdAt': instance.createdAt?.toIso8601String(),
       'lastLoginAt': instance.lastLoginAt?.toIso8601String(),
+      'isOnline': instance.isOnline,
+      'lastSeen': instance.lastSeen?.toIso8601String(),
+      'showOnlineStatus': instance.showOnlineStatus,
     };

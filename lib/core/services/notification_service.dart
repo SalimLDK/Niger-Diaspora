@@ -5,6 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/firebase_collections.dart';
 import '../constants/app_colors.dart';
@@ -20,8 +22,8 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -55,10 +57,15 @@ class NotificationService {
     }
   }
 
-  /// Initialize local notifications
+  /// Initialize local notifications with Android channels
   Future<void> _initializeLocalNotifications() async {
+    // Create Android notification channels
+    if (Platform.isAndroid) {
+      await _createNotificationChannels();
+    }
+
     const androidSettings = AndroidInitializationSettings(
-      '@drawable/ic_notification', // Assurez-vous d'avoir cette icône ou utilisez '@mipmap/ic_launcher'
+      '@mipmap/ic_launcher',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -90,6 +97,90 @@ class NotificationService {
         }
       },
     );
+  }
+
+  /// Create Android notification channels
+  Future<void> _createNotificationChannels() async {
+    final androidPlugin =
+        _localNotifications
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+
+    if (androidPlugin == null) return;
+
+    // Messages channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'messages_channel',
+        'Messages',
+        description: 'Notifications for new messages',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Friend requests channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'friends_channel',
+        'Friend Requests',
+        description: 'Notifications for friend requests',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Groups channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'groups_channel',
+        'Groups',
+        description: 'Notifications for group activities',
+        importance: Importance.defaultImportance,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Events channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'events_channel',
+        'Events',
+        description: 'Notifications for events',
+        importance: Importance.defaultImportance,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Event reminders channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'event_reminders_channel',
+        'Event Reminders',
+        description: 'Reminders for upcoming events',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // General channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'general_channel',
+        'General Notifications',
+        description: 'General application notifications',
+        importance: Importance.defaultImportance,
+        playSound: true,
+      ),
+    );
+
+    debugPrint('Android notification channels created');
   }
 
   /// Request notification permission
@@ -181,7 +272,7 @@ class NotificationService {
     }
   }
 
-  /// Handle foreground messages
+  /// Handle foreground messages with preference filtering
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     debugPrint('Received foreground message: ${message.messageId}');
     debugPrint('Title: ${message.notification?.title}');
@@ -191,39 +282,207 @@ class NotificationService {
     // Store notification in Firestore
     _storeNotification(message);
 
-    // Show local notification
-    await _showLocalNotification(message);
+    // Check if notification should be shown based on user preferences
+    final shouldShow = await _shouldShowNotification(message.data['type']);
+    if (shouldShow) {
+      // Show local notification
+      await _showLocalNotification(message);
+    } else {
+      debugPrint(
+        'Notification filtered by user preferences: ${message.data['type']}',
+      );
+    }
+  }
+
+  /// Check if notification should be shown based on user preferences
+  Future<bool> _shouldShowNotification(String? type) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      if (type == null) return true;
+
+      switch (type) {
+        case 'message':
+          return prefs.getBool('notify_messages') ?? true;
+        case 'friendRequest':
+        case 'friendRequestAccepted':
+          return prefs.getBool('notify_friend_requests') ?? true;
+        case 'groupInvite':
+        case 'groupJoinRequest':
+        case 'groupRequestApproved':
+        case 'groupRequestRejected':
+          return prefs.getBool('notify_groups') ?? true;
+        case 'eventUpdate':
+          return prefs.getBool('notify_events') ?? true;
+        case 'eventReminder':
+          return prefs.getBool('notify_event_reminders') ?? true;
+        default:
+          return true;
+      }
+    } catch (e) {
+      debugPrint('Error checking notification preferences: $e');
+      return true; // Show notification if error
+    }
+  }
+
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    await _localNotifications.zonedSchedule(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders_channel',
+          'Rappels',
+          channelDescription: 'Canal pour les rappels programmés',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+
+      payload: payload,
+    );
   }
 
   /// Show local notification
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
-    final android = message.notification?.android;
+    final type = message.data['type'];
 
     if (notification != null) {
+      final (channelId, channelName, defaultImportance) = _getChannelForType(
+        type,
+      );
+
+      // Override importance if priority is specified in data
+      final priority = message.data['priority'];
+      final importance =
+          priority != null
+              ? _getImportanceForPriority(priority)
+              : defaultImportance;
+
+      // Get sound and vibration preferences
+      final prefs = await SharedPreferences.getInstance();
+      var soundEnabled = prefs.getBool('notification_sound') ?? true;
+      var vibrationEnabled = prefs.getBool('notification_vibration') ?? true;
+
+      // Check if we're in quiet hours
+      if (await _isInQuietHours(prefs)) {
+        soundEnabled = false;
+        vibrationEnabled = false;
+        debugPrint('Quiet hours active - sound and vibration disabled');
+      }
+
       await _localNotifications.show(
         notification.hashCode,
         notification.title,
         notification.body,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'high_importance_channel', // id
-            'High Importance Notifications', // title
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher', // Fallback icon
+            channelId,
+            channelName,
+            channelDescription: 'Notifications for $channelName',
+            importance: importance,
+            priority:
+                importance == Importance.max
+                    ? Priority.max
+                    : importance == Importance.high
+                    ? Priority.high
+                    : importance == Importance.low
+                    ? Priority.low
+                    : Priority.defaultPriority,
+            icon: '@mipmap/ic_launcher',
             color: AppColors.primary,
+            playSound: soundEnabled,
+            enableVibration: vibrationEnabled,
+            groupKey: message.data['groupKey'],
           ),
-          iOS: const DarwinNotificationDetails(
+          iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
-            presentSound: true,
+            presentSound: soundEnabled,
           ),
         ),
         payload: jsonEncode(message.data),
       );
+    }
+  }
+
+  /// Check if current time is within quiet hours
+  Future<bool> _isInQuietHours(SharedPreferences prefs) async {
+    final quietHoursEnabled = prefs.getBool('quiet_hours_enabled') ?? false;
+    if (!quietHoursEnabled) return false;
+
+    final now = DateTime.now();
+    final currentMinutes = now.hour * 60 + now.minute;
+
+    final startHour = prefs.getInt('quiet_hours_start_hour') ?? 22;
+    final startMinute = prefs.getInt('quiet_hours_start_minute') ?? 0;
+    final endHour = prefs.getInt('quiet_hours_end_hour') ?? 8;
+    final endMinute = prefs.getInt('quiet_hours_end_minute') ?? 0;
+
+    final startMinutes = startHour * 60 + startMinute;
+    final endMinutes = endHour * 60 + endMinute;
+
+    // Handle cases where quiet hours span midnight
+    if (startMinutes > endMinutes) {
+      // e.g., 22:00 to 08:00
+      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+    } else {
+      // e.g., 13:00 to 15:00 (siesta)
+      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    }
+  }
+
+  /// Get notification channel based on type
+  (String, String, Importance) _getChannelForType(String? type) {
+    switch (type) {
+      case 'message':
+        return ('messages_channel', 'Messages', Importance.high);
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+        return ('friends_channel', 'Friend Requests', Importance.high);
+      case 'groupInvite':
+      case 'groupJoinRequest':
+      case 'groupRequestApproved':
+      case 'groupRequestRejected':
+        return ('groups_channel', 'Groups', Importance.defaultImportance);
+      case 'eventUpdate':
+        return ('events_channel', 'Events', Importance.defaultImportance);
+      case 'eventReminder':
+        return ('event_reminders_channel', 'Event Reminders', Importance.high);
+      default:
+        return (
+          'general_channel',
+          'General Notifications',
+          Importance.defaultImportance,
+        );
+    }
+  }
+
+  /// Get importance based on priority string
+  Importance _getImportanceForPriority(String? priority) {
+    if (priority == null) return Importance.defaultImportance;
+
+    switch (priority) {
+      case 'urgent':
+        return Importance.max;
+      case 'high':
+        return Importance.high;
+      case 'low':
+        return Importance.low;
+      case 'normal':
+      default:
+        return Importance.defaultImportance;
     }
   }
 

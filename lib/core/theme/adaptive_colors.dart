@@ -48,6 +48,9 @@ extension AdaptiveColors on BuildContext {
   Color get borderStrongColor =>
       isDarkMode ? AppColors.borderStrongDark : AppColors.borderStrong;
 
+  /// Couleur de contour (pour les inputs, etc)
+  Color get outlineColor => borderColor;
+
   // ============================================
   // TEXT COLORS
   // ============================================

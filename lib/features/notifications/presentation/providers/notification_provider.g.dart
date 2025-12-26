@@ -48,7 +48,7 @@ final notificationDataSourceProvider =
 typedef NotificationDataSourceRef =
     AutoDisposeProviderRef<NotificationRemoteDataSource>;
 String _$notificationsStreamHash() =>
-    r'4e1c646ac2ba5a0f67d22b3bd4b1bb6585d759b6';
+    r'31537eb355ae2aec95452e4b55ff5a9b112a6858';
 
 /// See also [notificationsStream].
 @ProviderFor(notificationsStream)
@@ -68,8 +68,25 @@ final notificationsStreamProvider =
 // ignore: unused_element
 typedef NotificationsStreamRef =
     AutoDisposeStreamProviderRef<List<NotificationEntity>>;
+String _$notificationLimitHash() => r'796965f94f5d30d34123fb51528662f7a3fce63d';
+
+/// See also [NotificationLimit].
+@ProviderFor(NotificationLimit)
+final notificationLimitProvider =
+    AutoDisposeNotifierProvider<NotificationLimit, int>.internal(
+      NotificationLimit.new,
+      name: r'notificationLimitProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$notificationLimitHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$NotificationLimit = AutoDisposeNotifier<int>;
 String _$notificationsNotifierHash() =>
-    r'ff96d52b455a0a6249e70734268a30f32229b7eb';
+    r'c33653d559659693416deddf8cd2a0b23a7a8aee';
 
 /// See also [NotificationsNotifier].
 @ProviderFor(NotificationsNotifier)

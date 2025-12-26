@@ -22,7 +22,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$UserModel {
   String get id => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
@@ -30,6 +30,7 @@ mixin _$UserModel {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @TimestampConverter()
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
+  bool get isAdmin => throw _privateConstructorUsedError;
 
   /// Serializes this UserModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,12 +49,13 @@ abstract class $UserModelCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
+    bool isAdmin,
   });
 }
 
@@ -73,12 +75,13 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isAdmin = null,
   }) {
     return _then(
       _value.copyWith(
@@ -88,10 +91,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
                     : id // ignore: cast_nullable_to_non_nullable
                         as String,
             email:
-                null == email
+                freezed == email
                     ? _value.email
                     : email // ignore: cast_nullable_to_non_nullable
-                        as String,
+                        as String?,
             displayName:
                 freezed == displayName
                     ? _value.displayName
@@ -117,6 +120,11 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
                     ? _value.lastLoginAt
                     : lastLoginAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            isAdmin:
+                null == isAdmin
+                    ? _value.isAdmin
+                    : isAdmin // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -134,12 +142,13 @@ abstract class _$$UserModelImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
+    bool isAdmin,
   });
 }
 
@@ -158,12 +167,13 @@ class __$$UserModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isAdmin = null,
   }) {
     return _then(
       _$UserModelImpl(
@@ -173,10 +183,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
                 : id // ignore: cast_nullable_to_non_nullable
                     as String,
         email:
-            null == email
+            freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                    as String,
+                    as String?,
         displayName:
             freezed == displayName
                 ? _value.displayName
@@ -202,6 +212,11 @@ class __$$UserModelImplCopyWithImpl<$Res>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        isAdmin:
+            null == isAdmin
+                ? _value.isAdmin
+                : isAdmin // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -212,12 +227,13 @@ class __$$UserModelImplCopyWithImpl<$Res>
 class _$UserModelImpl extends _UserModel {
   const _$UserModelImpl({
     required this.id,
-    required this.email,
+    this.email,
     this.displayName,
     this.photoUrl,
     this.phoneNumber,
     @TimestampConverter() this.createdAt,
     @TimestampConverter() this.lastLoginAt,
+    this.isAdmin = false,
   }) : super._();
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -226,7 +242,7 @@ class _$UserModelImpl extends _UserModel {
   @override
   final String id;
   @override
-  final String email;
+  final String? email;
   @override
   final String? displayName;
   @override
@@ -239,10 +255,13 @@ class _$UserModelImpl extends _UserModel {
   @override
   @TimestampConverter()
   final DateTime? lastLoginAt;
+  @override
+  @JsonKey()
+  final bool isAdmin;
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt)';
+    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin)';
   }
 
   @override
@@ -261,7 +280,8 @@ class _$UserModelImpl extends _UserModel {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
-                other.lastLoginAt == lastLoginAt));
+                other.lastLoginAt == lastLoginAt) &&
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -275,6 +295,7 @@ class _$UserModelImpl extends _UserModel {
     phoneNumber,
     createdAt,
     lastLoginAt,
+    isAdmin,
   );
 
   /// Create a copy of UserModel
@@ -294,12 +315,13 @@ class _$UserModelImpl extends _UserModel {
 abstract class _UserModel extends UserModel {
   const factory _UserModel({
     required final String id,
-    required final String email,
+    final String? email,
     final String? displayName,
     final String? photoUrl,
     final String? phoneNumber,
     @TimestampConverter() final DateTime? createdAt,
     @TimestampConverter() final DateTime? lastLoginAt,
+    final bool isAdmin,
   }) = _$UserModelImpl;
   const _UserModel._() : super._();
 
@@ -309,7 +331,7 @@ abstract class _UserModel extends UserModel {
   @override
   String get id;
   @override
-  String get email;
+  String? get email;
   @override
   String? get displayName;
   @override
@@ -322,6 +344,8 @@ abstract class _UserModel extends UserModel {
   @override
   @TimestampConverter()
   DateTime? get lastLoginAt;
+  @override
+  bool get isAdmin;
 
   /// Create a copy of UserModel
   /// with the given fields replaced by the non-null parameter values.

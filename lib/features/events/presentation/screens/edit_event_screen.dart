@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
@@ -33,6 +35,9 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   TimeOfDay? _endTime;
   late bool _isOnline;
   bool _isLoading = false;
+  late List<String> _currentPosterUrls;
+  final List<XFile> _newPosters = [];
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -181,6 +186,76 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     }
   }
 
+  Future<void> _pickPosters() async {
+    try {
+      final totalPosters = _currentPosterUrls.length + _newPosters.length;
+      final remaining = 5 - totalPosters;
+
+      if (remaining <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Limite de 5 affiches atteinte'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      final images = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        setState(() {
+          _newPosters.addAll(images.take(remaining));
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la s\u00e9lection: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteExistingPoster(int index) async {
+    final url = _currentPosterUrls[index];
+    setState(() => _isLoading = true);
+
+    final repository = ref.read(eventRepositoryProvider);
+    final result = await repository.deleteEventPoster(widget.event.id, url);
+
+    result.fold(
+      (failure) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur: ${failure.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      (_) {
+        setState(() => _currentPosterUrls.removeAt(index));
+      },
+    );
+
+    setState(() => _isLoading = false);
+  }
+
+  void _removeNewPoster(int index) {
+    setState(() => _newPosters.removeAt(index));
+  }
+
   Future<void> _updateEvent() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -235,7 +310,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               ? int.tryParse(_maxAttendeesController.text) ?? 0
               : 0,
       attendeeIds: widget.event.attendeeIds,
-      posterUrls: widget.event.posterUrls,
+      posterUrls: _currentPosterUrls,
       recapPhotoUrls: widget.event.recapPhotoUrls,
       recapDescription: widget.event.recapDescription,
       recapCreatedAt: widget.event.recapCreatedAt,
@@ -249,6 +324,16 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      // Upload new posters if any
+      if (_newPosters.isNotEmpty) {
+        final repository = ref.read(eventRepositoryProvider);
+        for (final poster in _newPosters) {
+          await repository.uploadEventPoster(widget.event.id, poster.path);
+        }
+      }
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(successMessage),
@@ -325,6 +410,170 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                 }
                 return null;
               },
+            ),
+
+            const SizedBox(height: 20),
+
+            // Affiches de l'événement
+            _buildLabel('Affiches de l\'événement'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'G\u00e9rer les affiches (${_currentPosterUrls.length + _newPosters.length}/5)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Existing posters
+                  if (_currentPosterUrls.isNotEmpty) ...[
+                    Text(
+                      'Affiches actuelles',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                      itemCount: _currentPosterUrls.length,
+                      itemBuilder: (context, index) {
+                        return Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                _currentPosterUrls[index],
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () => _deleteExistingPoster(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // New posters
+                  if (_newPosters.isNotEmpty) ...[
+                    Text(
+                      'Nouvelles affiches',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                      itemCount: _newPosters.length,
+                      itemBuilder: (context, index) {
+                        return Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(_newPosters[index].path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () => _removeNewPoster(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Add button
+                  if (_currentPosterUrls.length + _newPosters.length < 5)
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _pickPosters,
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: Text(
+                          _currentPosterUrls.isEmpty && _newPosters.isEmpty
+                              ? 'S\u00e9lectionner des images'
+                              : 'Ajouter des images',
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: context.adaptivePrimaryColor,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 20),

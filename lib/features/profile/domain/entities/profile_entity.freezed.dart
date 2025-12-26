@@ -18,7 +18,7 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$ProfileEntity {
   String get id => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
@@ -45,6 +45,9 @@ mixin _$ProfileEntity {
   int get eventsCount => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
+  bool get isOnline => throw _privateConstructorUsedError;
+  DateTime? get lastSeen => throw _privateConstructorUsedError;
+  bool get showOnlineStatus => throw _privateConstructorUsedError;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -62,7 +65,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
@@ -89,6 +92,9 @@ abstract class $ProfileEntityCopyWith<$Res> {
     int eventsCount,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    bool isOnline,
+    DateTime? lastSeen,
+    bool showOnlineStatus,
   });
 }
 
@@ -108,7 +114,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
@@ -135,6 +141,9 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? eventsCount = null,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isOnline = null,
+    Object? lastSeen = freezed,
+    Object? showOnlineStatus = null,
   }) {
     return _then(
       _value.copyWith(
@@ -144,10 +153,10 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     : id // ignore: cast_nullable_to_non_nullable
                         as String,
             email:
-                null == email
+                freezed == email
                     ? _value.email
                     : email // ignore: cast_nullable_to_non_nullable
-                        as String,
+                        as String?,
             displayName:
                 freezed == displayName
                     ? _value.displayName
@@ -278,6 +287,21 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     ? _value.lastLoginAt
                     : lastLoginAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            isOnline:
+                null == isOnline
+                    ? _value.isOnline
+                    : isOnline // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            lastSeen:
+                freezed == lastSeen
+                    ? _value.lastSeen
+                    : lastSeen // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
+            showOnlineStatus:
+                null == showOnlineStatus
+                    ? _value.showOnlineStatus
+                    : showOnlineStatus // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -295,7 +319,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
@@ -322,6 +346,9 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     int eventsCount,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    bool isOnline,
+    DateTime? lastSeen,
+    bool showOnlineStatus,
   });
 }
 
@@ -340,7 +367,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
@@ -367,6 +394,9 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? eventsCount = null,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isOnline = null,
+    Object? lastSeen = freezed,
+    Object? showOnlineStatus = null,
   }) {
     return _then(
       _$ProfileEntityImpl(
@@ -376,10 +406,10 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 : id // ignore: cast_nullable_to_non_nullable
                     as String,
         email:
-            null == email
+            freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                    as String,
+                    as String?,
         displayName:
             freezed == displayName
                 ? _value.displayName
@@ -510,6 +540,21 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        isOnline:
+            null == isOnline
+                ? _value.isOnline
+                : isOnline // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        lastSeen:
+            freezed == lastSeen
+                ? _value.lastSeen
+                : lastSeen // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
+        showOnlineStatus:
+            null == showOnlineStatus
+                ? _value.showOnlineStatus
+                : showOnlineStatus // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -520,7 +565,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
 class _$ProfileEntityImpl implements _ProfileEntity {
   const _$ProfileEntityImpl({
     required this.id,
-    required this.email,
+    this.email,
     this.displayName,
     this.photoUrl,
     this.phoneNumber,
@@ -547,6 +592,9 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     this.eventsCount = 0,
     this.createdAt,
     this.lastLoginAt,
+    this.isOnline = false,
+    this.lastSeen,
+    this.showOnlineStatus = true,
   }) : _interests = interests,
        _skills = skills,
        _languages = languages;
@@ -554,7 +602,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   @override
   final String id;
   @override
-  final String email;
+  final String? email;
   @override
   final String? displayName;
   @override
@@ -636,10 +684,18 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   final DateTime? createdAt;
   @override
   final DateTime? lastLoginAt;
+  @override
+  @JsonKey()
+  final bool isOnline;
+  @override
+  final DateTime? lastSeen;
+  @override
+  @JsonKey()
+  final bool showOnlineStatus;
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus)';
   }
 
   @override
@@ -702,7 +758,13 @@ class _$ProfileEntityImpl implements _ProfileEntity {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
-                other.lastLoginAt == lastLoginAt));
+                other.lastLoginAt == lastLoginAt) &&
+            (identical(other.isOnline, isOnline) ||
+                other.isOnline == isOnline) &&
+            (identical(other.lastSeen, lastSeen) ||
+                other.lastSeen == lastSeen) &&
+            (identical(other.showOnlineStatus, showOnlineStatus) ||
+                other.showOnlineStatus == showOnlineStatus));
   }
 
   @override
@@ -736,6 +798,9 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     eventsCount,
     createdAt,
     lastLoginAt,
+    isOnline,
+    lastSeen,
+    showOnlineStatus,
   ]);
 
   /// Create a copy of ProfileEntity
@@ -750,7 +815,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
 abstract class _ProfileEntity implements ProfileEntity {
   const factory _ProfileEntity({
     required final String id,
-    required final String email,
+    final String? email,
     final String? displayName,
     final String? photoUrl,
     final String? phoneNumber,
@@ -777,12 +842,15 @@ abstract class _ProfileEntity implements ProfileEntity {
     final int eventsCount,
     final DateTime? createdAt,
     final DateTime? lastLoginAt,
+    final bool isOnline,
+    final DateTime? lastSeen,
+    final bool showOnlineStatus,
   }) = _$ProfileEntityImpl;
 
   @override
   String get id;
   @override
-  String get email;
+  String? get email;
   @override
   String? get displayName;
   @override
@@ -835,6 +903,12 @@ abstract class _ProfileEntity implements ProfileEntity {
   DateTime? get createdAt;
   @override
   DateTime? get lastLoginAt;
+  @override
+  bool get isOnline;
+  @override
+  DateTime? get lastSeen;
+  @override
+  bool get showOnlineStatus;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.

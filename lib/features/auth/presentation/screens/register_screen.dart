@@ -6,6 +6,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             _passwordController.text,
             _nameController.text.trim(),
           );
+      AnalyticsService.instance.logSignUp(method: 'email');
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_button.dart';
 
@@ -35,11 +36,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _emailController.text.trim(),
             _passwordController.text,
           );
+      AnalyticsService.instance.logLogin(method: 'email');
     }
   }
 
   void _handleGoogleSignIn() {
     ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    AnalyticsService.instance.logLogin(method: 'google');
   }
 
   @override

@@ -116,7 +116,28 @@ final currentUserProvider = AutoDisposeStreamProvider<UserEntity?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserRef = AutoDisposeStreamProviderRef<UserEntity?>;
-String _$authNotifierHash() => r'0afab0bd6895914a906f5f82b8031e904e4fb0a8';
+String _$currentUserAsyncHash() => r'fd1f558df99b1ac6354201ad736d9aba8a65cdfc';
+
+/// StreamProvider wrapper for easy AsyncValue access to current user
+///
+/// Copied from [currentUserAsync].
+@ProviderFor(currentUserAsync)
+final currentUserAsyncProvider =
+    AutoDisposeStreamProvider<UserEntity?>.internal(
+      currentUserAsync,
+      name: r'currentUserAsyncProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$currentUserAsyncHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CurrentUserAsyncRef = AutoDisposeStreamProviderRef<UserEntity?>;
+String _$authNotifierHash() => r'be5bb22a9a557954483c4ff04408e8a23961b07c';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/conversation_entity.dart';
+import '../../domain/entities/message_entity.dart';
 
 part 'conversation_model.freezed.dart';
 part 'conversation_model.g.dart';
@@ -15,9 +16,13 @@ class ConversationModel with _$ConversationModel {
     @Default('individual') String type,
     String? name,
     String? imageUrl,
+    String? groupId, // Add groupId for group conversations
     @Default([]) List<String> participantIds,
+    @Default([]) List<String> adminIds,
+    @Default([]) List<String> reportedBy,
     String? lastMessage,
     String? lastMessageSenderId,
+    @Default(MessageStatus.sent) MessageStatus lastMessageStatus,
     DateTime? lastMessageAt,
     DateTime? createdAt,
     required String createdBy,
@@ -39,7 +44,19 @@ class ConversationModel with _$ConversationModel {
       'unreadCount': _convertUnreadCount(data['unreadCount']),
       'mutedBy': _convertBoolMap(data['mutedBy']),
       'archivedBy': _convertBoolMap(data['archivedBy']),
+      'lastMessageStatus': _parseMessageStatus(data['lastMessageStatus']),
+      'adminIds': (data['adminIds'] as List<dynamic>?)?.cast<String>() ?? [],
+      'reportedBy':
+          (data['reportedBy'] as List<dynamic>?)?.cast<String>() ?? [],
     });
+  }
+
+  static String _parseMessageStatus(dynamic status) {
+    if (status is String) return status;
+    if (status is int && status < MessageStatus.values.length) {
+      return MessageStatus.values[status].name;
+    }
+    return MessageStatus.sent.name;
   }
 
   static Map<String, dynamic> _convertBoolMap(dynamic data) {
@@ -62,24 +79,30 @@ class ConversationModel with _$ConversationModel {
       json['lastMessageAt'] = Timestamp.fromDate(lastMessageAt!);
     }
 
+    json['lastMessageStatus'] = lastMessageStatus.name;
+
     return json;
   }
 
   ConversationEntity toEntity() => ConversationEntity(
-        id: id,
-        type: _parseConversationType(type),
-        name: name,
-        imageUrl: imageUrl,
-        participantIds: participantIds,
-        lastMessage: lastMessage,
-        lastMessageSenderId: lastMessageSenderId,
-        lastMessageAt: lastMessageAt,
-        createdAt: createdAt ?? DateTime.now(),
-        createdBy: createdBy,
-        unreadCount: _parseUnreadCount(unreadCount),
-        mutedBy: _parseBoolMap(mutedBy),
-        archivedBy: _parseBoolMap(archivedBy),
-      );
+    id: id,
+    type: _parseConversationType(type),
+    name: name,
+    imageUrl: imageUrl,
+    groupId: groupId, // Include groupId
+    participantIds: participantIds,
+    adminIds: adminIds,
+    reportedBy: reportedBy,
+    lastMessage: lastMessage,
+    lastMessageSenderId: lastMessageSenderId,
+    lastMessageStatus: lastMessageStatus,
+    lastMessageAt: lastMessageAt,
+    createdAt: createdAt ?? DateTime.now(),
+    createdBy: createdBy,
+    unreadCount: _parseUnreadCount(unreadCount),
+    mutedBy: _parseBoolMap(mutedBy),
+    archivedBy: _parseBoolMap(archivedBy),
+  );
 
   factory ConversationModel.fromEntity(ConversationEntity entity) =>
       ConversationModel(
@@ -87,9 +110,13 @@ class ConversationModel with _$ConversationModel {
         type: entity.type.name,
         name: entity.name,
         imageUrl: entity.imageUrl,
+        groupId: entity.groupId, // Include groupId
         participantIds: entity.participantIds,
+        adminIds: entity.adminIds,
+        reportedBy: entity.reportedBy,
         lastMessage: entity.lastMessage,
         lastMessageSenderId: entity.lastMessageSenderId,
+        lastMessageStatus: entity.lastMessageStatus ?? MessageStatus.sent,
         lastMessageAt: entity.lastMessageAt,
         createdAt: entity.createdAt,
         createdBy: entity.createdBy,

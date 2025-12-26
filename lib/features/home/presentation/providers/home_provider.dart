@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
@@ -20,49 +21,64 @@ class HomeStats {
 @riverpod
 class HomeStatsNotifier extends _$HomeStatsNotifier {
   @override
-  AsyncValue<HomeStats> build() {
-    _loadStats();
-    return const AsyncValue.loading();
+  Future<HomeStats> build() async {
+    return _loadStats();
   }
 
-  Future<void> _loadStats() async {
-    state = const AsyncValue.loading();
+  Future<HomeStats> _loadStats() async {
+    int members = 0;
+    int groups = 0;
+    int events = 0;
 
+    final firestore = FirebaseFirestore.instance;
+
+    // 1. Membres
     try {
-      final firestore = FirebaseFirestore.instance;
-
-      // Compter les membres (profils visibles)
-      final profilesSnapshot = await firestore
-          .collection(FirebaseCollections.profiles)
-          .where('isVisible', isEqualTo: true)
-          .count()
-          .get();
-
-      // Compter les groupes
-      final groupsSnapshot = await firestore
-          .collection(FirebaseCollections.groups)
-          .count()
-          .get();
-
-      // Compter les événements à venir
-      final eventsSnapshot = await firestore
-          .collection(FirebaseCollections.events)
-          .where('startDate', isGreaterThan: Timestamp.now())
-          .count()
-          .get();
-
-      state = AsyncValue.data(HomeStats(
-        membersCount: profilesSnapshot.count ?? 0,
-        groupsCount: groupsSnapshot.count ?? 0,
-        eventsCount: eventsSnapshot.count ?? 0,
-      ));
+      final snapshot =
+          await firestore
+              .collection(FirebaseCollections.profiles)
+              .where('isVisible', isEqualTo: true)
+              .count()
+              .get();
+      members = snapshot.count ?? 0;
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      debugPrint('❌ Erreur chargement stats membres: $e');
     }
+
+    // 2. Groupes
+    try {
+      final snapshot =
+          await firestore.collection(FirebaseCollections.groups).count().get();
+      groups = snapshot.count ?? 0;
+    } catch (e) {
+      debugPrint('❌ Erreur chargement stats groupes: $e');
+    }
+
+    // 3. Événements
+    try {
+      final snapshot =
+          await firestore
+              .collection(FirebaseCollections.events)
+              .where('startDate', isGreaterThan: Timestamp.now())
+              .count()
+              .get();
+      events = snapshot.count ?? 0;
+    } catch (e) {
+      debugPrint('❌ Erreur chargement stats événements: $e');
+    }
+
+    return HomeStats(
+      membersCount: members,
+      groupsCount: groups,
+      eventsCount: events,
+    );
   }
 
   Future<void> refresh() async {
-    await _loadStats();
+    // Invalidate self to trigger a rebuild
+    ref.invalidateSelf();
+    // Wait for the new value (optional, but helpful for UI feedback if needed)
+    await future;
   }
 }
 

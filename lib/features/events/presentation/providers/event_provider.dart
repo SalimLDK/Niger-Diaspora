@@ -150,3 +150,41 @@ class MyEventsNotifier extends _$MyEventsNotifier {
     });
   }
 }
+
+@Riverpod(keepAlive: true)
+class PastEventsNotifier extends _$PastEventsNotifier {
+  @override
+  AsyncValue<List<EventEntity>> build() {
+    loadPastEvents();
+    return const AsyncValue.loading();
+  }
+
+  Future<void> loadPastEvents() async {
+    state = const AsyncValue.loading();
+    final repository = ref.read(eventRepositoryProvider);
+    final result = await repository.getPastEvents();
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (events) => state = AsyncValue.data(events),
+    );
+  }
+
+  Future<void> loadPastEventsByCategory(EventCategory category) async {
+    state = const AsyncValue.loading();
+    final repository = ref.read(eventRepositoryProvider);
+    final result = await repository.getPastEvents();
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (events) {
+        final filtered = events.where((e) => e.category == category).toList();
+        state = AsyncValue.data(filtered);
+      },
+    );
+  }
+
+  Future<void> refresh() async {
+    await loadPastEvents();
+  }
+}

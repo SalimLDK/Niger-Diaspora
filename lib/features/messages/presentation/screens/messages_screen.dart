@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../providers/conversation_actions_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
@@ -75,6 +76,126 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
     }
 
     return filtered;
+  }
+
+  void _showConversationOptions(
+    BuildContext context,
+    ConversationEntity conversation,
+    String currentUserId,
+  ) {
+    if (conversation.isGroup &&
+        !conversation.participantIds.contains(currentUserId)) {
+      // User left group logic if needed, but for now just actions
+    }
+
+    final isArchived = conversation.isArchivedBy(currentUserId);
+    final isMuted = conversation.isMutedBy(currentUserId);
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: context.textTertiaryColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(
+                    isArchived
+                        ? Icons.unarchive_outlined
+                        : Icons.archive_outlined,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                  title: Text(
+                    isArchived ? l10n.unarchive : l10n.archive,
+                    style: TextStyle(color: context.textPrimaryColor),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref
+                        .read(conversationActionsNotifierProvider.notifier)
+                        .archiveConversation(conversation.id, !isArchived);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    isMuted
+                        ? Icons.notifications_off_outlined
+                        : Icons.notifications_outlined,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                  title: Text(
+                    isMuted ? l10n.unmute : l10n.mute,
+                    style: TextStyle(color: context.textPrimaryColor),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref
+                        .read(conversationActionsNotifierProvider.notifier)
+                        .muteConversation(conversation.id, !isMuted);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: Text(
+                    l10n.delete,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showDeleteConfirmation(context, conversation);
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    ConversationEntity conversation,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(l10n.deleteConversation),
+            content: Text(l10n.confirmDeleteConversation),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ref
+                      .read(conversationActionsNotifierProvider.notifier)
+                      .deleteConversation(conversation.id);
+                },
+                child: Text(
+                  l10n.delete,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -370,6 +491,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
                         : (otherUserName ?? 'Conversation'),
                 'imageUrl': conversation.imageUrl,
                 'isGroup': conversation.isGroup,
+                'groupId':
+                    conversation.groupId, // Pass groupId from conversation
                 'otherUserId':
                     conversation.isGroup
                         ? null
@@ -377,6 +500,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
               },
             );
           },
+          onLongPress:
+              () => _showConversationOptions(
+                context,
+                conversation,
+                currentUserId,
+              ),
         );
       },
     );

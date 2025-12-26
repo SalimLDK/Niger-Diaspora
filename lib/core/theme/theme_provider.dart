@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/preferences_service.dart';
 
 part 'theme_provider.g.dart';
 
-enum AppThemeMode {
-  light,
-  dark,
-  system,
-}
+enum AppThemeMode { light, dark, system }
 
 @riverpod
 class ThemeModeNotifier extends _$ThemeModeNotifier {
-  static const String _themeKey = 'theme_mode';
+  final _prefs = PreferencesService.instance;
 
   @override
   AppThemeMode build() {
@@ -22,8 +18,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   }
 
   Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeString = prefs.getString(_themeKey);
+    final themeString = _prefs.themeMode;
 
     if (themeString != null) {
       final mode = AppThemeMode.values.firstWhere(
@@ -36,8 +31,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 
   Future<void> setThemeMode(AppThemeMode mode) async {
     state = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeKey, mode.name);
+    await _prefs.setThemeMode(mode.name);
   }
 
   ThemeMode get themeMode {
@@ -53,7 +47,8 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 
   bool get isDarkMode {
     if (state == AppThemeMode.system) {
-      final brightness = SchedulerBinding.instance.platformDispatcher.platformBrightness;
+      final brightness =
+          SchedulerBinding.instance.platformDispatcher.platformBrightness;
       return brightness == Brightness.dark;
     }
     return state == AppThemeMode.dark;

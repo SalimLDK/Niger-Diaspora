@@ -23,7 +23,7 @@ FriendRepository friendRepository(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Stream<List<FriendEntity>> friends(Ref ref) {
-  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) {
     return Stream.value([]);
   }
@@ -36,7 +36,7 @@ Stream<List<FriendEntity>> friends(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Stream<List<FriendRequestEntity>> receivedFriendRequests(Ref ref) {
-  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) {
     return Stream.value([]);
   }
@@ -49,7 +49,7 @@ Stream<List<FriendRequestEntity>> receivedFriendRequests(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Stream<List<FriendRequestEntity>> sentFriendRequests(Ref ref) {
-  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) {
     return Stream.value([]);
   }
@@ -62,7 +62,7 @@ Stream<List<FriendRequestEntity>> sentFriendRequests(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Future<FriendshipStatus> friendshipStatus(Ref ref, String otherUserId) async {
-  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) {
     return FriendshipStatus.none;
   }
@@ -87,8 +87,14 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
     required String receiverName,
     String? receiverPhotoUrl,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
-    if (currentUser == null) return false;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) {
+      state = AsyncValue.error(
+        'Utilisateur non authentifié',
+        StackTrace.current,
+      );
+      return false;
+    }
 
     state = const AsyncValue.loading();
 
@@ -174,7 +180,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
   }
 
   Future<bool> removeFriend(String friendId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();

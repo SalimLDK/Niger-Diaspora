@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/l10n/locale_provider.dart';
+import '../../../../core/services/currency_provider.dart';
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -36,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
       await ref
           .read(profileNotifierProvider.notifier)
@@ -178,6 +181,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .watch(localeNotifierProvider.notifier)
                         .currentLocaleName,
                 onTap: () => _showLanguageSelector(),
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
+                icon: Icons.attach_money,
+                title: 'Devise',
+                subtitle: _getCurrencyLabel(
+                  ref.watch(selectedDisplayCurrencyProvider),
+                ),
+                onTap: () => _showCurrencySelector(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
@@ -376,6 +388,116 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : null,
       onTap: () {
         ref.read(localeNotifierProvider.notifier).setLocale(locale);
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  String _getCurrencyLabel(Currency currency) {
+    return '${currency.symbol} ${currency.code} - ${currency.name}';
+  }
+
+  void _showCurrencySelector() {
+    final currentCurrency = ref.read(selectedDisplayCurrencyProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: ctx.surfaceColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ctx.borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Choisir la devise',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: ctx.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Les prix seront affiches dans cette devise',
+                  style: TextStyle(fontSize: 14, color: ctx.textSecondaryColor),
+                ),
+                const SizedBox(height: 20),
+                ...Currency.values.map((currency) {
+                  final isSelected = currency == currentCurrency;
+                  return _buildCurrencyOption(ctx, currency, isSelected);
+                }),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildCurrencyOption(
+    BuildContext ctx,
+    Currency currency,
+    bool isSelected,
+  ) {
+    return ListTile(
+      tileColor: ctx.surfaceColor,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? ctx.adaptivePrimaryColor.withValues(alpha: 0.1)
+                  : ctx.borderColor.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            currency.symbol,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color:
+                  isSelected ? ctx.adaptivePrimaryColor : ctx.textPrimaryColor,
+            ),
+          ),
+        ),
+      ),
+      title: Text(
+        currency.name.toUpperCase(),
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? ctx.adaptivePrimaryColor : ctx.textPrimaryColor,
+        ),
+      ),
+      subtitle: Text(
+        currency.name,
+        style: TextStyle(fontSize: 13, color: ctx.textSecondaryColor),
+      ),
+      trailing:
+          isSelected
+              ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
+              : null,
+      onTap: () {
+        ref.read(selectedDisplayCurrencyProvider.notifier).select(currency);
         Navigator.pop(context);
       },
     );
@@ -623,12 +745,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showTerms() {
-    context.push('/settings/terms');
+  void _showTerms() async {
+    final url = Uri.parse('https://diaspo-niger.web.app/terms-of-service.html');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
-  void _showPrivacyPolicy() {
-    context.push('/settings/privacy');
+  void _showPrivacyPolicy() async {
+    final url = Uri.parse('https://diaspo-niger.web.app/privacy-policy.html');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   void _confirmLogout() {
@@ -649,7 +777,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final navigator = Navigator.of(context);
                   final router = GoRouter.of(context);
                   navigator.pop();
-                  final currentUser = ref.read(currentUserProvider).valueOrNull;
+                  final currentUser =
+                      ref.read(currentUserAsyncProvider).valueOrNull;
                   if (currentUser != null) {
                     await NotificationService().removeTokenForUser(
                       currentUser.id,
@@ -772,7 +901,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // Remove FCM token first
-      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser != null) {
         await NotificationService().removeTokenForUser(currentUser.id);
       }
@@ -1011,7 +1140,8 @@ class _NotificationPreferencesModal extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final prefsAsync = ref.watch(notificationPreferencesNotifierProvider);
+    final prefs = ref.watch(notificationPreferencesNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1035,7 +1165,7 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            AppLocalizations.of(context)!.notificationPreferences,
+            l10n.notificationPreferences,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -1043,62 +1173,73 @@ class _NotificationPreferencesModal extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          prefsAsync.when(
-            data: (prefs) {
-              final l10n = AppLocalizations.of(context)!;
-              return Column(
-                children: [
-                  _buildNotificationOption(
-                    context,
-                    l10n.messages,
-                    prefs.messages,
-                    (value) => ref
-                        .read(notificationPreferencesNotifierProvider.notifier)
-                        .updateMessages(value),
-                  ),
-                  _buildNotificationOption(
-                    context,
-                    l10n.newEvents,
-                    prefs.newEvents,
-                    (value) => ref
-                        .read(notificationPreferencesNotifierProvider.notifier)
-                        .updateNewEvents(value),
-                  ),
-                  _buildNotificationOption(
-                    context,
-                    l10n.groupActivity,
-                    prefs.groupActivity,
-                    (value) => ref
-                        .read(notificationPreferencesNotifierProvider.notifier)
-                        .updateGroupActivity(value),
-                  ),
-                  _buildNotificationOption(
-                    context,
-                    l10n.eventReminders,
-                    prefs.eventReminders,
-                    (value) => ref
-                        .read(notificationPreferencesNotifierProvider.notifier)
-                        .updateEventReminders(value),
-                  ),
-                ],
-              );
-            },
-            loading:
-                () => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: CircularProgressIndicator(
-                      color: context.adaptivePrimaryColor,
-                    ),
-                  ),
-                ),
-            error:
-                (error, _) => Center(
-                  child: Text(
-                    '${AppLocalizations.of(context)!.error}: $error',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
+          _buildNotificationOption(
+            context,
+            l10n.messages,
+            prefs.messagesEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setMessagesEnabled(value),
+          ),
+          _buildNotificationOption(
+            context,
+            l10n.newEvents,
+            prefs.eventsEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setEventsEnabled(value),
+          ),
+          _buildNotificationOption(
+            context,
+            l10n.friends, // Using "Amis" instead of "Demandes d'amis"
+            prefs.friendRequestsEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setFriendRequestsEnabled(value),
+          ),
+          _buildNotificationOption(
+            context,
+            l10n.groupActivity,
+            prefs.groupsEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setGroupsEnabled(value),
+          ),
+          _buildNotificationOption(
+            context,
+            l10n.eventReminders,
+            prefs.eventRemindersEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setEventRemindersEnabled(value),
+          ),
+          const SizedBox(height: 16),
+          Divider(color: context.borderColor),
+          const SizedBox(height: 16),
+          Text(
+            'Son et Vibration', // Using hardcoded French text as placeholder
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildNotificationOption(
+            context,
+            'Son', // Using hardcoded French text as placeholder
+            prefs.soundEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setSoundEnabled(value),
+          ),
+          _buildNotificationOption(
+            context,
+            'Vibration', // Using hardcoded French text as placeholder
+            prefs.vibrationEnabled,
+            (value) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setVibrationEnabled(value),
           ),
           const SizedBox(height: 20),
         ],

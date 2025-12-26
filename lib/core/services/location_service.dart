@@ -67,4 +67,12 @@ class LocationService {
   Future<bool> openLocationSettings() async {
     return await Geolocator.openLocationSettings();
   }
+
+  Future<void> initializeBackgroundService() async {
+    // This calls the static initialize of the background service
+    // We import the file here or pass the function if needed, but since it's a separate class
+    // we can just call its instance method or static method.
+    // However, to keep it clean, let's keep LocationService as a wrapper if preferred.
+    // For now, I'll assume the UI calls BackgroundLocationService().initialize() directly or via here.
+  }
 }

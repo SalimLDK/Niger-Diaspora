@@ -10,11 +10,15 @@ class NotificationEntity with _$NotificationEntity {
     required String title,
     required String body,
     @Default(NotificationType.general) NotificationType type,
+    @Default(NotificationPriority.normal) NotificationPriority priority,
     String? targetId,
+    String? groupKey,
     @Default(false) bool isRead,
     DateTime? createdAt,
   }) = _NotificationEntity;
 }
+
+enum NotificationPriority { low, normal, high, urgent }
 
 enum NotificationType {
   general,

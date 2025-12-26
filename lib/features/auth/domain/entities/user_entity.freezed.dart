@@ -18,12 +18,13 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$UserEntity {
   String get id => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
+  bool get isAdmin => throw _privateConstructorUsedError;
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -41,12 +42,13 @@ abstract class $UserEntityCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    bool isAdmin,
   });
 }
 
@@ -66,12 +68,13 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isAdmin = null,
   }) {
     return _then(
       _value.copyWith(
@@ -81,10 +84,10 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                     : id // ignore: cast_nullable_to_non_nullable
                         as String,
             email:
-                null == email
+                freezed == email
                     ? _value.email
                     : email // ignore: cast_nullable_to_non_nullable
-                        as String,
+                        as String?,
             displayName:
                 freezed == displayName
                     ? _value.displayName
@@ -110,6 +113,11 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                     ? _value.lastLoginAt
                     : lastLoginAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            isAdmin:
+                null == isAdmin
+                    ? _value.isAdmin
+                    : isAdmin // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -127,12 +135,13 @@ abstract class _$$UserEntityImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    bool isAdmin,
   });
 }
 
@@ -151,12 +160,13 @@ class __$$UserEntityImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? displayName = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
+    Object? isAdmin = null,
   }) {
     return _then(
       _$UserEntityImpl(
@@ -166,10 +176,10 @@ class __$$UserEntityImplCopyWithImpl<$Res>
                 : id // ignore: cast_nullable_to_non_nullable
                     as String,
         email:
-            null == email
+            freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                    as String,
+                    as String?,
         displayName:
             freezed == displayName
                 ? _value.displayName
@@ -195,6 +205,11 @@ class __$$UserEntityImplCopyWithImpl<$Res>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        isAdmin:
+            null == isAdmin
+                ? _value.isAdmin
+                : isAdmin // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -205,18 +220,19 @@ class __$$UserEntityImplCopyWithImpl<$Res>
 class _$UserEntityImpl implements _UserEntity {
   const _$UserEntityImpl({
     required this.id,
-    required this.email,
+    this.email,
     this.displayName,
     this.photoUrl,
     this.phoneNumber,
     this.createdAt,
     this.lastLoginAt,
+    this.isAdmin = false,
   });
 
   @override
   final String id;
   @override
-  final String email;
+  final String? email;
   @override
   final String? displayName;
   @override
@@ -227,10 +243,13 @@ class _$UserEntityImpl implements _UserEntity {
   final DateTime? createdAt;
   @override
   final DateTime? lastLoginAt;
+  @override
+  @JsonKey()
+  final bool isAdmin;
 
   @override
   String toString() {
-    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt)';
+    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin)';
   }
 
   @override
@@ -249,7 +268,8 @@ class _$UserEntityImpl implements _UserEntity {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
-                other.lastLoginAt == lastLoginAt));
+                other.lastLoginAt == lastLoginAt) &&
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin));
   }
 
   @override
@@ -262,6 +282,7 @@ class _$UserEntityImpl implements _UserEntity {
     phoneNumber,
     createdAt,
     lastLoginAt,
+    isAdmin,
   );
 
   /// Create a copy of UserEntity
@@ -276,18 +297,19 @@ class _$UserEntityImpl implements _UserEntity {
 abstract class _UserEntity implements UserEntity {
   const factory _UserEntity({
     required final String id,
-    required final String email,
+    final String? email,
     final String? displayName,
     final String? photoUrl,
     final String? phoneNumber,
     final DateTime? createdAt,
     final DateTime? lastLoginAt,
+    final bool isAdmin,
   }) = _$UserEntityImpl;
 
   @override
   String get id;
   @override
-  String get email;
+  String? get email;
   @override
   String? get displayName;
   @override
@@ -298,6 +320,8 @@ abstract class _UserEntity implements UserEntity {
   DateTime? get createdAt;
   @override
   DateTime? get lastLoginAt;
+  @override
+  bool get isAdmin;
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.

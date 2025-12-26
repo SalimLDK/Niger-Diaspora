@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../../../core/services/location_service.dart';
+import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -13,7 +14,9 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../../../onboarding/presentation/widgets/coach_mark_content.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../providers/home_provider.dart';
+import '../../../profile/presentation/widgets/online_status_indicator.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -198,7 +201,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
       // Ne charger le profil que s'il n'est pas déjà chargé pour cet utilisateur
       var profile = ref.read(profileNotifierProvider).valueOrNull;
@@ -371,22 +374,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ],
                               ),
                             ),
+
                             GestureDetector(
                               key: _notificationBellKey,
                               onTap: () => context.push('/notifications'),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white.withValues(
-                                    alpha: 0.15,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.white.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Icon(
+                                      Icons.notifications_outlined,
+                                      color: AppColors.white,
+                                      size: 24,
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(
-                                  Icons.notifications_outlined,
-                                  color: AppColors.white,
-                                  size: 24,
-                                ),
+                                  if (ref.watch(
+                                        unreadNotificationsCountProvider,
+                                      ) >
+                                      0)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 16,
+                                          minHeight: 16,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            ref.watch(
+                                                      unreadNotificationsCountProvider,
+                                                    ) >
+                                                    99
+                                                ? '99+'
+                                                : ref
+                                                    .watch(
+                                                      unreadNotificationsCountProvider,
+                                                    )
+                                                    .toString(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              height: 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ],
@@ -526,7 +574,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   value: '--',
                                   label: l10n.membersLabel,
                                   color: AppColors.primary,
-                                  bgColor: AppColors.primaryLighter,
+                                  bgColor:
+                                      AppColors
+                                          .primaryLighter, // Restore original color logic if needed, or use context colors
                                   onTap: () => context.push('/search'),
                                 ),
                               ),
@@ -557,6 +607,81 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                     ),
                   ),
+
+                  const SizedBox(height: 28),
+
+                  // Quick Actions - Services (only show if at least one feature is enabled)
+                  if (ref.watch(isMoneyTransferEnabledProvider) ||
+                      ref.watch(isMarketplaceEnabledProvider) ||
+                      ref.watch(isBusinessDirectoryEnabledProvider))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Services',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            // Money Transfer - conditional on feature flag
+                            if (ref.watch(isMoneyTransferEnabledProvider))
+                              Expanded(
+                                child: _QuickActionCard(
+                                  icon: Icons.send_rounded,
+                                  label: 'Transfert',
+                                  color: AppColors.primary,
+                                  onTap: () => context.push('/transfers'),
+                                ),
+                              ),
+                            if (ref.watch(isMoneyTransferEnabledProvider) &&
+                                (ref.watch(isMarketplaceEnabledProvider) ||
+                                    ref.watch(
+                                      isBusinessDirectoryEnabledProvider,
+                                    )))
+                              const SizedBox(width: 12),
+                            // Marketplace - conditional on feature flag
+                            if (ref.watch(isMarketplaceEnabledProvider))
+                              Expanded(
+                                child: _QuickActionCard(
+                                  icon: Icons.storefront_rounded,
+                                  label: 'Boutique',
+                                  color: context.adaptiveSecondaryColor,
+                                  onTap: () => context.push('/marketplace'),
+                                ),
+                              ),
+                            if (ref.watch(isMarketplaceEnabledProvider) &&
+                                ref.watch(isBusinessDirectoryEnabledProvider))
+                              const SizedBox(width: 12),
+                            // Business Directory - conditional on feature flag
+                            if (ref.watch(isBusinessDirectoryEnabledProvider))
+                              Expanded(
+                                child: _QuickActionCard(
+                                  icon: Icons.business_rounded,
+                                  label: 'Annuaire',
+                                  color: AppColors.primaryDark,
+                                  onTap: () => context.push('/businesses'),
+                                ),
+                              ),
+                            if (ref.watch(isBusinessDirectoryEnabledProvider))
+                              const SizedBox(width: 12),
+                            // Embassies
+                            Expanded(
+                              child: _QuickActionCard(
+                                icon: Icons.account_balance,
+                                label: 'Ambassades',
+                                color: Colors.indigo,
+                                onTap: () => context.push('/embassies'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
 
                   const SizedBox(height: 28),
 
@@ -606,6 +731,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           extra: profile,
                                         ),
                                     child: _MemberCard(
+                                      userId: profile.id,
                                       name: profile.displayName ?? 'Membre',
                                       location: profile.currentCity ?? '',
                                       badge: profile.profession ?? '',
@@ -958,12 +1084,14 @@ class _StatCardLoading extends StatelessWidget {
 }
 
 class _MemberCard extends StatelessWidget {
+  final String userId;
   final String name;
   final String location;
   final String badge;
   final String? photoUrl;
 
   const _MemberCard({
+    required this.userId,
     required this.name,
     required this.location,
     required this.badge,
@@ -1045,17 +1173,15 @@ class _MemberCard extends StatelessWidget {
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  width: 20,
-                  height: 20,
+                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: context.adaptiveSecondaryColor,
+                    color: context.surfaceColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: context.surfaceColor, width: 2),
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    color: AppColors.white,
-                    size: 12,
+                  child: OnlineStatusIndicator(
+                    userId: userId,
+                    showText: false,
+                    dotSize: 12,
                   ),
                 ),
               ),
@@ -1346,6 +1472,76 @@ class _EventCardLoading extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border:
+              context.isDarkMode
+                  ? Border.all(color: context.borderColor, width: 1)
+                  : null,
+          boxShadow:
+              context.isDarkMode
+                  ? null
+                  : [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.15),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color:
+                    context.isDarkMode
+                        ? color.withValues(alpha: 0.15)
+                        : color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

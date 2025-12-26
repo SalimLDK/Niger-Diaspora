@@ -11,6 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/services/encryption_service.dart';
 import '../../data/datasources/message_remote_datasource.dart';
 import '../../data/repositories/message_repository_impl.dart';
 import '../../domain/entities/conversation_entity.dart';
@@ -28,6 +29,7 @@ MessageRemoteDataSource messageRemoteDataSource(Ref ref) {
     firestoreInstance: FirebaseFirestore.instance,
     storage: FirebaseStorage.instance,
     database: FirebaseDatabase.instance,
+    encryptionService: ref.watch(encryptionServiceProvider),
   );
 }
 
@@ -86,7 +88,7 @@ Stream<List<MessageEntity>> messages(Ref ref, String conversationId) {
 }
 
 /// Notifier pour les messages paginés avec support offline
-@riverpod
+@Riverpod(keepAlive: true)
 class PaginatedMessages extends _$PaginatedMessages {
   StreamSubscription<dynamic>? _newMessagesSubscription;
 
@@ -108,6 +110,7 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   Future<void> loadInitial() async {
+    debugPrint('🔄 Loading initial messages for $conversationId');
     try {
       final isOffline = !ref.read(connectivityNotifierProvider);
       state = MessagePaginationState(
@@ -134,8 +137,17 @@ class PaginatedMessages extends _$PaginatedMessages {
         },
         (paginatedMessages) {
           debugPrint(
-            '✅ Loaded ${paginatedMessages.messages.length} messages for $conversationId',
+            '✅ Loaded ${paginatedMessages.messages.length} initial messages for $conversationId',
           );
+          // Log first few message IDs for debugging
+          if (paginatedMessages.messages.isNotEmpty) {
+            final sampleIds = paginatedMessages.messages
+                .take(3)
+                .map((m) => m.id)
+                .join(', ');
+            debugPrint('   Sample message IDs: $sampleIds');
+          }
+
           state = MessagePaginationState(
             messages: paginatedMessages.messages,
             hasMore: paginatedMessages.hasMore,
@@ -145,9 +157,14 @@ class PaginatedMessages extends _$PaginatedMessages {
           );
 
           // Start listening for new messages if online
-          // Use the FIRST message (most recent) to listen for newer ones
-          if (!isOffline && paginatedMessages.messages.isNotEmpty) {
-            _listenForNewMessages(paginatedMessages.messages.first.createdAt);
+          // Use the LAST message (most recent) to listen for newer ones
+          // If no messages, listen for messages after NOW (or slightly before to catch concurrents)
+          if (!isOffline) {
+            final lastTimestamp =
+                paginatedMessages.messages.isNotEmpty
+                    ? paginatedMessages.messages.last.createdAt
+                    : DateTime.now().subtract(const Duration(seconds: 10));
+            _listenForNewMessages(lastTimestamp);
           }
         },
       );
@@ -188,6 +205,9 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   void _listenForNewMessages(DateTime afterTimestamp) {
+    debugPrint('📡 Starting real-time message listener for $conversationId');
+    debugPrint('   Listening for messages after: $afterTimestamp');
+
     _newMessagesSubscription?.cancel();
     _newMessagesSubscription = ref
         .read(messageRepositoryProvider)
@@ -196,39 +216,80 @@ class PaginatedMessages extends _$PaginatedMessages {
           afterTimestamp: afterTimestamp,
         )
         .listen((either) {
-          either.fold((failure) {}, (newMessages) {
-            if (newMessages.isNotEmpty) {
-              final existingMessages = List<MessageEntity>.from(state.messages);
-
-              for (final newMessage in newMessages) {
-                // Check if this message replaces an optimistic message
-                // Match by content and approximate timestamp (within 5 seconds)
-                final optimisticIndex = existingMessages.indexWhere(
-                  (m) =>
-                      m.id.startsWith('temp_') &&
-                      m.content == newMessage.content &&
-                      m.senderId == newMessage.senderId &&
-                      m.createdAt
-                              .difference(newMessage.createdAt)
-                              .abs()
-                              .inSeconds <
-                          5,
+          either.fold(
+            (failure) {
+              debugPrint('❌ Real-time stream error: ${failure.message}');
+            },
+            (newMessages) {
+              if (newMessages.isNotEmpty) {
+                debugPrint(
+                  '📨 Received ${newMessages.length} new messages from stream',
+                );
+                final existingMessages = List<MessageEntity>.from(
+                  state.messages,
+                );
+                debugPrint(
+                  '   Current message count: ${existingMessages.length}',
                 );
 
-                if (optimisticIndex != -1) {
-                  // Replace optimistic message with real one
-                  existingMessages[optimisticIndex] = newMessage;
-                } else if (!existingMessages.any(
-                  (m) => m.id == newMessage.id,
-                )) {
-                  // Add new message if it doesn't exist
-                  existingMessages.add(newMessage);
-                }
-              }
+                int replaced = 0;
+                int added = 0;
+                int skipped = 0;
 
-              state = state.copyWith(messages: existingMessages);
-            }
-          });
+                // Since newMessages are sorted (Oldest -> Newest), we can append them
+                for (final newMessage in newMessages) {
+                  // Check if this message replaces an optimistic message
+                  // Match by content and approximate timestamp (within 5 seconds)
+                  final optimisticIndex = existingMessages.indexWhere(
+                    (m) =>
+                        m.id.startsWith('temp_') &&
+                        m.content == newMessage.content &&
+                        m.senderId == newMessage.senderId &&
+                        m.createdAt
+                                .difference(newMessage.createdAt)
+                                .abs()
+                                .inSeconds <
+                            5,
+                  );
+
+                  if (optimisticIndex != -1) {
+                    // Replace optimistic message with real one
+                    debugPrint(
+                      '   🔄 Replacing optimistic message ${existingMessages[optimisticIndex].id} with ${newMessage.id}',
+                    );
+                    existingMessages[optimisticIndex] = newMessage;
+                    replaced++;
+                  } else if (!existingMessages.any(
+                    (m) => m.id == newMessage.id,
+                  )) {
+                    // Add new message if it doesn't exist
+                    debugPrint('   ➕ Adding new message: ${newMessage.id}');
+                    existingMessages.add(newMessage);
+                    added++;
+                  } else {
+                    debugPrint(
+                      '   ⏭️  Skipping duplicate message: ${newMessage.id}',
+                    );
+                    skipped++;
+                  }
+                }
+
+                debugPrint(
+                  '   Summary: $replaced replaced, $added added, $skipped skipped',
+                );
+
+                // Re-sort to be safe, though appending sorted new messages to sorted existing should work
+                existingMessages.sort(
+                  (a, b) => a.createdAt.compareTo(b.createdAt),
+                );
+
+                debugPrint(
+                  '   Final message count: ${existingMessages.length}',
+                );
+                state = state.copyWith(messages: existingMessages);
+              }
+            },
+          );
         });
   }
 
@@ -238,6 +299,10 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   void addOptimisticMessage(MessageEntity message) {
+    debugPrint('➕ Adding optimistic message: ${message.id}');
+    debugPrint(
+      '   Current count: ${state.messages.length} -> ${state.messages.length + 1}',
+    );
     state = state.copyWith(messages: [...state.messages, message]);
   }
 
@@ -284,7 +349,7 @@ class SendMessage extends _$SendMessage {
     int attempt = 1,
     int maxAttempts = 3,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     // Only show loading on first attempt
@@ -303,25 +368,24 @@ class SendMessage extends _$SendMessage {
         );
 
     return result.fold(
-      (failure) {
+      (failure) async {
         // Retry on network failure if not exceeded max attempts
         if (attempt < maxAttempts) {
           debugPrint(
             '⚠️ Message send failed (attempt $attempt/$maxAttempts), retrying...',
           );
 
-          // Exponential backoff: wait 2s, then 4s, then 8s
-          Future.delayed(Duration(seconds: attempt * 2), () {
-            sendText(
-              conversationId: conversationId,
-              content: content,
-              optimisticMessageId: optimisticMessageId,
-              attempt: attempt + 1,
-              maxAttempts: maxAttempts,
-            );
-          });
+          // Exponential backoff: wait 2s, then 4s
+          await Future.delayed(Duration(seconds: attempt * 2));
 
-          return false;
+          // Retry recursively and return the result
+          return await sendText(
+            conversationId: conversationId,
+            content: content,
+            optimisticMessageId: optimisticMessageId,
+            attempt: attempt + 1,
+            maxAttempts: maxAttempts,
+          );
         }
 
         // Final failure after all retries
@@ -342,7 +406,7 @@ class SendMessage extends _$SendMessage {
     required MessageType type,
     String? caption,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -370,6 +434,41 @@ class SendMessage extends _$SendMessage {
       },
     );
   }
+
+  Future<bool> sendAudio({
+    required String conversationId,
+    required File audioFile,
+    required int duration,
+    required List<double> waveform,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return false;
+
+    state = const AsyncValue.loading();
+
+    final result = await ref
+        .read(messageRepositoryProvider)
+        .sendAudioMessage(
+          conversationId: conversationId,
+          senderId: currentUser.id,
+          senderName: currentUser.displayName ?? 'Utilisateur',
+          senderPhotoUrl: currentUser.photoUrl,
+          audioFile: audioFile,
+          duration: duration,
+          waveform: waveform,
+        );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (message) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
+  }
 }
 
 /// Notifier pour créer des conversations
@@ -381,7 +480,7 @@ class CreateConversation extends _$CreateConversation {
   }
 
   Future<ConversationEntity?> createIndividual(String otherUserId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return null;
 
     state = const AsyncValue.loading();
@@ -409,8 +508,9 @@ class CreateConversation extends _$CreateConversation {
     required List<String> participantIds,
     required String groupName,
     String? groupImageUrl,
+    String? groupId, // Add groupId parameter
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return null;
 
     state = const AsyncValue.loading();
@@ -422,6 +522,7 @@ class CreateConversation extends _$CreateConversation {
           participantIds: participantIds,
           groupName: groupName,
           groupImageUrl: groupImageUrl,
+          groupId: groupId, // Pass groupId
         );
 
     return result.fold(
@@ -446,7 +547,7 @@ class MarkAsRead extends _$MarkAsRead {
   }
 
   Future<void> mark(String conversationId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     await ref
@@ -467,4 +568,71 @@ int totalUnreadCount(Ref ref) {
     0,
     (total, conv) => total + conv.getUnreadCountFor(currentUser.id),
   );
+}
+
+/// Notifier pour supprimer des messages
+@riverpod
+class DeleteMessage extends _$DeleteMessage {
+  @override
+  AsyncValue<void> build() {
+    return const AsyncValue.data(null);
+  }
+
+  Future<bool> deleteForMe({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return false;
+
+    state = const AsyncValue.loading();
+
+    final result = await ref
+        .read(messageRepositoryProvider)
+        .deleteMessageForMe(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: currentUser.id,
+        );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        // Refresh the messages list to reflect the deletion
+        ref.invalidate(paginatedMessagesProvider(conversationId));
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteForEveryone({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref
+        .read(messageRepositoryProvider)
+        .deleteMessageForEveryone(
+          conversationId: conversationId,
+          messageId: messageId,
+        );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        // Refresh the messages list to reflect the deletion
+        ref.invalidate(paginatedMessagesProvider(conversationId));
+        return true;
+      },
+    );
+  }
 }

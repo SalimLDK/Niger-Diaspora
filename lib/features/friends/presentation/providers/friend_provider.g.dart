@@ -45,7 +45,7 @@ final friendRepositoryProvider = AutoDisposeProvider<FriendRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FriendRepositoryRef = AutoDisposeProviderRef<FriendRepository>;
-String _$friendsHash() => r'33bd5c3b137343ff834d1a3bb9ed0876c2f9dbfb';
+String _$friendsHash() => r'ae2f89078070bd795e09f7adf9d85ae2a809adbe';
 
 /// See also [friends].
 @ProviderFor(friends)
@@ -62,7 +62,7 @@ final friendsProvider = StreamProvider<List<FriendEntity>>.internal(
 // ignore: unused_element
 typedef FriendsRef = StreamProviderRef<List<FriendEntity>>;
 String _$receivedFriendRequestsHash() =>
-    r'5c990fa69cc3efddc49d0a96a78136498bfdbc99';
+    r'0d26b6fe1cf1dc3ca1a52e69275992d2bb7cad71';
 
 /// See also [receivedFriendRequests].
 @ProviderFor(receivedFriendRequests)
@@ -83,7 +83,7 @@ final receivedFriendRequestsProvider =
 typedef ReceivedFriendRequestsRef =
     StreamProviderRef<List<FriendRequestEntity>>;
 String _$sentFriendRequestsHash() =>
-    r'8d820502ba834948f1ede44854018ad0cb05b828';
+    r'47f767ee29552392796b5357cad6ac3628b1caea';
 
 /// See also [sentFriendRequests].
 @ProviderFor(sentFriendRequests)
@@ -102,7 +102,7 @@ final sentFriendRequestsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SentFriendRequestsRef = StreamProviderRef<List<FriendRequestEntity>>;
-String _$friendshipStatusHash() => r'3bbb3a55419b7fe68382677604b1ac9e3788cccc';
+String _$friendshipStatusHash() => r'b0e87966e3d49ad3a59f0f8785fcc58139d3fe08';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -246,7 +246,7 @@ class _FriendshipStatusProviderElement
 }
 
 String _$friendRequestNotifierHash() =>
-    r'aa87eedef7b9b5f909110f095a87c708290e6841';
+    r'9e0b55333fb7f7be55d7b1a02f51316296a44d56';
 
 /// See also [FriendRequestNotifier].
 @ProviderFor(FriendRequestNotifier)

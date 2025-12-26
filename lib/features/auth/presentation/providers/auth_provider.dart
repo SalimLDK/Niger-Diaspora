@@ -11,6 +11,8 @@ import '../../domain/usecases/sign_in_with_email.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
+import '../../../../core/services/session_service.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import 'auth_state.dart';
 
 part 'auth_provider.g.dart';
@@ -61,6 +63,11 @@ class AuthNotifier extends _$AuthNotifier {
     result.fold((failure) => state = const AuthState.unauthenticated(), (user) {
       if (user != null) {
         state = AuthState.authenticated(user);
+        // Resume session monitoring
+        SessionService.instance.initialize(user.id, isNewLogin: false);
+
+        // Mettre à jour lastLoginAt pour que l'utilisateur apparaisse en ligne
+        ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
       } else {
         state = const AuthState.unauthenticated();
       }
@@ -80,10 +87,11 @@ class AuthNotifier extends _$AuthNotifier {
         .read(signInWithEmailUseCaseProvider)
         .call(email: email, password: password);
 
-    result.fold(
-      (failure) => state = AuthState.error(failure.message),
-      (user) => state = AuthState.authenticated(user),
-    );
+    result.fold((failure) => state = AuthState.error(failure.message), (user) {
+      state = AuthState.authenticated(user);
+      SessionService.instance.initialize(user.id, isNewLogin: true);
+      ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+    });
   }
 
   Future<void> signInWithGoogle() async {
@@ -91,10 +99,11 @@ class AuthNotifier extends _$AuthNotifier {
 
     final result = await ref.read(signInWithGoogleUseCaseProvider).call();
 
-    result.fold(
-      (failure) => state = AuthState.error(failure.message),
-      (user) => state = AuthState.authenticated(user),
-    );
+    result.fold((failure) => state = AuthState.error(failure.message), (user) {
+      state = AuthState.authenticated(user);
+      SessionService.instance.initialize(user.id, isNewLogin: true);
+      ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+    });
   }
 
   Future<void> signUp(String email, String password, String displayName) async {
@@ -104,13 +113,14 @@ class AuthNotifier extends _$AuthNotifier {
         .read(signUpUseCaseProvider)
         .call(email: email, password: password, displayName: displayName);
 
-    result.fold(
-      (failure) => state = AuthState.error(failure.message),
-      (user) => state = AuthState.authenticated(user),
-    );
+    result.fold((failure) => state = AuthState.error(failure.message), (user) {
+      state = AuthState.authenticated(user);
+      SessionService.instance.initialize(user.id, isNewLogin: true);
+    });
   }
 
   Future<void> signOut() async {
+    SessionService.instance.dispose();
     final result = await ref.read(signOutUseCaseProvider).call();
 
     result.fold(
@@ -120,25 +130,56 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<bool> deleteAccount() async {
-    state = const AuthState.loading();
-
     final repository = ref.read(authRepositoryProvider);
+
+    // Try to delete account
     final result = await repository.deleteAccount();
 
     return result.fold(
       (failure) {
+        // Check if reauthentication is required
+        if (failure.message.contains('mot de passe') ||
+            failure.message.contains('sécurité')) {
+          // Reauthentication needed - set a special error state
+          state = AuthState.error('REAUTH_REQUIRED:${failure.message}');
+          return false;
+        }
         state = AuthState.error(failure.message);
         return false;
       },
       (_) {
+        SessionService.instance.dispose();
         state = const AuthState.unauthenticated();
         return true;
       },
     );
   }
+
+  Future<bool> reauthenticateAndDelete(String password) async {
+    final repository = ref.read(authRepositoryProvider);
+
+    // First reauthenticate
+    final reauth = await repository.reauthenticateWithPassword(password);
+
+    final reauthSuccess = reauth.fold((failure) {
+      state = AuthState.error(failure.message);
+      return false;
+    }, (_) => true);
+
+    if (!reauthSuccess) return false;
+
+    // Then try to delete again
+    return deleteAccount();
+  }
 }
 
 @riverpod
 Stream<UserEntity?> currentUser(Ref ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges;
+}
+
+/// StreamProvider wrapper for easy AsyncValue access to current user
+@riverpod
+Stream<UserEntity?> currentUserAsync(Ref ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 }

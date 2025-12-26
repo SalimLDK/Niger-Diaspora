@@ -19,15 +19,26 @@ NotificationRemoteDataSource notificationDataSource(Ref ref) {
 }
 
 @riverpod
+class NotificationLimit extends _$NotificationLimit {
+  @override
+  int build() => 20;
+
+  void increment() {
+    state += 20;
+  }
+}
+
+@riverpod
 Stream<List<NotificationEntity>> notificationsStream(Ref ref) {
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   if (currentUser == null) {
     return Stream.value([]);
   }
 
+  final limit = ref.watch(notificationLimitProvider);
   final dataSource = ref.watch(notificationDataSourceProvider);
   return dataSource
-      .getNotifications(currentUser.id)
+      .getNotifications(currentUser.id, limit: limit)
       .map((models) => models.map((m) => m.toEntity()).toList());
 }
 
@@ -54,7 +65,7 @@ class NotificationsNotifier extends _$NotificationsNotifier {
 
   Future<void> markAllAsRead() async {
     try {
-      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser == null) return;
 
       final dataSource = ref.read(notificationDataSourceProvider);
@@ -75,7 +86,7 @@ class NotificationsNotifier extends _$NotificationsNotifier {
 
   Future<void> deleteAllNotifications() async {
     try {
-      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser == null) return;
 
       final dataSource = ref.read(notificationDataSourceProvider);
@@ -84,13 +95,18 @@ class NotificationsNotifier extends _$NotificationsNotifier {
       // Handle error silently
     }
   }
+
+  void loadMore() {
+    ref.read(notificationLimitProvider.notifier).increment();
+  }
 }
 
 @riverpod
 class UnreadNotificationsCount extends _$UnreadNotificationsCount {
   @override
   int build() {
-    final notifications = ref.watch(notificationsStreamProvider).valueOrNull ?? [];
+    final notifications =
+        ref.watch(notificationsStreamProvider).valueOrNull ?? [];
     return notifications.where((n) => !n.isRead).length;
   }
 }

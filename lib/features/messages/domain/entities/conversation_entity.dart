@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'message_entity.dart';
+
 enum ConversationType { individual, group }
 
 class ConversationEntity extends Equatable {
@@ -7,9 +9,13 @@ class ConversationEntity extends Equatable {
   final ConversationType type;
   final String? name;
   final String? imageUrl;
+  final String? groupId; // Add groupId for group conversations
   final List<String> participantIds;
+  final List<String> adminIds;
+  final List<String> reportedBy;
   final String? lastMessage;
   final String? lastMessageSenderId;
+  final MessageStatus? lastMessageStatus;
   final DateTime? lastMessageAt;
   final DateTime createdAt;
   final String createdBy;
@@ -22,9 +28,13 @@ class ConversationEntity extends Equatable {
     required this.type,
     this.name,
     this.imageUrl,
+    this.groupId, // Add to constructor
     required this.participantIds,
+    this.adminIds = const [],
+    this.reportedBy = const [],
     this.lastMessage,
     this.lastMessageSenderId,
+    this.lastMessageStatus,
     this.lastMessageAt,
     required this.createdAt,
     required this.createdBy,
@@ -55,9 +65,13 @@ class ConversationEntity extends Equatable {
     ConversationType? type,
     String? name,
     String? imageUrl,
+    String? groupId,
     List<String>? participantIds,
+    List<String>? adminIds,
+    List<String>? reportedBy,
     String? lastMessage,
     String? lastMessageSenderId,
+    MessageStatus? lastMessageStatus,
     DateTime? lastMessageAt,
     DateTime? createdAt,
     String? createdBy,
@@ -70,9 +84,13 @@ class ConversationEntity extends Equatable {
       type: type ?? this.type,
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,
+      groupId: groupId ?? this.groupId,
       participantIds: participantIds ?? this.participantIds,
+      adminIds: adminIds ?? this.adminIds,
+      reportedBy: reportedBy ?? this.reportedBy,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageSenderId: lastMessageSenderId ?? this.lastMessageSenderId,
+      lastMessageStatus: lastMessageStatus ?? this.lastMessageStatus,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
@@ -84,18 +102,22 @@ class ConversationEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        type,
-        name,
-        imageUrl,
-        participantIds,
-        lastMessage,
-        lastMessageSenderId,
-        lastMessageAt,
-        createdAt,
-        createdBy,
-        unreadCount,
-        mutedBy,
-        archivedBy,
-      ];
+    id,
+    type,
+    name,
+    imageUrl,
+    groupId,
+    participantIds,
+    adminIds,
+    reportedBy,
+    lastMessage,
+    lastMessageSenderId,
+    lastMessageStatus,
+    lastMessageAt,
+    createdAt,
+    createdBy,
+    unreadCount,
+    mutedBy,
+    archivedBy,
+  ];
 }

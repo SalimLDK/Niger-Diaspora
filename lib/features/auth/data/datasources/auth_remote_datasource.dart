@@ -22,6 +22,8 @@ abstract class AuthRemoteDataSource {
 
   Future<void> deleteAccount();
 
+  Future<void> reauthenticateWithPassword(String password);
+
   Future<UserModel?> getCurrentUser();
 
   Stream<UserModel?> get authStateChanges;
@@ -122,15 +124,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       await credential.user!.updateDisplayName(displayName);
+      await credential.user!
+          .reload(); // Reload to ensure displayName is updated
+
+      // Get fresh user object after reload
+      final updatedUser = _firebaseAuth.currentUser!;
 
       // Pass displayName explicitly to ensure it's saved even if user.displayName is not yet updated locally
       await _createOrUpdateUserDocument(
-        credential.user!,
+        updatedUser,
         displayName: displayName,
         email: email,
       );
 
-      return _mapFirebaseUserToModel(credential.user!);
+      return _mapFirebaseUserToModel(updatedUser);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -144,6 +151,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Future.wait([_firebaseAuth.signOut(), _googleSignIn.signOut()]);
     } catch (e) {
       throw ServerException('Echec de la deconnexion');
+    }
+  }
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null || user.email == null) {
+        throw ServerException('Aucun utilisateur connecté');
+      }
+
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    } catch (e) {
+      throw ServerException('Echec de la réauthentification: ${e.toString()}');
     }
   }
 
@@ -241,11 +269,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await attendeeBatch.commit();
 
       // 6. Delete Firebase Auth user
-      await user.delete();
+      try {
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          // Rethrow this specific error so UI can handle reauthentication
+          rethrow;
+        }
+        throw ServerException(_mapFirebaseAuthError(e.code));
+      }
 
       // 7. Sign out from Google if applicable
       await _googleSignIn.signOut();
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw ServerException(
+          'Pour des raisons de sécurité, veuillez confirmer votre mot de passe',
+        );
+      }
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
       throw ServerException(
@@ -272,7 +313,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   UserModel _mapFirebaseUserToModel(User user) {
     return UserModel(
       id: user.uid,
-      email: user.email!,
+      email: user.email,
       displayName: user.displayName,
       photoUrl: user.photoURL,
       phoneNumber: user.phoneNumber,

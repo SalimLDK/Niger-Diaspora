@@ -49,7 +49,7 @@ class GroupRequestNotifier extends _$GroupRequestNotifier {
     String? groupImageUrl,
     String? message,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -156,7 +156,7 @@ class GroupInviteNotifier extends _$GroupInviteNotifier {
     required String inviteeName,
     String? inviteePhotoUrl,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();

@@ -203,12 +203,20 @@ class _ConversationOptionsModalState
 
     setState(() => _isLoading = true);
 
-    final success = await ref
-        .read(conversationActionsNotifierProvider.notifier)
-        .reportConversation(
-          conversationId: widget.conversationId,
-          reason: reason,
-        );
+    final success =
+        widget.isGroup
+            ? await ref
+                .read(conversationActionsNotifierProvider.notifier)
+                .reportGroup(
+                  conversationId: widget.conversationId,
+                  reason: reason,
+                )
+            : await ref
+                .read(conversationActionsNotifierProvider.notifier)
+                .reportConversation(
+                  conversationId: widget.conversationId,
+                  reason: reason,
+                );
 
     if (mounted) {
       setState(() => _isLoading = false);

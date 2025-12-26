@@ -25,9 +25,14 @@ mixin _$ConversationModel {
   String get type => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
+  String? get groupId =>
+      throw _privateConstructorUsedError; // Add groupId for group conversations
   List<String> get participantIds => throw _privateConstructorUsedError;
+  List<String> get adminIds => throw _privateConstructorUsedError;
+  List<String> get reportedBy => throw _privateConstructorUsedError;
   String? get lastMessage => throw _privateConstructorUsedError;
   String? get lastMessageSenderId => throw _privateConstructorUsedError;
+  MessageStatus get lastMessageStatus => throw _privateConstructorUsedError;
   DateTime? get lastMessageAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   String get createdBy => throw _privateConstructorUsedError;
@@ -57,9 +62,13 @@ abstract class $ConversationModelCopyWith<$Res> {
     String type,
     String? name,
     String? imageUrl,
+    String? groupId,
     List<String> participantIds,
+    List<String> adminIds,
+    List<String> reportedBy,
     String? lastMessage,
     String? lastMessageSenderId,
+    MessageStatus lastMessageStatus,
     DateTime? lastMessageAt,
     DateTime? createdAt,
     String createdBy,
@@ -88,9 +97,13 @@ class _$ConversationModelCopyWithImpl<$Res, $Val extends ConversationModel>
     Object? type = null,
     Object? name = freezed,
     Object? imageUrl = freezed,
+    Object? groupId = freezed,
     Object? participantIds = null,
+    Object? adminIds = null,
+    Object? reportedBy = null,
     Object? lastMessage = freezed,
     Object? lastMessageSenderId = freezed,
+    Object? lastMessageStatus = null,
     Object? lastMessageAt = freezed,
     Object? createdAt = freezed,
     Object? createdBy = null,
@@ -120,10 +133,25 @@ class _$ConversationModelCopyWithImpl<$Res, $Val extends ConversationModel>
                     ? _value.imageUrl
                     : imageUrl // ignore: cast_nullable_to_non_nullable
                         as String?,
+            groupId:
+                freezed == groupId
+                    ? _value.groupId
+                    : groupId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             participantIds:
                 null == participantIds
                     ? _value.participantIds
                     : participantIds // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            adminIds:
+                null == adminIds
+                    ? _value.adminIds
+                    : adminIds // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            reportedBy:
+                null == reportedBy
+                    ? _value.reportedBy
+                    : reportedBy // ignore: cast_nullable_to_non_nullable
                         as List<String>,
             lastMessage:
                 freezed == lastMessage
@@ -135,6 +163,11 @@ class _$ConversationModelCopyWithImpl<$Res, $Val extends ConversationModel>
                     ? _value.lastMessageSenderId
                     : lastMessageSenderId // ignore: cast_nullable_to_non_nullable
                         as String?,
+            lastMessageStatus:
+                null == lastMessageStatus
+                    ? _value.lastMessageStatus
+                    : lastMessageStatus // ignore: cast_nullable_to_non_nullable
+                        as MessageStatus,
             lastMessageAt:
                 freezed == lastMessageAt
                     ? _value.lastMessageAt
@@ -185,9 +218,13 @@ abstract class _$$ConversationModelImplCopyWith<$Res>
     String type,
     String? name,
     String? imageUrl,
+    String? groupId,
     List<String> participantIds,
+    List<String> adminIds,
+    List<String> reportedBy,
     String? lastMessage,
     String? lastMessageSenderId,
+    MessageStatus lastMessageStatus,
     DateTime? lastMessageAt,
     DateTime? createdAt,
     String createdBy,
@@ -215,9 +252,13 @@ class __$$ConversationModelImplCopyWithImpl<$Res>
     Object? type = null,
     Object? name = freezed,
     Object? imageUrl = freezed,
+    Object? groupId = freezed,
     Object? participantIds = null,
+    Object? adminIds = null,
+    Object? reportedBy = null,
     Object? lastMessage = freezed,
     Object? lastMessageSenderId = freezed,
+    Object? lastMessageStatus = null,
     Object? lastMessageAt = freezed,
     Object? createdAt = freezed,
     Object? createdBy = null,
@@ -247,10 +288,25 @@ class __$$ConversationModelImplCopyWithImpl<$Res>
                 ? _value.imageUrl
                 : imageUrl // ignore: cast_nullable_to_non_nullable
                     as String?,
+        groupId:
+            freezed == groupId
+                ? _value.groupId
+                : groupId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         participantIds:
             null == participantIds
                 ? _value._participantIds
                 : participantIds // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        adminIds:
+            null == adminIds
+                ? _value._adminIds
+                : adminIds // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        reportedBy:
+            null == reportedBy
+                ? _value._reportedBy
+                : reportedBy // ignore: cast_nullable_to_non_nullable
                     as List<String>,
         lastMessage:
             freezed == lastMessage
@@ -262,6 +318,11 @@ class __$$ConversationModelImplCopyWithImpl<$Res>
                 ? _value.lastMessageSenderId
                 : lastMessageSenderId // ignore: cast_nullable_to_non_nullable
                     as String?,
+        lastMessageStatus:
+            null == lastMessageStatus
+                ? _value.lastMessageStatus
+                : lastMessageStatus // ignore: cast_nullable_to_non_nullable
+                    as MessageStatus,
         lastMessageAt:
             freezed == lastMessageAt
                 ? _value.lastMessageAt
@@ -305,9 +366,13 @@ class _$ConversationModelImpl extends _ConversationModel {
     this.type = 'individual',
     this.name,
     this.imageUrl,
+    this.groupId,
     final List<String> participantIds = const [],
+    final List<String> adminIds = const [],
+    final List<String> reportedBy = const [],
     this.lastMessage,
     this.lastMessageSenderId,
+    this.lastMessageStatus = MessageStatus.sent,
     this.lastMessageAt,
     this.createdAt,
     required this.createdBy,
@@ -315,6 +380,8 @@ class _$ConversationModelImpl extends _ConversationModel {
     final Map<String, dynamic> mutedBy = const {},
     final Map<String, dynamic> archivedBy = const {},
   }) : _participantIds = participantIds,
+       _adminIds = adminIds,
+       _reportedBy = reportedBy,
        _unreadCount = unreadCount,
        _mutedBy = mutedBy,
        _archivedBy = archivedBy,
@@ -332,7 +399,11 @@ class _$ConversationModelImpl extends _ConversationModel {
   final String? name;
   @override
   final String? imageUrl;
+  @override
+  final String? groupId;
+  // Add groupId for group conversations
   final List<String> _participantIds;
+  // Add groupId for group conversations
   @override
   @JsonKey()
   List<String> get participantIds {
@@ -341,10 +412,31 @@ class _$ConversationModelImpl extends _ConversationModel {
     return EqualUnmodifiableListView(_participantIds);
   }
 
+  final List<String> _adminIds;
+  @override
+  @JsonKey()
+  List<String> get adminIds {
+    if (_adminIds is EqualUnmodifiableListView) return _adminIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_adminIds);
+  }
+
+  final List<String> _reportedBy;
+  @override
+  @JsonKey()
+  List<String> get reportedBy {
+    if (_reportedBy is EqualUnmodifiableListView) return _reportedBy;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_reportedBy);
+  }
+
   @override
   final String? lastMessage;
   @override
   final String? lastMessageSenderId;
+  @override
+  @JsonKey()
+  final MessageStatus lastMessageStatus;
   @override
   final DateTime? lastMessageAt;
   @override
@@ -380,7 +472,7 @@ class _$ConversationModelImpl extends _ConversationModel {
 
   @override
   String toString() {
-    return 'ConversationModel(id: $id, type: $type, name: $name, imageUrl: $imageUrl, participantIds: $participantIds, lastMessage: $lastMessage, lastMessageSenderId: $lastMessageSenderId, lastMessageAt: $lastMessageAt, createdAt: $createdAt, createdBy: $createdBy, unreadCount: $unreadCount, mutedBy: $mutedBy, archivedBy: $archivedBy)';
+    return 'ConversationModel(id: $id, type: $type, name: $name, imageUrl: $imageUrl, groupId: $groupId, participantIds: $participantIds, adminIds: $adminIds, reportedBy: $reportedBy, lastMessage: $lastMessage, lastMessageSenderId: $lastMessageSenderId, lastMessageStatus: $lastMessageStatus, lastMessageAt: $lastMessageAt, createdAt: $createdAt, createdBy: $createdBy, unreadCount: $unreadCount, mutedBy: $mutedBy, archivedBy: $archivedBy)';
   }
 
   @override
@@ -393,14 +485,22 @@ class _$ConversationModelImpl extends _ConversationModel {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
             const DeepCollectionEquality().equals(
               other._participantIds,
               _participantIds,
+            ) &&
+            const DeepCollectionEquality().equals(other._adminIds, _adminIds) &&
+            const DeepCollectionEquality().equals(
+              other._reportedBy,
+              _reportedBy,
             ) &&
             (identical(other.lastMessage, lastMessage) ||
                 other.lastMessage == lastMessage) &&
             (identical(other.lastMessageSenderId, lastMessageSenderId) ||
                 other.lastMessageSenderId == lastMessageSenderId) &&
+            (identical(other.lastMessageStatus, lastMessageStatus) ||
+                other.lastMessageStatus == lastMessageStatus) &&
             (identical(other.lastMessageAt, lastMessageAt) ||
                 other.lastMessageAt == lastMessageAt) &&
             (identical(other.createdAt, createdAt) ||
@@ -426,9 +526,13 @@ class _$ConversationModelImpl extends _ConversationModel {
     type,
     name,
     imageUrl,
+    groupId,
     const DeepCollectionEquality().hash(_participantIds),
+    const DeepCollectionEquality().hash(_adminIds),
+    const DeepCollectionEquality().hash(_reportedBy),
     lastMessage,
     lastMessageSenderId,
+    lastMessageStatus,
     lastMessageAt,
     createdAt,
     createdBy,
@@ -460,9 +564,13 @@ abstract class _ConversationModel extends ConversationModel {
     final String type,
     final String? name,
     final String? imageUrl,
+    final String? groupId,
     final List<String> participantIds,
+    final List<String> adminIds,
+    final List<String> reportedBy,
     final String? lastMessage,
     final String? lastMessageSenderId,
+    final MessageStatus lastMessageStatus,
     final DateTime? lastMessageAt,
     final DateTime? createdAt,
     required final String createdBy,
@@ -484,11 +592,19 @@ abstract class _ConversationModel extends ConversationModel {
   @override
   String? get imageUrl;
   @override
+  String? get groupId; // Add groupId for group conversations
+  @override
   List<String> get participantIds;
+  @override
+  List<String> get adminIds;
+  @override
+  List<String> get reportedBy;
   @override
   String? get lastMessage;
   @override
   String? get lastMessageSenderId;
+  @override
+  MessageStatus get lastMessageStatus;
   @override
   DateTime? get lastMessageAt;
   @override

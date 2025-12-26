@@ -12,6 +12,8 @@ enum ImageUploadType {
   event,
   group,
   message,
+  product,
+  business,
 }
 
 class ImageUploadService {
@@ -200,6 +202,10 @@ class ImageUploadService {
         return 'groups/$id/image_$timestamp.jpg';
       case ImageUploadType.message:
         return 'messages/$id/image_$timestamp.jpg';
+      case ImageUploadType.product:
+        return 'products/$id/image_$timestamp.jpg';
+      case ImageUploadType.business:
+        return 'businesses/$id/image_$timestamp.jpg';
     }
   }
 }

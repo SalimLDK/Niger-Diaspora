@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Nous avons besoin d'accéder à votre caméra pour scanner les QR codes des profils</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Nous avons besoin d'accéder à votre microphone pour envoyer des messages vocaux</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Nous avons besoin de cette permission pour sauvegarder des images dans votre galerie</string>
 </dict>
 </plist>

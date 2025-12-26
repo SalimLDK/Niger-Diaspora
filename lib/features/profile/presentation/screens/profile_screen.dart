@@ -63,7 +63,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Future<void> _loadProfile() async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
       // Ne charger le profil que s'il n'est pas déjà chargé pour cet utilisateur
       final existingProfile = ref.read(profileNotifierProvider).valueOrNull;
@@ -746,7 +746,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
     final profile = ref.read(profileNotifierProvider).valueOrNull;
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     ShareProfileModal.show(
       context,
       userName: profile?.displayName ?? currentUser?.displayName,
@@ -919,7 +919,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: ctx.surfaceColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1004,7 +1006,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isSelected ? ctx.adaptivePrimaryColor : ctx.surfaceVariantColor,
+            color:
+                isSelected ? ctx.adaptivePrimaryColor : ctx.surfaceVariantColor,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -1061,7 +1064,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: ctx.surfaceColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -1081,7 +1086,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: ctx.adaptiveSecondaryColor.withValues(alpha: 0.1),
+                          color: ctx.adaptiveSecondaryColor.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -1206,7 +1213,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   final navigator = Navigator.of(context);
                   final router = GoRouter.of(context);
                   navigator.pop();
-                  final currentUser = ref.read(currentUserProvider).valueOrNull;
+                  final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
                   if (currentUser != null) {
                     await NotificationService().removeTokenForUser(
                       currentUser.id,
@@ -1369,7 +1376,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
 
     try {
-      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser != null) {
         await NotificationService().removeTokenForUser(currentUser.id);
       }
@@ -1379,6 +1386,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
       if (!mounted) return;
       Navigator.pop(context);
+
+      // Check if reauthentication is required
+      final authState = ref.read(authNotifierProvider);
+      final errorMessage = authState.maybeWhen(
+        error: (msg) => msg,
+        orElse: () => null,
+      );
+
+      if (errorMessage != null && errorMessage.startsWith('REAUTH_REQUIRED:')) {
+        // Extract the actual error message
+        final actualMessage = errorMessage.substring('REAUTH_REQUIRED:'.length);
+
+        // Show password prompt
+        await _showPasswordPromptForDeletion(l10n, actualMessage);
+        return;
+      }
 
       if (success) {
         GoRouter.of(context).go('/auth/login');
@@ -1405,7 +1428,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               children: [
                 const Icon(Icons.error, color: AppColors.white),
                 const SizedBox(width: 12),
-                Text(l10n.errorDeletingAccount),
+                Expanded(
+                  child: Text(errorMessage ?? l10n.errorDeletingAccount),
+                ),
               ],
             ),
             backgroundColor: AppColors.error,
@@ -1422,6 +1447,189 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${l10n.error}: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _showPasswordPromptForDeletion(
+    AppLocalizations l10n,
+    String message,
+  ) async {
+    final passwordController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.warningColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.lock_reset,
+                        color: context.warningColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.confirmPassword,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(message),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        hintText: l10n.confirmPasswordRequired,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: context.adaptivePrimaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        prefixIcon: const Icon(Icons.lock),
+                      ),
+                      onChanged: (_) => setDialogState(() {}),
+                      onSubmitted: (_) {
+                        if (passwordController.text.isNotEmpty) {
+                          _handlePasswordSubmit(passwordController.text, l10n);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      passwordController.dispose();
+                      Navigator.pop(context);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                  ElevatedButton(
+                    onPressed:
+                        passwordController.text.isEmpty
+                            ? null
+                            : () {
+                              _handlePasswordSubmit(
+                                passwordController.text,
+                                l10n,
+                              );
+                              passwordController.dispose();
+                            },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(l10n.confirm),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  Future<void> _handlePasswordSubmit(
+    String password,
+    AppLocalizations l10n,
+  ) async {
+    Navigator.pop(context); // Close password dialog first
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(width: 20),
+                Expanded(child: Text(l10n.deletingAccount)),
+              ],
+            ),
+          ),
+    );
+
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .reauthenticateAndDelete(password);
+
+    if (!mounted) return;
+
+    Navigator.pop(context); // Close loading dialog
+
+    if (success) {
+      GoRouter.of(context).go('/auth/login');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.white),
+              const SizedBox(width: 12),
+              Text(l10n.accountDeletedSuccess),
+            ],
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } else {
+      final authState = ref.read(authNotifierProvider);
+      final errorMessage = authState.maybeWhen(
+        error: (msg) => msg,
+        orElse: () => l10n.errorDeletingAccount,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: AppColors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(errorMessage)),
+            ],
+          ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -1615,7 +1823,10 @@ class _SettingsSwitchTile extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: value ? context.adaptivePrimaryColor : context.textTertiaryColor,
+              color:
+                  value
+                      ? context.adaptivePrimaryColor
+                      : context.textTertiaryColor,
               size: 20,
             ),
           ),
@@ -1649,7 +1860,9 @@ class _SettingsSwitchTile extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeColor: context.adaptivePrimaryColor,
-            activeTrackColor: context.adaptivePrimaryColor.withValues(alpha: 0.3),
+            activeTrackColor: context.adaptivePrimaryColor.withValues(
+              alpha: 0.3,
+            ),
           ),
         ],
       ),
@@ -1664,7 +1877,10 @@ class _SettingsDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 72),
-      child: Divider(height: 1, color: context.borderColor.withValues(alpha: 0.5)),
+      child: Divider(
+        height: 1,
+        color: context.borderColor.withValues(alpha: 0.5),
+      ),
     );
   }
 }
@@ -1748,8 +1964,17 @@ class _HelpOption extends StatelessWidget {
           ),
           child: Icon(icon, color: ctx.adaptiveSecondaryColor, size: 20),
         ),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: ctx.textPrimaryColor)),
-        subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: ctx.textSecondaryColor)),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: ctx.textPrimaryColor,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: ctx.textSecondaryColor),
+        ),
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,

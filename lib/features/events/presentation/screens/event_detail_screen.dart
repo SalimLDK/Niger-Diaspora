@@ -6,11 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -28,6 +30,7 @@ class EventDetailScreen extends ConsumerStatefulWidget {
 
 class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   bool _isLoading = false;
+  int _currentPosterIndex = 0;
 
   @override
   void initState() {
@@ -112,7 +115,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ),
                   child: Icon(Icons.share, color: context.textPrimaryColor),
                 ),
-                onPressed: () => _shareEvent(event),
+                onPressed: () {
+                  AnalyticsService.instance.logEvent(
+                    name: 'share_event',
+                    parameters: {'event_id': event.id},
+                  );
+                  _shareEvent(event);
+                },
               ),
               const SizedBox(width: 8),
             ],
@@ -120,31 +129,91 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient:
-                          event.posterUrls.isEmpty
-                              ? context.adaptivePrimaryGradient
-                              : null,
-                      image:
-                          event.posterUrls.isNotEmpty
-                              ? DecorationImage(
-                                image: NetworkImage(event.posterUrls.first),
-                                fit: BoxFit.cover,
-                              )
-                              : null,
-                    ),
-                    child:
-                        event.posterUrls.isEmpty
-                            ? Center(
-                              child: Icon(
-                                Icons.event,
-                                size: 80,
-                                color: context.onPrimaryColor,
-                              ),
-                            )
-                            : null,
-                  ),
+                  // Poster Carousel or Single Image
+                  event.posterUrls.length > 1
+                      ? Stack(
+                        children: [
+                          CarouselSlider(
+                            options: CarouselOptions(
+                              height: double.infinity,
+                              viewportFraction: 1.0,
+                              enableInfiniteScroll: event.posterUrls.length > 2,
+                              onPageChanged: (index, reason) {
+                                setState(() => _currentPosterIndex = index);
+                              },
+                            ),
+                            items:
+                                event.posterUrls.map((url) {
+                                  return Builder(
+                                    builder: (BuildContext context) {
+                                      return Container(
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: NetworkImage(url),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                          ),
+                          // Page Indicator Dots
+                          Positioned(
+                            bottom: 16,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children:
+                                  event.posterUrls.asMap().entries.map((entry) {
+                                    return Container(
+                                      width: 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color:
+                                            _currentPosterIndex == entry.key
+                                                ? Colors.white
+                                                : Colors.white.withValues(
+                                                  alpha: 0.4,
+                                                ),
+                                      ),
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        ],
+                      )
+                      : Container(
+                        decoration: BoxDecoration(
+                          gradient:
+                              event.posterUrls.isEmpty
+                                  ? context.adaptivePrimaryGradient
+                                  : null,
+                          image:
+                              event.posterUrls.isNotEmpty
+                                  ? DecorationImage(
+                                    image: NetworkImage(event.posterUrls.first),
+                                    fit: BoxFit.cover,
+                                  )
+                                  : null,
+                        ),
+                        child:
+                            event.posterUrls.isEmpty
+                                ? Center(
+                                  child: Icon(
+                                    Icons.event,
+                                    size: 80,
+                                    color: context.onPrimaryColor,
+                                  ),
+                                )
+                                : null,
+                      ),
                   // Gradient overlay
                   Container(
                     decoration: BoxDecoration(
@@ -586,6 +655,99 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                     ),
 
+                  // Recap Section (if exists)
+                  if (event.recapDescription != null &&
+                      event.recapPhotoUrls.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.photo_library,
+                          size: 20,
+                          color: context.adaptivePrimaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Récapitulatif',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(
+                              context,
+                            );
+                            try {
+                              final shareText = '''
+📸 ${event.title} - R\u00e9capitulatif
+
+${event.recapDescription}
+
+Voir plus de d\u00e9tails sur DiaspoNiger
+''';
+                              await Share.share(shareText);
+                            } catch (e) {
+                              scaffoldMessenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Erreur lors du partage'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          icon: Icon(
+                            Icons.share,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                          tooltip: 'Partager le récapitulatif',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        event.recapDescription!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.textSecondaryColor,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                      itemCount: event.recapPhotoUrls.length,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            event.recapPhotoUrls[index],
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+
                   const SizedBox(height: 100),
                 ],
               ),
@@ -815,7 +977,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     }
   }
 
-  void _addToCalendar(EventEntity event) {
+  Future<void> _addToCalendar(EventEntity event) async {
     final l10n = AppLocalizations.of(context)!;
     final calendarEvent = Event(
       title: event.title,
@@ -828,19 +990,18 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       allDay: false,
     );
 
-    Add2Calendar.addEvent2Cal(calendarEvent).then((success) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? l10n.addedToCalendar : l10n.cannotAddToCalendar,
-            ),
-            backgroundColor:
-                success ? context.adaptiveSecondaryColor : Colors.red,
+    final success = await Add2Calendar.addEvent2Cal(calendarEvent);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? l10n.addedToCalendar : l10n.cannotAddToCalendar,
           ),
-        );
-      }
-    });
+          backgroundColor:
+              success ? context.adaptiveSecondaryColor : Colors.red,
+        ),
+      );
+    }
   }
 
   void _shareEvent(EventEntity event) {

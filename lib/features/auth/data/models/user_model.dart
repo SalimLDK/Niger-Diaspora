@@ -11,12 +11,13 @@ class UserModel with _$UserModel {
 
   const factory UserModel({
     required String id,
-    required String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
+    @Default(false) bool isAdmin,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -24,10 +25,7 @@ class UserModel with _$UserModel {
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return UserModel.fromJson({
-      ...data,
-      'id': doc.id,
-    });
+    return UserModel.fromJson({...data, 'id': doc.id});
   }
 
   Map<String, dynamic> toFirestore() {
@@ -45,6 +43,7 @@ class UserModel with _$UserModel {
       phoneNumber: phoneNumber,
       createdAt: createdAt,
       lastLoginAt: lastLoginAt,
+      isAdmin: isAdmin,
     );
   }
 }

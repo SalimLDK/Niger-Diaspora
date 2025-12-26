@@ -1,0 +1,47 @@
+À : info@nitatransfert.com
+
+Objet : Demande de partenariat API - Application Diaspo Niger
+
+---
+
+Madame, Monsieur,
+
+Je me permets de vous contacter concernant l'application Diaspo Niger, une plateforme mobile destinée à la diaspora nigérienne.
+
+## Présentation de notre projet
+
+Diaspo Niger est une application communautaire qui permet aux Nigériens de la diaspora de :
+- Rester connectés avec leur communauté
+- Découvrir les événements et commerces nigériens
+- Acheter des produits sur notre marketplace
+
+## Notre besoin
+
+Nous souhaitons intégrer un service de transfert d'argent permettant à nos utilisateurs d'envoyer de l'argent depuis l'Europe (France, Belgique, Suisse, Canada) vers leurs proches au Niger.
+
+Suite à votre présentation du 18 juin 2025 concernant l'API de paiement MyNita, nous sommes très intéressés par un partenariat d'intégration technique.
+
+## Ce que nous recherchons
+
+1. Accès à votre API de transfert d'argent
+2. Documentation technique pour l'intégration
+3. Conditions commerciales (frais, commissions, volumes)
+4. Accompagnement technique pour la mise en place
+
+## Notre modèle
+
+- Collecte côté expéditeur : Stripe (cartes bancaires EUR/USD/GBP)
+- Distribution côté bénéficiaire : MyNita (compte bancaire, retrait agence)
+
+
+
+Je serais ravi d'échanger avec vous par téléphone ou en visioconférence pour discuter des modalités d'un partenariat.
+
+Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+
+---
+
+[Votre Nom]
+Fondateur - Diaspo Niger
+Email : [votre-email]
+Téléphone : [votre-numéro]

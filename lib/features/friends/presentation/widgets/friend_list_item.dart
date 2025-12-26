@@ -6,14 +6,12 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../domain/entities/friend_entity.dart';
 import '../providers/friend_provider.dart';
+import '../../../profile/presentation/widgets/online_status_indicator.dart';
 
 class FriendListItem extends ConsumerWidget {
   final FriendEntity friend;
 
-  const FriendListItem({
-    super.key,
-    required this.friend,
-  });
+  const FriendListItem({super.key, required this.friend});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,8 +37,8 @@ class FriendListItem extends ConsumerWidget {
                     Text(
                       friend.displayName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -49,34 +47,49 @@ class FriendListItem extends ConsumerWidget {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) async {
                   if (value == 'message') {
-                    context.push('/messages/conversation/${friend.id}');
+                    // Use friend.id as conversationId for 1-on-1 chats
+                    context.push(
+                      '/messages/${friend.id}',
+                      extra: {
+                        'name': friend.displayName,
+                        'imageUrl': friend.photoUrl,
+                        'isGroup': false,
+                        'otherUserId': friend.id,
+                      },
+                    );
                   } else if (value == 'remove') {
                     _showRemoveFriendDialog(context, ref);
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'message',
-                    child: Row(
-                      children: [
-                        Icon(Icons.chat_outlined),
-                        SizedBox(width: AppSpacing.spacing8),
-                        Text('Envoyer un message'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'remove',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_remove_outlined, color: Colors.red),
-                        SizedBox(width: AppSpacing.spacing8),
-                        Text('Retirer des amis',
-                            style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                ],
+                itemBuilder:
+                    (context) => [
+                      const PopupMenuItem(
+                        value: 'message',
+                        child: Row(
+                          children: [
+                            Icon(Icons.chat_outlined),
+                            SizedBox(width: AppSpacing.spacing8),
+                            Text('Envoyer un message'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'remove',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_remove_outlined,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: AppSpacing.spacing8),
+                            Text(
+                              'Retirer des amis',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
               ),
             ],
           ),
@@ -86,8 +99,9 @@ class FriendListItem extends ConsumerWidget {
   }
 
   Widget _buildAvatar() {
+    Widget avatarContent;
     if (friend.photoUrl != null && friend.photoUrl!.isNotEmpty) {
-      return ClipRRect(
+      avatarContent = ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: CachedNetworkImage(
           imageUrl: friend.photoUrl!,
@@ -98,8 +112,31 @@ class FriendListItem extends ConsumerWidget {
           errorWidget: (context, url, error) => _buildPlaceholderAvatar(),
         ),
       );
+    } else {
+      avatarContent = _buildPlaceholderAvatar();
     }
-    return _buildPlaceholderAvatar();
+
+    return Stack(
+      children: [
+        avatarContent,
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // Or dynamic helper
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: OnlineStatusIndicator(
+              userId: friend.id,
+              showText: false,
+              dotSize: 10,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildPlaceholderAvatar() {
@@ -122,32 +159,34 @@ class FriendListItem extends ConsumerWidget {
   void _showRemoveFriendDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Retirer des amis'),
-        content: Text(
-            'Voulez-vous vraiment retirer ${friend.displayName} de vos amis ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Retirer des amis'),
+            content: Text(
+              'Voulez-vous vraiment retirer ${friend.displayName} de vos amis ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final success = await ref
+                      .read(friendRequestNotifierProvider.notifier)
+                      .removeFriend(friend.id);
+                  if (context.mounted && success) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Ami retiré')));
+                  }
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Retirer'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await ref
-                  .read(friendRequestNotifierProvider.notifier)
-                  .removeFriend(friend.id);
-              if (context.mounted && success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Ami retiré')),
-                );
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Retirer'),
-          ),
-        ],
-      ),
     );
   }
 }

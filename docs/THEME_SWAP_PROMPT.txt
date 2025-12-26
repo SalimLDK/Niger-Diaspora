@@ -1,0 +1,34 @@
+You are an expert Flutter developer. Your task is to modify the application theme to swap the Primary and Secondary colors in the default light theme.
+
+**Context:**
+- The file to modify is `lib/core/theme/app_theme.dart`.
+- The color definitions are in `lib/core/constants/app_colors.dart` (READ-ONLY).
+  - `AppColors.primary` is Orange.
+  - `AppColors.secondary` is Green.
+
+NB : 
+Thème par Défaut (Vert) : Le getter lightTheme deviendra le thème vert.
+Ancien Thème (Orange) : L'actuel lightTheme sera renommé orangeTheme pour rester accessible.
+
+**Goal:**
+We want the application's MAIN color to be Green (currently secondary) and the SECONDARY color to be Orange (currently primary).
+
+**Instructions:**
+1.  Open `lib/core/theme/app_theme.dart`.
+2.  Locate the `lightTheme` getter.
+3.  Modify the `ColorScheme` definition within `lightTheme`:
+    - Assign `AppColors.secondary` (Green) to the `primary` slot.
+    - Assign `AppColors.secondaryLighter` to `primaryContainer`.
+    - Assign `AppColors.secondaryDark` to `onPrimaryContainer`.
+    - Assign `AppColors.primary` (Orange) to the `secondary` slot.
+    - Assign `AppColors.primaryLighter` to `secondaryContainer`.
+    - Assign `AppColors.primaryDark` to `onSecondaryContainer`.
+4.  Update specific component themes within `lightTheme` to ensure consistency with the new Green primary:
+    - **ElevatedButtonTheme**: Set `backgroundColor` to `AppColors.secondary` (or simply ensure it uses the new primary color scheme).
+    - **FloatingActionButtonTheme**: Set `backgroundColor` to `AppColors.secondary`.
+    - **InputDecorationTheme**: Set `focusedBorder` color to `AppColors.secondary`.
+    - **TabBarTheme**: Set `labelColor` and indicator color to `AppColors.secondary`.
+    - **SwitchTheme**, **CheckboxTheme**, **RadioTheme**: Update active colors to `AppColors.secondary`.
+
+**Output:**
+Apply these changes directly to `lib/core/theme/app_theme.dart`. Do NOT change `app_colors.dart`.

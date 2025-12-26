@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
   const CreateEventScreen({super.key});
@@ -33,6 +36,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   TimeOfDay? _endTime;
   bool _isOnline = false;
   bool _isLoading = false;
+  final List<XFile> _selectedPosters = [];
+  final _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -141,10 +146,45 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
   }
 
+  Future<void> _pickPosters() async {
+    try {
+      final images = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        setState(() {
+          // Limit to 5 posters total
+          final remaining = 5 - _selectedPosters.length;
+          if (remaining > 0) {
+            _selectedPosters.addAll(images.take(remaining));
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la sélection des images: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _removePoster(int index) {
+    setState(() {
+      _selectedPosters.removeAt(index);
+    });
+  }
+
   Future<void> _createEvent() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     final l10n = AppLocalizations.of(context)!;
@@ -204,6 +244,25 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final success = await ref
         .read(myEventsNotifierProvider.notifier)
         .createEvent(event);
+
+    if (success && _selectedPosters.isNotEmpty) {
+      // Upload posters if event was created successfully
+      final repository = ref.read(eventRepositoryProvider);
+      for (final poster in _selectedPosters) {
+        await repository.uploadEventPoster(event.id, poster.path);
+      }
+    }
+
+    if (success) {
+      AnalyticsService.instance.logEvent(
+        name: 'create_event',
+        parameters: {
+          'category': _selectedCategory.name,
+          'is_online': _isOnline,
+          'has_posters': _selectedPosters.isNotEmpty,
+        },
+      );
+    }
 
     setState(() => _isLoading = false);
 
@@ -613,6 +672,116 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             Text(
               l10n.unlimitedAttendees,
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Event Posters Section
+            _buildLabel('Affiches de l\'événement (optionnel)'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ajoutez jusqu\'à 5 affiches pour votre événement',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_selectedPosters.isEmpty)
+                    Center(
+                      child: OutlinedButton.icon(
+                        onPressed: _pickPosters,
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: const Text('Sélectionner des images'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: context.adaptivePrimaryColor,
+                          side: BorderSide(color: context.adaptivePrimaryColor),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: [
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                childAspectRatio: 1,
+                              ),
+                          itemCount: _selectedPosters.length,
+                          itemBuilder: (context, index) {
+                            final poster = _selectedPosters[index];
+                            return Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(poster.path),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () => _removePoster(index),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        if (_selectedPosters.length < 5) ...[
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: _pickPosters,
+                              icon: const Icon(Icons.add),
+                              label: Text(
+                                'Ajouter (${_selectedPosters.length}/5)',
+                              ),
+                              style: TextButton.styleFrom(
+                                foregroundColor: context.adaptivePrimaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 32),

@@ -12,7 +12,10 @@ class CustomBottomNavigation extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.unreadMessagesCount = 0,
   });
+
+  final int unreadMessagesCount;
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +25,14 @@ class CustomBottomNavigation extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        boxShadow: isDark ? AppShadows.shadowBottomNavDark : AppShadows.shadowBottomNav,
-        border: isDark
-            ? Border(
-                top: BorderSide(
-                  color: AppColors.borderDark,
-                  width: 1,
-                ),
-              )
-            : null,
+        boxShadow:
+            isDark
+                ? AppShadows.shadowBottomNavDark
+                : AppShadows.shadowBottomNav,
+        border:
+            isDark
+                ? Border(top: BorderSide(color: AppColors.borderDark, width: 1))
+                : null,
       ),
       child: SafeArea(
         child: Padding(
@@ -64,6 +66,7 @@ class CustomBottomNavigation extends StatelessWidget {
                 label: 'Messages',
                 isActive: currentIndex == 3,
                 onTap: () => onTap(3),
+                badgeCount: unreadMessagesCount,
               ),
               _NavItem(
                 icon: Icons.person_rounded,
@@ -90,7 +93,10 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.onTap,
+    this.badgeCount = 0,
   });
+
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -101,9 +107,10 @@ class _NavItem extends StatelessWidget {
     final activeColor = isDark ? AppColors.primaryLight : AppColors.primary;
     final inactiveColor =
         isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
-    final activeBgColor = isDark
-        ? AppColors.primaryLight.withValues(alpha: 0.15)
-        : AppColors.primaryLighter;
+    final activeBgColor =
+        isDark
+            ? AppColors.primaryLight.withValues(alpha: 0.15)
+            : AppColors.primaryLighter;
 
     return GestureDetector(
       onTap: onTap,
@@ -122,10 +129,42 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isActive ? activeColor : inactiveColor,
-              size: AppSpacing.iconSize,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  icon,
+                  color: isActive ? activeColor : inactiveColor,
+                  size: AppSpacing.iconSize,
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Center(
+                        child: Text(
+                          badgeCount > 99 ? '99+' : badgeCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: AppSpacing.spacing4),
             AnimatedDefaultTextStyle(

@@ -45,6 +45,159 @@ final groupRepositoryProvider = AutoDisposeProvider<GroupRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GroupRepositoryRef = AutoDisposeProviderRef<GroupRepository>;
+String _$groupByNameHash() => r'de64cd21a8719dad25f75dd65197c902ba818194';
+
+/// Copied from Dart SDK
+class _SystemHash {
+  _SystemHash._();
+
+  static int combine(int hash, int value) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + value);
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    // ignore: parameter_assignments
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+}
+
+/// Find a group by its name - useful as fallback when groupId is missing
+///
+/// Copied from [groupByName].
+@ProviderFor(groupByName)
+const groupByNameProvider = GroupByNameFamily();
+
+/// Find a group by its name - useful as fallback when groupId is missing
+///
+/// Copied from [groupByName].
+class GroupByNameFamily extends Family<AsyncValue<GroupEntity?>> {
+  /// Find a group by its name - useful as fallback when groupId is missing
+  ///
+  /// Copied from [groupByName].
+  const GroupByNameFamily();
+
+  /// Find a group by its name - useful as fallback when groupId is missing
+  ///
+  /// Copied from [groupByName].
+  GroupByNameProvider call(String groupName) {
+    return GroupByNameProvider(groupName);
+  }
+
+  @override
+  GroupByNameProvider getProviderOverride(
+    covariant GroupByNameProvider provider,
+  ) {
+    return call(provider.groupName);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'groupByNameProvider';
+}
+
+/// Find a group by its name - useful as fallback when groupId is missing
+///
+/// Copied from [groupByName].
+class GroupByNameProvider extends AutoDisposeFutureProvider<GroupEntity?> {
+  /// Find a group by its name - useful as fallback when groupId is missing
+  ///
+  /// Copied from [groupByName].
+  GroupByNameProvider(String groupName)
+    : this._internal(
+        (ref) => groupByName(ref as GroupByNameRef, groupName),
+        from: groupByNameProvider,
+        name: r'groupByNameProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$groupByNameHash,
+        dependencies: GroupByNameFamily._dependencies,
+        allTransitiveDependencies: GroupByNameFamily._allTransitiveDependencies,
+        groupName: groupName,
+      );
+
+  GroupByNameProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.groupName,
+  }) : super.internal();
+
+  final String groupName;
+
+  @override
+  Override overrideWith(
+    FutureOr<GroupEntity?> Function(GroupByNameRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GroupByNameProvider._internal(
+        (ref) => create(ref as GroupByNameRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        groupName: groupName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<GroupEntity?> createElement() {
+    return _GroupByNameProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupByNameProvider && other.groupName == groupName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, groupName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GroupByNameRef on AutoDisposeFutureProviderRef<GroupEntity?> {
+  /// The parameter `groupName` of this provider.
+  String get groupName;
+}
+
+class _GroupByNameProviderElement
+    extends AutoDisposeFutureProviderElement<GroupEntity?>
+    with GroupByNameRef {
+  _GroupByNameProviderElement(super.provider);
+
+  @override
+  String get groupName => (origin as GroupByNameProvider).groupName;
+}
+
 String _$groupsNotifierHash() => r'402dd3221aa2dbddf1cb000cc013e8efa57fa184';
 
 /// See also [GroupsNotifier].

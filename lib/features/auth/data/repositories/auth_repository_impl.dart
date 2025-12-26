@@ -103,6 +103,20 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> reauthenticateWithPassword(
+    String password,
+  ) async {
+    try {
+      await remoteDataSource.reauthenticateWithPassword(password);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
     try {
       final userModel = await remoteDataSource.getCurrentUser();

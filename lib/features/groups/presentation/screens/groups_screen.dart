@@ -29,7 +29,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   void _loadData() {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
       ref.read(myGroupsNotifierProvider.notifier).loadMyGroups(currentUser.id);
     }
@@ -336,7 +336,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Future<void> _joinGroup(String groupId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     final success = await ref
@@ -358,7 +358,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Future<void> _leaveGroup(String groupId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     final l10n = AppLocalizations.of(context)!;

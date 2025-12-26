@@ -467,6 +467,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventsTitle => 'Events';
 
   @override
+  String get upcoming => 'Upcoming';
+
+  @override
+  String get past => 'Past';
+
+  @override
+  String get noPastEvents => 'No past events';
+
+  @override
   String get all => 'All';
 
   @override
@@ -1097,7 +1106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qrCodeAndShareLink => 'QR code and share link';
 
   @override
-  String get manageAlerts => 'Manage your alerts';
+  String get manageAlerts => 'Manage notifications';
 
   @override
   String get appearInSearchesDesc => 'Appear in searches';
@@ -1119,6 +1128,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountTitle => 'Delete account';
+
+  @override
+  String get filterUnread => 'Unread';
+
+  @override
+  String get filterFriends => 'Friends';
+
+  @override
+  String get notificationSettings => 'Notification settings';
+
+  @override
+  String get notificationContent => 'Content';
+
+  @override
+  String get notificationAlerts => 'Alerts';
+
+  @override
+  String get notificationAdvanced => 'Advanced';
+
+  @override
+  String get notifyMessages => 'Messages';
+
+  @override
+  String get notifyEvents => 'Events';
+
+  @override
+  String get notifyFriendRequests => 'Friend requests';
+
+  @override
+  String get notifyGroups => 'Groups';
+
+  @override
+  String get notifyEventReminders => 'Event reminders';
+
+  @override
+  String get notificationSound => 'Sound';
+
+  @override
+  String get notificationVibration => 'Vibration';
+
+  @override
+  String get quietHours => 'Quiet hours';
+
+  @override
+  String get quietHoursDesc => 'Do not disturb during these hours';
+
+  @override
+  String get quietHoursStart => 'Start';
+
+  @override
+  String get quietHoursEnd => 'End';
+
+  @override
+  String get notificationDetail => 'Notification detail';
+
+  @override
+  String get open => 'Open';
+
+  @override
+  String get markAsRead => 'Mark as read';
 
   @override
   String get accountDeletedSuccess => 'Your account has been successfully deleted';
@@ -1146,6 +1215,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileNotFound => 'Profile not found';
+
+  @override
+  String get deletedUser => 'Deleted user';
+
+  @override
+  String get deletedProfile => 'Deleted profile';
+
+  @override
+  String get accountNoLongerExists => 'This account no longer exists';
 
   @override
   String livingIn(String city, String country) {

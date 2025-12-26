@@ -21,4 +21,13 @@ abstract class ProfileRepository {
   );
   Future<Either<Failure, List<ProfileEntity>>> searchProfiles(String query);
   Stream<Either<Failure, ProfileEntity>> getUserStream(String userId);
+  Future<Either<Failure, void>> updateOnlineStatus(
+    String userId,
+    bool isOnline,
+    DateTime lastSeen,
+  );
+  Future<Either<Failure, void>> updateOnlineStatusVisibility(
+    String userId,
+    bool showStatus,
+  );
 }

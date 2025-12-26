@@ -94,6 +94,21 @@ class GroupDetailNotifier extends _$GroupDetailNotifier {
   }
 }
 
+/// Find a group by its name - useful as fallback when groupId is missing
+@riverpod
+Future<GroupEntity?> groupByName(Ref ref, String groupName) async {
+  final repository = ref.watch(groupRepositoryProvider);
+  final result = await repository.getGroups();
+
+  return result.fold((failure) => null, (groups) {
+    try {
+      return groups.firstWhere((g) => g.name == groupName);
+    } catch (e) {
+      return null;
+    }
+  });
+}
+
 @Riverpod(keepAlive: true)
 class MyGroupsNotifier extends _$MyGroupsNotifier {
   @override

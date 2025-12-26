@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
@@ -21,6 +22,13 @@ abstract class ProfileRemoteDataSource {
   Future<List<ProfileModel>> getProfilesByCountry(String country);
   Future<List<ProfileModel>> searchProfiles(String query);
   Stream<ProfileModel> getUserStream(String userId);
+  Future<void> updateLastLogin(String userId);
+  Future<void> updateOnlineStatus(
+    String userId,
+    bool isOnline,
+    DateTime lastSeen,
+  );
+  Future<void> updateOnlineStatusVisibility(String userId, bool showStatus);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -53,6 +61,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
         final data = doc.data()!;
         data['id'] = doc.id;
+
+        // Ensure count fields have default values
+        data['connectionsCount'] ??= 0;
+        data['groupsCount'] ??= 0;
+        data['eventsCount'] ??= 0;
 
         final profile = ProfileModel.fromJson(_convertTimestamps(data));
 
@@ -116,10 +129,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await ref.putFile(file);
       final url = await ref.getDownloadURL();
 
-      // Update Firestore
-      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
-        {'photoUrl': url},
-      );
+      // Update Firestore (use set with merge to create document if it doesn't exist)
+      await _firestore.collection(FirebaseCollections.users).doc(userId).set({
+        'photoUrl': url,
+      }, SetOptions(merge: true));
 
       // Also update Firebase Auth photo URL
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -141,14 +154,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     double longitude,
   ) async {
     try {
-      await _firestore
-          .collection(FirebaseCollections.users)
-          .doc(userId)
-          .update({
-            'latitude': latitude,
-            'longitude': longitude,
-            'locationUpdatedAt': FieldValue.serverTimestamp(),
-          });
+      // Use set with merge to create document if it doesn't exist
+      await _firestore.collection(FirebaseCollections.users).doc(userId).set({
+        'latitude': latitude,
+        'longitude': longitude,
+        'locationUpdatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } on FirebaseException catch (e) {
       throw ServerException(
         e.message ?? 'Erreur lors de la mise à jour de la localisation',
@@ -164,13 +175,26 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   ) async {
     try {
       final isConnected = await _connectivity.isConnected();
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+      debugPrint('🗺️ getNearbyProfiles called:');
+      debugPrint('  📍 Position: ($latitude, $longitude)');
+      debugPrint('  📏 Radius: ${radiusKm}km');
+      debugPrint('  👤 Current user: $currentUserId');
 
       if (isConnected) {
         // Simple bounding box calculation for nearby search
         final latDelta = radiusKm / 111.0; // ~111km per degree latitude
         final lonDelta = radiusKm / (111.0 * _cos(latitude));
 
-        final query =
+        debugPrint('  🔍 Query bounds:');
+        debugPrint('    Lat: ${latitude - latDelta} to ${latitude + latDelta}');
+        debugPrint(
+          '    Lon: ${longitude - lonDelta} to ${longitude + lonDelta}',
+        );
+
+        // First try with isVisible filter
+        var query =
             await _firestore
                 .collection(FirebaseCollections.users)
                 .where('isVisible', isEqualTo: true)
@@ -178,6 +202,25 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 .where('latitude', isLessThan: latitude + latDelta)
                 .limit(50)
                 .get();
+
+        debugPrint(
+          '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
+        );
+
+        // If no results, try without isVisible filter
+        if (query.docs.isEmpty) {
+          debugPrint('  🔄 Retrying without isVisible filter...');
+          query =
+              await _firestore
+                  .collection(FirebaseCollections.users)
+                  .where('latitude', isGreaterThan: latitude - latDelta)
+                  .where('latitude', isLessThan: latitude + latDelta)
+                  .limit(50)
+                  .get();
+          debugPrint(
+            '  📊 Query without isVisible returned: ${query.docs.length} docs',
+          );
+        }
 
         final profiles =
             query.docs
@@ -187,21 +230,44 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                   return ProfileModel.fromJson(_convertTimestamps(data));
                 })
                 .where((profile) {
+                  // Exclude current user
+                  if (currentUserId != null && profile.id == currentUserId) {
+                    return false;
+                  }
                   if (profile.longitude == null) return false;
                   return profile.longitude! > longitude - lonDelta &&
                       profile.longitude! < longitude + lonDelta;
                 })
                 .toList();
 
+        debugPrint(
+          '  ✅ After filtering (excluding current user): ${profiles.length} profiles',
+        );
+
+        // Log details of each profile for debugging
+        for (var i = 0; i < profiles.length && i < 5; i++) {
+          final p = profiles[i];
+          debugPrint(
+            '    👤 ${p.displayName ?? "Unknown"} - '
+            'Visible: ${p.isVisible}, '
+            'Coords: (${p.latitude}, ${p.longitude})',
+          );
+        }
+        if (profiles.length > 5) {
+          debugPrint('    ... and ${profiles.length - 5} more profiles');
+        }
+
         // Mettre en cache les profils
         await _cache.cacheProfiles(profiles.map((p) => p.toJson()).toList());
 
         return profiles;
       } else {
+        debugPrint('  📴 Offline mode - returning cached profiles');
         // Mode hors ligne - retourner les profils en cache
         return _getProfilesFromCache();
       }
     } on FirebaseException catch (e) {
+      debugPrint('  ❌ Firebase error: ${e.message}');
       final cached = _getProfilesFromCache();
       if (cached.isNotEmpty) return cached;
       throw ServerException(e.message ?? 'Erreur lors de la recherche');
@@ -217,9 +283,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   Future<List<ProfileModel>> getProfilesByCountry(String country) async {
     try {
       final isConnected = await _connectivity.isConnected();
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+      debugPrint('🌍 getProfilesByCountry called for: $country');
+      debugPrint('  👤 Current user: $currentUserId');
 
       if (isConnected) {
-        final query =
+        // First try with isVisible filter
+        var query =
             await _firestore
                 .collection(FirebaseCollections.users)
                 .where('isVisible', isEqualTo: true)
@@ -227,23 +298,53 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 .limit(100)
                 .get();
 
+        debugPrint(
+          '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
+        );
+
+        // If no results, try without isVisible filter
+        if (query.docs.isEmpty) {
+          debugPrint('  🔄 Retrying without isVisible filter...');
+          query =
+              await _firestore
+                  .collection(FirebaseCollections.users)
+                  .where('currentCountry', isEqualTo: country)
+                  .limit(100)
+                  .get();
+          debugPrint(
+            '  📊 Query without isVisible returned: ${query.docs.length} docs',
+          );
+        }
+
         final profiles =
-            query.docs.map((doc) {
-              final data = doc.data();
-              data['id'] = doc.id;
-              return ProfileModel.fromJson(_convertTimestamps(data));
-            }).toList();
+            query.docs
+                .map((doc) {
+                  final data = doc.data();
+                  data['id'] = doc.id;
+                  return ProfileModel.fromJson(_convertTimestamps(data));
+                })
+                .where((profile) {
+                  // Exclude current user
+                  return currentUserId == null || profile.id != currentUserId;
+                })
+                .toList();
+
+        debugPrint(
+          '  ✅ Found ${profiles.length} profiles in $country (excluding current user)',
+        );
 
         // Mettre en cache les profils
         await _cache.cacheProfiles(profiles.map((p) => p.toJson()).toList());
 
         return profiles;
       } else {
+        debugPrint('  📴 Offline mode - filtering cached profiles');
         // Mode hors ligne - filtrer les profils en cache par pays
         final cached = _getProfilesFromCache();
         return cached.where((p) => p.currentCountry == country).toList();
       }
     } on FirebaseException catch (e) {
+      debugPrint('  ❌ Firebase error: ${e.message}');
       final cached = _getProfilesFromCache();
       final filtered =
           cached.where((p) => p.currentCountry == country).toList();
@@ -352,6 +453,49 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           data['id'] = snapshot.id;
           return ProfileModel.fromJson(_convertTimestamps(data));
         });
+  }
+
+  @override
+  Future<void> updateLastLogin(String userId) async {
+    try {
+      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
+        {'lastLoginAt': FieldValue.serverTimestamp(), 'isOnline': true},
+      );
+    } on FirebaseException catch (e) {
+      // On ne lance pas d'exception bloquante pour une mise à jour de log
+      debugPrint('Erreur lors de la mise à jour de lastLoginAt: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> updateOnlineStatus(
+    String userId,
+    bool isOnline,
+    DateTime lastSeen,
+  ) async {
+    try {
+      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
+        {'isOnline': isOnline, 'lastSeen': Timestamp.fromDate(lastSeen)},
+      );
+    } on FirebaseException catch (e) {
+      debugPrint('Erreur lors de la mise à jour du statut: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> updateOnlineStatusVisibility(
+    String userId,
+    bool showStatus,
+  ) async {
+    try {
+      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
+        {'showOnlineStatus': showStatus},
+      );
+    } on FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la mise à jour de la confidentialité',
+      );
+    }
   }
 
   Map<String, dynamic> _convertTimestamps(Map<String, dynamic> data) {

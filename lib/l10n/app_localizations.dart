@@ -995,6 +995,24 @@ abstract class AppLocalizations {
   /// **'Événements'**
   String get eventsTitle;
 
+  /// No description provided for @upcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get upcoming;
+
+  /// No description provided for @past.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passés'**
+  String get past;
+
+  /// No description provided for @noPastEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement passé'**
+  String get noPastEvents;
+
   /// No description provided for @all.
   ///
   /// In fr, this message translates to:
@@ -2222,7 +2240,7 @@ abstract class AppLocalizations {
   /// No description provided for @manageAlerts.
   ///
   /// In fr, this message translates to:
-  /// **'Gérer vos alertes'**
+  /// **'Gérer les notifications'**
   String get manageAlerts;
 
   /// No description provided for @appearInSearchesDesc.
@@ -2266,6 +2284,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer le compte'**
   String get deleteAccountTitle;
+
+  /// No description provided for @filterUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non lus'**
+  String get filterUnread;
+
+  /// No description provided for @filterFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis'**
+  String get filterFriends;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres de notifications'**
+  String get notificationSettings;
+
+  /// No description provided for @notificationContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu'**
+  String get notificationContent;
+
+  /// No description provided for @notificationAlerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alertes'**
+  String get notificationAlerts;
+
+  /// No description provided for @notificationAdvanced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avancé'**
+  String get notificationAdvanced;
+
+  /// No description provided for @notifyMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages'**
+  String get notifyMessages;
+
+  /// No description provided for @notifyEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements'**
+  String get notifyEvents;
+
+  /// No description provided for @notifyFriendRequests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes d\'amis'**
+  String get notifyFriendRequests;
+
+  /// No description provided for @notifyGroups.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes'**
+  String get notifyGroups;
+
+  /// No description provided for @notifyEventReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'événements'**
+  String get notifyEventReminders;
+
+  /// No description provided for @notificationSound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Son'**
+  String get notificationSound;
+
+  /// No description provided for @notificationVibration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vibration'**
+  String get notificationVibration;
+
+  /// No description provided for @quietHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode silencieux'**
+  String get quietHours;
+
+  /// No description provided for @quietHoursDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas déranger pendant ces heures'**
+  String get quietHoursDesc;
+
+  /// No description provided for @quietHoursStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Début'**
+  String get quietHoursStart;
+
+  /// No description provided for @quietHoursEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin'**
+  String get quietHoursEnd;
+
+  /// No description provided for @notificationDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détail de la notification'**
+  String get notificationDetail;
+
+  /// No description provided for @open.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir'**
+  String get open;
+
+  /// No description provided for @markAsRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme lu'**
+  String get markAsRead;
 
   /// No description provided for @accountDeletedSuccess.
   ///
@@ -2320,6 +2458,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Profil non trouvé'**
   String get profileNotFound;
+
+  /// No description provided for @deletedUser.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateur supprimé'**
+  String get deletedUser;
+
+  /// No description provided for @deletedProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil supprimé'**
+  String get deletedProfile;
+
+  /// No description provided for @accountNoLongerExists.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte n\'existe plus'**
+  String get accountNoLongerExists;
 
   /// No description provided for @livingIn.
   ///

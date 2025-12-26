@@ -10,6 +10,7 @@ import '../../../../core/services/image_upload_service.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -50,7 +51,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   Future<void> _createGroup() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);
@@ -97,6 +98,17 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     final success = await ref
         .read(myGroupsNotifierProvider.notifier)
         .createGroup(group);
+
+    if (success) {
+      AnalyticsService.instance.logEvent(
+        name: 'create_group',
+        parameters: {
+          'category': _selectedCategory.name,
+          'is_private': _isPrivate,
+          'has_image': _selectedImage != null,
+        },
+      );
+    }
 
     setState(() => _isLoading = false);
 

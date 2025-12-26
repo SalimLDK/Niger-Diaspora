@@ -6,11 +6,12 @@ part 'user_entity.freezed.dart';
 class UserEntity with _$UserEntity {
   const factory UserEntity({
     required String id,
-    required String email,
+    String? email,
     String? displayName,
     String? photoUrl,
     String? phoneNumber,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    @Default(false) bool isAdmin,
   }) = _UserEntity;
 }

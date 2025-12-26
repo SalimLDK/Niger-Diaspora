@@ -202,4 +202,42 @@ class ProfileRepositoryImpl implements ProfileRepository {
           return Left<Failure, ProfileEntity>(ServerFailure(error.toString()));
         });
   }
+
+  @override
+  Future<Either<Failure, void>> updateOnlineStatus(
+    String userId,
+    bool isOnline,
+    DateTime lastSeen,
+  ) async {
+    // Note: status updates usually happen silently/background, so we might skip connectivity check or handle it gratefully
+    // But for consistency we check it
+    if (!await networkInfo.isConnected) {
+      // For online status, we might just ignore if offline
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.updateOnlineStatus(userId, isOnline, lastSeen);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateOnlineStatusVisibility(
+    String userId,
+    bool showStatus,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.updateOnlineStatusVisibility(userId, showStatus);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
 }

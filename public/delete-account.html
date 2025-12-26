@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de suppression de compte - Niger Diaspora</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f9f9f9;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+        }
+
+        h1 {
+            color: #E97424;
+        }
+
+        h2 {
+            color: #15803d;
+            margin-top: 30px;
+        }
+
+        .alert {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #E97424;
+        }
+
+        button {
+            background: #dc3545;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #c82333;
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #E97424;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #E97424;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        #deleteForm {
+            margin-top: 30px;
+        }
+
+        #confirmSection {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Niger Diaspora</h1>
+        <h2>Demande de suppression de compte</h2>
+
+        <div class="alert">
+            <strong>Attention :</strong> La suppression de votre compte est une action irréversible. Toutes vos données
+            seront définitivement effacées.
+        </div>
+
+        <div id="errorMessage" class="error"></div>
+        <div id="successMessage" class="success"></div>
+
+        <div id="formSection">
+            <h3>Connectez-vous pour supprimer votre compte</h3>
+            <form id="deleteForm">
+                <div class="form-group">
+                    <label for="email">Adresse email</label>
+                    <input type="email" id="email" name="email" required placeholder="votre@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+                </div>
+
+                <button type="submit" id="submitBtn">Se connecter</button>
+            </form>
+
+            <div id="confirmSection">
+                <h3 style="color: #dc3545;">⚠️ Confirmation finale</h3>
+                <p>Pour confirmer la suppression de votre compte, tapez <strong>SUPPRIMER</strong> dans le champ
+                    ci-dessous :</p>
+
+                <div class="form-group">
+                    <input type="text" id="confirmText" placeholder="Tapez SUPPRIMER">
+                </div>
+
+                <button id="confirmDeleteBtn" disabled>Supprimer définitivement mon compte</button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p>Traitement en cours...</p>
+        </div>
+
+        <h3 style="margin-top: 40px;">Données supprimées</h3>
+        <ul>
+            <li><strong>Informations de profil :</strong> Nom, email, numéro de téléphone, photo, biographie,
+                profession, ville actuelle.</li>
+            <li><strong>Authentification :</strong> Vos identifiants de connexion.</li>
+            <li><strong>Messages :</strong> Tous les messages que vous avez envoyés et vos conversations privées.</li>
+            <li><strong>Groupes et Événements :</strong> Retrait de votre participation ou suppression si vous êtes le
+                seul membre.</li>
+            <li><strong>Données de localisation :</strong> Votre dernière position connue.</li>
+        </ul>
+
+        <h3>Besoin d'aide ?</h3>
+        <p>Si vous rencontrez des difficultés, contactez-nous à <a
+                href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a></p>
+
+        <a href="/" class="back-link">← Retour à l'accueil</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Diaspo Niger. Tous droits réservés.</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6bUWGVHVJwywwA36a6AiOuG3rqRfEKE8",
+            authDomain: "diaspo-niger.firebaseapp.com",
+            projectId: "diaspo-niger",
+            storageBucket: "diaspo-niger.firebasestorage.app",
+            messagingSenderId: "539228418594",
+            appId: "1:539228418594:web:3b01752fce9a0e328e507b"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        // DOM elements
+        const deleteForm = document.getElementById('deleteForm');
+        const confirmSection = document.getElementById('confirmSection');
+        const confirmText = document.getElementById('confirmText');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const loader = document.getElementById('loader');
+        const formSection = document.getElementById('formSection');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        // Show/hide loader
+        function setLoading(loading) {
+            if (loading) {
+                loader.style.display = 'block';
+                formSection.style.display = 'none';
+            } else {
+                loader.style.display = 'none';
+                formSection.style.display = 'block';
+            }
+        }
+
+        // Login form submission
+        deleteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            setLoading(true);
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                currentUser = userCredential.user;
+
+                // Show confirmation section
+                deleteForm.style.display = 'none';
+                confirmSection.style.display = 'block';
+                setLoading(false);
+            } catch (error) {
+                setLoading(false);
+                let errorMsg = 'Erreur de connexion. Vérifiez vos identifiants.';
+
+                if (error.code === 'auth/user-not-found') {
+                    errorMsg = 'Aucun compte trouvé avec cet email.';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMsg = 'Mot de passe incorrect.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = 'Adresse email invalide.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg = 'Trop de tentatives. Réessayez plus tard.';
+                }
+
+                showError(errorMsg);
+            }
+        });
+
+        // Enable/disable confirm button based on input
+        confirmText.addEventListener('input', (e) => {
+            confirmDeleteBtn.disabled = e.target.value !== 'SUPPRIMER';
+        });
+
+        // Confirm delete button
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!currentUser) {
+                showError('Erreur: utilisateur non connecté');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const userId = currentUser.uid;
+
+                // 1. Delete user profile from Firestore
+                await deleteDoc(doc(db, 'users', userId));
+
+                // 2. Delete user's conversations
+                const conversationsQuery = query(
+                    collection(db, 'conversations'),
+                    where('participantIds', 'array-contains', userId)
+                );
+                const conversationsSnapshot = await getDocs(conversationsQuery);
+
+                const batch = writeBatch(db);
+                for (const convDoc of conversationsSnapshot.docs) {
+                    const data = convDoc.data();
+                    const participantIds = data.participantIds || [];
+
+                    if (participantIds.length <= 2) {
+                        // Delete conversation and messages
+                        batch.delete(convDoc.ref);
+                        const messagesSnapshot = await getDocs(collection(convDoc.ref, 'messages'));
+                        messagesSnapshot.forEach(msgDoc => {
+                            batch.delete(msgDoc.ref);
+                        });
+                    } else {
+                        // Just remove user from participants
+                        const newParticipants = participantIds.filter(id => id !== userId);
+                        batch.update(convDoc.ref, { participantIds: newParticipants });
+                    }
+                }
+                await batch.commit();
+
+                // 3. Remove user from groups
+                const groupsQuery = query(
+                    collection(db, 'groups'),
+                    where('memberIds', 'array-contains', userId)
+                );
+                const groupsSnapshot = await getDocs(groupsQuery);
+
+                const groupBatch = writeBatch(db);
+                for (const groupDoc of groupsSnapshot.docs) {
+                    const data = groupDoc.data();
+                    const memberIds = data.memberIds || [];
+                    const newMembers = memberIds.filter(id => id !== userId);
+
+                    if (data.createdBy === userId && newMembers.length === 0) {
+                        groupBatch.delete(groupDoc.ref);
+                    } else {
+                        groupBatch.update(groupDoc.ref, { memberIds: newMembers });
+                    }
+                }
+                await groupBatch.commit();
+
+                // 4. Delete events created by user
+                const eventsQuery = query(
+                    collection(db, 'events'),
+                    where('organizerId', '==', userId)
+                );
+                const eventsSnapshot = await getDocs(eventsQuery);
+
+                const eventBatch = writeBatch(db);
+                eventsSnapshot.forEach(eventDoc => {
+                    eventBatch.delete(eventDoc.ref);
+                });
+                await eventBatch.commit();
+
+                // 5. Remove user from attending events
+                const attendingQuery = query(
+                    collection(db, 'events'),
+                    where('attendeeIds', 'array-contains', userId)
+                );
+                const attendingSnapshot = await getDocs(attendingQuery);
+
+                const attendeeBatch = writeBatch(db);
+                for (const eventDoc of attendingSnapshot.docs) {
+                    const data = eventDoc.data();
+                    const attendeeIds = data.attendeeIds || [];
+                    const newAttendees = attendeeIds.filter(id => id !== userId);
+                    attendeeBatch.update(eventDoc.ref, { attendeeIds: newAttendees });
+                }
+                await attendeeBatch.commit();
+
+                // 6. Finally, delete the Firebase Auth user
+                await deleteUser(currentUser);
+
+                // Success!
+                setLoading(false);
+                formSection.innerHTML = '';
+                showSuccess('✅ Votre compte a été supprimé avec succès. Toutes vos données ont été effacées.');
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+
+            } catch (error) {
+                setLoading(false);
+                console.error('Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression du compte.';
+
+                if (error.code === 'auth/requires-recent-login') {
+                    errorMsg = 'Pour des raisons de sécurité, veuillez vous reconnecter et réessayer.';
+                    // Reset form
+                    deleteForm.style.display = 'block';
+                    confirmSection.style.display = 'none';
+                    currentUser = null;
+                }
+
+                showError(errorMsg + ' Contactez support@diasponiger.com si le problème persiste.');
+            }
+        });
+    </script>
+</body>
+
+</html>

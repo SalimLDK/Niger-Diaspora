@@ -45,7 +45,7 @@ class BlockUserNotifier extends _$BlockUserNotifier {
     required String targetDisplayName,
     String? targetPhotoUrl,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -71,7 +71,7 @@ class BlockUserNotifier extends _$BlockUserNotifier {
   }
 
   Future<bool> unblockUser(String targetUserId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();

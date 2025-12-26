@@ -5,7 +5,15 @@ import '../../../../core/errors/exceptions.dart';
 import '../models/notification_model.dart';
 
 abstract class NotificationRemoteDataSource {
-  Stream<List<NotificationModel>> getNotifications(String userId);
+  Stream<List<NotificationModel>> getNotifications(
+    String userId, {
+    int limit = 20,
+  });
+  Future<List<NotificationModel>> fetchNotifications({
+    required String userId,
+    int limit = 20,
+    DateTime? startAfter,
+  });
   Future<int> getUnreadCount(String userId);
   Future<void> markAsRead(String notificationId);
   Future<void> markAllAsRead(String userId);
@@ -17,31 +25,66 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   final FirebaseFirestore _firestore;
 
   NotificationRemoteDataSourceImpl({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _notificationsCollection =>
       _firestore.collection(FirebaseCollections.notifications);
 
   @override
-  Stream<List<NotificationModel>> getNotifications(String userId) {
+  Stream<List<NotificationModel>> getNotifications(
+    String userId, {
+    int limit = 20,
+  }) {
     return _notificationsCollection
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
-        .limit(50)
+        .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => NotificationModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => NotificationModel.fromFirestore(doc))
+                  .toList(),
+        );
+  }
+
+  @override
+  Future<List<NotificationModel>> fetchNotifications({
+    required String userId,
+    int limit = 20,
+    DateTime? startAfter,
+  }) async {
+    try {
+      var query = _notificationsCollection
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
+      if (startAfter != null) {
+        query = query.startAfter([startAfter]);
+      }
+
+      final snapshot = await query.get();
+
+      return snapshot.docs
+          .map((doc) => NotificationModel.fromFirestore(doc))
+          .toList();
+    } on FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors du chargement des notifications',
+      );
+    }
   }
 
   @override
   Future<int> getUnreadCount(String userId) async {
     try {
-      final snapshot = await _notificationsCollection
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .count()
-          .get();
+      final snapshot =
+          await _notificationsCollection
+              .where('userId', isEqualTo: userId)
+              .where('isRead', isEqualTo: false)
+              .count()
+              .get();
 
       return snapshot.count ?? 0;
     } on FirebaseException catch (e) {
@@ -64,10 +107,11 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   Future<void> markAllAsRead(String userId) async {
     try {
       final batch = _firestore.batch();
-      final snapshot = await _notificationsCollection
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .get();
+      final snapshot =
+          await _notificationsCollection
+              .where('userId', isEqualTo: userId)
+              .where('isRead', isEqualTo: false)
+              .get();
 
       for (final doc in snapshot.docs) {
         batch.update(doc.reference, {'isRead': true});
@@ -92,9 +136,10 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   Future<void> deleteAllNotifications(String userId) async {
     try {
       final batch = _firestore.batch();
-      final snapshot = await _notificationsCollection
-          .where('userId', isEqualTo: userId)
-          .get();
+      final snapshot =
+          await _notificationsCollection
+              .where('userId', isEqualTo: userId)
+              .get();
 
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);

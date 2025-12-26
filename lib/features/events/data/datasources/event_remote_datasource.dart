@@ -294,19 +294,43 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       final isConnected = await _connectivity.isConnected();
 
       if (isConnected) {
-        final snapshot =
+        // Fetch events where user is the organizer
+        final organizedSnapshot =
             await _eventsCollection
                 .where('organizerId', isEqualTo: userId)
                 .orderBy('startDate', descending: true)
                 .get();
 
-        final events =
-            snapshot.docs.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
-              data['id'] = doc.id;
-              return EventModel.fromJson(_convertTimestamps(data));
-            }).toList();
+        // Fetch events where user is an attendee
+        final attendingSnapshot =
+            await _eventsCollection
+                .where('attendeeIds', arrayContains: userId)
+                .orderBy('startDate', descending: true)
+                .get();
 
+        // Combine and deduplicate events
+        final eventMap = <String, EventModel>{};
+
+        for (final doc in organizedSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id;
+          eventMap[doc.id] = EventModel.fromJson(_convertTimestamps(data));
+        }
+
+        for (final doc in attendingSnapshot.docs) {
+          if (!eventMap.containsKey(doc.id)) {
+            final data = doc.data() as Map<String, dynamic>;
+            data['id'] = doc.id;
+            eventMap[doc.id] = EventModel.fromJson(_convertTimestamps(data));
+          }
+        }
+
+        final events = eventMap.values.toList();
+
+        // Sort by start date descending
+        events.sort((a, b) => b.startDate.compareTo(a.startDate));
+
+        // Cache all events
         for (final event in events) {
           await _cache.cacheEvent(event.id, event.toJson());
         }
@@ -314,11 +338,21 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         return events;
       } else {
         final cached = _getEventsFromCache();
-        return cached.where((e) => e.organizerId == userId).toList();
+        return cached
+            .where(
+              (e) => e.organizerId == userId || e.attendeeIds.contains(userId),
+            )
+            .toList();
       }
     } on FirebaseException catch (e) {
       final cached = _getEventsFromCache();
-      final filtered = cached.where((e) => e.organizerId == userId).toList();
+      final filtered =
+          cached
+              .where(
+                (e) =>
+                    e.organizerId == userId || e.attendeeIds.contains(userId),
+              )
+              .toList();
       if (filtered.isNotEmpty) return filtered;
       throw ServerException(e.message ?? 'Erreur lors du chargement');
     }
@@ -377,7 +411,6 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       final isConnected = await _connectivity.isConnected();
 
       if (isConnected) {
-        final now = DateTime.now();
         final snapshot =
             await _eventsCollection
                 .where('status', isEqualTo: 'completed')

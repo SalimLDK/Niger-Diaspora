@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../../core/constants/firebase_collections.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'message_provider.dart';
 
 part 'conversation_actions_provider.g.dart';
 
@@ -12,85 +12,89 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     return const AsyncValue.data(null);
   }
 
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-
   Future<bool> muteConversation(String conversationId, bool mute) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
 
-    try {
-      await _firestore
-          .collection(FirebaseCollections.conversations)
-          .doc(conversationId)
-          .update({
-        'mutedBy.${currentUser.id}': mute,
-      });
+    final result =
+        mute
+            ? await ref
+                .read(messageRepositoryProvider)
+                .muteConversation(
+                  conversationId: conversationId,
+                  userId: currentUser.id,
+                )
+            : await ref
+                .read(messageRepositoryProvider)
+                .unmuteConversation(
+                  conversationId: conversationId,
+                  userId: currentUser.id,
+                );
 
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
   }
 
   Future<bool> archiveConversation(String conversationId, bool archive) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
 
-    try {
-      await _firestore
-          .collection(FirebaseCollections.conversations)
-          .doc(conversationId)
-          .update({
-        'archivedBy.${currentUser.id}': archive,
-      });
+    final result =
+        archive
+            ? await ref
+                .read(messageRepositoryProvider)
+                .archiveConversation(
+                  conversationId: conversationId,
+                  userId: currentUser.id,
+                )
+            : await ref
+                .read(messageRepositoryProvider)
+                .unarchiveConversation(
+                  conversationId: conversationId,
+                  userId: currentUser.id,
+                );
 
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
   }
 
   Future<bool> deleteConversation(String conversationId) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
-    if (currentUser == null) return false;
-
     state = const AsyncValue.loading();
 
-    try {
-      final batch = _firestore.batch();
+    final result = await ref
+        .read(messageRepositoryProvider)
+        .deleteConversation(conversationId);
 
-      // Delete all messages in the conversation
-      final messagesSnapshot = await _firestore
-          .collection(FirebaseCollections.conversations)
-          .doc(conversationId)
-          .collection(FirebaseCollections.messages)
-          .get();
-
-      for (final doc in messagesSnapshot.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // Delete the conversation
-      batch.delete(
-        _firestore.collection(FirebaseCollections.conversations).doc(conversationId),
-      );
-
-      await batch.commit();
-
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
   }
 
   Future<bool> reportConversation({
@@ -98,13 +102,20 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     required String reason,
     String? description,
   }) async {
-    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
 
     try {
-      await _firestore.collection('reports').add({
+      // Report functionality might not be in repository yet as it seems specific
+      // We can keep it here or move it later. For now, keeping as is but maybe wrapped in repo would be better
+      // But repo doesn't have report method. Let's keep direct calls for report or add to repo.
+      // Given the scope, let's keep direct call for report or assumes it's fine.
+      // Actually plan didn't mention report features.
+      // I'll leave report implementation as is (using Firestore directly as exception) or move it.
+      // The original code was using FieldValue.
+      await FirebaseFirestore.instance.collection('reports').add({
         'type': 'conversation',
         'conversationId': conversationId,
         'reporterId': currentUser.id,
@@ -114,6 +125,112 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
         'status': 'pending',
       });
 
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> promoteToAdmin({
+    required String conversationId,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    try {
+      await ref
+          .read(messageRemoteDataSourceProvider)
+          .promoteToAdmin(conversationId: conversationId, userId: userId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> demoteFromAdmin({
+    required String conversationId,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    try {
+      await ref
+          .read(messageRemoteDataSourceProvider)
+          .demoteFromAdmin(conversationId: conversationId, userId: userId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> removeUserFromGroup({
+    required String conversationId,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    try {
+      await ref
+          .read(messageRemoteDataSourceProvider)
+          .removeUserFromGroup(conversationId: conversationId, userId: userId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> reportMessage({
+    required String conversationId,
+    required String messageId,
+    required String reason,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return false;
+
+    state = const AsyncValue.loading();
+
+    try {
+      await ref
+          .read(messageRemoteDataSourceProvider)
+          .reportMessage(
+            conversationId: conversationId,
+            messageId: messageId,
+            userId: currentUser.id,
+            reason: reason,
+          );
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> reportGroup({
+    required String conversationId,
+    required String reason,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return false;
+
+    state = const AsyncValue.loading();
+
+    try {
+      await ref
+          .read(messageRemoteDataSourceProvider)
+          .reportGroup(
+            conversationId: conversationId,
+            userId: currentUser.id,
+            reason: reason,
+          );
       state = const AsyncValue.data(null);
       return true;
     } catch (e) {

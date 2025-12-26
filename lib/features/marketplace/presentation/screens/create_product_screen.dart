@@ -1,0 +1,720 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
+import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/image_upload_provider.dart';
+import '../../../../core/services/image_upload_service.dart';
+import '../../../../core/services/tax_provider.dart';
+import '../../../../core/services/tax_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/product_entity.dart';
+import '../providers/marketplace_provider.dart';
+
+class CreateProductScreen extends ConsumerStatefulWidget {
+  final ProductEntity? product; // For editing
+
+  const CreateProductScreen({super.key, this.product});
+
+  @override
+  ConsumerState<CreateProductScreen> createState() =>
+      _CreateProductScreenState();
+}
+
+class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _quantityController = TextEditingController();
+  final _locationController = TextEditingController();
+
+  ProductCategory _selectedCategory = ProductCategory.other;
+  ProductCondition _selectedCondition = ProductCondition.newProduct;
+  List<String> _existingImageUrls = [];
+  final List<File> _newImages = [];
+  bool _isLoading = false;
+
+  // Tax settings
+  String _selectedTaxOptionId = 'default';
+  double? _customTaxRate;
+  bool _taxIncludedInPrice = false;
+
+  // Currency (can be made selectable in the future)
+  final Currency _selectedCurrency = Currency.xof;
+
+  String _formatPrice(double amount) {
+    return CurrencyService.instance.format(amount, _selectedCurrency);
+  }
+
+  bool get _isEditing => widget.product != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product != null) {
+      _titleController.text = widget.product!.title;
+      _descriptionController.text = widget.product!.description;
+      _priceController.text = widget.product!.price.toStringAsFixed(0);
+      _quantityController.text = widget.product!.quantity.toString();
+      _locationController.text = widget.product!.location ?? '';
+      _selectedCategory = widget.product!.category;
+      _selectedCondition = widget.product!.condition;
+      _existingImageUrls = List.from(widget.product!.imageUrls);
+      // Tax settings
+      _taxIncludedInPrice = widget.product!.taxIncludedInPrice;
+      if (widget.product!.customTaxRate != null) {
+        if (widget.product!.customTaxRate == 0) {
+          _selectedTaxOptionId = 'exempt';
+        } else if (widget.product!.customTaxRate == 0.19) {
+          _selectedTaxOptionId = 'standard';
+        } else if (widget.product!.customTaxRate == 0.10) {
+          _selectedTaxOptionId = 'reduced';
+        } else {
+          _selectedTaxOptionId = 'custom';
+          _customTaxRate = widget.product!.customTaxRate;
+        }
+      }
+    } else {
+      _quantityController.text = '1';
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _quantityController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    final picker = ImagePicker();
+    final images = await picker.pickMultiImage();
+
+    if (images.isNotEmpty) {
+      setState(() {
+        _newImages.addAll(images.map((x) => File(x.path)));
+      });
+    }
+  }
+
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImageUrls.removeAt(index);
+    });
+  }
+
+  void _removeNewImage(int index) {
+    setState(() {
+      _newImages.removeAt(index);
+    });
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_existingImageUrls.isEmpty && _newImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ajoutez au moins une image')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+      if (currentUser == null) {
+        throw Exception('Utilisateur non connecte');
+      }
+
+      // Upload new images
+      final imageUploadService = ref.read(imageUploadServiceProvider);
+      final productId = widget.product?.id ?? const Uuid().v4();
+      final uploadedUrls = <String>[];
+
+      for (int i = 0; i < _newImages.length; i++) {
+        final url = await imageUploadService.uploadImage(
+          file: _newImages[i],
+          type: ImageUploadType.product,
+          id: '${productId}_$i',
+        );
+        if (url != null) {
+          uploadedUrls.add(url);
+        }
+      }
+
+      final allImageUrls = [..._existingImageUrls, ...uploadedUrls];
+
+      // Determine effective custom tax rate
+      double? effectiveCustomTaxRate;
+      bool isTaxable = true;
+      if (_selectedTaxOptionId == 'exempt') {
+        effectiveCustomTaxRate = 0;
+        isTaxable = false;
+      } else if (_selectedTaxOptionId == 'standard') {
+        effectiveCustomTaxRate = 0.19;
+      } else if (_selectedTaxOptionId == 'reduced') {
+        effectiveCustomTaxRate = 0.10;
+      } else if (_selectedTaxOptionId == 'custom') {
+        effectiveCustomTaxRate = _customTaxRate;
+      }
+      // 'default' leaves effectiveCustomTaxRate as null
+
+      final product = ProductEntity(
+        id: productId,
+        sellerId: currentUser.id,
+        sellerName: currentUser.displayName,
+        sellerPhotoUrl: currentUser.photoUrl,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        price: double.parse(_priceController.text),
+        currency: _selectedCurrency.code,
+        imageUrls: allImageUrls,
+        category: _selectedCategory,
+        condition: _selectedCondition,
+        location:
+            _locationController.text.trim().isNotEmpty
+                ? _locationController.text.trim()
+                : null,
+        quantity: int.parse(_quantityController.text),
+        isTaxable: isTaxable,
+        customTaxRate: effectiveCustomTaxRate,
+        taxIncludedInPrice: _taxIncludedInPrice,
+        createdAt: widget.product?.createdAt ?? DateTime.now(),
+      );
+
+      final notifier = ref.read(productNotifierProvider.notifier);
+      ProductEntity? result;
+
+      if (_isEditing) {
+        result = await notifier.updateProduct(product);
+      } else {
+        result = await notifier.createProduct(product);
+      }
+
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEditing ? 'Produit modifie' : 'Produit publie'),
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Widget _buildTaxSection(ThemeData theme) {
+    final taxOptions = ref.watch(availableTaxOptionsProvider);
+    final taxService = TaxService.instance;
+    final categoryTaxRate = taxService.getTaxRate(_selectedCategory.name);
+    final isCategoryExempt =
+        !taxService.isCategoryTaxable(_selectedCategory.name);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.receipt_long, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Parametres de taxe',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isCategoryExempt
+                  ? 'Cette categorie est exoneree de taxe par defaut'
+                  : 'Taxe par defaut pour cette categorie: ${(categoryTaxRate * 100).toStringAsFixed(0)}%',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tax option selector
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  taxOptions.map((option) {
+                    final isSelected = _selectedTaxOptionId == option.id;
+                    return ChoiceChip(
+                      label: Text(option.label),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedTaxOptionId = option.id;
+                            if (option.rate != null) {
+                              _customTaxRate = option.rate;
+                            } else if (!option.isCustom) {
+                              _customTaxRate = null;
+                            }
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
+            ),
+
+            // Custom tax rate input
+            if (_selectedTaxOptionId == 'custom') ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue:
+                    _customTaxRate != null
+                        ? (_customTaxRate! * 100).toStringAsFixed(0)
+                        : '',
+                decoration: const InputDecoration(
+                  labelText: 'Taux personnalise (%)',
+                  hintText: 'Ex: 15',
+                  border: OutlineInputBorder(),
+                  suffixText: '%',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final rate = double.tryParse(value);
+                  if (rate != null) {
+                    setState(() {
+                      _customTaxRate = rate / 100;
+                    });
+                  }
+                },
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Tax included in price switch
+            SwitchListTile(
+              title: const Text('Prix TTC'),
+              subtitle: Text(
+                _taxIncludedInPrice
+                    ? 'Le prix affiche inclut deja la taxe'
+                    : 'La taxe sera ajoutee au prix affiche',
+                style: theme.textTheme.bodySmall,
+              ),
+              value: _taxIncludedInPrice,
+              onChanged: (value) {
+                setState(() {
+                  _taxIncludedInPrice = value;
+                });
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
+
+            // Tax preview
+            if (_priceController.text.isNotEmpty) ...[
+              const Divider(),
+              _buildTaxPreview(theme),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaxPreview(ThemeData theme) {
+    final price = double.tryParse(_priceController.text) ?? 0;
+    final quantity = int.tryParse(_quantityController.text) ?? 1;
+
+    double effectiveRate;
+    if (_selectedTaxOptionId == 'default') {
+      effectiveRate = TaxService.instance.getTaxRate(_selectedCategory.name);
+    } else if (_selectedTaxOptionId == 'exempt') {
+      effectiveRate = 0;
+    } else if (_selectedTaxOptionId == 'standard') {
+      effectiveRate = 0.19;
+    } else if (_selectedTaxOptionId == 'reduced') {
+      effectiveRate = 0.10;
+    } else {
+      effectiveRate = _customTaxRate ?? 0;
+    }
+
+    final subtotal = price * quantity;
+    double taxAmount;
+    double total;
+
+    if (_taxIncludedInPrice) {
+      // Price already includes tax
+      taxAmount = subtotal - (subtotal / (1 + effectiveRate));
+      total = subtotal;
+    } else {
+      taxAmount = subtotal * effectiveRate;
+      total = subtotal + taxAmount;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Apercu',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [const Text('Sous-total'), Text(_formatPrice(subtotal))],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Taxe (${(effectiveRate * 100).toStringAsFixed(0)}%)'),
+            Text(_formatPrice(taxAmount)),
+          ],
+        ),
+        const Divider(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Total',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              _formatPrice(total),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Modifier le produit' : 'Vendre un produit'),
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Images
+            Text(
+              'Photos',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 120,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  // Add image button
+                  InkWell(
+                    onTap: _pickImages,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 120,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: theme.colorScheme.outline,
+                          style: BorderStyle.solid,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 32,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ajouter',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Existing images
+                  ..._existingImageUrls.asMap().entries.map((entry) {
+                    return _ImageTile(
+                      imageUrl: entry.value,
+                      onRemove: () => _removeExistingImage(entry.key),
+                    );
+                  }),
+                  // New images
+                  ..._newImages.asMap().entries.map((entry) {
+                    return _ImageTile(
+                      file: entry.value,
+                      onRemove: () => _removeNewImage(entry.key),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Title
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Titre',
+                hintText: 'Ex: iPhone 13 Pro Max',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Entrez un titre';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Description
+            TextFormField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'Decrivez votre produit...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 4,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Entrez une description';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Price and quantity
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _priceController,
+                    decoration: InputDecoration(
+                      labelText: 'Prix (${_selectedCurrency.code})',
+                      hintText: '50000',
+                      border: const OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Entrez un prix';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Prix invalide';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _quantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Quantite',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Requis';
+                      }
+                      final qty = int.tryParse(value);
+                      if (qty == null || qty < 1) {
+                        return 'Invalide';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Category
+            DropdownButtonFormField<ProductCategory>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Categorie',
+                border: OutlineInputBorder(),
+              ),
+              items:
+                  ProductCategory.values.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Row(
+                        children: [
+                          Icon(category.icon, size: 20),
+                          const SizedBox(width: 8),
+                          Text(category.label),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedCategory = value);
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Condition
+            DropdownButtonFormField<ProductCondition>(
+              value: _selectedCondition,
+              decoration: const InputDecoration(
+                labelText: 'Etat',
+                border: OutlineInputBorder(),
+              ),
+              items:
+                  ProductCondition.values.map((condition) {
+                    return DropdownMenuItem(
+                      value: condition,
+                      child: Text(condition.label),
+                    );
+                  }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedCondition = value);
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Location
+            TextFormField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Localisation (optionnel)',
+                hintText: 'Ex: Niamey',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Tax settings section
+            _buildTaxSection(theme),
+            const SizedBox(height: 32),
+
+            // Submit button
+            SizedBox(
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                ),
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : Text(
+                          _isEditing ? 'Enregistrer' : 'Publier',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageTile extends StatelessWidget {
+  final String? imageUrl;
+  final File? file;
+  final VoidCallback onRemove;
+
+  const _ImageTile({this.imageUrl, this.file, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image:
+                  imageUrl != null
+                      ? NetworkImage(imageUrl!) as ImageProvider
+                      : FileImage(file!),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 12,
+          child: IconButton.filled(
+            onPressed: onRemove,
+            icon: const Icon(Icons.close, size: 16),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black54,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(24, 24),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -15,7 +15,10 @@ import '../widgets/message_input.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../groups/presentation/providers/group_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/services/analytics_service.dart';
+import '../../../profile/presentation/widgets/online_status_indicator.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -23,6 +26,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
   final String? conversationImageUrl;
   final String? otherUserId;
   final bool isGroup;
+  final String? groupId; // Add groupId parameter
 
   const ConversationScreen({
     super.key,
@@ -31,6 +35,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
     this.conversationImageUrl,
     this.otherUserId,
     this.isGroup = false,
+    this.groupId, // Add to constructor
   });
 
   @override
@@ -44,6 +49,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('🔍 ConversationScreen initialized:');
+    debugPrint('   conversationId: ${widget.conversationId}');
+    debugPrint('   isGroup: ${widget.isGroup}');
+    debugPrint('   groupId: ${widget.groupId}');
+    debugPrint('   otherUserId: ${widget.otherUserId}');
+
     _scrollController.addListener(_onScroll);
     // Marquer comme lu à l'ouverture
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -228,7 +239,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     'temp_${DateTime.now().millisecondsSinceEpoch}';
 
                 // Add optimistic message immediately
-                final currentUser = ref.read(currentUserProvider).valueOrNull;
+                final currentUser =
+                    ref.read(currentUserAsyncProvider).valueOrNull;
                 if (currentUser != null) {
                   final optimisticMessage = MessageEntity(
                     id: messageId,
@@ -272,6 +284,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 }
 
                 if (success) {
+                  AnalyticsService.instance.logEvent(
+                    name: 'send_message',
+                    parameters: {
+                      'type': 'text',
+                      'conversation_id': widget.conversationId,
+                      'is_group': widget.isGroup,
+                    },
+                  );
                   _scrollToBottom();
                 }
               },
@@ -284,6 +304,40 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       type: isImage ? MessageType.image : MessageType.file,
                     );
                 if (success) {
+                  AnalyticsService.instance.logEvent(
+                    name: 'send_message',
+                    parameters: {
+                      'type': isImage ? 'image' : 'file',
+                      'conversation_id': widget.conversationId,
+                      'is_group': widget.isGroup,
+                    },
+                  );
+                  _scrollToBottom();
+                }
+              },
+              onSendAudio: (
+                File audioFile,
+                int duration,
+                List<double> waveform,
+              ) async {
+                final success = await ref
+                    .read(sendMessageProvider.notifier)
+                    .sendAudio(
+                      conversationId: widget.conversationId,
+                      audioFile: audioFile,
+                      duration: duration,
+                      waveform: waveform,
+                    );
+                if (success) {
+                  AnalyticsService.instance.logEvent(
+                    name: 'send_message',
+                    parameters: {
+                      'type': 'audio',
+                      'conversation_id': widget.conversationId,
+                      'is_group': widget.isGroup,
+                      'duration': duration,
+                    },
+                  );
                   _scrollToBottom();
                 }
               },
@@ -377,6 +431,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           message: message,
           isMe: isMe,
           showSenderInfo: showSenderInfo,
+          conversationId: widget.conversationId,
+          currentUserId: currentUserId,
           onSenderTap: (userId) {
             if (widget.isGroup) {
               context.push('/profile/$userId');
@@ -416,10 +472,37 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
       ),
       title: InkWell(
-        onTap: () {
+        onTap: () async {
+          debugPrint('🔘 Tapped conversation header:');
+          debugPrint('   isGroup: ${widget.isGroup}');
+          debugPrint('   groupId: ${widget.groupId}');
+          debugPrint('   otherUserId: ${widget.otherUserId}');
+
           if (widget.isGroup) {
-            context.push('/groups/${widget.conversationId}');
+            String? groupIdToUse = widget.groupId;
+
+            // Fallback: if groupId is null, try to find group by name
+            if (groupIdToUse == null && widget.conversationName != null) {
+              debugPrint(
+                '   🔍 groupId is null, searching by name: ${widget.conversationName}',
+              );
+              final group = await ref.read(
+                groupByNameProvider(widget.conversationName!).future,
+              );
+              groupIdToUse = group?.id;
+              debugPrint('   📍 Found groupId: $groupIdToUse');
+            }
+
+            if (groupIdToUse != null && mounted) {
+              debugPrint('   ➡️ Navigating to /groups/$groupIdToUse');
+              context.push('/groups/$groupIdToUse');
+            } else {
+              debugPrint(
+                '   ⚠️ Cannot navigate: groupId is null and group not found!',
+              );
+            }
           } else if (widget.otherUserId != null) {
+            debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
             context.push('/profile/${widget.otherUserId}');
           }
         },
@@ -429,37 +512,60 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           child: Row(
             children: [
               // Avatar
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient:
-                      widget.isGroup
-                          ? AppColors.secondaryGradient
-                          : context.adaptivePrimaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child:
-                    displayImage != null
-                        ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: CachedNetworkImage(
-                            imageUrl: displayImage,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => const SizedBox(),
-                            errorWidget:
-                                (_, __, ___) => Icon(
-                                  widget.isGroup ? Icons.groups : Icons.person,
-                                  color: AppColors.white,
-                                  size: 20,
-                                ),
-                          ),
-                        )
-                        : Icon(
-                          widget.isGroup ? Icons.groups : Icons.person,
-                          color: AppColors.white,
-                          size: 20,
+              Stack(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient:
+                          widget.isGroup
+                              ? AppColors.secondaryGradient
+                              : context.adaptivePrimaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child:
+                        displayImage != null
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: CachedNetworkImage(
+                                imageUrl: displayImage,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => const SizedBox(),
+                                errorWidget:
+                                    (_, __, ___) => Icon(
+                                      widget.isGroup
+                                          ? Icons.groups
+                                          : Icons.person,
+                                      color: AppColors.white,
+                                      size: 20,
+                                    ),
+                              ),
+                            )
+                            : Icon(
+                              widget.isGroup ? Icons.groups : Icons.person,
+                              color: AppColors.white,
+                              size: 20,
+                            ),
+                  ),
+                  if (!widget.isGroup && widget.otherUserId != null)
+                    Positioned(
+                      bottom: -2,
+                      right: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          shape: BoxShape.circle,
                         ),
+                        child: OnlineStatusIndicator(
+                          userId: widget.otherUserId!,
+                          showText: false,
+                          dotSize: 10,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(
