@@ -70,6 +70,8 @@ class _FriendsListTab extends ConsumerWidget {
     final friendsAsync = ref.watch(friendsProvider);
 
     return friendsAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (friends) {
         if (friends.isEmpty) {
           return Center(
@@ -124,6 +126,8 @@ class _ReceivedRequestsTab extends ConsumerWidget {
     final requestsAsync = ref.watch(receivedFriendRequestsProvider);
 
     return requestsAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (requests) {
         if (requests.isEmpty) {
           return Center(
@@ -181,6 +185,8 @@ class _SentRequestsTab extends ConsumerWidget {
     final requestsAsync = ref.watch(sentFriendRequestsProvider);
 
     return requestsAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (requests) {
         if (requests.isEmpty) {
           return Center(

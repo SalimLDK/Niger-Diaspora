@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 /// Service de cache pour le mode offline
@@ -44,7 +45,12 @@ class CacheService {
     final box = Hive.box<String>(_profilesBox);
     final data = box.get(id);
     if (data == null) return null;
-    return jsonDecode(data) as Map<String, dynamic>;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached profile $id: $e');
+      return null;
+    }
   }
 
   Future<void> cacheProfiles(List<Map<String, dynamic>> profiles) async {
@@ -60,9 +66,15 @@ class CacheService {
 
   List<Map<String, dynamic>> getAllCachedProfiles() {
     final box = Hive.box<String>(_profilesBox);
-    return box.values
-        .map((data) => jsonDecode(data) as Map<String, dynamic>)
-        .toList();
+    final results = <Map<String, dynamic>>[];
+    for (final data in box.values) {
+      try {
+        results.add(jsonDecode(data) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('CacheService: Error decoding cached profile: $e');
+      }
+    }
+    return results;
   }
 
   // ==================== Events Cache ====================
@@ -77,7 +89,12 @@ class CacheService {
     final box = Hive.box<String>(_eventsBox);
     final data = box.get(id);
     if (data == null) return null;
-    return jsonDecode(data) as Map<String, dynamic>;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached event $id: $e');
+      return null;
+    }
   }
 
   Future<void> cacheEvents(List<Map<String, dynamic>> events) async {
@@ -95,9 +112,15 @@ class CacheService {
 
   List<Map<String, dynamic>> getAllCachedEvents() {
     final box = Hive.box<String>(_eventsBox);
-    return box.values
-        .map((data) => jsonDecode(data) as Map<String, dynamic>)
-        .toList();
+    final results = <Map<String, dynamic>>[];
+    for (final data in box.values) {
+      try {
+        results.add(jsonDecode(data) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('CacheService: Error decoding cached event: $e');
+      }
+    }
+    return results;
   }
 
   // ==================== Groups Cache ====================
@@ -112,7 +135,12 @@ class CacheService {
     final box = Hive.box<String>(_groupsBox);
     final data = box.get(id);
     if (data == null) return null;
-    return jsonDecode(data) as Map<String, dynamic>;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached group $id: $e');
+      return null;
+    }
   }
 
   Future<void> cacheGroups(List<Map<String, dynamic>> groups) async {
@@ -129,9 +157,15 @@ class CacheService {
 
   List<Map<String, dynamic>> getAllCachedGroups() {
     final box = Hive.box<String>(_groupsBox);
-    return box.values
-        .map((data) => jsonDecode(data) as Map<String, dynamic>)
-        .toList();
+    final results = <Map<String, dynamic>>[];
+    for (final data in box.values) {
+      try {
+        results.add(jsonDecode(data) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('CacheService: Error decoding cached group: $e');
+      }
+    }
+    return results;
   }
 
   // ==================== Conversations Cache ====================
@@ -146,10 +180,17 @@ class CacheService {
     final box = Hive.box<String>(_conversationsBox);
     final data = box.get(id);
     if (data == null) return null;
-    return jsonDecode(data) as Map<String, dynamic>;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached conversation $id: $e');
+      return null;
+    }
   }
 
-  Future<void> cacheConversations(List<Map<String, dynamic>> conversations) async {
+  Future<void> cacheConversations(
+    List<Map<String, dynamic>> conversations,
+  ) async {
     final box = Hive.box<String>(_conversationsBox);
     await box.clear();
     for (final conv in conversations) {
@@ -163,9 +204,15 @@ class CacheService {
 
   List<Map<String, dynamic>> getAllCachedConversations() {
     final box = Hive.box<String>(_conversationsBox);
-    return box.values
-        .map((data) => jsonDecode(data) as Map<String, dynamic>)
-        .toList();
+    final results = <Map<String, dynamic>>[];
+    for (final data in box.values) {
+      try {
+        results.add(jsonDecode(data) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('CacheService: Error decoding cached conversation: $e');
+      }
+    }
+    return results;
   }
 
   // ==================== Messages Cache ====================
@@ -184,8 +231,12 @@ class CacheService {
     List<Map<String, dynamic>> existingMessages = [];
 
     if (existingData != null) {
-      final decoded = jsonDecode(existingData) as List;
-      existingMessages = decoded.cast<Map<String, dynamic>>();
+      try {
+        final decoded = jsonDecode(existingData) as List;
+        existingMessages = decoded.cast<Map<String, dynamic>>();
+      } catch (e) {
+        debugPrint('CacheService: Error decoding existing messages: $e');
+      }
     }
 
     // Merge new messages with existing ones (avoid duplicates by id)
@@ -200,14 +251,16 @@ class CacheService {
     }
 
     // Sort by timestamp (oldest first)
-    final sortedMessages = messageMap.values.toList()
-      ..sort((a, b) {
-        final aTime = DateTime.tryParse(a['createdAt'] as String? ?? '') ??
-            DateTime.now();
-        final bTime = DateTime.tryParse(b['createdAt'] as String? ?? '') ??
-            DateTime.now();
-        return aTime.compareTo(bTime);
-      });
+    final sortedMessages =
+        messageMap.values.toList()..sort((a, b) {
+          final aTime =
+              DateTime.tryParse(a['createdAt'] as String? ?? '') ??
+              DateTime.now();
+          final bTime =
+              DateTime.tryParse(b['createdAt'] as String? ?? '') ??
+              DateTime.now();
+          return aTime.compareTo(bTime);
+        });
 
     await box.put(key, jsonEncode(sortedMessages));
     await _updateTimestamp(_messagesBox, key);
@@ -231,25 +284,30 @@ class CacheService {
 
     if (data == null) return [];
 
-    final decoded = jsonDecode(data) as List;
-    var messages = decoded.cast<Map<String, dynamic>>().toList();
+    try {
+      final decoded = jsonDecode(data) as List;
+      var messages = decoded.cast<Map<String, dynamic>>().toList();
 
-    // If beforeMessageId is provided, filter messages before that ID
-    if (beforeMessageId != null) {
-      final index = messages.indexWhere((m) => m['id'] == beforeMessageId);
-      if (index > 0) {
-        messages = messages.sublist(0, index);
-      } else if (index == 0) {
-        return [];
+      // If beforeMessageId is provided, filter messages before that ID
+      if (beforeMessageId != null) {
+        final index = messages.indexWhere((m) => m['id'] == beforeMessageId);
+        if (index > 0) {
+          messages = messages.sublist(0, index);
+        } else if (index == 0) {
+          return [];
+        }
       }
-    }
 
-    // Apply limit (get the last N messages)
-    if (limit != null && messages.length > limit) {
-      messages = messages.sublist(messages.length - limit);
-    }
+      // Apply limit (get the last N messages)
+      if (limit != null && messages.length > limit) {
+        messages = messages.sublist(messages.length - limit);
+      }
 
-    return messages;
+      return messages;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached messages: $e');
+      return [];
+    }
   }
 
   int getCachedMessagesCount(String conversationId) {
@@ -259,8 +317,13 @@ class CacheService {
 
     if (data == null) return 0;
 
-    final decoded = jsonDecode(data) as List;
-    return decoded.length;
+    try {
+      final decoded = jsonDecode(data) as List;
+      return decoded.length;
+    } catch (e) {
+      debugPrint('CacheService: Error counting cached messages: $e');
+      return 0;
+    }
   }
 
   Future<void> clearMessagesCache(String conversationId) async {
@@ -285,7 +348,12 @@ class CacheService {
     final box = Hive.box<String>(_legalBox);
     final data = box.get(key);
     if (data == null) return null;
-    return jsonDecode(data) as Map<String, dynamic>;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached legal content $key: $e');
+      return null;
+    }
   }
 
   // ==================== Cache Metadata ====================
@@ -305,7 +373,11 @@ class CacheService {
     return DateTime.parse(timestamp);
   }
 
-  bool isCacheValid(String boxName, String key, {Duration maxAge = const Duration(hours: 1)}) {
+  bool isCacheValid(
+    String boxName,
+    String key, {
+    Duration maxAge = const Duration(hours: 1),
+  }) {
     final lastUpdate = getLastUpdateTime(boxName, key);
     if (lastUpdate == null) return false;
     return DateTime.now().difference(lastUpdate) < maxAge;

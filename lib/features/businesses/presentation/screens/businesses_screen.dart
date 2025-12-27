@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
 import '../widgets/business_card.dart';
@@ -40,13 +41,10 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
       appBar: AppBar(
         title:
             _isSearching
-                ? TextField(
+                ? CompactSearchBar(
                   controller: _searchController,
+                  hintText: 'Rechercher une entreprise...',
                   autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'Rechercher une entreprise...',
-                    border: InputBorder.none,
-                  ),
                   onSubmitted: (query) {
                     ref
                         .read(businessesNotifierProvider.notifier)
@@ -118,6 +116,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                 await ref.read(businessesNotifierProvider.notifier).refresh();
               },
               child: businessesAsync.when(
+                skipLoadingOnRefresh: true,
                 data: (businesses) {
                   if (businesses.isEmpty) {
                     return Center(

@@ -26,6 +26,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(eventsNotifierProvider.notifier).refresh();
+      ref.read(pastEventsNotifierProvider.notifier).refresh();
+    });
   }
 
   @override
@@ -148,6 +152,7 @@ class _UpcomingEventsTab extends ConsumerWidget {
     final eventsState = ref.watch(eventsNotifierProvider);
 
     return eventsState.when(
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: LoadingIndicator()),
       error:
           (error, _) => CustomErrorWidget(
@@ -207,6 +212,7 @@ class _PastEventsTab extends ConsumerWidget {
     final eventsState = ref.watch(pastEventsNotifierProvider);
 
     return eventsState.when(
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: LoadingIndicator()),
       error:
           (error, _) => CustomErrorWidget(

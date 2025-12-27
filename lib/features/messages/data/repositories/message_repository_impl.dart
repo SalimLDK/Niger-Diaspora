@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -118,22 +119,106 @@ class MessageRepositoryImpl implements MessageRepository {
     required File file,
     required MessageType type,
     String? caption,
+    void Function(double customProgress)? onProgress,
+    bool Function()? checkCancelled,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
     }
 
     try {
-      final message = await remoteDataSource.sendFileMessage(
-        conversationId: conversationId,
-        senderId: senderId,
-        senderName: senderName,
-        senderPhotoUrl: senderPhotoUrl,
+      final fileName = file.path.split('/').last;
+
+      // 1. Start Upload
+      final uploadTask = remoteDataSource.uploadMediaFile(
         file: file,
-        type: type.name,
-        caption: caption,
+        conversationId: conversationId,
+        fileName: fileName,
       );
-      return Right(message.toEntity());
+
+      // 2. Monitor Progress & Cancellation
+      // Use a Completer to bridge Stream/Callback to Future
+      final completer = Completer<Either<Failure, String>>();
+
+      // Subscribe to task stream
+      final subscription = uploadTask.snapshotEvents.listen(
+        (event) {
+          // Check cancellation
+          if (checkCancelled?.call() == true) {
+            uploadTask.cancel();
+            if (!completer.isCompleted) {
+              completer.complete(const Left(ServerFailure('Envoi annulé')));
+            }
+            return;
+          }
+
+          // Report progress
+          if (onProgress != null && event.totalBytes > 0) {
+            final progress = event.bytesTransferred / event.totalBytes;
+            onProgress(progress);
+          }
+        },
+        onError: (e) {
+          if (!completer.isCompleted) {
+            if (e.code == 'canceled') {
+              completer.complete(const Left(ServerFailure('Envoi annulé')));
+            } else {
+              completer.complete(Left(ServerFailure(e.toString())));
+            }
+          }
+        },
+      );
+
+      // Wait for completion
+      try {
+        await uploadTask;
+        if (!completer.isCompleted) {
+          final url = await uploadTask.snapshot.ref.getDownloadURL();
+          completer.complete(Right(url));
+        }
+      } catch (e) {
+        // Task failure (including cancellation)
+        if (!completer.isCompleted) {
+          // Check if it was purely cancellation
+          if (e.toString().contains('canceled')) {
+            completer.complete(const Left(ServerFailure('Envoi annulé')));
+          } else {
+            completer.complete(Left(ServerFailure(e.toString())));
+          }
+        }
+      } finally {
+        await subscription.cancel();
+      }
+
+      final startResult = await completer.future;
+
+      return startResult.fold((failure) => Left(failure), (fileUrl) async {
+        // 3. Send Message to DB
+        // Get necessary file info that we already have or can get easily
+        final fileSize = await file.length();
+        // Simple mime type logic (or use package:mime)
+        final ext = fileName.split('.').last.toLowerCase();
+        String mimeType = 'application/octet-stream';
+        if (['jpg', 'jpeg', 'png'].contains(ext)) {
+          mimeType = 'image/$ext';
+        } else if (ext == 'pdf') {
+          mimeType = 'application/pdf';
+        }
+
+        final message = await remoteDataSource.sendMediaMessage(
+          conversationId: conversationId,
+          senderId: senderId,
+          senderName: senderName,
+          senderPhotoUrl: senderPhotoUrl,
+          fileUrl: fileUrl,
+          fileName: fileName,
+          fileSize: fileSize,
+          mimeType: mimeType,
+          type: type.name,
+          caption: caption,
+        );
+        return Right(message.toEntity());
+      });
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -181,6 +266,7 @@ class MessageRepositoryImpl implements MessageRepository {
         participantIds: participantIds,
         groupName: groupName,
         groupImageUrl: groupImageUrl,
+        groupId: groupId,
       );
       return Right(conversation.toEntity());
     } on ServerException catch (e) {
@@ -453,6 +539,22 @@ class MessageRepositoryImpl implements MessageRepository {
         groupName: groupName,
         userId: userId,
       );
+      return Right(conversation?.id);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> findGroupConversationByGroupId({
+    required String groupId,
+    required String userId,
+  }) async {
+    try {
+      final conversation = await remoteDataSource
+          .findGroupConversationByGroupId(groupId: groupId, userId: userId);
       return Right(conversation?.id);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

@@ -54,12 +54,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
             // Header avec gradient
             SliverToBoxAdapter(
               child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.secondary, AppColors.secondaryDark],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                decoration: BoxDecoration(
+                  gradient: context.adaptiveSecondaryGradient,
                 ),
                 child: SafeArea(
                   bottom: false,
@@ -141,12 +137,12 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.secondaryLighter,
+                                    color: context.secondaryBackgroundColor,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
                                     Icons.search,
-                                    color: context.adaptiveSecondaryColor,
+                                    color: context.adaptivePrimaryColor,
                                     size: 20,
                                   ),
                                 ),
@@ -215,6 +211,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   const SizedBox(height: 16),
 
                   myGroupsAsync.when(
+                    skipLoadingOnRefresh: true,
                     data: (myGroups) {
                       final filteredGroups =
                           _selectedCategory == null
@@ -264,6 +261,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   const SizedBox(height: 16),
 
                   allGroupsAsync.when(
+                    skipLoadingOnRefresh: true,
                     data: (allGroups) {
                       // Wait for myGroups to load before filtering
                       return myGroupsAsync.when(
@@ -520,8 +518,8 @@ class _GroupCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient:
                     isJoined
-                        ? AppColors.primaryGradient
-                        : AppColors.secondaryGradient,
+                        ? context.adaptivePrimaryGradient
+                        : context.adaptiveSecondaryGradient,
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
@@ -601,7 +599,7 @@ class _GroupCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.secondaryLighter,
+                          color: context.secondaryBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -610,7 +608,7 @@ class _GroupCard extends StatelessWidget {
                             Icon(
                               Icons.people,
                               size: 12,
-                              color: context.adaptiveSecondaryColor,
+                              color: context.adaptivePrimaryColor,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -618,7 +616,7 @@ class _GroupCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: context.adaptiveSecondaryColor,
+                                color: context.adaptivePrimaryColor,
                               ),
                             ),
                           ],
@@ -657,16 +655,8 @@ class _GroupCard extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  gradient:
-                      isJoined
-                          ? null
-                          : const LinearGradient(
-                            colors: [
-                              AppColors.secondary,
-                              AppColors.secondaryDark,
-                            ],
-                          ),
-                  color: isJoined ? AppColors.primaryLighter : null,
+                  gradient: isJoined ? null : context.adaptiveSecondaryGradient,
+                  color: isJoined ? context.primaryBackgroundColor : null,
                   borderRadius: BorderRadius.circular(14),
                   boxShadow:
                       isJoined
@@ -720,12 +710,7 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
-          gradient:
-              isSelected
-                  ? const LinearGradient(
-                    colors: [AppColors.secondary, AppColors.secondaryDark],
-                  )
-                  : null,
+          gradient: isSelected ? context.adaptiveSecondaryGradient : null,
           color: isSelected ? null : context.surfaceColor,
           borderRadius: BorderRadius.circular(25),
           boxShadow: [

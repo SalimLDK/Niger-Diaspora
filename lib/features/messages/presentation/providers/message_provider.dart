@@ -18,6 +18,7 @@ import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../domain/repositories/message_repository.dart';
 import 'message_pagination_state.dart';
+import 'media_upload_provider.dart';
 
 part 'message_provider.g.dart';
 
@@ -409,7 +410,17 @@ class SendMessage extends _$SendMessage {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
-    state = const AsyncValue.loading();
+    // Initialize upload state
+    final uploadNotifier = ref.read(mediaUploadProvider.notifier);
+    uploadNotifier.startUpload(
+      file: file,
+      conversationId: conversationId,
+      isImage: type == MessageType.image,
+      caption: caption,
+    );
+
+    // No longer setting local loading state as we use the dedicated provider
+    // state = const AsyncValue.loading();
 
     final result = await ref
         .read(messageRepositoryProvider)
@@ -421,14 +432,30 @@ class SendMessage extends _$SendMessage {
           file: file,
           type: type,
           caption: caption,
+          onProgress: (progress) {
+            uploadNotifier.updateProgress(progress);
+          },
+          checkCancelled: () {
+            // Check provider state
+            return ref.read(mediaUploadProvider).status ==
+                MediaUploadStatus.cancelled;
+          },
         );
 
     return result.fold(
       (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
+        if (failure.message == 'Envoi annulé') {
+          // Already handled visually by the provider state (cancelled)
+          // But we might want to reset it or keep it as cancelled
+          uploadNotifier.cancel(); // Ensure state is cancelled
+        } else {
+          uploadNotifier.markError(failure.message);
+          state = AsyncValue.error(failure.message, StackTrace.current);
+        }
         return false;
       },
       (message) {
+        uploadNotifier.markSuccess();
         state = const AsyncValue.data(null);
         return true;
       },

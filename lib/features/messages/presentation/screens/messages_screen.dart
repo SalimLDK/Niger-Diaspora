@@ -279,6 +279,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
         child: const Icon(Icons.message, color: AppColors.white),
       ),
       body: conversationsAsync.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
         data: (conversations) {
           final currentUserId = currentUser?.id ?? '';
 

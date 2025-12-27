@@ -21,6 +21,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   int _currentStep = 0;
   bool _isLoading = false;
+  bool _amountValid = false;
 
   @override
   void dispose() {
@@ -139,7 +140,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       children: [
         // Add new recipient button
         OutlinedButton.icon(
-          onPressed: () => context.push('/transfers/recipients/add'),
+          onPressed: () => context.push('/transfers/recipient/add'),
           icon: const Icon(Icons.person_add),
           label: const Text('Ajouter un beneficiaire'),
           style: OutlinedButton.styleFrom(
@@ -184,63 +185,149 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               );
             }
 
-            return Column(
-              children:
-                  recipients.map((recipient) {
-                    final isSelected =
-                        transferState.selectedRecipient?.id == recipient.id;
-                    return Card(
-                      color:
-                          isSelected
-                              ? theme.colorScheme.primaryContainer
-                              : null,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              isSelected
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                            _getRecipientIcon(recipient.type),
-                            color:
-                                isSelected
-                                    ? theme.colorScheme.onPrimary
-                                    : theme.colorScheme.onSurfaceVariant,
+            // Separate favorites and recent recipients
+            final favorites = recipients.where((r) => r.isFavorite).toList();
+            final recentlyUsed =
+                recipients
+                    .where((r) => !r.isFavorite && r.lastUsedAt != null)
+                    .toList()
+                  ..sort((a, b) => b.lastUsedAt!.compareTo(a.lastUsedAt!));
+            final others =
+                recipients
+                    .where((r) => !r.isFavorite && r.lastUsedAt == null)
+                    .toList();
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Favorites section
+                  if (favorites.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.star, size: 16, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Favoris',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
-                        ),
-                        title: Text(
-                          recipient.fullName,
-                          style: TextStyle(
-                            fontWeight:
-                                isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                          ),
-                        ),
-                        subtitle: Text(recipient.phone),
-                        trailing:
-                            isSelected
-                                ? Icon(
-                                  Icons.check_circle,
-                                  color: theme.colorScheme.primary,
-                                )
-                                : recipient.isFavorite
-                                ? const Icon(Icons.star, color: Colors.amber)
-                                : null,
-                        onTap: () {
-                          ref
-                              .read(transferStateNotifierProvider.notifier)
-                              .selectRecipient(recipient);
-                        },
+                        ],
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    ...favorites.map(
+                      (recipient) =>
+                          _buildRecipientCard(recipient, theme, transferState),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+
+                  // Recent recipients section
+                  if (recentlyUsed.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'R\u00e9cemment utilis\u00e9s',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...recentlyUsed
+                        .take(3)
+                        .map(
+                          (recipient) => _buildRecipientCard(
+                            recipient,
+                            theme,
+                            transferState,
+                          ),
+                        ),
+                    const SizedBox(height: 8),
+                  ],
+
+                  // Other recipients
+                  if (others.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
+                      child: Text(
+                        'Autres b\u00e9n\u00e9ficiaires',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    ...others.map(
+                      (recipient) =>
+                          _buildRecipientCard(recipient, theme, transferState),
+                    ),
+                  ],
+                ],
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Text('Erreur: $e'),
         ),
       ],
+    );
+  }
+
+  Widget _buildRecipientCard(
+    RecipientEntity recipient,
+    ThemeData theme,
+    TransferState transferState,
+  ) {
+    final isSelected = transferState.selectedRecipient?.id == recipient.id;
+
+    return Card(
+      color: isSelected ? theme.colorScheme.primaryContainer : null,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor:
+              isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.surfaceContainerHighest,
+          child: Icon(
+            _getRecipientIcon(recipient.type),
+            color:
+                isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        title: Text(
+          recipient.fullName,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        subtitle: Text(recipient.phone),
+        trailing:
+            isSelected
+                ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
+                : recipient.isFavorite
+                ? const Icon(Icons.star, color: Colors.amber, size: 20)
+                : null,
+        onTap: () {
+          ref
+              .read(transferStateNotifierProvider.notifier)
+              .selectRecipient(recipient);
+        },
+      ),
     );
   }
 
@@ -276,7 +363,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Amount input
+        // Amount input with real-time validation
         TextFormField(
           controller: _amountController,
           decoration: InputDecoration(
@@ -284,6 +371,17 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             border: const OutlineInputBorder(),
             prefixText: _getCurrencySymbol(selectedCurrency),
             suffixText: selectedCurrency,
+            suffixIcon:
+                _amountController.text.isNotEmpty
+                    ? Icon(
+                      _amountValid ? Icons.check_circle : Icons.error,
+                      color: _amountValid ? Colors.green : Colors.red,
+                    )
+                    : null,
+            helperText:
+                _amountController.text.isEmpty
+                    ? 'Minimum 5 $selectedCurrency'
+                    : null,
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
@@ -304,6 +402,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           },
           onChanged: (value) {
             final amount = double.tryParse(value) ?? 0;
+            setState(() {
+              _amountValid = amount >= 5;
+            });
             ref.read(transferStateNotifierProvider.notifier).setAmount(amount);
             _updateFeeAndRate();
           },
@@ -369,15 +470,55 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             const SizedBox(height: 8),
             if (transferState.exchangeRate != null) ...[
               const Divider(),
-              _buildFeeRow(
-                'Taux de change',
-                '1 $selectedCurrency = ${transferState.exchangeRate!.toStringAsFixed(2)} ${Currency.xof.code}',
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.currency_exchange,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Taux: 1 $selectedCurrency = ${transferState.exchangeRate!.toStringAsFixed(2)} XOF',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              _buildFeeRow(
-                'Le beneficiaire recoit',
-                '${transferState.amountInXof.toStringAsFixed(0)} ${Currency.xof.code}',
-                isBold: true,
-                color: theme.colorScheme.primary,
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.3,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Le bénéficiaire recevra',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${transferState.amountInXof.toStringAsFixed(0)} XOF',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -536,7 +677,11 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         break;
 
       case 2:
-        await _submitTransfer();
+        // Show confirmation dialog before submission
+        final confirmed = await _showConfirmationDialog();
+        if (confirmed == true) {
+          await _submitTransfer();
+        }
         break;
     }
   }
@@ -545,6 +690,109 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     if (_currentStep > 0) {
       setState(() => _currentStep--);
     }
+  }
+
+  Future<bool?> _showConfirmationDialog() async {
+    final transferState = ref.read(transferStateNotifierProvider);
+    final selectedCurrency = ref.read(selectedCurrencyProvider);
+    final theme = Theme.of(context);
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.info_outline),
+                SizedBox(width: 8),
+                Text('Confirmer le transfert'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Vous êtes sur le point d\'envoyer:',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Montant:'),
+                          Text(
+                            '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Frais:'),
+                          Text(
+                            '${transferState.fee!.toStringAsFixed(2)} $selectedCurrency',
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total:'),
+                          Text(
+                            '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'À: ${transferState.selectedRecipient?.fullName}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Cette action est irréversible. Voulez-vous continuer?',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annuler'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Confirmer'),
+              ),
+            ],
+          ),
+    );
   }
 
   Future<void> _updateFeeAndRate() async {

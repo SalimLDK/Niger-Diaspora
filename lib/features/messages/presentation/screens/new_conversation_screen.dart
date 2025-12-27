@@ -441,7 +441,7 @@ class _UserListItem extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: context.adaptivePrimaryGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
               child:

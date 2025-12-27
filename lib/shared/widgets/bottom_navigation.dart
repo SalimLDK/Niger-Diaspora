@@ -103,14 +103,11 @@ class _NavItem extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Couleurs selon le theme
-    final activeColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    // Couleurs selon le theme - utiliser les couleurs du colorScheme
+    final activeColor = theme.colorScheme.primary;
     final inactiveColor =
         isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
-    final activeBgColor =
-        isDark
-            ? AppColors.primaryLight.withValues(alpha: 0.15)
-            : AppColors.primaryLighter;
+    final activeBgColor = theme.colorScheme.primaryContainer;
 
     return GestureDetector(
       onTap: onTap,

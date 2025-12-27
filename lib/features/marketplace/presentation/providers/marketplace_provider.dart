@@ -24,7 +24,7 @@ MarketplaceRepository marketplaceRepository(Ref ref) {
 
 // ============ PRODUCTS ============
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<ProductEntity>> products(
   Ref ref, {
   ProductCategory? category,

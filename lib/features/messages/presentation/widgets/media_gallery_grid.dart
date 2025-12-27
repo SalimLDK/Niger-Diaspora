@@ -92,7 +92,11 @@ class MediaGalleryGrid extends ConsumerWidget {
     );
   }
 
-  Widget _buildGrid(BuildContext context, List<MessageEntity> images, bool hasMore) {
+  Widget _buildGrid(
+    BuildContext context,
+    List<MessageEntity> images,
+    bool hasMore,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.builder(
@@ -106,7 +110,8 @@ class MediaGalleryGrid extends ConsumerWidget {
         itemCount: images.length,
         itemBuilder: (context, index) {
           final image = images[index];
-          final isLastItem = index == images.length - 1 && hasMore && onViewAll != null;
+          final isLastItem =
+              index == images.length - 1 && hasMore && onViewAll != null;
 
           return _MediaGridItem(
             message: image,
@@ -166,22 +171,24 @@ class _MediaGridItem extends StatelessWidget {
                 imageUrl: message.fileUrl ?? '',
                 fit: BoxFit.cover,
                 memCacheWidth: 300,
-                placeholder: (context, url) => Container(
-                  color: context.surfaceVariantColor,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: context.textTertiaryColor,
+                placeholder:
+                    (context, url) => Container(
+                      color: context.surfaceVariantColor,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: context.surfaceVariantColor,
-                  child: Icon(
-                    Icons.broken_image,
-                    color: context.textTertiaryColor,
-                  ),
-                ),
+                errorWidget:
+                    (context, url, error) => Container(
+                      color: context.surfaceVariantColor,
+                      child: Icon(
+                        Icons.broken_image,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
               ),
               if (showOverlay)
                 Container(
@@ -207,118 +214,244 @@ class _MediaGridItem extends StatelessWidget {
 
 /// Compact version for inline display in profile/group screens
 class MediaGalleryCompact extends ConsumerWidget {
-  final String conversationId;
+  final String? conversationId;
   final VoidCallback? onViewAll;
+  final bool showEmptyState;
 
   const MediaGalleryCompact({
     super.key,
     required this.conversationId,
     this.onViewAll,
+    this.showEmptyState = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mediaState = ref.watch(conversationMediaProvider(conversationId));
+    if (conversationId == null) {
+      return showEmptyState
+          ? _buildEmptyState(context)
+          : const SizedBox.shrink();
+    }
 
-    if (mediaState.isLoading && mediaState.isEmpty) {
+    final mediaState = ref.watch(conversationMediaProvider(conversationId!));
+
+    // Afficher le skeleton uniquement pendant le chargement initial
+    if (mediaState.isLoading &&
+        mediaState.isEmpty &&
+        mediaState.error == null) {
       return _buildLoadingState(context);
     }
 
+    // Afficher l'état vide si pas de médias (y compris en cas d'erreur)
     if (mediaState.isEmpty) {
-      return const SizedBox.shrink();
+      return showEmptyState
+          ? _buildEmptyState(context)
+          : const SizedBox.shrink();
     }
 
     final images = mediaState.images.take(6).toList();
-    final hasMore = mediaState.images.length > 6;
+    final totalCount = mediaState.images.length;
+    final hasMore = totalCount > 6;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header avec icône, titre, compteur et bouton "Voir tout"
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.photo_library,
-                    size: 18,
-                    color: context.adaptivePrimaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Médias partagés',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.textPrimaryColor,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.photo_library_rounded,
+                  size: 20,
+                  color: context.adaptivePrimaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Médias partagés',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimaryColor,
+                      ),
                     ),
-                  ),
-                ],
+                    Text(
+                      '$totalCount photo${totalCount > 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               if (hasMore && onViewAll != null)
                 GestureDetector(
                   onTap: onViewAll,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Voir tout',
-                        style: TextStyle(
-                          fontSize: 13,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.adaptivePrimaryColor.withValues(
+                        alpha: 0.1,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Voir tout',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 12,
                           color: context.adaptivePrimaryColor,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 12,
-                        color: context.adaptivePrimaryColor,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          // Grille de photos améliorée
           SizedBox(
-            height: 72,
+            height: 90,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: images.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              itemCount: hasMore ? images.length + 1 : images.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
+                // Dernier élément avec "+X" overlay si plus d'images
+                if (hasMore && index == images.length) {
+                  return GestureDetector(
+                    onTap: onViewAll,
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: context.adaptivePrimaryColor.withValues(
+                          alpha: 0.1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: context.adaptivePrimaryColor.withValues(
+                            alpha: 0.3,
+                          ),
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '+${totalCount - 6}',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                          Text(
+                            'photos',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 final image = images[index];
                 return GestureDetector(
                   onTap: () => _openImage(context, image),
                   child: Hero(
                     tag: 'compact_${image.id}',
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        imageUrl: image.fileUrl ?? '',
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 200,
-                        placeholder: (context, url) => Container(
-                          width: 72,
-                          height: 72,
-                          color: context.surfaceVariantColor,
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          width: 72,
-                          height: 72,
-                          color: context.surfaceVariantColor,
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 20,
-                            color: context.textTertiaryColor,
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: image.fileUrl ?? '',
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 250,
+                          placeholder:
+                              (context, url) => Container(
+                                width: 90,
+                                height: 90,
+                                color: context.surfaceVariantColor,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: context.textTertiaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Container(
+                                width: 90,
+                                height: 90,
+                                color: context.surfaceVariantColor,
+                                child: Icon(
+                                  Icons.broken_image_rounded,
+                                  size: 24,
+                                  color: context.textTertiaryColor,
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -332,16 +465,149 @@ class MediaGalleryCompact extends ConsumerWidget {
     );
   }
 
+  Widget _buildEmptyState(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.photo_library_outlined,
+              size: 24,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Médias partagés',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Aucun média partagé pour le moment',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoadingState(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: context.surfaceVariantColor,
-      highlightColor: context.surfaceColor,
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: context.surfaceVariantColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header skeleton
+          Row(
+            children: [
+              Shimmer.fromColors(
+                baseColor: context.surfaceVariantColor,
+                highlightColor: context.surfaceColor,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: context.surfaceVariantColor,
+                    highlightColor: context.surfaceColor,
+                    child: Container(
+                      width: 100,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: context.surfaceVariantColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Shimmer.fromColors(
+                    baseColor: context.surfaceVariantColor,
+                    highlightColor: context.surfaceColor,
+                    child: Container(
+                      width: 60,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: context.surfaceVariantColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Images skeleton
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              separatorBuilder: (context, index) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                  baseColor: context.surfaceVariantColor,
+                  highlightColor: context.surfaceColor,
+                  child: Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: context.surfaceVariantColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

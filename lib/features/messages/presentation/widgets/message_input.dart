@@ -9,11 +9,14 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'audio_recorder_overlay.dart';
+import '../screens/media_preview_screen.dart';
 
 class MessageInput extends StatefulWidget {
   final Function(String) onSendText;
-  final Function(File, bool isImage) onSendFile;
-  final Function(File audioFile, int duration, List<double> waveform)? onSendAudio;
+  final Function(File, bool isImage, {String? caption}) onSendFile;
+  final Function(File audioFile, int duration, List<double> waveform)?
+  onSendAudio;
+  final VoidCallback? onTyping;
   final bool isLoading;
 
   const MessageInput({
@@ -21,6 +24,7 @@ class MessageInput extends StatefulWidget {
     required this.onSendText,
     required this.onSendFile,
     this.onSendAudio,
+    this.onTyping,
     this.isLoading = false,
   });
 
@@ -45,6 +49,10 @@ class _MessageInputState extends State<MessageInput> {
       final hasText = _controller.text.trim().isNotEmpty;
       if (hasText != _hasText) {
         setState(() => _hasText = hasText);
+      }
+      // Notify parent that user is typing
+      if (hasText) {
+        widget.onTyping?.call();
       }
     });
   }
@@ -75,8 +83,23 @@ class _MessageInputState extends State<MessageInput> {
       imageQuality: 70,
     );
 
-    if (image != null) {
-      widget.onSendFile(File(image.path), true);
+    if (image != null && mounted) {
+      // Navigate to preview screen
+      final result = await Navigator.push<MediaPreviewResult>(
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => MediaPreviewScreen(
+                file: File(image.path),
+                type: MediaType.image,
+                conversationId: '',
+              ),
+        ),
+      );
+
+      if (result != null && mounted) {
+        widget.onSendFile(result.file, result.isImage, caption: result.caption);
+      }
     }
   }
 
@@ -107,72 +130,73 @@ class _MessageInputState extends State<MessageInput> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.textTertiaryColor.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Envoyer un fichier',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: context.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _AttachmentOption(
-                  icon: Icons.photo_library,
-                  label: 'Galerie',
-                  color: context.adaptivePrimaryColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage();
-                  },
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.textTertiaryColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                _AttachmentOption(
-                  icon: Icons.camera_alt,
-                  label: 'Camera',
-                  color: context.adaptiveSecondaryColor,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _takePhoto();
-                  },
+                const SizedBox(height: 20),
+                Text(
+                  'Envoyer un fichier',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: context.textPrimaryColor,
+                  ),
                 ),
-                _AttachmentOption(
-                  icon: Icons.insert_drive_file,
-                  label: 'Document',
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickFile();
-                  },
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _AttachmentOption(
+                      icon: Icons.photo_library,
+                      label: 'Galerie',
+                      color: context.adaptivePrimaryColor,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage();
+                      },
+                    ),
+                    _AttachmentOption(
+                      icon: Icons.camera_alt,
+                      label: 'Camera',
+                      color: context.adaptiveSecondaryColor,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _takePhoto();
+                      },
+                    ),
+                    _AttachmentOption(
+                      icon: Icons.insert_drive_file,
+                      label: 'Document',
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickFile();
+                      },
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 20),
               ],
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -271,21 +295,23 @@ class _MessageInputState extends State<MessageInput> {
       ),
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        boxShadow: context.isDarkMode
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           IconButton(
-            onPressed: widget.isLoading ? null : _showAttachmentOptions,
+            onPressed:
+                () => _showAttachmentOptions(), // Removed isLoading check
             icon: const Icon(Icons.attach_file),
             color: context.textSecondaryColor,
           ),
@@ -299,7 +325,7 @@ class _MessageInputState extends State<MessageInput> {
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
-                enabled: !widget.isLoading,
+                enabled: !widget.isLoading, // Keep this for text sending
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
@@ -318,52 +344,52 @@ class _MessageInputState extends State<MessageInput> {
           const SizedBox(width: 8),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            child: widget.isLoading
-                ? Container(
-                    width: 48,
-                    height: 48,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: context.adaptivePrimaryColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : _hasText
+            child:
+                widget.isLoading
+                    ? Container(
+                      width: 48,
+                      height: 48,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: context.adaptivePrimaryColor,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: CircularProgressIndicator(
+                        color: AppColors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                    : _hasText
                     ? IconButton(
-                        onPressed: _sendMessage,
-                        style: IconButton.styleFrom(
-                          backgroundColor: context.adaptivePrimaryColor,
-                          padding: const EdgeInsets.all(12),
-                        ),
-                        icon: Icon(
-                          Icons.send,
-                          color: AppColors.white,
-                        ),
-                      )
+                      onPressed: _sendMessage,
+                      style: IconButton.styleFrom(
+                        backgroundColor: context.adaptivePrimaryColor,
+                        padding: const EdgeInsets.all(12),
+                      ),
+                      icon: Icon(Icons.send, color: AppColors.white),
+                    )
                     : GestureDetector(
-                        onLongPressStart: (_) => _startRecording(),
-                        onLongPressEnd: (_) => _stopRecording(),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: widget.onSendAudio != null
-                                ? context.adaptivePrimaryColor
-                                : context.surfaceVariantColor,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Icon(
-                            Icons.mic,
-                            color: widget.onSendAudio != null
-                                ? AppColors.white
-                                : context.textTertiaryColor,
-                          ),
+                      onLongPressStart: (_) => _startRecording(),
+                      onLongPressEnd: (_) => _stopRecording(),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color:
+                              widget.onSendAudio != null
+                                  ? context.adaptivePrimaryColor
+                                  : context.surfaceVariantColor,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Icon(
+                          Icons.mic,
+                          color:
+                              widget.onSendAudio != null
+                                  ? AppColors.white
+                                  : context.textTertiaryColor,
                         ),
                       ),
+                    ),
           ),
         ],
       ),

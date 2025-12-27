@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -56,20 +55,12 @@ class ConversationMedia extends _$ConversationMedia {
 
   @override
   MediaGalleryState build(String conversationId) {
-    // Load initial media after widget builds
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.isLoading || state.images.isNotEmpty || state.files.isNotEmpty) {
-        return;
-      }
-      _loadInitial();
-    });
-
+    // Charger les médias immédiatement
+    _loadInitial();
     return const MediaGalleryState(isLoading: true);
   }
 
   Future<void> _loadInitial() async {
-    state = const MediaGalleryState(isLoading: true);
-
     try {
       final result = await ref.read(messageRepositoryProvider).getMediaMessages(
             conversationId: conversationId,
@@ -78,7 +69,7 @@ class ConversationMedia extends _$ConversationMedia {
 
       result.fold(
         (failure) {
-          state = MediaGalleryState(error: failure.message);
+          state = MediaGalleryState(error: failure.message, isLoading: false);
         },
         (messages) {
           final images = messages
@@ -93,11 +84,12 @@ class ConversationMedia extends _$ConversationMedia {
             files: files,
             hasMore: messages.length >= _pageSize,
             lastMessageId: messages.isNotEmpty ? messages.last.id : null,
+            isLoading: false,
           );
         },
       );
     } catch (e) {
-      state = MediaGalleryState(error: e.toString());
+      state = MediaGalleryState(error: e.toString(), isLoading: false);
     }
   }
 
@@ -165,16 +157,16 @@ Future<String?> userConversationId(Ref ref, String otherUserId) async {
 }
 
 /// Provider to get the conversation ID for a group (for group media section)
-/// Returns the conversation ID if a conversation exists with the given group name
+/// Returns the conversation ID if a conversation exists with the given group ID
 @riverpod
-Future<String?> groupConversationId(Ref ref, String groupName) async {
+Future<String?> groupConversationId(Ref ref, String groupId) async {
   final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) return null;
 
   final result = await ref
       .read(messageRepositoryProvider)
-      .findGroupConversationByName(
-        groupName: groupName,
+      .findGroupConversationByGroupId(
+        groupId: groupId,
         userId: currentUser.id,
       );
 

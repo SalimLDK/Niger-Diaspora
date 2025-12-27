@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class OnboardingLocalDataSource {
-  Future<bool> hasSeenOnboarding();
-  Future<void> setOnboardingComplete();
+  Future<bool> hasSeenOnboarding(String userId);
+  Future<void> setOnboardingComplete(String userId);
   Future<bool> hasSeenCoachMarks();
   Future<void> setCoachMarksComplete();
 }
@@ -14,16 +14,16 @@ class OnboardingLocalDataSourceImpl implements OnboardingLocalDataSource {
   final SharedPreferences _prefs;
 
   OnboardingLocalDataSourceImpl({required SharedPreferences prefs})
-      : _prefs = prefs;
+    : _prefs = prefs;
 
   @override
-  Future<bool> hasSeenOnboarding() async {
-    return _prefs.getBool(_hasSeenOnboardingKey) ?? false;
+  Future<bool> hasSeenOnboarding(String userId) async {
+    return _prefs.getBool('${_hasSeenOnboardingKey}_$userId') ?? false;
   }
 
   @override
-  Future<void> setOnboardingComplete() async {
-    await _prefs.setBool(_hasSeenOnboardingKey, true);
+  Future<void> setOnboardingComplete(String userId) async {
+    await _prefs.setBool('${_hasSeenOnboardingKey}_$userId', true);
   }
 
   @override

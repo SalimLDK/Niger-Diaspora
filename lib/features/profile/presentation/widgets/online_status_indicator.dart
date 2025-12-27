@@ -157,10 +157,10 @@ class _OnlineStatusContent extends ConsumerWidget {
             shape: BoxShape.circle,
           ),
         ),
-        if (showText && lastSeenText.isNotEmpty) ...[
+        if (showText) ...[
           const SizedBox(width: 6),
           Text(
-            lastSeenText,
+            lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
             style:
                 textStyle ??
                 TextStyle(fontSize: 12, color: context.textSecondaryColor),

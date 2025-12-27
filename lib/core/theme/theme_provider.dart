@@ -54,3 +54,33 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
     return state == AppThemeMode.dark;
   }
 }
+
+enum AppThemeColor { green, orange }
+
+@riverpod
+class ThemeColorNotifier extends _$ThemeColorNotifier {
+  final _prefs = PreferencesService.instance;
+
+  @override
+  AppThemeColor build() {
+    _loadColor();
+    return AppThemeColor.green;
+  }
+
+  Future<void> _loadColor() async {
+    final colorString = _prefs.themeColor;
+
+    if (colorString != null) {
+      final color = AppThemeColor.values.firstWhere(
+        (e) => e.name == colorString,
+        orElse: () => AppThemeColor.green,
+      );
+      state = color;
+    }
+  }
+
+  Future<void> setThemeColor(AppThemeColor color) async {
+    state = color;
+    await _prefs.setThemeColor(color.name);
+  }
+}

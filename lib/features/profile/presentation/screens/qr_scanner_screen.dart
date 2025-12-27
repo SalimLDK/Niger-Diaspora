@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../providers/profile_share_provider.dart';
 
-class QrScannerScreen extends StatefulWidget {
+class QrScannerScreen extends ConsumerStatefulWidget {
   const QrScannerScreen({super.key});
 
   @override
-  State<QrScannerScreen> createState() => _QrScannerScreenState();
+  ConsumerState<QrScannerScreen> createState() => _QrScannerScreenState();
 }
 
-class _QrScannerScreenState extends State<QrScannerScreen>
+class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     with SingleTickerProviderStateMixin {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
@@ -57,7 +59,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     _processQrCode(code);
   }
 
-  void _processQrCode(String code) {
+  Future<void> _processQrCode(String code) async {
     // Expected format: https://diasponiger.com/p/{userId}
     final uri = Uri.tryParse(code);
 
@@ -68,19 +70,42 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
     // Extract userId from URL
     String? userId;
+    String? shortCode;
+
     if (uri.host.contains('diasponiger.com') && uri.pathSegments.length >= 2) {
       if (uri.pathSegments[0] == 'p') {
-        userId = uri.pathSegments[1];
+        if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'u') {
+          userId = uri.pathSegments[2];
+        } else {
+          shortCode = uri.pathSegments[1];
+        }
       }
     }
 
-    if (userId == null || userId.isEmpty) {
-      _showError('QR code invalide ou format non reconnu');
+    if (userId != null && userId.isNotEmpty) {
+      _navigateToProfile(userId);
       return;
     }
 
-    // Navigate to user profile
-    _navigateToProfile(userId);
+    if (shortCode != null && shortCode.isNotEmpty) {
+      try {
+        final resolvedId = await ref.read(
+          profileUserIdFromShareCodeProvider(shortCode).future,
+        );
+        if (mounted) {
+          if (resolvedId != null) {
+            _navigateToProfile(resolvedId);
+          } else {
+            _showError('Lien expiré ou introuvable');
+          }
+        }
+      } catch (e) {
+        if (mounted) _showError('Erreur de connexion');
+      }
+      return;
+    }
+
+    _showError('QR code invalide ou format non reconnu');
   }
 
   void _navigateToProfile(String userId) {

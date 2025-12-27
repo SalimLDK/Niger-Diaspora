@@ -7,6 +7,26 @@ import 'embassy_news_model.dart';
 part 'embassy_model.freezed.dart';
 part 'embassy_model.g.dart';
 
+/// Converter to handle Firestore Timestamp to DateTime conversion
+class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
+  const TimestampConverter();
+
+  @override
+  DateTime? fromJson(dynamic json) {
+    if (json == null) return null;
+    if (json is DateTime) return json;
+    if (json is Timestamp) return json.toDate();
+    if (json is int) return DateTime.fromMillisecondsSinceEpoch(json);
+    return null;
+  }
+
+  @override
+  dynamic toJson(DateTime? dateTime) {
+    if (dateTime == null) return null;
+    return Timestamp.fromDate(dateTime);
+  }
+}
+
 @freezed
 class EmbassyModel with _$EmbassyModel {
   const EmbassyModel._();
@@ -17,8 +37,7 @@ class EmbassyModel with _$EmbassyModel {
     required String country,
     required String city,
     required String address,
-    @JsonKey(name: 'phone')
-    String? phone, // Adjusted to match entity field if possible or map
+    String? phone,
     String? email,
     String? website,
     double? latitude,
@@ -29,12 +48,16 @@ class EmbassyModel with _$EmbassyModel {
     @Default({}) Map<String, String> openingHours,
     @Default(false) bool isVerified,
     @Default(false) bool isSuspended,
-    @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-    DateTime? verifiedAt,
+    @TimestampConverter() DateTime? verifiedAt,
     String? rejectionReason,
     @Default([]) List<String> jurisdictionCountries,
     @Default([]) List<EmbassyActivityModel> activities,
     @Default([]) List<EmbassyNewsModel> news,
+    // Availability fields
+    @Default(false) bool isTemporarilyClosed,
+    String? closureMessage,
+    @TimestampConverter() DateTime? reopenDate,
+    @Default([]) List<String> upcomingServices,
   }) = _EmbassyModel;
 
   factory EmbassyModel.fromJson(Map<String, dynamic> json) =>
@@ -66,6 +89,10 @@ class EmbassyModel with _$EmbassyModel {
               .map((e) => EmbassyActivityModel.fromEntity(e))
               .toList(),
       news: entity.news.map((e) => EmbassyNewsModel.fromEntity(e)).toList(),
+      isTemporarilyClosed: entity.isTemporarilyClosed,
+      closureMessage: entity.closureMessage,
+      reopenDate: entity.reopenDate,
+      upcomingServices: entity.upcomingServices,
     );
   }
 
@@ -91,19 +118,10 @@ class EmbassyModel with _$EmbassyModel {
       jurisdictionCountries: jurisdictionCountries,
       activities: activities.map((e) => e.toEntity()).toList(),
       news: news.map((e) => e.toEntity()).toList(),
+      isTemporarilyClosed: isTemporarilyClosed,
+      closureMessage: closureMessage,
+      reopenDate: reopenDate,
+      upcomingServices: upcomingServices,
     );
   }
-}
-
-DateTime? _timestampToDateTime(dynamic json) {
-  if (json == null) return null;
-  if (json is DateTime) return json;
-  if (json is Timestamp) return json.toDate();
-  if (json is int) return DateTime.fromMillisecondsSinceEpoch(json);
-  return null;
-}
-
-dynamic _dateTimeToTimestamp(DateTime? dateTime) {
-  if (dateTime == null) return null;
-  return Timestamp.fromDate(dateTime);
 }

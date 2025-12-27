@@ -13,7 +13,6 @@ part 'embassies_provider.g.dart';
 
 // Data Source Provider
 @riverpod
-@riverpod
 EmbassiesLocalDataSource embassiesLocalDataSource(Ref ref) {
   return EmbassiesLocalDataSource();
 }
@@ -36,7 +35,7 @@ EmbassiesRepository embassiesRepository(Ref ref) {
 // Imports moved to top
 
 // Embassies List Provider
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<EmbassyEntity>> embassiesList(Ref ref) async {
   // 1. Get Current User (for Admin check)
   final userAsync = ref.watch(currentUserAsyncProvider);

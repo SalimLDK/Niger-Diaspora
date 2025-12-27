@@ -38,6 +38,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     });
 
     _scrollController.addListener(_onScroll);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(notificationsStreamProvider);
+    });
   }
 
   void _onScroll() {
@@ -173,6 +177,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         ),
       ),
       body: notificationsAsync.when(
+        skipLoadingOnRefresh: true,
         skipLoadingOnReload: true,
         loading: () => const Center(child: LoadingIndicator()),
         error:

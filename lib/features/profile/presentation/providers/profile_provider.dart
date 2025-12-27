@@ -75,7 +75,7 @@ class ProfileNotifier extends _$ProfileNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class NearbyProfilesNotifier extends _$NearbyProfilesNotifier {
   @override
   AsyncValue<List<ProfileEntity>> build() {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -10,6 +8,10 @@ import '../../../../core/theme/adaptive_colors.dart';
 import 'audio_message_bubble.dart';
 import 'delete_message_modal.dart';
 import 'full_screen_image_viewer.dart';
+import 'optimized_image_bubble.dart';
+
+import 'document_bubble.dart';
+import 'video_bubble.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageEntity message;
@@ -191,9 +193,38 @@ class MessageBubble extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     switch (message.type) {
       case MessageType.image:
-        return _buildImageContent(context);
+        return OptimizedImageBubble(
+          imageUrl: message.fileUrl ?? '',
+          caption: message.content,
+          isMe: isMe,
+          heroTag: 'message_image_${message.id}',
+          onTap:
+              () => FullScreenImageViewer.show(
+                context,
+                imageUrl: message.fileUrl!,
+                heroTag: 'message_image_${message.id}',
+                senderName: message.senderName,
+                sentAt: message.createdAt,
+              ),
+        );
+
       case MessageType.file:
-        return _buildFileContent(context);
+        return DocumentBubble(
+          fileUrl: message.fileUrl ?? '',
+          fileName: message.fileName ?? 'Fichier',
+          fileSize: message.fileSize,
+          isMe: isMe,
+          onTap: () => _openFile(message.fileUrl),
+        );
+      case MessageType.video:
+        return VideoBubble(
+          videoUrl: message.fileUrl ?? '',
+          thumbnailUrl: message.thumbnailUrl,
+          duration: message.videoDuration,
+          caption: message.content,
+          isMe: isMe,
+          onTap: () => _openFile(message.fileUrl),
+        );
       case MessageType.audio:
         return AudioMessageBubble(message: message, isMe: isMe);
       case MessageType.text:
@@ -212,166 +243,6 @@ class MessageBubble extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildImageContent(BuildContext context) {
-    final heroTag = 'message_image_${message.id}';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (message.fileUrl != null)
-          GestureDetector(
-            onTap:
-                () => FullScreenImageViewer.show(
-                  context,
-                  imageUrl: message.fileUrl!,
-                  heroTag: heroTag,
-                  senderName: message.senderName,
-                  sentAt: message.createdAt,
-                ),
-            child: Hero(
-              tag: heroTag,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 250,
-                  maxHeight: 300,
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: message.fileUrl!,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 600,
-                  placeholder:
-                      (context, url) => _buildImagePlaceholder(context),
-                  errorWidget:
-                      (context, url, error) => _buildImageError(context),
-                ),
-              ),
-            ),
-          ),
-        if (message.content.isNotEmpty && message.content != message.fileName)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              message.content,
-              style: TextStyle(
-                fontSize: 14,
-                color: isMe ? AppColors.white : context.textPrimaryColor,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildImagePlaceholder(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: context.surfaceVariantColor,
-      highlightColor: context.surfaceColor,
-      child: Container(
-        width: 200,
-        height: 150,
-        color: context.surfaceVariantColor,
-      ),
-    );
-  }
-
-  Widget _buildImageError(BuildContext context) {
-    return Container(
-      width: 200,
-      height: 150,
-      color: context.surfaceVariantColor,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.broken_image, color: context.textTertiaryColor, size: 32),
-          const SizedBox(height: 8),
-          Text(
-            'Image non disponible',
-            style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFileContent(BuildContext context) {
-    return InkWell(
-      onTap: () => _openFile(message.fileUrl),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color:
-                    isMe
-                        ? AppColors.white.withValues(alpha: 0.2)
-                        : context.adaptivePrimaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                _getFileIcon(message.mimeType),
-                color: isMe ? AppColors.white : context.adaptivePrimaryColor,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message.fileName ?? 'Fichier',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isMe ? AppColors.white : context.textPrimaryColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    message.fileSizeFormatted,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          isMe
-                              ? AppColors.white.withValues(alpha: 0.7)
-                              : context.textTertiaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.download,
-              color: isMe ? AppColors.white : context.adaptivePrimaryColor,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getFileIcon(String? mimeType) {
-    if (mimeType == null) return Icons.insert_drive_file;
-
-    if (mimeType.contains('pdf')) return Icons.picture_as_pdf;
-    if (mimeType.contains('word') || mimeType.contains('document')) {
-      return Icons.description;
-    }
-    if (mimeType.contains('excel') || mimeType.contains('spreadsheet')) {
-      return Icons.table_chart;
-    }
-    if (mimeType.contains('image')) return Icons.image;
-    if (mimeType.contains('audio')) return Icons.audiotrack;
-    return Icons.insert_drive_file;
   }
 
   Widget _buildStatusIcon(BuildContext context) {

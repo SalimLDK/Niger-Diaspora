@@ -169,39 +169,39 @@ class _UserConversationIdProviderElement
 }
 
 String _$groupConversationIdHash() =>
-    r'4458d49072017180c6213727579140b082d61df6';
+    r'bfdea0f396f0c240a5eba4ebfd1d321f6a49796c';
 
 /// Provider to get the conversation ID for a group (for group media section)
-/// Returns the conversation ID if a conversation exists with the given group name
+/// Returns the conversation ID if a conversation exists with the given group ID
 ///
 /// Copied from [groupConversationId].
 @ProviderFor(groupConversationId)
 const groupConversationIdProvider = GroupConversationIdFamily();
 
 /// Provider to get the conversation ID for a group (for group media section)
-/// Returns the conversation ID if a conversation exists with the given group name
+/// Returns the conversation ID if a conversation exists with the given group ID
 ///
 /// Copied from [groupConversationId].
 class GroupConversationIdFamily extends Family<AsyncValue<String?>> {
   /// Provider to get the conversation ID for a group (for group media section)
-  /// Returns the conversation ID if a conversation exists with the given group name
+  /// Returns the conversation ID if a conversation exists with the given group ID
   ///
   /// Copied from [groupConversationId].
   const GroupConversationIdFamily();
 
   /// Provider to get the conversation ID for a group (for group media section)
-  /// Returns the conversation ID if a conversation exists with the given group name
+  /// Returns the conversation ID if a conversation exists with the given group ID
   ///
   /// Copied from [groupConversationId].
-  GroupConversationIdProvider call(String groupName) {
-    return GroupConversationIdProvider(groupName);
+  GroupConversationIdProvider call(String groupId) {
+    return GroupConversationIdProvider(groupId);
   }
 
   @override
   GroupConversationIdProvider getProviderOverride(
     covariant GroupConversationIdProvider provider,
   ) {
-    return call(provider.groupName);
+    return call(provider.groupId);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -220,17 +220,17 @@ class GroupConversationIdFamily extends Family<AsyncValue<String?>> {
 }
 
 /// Provider to get the conversation ID for a group (for group media section)
-/// Returns the conversation ID if a conversation exists with the given group name
+/// Returns the conversation ID if a conversation exists with the given group ID
 ///
 /// Copied from [groupConversationId].
 class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
   /// Provider to get the conversation ID for a group (for group media section)
-  /// Returns the conversation ID if a conversation exists with the given group name
+  /// Returns the conversation ID if a conversation exists with the given group ID
   ///
   /// Copied from [groupConversationId].
-  GroupConversationIdProvider(String groupName)
+  GroupConversationIdProvider(String groupId)
     : this._internal(
-        (ref) => groupConversationId(ref as GroupConversationIdRef, groupName),
+        (ref) => groupConversationId(ref as GroupConversationIdRef, groupId),
         from: groupConversationIdProvider,
         name: r'groupConversationIdProvider',
         debugGetCreateSourceHash:
@@ -240,7 +240,7 @@ class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
         dependencies: GroupConversationIdFamily._dependencies,
         allTransitiveDependencies:
             GroupConversationIdFamily._allTransitiveDependencies,
-        groupName: groupName,
+        groupId: groupId,
       );
 
   GroupConversationIdProvider._internal(
@@ -250,10 +250,10 @@ class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.groupName,
+    required this.groupId,
   }) : super.internal();
 
-  final String groupName;
+  final String groupId;
 
   @override
   Override overrideWith(
@@ -268,7 +268,7 @@ class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        groupName: groupName,
+        groupId: groupId,
       ),
     );
   }
@@ -280,13 +280,13 @@ class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
 
   @override
   bool operator ==(Object other) {
-    return other is GroupConversationIdProvider && other.groupName == groupName;
+    return other is GroupConversationIdProvider && other.groupId == groupId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, groupName.hashCode);
+    hash = _SystemHash.combine(hash, groupId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -295,8 +295,8 @@ class GroupConversationIdProvider extends AutoDisposeFutureProvider<String?> {
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin GroupConversationIdRef on AutoDisposeFutureProviderRef<String?> {
-  /// The parameter `groupName` of this provider.
-  String get groupName;
+  /// The parameter `groupId` of this provider.
+  String get groupId;
 }
 
 class _GroupConversationIdProviderElement
@@ -305,10 +305,10 @@ class _GroupConversationIdProviderElement
   _GroupConversationIdProviderElement(super.provider);
 
   @override
-  String get groupName => (origin as GroupConversationIdProvider).groupName;
+  String get groupId => (origin as GroupConversationIdProvider).groupId;
 }
 
-String _$conversationMediaHash() => r'c1038736d3e3d6ea807a2bb7f0011c43326112b9';
+String _$conversationMediaHash() => r'8c6c9bb7228d76a8ba341de12edb5564a73a4b66';
 
 abstract class _$ConversationMedia
     extends BuildlessAutoDisposeNotifier<MediaGalleryState> {

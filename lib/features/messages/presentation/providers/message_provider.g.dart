@@ -527,7 +527,7 @@ class _PaginatedMessagesProviderElement
       (origin as PaginatedMessagesProvider).conversationId;
 }
 
-String _$sendMessageHash() => r'919403566e91c3d308e381b8d4754c083c6321ee';
+String _$sendMessageHash() => r'd6fbee1ff7f7edd52047382d346082ca4e1e92a1';
 
 /// Notifier pour envoyer des messages
 ///

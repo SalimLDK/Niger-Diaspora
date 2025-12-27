@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'router_codec.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_intro_screen.dart';
+import '../../features/onboarding/presentation/providers/onboarding_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/home/presentation/screens/services_screen.dart';
 import '../../features/map/presentation/screens/map_screen.dart';
 import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/groups/presentation/screens/group_detail_screen.dart';
@@ -59,6 +62,7 @@ import '../../features/transfers/presentation/screens/recipient_select_screen.da
 import '../../features/transfers/presentation/screens/add_recipient_screen.dart';
 import '../../features/transfers/presentation/screens/transaction_detail_screen.dart';
 import '../../features/transfers/presentation/screens/transaction_history_screen.dart';
+import '../../features/transfers/presentation/screens/friend_recipient_select_screen.dart';
 import '../../features/transfers/domain/entities/recipient_entity.dart';
 
 import '../../features/notifications/presentation/screens/notification_detail_screen.dart';
@@ -67,6 +71,8 @@ import '../../features/embassies/presentation/screens/embassies_screen.dart';
 import '../../features/embassies/presentation/screens/embassy_detail_screen.dart';
 import '../../features/embassies/domain/entities/embassy_entity.dart';
 import '../../features/admin/presentation/screens/admin_embassy_verification_screen.dart';
+import '../../features/admin/presentation/screens/admin_create_embassy_screen.dart';
+import '../../features/embassies/presentation/screens/employee_search_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -79,51 +85,70 @@ final routerProvider = Provider<GoRouter>((ref) {
     authNotifier.notify();
   });
 
+  ref.listen(onboardingNotifierProvider, (_, __) {
+    authNotifier.notify();
+  });
+
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     debugLogDiagnostics: true,
     refreshListenable: authNotifier,
+    extraCodec: const AppRouterCodec(),
     observers: [
       FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
     ],
     redirect: (context, state) {
       // Use read() here to avoid rebuilding the provider
       final authState = ref.read(authNotifierProvider);
+      final onboardingState = ref.read(onboardingNotifierProvider);
+
+      final isAuthLoading = authState.maybeWhen(
+        initial: () => true,
+        loading: () => true,
+        orElse: () => false,
+      );
 
       final isAuthenticated = authState.maybeWhen(
         authenticated: (_) => true,
         orElse: () => false,
       );
 
-      final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isSplashRoute = state.matchedLocation == '/splash';
+      final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isOnboardingRoute = state.matchedLocation == '/onboarding/intro';
 
-      if (isSplashRoute) {
-        return null;
+      // 1. If auth is loading, stay on splash
+      if (isAuthLoading) {
+        return '/splash';
       }
 
-      if (!isAuthenticated && !isAuthRoute) {
-        return '/auth/login';
+      // 2. If not authenticated, redirect to login
+      if (!isAuthenticated) {
+        return isAuthRoute ? null : '/auth/login';
       }
 
-      if (isAuthenticated && isAuthRoute) {
-        // Check if user is new (created within last 2 minutes)
-        final user = authState.mapOrNull(authenticated: (s) => s.user);
+      // 3. If authenticated, check onboarding loading status
+      if (onboardingState.isLoading) {
+        return '/splash';
+      }
 
-        if (user?.createdAt != null) {
-          final isNewUser =
-              DateTime.now().difference(user!.createdAt!).inMinutes < 2;
-          if (isNewUser) {
-            return '/onboarding/intro';
-          }
-        }
+      // 4. Check if user needs to see onboarding
+      if (!onboardingState.hasSeenIntro) {
+        return isOnboardingRoute ? null : '/onboarding/intro';
+      }
+
+      // 5. User is authenticated and has seen onboarding
+      // Redirect to home if on splash, auth, or onboarding pages
+      if (isSplashRoute || isAuthRoute || isOnboardingRoute) {
         return '/home';
       }
 
       return null;
     },
     routes: [
+      // Root route redirect to home
+      GoRoute(path: '/', redirect: (context, state) => '/home'),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
@@ -152,6 +177,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final userId = state.pathParameters['userId']!;
           final profile = state.extra as ProfileEntity?;
           return ProfileViewScreen(userId: userId, initialProfile: profile);
+        },
+      ),
+      // Deep link support for profile shares
+      GoRoute(
+        path: '/p/u/:userId',
+        redirect: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          return '/profile/$userId';
         },
       ),
       GoRoute(
@@ -271,6 +304,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AdminEmbassyVerificationScreen(),
       ),
       GoRoute(
+        path: '/admin/embassies/create',
+        builder: (context, state) => const AdminCreateEmbassyScreen(),
+      ),
+      GoRoute(
+        path: '/embassies/employees',
+        builder: (context, state) {
+          final embassy = state.extra as EmbassyEntity?;
+          return EmployeeSearchScreen(embassy: embassy);
+        },
+      ),
+      GoRoute(
         path: '/embassies/:id',
         builder: (context, state) {
           // final id = state.pathParameters['id']!; // Id unused currently, relying on object passed via extra
@@ -348,6 +392,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/services',
+        builder: (context, state) => const ServicesScreen(),
+      ),
+      GoRoute(
         path: '/marketplace/:productId/edit',
         builder: (context, state) {
           final product = state.extra as ProductEntity?;
@@ -384,6 +432,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           final transactionId = state.pathParameters['transactionId']!;
           return TransactionDetailScreen(transactionId: transactionId);
         },
+      ),
+      // Plural alias routes for backward compatibility
+      GoRoute(
+        path: '/transfers/recipients',
+        builder: (context, state) => const RecipientSelectScreen(),
+      ),
+      GoRoute(
+        path: '/transfers/recipients/add',
+        builder: (context, state) => const FriendRecipientSelectScreen(),
       ),
       // Messages routes
       GoRoute(

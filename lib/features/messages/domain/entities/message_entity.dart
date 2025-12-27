@@ -6,7 +6,7 @@ enum MessageStatus {
   failed, // Échec d'envoi
 }
 
-enum MessageType { text, image, file, audio }
+enum MessageType { text, image, file, audio, video }
 
 class MessageEntity extends Equatable {
   final String id;
@@ -22,6 +22,8 @@ class MessageEntity extends Equatable {
   final String? mimeType;
   final int? audioDuration; // Duration in seconds for audio messages
   final List<double>? audioWaveform; // Waveform data for audio visualization
+  final String? thumbnailUrl;
+  final int? videoDuration;
   final List<String> readBy;
   final Map<String, DateTime> readAt;
   final DateTime createdAt;
@@ -46,6 +48,8 @@ class MessageEntity extends Equatable {
     this.mimeType,
     this.audioDuration,
     this.audioWaveform,
+    this.thumbnailUrl,
+    this.videoDuration,
     this.readBy = const [],
     this.readAt = const {},
     required this.createdAt,
@@ -59,6 +63,7 @@ class MessageEntity extends Equatable {
   bool get isImage => type == MessageType.image;
   bool get isFile => type == MessageType.file;
   bool get isAudio => type == MessageType.audio;
+  bool get isVideo => type == MessageType.video;
 
   String get audioDurationFormatted {
     if (audioDuration == null) return '0:00';
@@ -107,6 +112,8 @@ class MessageEntity extends Equatable {
     mimeType,
     audioDuration,
     audioWaveform,
+    thumbnailUrl,
+    videoDuration,
     readBy,
     readAt,
     createdAt,

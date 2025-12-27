@@ -29,6 +29,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final profile = await remoteDataSource.getProfile(userId);
       return Right(profile.toEntity());
     } on ServerException catch (e) {
+      if (e.message.contains('non trouvé')) {
+        return Right(
+          ProfileEntity(
+            id: userId,
+            displayName: 'Utilisateur supprimé',
+            photoUrl: null,
+            bio: 'Ce profil n\'existe plus.',
+          ),
+        );
+      }
       return Left(ServerFailure(e.message));
     }
   }
@@ -197,6 +207,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
         })
         .handleError((error) {
           if (error is ServerException) {
+            if (error.message.contains('non trouvé')) {
+              return Right<Failure, ProfileEntity>(
+                ProfileEntity(
+                  id: userId,
+                  displayName: 'Utilisateur supprimé',
+                  photoUrl: null,
+                  bio: 'Ce profil n\'existe plus.',
+                ),
+              );
+            }
             return Left<Failure, ProfileEntity>(ServerFailure(error.message));
           }
           return Left<Failure, ProfileEntity>(ServerFailure(error.toString()));

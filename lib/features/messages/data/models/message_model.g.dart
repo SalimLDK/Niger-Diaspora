@@ -24,6 +24,8 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => (e as num).toDouble())
               .toList() ??
           const [],
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      videoDuration: (json['videoDuration'] as num?)?.toInt(),
       readBy:
           (json['readBy'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -65,6 +67,8 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'mimeType': instance.mimeType,
       'audioDuration': instance.audioDuration,
       'audioWaveform': instance.audioWaveform,
+      'thumbnailUrl': instance.thumbnailUrl,
+      'videoDuration': instance.videoDuration,
       'readBy': instance.readBy,
       'readAt': instance.readAt,
       'createdAt': instance.createdAt?.toIso8601String(),

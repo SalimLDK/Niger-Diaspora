@@ -205,11 +205,11 @@ final profileNotifierProvider =
 
 typedef _$ProfileNotifier = Notifier<AsyncValue<ProfileEntity?>>;
 String _$nearbyProfilesNotifierHash() =>
-    r'495f1f731c8366f187b2c488430315a21df0e961';
+    r'da1f66570c7a5d0183c6bd8ce21a9e199491e383';
 
 /// See also [NearbyProfilesNotifier].
 @ProviderFor(NearbyProfilesNotifier)
-final nearbyProfilesNotifierProvider = AutoDisposeNotifierProvider<
+final nearbyProfilesNotifierProvider = NotifierProvider<
   NearbyProfilesNotifier,
   AsyncValue<List<ProfileEntity>>
 >.internal(
@@ -223,8 +223,7 @@ final nearbyProfilesNotifierProvider = AutoDisposeNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$NearbyProfilesNotifier =
-    AutoDisposeNotifier<AsyncValue<List<ProfileEntity>>>;
+typedef _$NearbyProfilesNotifier = Notifier<AsyncValue<List<ProfileEntity>>>;
 String _$searchProfilesNotifierHash() =>
     r'f193ac46009c2573a02749d11a4b32db75eae9e8';
 

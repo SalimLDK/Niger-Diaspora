@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/services/location_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -16,6 +17,8 @@ import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../friends/domain/repositories/friend_repository.dart';
+import '../../../embassies/presentation/providers/embassies_provider.dart';
+import '../../../embassies/domain/entities/embassy_entity.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -32,13 +35,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   LatLng? _currentPosition;
   Set<Marker> _markers = {};
+  Set<Marker> _embassyMarkers = {};
   List<ProfileModel> _nearbyMembers = [];
+  List<EmbassyEntity> _embassies = [];
   String _selectedFilter = 'all';
   double _selectedRadius = 50; // Rayon par défaut en km
   String? _userCountry; // Pays de l'utilisateur pour le filtre "Pays entier"
   bool _isLoading = true;
   bool _hasLocationPermission = false;
   bool _mapsInitialized = false;
+  bool _isReciprocityRestricted = false;
 
   // Nouvelles variables pour Phase 2 & 3
   String? _selectedMarkerId; // Pin sélectionné
@@ -216,6 +222,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       debugPrint('Erreur de localisation: $e');
       if (!mounted) return;
 
+      setState(() {
+        _isReciprocityRestricted = true;
+        _nearbyMembers = []; // Clear members due to reciprocity
+      });
+      _updateMarkers();
+
       if (e.toString().contains('Location services are disabled')) {
         _showLocationError(enableLocationMsg, settingsLabel);
       } else if (e.toString().contains('denied')) {
@@ -226,11 +238,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       }
 
       setState(() => _isLoading = false);
-
-      await _loadNearbyMembers(
-        _defaultPosition.latitude,
-        _defaultPosition.longitude,
-      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -805,6 +812,412 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ..color = statusColor
           ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(statusX, statusY), statusSize / 2, statusPaint);
+  }
+
+  /// Crée un marqueur personnalisé pour une ambassade
+  Future<BitmapDescriptor> _createEmbassyMarker(
+    String embassyId,
+    bool isSelected,
+  ) async {
+    final cacheKey =
+        'embassy_${embassyId}_${isSelected}_${_currentZoom.toInt()}';
+    if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
+      return _markerCache[cacheKey]!;
+    }
+
+    final markerSize = _getMarkerSizeForZoom();
+    final double shadowWidth = 2.0;
+
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Dessiner une ombre douce
+    final shadowPaint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.fill
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawCircle(
+      Offset(markerSize / 2, markerSize / 2),
+      markerSize / 2 + shadowWidth,
+      shadowPaint,
+    );
+
+    // Fond avec dégradé bleu (couleur distinctive pour ambassades)
+    final gradientColors = [
+      const Color(0xFF1976D2), // Blue
+      const Color(0xFF0D47A1), // Dark Blue
+    ];
+    final gradient = ui.Gradient.radial(
+      Offset(markerSize / 2, markerSize / 2),
+      markerSize / 2,
+      gradientColors,
+      [0.0, 1.0],
+    );
+    final paint = Paint()..shader = gradient;
+    canvas.drawCircle(
+      Offset(markerSize / 2, markerSize / 2),
+      markerSize / 2,
+      paint,
+    );
+
+    // Icône d'ambassade (bâtiment avec drapeau)
+    final iconPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+
+    // Dessiner un bâtiment simplifié (rectangle avec colonnes)
+    final buildingRect = Rect.fromCenter(
+      center: Offset(markerSize / 2, markerSize / 2),
+      width: 32,
+      height: 28,
+    );
+    canvas.drawRect(buildingRect, iconPaint);
+
+    // Colonnes (3 rectangles verticaux)
+    final columnPaint =
+        Paint()
+          ..color = const Color(0xFF1976D2)
+          ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 3; i++) {
+      final columnX = markerSize / 2 - 12 + (i * 12);
+      final columnRect = Rect.fromLTWH(columnX, markerSize / 2 - 8, 4, 16);
+      canvas.drawRect(columnRect, columnPaint);
+    }
+
+    // Toit triangulaire
+    final roofPath =
+        Path()
+          ..moveTo(markerSize / 2 - 18, markerSize / 2 - 14)
+          ..lineTo(markerSize / 2, markerSize / 2 - 22)
+          ..lineTo(markerSize / 2 + 18, markerSize / 2 - 14)
+          ..close();
+    canvas.drawPath(roofPath, iconPaint);
+
+    // Dessiner l'ombre du triangle
+    final triangleShadowPath =
+        Path()
+          ..moveTo(markerSize / 2 - 12, markerSize - 5)
+          ..lineTo(markerSize / 2, markerSize + 15)
+          ..lineTo(markerSize / 2 + 12, markerSize - 5)
+          ..close();
+    canvas.drawPath(triangleShadowPath, shadowPaint);
+
+    // Triangle indicateur en bas
+    final trianglePaint = Paint()..shader = gradient;
+    final trianglePath =
+        Path()
+          ..moveTo(markerSize / 2 - 10, markerSize - 5)
+          ..lineTo(markerSize / 2, markerSize + 12)
+          ..lineTo(markerSize / 2 + 10, markerSize - 5)
+          ..close();
+    canvas.drawPath(trianglePath, trianglePaint);
+
+    final picture = pictureRecorder.endRecording();
+    final img = await picture.toImage(
+      (markerSize + (shadowWidth * 2)).toInt(),
+      (markerSize + 18 + (shadowWidth * 2)).toInt(),
+    );
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    final bytes = byteData!.buffer.asUint8List();
+
+    final descriptor = BitmapDescriptor.bytes(bytes);
+    _markerCache[cacheKey] = descriptor;
+    _cacheExpiration[cacheKey] = DateTime.now().add(
+      const Duration(minutes: 30),
+    );
+    return descriptor;
+  }
+
+  /// Met à jour les marqueurs d'ambassades
+  Future<void> _updateEmbassyMarkers() async {
+    final embassyMarkers = <Marker>{};
+
+    for (final embassy in _embassies) {
+      // Skip embassies without valid coordinates
+      if (embassy.latitude == null || embassy.longitude == null) continue;
+      if (embassy.latitude == 0.0 && embassy.longitude == 0.0) continue;
+
+      final isSelected = _selectedMarkerId == 'embassy_${embassy.id}';
+      final icon = await _createEmbassyMarker(embassy.id, isSelected);
+
+      embassyMarkers.add(
+        Marker(
+          markerId: MarkerId('embassy_${embassy.id}'),
+          position: LatLng(embassy.latitude!, embassy.longitude!),
+          icon: icon,
+          onTap: () => _showEmbassyDetails(embassy),
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() => _embassyMarkers = embassyMarkers);
+    }
+  }
+
+  /// Affiche les détails d'une ambassade dans un bottom sheet
+  void _showEmbassyDetails(EmbassyEntity embassy) {
+    setState(() => _selectedMarkerId = 'embassy_${embassy.id}');
+    _updateEmbassyMarkers(); // Refresh marker to show selected state
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: context.textSecondaryColor.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Temporarily closed banner (if applicable)
+                  if (embassy.isTemporarilyClosed)
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: context.warningBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: context.warningColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: context.warningColor,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              embassy.closureMessage ?? 'Temporairement fermé',
+                              style: TextStyle(
+                                color: context.textPrimaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Embassy name
+                        Text(
+                          embassy.name,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Address
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: context.adaptivePrimaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${embassy.address}, ${embassy.city}, ${embassy.country}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: context.textSecondaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Contact info
+                        if (embassy.phone != null) ...[
+                          _buildContactRow(
+                            context,
+                            Icons.phone,
+                            embassy.phone!,
+                            () async {
+                              final uri = Uri.parse('tel:${embassy.phone}');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        if (embassy.email != null) ...[
+                          _buildContactRow(
+                            context,
+                            Icons.email,
+                            embassy.email!,
+                            () async {
+                              final uri = Uri.parse('mailto:${embassy.email}');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        if (embassy.website != null) ...[
+                          _buildContactRow(
+                            context,
+                            Icons.language,
+                            embassy.website!,
+                            () async {
+                              final uri = Uri.parse(embassy.website!);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(
+                                  uri,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Services
+                        if (embassy.services.isNotEmpty) ...[
+                          Text(
+                            'Services',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children:
+                                embassy.services.map((service) {
+                                  return Chip(
+                                    label: Text(service),
+                                    backgroundColor: context
+                                        .adaptivePrimaryColor
+                                        .withValues(alpha: 0.1),
+                                    labelStyle: TextStyle(
+                                      color: context.adaptivePrimaryColor,
+                                      fontSize: 12,
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Navigation button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.push('/embassies/${embassy.id}');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.adaptivePrimaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Voir les détails complets',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+            ),
+          ),
+    ).whenComplete(() {
+      if (mounted) {
+        setState(() => _selectedMarkerId = null);
+        _updateEmbassyMarkers(); // Refresh to deselect
+      }
+    });
+  }
+
+  /// Helper method to build a contact row
+  Widget _buildContactRow(
+    BuildContext context,
+    IconData icon,
+    String text,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(icon, color: context.adaptivePrimaryColor, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(fontSize: 14, color: context.textPrimaryColor),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: context.textSecondaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _updateMarkers() {
@@ -1429,6 +1842,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override // Correction: override build method signature match
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // Watch embassies data
+    final embassiesAsync = ref.watch(embassiesListProvider);
+    embassiesAsync.whenData((embassies) {
+      if (_embassies != embassies) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() => _embassies = embassies);
+            _updateEmbassyMarkers();
+          }
+        });
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -1511,7 +1938,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         );
                       }
                     },
-                    markers: _markers,
+                    markers: {..._markers, ..._embassyMarkers},
                     myLocationEnabled: _hasLocationPermission,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
@@ -1534,179 +1961,233 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     top: 16,
                     left: 16,
                     right: 16,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children:
-                            _filterKeys
-                                .map(
-                                  (filterKey) => Padding(
-                                    padding: EdgeInsets.only(
-                                      right:
-                                          filterKey != _filterKeys.last ? 8 : 0,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () => _onFilterSelected(filterKey),
-                                      child: _FilterChip(
-                                        label: _getFilterLabel(filterKey, l10n),
-                                        isSelected:
-                                            _selectedFilter == filterKey,
+                    child:
+                        _isReciprocityRestricted
+                            ? Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: context.warningBackgroundColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: context.warningColor),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_disabled,
+                                    color: context.warningColor,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "Localisation requise pour voir les membres",
+                                      style: TextStyle(
+                                        color: context.textPrimaryColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
-                                )
-                                .toList(),
-                      ),
-                    ),
+                                  TextButton(
+                                    onPressed: _initializeLocation,
+                                    child: const Text("ACTIVER"),
+                                  ),
+                                ],
+                              ),
+                            )
+                            : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    _filterKeys
+                                        .map(
+                                          (filterKey) => Padding(
+                                            padding: EdgeInsets.only(
+                                              right:
+                                                  filterKey != _filterKeys.last
+                                                      ? 8
+                                                      : 0,
+                                            ),
+                                            child: GestureDetector(
+                                              onTap:
+                                                  () => _onFilterSelected(
+                                                    filterKey,
+                                                  ),
+                                              child: _FilterChip(
+                                                label: _getFilterLabel(
+                                                  filterKey,
+                                                  l10n,
+                                                ),
+                                                isSelected:
+                                                    _selectedFilter ==
+                                                    filterKey,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
+                            ),
                   ),
 
                   // Bottom Sheet Preview
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(24),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, -4),
+                  if (!_isReciprocityRestricted)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(24),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: context.borderColor,
-                              borderRadius: BorderRadius.circular(2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, -4),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                l10n.membersNearby,
-                                style: Theme.of(context).textTheme.titleMedium,
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: context.borderColor,
+                                borderRadius: BorderRadius.circular(2),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  l10n.membersNearby,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: context.surfaceVariantColor,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  l10n.members(_getFilteredMembers().length),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: context.adaptivePrimaryColor,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: context.surfaceVariantColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    l10n.members(_getFilteredMembers().length),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: context.adaptivePrimaryColor,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          if (_getFilteredMembers().isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: Text(
-                                l10n.noMembersNearby,
-                                style: TextStyle(
-                                  color: context.textTertiaryColor,
-                                  fontSize: 14,
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            if (_getFilteredMembers().isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 20,
+                                ),
+                                child: Text(
+                                  l10n.noMembersNearby,
+                                  style: TextStyle(
+                                    color: context.textTertiaryColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              )
+                            else
+                              SizedBox(
+                                height: 80,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _getFilteredMembers().length,
+                                  itemBuilder: (context, index) {
+                                    final member = _getFilteredMembers()[index];
+                                    return GestureDetector(
+                                      onTap: () => _showMemberDetails(member),
+                                      child: Container(
+                                        width: 60,
+                                        margin: EdgeInsets.only(
+                                          left: index == 0 ? 0 : 12,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              width: 50,
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                gradient:
+                                                    context
+                                                        .adaptivePrimaryGradient,
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                              ),
+                                              child:
+                                                  member.photoUrl != null
+                                                      ? ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              14,
+                                                            ),
+                                                        child: Image.network(
+                                                          member.photoUrl!,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder:
+                                                              (
+                                                                _,
+                                                                __,
+                                                                ___,
+                                                              ) => const Icon(
+                                                                Icons.person,
+                                                                color:
+                                                                    AppColors
+                                                                        .white,
+                                                              ),
+                                                        ),
+                                                      )
+                                                      : const Icon(
+                                                        Icons.person,
+                                                        color: AppColors.white,
+                                                      ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              member.displayName ?? l10n.member,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color:
+                                                    context.textSecondaryColor,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            )
-                          else
-                            SizedBox(
-                              height: 80,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _getFilteredMembers().length,
-                                itemBuilder: (context, index) {
-                                  final member = _getFilteredMembers()[index];
-                                  return GestureDetector(
-                                    onTap: () => _showMemberDetails(member),
-                                    child: Container(
-                                      width: 60,
-                                      margin: EdgeInsets.only(
-                                        left: index == 0 ? 0 : 12,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            width: 50,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              gradient:
-                                                  context
-                                                      .adaptivePrimaryGradient,
-                                              borderRadius:
-                                                  BorderRadius.circular(14),
-                                            ),
-                                            child:
-                                                member.photoUrl != null
-                                                    ? ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            14,
-                                                          ),
-                                                      child: Image.network(
-                                                        member.photoUrl!,
-                                                        fit: BoxFit.cover,
-                                                        errorBuilder:
-                                                            (
-                                                              _,
-                                                              __,
-                                                              ___,
-                                                            ) => const Icon(
-                                                              Icons.person,
-                                                              color:
-                                                                  AppColors
-                                                                      .white,
-                                                            ),
-                                                      ),
-                                                    )
-                                                    : const Icon(
-                                                      Icons.person,
-                                                      color: AppColors.white,
-                                                    ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            member.displayName ?? l10n.member,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: context.textSecondaryColor,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
     );

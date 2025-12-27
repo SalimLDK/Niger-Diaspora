@@ -947,12 +947,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark, Color(0xFF8B4513)],
-        ),
+      decoration: BoxDecoration(
+        gradient: context.adaptivePrimaryGradient,
       ),
       child: Stack(
         children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import '../widgets/product_card.dart';
@@ -15,6 +16,18 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final category = ref.read(selectedCategoryProvider);
+      ref.invalidate(productsProvider(category: category));
+    });
+    _searchController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -47,32 +60,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       body: Column(
         children: [
           // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Rechercher un produit...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                        )
-                        : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-              ),
-              onChanged: (value) {
-                setState(() => _searchQuery = value);
-              },
-            ),
+          StandardSearchBar(
+            controller: _searchController,
+            hintText: 'Rechercher un produit...',
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
+            },
           ),
 
           // Category filter
@@ -111,6 +104,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 _searchQuery.isNotEmpty
                     ? _SearchResults(query: _searchQuery)
                     : productsAsync.when(
+                      skipLoadingOnRefresh: true,
                       data: (products) {
                         if (products.isEmpty) {
                           return Center(

@@ -33,6 +33,8 @@ mixin _$MessageModel {
   String? get mimeType => throw _privateConstructorUsedError;
   int? get audioDuration => throw _privateConstructorUsedError;
   List<double> get audioWaveform => throw _privateConstructorUsedError;
+  String? get thumbnailUrl => throw _privateConstructorUsedError;
+  int? get videoDuration => throw _privateConstructorUsedError;
   List<String> get readBy => throw _privateConstructorUsedError;
   Map<String, dynamic> get readAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -71,6 +73,8 @@ abstract class $MessageModelCopyWith<$Res> {
     String? mimeType,
     int? audioDuration,
     List<double> audioWaveform,
+    String? thumbnailUrl,
+    int? videoDuration,
     List<String> readBy,
     Map<String, dynamic> readAt,
     DateTime? createdAt,
@@ -108,6 +112,8 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? mimeType = freezed,
     Object? audioDuration = freezed,
     Object? audioWaveform = null,
+    Object? thumbnailUrl = freezed,
+    Object? videoDuration = freezed,
     Object? readBy = null,
     Object? readAt = null,
     Object? createdAt = freezed,
@@ -178,6 +184,16 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.audioWaveform
                     : audioWaveform // ignore: cast_nullable_to_non_nullable
                         as List<double>,
+            thumbnailUrl:
+                freezed == thumbnailUrl
+                    ? _value.thumbnailUrl
+                    : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            videoDuration:
+                freezed == videoDuration
+                    ? _value.videoDuration
+                    : videoDuration // ignore: cast_nullable_to_non_nullable
+                        as int?,
             readBy:
                 null == readBy
                     ? _value.readBy
@@ -241,6 +257,8 @@ abstract class _$$MessageModelImplCopyWith<$Res>
     String? mimeType,
     int? audioDuration,
     List<double> audioWaveform,
+    String? thumbnailUrl,
+    int? videoDuration,
     List<String> readBy,
     Map<String, dynamic> readAt,
     DateTime? createdAt,
@@ -277,6 +295,8 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? mimeType = freezed,
     Object? audioDuration = freezed,
     Object? audioWaveform = null,
+    Object? thumbnailUrl = freezed,
+    Object? videoDuration = freezed,
     Object? readBy = null,
     Object? readAt = null,
     Object? createdAt = freezed,
@@ -347,6 +367,16 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value._audioWaveform
                 : audioWaveform // ignore: cast_nullable_to_non_nullable
                     as List<double>,
+        thumbnailUrl:
+            freezed == thumbnailUrl
+                ? _value.thumbnailUrl
+                : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        videoDuration:
+            freezed == videoDuration
+                ? _value.videoDuration
+                : videoDuration // ignore: cast_nullable_to_non_nullable
+                    as int?,
         readBy:
             null == readBy
                 ? _value._readBy
@@ -403,6 +433,8 @@ class _$MessageModelImpl extends _MessageModel {
     this.mimeType,
     this.audioDuration,
     final List<double> audioWaveform = const [],
+    this.thumbnailUrl,
+    this.videoDuration,
     final List<String> readBy = const [],
     final Map<String, dynamic> readAt = const {},
     this.createdAt,
@@ -452,6 +484,10 @@ class _$MessageModelImpl extends _MessageModel {
     return EqualUnmodifiableListView(_audioWaveform);
   }
 
+  @override
+  final String? thumbnailUrl;
+  @override
+  final int? videoDuration;
   final List<String> _readBy;
   @override
   @JsonKey()
@@ -497,7 +533,7 @@ class _$MessageModelImpl extends _MessageModel {
 
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy)';
+    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy)';
   }
 
   @override
@@ -527,6 +563,10 @@ class _$MessageModelImpl extends _MessageModel {
               other._audioWaveform,
               _audioWaveform,
             ) &&
+            (identical(other.thumbnailUrl, thumbnailUrl) ||
+                other.thumbnailUrl == thumbnailUrl) &&
+            (identical(other.videoDuration, videoDuration) ||
+                other.videoDuration == videoDuration) &&
             const DeepCollectionEquality().equals(other._readBy, _readBy) &&
             const DeepCollectionEquality().equals(other._readAt, _readAt) &&
             (identical(other.createdAt, createdAt) ||
@@ -561,6 +601,8 @@ class _$MessageModelImpl extends _MessageModel {
     mimeType,
     audioDuration,
     const DeepCollectionEquality().hash(_audioWaveform),
+    thumbnailUrl,
+    videoDuration,
     const DeepCollectionEquality().hash(_readBy),
     const DeepCollectionEquality().hash(_readAt),
     createdAt,
@@ -598,6 +640,8 @@ abstract class _MessageModel extends MessageModel {
     final String? mimeType,
     final int? audioDuration,
     final List<double> audioWaveform,
+    final String? thumbnailUrl,
+    final int? videoDuration,
     final List<String> readBy,
     final Map<String, dynamic> readAt,
     final DateTime? createdAt,
@@ -635,6 +679,10 @@ abstract class _MessageModel extends MessageModel {
   int? get audioDuration;
   @override
   List<double> get audioWaveform;
+  @override
+  String? get thumbnailUrl;
+  @override
+  int? get videoDuration;
   @override
   List<String> get readBy;
   @override

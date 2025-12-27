@@ -174,6 +174,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
+                icon: Icons.palette,
+                title: 'Couleur du thème',
+                subtitle: _getThemeColorLabel(
+                  ref.watch(themeColorNotifierProvider),
+                ),
+                onTap: () => _showThemeColorSelector(),
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
                 icon: Icons.language,
                 title: l10n.language,
                 subtitle:
@@ -942,6 +951,115 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       );
     }
+  }
+
+  String _getThemeColorLabel(AppThemeColor color) {
+    switch (color) {
+      case AppThemeColor.green:
+        return 'Vert (Défaut)';
+      case AppThemeColor.orange:
+        return 'Orange (Classique)';
+    }
+  }
+
+  void _showThemeColorSelector() {
+    final currentColor = ref.read(themeColorNotifierProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: ctx.surfaceColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ctx.borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Choisir la couleur',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: ctx.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildThemeColorOption(
+                  ctx,
+                  'Vert (Défaut)',
+                  AppThemeColor.green,
+                  currentColor == AppThemeColor.green,
+                ),
+                _buildThemeColorOption(
+                  ctx,
+                  'Orange (Classique)',
+                  AppThemeColor.orange,
+                  currentColor == AppThemeColor.orange,
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildThemeColorOption(
+    BuildContext ctx,
+    String title,
+    AppThemeColor color,
+    bool isSelected,
+  ) {
+    // Determine the color to show in the circle
+    final Color previewColor =
+        color == AppThemeColor.green
+            ? AppColors
+                .secondary // Green
+            : AppColors.primary; // Orange
+
+    return ListTile(
+      tileColor: ctx.surfaceColor,
+      leading: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: previewColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: ctx.borderColor),
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? ctx.adaptivePrimaryColor : ctx.textPrimaryColor,
+        ),
+      ),
+      trailing:
+          isSelected
+              ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
+              : null,
+      onTap: () {
+        ref.read(themeColorNotifierProvider.notifier).setThemeColor(color);
+        Navigator.pop(context);
+      },
+    );
   }
 }
 

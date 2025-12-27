@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
+import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../providers/search_provider.dart';
@@ -67,46 +68,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       body: Column(
         children: [
           // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Rechercher des membres ou groupes...',
-                hintStyle: TextStyle(color: context.textTertiaryColor),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: context.textTertiaryColor,
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
-                        ? IconButton(
-                          icon: Icon(
-                            Icons.clear,
-                            color: context.textTertiaryColor,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            ref
-                                .read(searchNotifierProvider.notifier)
-                                .clearSearch();
-                          },
-                        )
-                        : null,
-                filled: true,
-                fillColor: context.surfaceColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-            ),
+          StandardSearchBar(
+            controller: _searchController,
+            hintText: 'Rechercher des membres ou groupes...',
+            autofocus: true,
+            onChanged: _onSearchChanged,
+            onClear: () {
+              ref.read(searchNotifierProvider.notifier).clearSearch();
+            },
           ),
 
           // Filter Chips
@@ -328,7 +297,7 @@ class _MemberItem extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: context.adaptivePrimaryGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
               child:
@@ -430,7 +399,7 @@ class _GroupItem extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: context.adaptivePrimaryGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
               child:

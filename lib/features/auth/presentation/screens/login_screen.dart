@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen(authNotifierProvider, (previous, next) {
       next.whenOrNull(
-        authenticated: (_) => context.go('/home'),
+        authenticated: (_) {},
         error:
             (message) => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

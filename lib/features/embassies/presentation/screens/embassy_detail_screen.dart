@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/embassy_entity.dart';
+import 'embassy_message_screen.dart';
+import 'administrative_request_screen.dart';
+import 'employee_search_screen.dart';
 
 class EmbassyDetailScreen extends StatelessWidget {
   final EmbassyEntity embassy;
@@ -143,11 +147,65 @@ class EmbassyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoTab(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Unavailability Banner
+          if (embassy.isTemporarilyClosed)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber,
+                        color: Colors.red[700],
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Temporairement Fermé',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (embassy.closureMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      embassy.closureMessage!,
+                      style: TextStyle(color: Colors.red[800]),
+                    ),
+                  ],
+                  if (embassy.reopenDate != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Réouverture prévue: ${DateFormat('dd MMMM yyyy', 'fr_FR').format(embassy.reopenDate!)}',
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
           // Basic Info with Official Badge confirmation text
           if (embassy.isVerified)
             Container(
@@ -176,11 +234,65 @@ class EmbassyDetailScreen extends StatelessWidget {
 
           Text(
             '${embassy.address}, ${embassy.city}, ${embassy.country}',
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: theme.textTheme.bodyLarge,
           ),
           const SizedBox(height: 24),
 
-          // Actions
+          // Main Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: _MainActionButton(
+                  icon: Icons.message,
+                  label: 'Contacter',
+                  color: theme.colorScheme.primary,
+                  enabled: !embassy.isTemporarilyClosed,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => EmbassyMessageScreen(embassy: embassy),
+                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MainActionButton(
+                  icon: Icons.description,
+                  label: 'Demande',
+                  color: Colors.orange,
+                  enabled: !embassy.isTemporarilyClosed,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                                  AdministrativeRequestScreen(embassy: embassy),
+                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MainActionButton(
+                  icon: Icons.people,
+                  label: 'Personnel',
+                  color: Colors.teal,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => EmployeeSearchScreen(embassy: embassy),
+                        ),
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Quick Actions
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -188,7 +300,10 @@ class EmbassyDetailScreen extends StatelessWidget {
                 _ActionButton(
                   icon: Icons.call,
                   label: 'Appeler',
-                  onTap: () => _makePhoneCall(embassy.phone!),
+                  onTap:
+                      embassy.isTemporarilyClosed
+                          ? null
+                          : () => _makePhoneCall(embassy.phone!),
                 ),
               if (embassy.email != null)
                 _ActionButton(
@@ -214,13 +329,70 @@ class EmbassyDetailScreen extends StatelessWidget {
           const Divider(),
           const SizedBox(height: 16),
 
+          // Coming Soon Section
+          if (embassy.upcomingServices.isNotEmpty) ...[
+            Row(
+              children: [
+                Icon(Icons.schedule, color: Colors.purple[600], size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  'Bientôt disponible',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple[700],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  embassy.upcomingServices.map((service) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.purple.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.new_releases,
+                            size: 16,
+                            color: Colors.purple[600],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            service,
+                            style: TextStyle(
+                              color: Colors.purple[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 24),
+          ],
+
           // Services
           if (embassy.services.isNotEmpty) ...[
             Text(
               'Services Consulaires',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -230,9 +402,9 @@ class EmbassyDetailScreen extends StatelessWidget {
                   embassy.services.map((service) {
                     return Chip(
                       label: Text(service),
-                      backgroundColor: Theme.of(
-                        context,
-                      ).primaryColor.withValues(alpha: 0.1),
+                      backgroundColor: theme.primaryColor.withValues(
+                        alpha: 0.1,
+                      ),
                       side: BorderSide.none,
                     );
                   }).toList(),
@@ -244,16 +416,16 @@ class EmbassyDetailScreen extends StatelessWidget {
           if (embassy.openingHours.isNotEmpty) ...[
             Text(
               'Horaires d\'ouverture',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Card(
               elevation: 0,
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.3,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -280,6 +452,36 @@ class EmbassyDetailScreen extends StatelessWidget {
                       }).toList(),
                 ),
               ),
+            ),
+          ],
+
+          // Jurisdiction Info
+          if (embassy.jurisdictionCountries.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Juridiction',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Cette ambassade dessert les ressortissants se trouvant dans: ',
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  embassy.jurisdictionCountries.map((country) {
+                    return Chip(
+                      avatar: const Icon(Icons.public, size: 16),
+                      label: Text(country),
+                      backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                      side: BorderSide.none,
+                    );
+                  }).toList(),
             ),
           ],
         ],
@@ -414,19 +616,70 @@ class EmbassyDetailScreen extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+class _MainActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color color;
   final VoidCallback onTap;
+  final bool enabled;
 
-  const _ActionButton({
+  const _MainActionButton({
     required this.icon,
     required this.label,
+    required this.color,
     required this.onTap,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color:
+              enabled
+                  ? color.withValues(alpha: 0.1)
+                  : Colors.grey.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color:
+                enabled
+                    ? color.withValues(alpha: 0.3)
+                    : Colors.grey.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: enabled ? color : Colors.grey, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: enabled ? color : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _ActionButton({required this.icon, required this.label, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onTap != null;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -437,13 +690,25 @@ class _ActionButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color:
+                    isEnabled
+                        ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Theme.of(context).primaryColor),
+              child: Icon(
+                icon,
+                color: isEnabled ? Theme.of(context).primaryColor : Colors.grey,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontSize: 12)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isEnabled ? null : Colors.grey,
+              ),
+            ),
           ],
         ),
       ),

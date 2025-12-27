@@ -49,13 +49,34 @@ abstract class MessageRemoteDataSource {
     required String content,
   });
 
-  /// Envoyer un message avec fichier
+  /// Envoyer un message avec fichier (Legacy - prefer split methods)
   Future<MessageModel> sendFileMessage({
     required String conversationId,
     required String senderId,
     required String senderName,
     String? senderPhotoUrl,
     required File file,
+    required String type,
+    String? caption,
+  });
+
+  /// Upload a media file and return the UploadTask for progress tracking
+  UploadTask uploadMediaFile({
+    required File file,
+    required String conversationId,
+    required String fileName,
+  });
+
+  /// Send a message with an already uploaded media URL
+  Future<MessageModel> sendMediaMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String fileUrl,
+    required String fileName,
+    required int fileSize,
+    required String mimeType,
     required String type,
     String? caption,
   });
@@ -111,6 +132,12 @@ abstract class MessageRemoteDataSource {
   /// Trouver une conversation de groupe par nom
   Future<ConversationModel?> findGroupConversationByName({
     required String groupName,
+    required String userId,
+  });
+
+  /// Trouver une conversation de groupe par ID du groupe
+  Future<ConversationModel?> findGroupConversationByGroupId({
+    required String groupId,
     required String userId,
   });
 
@@ -183,6 +210,16 @@ abstract class MessageRemoteDataSource {
     required String userId,
     required String reason,
   });
+
+  /// Set typing status for a user in a conversation
+  Future<void> setTypingStatus({
+    required String conversationId,
+    required String userId,
+    required bool isTyping,
+  });
+
+  /// Stream of users currently typing in a conversation
+  Stream<Map<String, bool>> getTypingStatusStream(String conversationId);
 }
 
 class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
@@ -207,6 +244,42 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
   DatabaseReference _messagesRef(String conversationId) =>
       _database.ref().child('messages').child(conversationId);
+
+  DatabaseReference _conversationParticipantsRef(String conversationId) =>
+      _database
+          .ref()
+          .child('conversations')
+          .child(conversationId)
+          .child('participants');
+
+  /// Sync conversation participants to Realtime Database for security rules
+  Future<void> _syncParticipantsToRTDB(
+    String conversationId,
+    List<String> participantIds,
+  ) async {
+    try {
+      final participantsMap = <String, bool>{};
+      for (final id in participantIds) {
+        participantsMap[id] = true;
+      }
+      await _conversationParticipantsRef(conversationId).set(participantsMap);
+    } catch (e) {
+      debugPrint('⚠️ Failed to sync participants to RTDB: $e');
+      // Don't throw - this is for security rules, not critical path
+    }
+  }
+
+  /// Remove a participant from RTDB
+  Future<void> _removeParticipantFromRTDB(
+    String conversationId,
+    String userId,
+  ) async {
+    try {
+      await _conversationParticipantsRef(conversationId).child(userId).remove();
+    } catch (e) {
+      debugPrint('⚠️ Failed to remove participant from RTDB: $e');
+    }
+  }
 
   ConversationModel _fromFirestoreEncrypted(firestore.DocumentSnapshot doc) {
     final model = ConversationModel.fromFirestore(doc);
@@ -514,21 +587,65 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     String? caption,
   }) async {
     try {
-      // Upload du fichier
+      // Legacy method - still functional but blocking
       final fileName = path.basename(file.path);
-      final fileExtension = path.extension(file.path);
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final storagePath = 'messages/$conversationId/${timestamp}_$fileName';
+      final task = uploadMediaFile(
+        file: file,
+        conversationId: conversationId,
+        fileName: fileName,
+      );
 
-      final ref = _storage.ref().child(storagePath);
-      final uploadTask = await ref.putFile(file);
-      final fileUrl = await uploadTask.ref.getDownloadURL();
-
-      // Déterminer le type MIME
-      final mimeType = _getMimeType(fileExtension);
+      final snapshot = await task;
+      final fileUrl = await snapshot.ref.getDownloadURL();
       final fileSize = await file.length();
-      final now = DateTime.now().toIso8601String();
+      final mimeType = _getMimeType(path.extension(file.path));
 
+      return sendMediaMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        fileUrl: fileUrl,
+        fileName: fileName,
+        fileSize: fileSize,
+        mimeType: mimeType,
+        type: type,
+        caption: caption,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors de l\'envoi du fichier: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  UploadTask uploadMediaFile({
+    required File file,
+    required String conversationId,
+    required String fileName,
+  }) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final storagePath = 'messages/$conversationId/${timestamp}_$fileName';
+    final ref = _storage.ref().child(storagePath);
+    return ref.putFile(file);
+  }
+
+  @override
+  Future<MessageModel> sendMediaMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String fileUrl,
+    required String fileName,
+    required int fileSize,
+    required String mimeType,
+    required String type,
+    String? caption,
+  }) async {
+    try {
+      final now = DateTime.now().toIso8601String();
       final encryptedContent = _encryptionService.encryptText(
         caption ?? fileName,
       );
@@ -551,7 +668,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       final newMessageRef = _messagesRef(conversationId).push();
       await newMessageRef.set(messageData);
 
-      // Mettre à jour la conversation (FIRESTORE)
+      // Update conversation metadata
       final lastMessageText = type == 'image' ? '📷 Photo' : '📎 $fileName';
       await _updateConversationLastMessage(
         conversationId: conversationId,
@@ -560,13 +677,32 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       );
 
       final snapshot = await newMessageRef.get();
+      // Handle potential null snapshot (though unlikely after set)
+      if (snapshot.value == null) {
+        return MessageModel(
+          id: newMessageRef.key!,
+          senderId: senderId,
+          senderName: senderName,
+          senderPhotoUrl: senderPhotoUrl,
+          content: caption ?? fileName,
+          type: type,
+          fileUrl: fileUrl,
+          fileName: fileName,
+          fileSize: fileSize,
+          mimeType: mimeType,
+          createdAt: DateTime.parse(now),
+          readBy: [senderId],
+          readAt: {senderId: DateTime.parse(now)},
+        );
+      }
+
       final data = Map<String, dynamic>.from(snapshot.value as Map);
       data['id'] = snapshot.key;
 
       return MessageModel.fromJson(data);
     } catch (e) {
       throw ServerException(
-        'Erreur lors de l\'envoi du fichier: ${e.toString()}',
+        'Erreur lors de l\'enregistrement du message média: ${e.toString()}',
       );
     }
   }
@@ -598,6 +734,10 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
       final docRef = await _conversationsCollection.add(conversationData);
       final doc = await docRef.get();
+
+      // Sync participants to RTDB for security rules
+      await _syncParticipantsToRTDB(docRef.id, [currentUserId, otherUserId]);
+
       return ConversationModel.fromFirestore(doc);
     } on firestore.FirebaseException catch (e) {
       throw ServerException(
@@ -619,11 +759,13 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       final allParticipants = {...participantIds, creatorId}.toList();
       allParticipants.sort(); // Trier pour comparaison consistante
 
-      // Vérifier si un groupe avec le même nom et les mêmes participants existe déjà
+      // Vérifier si un groupe avec le même nom existe déjà pour cet utilisateur
+      // Note: Security rules require participantIds filter for read access
       final existingSnapshot =
           await _conversationsCollection
               .where('type', isEqualTo: 'group')
               .where('name', isEqualTo: groupName)
+              .where('participantIds', arrayContains: creatorId)
               .get();
 
       // Vérifier si les participants correspondent exactement
@@ -661,6 +803,10 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
       final docRef = await _conversationsCollection.add(conversationData);
       final doc = await docRef.get();
+
+      // Sync participants to RTDB for security rules
+      await _syncParticipantsToRTDB(docRef.id, allParticipants);
+
       return ConversationModel.fromFirestore(doc);
     } on firestore.FirebaseException catch (e) {
       throw ServerException(
@@ -867,6 +1013,9 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       await _conversationsCollection.doc(conversationId).update({
         'unreadCount.$userId': firestore.FieldValue.delete(),
       });
+
+      // Remove participant from RTDB for security rules
+      await _removeParticipantFromRTDB(conversationId, userId);
     } on firestore.FirebaseException catch (e) {
       throw ServerException(
         e.message ?? 'Erreur lors de la suppression du membre',
@@ -1095,6 +1244,38 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   }
 
   @override
+  Future<ConversationModel?> findGroupConversationByGroupId({
+    required String groupId,
+    required String userId,
+  }) async {
+    try {
+      final snapshot =
+          await _conversationsCollection
+              .where('type', isEqualTo: 'group')
+              .where('groupId', isEqualTo: groupId)
+              .where('participantIds', arrayContains: userId)
+              .limit(1)
+              .get();
+
+      if (snapshot.docs.isEmpty) {
+        return null;
+      }
+
+      return ConversationModel.fromFirestore(snapshot.docs.first);
+    } on firestore.FirebaseException catch (e) {
+      // If it's a missing index error, return null instead of throwing
+      if (e.message?.contains('index') == true) {
+        return null;
+      }
+      throw ServerException(
+        e.message ?? 'Erreur lors de la recherche du groupe par ID',
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Future<void> deleteMessageForMe({
     required String conversationId,
     required String messageId,
@@ -1148,5 +1329,64 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         e.message ?? 'Erreur lors de la suppression du message pour tous',
       );
     }
+  }
+
+  // ============ Typing Indicators ============
+
+  DatabaseReference _typingRef(String conversationId) =>
+      _database.ref().child('typing').child(conversationId);
+
+  @override
+  Future<void> setTypingStatus({
+    required String conversationId,
+    required String userId,
+    required bool isTyping,
+  }) async {
+    try {
+      final typingRef = _typingRef(conversationId).child(userId);
+      if (isTyping) {
+        // Set typing with timestamp for auto-expiration
+        await typingRef.set({
+          'isTyping': true,
+          'timestamp': ServerValue.timestamp,
+        });
+      } else {
+        // Remove typing status
+        await typingRef.remove();
+      }
+    } on FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la mise à jour du statut de frappe',
+      );
+    }
+  }
+
+  @override
+  Stream<Map<String, bool>> getTypingStatusStream(String conversationId) {
+    return _typingRef(conversationId).onValue.map((event) {
+      if (event.snapshot.value == null) return <String, bool>{};
+
+      final result = <String, bool>{};
+      final map = event.snapshot.value as Map<dynamic, dynamic>;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      map.forEach((key, value) {
+        if (value is Map) {
+          final isTyping = value['isTyping'] == true;
+          final timestamp = value['timestamp'] as int?;
+
+          // Consider typing status expired after 5 seconds
+          if (isTyping && timestamp != null) {
+            final age = now - timestamp;
+            if (age < 5000) {
+              // 5 seconds
+              result[key.toString()] = true;
+            }
+          }
+        }
+      });
+
+      return result;
+    });
   }
 }

@@ -155,7 +155,7 @@ class ConversationItem extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          gradient: AppColors.secondaryGradient,
+          gradient: context.adaptiveSecondaryGradient,
           borderRadius: BorderRadius.circular(16),
         ),
         child:
@@ -188,7 +188,7 @@ class ConversationItem extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            gradient: context.adaptivePrimaryGradient,
             borderRadius: BorderRadius.circular(16),
           ),
           child:

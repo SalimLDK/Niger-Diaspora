@@ -669,6 +669,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get creator => 'Créateur';
 
   @override
+  String get noOtherMembers => 'Aucun autre membre pour le moment';
+
+  @override
   String get discussion => 'Discussion';
 
   @override

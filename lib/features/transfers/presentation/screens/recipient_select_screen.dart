@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
@@ -10,7 +11,8 @@ class RecipientSelectScreen extends ConsumerStatefulWidget {
   const RecipientSelectScreen({super.key});
 
   @override
-  ConsumerState<RecipientSelectScreen> createState() => _RecipientSelectScreenState();
+  ConsumerState<RecipientSelectScreen> createState() =>
+      _RecipientSelectScreenState();
 }
 
 class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
@@ -39,17 +41,16 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           ),
         ],
       ),
-      body: user == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                _buildSearchBar(),
-                _buildFilterChips(),
-                Expanded(
-                  child: _buildRecipientsList(user.id),
-                ),
-              ],
-            ),
+      body:
+          user == null
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildFilterChips(),
+                  Expanded(child: _buildRecipientsList(user.id)),
+                ],
+              ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToAddRecipient(context),
         icon: const Icon(Icons.person_add),
@@ -59,33 +60,12 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Rechercher un beneficiaire...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: AppColors.surfaceVariant,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        onChanged: (value) {
-          setState(() => _searchQuery = value.toLowerCase());
-        },
-      ),
+    return StandardSearchBar(
+      controller: _searchController,
+      hintText: 'Rechercher un beneficiaire...',
+      onChanged: (value) {
+        setState(() => _searchQuery = value.toLowerCase());
+      },
     );
   }
 
@@ -127,34 +107,38 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
 
     return recipientsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text('Erreur: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.invalidate(userRecipientsProvider(userId)),
-              child: const Text('Reessayer'),
+      error:
+          (error, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text('Erreur: $error'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed:
+                      () => ref.invalidate(userRecipientsProvider(userId)),
+                  child: const Text('Reessayer'),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
       data: (recipients) {
         // Apply filters
-        var filtered = recipients.where((r) {
-          if (_searchQuery.isNotEmpty) {
-            final matchesSearch = r.fullName.toLowerCase().contains(_searchQuery) ||
-                r.phone.toLowerCase().contains(_searchQuery);
-            if (!matchesSearch) return false;
-          }
-          if (_filterType != null && r.type != _filterType) {
-            return false;
-          }
-          return true;
-        }).toList();
+        var filtered =
+            recipients.where((r) {
+              if (_searchQuery.isNotEmpty) {
+                final matchesSearch =
+                    r.fullName.toLowerCase().contains(_searchQuery) ||
+                    r.phone.toLowerCase().contains(_searchQuery);
+                if (!matchesSearch) return false;
+              }
+              if (_filterType != null && r.type != _filterType) {
+                return false;
+              }
+              return true;
+            }).toList();
 
         // Sort: favorites first, then by last used
         filtered.sort((a, b) {
@@ -200,18 +184,18 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
             hasFilters
                 ? 'Aucun beneficiaire trouve'
                 : 'Aucun beneficiaire enregistre',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
           Text(
             hasFilters
                 ? 'Essayez de modifier vos filtres'
                 : 'Ajoutez votre premier beneficiaire',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textTertiary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
           ),
           if (!hasFilters) ...[
             const SizedBox(height: 24),
@@ -239,28 +223,30 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
       confirmDismiss: (direction) async {
         return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Supprimer le beneficiaire ?'),
-            content: Text('Voulez-vous supprimer ${recipient.fullName} ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Supprimer le beneficiaire ?'),
+                content: Text('Voulez-vous supprimer ${recipient.fullName} ?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Annuler'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                    ),
+                    child: const Text('Supprimer'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Supprimer'),
-              ),
-            ],
-          ),
         );
       },
       onDismissed: (direction) {
-        ref.read(recipientNotifierProvider.notifier).deleteRecipient(
-          recipient.id,
-          userId,
-        );
+        ref
+            .read(recipientNotifierProvider.notifier)
+            .deleteRecipient(recipient.id, userId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${recipient.fullName} supprime')),
         );
@@ -302,11 +288,13 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 color: recipient.isFavorite ? Colors.amber : null,
               ),
               onPressed: () {
-                ref.read(recipientNotifierProvider.notifier).toggleFavorite(
-                  recipient.id,
-                  !recipient.isFavorite,
-                  userId,
-                );
+                ref
+                    .read(recipientNotifierProvider.notifier)
+                    .toggleFavorite(
+                      recipient.id,
+                      !recipient.isFavorite,
+                      userId,
+                    );
               },
             ),
             const Icon(Icons.chevron_right),
@@ -323,7 +311,9 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
   }
 
   Future<void> _navigateToAddRecipient(BuildContext context) async {
-    final result = await context.push<RecipientEntity>('/transfers/recipient/add');
+    final result = await context.push<RecipientEntity>(
+      '/transfers/recipient/add',
+    );
     if (result != null && mounted) {
       _selectRecipient(result);
     }
@@ -336,85 +326,93 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
   ) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.send),
-              title: const Text('Envoyer de l\'argent'),
-              onTap: () {
-                Navigator.pop(context);
-                _selectRecipient(recipient);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text('Modifier'),
-              onTap: () async {
-                Navigator.pop(context);
-                final result = await context.push<RecipientEntity>(
-                  '/transfers/recipient/add',
-                  extra: recipient,
-                );
-                if (result != null && mounted) {
-                  ref.invalidate(userRecipientsProvider(userId));
-                }
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                recipient.isFavorite ? Icons.star_border : Icons.star,
-                color: recipient.isFavorite ? null : Colors.amber,
-              ),
-              title: Text(recipient.isFavorite
-                  ? 'Retirer des favoris'
-                  : 'Ajouter aux favoris'),
-              onTap: () {
-                Navigator.pop(context);
-                ref.read(recipientNotifierProvider.notifier).toggleFavorite(
-                  recipient.id,
-                  !recipient.isFavorite,
-                  userId,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_outline, color: AppColors.error),
-              title: Text('Supprimer', style: TextStyle(color: AppColors.error)),
-              onTap: () async {
-                Navigator.pop(context);
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Supprimer ?'),
-                    content: Text('Supprimer ${recipient.fullName} ?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Annuler'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                        ),
-                        child: const Text('Supprimer'),
-                      ),
-                    ],
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.send),
+                  title: const Text('Envoyer de l\'argent'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _selectRecipient(recipient);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('Modifier'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final result = await context.push<RecipientEntity>(
+                      '/transfers/recipient/add',
+                      extra: recipient,
+                    );
+                    if (result != null && mounted) {
+                      ref.invalidate(userRecipientsProvider(userId));
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    recipient.isFavorite ? Icons.star_border : Icons.star,
+                    color: recipient.isFavorite ? null : Colors.amber,
                   ),
-                );
-                if (confirmed == true) {
-                  ref.read(recipientNotifierProvider.notifier).deleteRecipient(
-                    recipient.id,
-                    userId,
-                  );
-                }
-              },
+                  title: Text(
+                    recipient.isFavorite
+                        ? 'Retirer des favoris'
+                        : 'Ajouter aux favoris',
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref
+                        .read(recipientNotifierProvider.notifier)
+                        .toggleFavorite(
+                          recipient.id,
+                          !recipient.isFavorite,
+                          userId,
+                        );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete_outline, color: AppColors.error),
+                  title: Text(
+                    'Supprimer',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Supprimer ?'),
+                            content: Text('Supprimer ${recipient.fullName} ?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Annuler'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.error,
+                                ),
+                                child: const Text('Supprimer'),
+                              ),
+                            ],
+                          ),
+                    );
+                    if (confirmed == true) {
+                      ref
+                          .read(recipientNotifierProvider.notifier)
+                          .deleteRecipient(recipient.id, userId);
+                    }
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 

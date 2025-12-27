@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
 import 'admin_users_screen.dart';
 import 'admin_content_screen.dart';
+import 'admin_embassy_verification_screen.dart';
+import 'admin_create_embassy_screen.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -66,6 +68,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 selectedIcon: Icon(Icons.event),
                 label: Text('Content'),
               ),
+              NavigationRailDestination(
+                icon: Icon(Icons.account_balance_outlined),
+                selectedIcon: Icon(Icons.account_balance),
+                label: Text('Embassies'),
+              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -98,9 +105,45 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         return const AdminUsersScreen();
       case 2:
         return const AdminContentScreen();
+      case 3:
+        return _buildEmbassiesPanel();
       default:
         return const SizedBox();
     }
+  }
+
+  Widget _buildEmbassiesPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Gestion des Ambassades',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AdminCreateEmbassyScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Créer une ambassade'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Expanded(child: const AdminEmbassyVerificationScreen()),
+      ],
+    );
   }
 
   Widget _buildOverview(AdminDashboardState state) {

@@ -322,13 +322,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Médias partagés (avant les membres)
+                  if (isMember) _buildMediaSection(group),
+
+                  if (isMember) const SizedBox(height: 24),
+
                   // Membres du groupe
                   _buildMembersSection(context, group, l10n),
-
-                  const SizedBox(height: 24),
-
-                  // Médias partagés
-                  if (isMember) _buildMediaSection(group),
 
                   const SizedBox(height: 24),
 
@@ -585,6 +585,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     GroupEntity group,
     AppLocalizations l10n,
   ) {
+    // Filtrer pour obtenir les membres autres que le créateur
+    final otherMemberIds =
+        group.memberIds.where((id) => id != group.creatorId).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -610,15 +614,52 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
-            children:
-                group.memberIds.take(5).map((memberId) {
+            children: [
+              // Toujours afficher le créateur en premier
+              _MemberListItem(
+                memberId: group.creatorId,
+                isAdmin: group.adminIds.contains(group.creatorId),
+                isCreator: true,
+                onTap: () => context.push('/profile/${group.creatorId}'),
+              ),
+              // Afficher les autres membres ou un message s'il n'y en a pas
+              if (otherMemberIds.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.group_add,
+                        size: 20,
+                        color: context.textTertiaryColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.noOtherMembers,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.textTertiaryColor,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ...otherMemberIds.take(4).map((memberId) {
                   return _MemberListItem(
                     memberId: memberId,
                     isAdmin: group.adminIds.contains(memberId),
-                    isCreator: group.creatorId == memberId,
+                    isCreator: false,
                     onTap: () => context.push('/profile/$memberId'),
                   );
-                }).toList(),
+                }),
+            ],
           ),
         ),
         if (group.memberIds.length > 5) ...[
@@ -643,7 +684,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final conversationIdAsync = ref.watch(
-          groupConversationIdProvider(group.name),
+          groupConversationIdProvider(group.id),
         );
 
         return conversationIdAsync.when(
@@ -686,7 +727,10 @@ class _MemberListItem extends ConsumerWidget {
 
     return profileAsync.when(
       data: (profile) {
-        if (profile == null) return const SizedBox.shrink();
+        // Afficher un placeholder si le profil n'est pas trouvé
+        final displayName = profile?.displayName ?? 'Membre';
+        final photoUrl = profile?.photoUrl;
+        final profession = profile?.profession;
 
         return ListTile(
           onTap: onTap,
@@ -698,11 +742,11 @@ class _MemberListItem extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child:
-                profile.photoUrl != null
+                photoUrl != null
                     ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
-                        imageUrl: profile.photoUrl!,
+                        imageUrl: photoUrl,
                         fit: BoxFit.cover,
                         placeholder:
                             (_, __) => Icon(
@@ -722,7 +766,7 @@ class _MemberListItem extends ConsumerWidget {
             children: [
               Flexible(
                 child: Text(
-                  profile.displayName ?? 'Membre',
+                  displayName,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -777,9 +821,9 @@ class _MemberListItem extends ConsumerWidget {
             ],
           ),
           subtitle:
-              profile.profession != null
+              profession != null
                   ? Text(
-                    profile.profession!,
+                    profession,
                     style: TextStyle(
                       fontSize: 12,
                       color: context.textTertiaryColor,

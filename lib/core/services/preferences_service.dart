@@ -13,9 +13,30 @@ class PreferencesService {
 
   SharedPreferences? _prefs;
 
+  static const int _currentPrefsVersion = 1;
+  static const String _keyPrefsVersion = 'prefs_version';
+
   /// Initialize the service. Must be called before accessing preferences.
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
+    await _checkAndMigrate();
+  }
+
+  Future<void> _checkAndMigrate() async {
+    final int savedVersion = _prefs?.getInt(_keyPrefsVersion) ?? 0;
+
+    if (savedVersion < _currentPrefsVersion) {
+      await _performMigration(savedVersion);
+      await _prefs?.setInt(_keyPrefsVersion, _currentPrefsVersion);
+    }
+  }
+
+  Future<void> _performMigration(int oldVersion) async {
+    // Example migration: Clear old keys or rename them
+    if (oldVersion < 1) {
+      // Initial migration
+      // await _prefs?.remove('old_deprecated_key');
+    }
   }
 
   SharedPreferences get prefs {
@@ -105,6 +126,11 @@ class PreferencesService {
   String? get locale => prefs.getString(_keyLocale);
   Future<void> setLocale(String localeCode) =>
       prefs.setString(_keyLocale, localeCode);
+
+  static const String _keyThemeColor = 'theme_color';
+  String? get themeColor => prefs.getString(_keyThemeColor);
+  Future<void> setThemeColor(String color) =>
+      prefs.setString(_keyThemeColor, color);
 
   // ============================
   // NOTIFICATION PREFERENCES

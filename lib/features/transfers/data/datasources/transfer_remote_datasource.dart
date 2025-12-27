@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../models/transaction_model.dart';
 import '../models/recipient_model.dart';
 
@@ -9,7 +10,10 @@ abstract class TransferRemoteDatasource {
   Future<TransactionModel> getTransaction(String id);
   Future<TransactionModel> createTransaction(TransactionModel transaction);
   Future<TransactionModel> updateTransactionStatus(
-      String id, String status, {String? failureReason});
+    String id,
+    String status, {
+    String? failureReason,
+  });
   Stream<List<TransactionModel>> watchUserTransactions(String userId);
   Stream<TransactionModel> watchTransaction(String id);
 
@@ -28,7 +32,7 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
   final FirebaseFirestore _firestore;
 
   TransferRemoteDatasourceImpl({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _transactionsCollection =>
       _firestore.collection(FirebaseCollections.transactions);
@@ -40,11 +44,14 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<List<TransactionModel>> getUserTransactions(String userId) async {
-    final snapshot = await _transactionsCollection
-        .where('senderId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .get();
-    return snapshot.docs.map((doc) => TransactionModel.fromFirestore(doc)).toList();
+    final snapshot =
+        await _transactionsCollection
+            .where('senderId', isEqualTo: userId)
+            .orderBy('createdAt', descending: true)
+            .get();
+    return snapshot.docs
+        .map((doc) => TransactionModel.fromFirestore(doc))
+        .toList();
   }
 
   @override
@@ -57,14 +64,31 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
   }
 
   @override
-  Future<TransactionModel> createTransaction(TransactionModel transaction) async {
-    final docRef = _transactionsCollection.doc();
-    final newTransaction = transaction.copyWith(
-      id: docRef.id,
-      createdAt: DateTime.now(),
-    );
-    await docRef.set(newTransaction.toFirestore());
-    return newTransaction;
+  Future<TransactionModel> createTransaction(
+    TransactionModel transaction,
+  ) async {
+    if (transaction.amount <= 0) {
+      throw ValidationException('Le montant doit être supérieur à 0');
+    }
+    if (transaction.recipientId.isEmpty &&
+        (transaction.recipientName?.isEmpty ?? true)) {
+      throw ValidationException('Le bénéficiaire est requis');
+    }
+
+    // Use Firestore transaction for atomicity
+    return await _firestore.runTransaction<TransactionModel>((txn) async {
+      final docRef = _transactionsCollection.doc();
+      final newTransaction = transaction.copyWith(
+        id: docRef.id,
+        createdAt: DateTime.now(),
+        status: transaction.status.isEmpty ? 'pending' : transaction.status,
+      );
+
+      // Set the transaction document within the transaction
+      txn.set(docRef, newTransaction.toFirestore());
+
+      return newTransaction;
+    });
   }
 
   @override
@@ -73,9 +97,7 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
     String status, {
     String? failureReason,
   }) async {
-    final updates = <String, dynamic>{
-      'status': status,
-    };
+    final updates = <String, dynamic>{'status': status};
 
     if (status == 'completed') {
       updates['completedAt'] = Timestamp.fromDate(DateTime.now());
@@ -95,8 +117,12 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
         .where('senderId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => TransactionModel.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => TransactionModel.fromFirestore(doc))
+                  .toList(),
+        );
   }
 
   @override
@@ -111,12 +137,15 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<List<RecipientModel>> getUserRecipients(String userId) async {
-    final snapshot = await _recipientsCollection
-        .where('userId', isEqualTo: userId)
-        .orderBy('isFavorite', descending: true)
-        .orderBy('lastUsedAt', descending: true)
-        .get();
-    return snapshot.docs.map((doc) => RecipientModel.fromFirestore(doc)).toList();
+    final snapshot =
+        await _recipientsCollection
+            .where('userId', isEqualTo: userId)
+            .orderBy('isFavorite', descending: true)
+            .orderBy('lastUsedAt', descending: true)
+            .get();
+    return snapshot.docs
+        .map((doc) => RecipientModel.fromFirestore(doc))
+        .toList();
   }
 
   @override
@@ -130,6 +159,13 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<RecipientModel> createRecipient(RecipientModel recipient) async {
+    if (recipient.fullName.trim().isEmpty) {
+      throw ValidationException('Le nom du bénéficiaire est requis');
+    }
+    if (recipient.phone.trim().isEmpty) {
+      throw ValidationException('Le numéro de téléphone est requis');
+    }
+
     final docRef = _recipientsCollection.doc();
     final newRecipient = recipient.copyWith(
       id: docRef.id,
@@ -141,7 +177,9 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<RecipientModel> updateRecipient(RecipientModel recipient) async {
-    await _recipientsCollection.doc(recipient.id).update(recipient.toFirestore());
+    await _recipientsCollection
+        .doc(recipient.id)
+        .update(recipient.toFirestore());
     return recipient;
   }
 
@@ -152,9 +190,7 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<void> toggleFavorite(String id, bool isFavorite) async {
-    await _recipientsCollection.doc(id).update({
-      'isFavorite': isFavorite,
-    });
+    await _recipientsCollection.doc(id).update({'isFavorite': isFavorite});
   }
 
   @override
@@ -171,7 +207,11 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
         .orderBy('isFavorite', descending: true)
         .orderBy('lastUsedAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => RecipientModel.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => RecipientModel.fromFirestore(doc))
+                  .toList(),
+        );
   }
 }

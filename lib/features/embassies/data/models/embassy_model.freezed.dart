@@ -26,8 +26,7 @@ mixin _$EmbassyModel {
   String get country => throw _privateConstructorUsedError;
   String get city => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
-  @JsonKey(name: 'phone')
-  String? get phone => throw _privateConstructorUsedError; // Adjusted to match entity field if possible or map
+  String? get phone => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get website => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
@@ -38,13 +37,19 @@ mixin _$EmbassyModel {
   Map<String, String> get openingHours => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
   bool get isSuspended => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+  @TimestampConverter()
   DateTime? get verifiedAt => throw _privateConstructorUsedError;
   String? get rejectionReason => throw _privateConstructorUsedError;
   List<String> get jurisdictionCountries => throw _privateConstructorUsedError;
   List<EmbassyActivityModel> get activities =>
       throw _privateConstructorUsedError;
-  List<EmbassyNewsModel> get news => throw _privateConstructorUsedError;
+  List<EmbassyNewsModel> get news =>
+      throw _privateConstructorUsedError; // Availability fields
+  bool get isTemporarilyClosed => throw _privateConstructorUsedError;
+  String? get closureMessage => throw _privateConstructorUsedError;
+  @TimestampConverter()
+  DateTime? get reopenDate => throw _privateConstructorUsedError;
+  List<String> get upcomingServices => throw _privateConstructorUsedError;
 
   /// Serializes this EmbassyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -69,7 +74,7 @@ abstract class $EmbassyModelCopyWith<$Res> {
     String country,
     String city,
     String address,
-    @JsonKey(name: 'phone') String? phone,
+    String? phone,
     String? email,
     String? website,
     double? latitude,
@@ -80,12 +85,15 @@ abstract class $EmbassyModelCopyWith<$Res> {
     Map<String, String> openingHours,
     bool isVerified,
     bool isSuspended,
-    @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-    DateTime? verifiedAt,
+    @TimestampConverter() DateTime? verifiedAt,
     String? rejectionReason,
     List<String> jurisdictionCountries,
     List<EmbassyActivityModel> activities,
     List<EmbassyNewsModel> news,
+    bool isTemporarilyClosed,
+    String? closureMessage,
+    @TimestampConverter() DateTime? reopenDate,
+    List<String> upcomingServices,
   });
 }
 
@@ -125,6 +133,10 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
     Object? jurisdictionCountries = null,
     Object? activities = null,
     Object? news = null,
+    Object? isTemporarilyClosed = null,
+    Object? closureMessage = freezed,
+    Object? reopenDate = freezed,
+    Object? upcomingServices = null,
   }) {
     return _then(
       _value.copyWith(
@@ -233,6 +245,26 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
                     ? _value.news
                     : news // ignore: cast_nullable_to_non_nullable
                         as List<EmbassyNewsModel>,
+            isTemporarilyClosed:
+                null == isTemporarilyClosed
+                    ? _value.isTemporarilyClosed
+                    : isTemporarilyClosed // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            closureMessage:
+                freezed == closureMessage
+                    ? _value.closureMessage
+                    : closureMessage // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            reopenDate:
+                freezed == reopenDate
+                    ? _value.reopenDate
+                    : reopenDate // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
+            upcomingServices:
+                null == upcomingServices
+                    ? _value.upcomingServices
+                    : upcomingServices // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -254,7 +286,7 @@ abstract class _$$EmbassyModelImplCopyWith<$Res>
     String country,
     String city,
     String address,
-    @JsonKey(name: 'phone') String? phone,
+    String? phone,
     String? email,
     String? website,
     double? latitude,
@@ -265,12 +297,15 @@ abstract class _$$EmbassyModelImplCopyWith<$Res>
     Map<String, String> openingHours,
     bool isVerified,
     bool isSuspended,
-    @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-    DateTime? verifiedAt,
+    @TimestampConverter() DateTime? verifiedAt,
     String? rejectionReason,
     List<String> jurisdictionCountries,
     List<EmbassyActivityModel> activities,
     List<EmbassyNewsModel> news,
+    bool isTemporarilyClosed,
+    String? closureMessage,
+    @TimestampConverter() DateTime? reopenDate,
+    List<String> upcomingServices,
   });
 }
 
@@ -309,6 +344,10 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
     Object? jurisdictionCountries = null,
     Object? activities = null,
     Object? news = null,
+    Object? isTemporarilyClosed = null,
+    Object? closureMessage = freezed,
+    Object? reopenDate = freezed,
+    Object? upcomingServices = null,
   }) {
     return _then(
       _$EmbassyModelImpl(
@@ -417,6 +456,26 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
                 ? _value._news
                 : news // ignore: cast_nullable_to_non_nullable
                     as List<EmbassyNewsModel>,
+        isTemporarilyClosed:
+            null == isTemporarilyClosed
+                ? _value.isTemporarilyClosed
+                : isTemporarilyClosed // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        closureMessage:
+            freezed == closureMessage
+                ? _value.closureMessage
+                : closureMessage // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        reopenDate:
+            freezed == reopenDate
+                ? _value.reopenDate
+                : reopenDate // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
+        upcomingServices:
+            null == upcomingServices
+                ? _value._upcomingServices
+                : upcomingServices // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -431,7 +490,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     required this.country,
     required this.city,
     required this.address,
-    @JsonKey(name: 'phone') this.phone,
+    this.phone,
     this.email,
     this.website,
     this.latitude,
@@ -442,17 +501,21 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     final Map<String, String> openingHours = const {},
     this.isVerified = false,
     this.isSuspended = false,
-    @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-    this.verifiedAt,
+    @TimestampConverter() this.verifiedAt,
     this.rejectionReason,
     final List<String> jurisdictionCountries = const [],
     final List<EmbassyActivityModel> activities = const [],
     final List<EmbassyNewsModel> news = const [],
+    this.isTemporarilyClosed = false,
+    this.closureMessage,
+    @TimestampConverter() this.reopenDate,
+    final List<String> upcomingServices = const [],
   }) : _services = services,
        _openingHours = openingHours,
        _jurisdictionCountries = jurisdictionCountries,
        _activities = activities,
        _news = news,
+       _upcomingServices = upcomingServices,
        super._();
 
   factory _$EmbassyModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -469,9 +532,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   @override
   final String address;
   @override
-  @JsonKey(name: 'phone')
   final String? phone;
-  // Adjusted to match entity field if possible or map
   @override
   final String? email;
   @override
@@ -510,7 +571,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   @JsonKey()
   final bool isSuspended;
   @override
-  @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+  @TimestampConverter()
   final DateTime? verifiedAt;
   @override
   final String? rejectionReason;
@@ -542,9 +603,28 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     return EqualUnmodifiableListView(_news);
   }
 
+  // Availability fields
+  @override
+  @JsonKey()
+  final bool isTemporarilyClosed;
+  @override
+  final String? closureMessage;
+  @override
+  @TimestampConverter()
+  final DateTime? reopenDate;
+  final List<String> _upcomingServices;
+  @override
+  @JsonKey()
+  List<String> get upcomingServices {
+    if (_upcomingServices is EqualUnmodifiableListView)
+      return _upcomingServices;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_upcomingServices);
+  }
+
   @override
   String toString() {
-    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news)';
+    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news, isTemporarilyClosed: $isTemporarilyClosed, closureMessage: $closureMessage, reopenDate: $reopenDate, upcomingServices: $upcomingServices)';
   }
 
   @override
@@ -588,7 +668,17 @@ class _$EmbassyModelImpl extends _EmbassyModel {
               other._activities,
               _activities,
             ) &&
-            const DeepCollectionEquality().equals(other._news, _news));
+            const DeepCollectionEquality().equals(other._news, _news) &&
+            (identical(other.isTemporarilyClosed, isTemporarilyClosed) ||
+                other.isTemporarilyClosed == isTemporarilyClosed) &&
+            (identical(other.closureMessage, closureMessage) ||
+                other.closureMessage == closureMessage) &&
+            (identical(other.reopenDate, reopenDate) ||
+                other.reopenDate == reopenDate) &&
+            const DeepCollectionEquality().equals(
+              other._upcomingServices,
+              _upcomingServices,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -616,6 +706,10 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     const DeepCollectionEquality().hash(_jurisdictionCountries),
     const DeepCollectionEquality().hash(_activities),
     const DeepCollectionEquality().hash(_news),
+    isTemporarilyClosed,
+    closureMessage,
+    reopenDate,
+    const DeepCollectionEquality().hash(_upcomingServices),
   ]);
 
   /// Create a copy of EmbassyModel
@@ -639,7 +733,7 @@ abstract class _EmbassyModel extends EmbassyModel {
     required final String country,
     required final String city,
     required final String address,
-    @JsonKey(name: 'phone') final String? phone,
+    final String? phone,
     final String? email,
     final String? website,
     final double? latitude,
@@ -650,12 +744,15 @@ abstract class _EmbassyModel extends EmbassyModel {
     final Map<String, String> openingHours,
     final bool isVerified,
     final bool isSuspended,
-    @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-    final DateTime? verifiedAt,
+    @TimestampConverter() final DateTime? verifiedAt,
     final String? rejectionReason,
     final List<String> jurisdictionCountries,
     final List<EmbassyActivityModel> activities,
     final List<EmbassyNewsModel> news,
+    final bool isTemporarilyClosed,
+    final String? closureMessage,
+    @TimestampConverter() final DateTime? reopenDate,
+    final List<String> upcomingServices,
   }) = _$EmbassyModelImpl;
   const _EmbassyModel._() : super._();
 
@@ -673,8 +770,7 @@ abstract class _EmbassyModel extends EmbassyModel {
   @override
   String get address;
   @override
-  @JsonKey(name: 'phone')
-  String? get phone; // Adjusted to match entity field if possible or map
+  String? get phone;
   @override
   String? get email;
   @override
@@ -696,7 +792,7 @@ abstract class _EmbassyModel extends EmbassyModel {
   @override
   bool get isSuspended;
   @override
-  @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+  @TimestampConverter()
   DateTime? get verifiedAt;
   @override
   String? get rejectionReason;
@@ -705,7 +801,16 @@ abstract class _EmbassyModel extends EmbassyModel {
   @override
   List<EmbassyActivityModel> get activities;
   @override
-  List<EmbassyNewsModel> get news;
+  List<EmbassyNewsModel> get news; // Availability fields
+  @override
+  bool get isTemporarilyClosed;
+  @override
+  String? get closureMessage;
+  @override
+  @TimestampConverter()
+  DateTime? get reopenDate;
+  @override
+  List<String> get upcomingServices;
 
   /// Create a copy of EmbassyModel
   /// with the given fields replaced by the non-null parameter values.

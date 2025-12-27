@@ -118,36 +118,63 @@ extension AdaptiveColors on BuildContext {
   // ============================================
 
   /// Couleur primaire adaptée (plus claire en dark mode)
-  Color get adaptivePrimaryColor =>
-      isDarkMode ? AppColors.primaryLight : AppColors.primary;
+  Color get adaptivePrimaryColor => Theme.of(this).colorScheme.primary;
 
   /// Couleur primaire légère adaptée
   Color get adaptivePrimaryLightColor =>
-      isDarkMode ? AppColors.primary : AppColors.primaryLight;
+      Theme.of(this).colorScheme.primaryContainer;
 
   /// Fond primaire léger
   Color get primaryBackgroundColor =>
-      isDarkMode ? const Color(0xFF2D2014) : AppColors.primaryLighter;
+      Theme.of(this).colorScheme.primaryContainer;
 
   // ============================================
   // SECONDARY COLORS (adapté pour dark mode)
   // ============================================
 
   /// Couleur secondaire adaptée
-  Color get adaptiveSecondaryColor =>
-      isDarkMode ? AppColors.secondaryLight : AppColors.secondary;
+  Color get adaptiveSecondaryColor => Theme.of(this).colorScheme.secondary;
 
   /// Fond secondaire léger
   Color get secondaryBackgroundColor =>
-      isDarkMode ? const Color(0xFF1A3322) : AppColors.secondaryLighter;
+      Theme.of(this).colorScheme.secondaryContainer;
 
   // ============================================
   // GRADIENTS
   // ============================================
 
-  /// Gradient primaire adaptatif
-  LinearGradient get adaptivePrimaryGradient =>
-      isDarkMode ? AppColors.primaryGradientDark : AppColors.primaryGradient;
+  /// Vérifie si le thème utilise le vert comme couleur primaire
+  bool get _isGreenPrimaryTheme {
+    final primary = Theme.of(this).colorScheme.primary;
+    // En light mode, secondary = vert, en dark mode avec vert, secondaryLight
+    return primary.toARGB32() == AppColors.secondary.toARGB32() ||
+        primary.toARGB32() == AppColors.secondaryLight.toARGB32();
+  }
+
+  /// Gradient primaire adaptatif (suit la couleur primaire du thème)
+  LinearGradient get adaptivePrimaryGradient {
+    if (isDarkMode) {
+      // En dark mode, utiliser le gradient approprié selon le thème
+      return _isGreenPrimaryTheme
+          ? AppColors.secondaryGradient
+          : AppColors.primaryGradientDark;
+    }
+    return _isGreenPrimaryTheme
+        ? AppColors.secondaryGradient
+        : AppColors.primaryGradient;
+  }
+
+  /// Gradient secondaire adaptatif (couleur inverse de la primaire)
+  LinearGradient get adaptiveSecondaryGradient {
+    if (isDarkMode) {
+      return _isGreenPrimaryTheme
+          ? AppColors.primaryGradientDark
+          : AppColors.secondaryGradient;
+    }
+    return _isGreenPrimaryTheme
+        ? AppColors.primaryGradient
+        : AppColors.secondaryGradient;
+  }
 
   // ============================================
   // SHADOWS & OVERLAYS

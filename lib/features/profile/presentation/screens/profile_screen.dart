@@ -112,7 +112,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               expandedHeight: 180,
               pinned: true,
               stretch: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.adaptivePrimaryColor,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [
                   StretchMode.zoomBackground,
@@ -264,6 +264,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                               ),
                               onTap: () => _showThemeSelector(l10n),
                             ),
+
                             const _SettingsDivider(),
                             _SettingsTile(
                               icon: Icons.translate_outlined,
@@ -382,12 +383,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final email = profile?.email ?? user?.email ?? '';
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark, Color(0xFF8B4513)],
-        ),
+      decoration: BoxDecoration(
+        gradient: context.adaptivePrimaryGradient,
       ),
       child: Stack(
         children: [
@@ -601,7 +598,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               value: connectionsCount.toString(),
               label: l10n.connections,
               icon: Icons.people_outline,
-              color: AppColors.primary,
+              color: context.adaptivePrimaryColor,
             ),
           ),
           _buildStatDivider(),
@@ -614,7 +611,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               value: groupsCount.toString(),
               label: l10n.groupsTitle,
               icon: Icons.group_work_outlined,
-              color: AppColors.secondary,
+              color: context.adaptiveSecondaryColor,
             ),
           ),
           _buildStatDivider(),
@@ -768,89 +765,122 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   void _showThemeSelector(AppLocalizations l10n) {
     HapticFeedback.lightImpact();
-    final currentMode = ref.read(themeModeNotifierProvider);
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.borderColor,
-                    borderRadius: BorderRadius.circular(2),
+          (context) => Consumer(
+            builder: (context, ref, _) {
+              final currentMode = ref.watch(themeModeNotifierProvider);
+              final currentColor = ref.watch(themeColorNotifierProvider);
+
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.adaptivePrimaryColor.withValues(
-                          alpha: 0.1,
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: context.borderColor,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.palette,
-                        color: context.adaptivePrimaryColor,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(height: 24),
                     Text(
-                      l10n.chooseTheme,
+                      l10n.theme,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: context.textPrimaryColor,
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Mode Section
+                    Text(
+                      'Mode',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildThemeOption(
+                      context,
+                      l10n.light,
+                      AppThemeMode.light,
+                      currentMode,
+                      Icons.wb_sunny_outlined,
+                    ),
+                    _buildThemeOption(
+                      context,
+                      l10n.dark,
+                      AppThemeMode.dark,
+                      currentMode,
+                      Icons.nightlight_round_outlined,
+                    ),
+                    _buildThemeOption(
+                      context,
+                      l10n.system,
+                      AppThemeMode.system,
+                      currentMode,
+                      Icons.brightness_auto_outlined,
+                    ),
+
+                    // Color Section (Only visible if not strictly Dark mode)
+                    if (currentMode != AppThemeMode.dark) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        'Apparence',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildThemeColorOption(
+                        'Vert (Défaut)',
+                        AppThemeColor.green,
+                        currentColor == AppThemeColor.green,
+                      ),
+                      _buildThemeColorOption(
+                        'Orange (Classique)',
+                        AppThemeColor.orange,
+                        currentColor == AppThemeColor.orange,
+                      ),
+                    ],
+                    const SizedBox(height: 20),
                   ],
                 ),
-                const SizedBox(height: 24),
-                _buildThemeOption(
-                  l10n.light,
-                  Icons.light_mode,
-                  AppThemeMode.light,
-                  currentMode == AppThemeMode.light,
-                ),
-                _buildThemeOption(
-                  l10n.dark,
-                  Icons.dark_mode,
-                  AppThemeMode.dark,
-                  currentMode == AppThemeMode.dark,
-                ),
-                _buildThemeOption(
-                  l10n.system,
-                  Icons.settings_suggest,
-                  AppThemeMode.system,
-                  currentMode == AppThemeMode.system,
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              );
+            },
           ),
     );
   }
 
   Widget _buildThemeOption(
+    BuildContext context,
     String title,
+    AppThemeMode value,
+    AppThemeMode groupValue,
     IconData icon,
-    AppThemeMode mode,
-    bool isSelected,
   ) {
+    final isSelected = value == groupValue;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -885,25 +915,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         ),
         trailing:
             isSelected
-                ? Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: AppColors.white,
-                    size: 16,
-                  ),
-                )
+                ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
                 : null,
         onTap: () {
           HapticFeedback.selectionClick();
-          ref.read(themeModeNotifierProvider.notifier).setThemeMode(mode);
-          Navigator.pop(context);
+          ref.read(themeModeNotifierProvider.notifier).setThemeMode(value);
         },
       ),
+    );
+  }
+
+  Widget _buildThemeColorOption(
+    String title,
+    AppThemeColor color,
+    bool isSelected,
+  ) {
+    // Determine the color to show in the circle
+    final Color previewColor =
+        color == AppThemeColor.green
+            ? AppColors
+                .secondary // Green
+            : AppColors.primary; // Orange
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      tileColor:
+          isSelected
+              ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
+              : null,
+      leading: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: previewColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: context.borderColor),
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          color:
+              isSelected
+                  ? context.adaptivePrimaryColor
+                  : context.textPrimaryColor,
+        ),
+      ),
+      trailing:
+          isSelected
+              ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
+              : null,
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        ref.read(themeColorNotifierProvider.notifier).setThemeColor(color);
+      },
     );
   }
 
@@ -1159,11 +1226,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         width: 64,
         height: 64,
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
+          gradient: context.adaptivePrimaryGradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -1213,7 +1280,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   final navigator = Navigator.of(context);
                   final router = GoRouter.of(context);
                   navigator.pop();
-                  final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+                  final currentUser =
+                      ref.read(currentUserAsyncProvider).valueOrNull;
                   if (currentUser != null) {
                     await NotificationService().removeTokenForUser(
                       currentUser.id,

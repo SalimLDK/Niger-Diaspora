@@ -31,7 +31,7 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
       const {},
   isVerified: json['isVerified'] as bool? ?? false,
   isSuspended: json['isSuspended'] as bool? ?? false,
-  verifiedAt: _timestampToDateTime(json['verifiedAt']),
+  verifiedAt: const TimestampConverter().fromJson(json['verifiedAt']),
   rejectionReason: json['rejectionReason'] as String?,
   jurisdictionCountries:
       (json['jurisdictionCountries'] as List<dynamic>?)
@@ -46,6 +46,14 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
   news:
       (json['news'] as List<dynamic>?)
           ?.map((e) => EmbassyNewsModel.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  isTemporarilyClosed: json['isTemporarilyClosed'] as bool? ?? false,
+  closureMessage: json['closureMessage'] as String?,
+  reopenDate: const TimestampConverter().fromJson(json['reopenDate']),
+  upcomingServices:
+      (json['upcomingServices'] as List<dynamic>?)
+          ?.map((e) => e as String)
           .toList() ??
       const [],
 );
@@ -68,9 +76,13 @@ Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
       'openingHours': instance.openingHours,
       'isVerified': instance.isVerified,
       'isSuspended': instance.isSuspended,
-      'verifiedAt': _dateTimeToTimestamp(instance.verifiedAt),
+      'verifiedAt': const TimestampConverter().toJson(instance.verifiedAt),
       'rejectionReason': instance.rejectionReason,
       'jurisdictionCountries': instance.jurisdictionCountries,
       'activities': instance.activities,
       'news': instance.news,
+      'isTemporarilyClosed': instance.isTemporarilyClosed,
+      'closureMessage': instance.closureMessage,
+      'reopenDate': const TimestampConverter().toJson(instance.reopenDate),
+      'upcomingServices': instance.upcomingServices,
     };

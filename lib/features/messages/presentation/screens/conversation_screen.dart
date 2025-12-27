@@ -9,9 +9,13 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
+import '../providers/typing_indicator_provider.dart';
+import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
+import '../widgets/typing_indicator_widget.dart';
+import '../widgets/uploading_media_skeleton.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -145,6 +149,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       isBlocked = blockedUsers.any((user) => user.id == otherUserId);
     }
 
+    // Stream other user's profile if it's an individual chat
+    AsyncValue<dynamic>? otherUserAsync;
+    if (!widget.isGroup && widget.otherUserId != null) {
+      // Use the profile provider to get real-time updates
+      otherUserAsync = ref.watch(userStreamProvider(widget.otherUserId!));
+    }
+
+    final otherUser = otherUserAsync?.valueOrNull;
+
+    // Determine display name for typing indicator
+    final displayName =
+        widget.isGroup
+            ? widget.conversationName
+            : otherUser?.displayName ?? widget.conversationName;
+
     // Auto-scroll to bottom when new messages arrive
     ref.listen(paginatedMessagesProvider(widget.conversationId), (
       previous,
@@ -161,7 +180,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(otherUser),
       body: Column(
         children: [
           // Offline indicator
@@ -195,14 +214,34 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             child: _buildMessageList(paginationState, currentUser?.id, l10n),
           ),
 
+          // Typing indicator
+          if (!isDeleted && !isBlocked)
+            TypingIndicatorWidget(
+              conversationId: widget.conversationId,
+              currentUserId: currentUser?.id,
+              userNames:
+                  widget.otherUserId != null
+                      ? {
+                        widget.otherUserId!:
+                            displayName ??
+                            widget.conversationName ??
+                            'Utilisateur',
+                      }
+                      : null,
+            ),
+
           // Input or Blocked/Deleted Message
-          if (isDeleted)
+          if (isDeleted ||
+              (otherUser != null &&
+                  otherUser.displayName == 'Utilisateur supprimé'))
             Container(
               padding: const EdgeInsets.all(16),
               color: context.surfaceColor,
               width: double.infinity,
               child: Text(
-                "Ce groupe a été supprimé",
+                isDeleted
+                    ? "Ce groupe a été supprimé"
+                    : "Cet utilisateur a été supprimé",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color:
@@ -233,7 +272,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           else
             MessageInput(
               isLoading: sendMessageState.isLoading,
+              onTyping: () {
+                ref
+                    .read(typingIndicatorNotifierProvider.notifier)
+                    .onUserTyping(widget.conversationId);
+              },
               onSendText: (text) async {
+                // Stop typing indicator when sending
+                ref.read(typingIndicatorNotifierProvider.notifier).stopTyping();
                 // Generate unique message ID
                 final messageId =
                     'temp_${DateTime.now().millisecondsSinceEpoch}';
@@ -272,6 +318,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       optimisticMessageId: messageId,
                     );
 
+                if (!mounted) return;
+
                 // If final failure after all retries, mark as failed
                 if (!success) {
                   ref
@@ -295,14 +343,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   _scrollToBottom();
                 }
               },
-              onSendFile: (File file, bool isImage) async {
+              onSendFile: (File file, bool isImage, {String? caption}) async {
                 final success = await ref
                     .read(sendMessageProvider.notifier)
                     .sendFile(
                       conversationId: widget.conversationId,
                       file: file,
                       type: isImage ? MessageType.image : MessageType.file,
+                      caption: caption,
                     );
+
+                if (!mounted) return;
+
                 if (success) {
                   AnalyticsService.instance.logEvent(
                     name: 'send_message',
@@ -328,6 +380,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       duration: duration,
                       waveform: waveform,
                     );
+
+                if (!mounted) return;
+
                 if (success) {
                   AnalyticsService.instance.logEvent(
                     name: 'send_message',
@@ -396,10 +451,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
     final messages = paginationState.messages as List<MessageEntity>;
 
+    final uploadState = ref.watch(mediaUploadProvider);
+    final isUploadingHere =
+        uploadState.isUploading &&
+        uploadState.conversationId == widget.conversationId;
+    final totalCount =
+        messages.length +
+        (paginationState.isLoadingMore ? 1 : 0) +
+        (isUploadingHere ? 1 : 0);
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 16),
-      itemCount: messages.length + (paginationState.isLoadingMore ? 1 : 0),
+      itemCount: totalCount,
       itemBuilder: (context, index) {
         // Show loading indicator at the top when loading more
         if (paginationState.isLoadingMore && index == 0) {
@@ -418,7 +482,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           );
         }
 
+        // Show uploading skeleton at the bottom
+        if (isUploadingHere && index == totalCount - 1) {
+          return const UploadingMediaSkeleton();
+        }
+
+        // Calculate message index
         final messageIndex = paginationState.isLoadingMore ? index - 1 : index;
+
+        // Safety check
+        if (messageIndex < 0 || messageIndex >= messages.length) {
+          return const SizedBox.shrink();
+        }
+
         final message = messages[messageIndex];
         final isMe = message.senderId == currentUserId;
         final showSenderInfo =
@@ -443,16 +519,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    // Stream other user's profile if it's an individual chat
-    AsyncValue<dynamic>? otherUserAsync;
-    if (!widget.isGroup && widget.otherUserId != null) {
-      // Use the profile provider to get real-time updates
-      otherUserAsync = ref.watch(userStreamProvider(widget.otherUserId!));
-    }
-
-    final otherUser = otherUserAsync?.valueOrNull;
-
+  PreferredSizeWidget _buildAppBar(dynamic otherUser) {
     // Determined displayed name and image
     final displayName =
         widget.isGroup
@@ -502,6 +569,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               );
             }
           } else if (widget.otherUserId != null) {
+            if (otherUser != null &&
+                otherUser.displayName == 'Utilisateur supprimé') {
+              return;
+            }
             debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
             context.push('/profile/${widget.otherUserId}');
           }
@@ -520,7 +591,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     decoration: BoxDecoration(
                       gradient:
                           widget.isGroup
-                              ? AppColors.secondaryGradient
+                              ? context.adaptiveSecondaryGradient
                               : context.adaptivePrimaryGradient,
                       borderRadius: BorderRadius.circular(12),
                     ),

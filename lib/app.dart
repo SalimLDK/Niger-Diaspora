@@ -14,13 +14,20 @@ class NigerDiasporaApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeNotifierProvider);
+    final themeColor = ref.watch(themeColorNotifierProvider);
     final locale = ref.watch(localeNotifierProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme:
+          themeColor == AppThemeColor.orange
+              ? AppTheme.orangeTheme
+              : AppTheme.lightTheme,
+      darkTheme:
+          themeColor == AppThemeColor.orange
+              ? AppTheme.orangeDarkTheme
+              : AppTheme.darkTheme,
       themeMode: _getThemeMode(themeMode),
       routerConfig: router,
       locale: locale,

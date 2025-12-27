@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
@@ -17,8 +18,16 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget {
 
 class _TransactionHistoryScreenState
     extends ConsumerState<TransactionHistoryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   TransactionStatus? _statusFilter;
   DateTimeRange? _dateFilter;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +48,14 @@ class _TransactionHistoryScreenState
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
+                  // Search bar
+                  StandardSearchBar(
+                    controller: _searchController,
+                    hintText: 'Rechercher par bénéficiaire...',
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
+                  ),
                   if (_statusFilter != null || _dateFilter != null)
                     _buildActiveFilters(),
                   Expanded(child: _buildTransactionsList(user.id)),
@@ -116,9 +133,21 @@ class _TransactionHistoryScreenState
             ),
           ),
       data: (transactions) {
-        // Apply filters
-        var filtered =
-            transactions.where((t) {
+        // Apply search filter
+        var filtered = transactions;
+        if (_searchQuery.isNotEmpty) {
+          final lowerQuery = _searchQuery.toLowerCase();
+          filtered =
+              filtered.where((t) {
+                return (t.recipientName?.toLowerCase().contains(lowerQuery) ??
+                        false) ||
+                    t.id.toLowerCase().contains(lowerQuery);
+              }).toList();
+        }
+
+        // Apply status and date filters
+        filtered =
+            filtered.where((t) {
               if (_statusFilter != null && t.status != _statusFilter) {
                 return false;
               }

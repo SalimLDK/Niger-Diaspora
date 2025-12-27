@@ -7,7 +7,7 @@ part of 'embassies_provider.dart';
 // **************************************************************************
 
 String _$embassiesLocalDataSourceHash() =>
-    r'83b3c4476350b6e79be6ec922b1c22c4a813f199';
+    r'9a3aba067b43a20759913f861266b8e16e8cd408';
 
 /// See also [embassiesLocalDataSource].
 @ProviderFor(embassiesLocalDataSource)
@@ -47,25 +47,24 @@ final embassiesRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef EmbassiesRepositoryRef = AutoDisposeProviderRef<EmbassiesRepository>;
-String _$embassiesListHash() => r'755303782c10ca07c18ba539472d1dbfd191dca3';
+String _$embassiesListHash() => r'4453f9532e0a2ca93936dfbe48989547f6267831';
 
 /// See also [embassiesList].
 @ProviderFor(embassiesList)
-final embassiesListProvider =
-    AutoDisposeFutureProvider<List<EmbassyEntity>>.internal(
-      embassiesList,
-      name: r'embassiesListProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$embassiesListHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final embassiesListProvider = FutureProvider<List<EmbassyEntity>>.internal(
+  embassiesList,
+  name: r'embassiesListProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$embassiesListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef EmbassiesListRef = AutoDisposeFutureProviderRef<List<EmbassyEntity>>;
+typedef EmbassiesListRef = FutureProviderRef<List<EmbassyEntity>>;
 String _$embassiesControllerHash() =>
     r'89a63acfdbe13a87de11dfba37b0ac8737bcc3e1';
 

@@ -34,3 +34,12 @@ class AuthException implements Exception {
   @override
   String toString() => 'AuthException: $message (code: $code)';
 }
+
+class ValidationException implements Exception {
+  final String message;
+
+  ValidationException(this.message);
+
+  @override
+  String toString() => 'ValidationException: $message';
+}

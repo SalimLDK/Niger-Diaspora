@@ -26,6 +26,12 @@ class EmbassyEntity extends Equatable {
   final List<EmbassyActivity> activities;
   final List<EmbassyNews> news;
 
+  // Availability fields
+  final bool isTemporarilyClosed;
+  final String? closureMessage;
+  final DateTime? reopenDate;
+  final List<String> upcomingServices; // Services coming soon
+
   const EmbassyEntity({
     required this.id,
     required this.name,
@@ -48,6 +54,10 @@ class EmbassyEntity extends Equatable {
     this.jurisdictionCountries = const [],
     this.activities = const [],
     this.news = const [],
+    this.isTemporarilyClosed = false,
+    this.closureMessage,
+    this.reopenDate,
+    this.upcomingServices = const [],
   });
 
   @override
@@ -73,5 +83,9 @@ class EmbassyEntity extends Equatable {
     jurisdictionCountries,
     activities,
     news,
+    isTemporarilyClosed,
+    closureMessage,
+    reopenDate,
+    upcomingServices,
   ];
 }

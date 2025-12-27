@@ -7,6 +7,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../friends/domain/repositories/friend_repository.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../messages/presentation/providers/media_gallery_provider.dart';
+import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../providers/online_status_provider.dart';
@@ -16,6 +18,8 @@ import '../../../../core/theme/adaptive_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/background_location_service.dart';
+import '../widgets/share_profile_modal.dart';
+import 'package:flutter/services.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -133,6 +137,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
       await ref
           .read(profileNotifierProvider.notifier)
           .loadProfile(widget.userId);
+
+      if (!mounted) return;
+
       final profile = ref.read(profileNotifierProvider).valueOrNull;
       debugPrint('✅ ProfileViewScreen: Profile loaded successfully');
       debugPrint('   - displayName: ${profile?.displayName}');
@@ -141,12 +148,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
       debugPrint('   - bio: ${profile?.bio}');
       debugPrint('   - currentCity: ${profile?.currentCity}');
       debugPrint('   - skills: ${profile?.skills}');
-      if (mounted) {
-        setState(() {
-          _profile = profile;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _profile = profile;
+        _isLoading = false;
+      });
     } catch (e, stackTrace) {
       debugPrint('❌ ProfileViewScreen: Error loading profile: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -164,7 +169,15 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
   }
 
   Future<void> _startConversation() async {
-    if (_profile == null) return;
+    if (_profile == null || _profile!.displayName == 'Utilisateur supprimé') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de discuter avec un utilisateur supprimé'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     // Create or get existing conversation with this user
     final conversation = await ref
@@ -185,7 +198,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
   }
 
   Future<void> _sendFriendRequest() async {
-    if (_profile == null) return;
+    if (_profile == null || _profile!.displayName == 'Utilisateur supprimé') {
+      return;
+    }
 
     final l10n = AppLocalizations.of(context)!;
     final success = await ref
@@ -245,6 +260,33 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
       return l10n.fromCity(city);
     }
     return '';
+  }
+
+  Widget _buildMediaSection(BuildContext context, WidgetRef ref) {
+    // Récupérer l'ID de la conversation avec cet utilisateur
+    final conversationIdAsync = ref.watch(
+      userConversationIdProvider(widget.userId),
+    );
+
+    return conversationIdAsync.when(
+      data: (conversationId) {
+        if (conversationId == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: MediaGalleryCompact(
+            conversationId: conversationId,
+            onViewAll: () {
+              context.push('/messages/$conversationId/media');
+            },
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   @override
@@ -340,6 +382,32 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
               ),
               onPressed: () => context.pop(),
             ),
+            actions: [
+              if (_profile?.displayName != 'Utilisateur supprimé')
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: context.surfaceColor.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.share_outlined,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ShareProfileDialog.show(
+                      context,
+                      userName: _profile?.displayName,
+                      userPhotoUrl: _profile?.photoUrl,
+                      userId: _profile?.id,
+                    );
+                  },
+                ),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -536,6 +604,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Médias partagés (si conversation existante)
+                  _buildMediaSection(context, ref),
 
                   // Compétences
                   Text(

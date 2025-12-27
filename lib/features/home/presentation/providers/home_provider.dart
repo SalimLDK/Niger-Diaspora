@@ -18,7 +18,7 @@ class HomeStats {
   });
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class HomeStatsNotifier extends _$HomeStatsNotifier {
   @override
   Future<HomeStats> build() async {

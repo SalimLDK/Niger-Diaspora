@@ -1379,6 +1379,12 @@ abstract class AppLocalizations {
   /// **'Créateur'**
   String get creator;
 
+  /// No description provided for @noOtherMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun autre membre pour le moment'**
+  String get noOtherMembers;
+
   /// No description provided for @discussion.
   ///
   /// In fr, this message translates to:

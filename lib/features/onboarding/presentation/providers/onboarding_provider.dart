@@ -24,6 +24,7 @@ Future<OnboardingRepository> onboardingRepository(Ref ref) async {
   return OnboardingRepositoryImpl(
     localDataSource: localDataSource,
     remoteDataSource: remoteDataSource,
+    firebaseAuth: FirebaseAuth.instance,
   );
 }
 

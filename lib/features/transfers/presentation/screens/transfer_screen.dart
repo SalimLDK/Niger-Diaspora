@@ -28,7 +28,7 @@ class TransferScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline),
-            onPressed: () => context.push('/transfers/recipients'),
+            onPressed: () => context.push('/transfers/recipient'),
             tooltip: 'Beneficiaires',
           ),
           IconButton(
@@ -114,6 +114,8 @@ class TransferScreen extends ConsumerWidget {
 
           Expanded(
             child: transactionsAsync.when(
+              skipLoadingOnRefresh: true,
+              skipLoadingOnReload: true,
               data: (transactions) {
                 if (transactions.isEmpty) {
                   return Center(

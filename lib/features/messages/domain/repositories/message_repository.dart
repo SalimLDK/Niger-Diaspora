@@ -54,6 +54,8 @@ abstract class MessageRepository {
     required File file,
     required MessageType type,
     String? caption,
+    void Function(double)? onProgress,
+    bool Function()? checkCancelled,
   });
 
   /// Créer une conversation individuelle
@@ -114,6 +116,12 @@ abstract class MessageRepository {
   /// Trouver l'ID de la conversation de groupe par nom
   Future<Either<Failure, String?>> findGroupConversationByName({
     required String groupName,
+    required String userId,
+  });
+
+  /// Trouver l'ID de la conversation de groupe par ID du groupe
+  Future<Either<Failure, String?>> findGroupConversationByGroupId({
+    required String groupId,
     required String userId,
   });
 
