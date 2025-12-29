@@ -30,17 +30,17 @@ class StripeService {
   /// Typically called during app startup in main.dart.
   Future<void> initialize() async {
     if (_isInitialized) {
-      debugPrint('Stripe already initialized');
+      // debugPrint('Stripe already initialized');
       return;
     }
 
     try {
       // Validate configuration
       if (!AppConfig.isStripeConfigured) {
-        debugPrint(
-          '⚠️ Stripe not configured properly. '
-          'Please set your Stripe publishable key in app_config.dart',
-        );
+        // debugPrint(
+        //   '⚠️ Stripe not configured properly. '
+        //   'Please set your Stripe publishable key in app_config.dart',
+        // );
         return;
       }
 
@@ -55,12 +55,12 @@ class StripeService {
 
       _isInitialized = true;
 
-      debugPrint(
-        '✅ Stripe initialized successfully '
-        '(${AppConfig.isProduction ? 'PRODUCTION' : 'TEST'} mode)',
-      );
+      // debugPrint(
+      //   '✅ Stripe initialized successfully '
+      //   '(${AppConfig.isProduction ? 'PRODUCTION' : 'TEST'} mode)',
+      // );
     } catch (e) {
-      debugPrint('❌ Error initializing Stripe: $e');
+      // debugPrint('❌ Error initializing Stripe: $e');
       rethrow;
     }
   }
@@ -80,7 +80,7 @@ class StripeService {
     }
 
     try {
-      debugPrint('Creating payment intent for transaction: $transactionId');
+      // debugPrint('Creating payment intent for transaction: $transactionId');
 
       // 1. Create payment intent via Cloud Function
       final paymentData = await _createPaymentIntent(
