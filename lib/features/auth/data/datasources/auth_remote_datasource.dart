@@ -59,7 +59,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('User is null after sign in');
       }
 
-      await _updateLastLogin(credential.user!.uid);
+      // Ensure user document exists and update last login
+      await _createOrUpdateUserDocument(
+        credential.user!,
+        email: credential.user!.email,
+      );
 
       return _getUserDataFromFirestore(credential.user!);
     } on FirebaseAuthException catch (e) {
@@ -351,23 +355,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'lastLoginAt': FieldValue.serverTimestamp(),
       });
     } else {
+      final data = docSnapshot.data() ?? {};
       final updates = <String, dynamic>{
         'lastLoginAt': FieldValue.serverTimestamp(),
       };
 
+      // Initialize onboarding fields if missing (for existing users before these fields were added)
+      if (data['hasSeenOnboarding'] == null) {
+        updates['hasSeenOnboarding'] = false;
+      }
+      if (data['hasGivenConsent'] == null) {
+        updates['hasGivenConsent'] = false;
+      }
+      if (data['profileConfigComplete'] == null) {
+        updates['profileConfigComplete'] = false;
+      }
+
       // If we have explicit fresh data, make sure existing doc is updated too
-      // (in case it existed but was incomplete)
       if (displayName != null) updates['displayName'] = displayName;
       if (photoUrl != null) updates['photoUrl'] = photoUrl;
 
-      await userDoc.update(updates);
+      await userDoc.set(updates, SetOptions(merge: true));
     }
-  }
-
-  Future<void> _updateLastLogin(String userId) async {
-    await _firestore.collection('users').doc(userId).update({
-      'lastLoginAt': FieldValue.serverTimestamp(),
-    });
   }
 
   String _mapFirebaseAuthError(String code) {

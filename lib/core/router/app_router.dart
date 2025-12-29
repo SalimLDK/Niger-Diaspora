@@ -58,6 +58,7 @@ import '../../features/marketplace/presentation/screens/product_detail_screen.da
 import '../../features/marketplace/presentation/screens/create_product_screen.dart';
 import '../../features/marketplace/presentation/screens/cart_screen.dart';
 import '../../features/marketplace/presentation/screens/my_products_screen.dart';
+import '../../features/marketplace/presentation/screens/my_orders_screen.dart';
 import '../../features/marketplace/domain/entities/product_entity.dart';
 // Transfers
 import '../../features/transfers/presentation/screens/transfer_screen.dart';
@@ -425,6 +426,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/marketplace/my-listings',
         builder: (context, state) => const MyProductsScreen(),
+      ),
+      GoRoute(
+        path: '/marketplace/my-orders',
+        builder: (context, state) => const MyOrdersScreen(),
       ),
       GoRoute(
         path: '/marketplace/:productId',

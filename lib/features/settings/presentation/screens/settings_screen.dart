@@ -57,7 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error loading global background: $e');
+      // debugPrint('Error loading global background: $e');
     }
   }
 
@@ -462,105 +462,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (ctx) => Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: ctx.surfaceColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Choisir la devise',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: ctx.textPrimaryColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Les prix seront affiches dans cette devise',
-                  style: TextStyle(fontSize: 14, color: ctx.textSecondaryColor),
-                ),
-                const SizedBox(height: 20),
-                ...Currency.values.map((currency) {
-                  final isSelected = currency == currentCurrency;
-                  return _buildCurrencyOption(ctx, currency, isSelected);
-                }),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
+      isScrollControlled: true,
+      builder: (ctx) => _CurrencySelectorModal(
+        currentCurrency: currentCurrency,
+        onSelect: (currency) {
+          ref.read(selectedDisplayCurrencyProvider.notifier).select(currency);
+          Navigator.pop(ctx);
+        },
+      ),
     );
   }
 
-  Widget _buildCurrencyOption(
-    BuildContext ctx,
-    Currency currency,
-    bool isSelected,
-  ) {
-    return ListTile(
-      tileColor: ctx.surfaceColor,
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? ctx.adaptivePrimaryColor.withValues(alpha: 0.1)
-                  : ctx.borderColor.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            currency.symbol,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color:
-                  isSelected ? ctx.adaptivePrimaryColor : ctx.textPrimaryColor,
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        currency.name.toUpperCase(),
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? ctx.adaptivePrimaryColor : ctx.textPrimaryColor,
-        ),
-      ),
-      subtitle: Text(
-        currency.name,
-        style: TextStyle(fontSize: 13, color: ctx.textSecondaryColor),
-      ),
-      trailing:
-          isSelected
-              ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
-              : null,
-      onTap: () {
-        ref.read(selectedDisplayCurrencyProvider.notifier).select(currency);
-        Navigator.pop(context);
-      },
-    );
-  }
 
   String _getThemeLabel(AppThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
@@ -1467,6 +1379,316 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ============================================================================
+// Currency Selector Modal with categories and search
+// ============================================================================
+
+class _CurrencySelectorModal extends StatefulWidget {
+  final Currency currentCurrency;
+  final void Function(Currency) onSelect;
+
+  const _CurrencySelectorModal({
+    required this.currentCurrency,
+    required this.onSelect,
+  });
+
+  @override
+  State<_CurrencySelectorModal> createState() => _CurrencySelectorModalState();
+}
+
+class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  // Currency categories
+  static const _categories = <String, List<Currency>>{
+    'Devises principales': [
+      Currency.xof,
+      Currency.eur,
+      Currency.usd,
+      Currency.gbp,
+      Currency.cad,
+      Currency.chf,
+    ],
+    'Afrique': [
+      Currency.xaf,
+      Currency.ngn,
+      Currency.ghs,
+      Currency.mad,
+      Currency.zar,
+      Currency.kes,
+      Currency.egp,
+      Currency.tzs,
+      Currency.etb,
+    ],
+    'Asie': [
+      Currency.cny,
+      Currency.jpy,
+      Currency.inr,
+      Currency.krw,
+      Currency.sgd,
+      Currency.hkd,
+      Currency.thb,
+      Currency.myr,
+      Currency.php,
+      Currency.idr,
+      Currency.vnd,
+      Currency.pkr,
+    ],
+    'Europe': [
+      Currency.sek,
+      Currency.nok,
+      Currency.dkk,
+      Currency.pln,
+      Currency.czk,
+      Currency.try_,
+      Currency.rub,
+    ],
+    'Ameriques': [
+      Currency.mxn,
+      Currency.ars,
+      Currency.clp,
+      Currency.cop,
+      Currency.brl,
+    ],
+    'Oceanie & Moyen-Orient': [
+      Currency.aud,
+      Currency.nzd,
+      Currency.aed,
+      Currency.sar,
+      Currency.qar,
+      Currency.kwd,
+    ],
+  };
+
+  List<Currency> get _filteredCurrencies {
+    if (_searchQuery.isEmpty) {
+      return Currency.values;
+    }
+    final query = _searchQuery.toLowerCase();
+    return Currency.values.where((c) {
+      return c.code.toLowerCase().contains(query) ||
+          c.name.toLowerCase().contains(query) ||
+          c.symbol.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isSearching = _searchQuery.isNotEmpty;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Choisir la devise',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Les prix seront affiches dans cette devise',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Search bar
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher une devise...',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() => _searchQuery = value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Currency list
+              Expanded(
+                child: isSearching
+                    ? _buildSearchResults(scrollController)
+                    : _buildCategorizedList(scrollController),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResults(ScrollController scrollController) {
+    final currencies = _filteredCurrencies;
+
+    if (currencies.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: context.textTertiaryColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucune devise trouvee',
+              style: TextStyle(color: context.textSecondaryColor),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: currencies.length,
+      itemBuilder: (context, index) {
+        final currency = currencies[index];
+        return _buildCurrencyTile(currency);
+      },
+    );
+  }
+
+  Widget _buildCategorizedList(ScrollController scrollController) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: [
+        for (final entry in _categories.entries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+            child: Text(
+              entry.key,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: context.textTertiaryColor,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          ...entry.value.map((currency) => _buildCurrencyTile(currency)),
+        ],
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildCurrencyTile(Currency currency) {
+    final isSelected = currency == widget.currentCurrency;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      leading: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
+              : context.borderColor.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Text(
+            currency.flag,
+            style: const TextStyle(fontSize: 22),
+          ),
+        ),
+      ),
+      title: Row(
+        children: [
+          Text(
+            currency.code,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected
+                  ? context.adaptivePrimaryColor
+                  : context.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            currency.symbol,
+            style: TextStyle(
+              fontSize: 14,
+              color: context.textSecondaryColor,
+            ),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        currency.name,
+        style: TextStyle(
+          fontSize: 13,
+          color: context.textSecondaryColor,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
+          : null,
+      onTap: () => widget.onSelect(currency),
     );
   }
 }

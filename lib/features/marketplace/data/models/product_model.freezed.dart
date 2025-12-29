@@ -33,6 +33,8 @@ mixin _$ProductModel {
   String get category => throw _privateConstructorUsedError;
   String get condition => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
+  String? get country =>
+      throw _privateConstructorUsedError; // Country name for filtering
   bool get isAvailable => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   int get viewCount => throw _privateConstructorUsedError;
@@ -75,6 +77,7 @@ abstract class $ProductModelCopyWith<$Res> {
     String category,
     String condition,
     String? location,
+    String? country,
     bool isAvailable,
     int quantity,
     int viewCount,
@@ -114,6 +117,7 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
     Object? category = null,
     Object? condition = null,
     Object? location = freezed,
+    Object? country = freezed,
     Object? isAvailable = null,
     Object? quantity = null,
     Object? viewCount = null,
@@ -185,6 +189,11 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
                 freezed == location
                     ? _value.location
                     : location // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
                         as String?,
             isAvailable:
                 null == isAvailable
@@ -259,6 +268,7 @@ abstract class _$$ProductModelImplCopyWith<$Res>
     String category,
     String condition,
     String? location,
+    String? country,
     bool isAvailable,
     int quantity,
     int viewCount,
@@ -297,6 +307,7 @@ class __$$ProductModelImplCopyWithImpl<$Res>
     Object? category = null,
     Object? condition = null,
     Object? location = freezed,
+    Object? country = freezed,
     Object? isAvailable = null,
     Object? quantity = null,
     Object? viewCount = null,
@@ -369,6 +380,11 @@ class __$$ProductModelImplCopyWithImpl<$Res>
                 ? _value.location
                 : location // ignore: cast_nullable_to_non_nullable
                     as String?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
+                    as String?,
         isAvailable:
             null == isAvailable
                 ? _value.isAvailable
@@ -435,6 +451,7 @@ class _$ProductModelImpl extends _ProductModel {
     this.category = 'other',
     this.condition = 'newProduct',
     this.location,
+    this.country,
     this.isAvailable = true,
     this.quantity = 1,
     this.viewCount = 0,
@@ -486,6 +503,9 @@ class _$ProductModelImpl extends _ProductModel {
   @override
   final String? location;
   @override
+  final String? country;
+  // Country name for filtering
+  @override
   @JsonKey()
   final bool isAvailable;
   @override
@@ -521,7 +541,7 @@ class _$ProductModelImpl extends _ProductModel {
 
   @override
   String toString() {
-    return 'ProductModel(id: $id, sellerId: $sellerId, sellerName: $sellerName, sellerPhotoUrl: $sellerPhotoUrl, title: $title, description: $description, price: $price, currency: $currency, imageUrls: $imageUrls, category: $category, condition: $condition, location: $location, isAvailable: $isAvailable, quantity: $quantity, viewCount: $viewCount, tags: $tags, isTaxable: $isTaxable, customTaxRate: $customTaxRate, taxIncludedInPrice: $taxIncludedInPrice, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ProductModel(id: $id, sellerId: $sellerId, sellerName: $sellerName, sellerPhotoUrl: $sellerPhotoUrl, title: $title, description: $description, price: $price, currency: $currency, imageUrls: $imageUrls, category: $category, condition: $condition, location: $location, country: $country, isAvailable: $isAvailable, quantity: $quantity, viewCount: $viewCount, tags: $tags, isTaxable: $isTaxable, customTaxRate: $customTaxRate, taxIncludedInPrice: $taxIncludedInPrice, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -552,6 +572,7 @@ class _$ProductModelImpl extends _ProductModel {
                 other.condition == condition) &&
             (identical(other.location, location) ||
                 other.location == location) &&
+            (identical(other.country, country) || other.country == country) &&
             (identical(other.isAvailable, isAvailable) ||
                 other.isAvailable == isAvailable) &&
             (identical(other.quantity, quantity) ||
@@ -587,6 +608,7 @@ class _$ProductModelImpl extends _ProductModel {
     category,
     condition,
     location,
+    country,
     isAvailable,
     quantity,
     viewCount,
@@ -626,6 +648,7 @@ abstract class _ProductModel extends ProductModel {
     final String category,
     final String condition,
     final String? location,
+    final String? country,
     final bool isAvailable,
     final int quantity,
     final int viewCount,
@@ -665,6 +688,8 @@ abstract class _ProductModel extends ProductModel {
   String get condition;
   @override
   String? get location;
+  @override
+  String? get country; // Country name for filtering
   @override
   bool get isAvailable;
   @override

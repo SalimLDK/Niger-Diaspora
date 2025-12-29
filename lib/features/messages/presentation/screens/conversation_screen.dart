@@ -53,7 +53,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
 }
 
 class _ConversationScreenState extends ConsumerState<ConversationScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   bool _isNearBottom = true;
 
@@ -76,11 +76,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   @override
   void initState() {
     super.initState();
-    debugPrint('🔍 ConversationScreen initialized:');
-    debugPrint('   conversationId: ${widget.conversationId}');
-    debugPrint('   isGroup: ${widget.isGroup}');
-    debugPrint('   groupId: ${widget.groupId}');
-    debugPrint('   otherUserId: ${widget.otherUserId}');
+    WidgetsBinding.instance.addObserver(this);
+    // debugPrint('🔍 ConversationScreen initialized:');
+    // debugPrint('   conversationId: ${widget.conversationId}');
+    // debugPrint('   isGroup: ${widget.isGroup}');
+    // debugPrint('   groupId: ${widget.groupId}');
+    // debugPrint('   otherUserId: ${widget.otherUserId}');
 
     _scrollController.addListener(_onScroll);
 
@@ -103,11 +104,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _scrollButtonController.dispose();
     _showScrollToBottomButton.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh date separators when app resumes from background
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        // Force rebuild to update date labels like "Aujourd'hui", "Hier"
+      });
+    }
   }
 
   void _onScroll() {
@@ -194,9 +207,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Validate required fields exist
     if (data['id'] == null || data['senderId'] == null) {
-      debugPrint(
-        '⚠️ Invalid reply data: missing id or senderId. Data: $data',
-      );
+      // debugPrint(
+      //   '⚠️ Invalid reply data: missing id or senderId. Data: $data',
+      // );
       return null;
     }
 
@@ -217,8 +230,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         fileName: data['fileName'] as String?,
       );
     } catch (e) {
-      debugPrint('❌ Error parsing reply entity: $e');
-      debugPrint('   Data: $data');
+      // debugPrint('❌ Error parsing reply entity: $e');
+      // debugPrint('   Data: $data');
       return null;
     }
   }
@@ -261,7 +274,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         });
       }
     } catch (e) {
-      debugPrint('Error loading chat background: $e');
+      // debugPrint('Error loading chat background: $e');
     }
   }
 
@@ -280,14 +293,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   Future<void> _handleReact(MessageEntity message, String emoji) async {
-    debugPrint('🎭 _handleReact called');
+    // debugPrint('🎭 _handleReact called');
     try {
       await ref
           .read(paginatedMessagesProvider(widget.conversationId).notifier)
           .toggleReaction(message.id, emoji);
-      debugPrint('   ✅ Reaction toggled (optimistic)');
+      // debugPrint('   ✅ Reaction toggled (optimistic)');
     } catch (e) {
-      debugPrint('  ❌ Error toggling reaction: $e');
+      // debugPrint('  ❌ Error toggling reaction: $e');
     }
   }
 
@@ -339,12 +352,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   // Check if we need a date separator
   bool _needsDateSeparator(List<MessageEntity> messages, int index) {
-    debugPrint(
-      '📅 _needsDateSeparator called: index=$index, total=${messages.length}',
-    );
+    // debugPrint(
+    //   '📅 _needsDateSeparator called: index=$index, total=${messages.length}',
+    // );
 
     if (index == 0) {
-      debugPrint('   ✅ First message, showing separator');
+      // debugPrint('   ✅ First message, showing separator');
       return true;
     }
 
@@ -363,10 +376,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
 
     final needsSeparator = currentDate != previousDate;
-    debugPrint('   Current: $currentDate, Previous: $previousDate');
-    debugPrint(
-      '   ${needsSeparator ? "✅ Different dates" : "❌ Same date"} -> needsSeparator=$needsSeparator',
-    );
+    // debugPrint('   Current: $currentDate, Previous: $previousDate');
+    // debugPrint(
+    //   '   ${needsSeparator ? "✅ Different dates" : "❌ Same date"} -> needsSeparator=$needsSeparator',
+    // );
 
     return needsSeparator;
   }
@@ -813,7 +826,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       return _buildEmptyState();
     }
 
-    final messages = paginationState.messages as List<MessageEntity>;
+    final allMessages = paginationState.messages as List<MessageEntity>;
+    // Filter out deleted messages for proper date separator calculation
+    final messages =
+        currentUserId != null
+            ? allMessages.where((m) => !m.isDeletedFor(currentUserId)).toList()
+            : allMessages;
+
+    if (messages.isEmpty) {
+      return _buildEmptyState();
+    }
 
     final uploadState = ref.watch(mediaUploadProvider);
     final isUploadingHere =
@@ -824,9 +846,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         (paginationState.isLoadingMore ? 1 : 0) +
         (isUploadingHere ? 1 : 0);
 
+    // Calculate top padding - add extra when body extends behind app bar
+    final topPadding =
+        (_chatBackground != null && !_chatBackground!.isDefault)
+            ? MediaQuery.of(context).padding.top + kToolbarHeight + 16
+            : 16.0;
+
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.only(top: topPadding, bottom: 16),
       itemCount: totalCount,
       itemBuilder: (context, index) {
         // Show loading indicator at the top when loading more
@@ -860,12 +888,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         }
 
         final message = messages[messageIndex];
-
-        // Hide message if deleted for current user
-        if (currentUserId != null && message.isDeletedFor(currentUserId)) {
-          return const SizedBox.shrink();
-        }
-
         final isMe = message.senderId == currentUserId;
 
         // Get group position for linked bubbles
@@ -885,7 +907,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
         // Check if we need a date separator
         final needsSeparator = _needsDateSeparator(messages, messageIndex);
-        debugPrint('🔹 Message $messageIndex: needsSeparator=$needsSeparator');
+        // debugPrint('🔹 Message $messageIndex: needsSeparator=$needsSeparator');
 
         final conversation =
             ref
@@ -941,10 +963,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   Widget _buildDateSeparator(DateTime date, AppLocalizations l10n) {
-    final label = _getDateLabel(date, l10n);
-    debugPrint(
-      '🔷 _buildDateSeparator: Building separator with label="$label" for date=$date',
-    );
+    // final label = _getDateLabel(date, l10n);
+    // debugPrint(
+    //   '🔷 _buildDateSeparator: Building separator with label="$label" for date=$date',
+    // );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1027,44 +1049,47 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     return AppBar(
       backgroundColor: context.surfaceColor,
       elevation: 0,
+      titleSpacing: 0,
+      leadingWidth: 40,
       leading: IconButton(
+        padding: EdgeInsets.zero,
         onPressed: () => Navigator.of(context).pop(),
         icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
       ),
       title: InkWell(
         onTap: () async {
-          debugPrint('🔘 Tapped conversation header:');
-          debugPrint('   isGroup: ${widget.isGroup}');
-          debugPrint('   groupId: ${widget.groupId}');
-          debugPrint('   otherUserId: ${widget.otherUserId}');
+          // debugPrint('🔘 Tapped conversation header:');
+          // debugPrint('   isGroup: ${widget.isGroup}');
+          // debugPrint('   groupId: ${widget.groupId}');
+          // debugPrint('   otherUserId: ${widget.otherUserId}');
 
           if (widget.isGroup) {
             String? groupIdToUse = widget.groupId;
 
             if (groupIdToUse == null && widget.conversationName != null) {
-              debugPrint(
-                '   🔍 groupId is null, searching by name: ${widget.conversationName}',
-              );
+              // debugPrint(
+              //   '   🔍 groupId is null, searching by name: ${widget.conversationName}',
+              // );
               final group = await ref.read(
                 groupByNameProvider(widget.conversationName!).future,
               );
               groupIdToUse = group?.id;
-              debugPrint('   📍 Found groupId: $groupIdToUse');
+              // debugPrint('   📍 Found groupId: $groupIdToUse');
             }
 
             if (groupIdToUse != null && mounted) {
-              debugPrint('   ➡️ Navigating to /groups/$groupIdToUse');
+              // debugPrint('   ➡️ Navigating to /groups/$groupIdToUse');
               context.push('/groups/$groupIdToUse');
             } else {
-              debugPrint(
-                '   ⚠️ Cannot navigate: groupId is null and group not found!',
-              );
+              // debugPrint(
+              //   '   ⚠️ Cannot navigate: groupId is null and group not found!',
+              // );
             }
           } else if (widget.otherUserId != null) {
             if (isDeletedUser) {
               return;
             }
-            debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
+            // debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
             context.push('/profile/${widget.otherUserId}');
           }
         },

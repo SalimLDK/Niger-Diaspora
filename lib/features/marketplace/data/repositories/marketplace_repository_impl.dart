@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/entities/order_entity.dart';
 import '../../domain/repositories/marketplace_repository.dart';
@@ -9,22 +10,27 @@ import '../models/order_model.dart';
 
 class MarketplaceRepositoryImpl implements MarketplaceRepository {
   final MarketplaceRemoteDatasource _remoteDatasource;
+  final NotificationService _notificationService;
 
   MarketplaceRepositoryImpl({
     required MarketplaceRemoteDatasource remoteDatasource,
-  }) : _remoteDatasource = remoteDatasource;
+    NotificationService? notificationService,
+  })  : _remoteDatasource = remoteDatasource,
+        _notificationService = notificationService ?? NotificationService();
 
   // ============ PRODUCTS ============
 
   @override
   Future<Either<Failure, List<ProductEntity>>> getProducts({
     ProductCategory? category,
+    Country? country,
     String? sellerId,
     int limit = 20,
   }) async {
     try {
       final products = await _remoteDatasource.getProducts(
         category: category?.name,
+        country: country?.name,
         sellerId: sellerId,
         limit: limit,
       );
@@ -153,6 +159,7 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
     required int quantity,
     String? shippingAddress,
     String? buyerNote,
+    String? sessionId,
     double platformFeePercent = 0.05,
   }) async {
     try {
@@ -164,6 +171,7 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
 
       final orderModel = OrderModel(
         id: '',
+        sessionId: sessionId,
         productId: product.id,
         productTitle: product.title,
         productImageUrl:
@@ -184,6 +192,16 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
       );
 
       final created = await _remoteDatasource.createOrder(orderModel);
+
+      // Notify seller about new order
+      await _notificationService.createNotification(
+        userId: product.sellerId,
+        title: 'Nouvelle commande',
+        body: '${buyerName ?? "Un acheteur"} a commandé ${product.title}',
+        type: 'newOrder',
+        targetId: created.id,
+      );
+
       return Right(created.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -194,6 +212,16 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   Future<Either<Failure, OrderEntity>> payOrder(String orderId) async {
     try {
       final order = await _remoteDatasource.updateOrderStatus(orderId, 'paid');
+
+      // Notify seller about payment
+      await _notificationService.createNotification(
+        userId: order.sellerId,
+        title: 'Paiement recu',
+        body: 'La commande de ${order.productTitle} a ete payee',
+        type: 'orderPaid',
+        targetId: orderId,
+      );
+
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -210,6 +238,16 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
         orderId,
         trackingNumber,
       );
+
+      // Notify buyer about shipment
+      await _notificationService.createNotification(
+        userId: order.buyerId,
+        title: 'Commande expediee',
+        body: 'Votre commande de ${order.productTitle} a ete expediee',
+        type: 'orderShipped',
+        targetId: orderId,
+      );
+
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -220,6 +258,16 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   Future<Either<Failure, OrderEntity>> confirmDelivery(String orderId) async {
     try {
       final order = await _remoteDatasource.confirmDelivery(orderId);
+
+      // Notify seller about delivery confirmation
+      await _notificationService.createNotification(
+        userId: order.sellerId,
+        title: 'Livraison confirmee',
+        body: 'L\'acheteur a confirme la reception de ${order.productTitle}',
+        type: 'orderDelivered',
+        targetId: orderId,
+      );
+
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -243,6 +291,24 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   ) async {
     try {
       final order = await _remoteDatasource.cancelOrder(orderId, reason);
+
+      // Notify both buyer and seller about cancellation
+      await _notificationService.createNotification(
+        userId: order.buyerId,
+        title: 'Commande annulee',
+        body: 'La commande de ${order.productTitle} a ete annulee',
+        type: 'orderCancelled',
+        targetId: orderId,
+      );
+
+      await _notificationService.createNotification(
+        userId: order.sellerId,
+        title: 'Commande annulee',
+        body: 'La commande de ${order.productTitle} a ete annulee',
+        type: 'orderCancelled',
+        targetId: orderId,
+      );
+
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));

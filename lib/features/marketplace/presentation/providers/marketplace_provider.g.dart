@@ -48,7 +48,7 @@ final marketplaceRepositoryProvider =
 // ignore: unused_element
 typedef MarketplaceRepositoryRef =
     AutoDisposeProviderRef<MarketplaceRepository>;
-String _$productsHash() => r'97a5d4c415d58d6502b65448950dedfc9fea62e8';
+String _$productsHash() => r'05e949b2a9568203d07123dc2360c066e1d0ae68';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -81,13 +81,25 @@ class ProductsFamily extends Family<AsyncValue<List<ProductEntity>>> {
   const ProductsFamily();
 
   /// See also [products].
-  ProductsProvider call({ProductCategory? category, String? sellerId}) {
-    return ProductsProvider(category: category, sellerId: sellerId);
+  ProductsProvider call({
+    ProductCategory? category,
+    Country? country,
+    String? sellerId,
+  }) {
+    return ProductsProvider(
+      category: category,
+      country: country,
+      sellerId: sellerId,
+    );
   }
 
   @override
   ProductsProvider getProviderOverride(covariant ProductsProvider provider) {
-    return call(category: provider.category, sellerId: provider.sellerId);
+    return call(
+      category: provider.category,
+      country: provider.country,
+      sellerId: provider.sellerId,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -108,24 +120,29 @@ class ProductsFamily extends Family<AsyncValue<List<ProductEntity>>> {
 /// See also [products].
 class ProductsProvider extends FutureProvider<List<ProductEntity>> {
   /// See also [products].
-  ProductsProvider({ProductCategory? category, String? sellerId})
-    : this._internal(
-        (ref) => products(
-          ref as ProductsRef,
-          category: category,
-          sellerId: sellerId,
-        ),
-        from: productsProvider,
-        name: r'productsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$productsHash,
-        dependencies: ProductsFamily._dependencies,
-        allTransitiveDependencies: ProductsFamily._allTransitiveDependencies,
-        category: category,
-        sellerId: sellerId,
-      );
+  ProductsProvider({
+    ProductCategory? category,
+    Country? country,
+    String? sellerId,
+  }) : this._internal(
+         (ref) => products(
+           ref as ProductsRef,
+           category: category,
+           country: country,
+           sellerId: sellerId,
+         ),
+         from: productsProvider,
+         name: r'productsProvider',
+         debugGetCreateSourceHash:
+             const bool.fromEnvironment('dart.vm.product')
+                 ? null
+                 : _$productsHash,
+         dependencies: ProductsFamily._dependencies,
+         allTransitiveDependencies: ProductsFamily._allTransitiveDependencies,
+         category: category,
+         country: country,
+         sellerId: sellerId,
+       );
 
   ProductsProvider._internal(
     super._createNotifier, {
@@ -135,10 +152,12 @@ class ProductsProvider extends FutureProvider<List<ProductEntity>> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.category,
+    required this.country,
     required this.sellerId,
   }) : super.internal();
 
   final ProductCategory? category;
+  final Country? country;
   final String? sellerId;
 
   @override
@@ -155,6 +174,7 @@ class ProductsProvider extends FutureProvider<List<ProductEntity>> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         category: category,
+        country: country,
         sellerId: sellerId,
       ),
     );
@@ -169,6 +189,7 @@ class ProductsProvider extends FutureProvider<List<ProductEntity>> {
   bool operator ==(Object other) {
     return other is ProductsProvider &&
         other.category == category &&
+        other.country == country &&
         other.sellerId == sellerId;
   }
 
@@ -176,6 +197,7 @@ class ProductsProvider extends FutureProvider<List<ProductEntity>> {
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, category.hashCode);
+    hash = _SystemHash.combine(hash, country.hashCode);
     hash = _SystemHash.combine(hash, sellerId.hashCode);
 
     return _SystemHash.finish(hash);
@@ -188,6 +210,9 @@ mixin ProductsRef on FutureProviderRef<List<ProductEntity>> {
   /// The parameter `category` of this provider.
   ProductCategory? get category;
 
+  /// The parameter `country` of this provider.
+  Country? get country;
+
   /// The parameter `sellerId` of this provider.
   String? get sellerId;
 }
@@ -199,6 +224,8 @@ class _ProductsProviderElement
 
   @override
   ProductCategory? get category => (origin as ProductsProvider).category;
+  @override
+  Country? get country => (origin as ProductsProvider).country;
   @override
   String? get sellerId => (origin as ProductsProvider).sellerId;
 }
@@ -1171,7 +1198,254 @@ class _WatchOrderProviderElement
   String get orderId => (origin as WatchOrderProvider).orderId;
 }
 
-String _$productNotifierHash() => r'68d5c03ba406171cf7cdbf7f6d42dbd6620a972a';
+String _$cartTotalInPreferredCurrencyHash() =>
+    r'698faf7f639edb41eac6cc0e650b89b78a10ce25';
+
+/// Provider pour le total du panier converti dans la devise preferee de l'utilisateur
+///
+/// Copied from [cartTotalInPreferredCurrency].
+@ProviderFor(cartTotalInPreferredCurrency)
+final cartTotalInPreferredCurrencyProvider =
+    AutoDisposeProvider<double>.internal(
+      cartTotalInPreferredCurrency,
+      name: r'cartTotalInPreferredCurrencyProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$cartTotalInPreferredCurrencyHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CartTotalInPreferredCurrencyRef = AutoDisposeProviderRef<double>;
+String _$formattedCartTotalHash() =>
+    r'2d7e42b18ace58ad9962ede79d83c5f6d58abff7';
+
+/// Provider pour le total du panier formate avec le symbole de devise
+///
+/// Copied from [formattedCartTotal].
+@ProviderFor(formattedCartTotal)
+final formattedCartTotalProvider = AutoDisposeProvider<String>.internal(
+  formattedCartTotal,
+  name: r'formattedCartTotalProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$formattedCartTotalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FormattedCartTotalRef = AutoDisposeProviderRef<String>;
+String _$cartItemConvertedHash() => r'0f0e68a379b14b11dfa2c7a51b2d28ff8da70dbf';
+
+/// Provider pour obtenir le prix d'un article du panier converti
+///
+/// Copied from [cartItemConverted].
+@ProviderFor(cartItemConverted)
+const cartItemConvertedProvider = CartItemConvertedFamily();
+
+/// Provider pour obtenir le prix d'un article du panier converti
+///
+/// Copied from [cartItemConverted].
+class CartItemConvertedFamily
+    extends
+        Family<
+          ({
+            double originalTotal,
+            double convertedTotal,
+            Currency originalCurrency,
+            Currency targetCurrency,
+          })
+        > {
+  /// Provider pour obtenir le prix d'un article du panier converti
+  ///
+  /// Copied from [cartItemConverted].
+  const CartItemConvertedFamily();
+
+  /// Provider pour obtenir le prix d'un article du panier converti
+  ///
+  /// Copied from [cartItemConverted].
+  CartItemConvertedProvider call(String productId) {
+    return CartItemConvertedProvider(productId);
+  }
+
+  @override
+  CartItemConvertedProvider getProviderOverride(
+    covariant CartItemConvertedProvider provider,
+  ) {
+    return call(provider.productId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'cartItemConvertedProvider';
+}
+
+/// Provider pour obtenir le prix d'un article du panier converti
+///
+/// Copied from [cartItemConverted].
+class CartItemConvertedProvider
+    extends
+        AutoDisposeProvider<
+          ({
+            double originalTotal,
+            double convertedTotal,
+            Currency originalCurrency,
+            Currency targetCurrency,
+          })
+        > {
+  /// Provider pour obtenir le prix d'un article du panier converti
+  ///
+  /// Copied from [cartItemConverted].
+  CartItemConvertedProvider(String productId)
+    : this._internal(
+        (ref) => cartItemConverted(ref as CartItemConvertedRef, productId),
+        from: cartItemConvertedProvider,
+        name: r'cartItemConvertedProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$cartItemConvertedHash,
+        dependencies: CartItemConvertedFamily._dependencies,
+        allTransitiveDependencies:
+            CartItemConvertedFamily._allTransitiveDependencies,
+        productId: productId,
+      );
+
+  CartItemConvertedProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.productId,
+  }) : super.internal();
+
+  final String productId;
+
+  @override
+  Override overrideWith(
+    ({
+      double originalTotal,
+      double convertedTotal,
+      Currency originalCurrency,
+      Currency targetCurrency,
+    })
+    Function(CartItemConvertedRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CartItemConvertedProvider._internal(
+        (ref) => create(ref as CartItemConvertedRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        productId: productId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<
+    ({
+      double originalTotal,
+      double convertedTotal,
+      Currency originalCurrency,
+      Currency targetCurrency,
+    })
+  >
+  createElement() {
+    return _CartItemConvertedProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CartItemConvertedProvider && other.productId == productId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, productId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CartItemConvertedRef
+    on
+        AutoDisposeProviderRef<
+          ({
+            double originalTotal,
+            double convertedTotal,
+            Currency originalCurrency,
+            Currency targetCurrency,
+          })
+        > {
+  /// The parameter `productId` of this provider.
+  String get productId;
+}
+
+class _CartItemConvertedProviderElement
+    extends
+        AutoDisposeProviderElement<
+          ({
+            double originalTotal,
+            double convertedTotal,
+            Currency originalCurrency,
+            Currency targetCurrency,
+          })
+        >
+    with CartItemConvertedRef {
+  _CartItemConvertedProviderElement(super.provider);
+
+  @override
+  String get productId => (origin as CartItemConvertedProvider).productId;
+}
+
+String _$cartHasMultipleCurrenciesHash() =>
+    r'e3fd0421eeeee1eb050181c502962770afc5d783';
+
+/// Provider pour verifier si le panier a plusieurs devises
+///
+/// Copied from [cartHasMultipleCurrencies].
+@ProviderFor(cartHasMultipleCurrencies)
+final cartHasMultipleCurrenciesProvider = AutoDisposeProvider<bool>.internal(
+  cartHasMultipleCurrencies,
+  name: r'cartHasMultipleCurrenciesProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$cartHasMultipleCurrenciesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CartHasMultipleCurrenciesRef = AutoDisposeProviderRef<bool>;
+String _$productNotifierHash() => r'ae4656578accfd46a4beadc4fa5084fe91080556';
 
 /// See also [ProductNotifier].
 @ProviderFor(ProductNotifier)
@@ -1188,7 +1462,7 @@ final productNotifierProvider =
     );
 
 typedef _$ProductNotifier = AutoDisposeAsyncNotifier<void>;
-String _$orderNotifierHash() => r'c994a37f926e4ac8b31e74410538621584165335';
+String _$orderNotifierHash() => r'f05cf35fc7d6e26ad17a426be0e41d6111b14754';
 
 /// See also [OrderNotifier].
 @ProviderFor(OrderNotifier)
@@ -1205,7 +1479,7 @@ final orderNotifierProvider =
     );
 
 typedef _$OrderNotifier = AutoDisposeAsyncNotifier<void>;
-String _$cartNotifierHash() => r'7cfbf59cbb4388540dac7695f6dfedd6905724a0';
+String _$cartNotifierHash() => r'e92a9cea5ec46b6afbe90da2e97f135e5f6e4e0d';
 
 /// See also [CartNotifier].
 @ProviderFor(CartNotifier)
@@ -1239,5 +1513,22 @@ final selectedCategoryProvider =
     );
 
 typedef _$SelectedCategory = AutoDisposeNotifier<ProductCategory?>;
+String _$selectedCountryHash() => r'3d2da8dfa9303112637d4dcf440496e42663a604';
+
+/// See also [SelectedCountry].
+@ProviderFor(SelectedCountry)
+final selectedCountryProvider =
+    AutoDisposeNotifierProvider<SelectedCountry, Country?>.internal(
+      SelectedCountry.new,
+      name: r'selectedCountryProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$selectedCountryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$SelectedCountry = AutoDisposeNotifier<Country?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

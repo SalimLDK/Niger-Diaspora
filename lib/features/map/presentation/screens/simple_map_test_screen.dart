@@ -19,7 +19,7 @@ class SimpleMapTestScreen extends StatelessWidget {
           zoom: 10,
         ),
         onMapCreated: (controller) {
-          debugPrint('✅ Google Map créée avec succès!');
+          // debugPrint('✅ Google Map créée avec succès!');
         },
       ),
     );

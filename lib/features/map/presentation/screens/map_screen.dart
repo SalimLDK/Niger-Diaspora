@@ -91,7 +91,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   void dispose() {
-    debugPrint('🗺️ MapScreen: dispose');
+    // debugPrint('🗺️ MapScreen: dispose');
     _controller.future.then((c) => c.dispose());
     super.dispose();
   }
@@ -99,7 +99,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('🗺️ MapScreen: initState');
+    // debugPrint('🗺️ MapScreen: initState');
     _mapsInitialized = true; // Already initialized in main.dart
     _loadUserCountry();
   }
@@ -107,7 +107,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    debugPrint('🗺️ MapScreen: didChangeDependencies');
+    // debugPrint('🗺️ MapScreen: didChangeDependencies');
     // Initialiser la localisation après que le context soit disponible
     if (!_hasInitialized) {
       _hasInitialized = true;
@@ -131,7 +131,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Erreur chargement pays utilisateur: $e');
+      // debugPrint('Erreur chargement pays utilisateur: $e');
     }
   }
 
@@ -189,14 +189,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         _currentPosition = LatLng(position.latitude, position.longitude);
       });
 
-      debugPrint(
-        '📍 Position obtenue: ${position.latitude}, ${position.longitude}',
-      );
+      // debugPrint(
+      //   '📍 Position obtenue: ${position.latitude}, ${position.longitude}',
+      // );
 
       // Mettre à jour la localisation de l'utilisateur dans Firebase
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        debugPrint('  💾 Updating user location in Firebase...');
+        // debugPrint('  💾 Updating user location in Firebase...');
         try {
           final dataSource = ProfileRemoteDataSourceImpl();
           await dataSource.updateLocation(
@@ -204,9 +204,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             position.latitude,
             position.longitude,
           );
-          debugPrint('  ✅ Location updated successfully');
+          // debugPrint('  ✅ Location updated successfully');
         } catch (e) {
-          debugPrint('  ⚠️ Failed to update location: $e');
+          // debugPrint('  ⚠️ Failed to update location: $e');
         }
       }
 
@@ -221,7 +221,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       // Charger les membres à proximité
       await _loadNearbyMembers(position.latitude, position.longitude);
     } catch (e) {
-      debugPrint('Erreur de localisation: $e');
+      // debugPrint('Erreur de localisation: $e');
       if (!mounted) return;
 
       setState(() {
@@ -274,24 +274,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       // Filter by presence - STRICT: only show truly active users
       // 1. Online within last 1 hour
       // 2. OR Location updated within last 5 minutes
-      debugPrint('  🔍 Applying presence filter...');
+      // debugPrint('  🔍 Applying presence filter...');
       final now = DateTime.now();
       final filteredMembers =
           members.where((p) {
-            debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
-            debugPrint('      - isOnline: ${p.isOnline}');
-            debugPrint('      - lastSeen: ${p.lastSeen}');
-            debugPrint('      - locationUpdatedAt: ${p.locationUpdatedAt}');
+            // debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
+            // debugPrint('      - isOnline: ${p.isOnline}');
+            // debugPrint('      - lastSeen: ${p.lastSeen}');
+            // debugPrint('      - locationUpdatedAt: ${p.locationUpdatedAt}');
 
             if (p.isOnline) {
               // Check if "Online" status is recent (within 1 hour)
               if (p.lastSeen != null) {
                 final diffOnline = now.difference(p.lastSeen!);
-                debugPrint(
-                  '      - diffOnline: ${diffOnline.inMinutes} minutes',
-                );
+                // debugPrint(
+                //   '      - diffOnline: ${diffOnline.inMinutes} minutes',
+                // );
                 if (diffOnline.inHours < 1) {
-                  debugPrint('      ✅ PASS: Online within 1 hour');
+                  // debugPrint('      ✅ PASS: Online within 1 hour');
                   return true;
                 }
               }
@@ -299,40 +299,40 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
             if (p.locationUpdatedAt != null) {
               final diffLocation = now.difference(p.locationUpdatedAt!);
-              debugPrint(
-                '      - diffLocation: ${diffLocation.inSeconds} seconds',
-              );
+              // debugPrint(
+              //   '      - diffLocation: ${diffLocation.inSeconds} seconds',
+              // );
               // Show members with location updated in last 5 minutes
               if (diffLocation.inMinutes < 5) {
-                debugPrint('      ✅ PASS: Location updated within 5 minutes');
+                // debugPrint('      ✅ PASS: Location updated within 5 minutes');
                 return true;
               }
             }
 
-            debugPrint('      ❌ FAIL: Not recently active');
+            // debugPrint('      ❌ FAIL: Not recently active');
             return false;
           }).toList();
 
-      debugPrint(
-        '  ✅ After presence filter: ${filteredMembers.length} members',
-      );
+      // debugPrint(
+      //   '  ✅ After presence filter: ${filteredMembers.length} members',
+      // );
 
       setState(() {
-        debugPrint(
-          '  🔄 Setting _nearbyMembers to ${filteredMembers.length} members',
-        );
+        // debugPrint(
+        //   '  🔄 Setting _nearbyMembers to ${filteredMembers.length} members',
+        // );
         _nearbyMembers = filteredMembers;
-        debugPrint('  🔄 Calling _updateMarkers...');
+        // debugPrint('  🔄 Calling _updateMarkers...');
         _updateMarkers();
-        debugPrint('  ✅ _updateMarkers completed');
+        // debugPrint('  ✅ _updateMarkers completed');
       });
 
-      debugPrint(
-        '  🎯 After filter "$_selectedFilter": ${_getFilteredMembers().length} members',
-      );
+      // debugPrint(
+      //   '  🎯 After filter "$_selectedFilter": ${_getFilteredMembers().length} members',
+      // );
     } catch (e) {
-      debugPrint('  ❌ Error loading members: $e');
-      debugPrint('  ❌ Stack trace: ${StackTrace.current}');
+      // debugPrint('  ❌ Error loading members: $e');
+      // debugPrint('  ❌ Stack trace: ${StackTrace.current}');
       // En cas d'erreur, continuer avec une liste vide
       if (mounted) {
         setState(() {
@@ -1087,15 +1087,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   bool _matchesFilter(String? profession, String filterKey) {
-    debugPrint(
-      '  🔍 _matchesFilter: profession="$profession", filterKey="$filterKey"',
-    );
+    // debugPrint(
+    //   '  🔍 _matchesFilter: profession="$profession", filterKey="$filterKey"',
+    // );
     if (filterKey == 'all') {
-      debugPrint('    ✅ Filter is "all", returning true');
+      // debugPrint('    ✅ Filter is "all", returning true');
       return true;
     }
     if (profession == null || profession.isEmpty) {
-      debugPrint('    ❌ Profession is null/empty, returning false');
+      // debugPrint('    ❌ Profession is null/empty, returning false');
       return false;
     }
 

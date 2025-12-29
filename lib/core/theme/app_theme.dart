@@ -1413,7 +1413,7 @@ class AppTheme {
       );
     } catch (e) {
       // Fallback to system fonts if Google Fonts fail to load
-      debugPrint('⚠️ Google Fonts failed to load, using system fonts: $e');
+      // debugPrint('⚠️ Google Fonts failed to load, using system fonts: $e');
 
       return TextTheme(
         // Display

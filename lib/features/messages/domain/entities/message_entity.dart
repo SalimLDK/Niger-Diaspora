@@ -41,6 +41,10 @@ class MessageEntity extends Equatable {
   final Map<String, dynamic>?
   replyToMessageData; // Snapshot of replied message (to avoid needing to fetch)
 
+  // Product attachment (for marketplace contact)
+  final Map<String, dynamic>?
+  productData; // Product info: {id, title, price, currency, imageUrl, sellerId, sellerName}
+
   const MessageEntity({
     required this.id,
     required this.senderId,
@@ -67,6 +71,7 @@ class MessageEntity extends Equatable {
     this.reactions = const [],
     this.replyToId,
     this.replyToMessageData,
+    this.productData,
   });
 
   bool get isText => type == MessageType.text;
@@ -108,6 +113,9 @@ class MessageEntity extends Equatable {
     return '${(fileSize! / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
+  /// Check if this message has a product attachment
+  bool get hasProduct => productData != null && productData!.isNotEmpty;
+
   @override
   List<Object?> get props => [
     id,
@@ -135,5 +143,6 @@ class MessageEntity extends Equatable {
     reactions,
     replyToId,
     replyToMessageData,
+    productData,
   ];
 }

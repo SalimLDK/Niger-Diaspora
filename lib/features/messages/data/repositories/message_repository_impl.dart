@@ -156,6 +156,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -170,6 +171,7 @@ class MessageRepositoryImpl implements MessageRepository {
         content: content,
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
+        productData: productData,
       );
       return Right(message.toEntity());
     } on ServerException catch (e) {

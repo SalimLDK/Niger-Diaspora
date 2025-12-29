@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Secure storage service for sensitive data like session IDs, tokens, etc.
@@ -13,9 +13,7 @@ class SecurePreferencesService {
   SecurePreferencesService._();
 
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
@@ -38,7 +36,7 @@ class SecurePreferencesService {
     try {
       return await _secureStorage.read(key: _keySessionId);
     } catch (e) {
-      debugPrint('Error reading session ID: $e');
+      // debugPrint('Error reading session ID: $e');
       return null;
     }
   }
@@ -48,7 +46,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.write(key: _keySessionId, value: sessionId);
     } catch (e) {
-      debugPrint('Error writing session ID: $e');
+      // debugPrint('Error writing session ID: $e');
     }
   }
 
@@ -57,7 +55,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.delete(key: _keySessionId);
     } catch (e) {
-      debugPrint('Error clearing session ID: $e');
+      // debugPrint('Error clearing session ID: $e');
     }
   }
 
@@ -70,7 +68,7 @@ class SecurePreferencesService {
     try {
       return await _secureStorage.read(key: _keyAuthToken);
     } catch (e) {
-      debugPrint('Error reading auth token: $e');
+      // debugPrint('Error reading auth token: $e');
       return null;
     }
   }
@@ -80,7 +78,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.write(key: _keyAuthToken, value: token);
     } catch (e) {
-      debugPrint('Error writing auth token: $e');
+      // debugPrint('Error writing auth token: $e');
     }
   }
 
@@ -89,7 +87,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.delete(key: _keyAuthToken);
     } catch (e) {
-      debugPrint('Error clearing auth token: $e');
+      // debugPrint('Error clearing auth token: $e');
     }
   }
 
@@ -102,7 +100,7 @@ class SecurePreferencesService {
     try {
       return await _secureStorage.read(key: _keyRefreshToken);
     } catch (e) {
-      debugPrint('Error reading refresh token: $e');
+      // debugPrint('Error reading refresh token: $e');
       return null;
     }
   }
@@ -112,7 +110,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.write(key: _keyRefreshToken, value: token);
     } catch (e) {
-      debugPrint('Error writing refresh token: $e');
+      // debugPrint('Error writing refresh token: $e');
     }
   }
 
@@ -121,7 +119,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.delete(key: _keyRefreshToken);
     } catch (e) {
-      debugPrint('Error clearing refresh token: $e');
+      // debugPrint('Error clearing refresh token: $e');
     }
   }
 
@@ -134,7 +132,7 @@ class SecurePreferencesService {
     try {
       return await _secureStorage.read(key: key);
     } catch (e) {
-      debugPrint('Error reading secure value for key $key: $e');
+      // debugPrint('Error reading secure value for key $key: $e');
       return null;
     }
   }
@@ -144,7 +142,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.write(key: key, value: value);
     } catch (e) {
-      debugPrint('Error writing secure value for key $key: $e');
+      // debugPrint('Error writing secure value for key $key: $e');
     }
   }
 
@@ -153,7 +151,7 @@ class SecurePreferencesService {
     try {
       await _secureStorage.delete(key: key);
     } catch (e) {
-      debugPrint('Error deleting secure value for key $key: $e');
+      // debugPrint('Error deleting secure value for key $key: $e');
     }
   }
 
@@ -162,7 +160,7 @@ class SecurePreferencesService {
     try {
       return await _secureStorage.containsKey(key: key);
     } catch (e) {
-      debugPrint('Error checking key $key: $e');
+      // debugPrint('Error checking key $key: $e');
       return false;
     }
   }
@@ -175,9 +173,9 @@ class SecurePreferencesService {
   Future<void> clearAll() async {
     try {
       await _secureStorage.deleteAll();
-      debugPrint('All secure storage data cleared');
+      // debugPrint('All secure storage data cleared');
     } catch (e) {
-      debugPrint('Error clearing all secure storage: $e');
+      // debugPrint('Error clearing all secure storage: $e');
     }
   }
 
@@ -189,9 +187,9 @@ class SecurePreferencesService {
         clearAuthToken(),
         clearRefreshToken(),
       ]);
-      debugPrint('Auth data cleared from secure storage');
+      // debugPrint('Auth data cleared from secure storage');
     } catch (e) {
-      debugPrint('Error clearing auth data: $e');
+      // debugPrint('Error clearing auth data: $e');
     }
   }
 }

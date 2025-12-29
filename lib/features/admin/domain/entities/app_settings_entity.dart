@@ -110,7 +110,7 @@ class TaxRatesEntity with _$TaxRatesEntity {
   }
 }
 
-/// Fallback exchange rates
+/// Fallback exchange rates and API configuration
 @freezed
 class ExchangeRatesEntity with _$ExchangeRatesEntity {
   const factory ExchangeRatesEntity({
@@ -120,6 +120,10 @@ class ExchangeRatesEntity with _$ExchangeRatesEntity {
     @Default(455.0) double cadToXof,
     @Default(690.0) double chfToXof,
     DateTime? lastUpdated,
+    /// API key for exchangerate-api.com (stored in Firestore admin settings)
+    String? exchangeRateApiKey,
+    /// Refresh interval in minutes for fetching new rates (default: 60)
+    @Default(60) int refreshIntervalMinutes,
   }) = _ExchangeRatesEntity;
 
   const ExchangeRatesEntity._();

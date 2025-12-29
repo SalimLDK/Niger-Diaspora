@@ -45,9 +45,9 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
         throw ServerException('Utilisateur non connecte');
       }
 
-      await _firestore.collection('users').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).set({
         'hasSeenOnboarding': true,
-      });
+      }, SetOptions(merge: true));
     } catch (e) {
       throw ServerException('Erreur lors de la mise a jour onboarding');
     }

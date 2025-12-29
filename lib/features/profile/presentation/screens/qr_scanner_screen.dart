@@ -38,9 +38,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       if (mounted) {
         try {
           await _controller.start();
-          debugPrint('Camera started successfully');
+          // debugPrint('Camera started successfully');
         } catch (e) {
-          debugPrint('Error starting camera: $e');
+          // debugPrint('Error starting camera: $e');
         }
       }
     });
@@ -54,7 +54,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('QrScanner lifecycle: $state');
+    // debugPrint('QrScanner lifecycle: $state');
 
     switch (state) {
       case AppLifecycleState.detached:
@@ -74,7 +74,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               try {
                 await _controller.start();
               } catch (e) {
-                debugPrint('Error restarting camera: $e');
+                // debugPrint('Error restarting camera: $e');
               }
             }
           });
@@ -235,7 +235,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         await _controller.stop();
       }
     } catch (e) {
-      debugPrint('Error stopping camera: $e');
+      // debugPrint('Error stopping camera: $e');
     }
 
     if (mounted) {

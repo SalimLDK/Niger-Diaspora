@@ -152,6 +152,18 @@ class _OnlineStatusContent extends ConsumerWidget {
       lastSeenText = 'Vu $ago';
     }
 
+    final text = Text(
+      lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
+      style:
+          textStyle ?? TextStyle(fontSize: 12, color: context.textSecondaryColor),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+
+    if (!showDot && showText) {
+      return text;
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -166,12 +178,7 @@ class _OnlineStatusContent extends ConsumerWidget {
           ),
         if (showText) ...[
           if (showDot) const SizedBox(width: 6),
-          Text(
-            lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
-            style:
-                textStyle ??
-                TextStyle(fontSize: 12, color: context.textSecondaryColor),
-          ),
+          Flexible(child: text),
         ],
       ],
     );

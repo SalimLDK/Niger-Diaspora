@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,7 +64,7 @@ class ImageUploadService {
 
       return File(pickedFile.path);
     } catch (e) {
-      debugPrint('Error picking image from gallery: $e');
+      // debugPrint('Error picking image from gallery: $e');
       return null;
     }
   }
@@ -85,7 +86,7 @@ class ImageUploadService {
 
       return File(pickedFile.path);
     } catch (e) {
-      debugPrint('Error picking image from camera: $e');
+      // debugPrint('Error picking image from camera: $e');
       return null;
     }
   }
@@ -106,7 +107,7 @@ class ImageUploadService {
           pickedFiles.take(limit).map((xFile) => File(xFile.path)).toList();
       return files;
     } catch (e) {
-      debugPrint('Error picking multiple images: $e');
+      // debugPrint('Error picking multiple images: $e');
       return [];
     }
   }
@@ -137,7 +138,7 @@ class ImageUploadService {
 
       return File(result.path);
     } catch (e) {
-      debugPrint('Error compressing image: $e');
+      // debugPrint('Error compressing image: $e');
       return file; // Return original if compression fails
     }
   }
@@ -154,14 +155,14 @@ class ImageUploadService {
       // Check authentication first
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        debugPrint('❌ Upload failed: User not authenticated');
+        // debugPrint('❌ Upload failed: User not authenticated');
         throw Exception('User must be logged in to upload files');
       }
 
       // Compress image first
       final compressedFile = await compressImage(file);
       if (compressedFile == null) {
-        debugPrint('❌ Upload failed: Image compression failed');
+        // debugPrint('❌ Upload failed: Image compression failed');
         return null;
       }
 
@@ -169,7 +170,7 @@ class ImageUploadService {
       final storagePath = customPath ?? _getStoragePath(type, id);
       final ref = _storage.ref().child(storagePath);
 
-      debugPrint('📤 Uploading image to: $storagePath');
+      // debugPrint('📤 Uploading image to: $storagePath');
 
       // Upload with progress tracking
       final uploadTask = ref.putFile(
@@ -177,14 +178,26 @@ class ImageUploadService {
         SettableMetadata(contentType: 'image/jpeg'),
       );
 
+      StreamSubscription<TaskSnapshot>? progressSubscription;
       if (onProgress != null) {
-        uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
-          onProgress(progress);
-        });
+        progressSubscription = uploadTask.snapshotEvents.listen(
+          (TaskSnapshot snapshot) {
+            final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+            onProgress(progress);
+          },
+          onError: (e) {
+            debugPrint('Progress tracking error: $e');
+          },
+          cancelOnError: true,
+        );
       }
 
-      await uploadTask;
+      try {
+        await uploadTask;
+      } finally {
+        // Always cancel the subscription when done
+        await progressSubscription?.cancel();
+      }
 
       // Get download URL
       final downloadUrl = await ref.getDownloadURL();

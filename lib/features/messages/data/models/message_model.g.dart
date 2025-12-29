@@ -55,6 +55,7 @@ _$MessageModelImpl _$$MessageModelImplFromJson(
       const [],
   replyToId: json['replyToId'] as String?,
   replyToMessageData: json['replyToMessageData'] as Map<String, dynamic>?,
+  productData: json['productData'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
@@ -83,4 +84,5 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'reactions': instance.reactions,
       'replyToId': instance.replyToId,
       'replyToMessageData': instance.replyToMessageData,
+      'productData': instance.productData,
     };

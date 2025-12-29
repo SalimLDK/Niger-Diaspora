@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
@@ -179,21 +179,21 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final isConnected = await _connectivity.isConnected();
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-      debugPrint('🗺️ getNearbyProfiles called:');
-      debugPrint('  📍 Position: ($latitude, $longitude)');
-      debugPrint('  📏 Radius: ${radiusKm}km');
-      debugPrint('  👤 Current user: $currentUserId');
+      // debugPrint('🗺️ getNearbyProfiles called:');
+      // debugPrint('  📍 Position: ($latitude, $longitude)');
+      // debugPrint('  📏 Radius: ${radiusKm}km');
+      // debugPrint('  👤 Current user: $currentUserId');
 
       if (isConnected) {
         // Simple bounding box calculation for nearby search
         final latDelta = radiusKm / 111.0; // ~111km per degree latitude
         final lonDelta = radiusKm / (111.0 * _cos(latitude));
 
-        debugPrint('  🔍 Query bounds:');
-        debugPrint('    Lat: ${latitude - latDelta} to ${latitude + latDelta}');
-        debugPrint(
-          '    Lon: ${longitude - lonDelta} to ${longitude + lonDelta}',
-        );
+        // debugPrint('  🔍 Query bounds:');
+        // debugPrint('    Lat: ${latitude - latDelta} to ${latitude + latDelta}');
+        // debugPrint(
+        //   '    Lon: ${longitude - lonDelta} to ${longitude + lonDelta}',
+        // );
 
         // First try with isVisible filter
         var query =
@@ -205,13 +205,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 .limit(50)
                 .get();
 
-        debugPrint(
-          '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
-        );
+        // debugPrint(
+        //   '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
+        // );
 
         // If no results, try without isVisible filter
         if (query.docs.isEmpty) {
-          debugPrint('  🔄 Retrying without isVisible filter...');
+          // debugPrint('  🔄 Retrying without isVisible filter...');
           query =
               await _firestore
                   .collection(FirebaseCollections.users)
@@ -219,9 +219,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                   .where('latitude', isLessThan: latitude + latDelta)
                   .limit(50)
                   .get();
-          debugPrint(
-            '  📊 Query without isVisible returned: ${query.docs.length} docs',
-          );
+          // debugPrint(
+          //   '  📊 Query without isVisible returned: ${query.docs.length} docs',
+          // );
         }
 
         final profiles =
@@ -242,34 +242,34 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 })
                 .toList();
 
-        debugPrint(
-          '  ✅ After filtering (excluding current user): ${profiles.length} profiles',
-        );
+        // debugPrint(
+        //   '  ✅ After filtering (excluding current user): ${profiles.length} profiles',
+        // );
 
         // Log details of each profile for debugging
-        for (var i = 0; i < profiles.length && i < 5; i++) {
-          final p = profiles[i];
-          debugPrint(
-            '    👤 ${p.displayName ?? "Unknown"} - '
-            'Visible: ${p.isVisible}, '
-            'Coords: (${p.latitude}, ${p.longitude})',
-          );
-        }
-        if (profiles.length > 5) {
-          debugPrint('    ... and ${profiles.length - 5} more profiles');
-        }
+        // for (var i = 0; i < profiles.length && i < 5; i++) {
+        //   final p = profiles[i];
+        //   debugPrint(
+        //     '    👤 ${p.displayName ?? "Unknown"} - '
+        //     'Visible: ${p.isVisible}, '
+        //     'Coords: (${p.latitude}, ${p.longitude})',
+        //   );
+        // }
+        // if (profiles.length > 5) {
+        //   debugPrint('    ... and ${profiles.length - 5} more profiles');
+        // }
 
         // Mettre en cache les profils
         await _cache.cacheProfiles(profiles.map((p) => p.toJson()).toList());
 
         return profiles;
       } else {
-        debugPrint('  📴 Offline mode - returning cached profiles');
+        // debugPrint('  📴 Offline mode - returning cached profiles');
         // Mode hors ligne - retourner les profils en cache
         return _getProfilesFromCache();
       }
     } on FirebaseException catch (e) {
-      debugPrint('  ❌ Firebase error: ${e.message}');
+      // debugPrint('  ❌ Firebase error: ${e.message}');
       final cached = _getProfilesFromCache();
       if (cached.isNotEmpty) return cached;
       throw ServerException(e.message ?? 'Erreur lors de la recherche');
@@ -287,8 +287,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final isConnected = await _connectivity.isConnected();
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-      debugPrint('🌍 getProfilesByCountry called for: $country');
-      debugPrint('  👤 Current user: $currentUserId');
+      // debugPrint('🌍 getProfilesByCountry called for: $country');
+      // debugPrint('  👤 Current user: $currentUserId');
 
       if (isConnected) {
         // First try with isVisible filter
@@ -300,22 +300,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 .limit(100)
                 .get();
 
-        debugPrint(
-          '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
-        );
+        // debugPrint(
+        //   '  📊 Query with isVisible=true returned: ${query.docs.length} docs',
+        // );
 
         // If no results, try without isVisible filter
         if (query.docs.isEmpty) {
-          debugPrint('  🔄 Retrying without isVisible filter...');
+          // debugPrint('  🔄 Retrying without isVisible filter...');
           query =
               await _firestore
                   .collection(FirebaseCollections.users)
                   .where('currentCountry', isEqualTo: country)
                   .limit(100)
                   .get();
-          debugPrint(
-            '  📊 Query without isVisible returned: ${query.docs.length} docs',
-          );
+          // debugPrint(
+          //   '  📊 Query without isVisible returned: ${query.docs.length} docs',
+          // );
         }
 
         final profiles =
@@ -331,22 +331,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                 })
                 .toList();
 
-        debugPrint(
-          '  ✅ Found ${profiles.length} profiles in $country (excluding current user)',
-        );
+        // debugPrint(
+        //   '  ✅ Found ${profiles.length} profiles in $country (excluding current user)',
+        // );
 
         // Mettre en cache les profils
         await _cache.cacheProfiles(profiles.map((p) => p.toJson()).toList());
 
         return profiles;
       } else {
-        debugPrint('  📴 Offline mode - filtering cached profiles');
+        // debugPrint('  📴 Offline mode - filtering cached profiles');
         // Mode hors ligne - filtrer les profils en cache par pays
         final cached = _getProfilesFromCache();
         return cached.where((p) => p.currentCountry == country).toList();
       }
     } on FirebaseException catch (e) {
-      debugPrint('  ❌ Firebase error: ${e.message}');
+      // debugPrint('  ❌ Firebase error: ${e.message}');
       final cached = _getProfilesFromCache();
       final filtered =
           cached.where((p) => p.currentCountry == country).toList();
@@ -463,9 +463,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await _firestore.collection(FirebaseCollections.users).doc(userId).update(
         {'lastLoginAt': FieldValue.serverTimestamp(), 'isOnline': true},
       );
-    } on FirebaseException catch (e) {
+    } on FirebaseException catch (_) {
       // On ne lance pas d'exception bloquante pour une mise à jour de log
-      debugPrint('Erreur lors de la mise à jour de lastLoginAt: ${e.message}');
+      // debugPrint('Erreur lors de la mise à jour de lastLoginAt: ${e.message}');
     }
   }
 
@@ -479,8 +479,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await _firestore.collection(FirebaseCollections.users).doc(userId).update(
         {'isOnline': isOnline, 'lastSeen': Timestamp.fromDate(lastSeen)},
       );
-    } on FirebaseException catch (e) {
-      debugPrint('Erreur lors de la mise à jour du statut: ${e.message}');
+    } on FirebaseException {
+      // debugPrint('Erreur lors de la mise à jour du statut: ${e.message}');
     }
   }
 
@@ -506,8 +506,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await _firestore.collection(FirebaseCollections.users).doc(userId).update(
         {'notifyLocalEvents': enabled},
       );
-    } on FirebaseException catch (e) {
-      debugPrint('Erreur lors de la mise à jour notifyLocalEvents: ${e.message}');
+    } on FirebaseException {
+      // debugPrint(
+      //   'Erreur lors de la mise à jour notifyLocalEvents: ${e.message}',
+      // );
     }
   }
 
@@ -531,7 +533,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         return ProfileModel.fromJson(cachedData);
       }
     } catch (e) {
-      debugPrint('Erreur lors de la récupération du profil en cache: $e');
+      // debugPrint('Erreur lors de la récupération du profil en cache: $e');
     }
     return null;
   }

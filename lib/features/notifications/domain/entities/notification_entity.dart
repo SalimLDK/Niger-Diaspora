@@ -31,6 +31,7 @@ enum NotificationType {
   // Friend request notifications
   friendRequest,
   friendRequestAccepted,
+  friendAccepted, // Alias for friendRequestAccepted from Cloud Functions
   // Group request notifications
   groupJoinRequest,
   groupRequestApproved,
@@ -39,6 +40,16 @@ enum NotificationType {
   localEvent,
   nearbyMember,
   proximityAlert,
+  // Event attendance
+  eventAttendance,
+  // Order notifications
+  order, // Generic order notification from Cloud Functions
+  newOrder,
+  orderPaid,
+  orderShipped,
+  orderDelivered,
+  orderCancelled,
+  orderCompleted,
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -61,6 +72,7 @@ extension NotificationTypeExtension on NotificationType {
       case NotificationType.friendRequest:
         return 'Demande d\'ami';
       case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
         return 'Demande acceptée';
       case NotificationType.groupJoinRequest:
         return 'Demande d\'adhésion';
@@ -74,6 +86,21 @@ extension NotificationTypeExtension on NotificationType {
         return 'Membre à proximité';
       case NotificationType.proximityAlert:
         return 'Alerte proximité';
+      case NotificationType.eventAttendance:
+        return 'Nouvelle participation';
+      case NotificationType.order:
+      case NotificationType.newOrder:
+        return 'Nouvelle commande';
+      case NotificationType.orderPaid:
+        return 'Commande payée';
+      case NotificationType.orderShipped:
+        return 'Commande expédiée';
+      case NotificationType.orderDelivered:
+        return 'Commande livrée';
+      case NotificationType.orderCancelled:
+        return 'Commande annulée';
+      case NotificationType.orderCompleted:
+        return 'Commande terminée';
     }
   }
 
@@ -96,6 +123,7 @@ extension NotificationTypeExtension on NotificationType {
       case NotificationType.friendRequest:
         return 'person_add';
       case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
         return 'how_to_reg';
       case NotificationType.groupJoinRequest:
         return 'group_add';
@@ -109,6 +137,21 @@ extension NotificationTypeExtension on NotificationType {
         return 'person_pin';
       case NotificationType.proximityAlert:
         return 'radar';
+      case NotificationType.eventAttendance:
+        return 'event_available';
+      case NotificationType.order:
+      case NotificationType.newOrder:
+        return 'shopping_bag';
+      case NotificationType.orderPaid:
+        return 'payment';
+      case NotificationType.orderShipped:
+        return 'local_shipping';
+      case NotificationType.orderDelivered:
+        return 'inventory';
+      case NotificationType.orderCancelled:
+        return 'cancel';
+      case NotificationType.orderCompleted:
+        return 'check_circle';
     }
   }
 }

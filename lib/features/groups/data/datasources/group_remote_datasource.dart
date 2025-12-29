@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
@@ -300,7 +300,7 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       });
     } catch (e) {
       // Log but don't fail - this is a non-critical operation
-      debugPrint('⚠️ Failed to send system message for group join: $e');
+      // debugPrint('⚠️ Failed to send system message for group join: $e');
     }
   }
 

@@ -60,6 +60,7 @@ abstract class MessageRepository {
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   });
 
   /// Envoyer un message avec fichier (image ou document)

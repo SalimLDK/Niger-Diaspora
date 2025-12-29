@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/price_text.dart';
 import '../../domain/entities/product_entity.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final ProductEntity product;
   final VoidCallback? onTap;
 
   const ProductCard({super.key, required this.product, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Card(
@@ -138,8 +140,9 @@ class ProductCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${product.price.toStringAsFixed(0)} ${product.currency}',
+                    PriceText(
+                      amount: product.price,
+                      currency: product.currency,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -156,7 +159,7 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-class ProductListTile extends StatelessWidget {
+class ProductListTile extends ConsumerWidget {
   final ProductEntity product;
   final VoidCallback? onTap;
   final Widget? trailing;
@@ -169,7 +172,7 @@ class ProductListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return ListTile(
@@ -201,8 +204,9 @@ class ProductListTile extends StatelessWidget {
         ),
       ),
       title: Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        '${product.price.toStringAsFixed(0)} ${product.currency}',
+      subtitle: PriceText(
+        amount: product.price,
+        currency: product.currency,
         style: TextStyle(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,

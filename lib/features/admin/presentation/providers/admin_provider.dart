@@ -255,7 +255,7 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
         try {
           businesses.add(BusinessModel.fromFirestore(doc).toEntity());
         } catch (e) {
-          debugPrint('Error parsing business ${doc.id}: $e');
+          // debugPrint('Error parsing business ${doc.id}: $e');
         }
       }
 
@@ -428,7 +428,7 @@ class AdminContentNotifier extends _$AdminContentNotifier {
           events.add(EventModel.fromFirestore(doc).toEntity());
         } catch (e) {
           // Skip problematic documents
-          debugPrint('Error parsing event ${doc.id}: $e');
+          // debugPrint('Error parsing event ${doc.id}: $e');
         }
       }
 
@@ -446,7 +446,7 @@ class AdminContentNotifier extends _$AdminContentNotifier {
           groups.add(GroupModel.fromFirestore(doc).toEntity());
         } catch (e) {
           // Skip problematic documents
-          debugPrint('Error parsing group ${doc.id}: $e');
+          // debugPrint('Error parsing group ${doc.id}: $e');
         }
       }
 
@@ -1679,7 +1679,7 @@ class AdminAuditHelper {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Failed to log audit action: $e');
+      // debugPrint('Failed to log audit action: $e');
     }
   }
 }

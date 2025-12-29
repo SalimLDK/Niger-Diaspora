@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../router/app_router.dart';
 import 'preferences_service.dart';
@@ -26,16 +27,16 @@ class SessionService {
     // Verify user authentication state
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      debugPrint(
-        'SessionService: User not authenticated. Cannot initialize session.',
-      );
+      // debugPrint(
+      //   'SessionService: User not authenticated. Cannot initialize session.',
+      // );
       return;
     }
 
     if (currentUser.uid != userId) {
-      debugPrint(
-        'SessionService: User ID mismatch. Expected: $userId, Got: ${currentUser.uid}',
-      );
+      // debugPrint(
+      //   'SessionService: User ID mismatch. Expected: $userId, Got: ${currentUser.uid}',
+      // );
       return;
     }
 
@@ -54,27 +55,27 @@ class SessionService {
                 'session_id': _currentSessionId,
                 'last_login': FieldValue.serverTimestamp(),
               });
-          debugPrint(
-            'SessionService: Session initialized successfully for user: $userId',
-          );
+          // debugPrint(
+          //   'SessionService: Session initialized successfully for user: $userId',
+          // );
         } on FirebaseException catch (e) {
           if (e.code == 'permission-denied') {
-            debugPrint(
-              'SessionService: Permission denied when updating session for user: $userId',
-            );
-            debugPrint('SessionService: Error details: ${e.message}');
+            // debugPrint(
+            //   'SessionService: Permission denied when updating session for user: $userId',
+            // );
+            // debugPrint('SessionService: Error details: ${e.message}');
             // Don't throw - allow app to continue without session tracking
           } else if (e.code == 'not-found') {
-            debugPrint(
-              'SessionService: User document not found for user: $userId',
-            );
-            debugPrint(
-              'SessionService: The user document may need to be created first.',
-            );
+            // debugPrint(
+            //   'SessionService: User document not found for user: $userId',
+            // );
+            // debugPrint(
+            //   'SessionService: The user document may need to be created first.',
+            // );
           } else {
-            debugPrint(
-              'SessionService: Firestore error (${e.code}): ${e.message}',
-            );
+            // debugPrint(
+            //   'SessionService: Firestore error (${e.code}): ${e.message}',
+            // );
           }
           // Clear session ID on error to prevent inconsistent state
           _currentSessionId = null;
@@ -97,23 +98,23 @@ class SessionService {
                 .collection('users')
                 .doc(userId)
                 .update({'session_id': _currentSessionId});
-            debugPrint(
-              'SessionService: Session ID regenerated for user: $userId',
-            );
+            // debugPrint(
+            //   'SessionService: Session ID regenerated for user: $userId',
+            // );
           } on FirebaseException catch (e) {
             if (e.code == 'permission-denied') {
-              debugPrint(
-                'SessionService: Permission denied when regenerating session for user: $userId',
-              );
-              debugPrint('SessionService: Error details: ${e.message}');
+              // debugPrint(
+              //   'SessionService: Permission denied when regenerating session for user: $userId',
+              // );
+              // debugPrint('SessionService: Error details: ${e.message}');
             } else if (e.code == 'not-found') {
-              debugPrint(
-                'SessionService: User document not found for user: $userId',
-              );
+              // debugPrint(
+              //   'SessionService: User document not found for user: $userId',
+              // );
             } else {
-              debugPrint(
-                'SessionService: Firestore error (${e.code}): ${e.message}',
-              );
+              // debugPrint(
+              //   'SessionService: Firestore error (${e.code}): ${e.message}',
+              // );
             }
             // Clear session ID on error
             _currentSessionId = null;
@@ -125,7 +126,7 @@ class SessionService {
 
       _startListening(userId);
     } catch (e) {
-      debugPrint('SessionService: Unexpected error during initialization: $e');
+      // debugPrint('SessionService: Unexpected error during initialization: $e');
       // Clear session state on unexpected errors
       _currentSessionId = null;
       await PreferencesService.instance.clearSessionId();
@@ -156,7 +157,7 @@ class SessionService {
             }
           },
           onError: (e) {
-            debugPrint('Session listener error: $e');
+            // debugPrint('Session listener error: $e');
           },
         );
   }
@@ -169,7 +170,7 @@ class SessionService {
       await FirebaseAuth.instance.signOut();
       await PreferencesService.instance.clearSessionId();
     } catch (e) {
-      debugPrint('Error during forced logout: $e');
+      // debugPrint('Error during forced logout: $e');
     }
 
     // Show dialog
@@ -190,8 +191,10 @@ class SessionService {
                   TextButton(
                     onPressed: () {
                       Navigator.of(dialogContext).pop();
-                      // GoRouter redirect should handle moving to login
-                      // as auth state changes
+                      // Navigate explicitly to login page
+                      if (context.mounted) {
+                        GoRouter.of(context).go('/auth/login');
+                      }
                     },
                     child: const Text('OK'),
                   ),

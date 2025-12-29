@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../shared/widgets/price_text.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 
@@ -138,8 +140,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        '${product.price.toStringAsFixed(0)} ${product.currency}',
+                      PriceText(
+                        amount: product.price,
+                        currency: product.currency,
+                        convertToPreferred: true,
+                        showBothPrices: true,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -211,6 +216,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 sellerPhotoUrl: sellerProfile?.photoUrl,
                                 sellerProfile: sellerProfile,
                                 isOwner: isOwner,
+                                product: product,
                               );
                             },
                             loading:
@@ -229,6 +235,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   sellerPhotoUrl: product.sellerPhotoUrl,
                                   sellerProfile: null,
                                   isOwner: isOwner,
+                                  product: product,
                                 ),
                           );
                         },
@@ -506,12 +513,13 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _SellerCard extends StatelessWidget {
+class _SellerCard extends ConsumerStatefulWidget {
   final String sellerId;
   final String sellerName;
   final String? sellerPhotoUrl;
   final dynamic sellerProfile;
   final bool isOwner;
+  final ProductEntity product;
 
   const _SellerCard({
     required this.sellerId,
@@ -519,7 +527,76 @@ class _SellerCard extends StatelessWidget {
     this.sellerPhotoUrl,
     this.sellerProfile,
     required this.isOwner,
+    required this.product,
   });
+
+  @override
+  ConsumerState<_SellerCard> createState() => _SellerCardState();
+}
+
+class _SellerCardState extends ConsumerState<_SellerCard> {
+  bool _isContactingLoading = false;
+
+  Future<void> _contactSeller() async {
+    if (_isContactingLoading) return;
+
+    setState(() => _isContactingLoading = true);
+
+    try {
+      // 1. Create or get existing conversation with seller
+      final conversation = await ref
+          .read(createConversationProvider.notifier)
+          .createIndividual(widget.sellerId);
+
+      if (conversation == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erreur lors de la creation de la conversation'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // 2. Prepare product data for message
+      final productData = {
+        'id': widget.product.id,
+        'title': widget.product.title,
+        'price': widget.product.price,
+        'currency': widget.product.currency,
+        'imageUrl': widget.product.imageUrls.isNotEmpty
+            ? widget.product.imageUrls.first
+            : null,
+        'sellerId': widget.product.sellerId,
+        'sellerName': widget.product.sellerName,
+      };
+
+      // 3. Send initial message with product attached
+      await ref.read(sendMessageProvider.notifier).sendText(
+        conversationId: conversation.id,
+        content: "Bonjour, je suis interesse par ce produit :",
+        productData: productData,
+      );
+
+      // 4. Navigate to conversation
+      if (mounted) {
+        context.push(
+          '/messages/${conversation.id}',
+          extra: {
+            'name': widget.sellerName,
+            'imageUrl': widget.sellerPhotoUrl,
+            'isGroup': false,
+            'otherUserId': widget.sellerId,
+          },
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isContactingLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -540,8 +617,8 @@ class _SellerCard extends StatelessWidget {
           InkWell(
             onTap: () {
               context.push(
-                '/profile/$sellerId',
-                extra: sellerProfile,
+                '/profile/${widget.sellerId}',
+                extra: widget.sellerProfile,
               );
             },
             borderRadius: BorderRadius.circular(8),
@@ -551,10 +628,10 @@ class _SellerCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundImage: sellerPhotoUrl != null
-                        ? CachedNetworkImageProvider(sellerPhotoUrl!)
+                    backgroundImage: widget.sellerPhotoUrl != null
+                        ? CachedNetworkImageProvider(widget.sellerPhotoUrl!)
                         : null,
-                    child: sellerPhotoUrl == null
+                    child: widget.sellerPhotoUrl == null
                         ? const Icon(Icons.person)
                         : null,
                   ),
@@ -564,7 +641,7 @@ class _SellerCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          sellerName,
+                          widget.sellerName,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -587,20 +664,24 @@ class _SellerCard extends StatelessWidget {
             ),
           ),
           // Contact button (only if not owner)
-          if (!isOwner) ...[
+          if (!widget.isOwner) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  // Navigate to messages with seller
-                  context.push(
-                    '/messages/new',
-                    extra: {'recipientId': sellerId, 'recipientName': sellerName},
-                  );
-                },
-                icon: const Icon(Icons.message_outlined),
-                label: const Text('Contacter le vendeur'),
+                onPressed: _isContactingLoading ? null : _contactSeller,
+                icon: _isContactingLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.message_outlined),
+                label: Text(
+                  _isContactingLoading
+                      ? 'Connexion...'
+                      : 'Contacter le vendeur',
+                ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),

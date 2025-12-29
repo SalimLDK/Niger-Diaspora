@@ -22,6 +22,7 @@ class ProductModel with _$ProductModel {
     @Default('other') String category,
     @Default('newProduct') String condition,
     String? location,
+    String? country, // Country name for filtering
     @Default(true) bool isAvailable,
     @Default(1) int quantity,
     @Default(0) int viewCount,
@@ -67,6 +68,7 @@ class ProductModel with _$ProductModel {
       category: entity.category.name,
       condition: entity.condition.name,
       location: entity.location,
+      country: entity.country?.name,
       isAvailable: entity.isAvailable,
       quantity: entity.quantity,
       viewCount: entity.viewCount,
@@ -99,6 +101,12 @@ class ProductModel with _$ProductModel {
         orElse: () => ProductCondition.newProduct,
       ),
       location: location,
+      country: country != null
+          ? Country.values.firstWhere(
+              (e) => e.name == country,
+              orElse: () => Country.other,
+            )
+          : null,
       isAvailable: isAvailable,
       quantity: quantity,
       viewCount: viewCount,

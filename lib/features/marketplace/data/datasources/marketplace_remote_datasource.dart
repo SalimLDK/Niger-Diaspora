@@ -7,6 +7,7 @@ abstract class MarketplaceRemoteDatasource {
   // Products
   Future<List<ProductModel>> getProducts({
     String? category,
+    String? country,
     String? sellerId,
     int limit = 20,
     DocumentSnapshot? startAfter,
@@ -52,6 +53,7 @@ class MarketplaceRemoteDatasourceImpl implements MarketplaceRemoteDatasource {
   @override
   Future<List<ProductModel>> getProducts({
     String? category,
+    String? country,
     String? sellerId,
     int limit = 20,
     DocumentSnapshot? startAfter,
@@ -62,6 +64,10 @@ class MarketplaceRemoteDatasourceImpl implements MarketplaceRemoteDatasource {
 
     if (category != null && category != 'other') {
       query = query.where('category', isEqualTo: category);
+    }
+
+    if (country != null) {
+      query = query.where('country', isEqualTo: country);
     }
 
     if (sellerId != null) {
@@ -182,10 +188,8 @@ class MarketplaceRemoteDatasourceImpl implements MarketplaceRemoteDatasource {
     );
     await docRef.set(newOrder.toFirestore());
 
-    // Decrease product quantity
-    await _productsCollection.doc(order.productId).update({
-      'quantity': FieldValue.increment(-order.quantity),
-    });
+    // Note: Product quantity is now decremented by Cloud Function (onOrderCreated)
+    // This ensures atomic updates and proper stock validation on the server side
 
     return newOrder;
   }
@@ -276,10 +280,8 @@ class MarketplaceRemoteDatasourceImpl implements MarketplaceRemoteDatasource {
       'escrowStatus': order.escrowStatus == 'holding' ? 'refunded' : order.escrowStatus,
     });
 
-    // Restore product quantity
-    await _productsCollection.doc(order.productId).update({
-      'quantity': FieldValue.increment(order.quantity),
-    });
+    // Note: Product quantity is now restored by Cloud Function (onOrderUpdated)
+    // This ensures consistent stock management on the server side
 
     return await getOrder(orderId);
   }

@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -191,7 +193,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         }
       } catch (e) {
         // Silently fail for proximity check to not bloat main logic errors
-        debugPrint('Error checking nearby members: $e');
+        // debugPrint('Error checking nearby members: $e');
       }
 
       return const Right(null);
@@ -242,25 +244,41 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Stream<Either<Failure, ProfileEntity>> getUserStream(String userId) {
     return remoteDataSource
         .getUserStream(userId)
-        .map((model) {
+        .map<Either<Failure, ProfileEntity>>((model) {
           return Right<Failure, ProfileEntity>(model.toEntity());
         })
-        .handleError((error) {
-          if (error is ServerException) {
-            if (error.message.contains('non trouvé')) {
-              return Right<Failure, ProfileEntity>(
-                ProfileEntity(
-                  id: userId,
-                  displayName: 'Utilisateur supprimé',
-                  photoUrl: null,
-                  bio: 'Ce profil n\'existe plus.',
-                ),
-              );
-            }
-            return Left<Failure, ProfileEntity>(ServerFailure(error.message));
-          }
-          return Left<Failure, ProfileEntity>(ServerFailure(error.toString()));
-        });
+        .transform(
+          StreamTransformer<
+            Either<Failure, ProfileEntity>,
+            Either<Failure, ProfileEntity>
+          >.fromHandlers(
+            handleData: (data, sink) => sink.add(data),
+            handleError: (error, stackTrace, sink) {
+              if (error is ServerException) {
+                if (error.message.contains('non trouvé')) {
+                  sink.add(
+                    Right<Failure, ProfileEntity>(
+                      ProfileEntity(
+                        id: userId,
+                        displayName: 'Utilisateur supprimé',
+                        photoUrl: null,
+                        bio: 'Ce profil n\'existe plus.',
+                      ),
+                    ),
+                  );
+                } else {
+                  sink.add(
+                    Left<Failure, ProfileEntity>(ServerFailure(error.message)),
+                  );
+                }
+              } else {
+                sink.add(
+                  Left<Failure, ProfileEntity>(ServerFailure(error.toString())),
+                );
+              }
+            },
+          ),
+        );
   }
 
   @override

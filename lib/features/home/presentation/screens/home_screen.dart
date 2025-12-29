@@ -290,7 +290,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               .loadNearbyProfiles(lat, lng, radiusKm: radius);
         }
       } catch (e) {
-        debugPrint('Erreur de localisation HomeScreen: $e');
+        // debugPrint('Erreur de localisation HomeScreen: $e');
 
         if (mounted) {
           setState(() {

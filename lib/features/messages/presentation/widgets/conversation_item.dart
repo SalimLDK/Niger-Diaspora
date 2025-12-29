@@ -1,17 +1,18 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 
-class ConversationItem extends StatelessWidget {
+class ConversationItem extends ConsumerWidget {
   final ConversationEntity conversation;
   final String currentUserId;
-  final String? otherUserName;
-  final String? otherUserPhotoUrl;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -19,16 +20,35 @@ class ConversationItem extends StatelessWidget {
     super.key,
     required this.conversation,
     required this.currentUserId,
-    this.otherUserName,
-    this.otherUserPhotoUrl,
     required this.onTap,
     this.onLongPress,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasUnread = conversation.hasUnreadFor(currentUserId);
     final unreadCount = conversation.getUnreadCountFor(currentUserId);
+
+    // Pour les conversations individuelles, récupérer le profil de l'autre utilisateur
+    String displayName;
+    String? photoUrl;
+
+    if (conversation.isGroup) {
+      displayName = conversation.name ?? 'Groupe';
+      photoUrl = conversation.imageUrl;
+    } else {
+      final otherUserId = conversation.getOtherParticipantId(currentUserId);
+      if (otherUserId.isNotEmpty) {
+        // Utiliser userStreamProvider pour les données en temps réel depuis Firestore
+        final profileAsync = ref.watch(userStreamProvider(otherUserId));
+        final profile = profileAsync.valueOrNull;
+        displayName = profile?.displayName ?? conversation.name ?? 'Utilisateur';
+        photoUrl = profile?.photoUrl ?? conversation.imageUrl;
+      } else {
+        displayName = conversation.name ?? 'Utilisateur';
+        photoUrl = conversation.imageUrl;
+      }
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -53,7 +73,7 @@ class ConversationItem extends StatelessWidget {
         child: Row(
           children: [
             // Avatar
-            _buildAvatar(context),
+            _buildAvatar(context, photoUrl, displayName),
             const SizedBox(width: 14),
             // Contenu
             Expanded(
@@ -64,7 +84,7 @@ class ConversationItem extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          _getDisplayName(),
+                          displayName,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight:
@@ -149,7 +169,19 @@ class ConversationItem extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(BuildContext context) {
+  Widget _buildAvatar(BuildContext context, String? photoUrl, String displayName) {
+    // Obtenir les initiales du nom
+    String getInitials(String name) {
+      if (name.isEmpty) return '?';
+      final parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+      }
+      return name[0].toUpperCase();
+    }
+
+    final initials = getInitials(displayName);
+
     if (conversation.isGroup) {
       return Container(
         width: 56,
@@ -159,13 +191,22 @@ class ConversationItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child:
-            conversation.imageUrl != null
+            photoUrl != null && photoUrl.isNotEmpty
                 ? ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    conversation.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: photoUrl,
                     fit: BoxFit.cover,
-                    errorBuilder:
+                    width: 56,
+                    height: 56,
+                    placeholder: (_, __) => const Center(
+                      child: Icon(
+                        Icons.groups,
+                        color: AppColors.white,
+                        size: 26,
+                      ),
+                    ),
+                    errorWidget:
                         (_, __, ___) => const Center(
                           child: Icon(
                             Icons.groups,
@@ -192,24 +233,46 @@ class ConversationItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           child:
-              otherUserPhotoUrl != null
+              photoUrl != null && photoUrl.isNotEmpty
                   ? ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      otherUserPhotoUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: photoUrl,
                       fit: BoxFit.cover,
-                      errorBuilder:
-                          (_, __, ___) => const Center(
-                            child: Icon(
-                              Icons.person,
-                              color: AppColors.white,
-                              size: 26,
+                      width: 56,
+                      height: 56,
+                      placeholder: (_, __) => Center(
+                        child: Text(
+                          initials,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      errorWidget:
+                          (_, __, ___) => Center(
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                     ),
                   )
-                  : const Center(
-                    child: Icon(Icons.person, color: AppColors.white, size: 26),
+                  : Center(
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
         ),
         if (!conversation.isGroup)
@@ -234,13 +297,6 @@ class ConversationItem extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  String _getDisplayName() {
-    if (conversation.isGroup) {
-      return conversation.name ?? 'Groupe';
-    }
-    return otherUserName ?? 'Utilisateur';
   }
 
   String _formatTime() {
@@ -274,25 +330,12 @@ class ConversationItem extends StatelessWidget {
       case MessageStatus.failed:
         return const Icon(Icons.close, size: 14, color: Colors.red);
       case MessageStatus.sent:
-        // For conversation list, we might not have readBy info easily available
-        // unless we add it to ConversationEntity.
-        // If we want read receipts here, we need to check if unreadCount for the OTHER user is 0.
-        // But unreadCount is map<userId, int>.
-        // If I am sender, and other user's unreadCount is 0, it means they read it.
-
         bool isRead = false;
         if (conversation.isIndividual) {
           final otherId = conversation.getOtherParticipantId(currentUserId);
           final otherUnread = conversation.unreadCount[otherId] ?? 0;
           isRead = otherUnread == 0;
         } else {
-          // For groups, it's harder. Let's simplify: if all others have 0 unread?
-          // Or just stick to "Sent" for now for groups unless we have complex logic.
-          // Let's try to do it for individuals at least.
-          // Actually, unreadCount in ConversationModel is correct.
-          isRead = true; // Assume read, then check if anyone has unread > 0?
-          // No, unreadCount is per user.
-          // If all OTHER participants have unreadCount == 0, then it is read by everyone.
           isRead = true;
           for (final entry in conversation.unreadCount.entries) {
             if (entry.key != currentUserId && entry.value > 0) {

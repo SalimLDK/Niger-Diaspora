@@ -18,6 +18,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$OrderEntity {
   String get id => throw _privateConstructorUsedError;
+
+  /// Session ID to group orders from the same cart checkout
+  String? get sessionId => throw _privateConstructorUsedError;
   String get productId => throw _privateConstructorUsedError;
   String get productTitle => throw _privateConstructorUsedError;
   String? get productImageUrl => throw _privateConstructorUsedError;
@@ -61,6 +64,7 @@ abstract class $OrderEntityCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
+    String? sessionId,
     String productId,
     String productTitle,
     String? productImageUrl,
@@ -106,6 +110,7 @@ class _$OrderEntityCopyWithImpl<$Res, $Val extends OrderEntity>
   @override
   $Res call({
     Object? id = null,
+    Object? sessionId = freezed,
     Object? productId = null,
     Object? productTitle = null,
     Object? productImageUrl = freezed,
@@ -140,6 +145,11 @@ class _$OrderEntityCopyWithImpl<$Res, $Val extends OrderEntity>
                     ? _value.id
                     : id // ignore: cast_nullable_to_non_nullable
                         as String,
+            sessionId:
+                freezed == sessionId
+                    ? _value.sessionId
+                    : sessionId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             productId:
                 null == productId
                     ? _value.productId
@@ -287,6 +297,7 @@ abstract class _$$OrderEntityImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
+    String? sessionId,
     String productId,
     String productTitle,
     String? productImageUrl,
@@ -331,6 +342,7 @@ class __$$OrderEntityImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? sessionId = freezed,
     Object? productId = null,
     Object? productTitle = null,
     Object? productImageUrl = freezed,
@@ -365,6 +377,11 @@ class __$$OrderEntityImplCopyWithImpl<$Res>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                     as String,
+        sessionId:
+            freezed == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         productId:
             null == productId
                 ? _value.productId
@@ -505,6 +522,7 @@ class __$$OrderEntityImplCopyWithImpl<$Res>
 class _$OrderEntityImpl implements _OrderEntity {
   const _$OrderEntityImpl({
     required this.id,
+    this.sessionId,
     required this.productId,
     required this.productTitle,
     this.productImageUrl,
@@ -535,6 +553,10 @@ class _$OrderEntityImpl implements _OrderEntity {
 
   @override
   final String id;
+
+  /// Session ID to group orders from the same cart checkout
+  @override
+  final String? sessionId;
   @override
   final String productId;
   @override
@@ -593,7 +615,7 @@ class _$OrderEntityImpl implements _OrderEntity {
 
   @override
   String toString() {
-    return 'OrderEntity(id: $id, productId: $productId, productTitle: $productTitle, productImageUrl: $productImageUrl, buyerId: $buyerId, buyerName: $buyerName, sellerId: $sellerId, sellerName: $sellerName, amount: $amount, platformFee: $platformFee, sellerAmount: $sellerAmount, currency: $currency, quantity: $quantity, status: $status, escrowStatus: $escrowStatus, escrowId: $escrowId, shippingAddress: $shippingAddress, trackingNumber: $trackingNumber, buyerNote: $buyerNote, sellerNote: $sellerNote, createdAt: $createdAt, paidAt: $paidAt, shippedAt: $shippedAt, deliveredAt: $deliveredAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason)';
+    return 'OrderEntity(id: $id, sessionId: $sessionId, productId: $productId, productTitle: $productTitle, productImageUrl: $productImageUrl, buyerId: $buyerId, buyerName: $buyerName, sellerId: $sellerId, sellerName: $sellerName, amount: $amount, platformFee: $platformFee, sellerAmount: $sellerAmount, currency: $currency, quantity: $quantity, status: $status, escrowStatus: $escrowStatus, escrowId: $escrowId, shippingAddress: $shippingAddress, trackingNumber: $trackingNumber, buyerNote: $buyerNote, sellerNote: $sellerNote, createdAt: $createdAt, paidAt: $paidAt, shippedAt: $shippedAt, deliveredAt: $deliveredAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason)';
   }
 
   @override
@@ -602,6 +624,8 @@ class _$OrderEntityImpl implements _OrderEntity {
         (other.runtimeType == runtimeType &&
             other is _$OrderEntityImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
             (identical(other.productTitle, productTitle) ||
@@ -656,6 +680,7 @@ class _$OrderEntityImpl implements _OrderEntity {
   int get hashCode => Object.hashAll([
     runtimeType,
     id,
+    sessionId,
     productId,
     productTitle,
     productImageUrl,
@@ -696,6 +721,7 @@ class _$OrderEntityImpl implements _OrderEntity {
 abstract class _OrderEntity implements OrderEntity {
   const factory _OrderEntity({
     required final String id,
+    final String? sessionId,
     required final String productId,
     required final String productTitle,
     final String? productImageUrl,
@@ -726,6 +752,10 @@ abstract class _OrderEntity implements OrderEntity {
 
   @override
   String get id;
+
+  /// Session ID to group orders from the same cart checkout
+  @override
+  String? get sessionId;
   @override
   String get productId;
   @override

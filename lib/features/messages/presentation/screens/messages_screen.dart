@@ -471,30 +471,17 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
       itemBuilder: (context, index) {
         final conversation = filtered[index];
 
-        String? otherUserName;
-        String? otherUserPhotoUrl;
-
-        if (conversation.isIndividual) {
-          otherUserName = conversation.name;
-        }
-
         return ConversationItem(
           conversation: conversation,
           currentUserId: currentUserId,
-          otherUserName: otherUserName ?? conversation.name,
-          otherUserPhotoUrl: otherUserPhotoUrl ?? conversation.imageUrl,
           onTap: () {
             context.push(
               '/messages/${conversation.id}',
               extra: {
-                'name':
-                    conversation.isGroup
-                        ? conversation.name
-                        : (otherUserName ?? 'Conversation'),
+                'name': conversation.name ?? 'Conversation',
                 'imageUrl': conversation.imageUrl,
                 'isGroup': conversation.isGroup,
-                'groupId':
-                    conversation.groupId, // Pass groupId from conversation
+                'groupId': conversation.groupId,
                 'otherUserId':
                     conversation.isGroup
                         ? null

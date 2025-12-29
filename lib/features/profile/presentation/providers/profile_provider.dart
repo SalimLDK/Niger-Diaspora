@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_info.dart';
@@ -60,17 +60,19 @@ class ProfileNotifier extends _$ProfileNotifier {
         (failure) {
           // En cas d'échec silencieux (pas de réseau par exemple),
           // on garde simplement la version en cache sans erreur.
-          debugPrint('⚠️ Profile refresh failed (keeping cache): ${failure.message}');
+          // debugPrint('⚠️ Profile refresh failed (keeping cache): ${failure.message}');
         },
         (profile) {
           // Mise à jour de l'état avec les données fraîches
           state = AsyncValue.data(profile);
         },
       );
-    } catch (e, stackTrace) {
+    } catch (
+      e //, stackTrace
+    ) {
       // Erreur inattendue ignorée pour ne pas crasher l'UI qui a déjà des données (cache)
-      debugPrint('❌ Unexpected error refreshing profile: $e');
-      debugPrint('   Stack trace: $stackTrace');
+      // debugPrint('❌ Unexpected error refreshing profile: $e');
+      // debugPrint('   Stack trace: $stackTrace');
     }
   }
 

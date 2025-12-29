@@ -35,6 +35,7 @@ class MessageModel with _$MessageModel {
     @Default([]) List<String> reactions,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>
@@ -56,6 +57,7 @@ class MessageModel with _$MessageModel {
       'reactions': (data['reactions'] as List<dynamic>?)?.cast<String>() ?? [],
       'replyToId': data['replyToId'],
       'replyToMessageData': data['replyToMessageData'],
+      'productData': data['productData'],
     });
   }
 
@@ -105,6 +107,7 @@ class MessageModel with _$MessageModel {
     reactions: reactions,
     replyToId: replyToId,
     replyToMessageData: replyToMessageData,
+    productData: productData,
   );
 
   factory MessageModel.fromEntity(MessageEntity entity) => MessageModel(
@@ -132,6 +135,7 @@ class MessageModel with _$MessageModel {
     reactions: entity.reactions,
     replyToId: entity.replyToId,
     replyToMessageData: entity.replyToMessageData,
+    productData: entity.productData,
   );
 
   static MessageType _parseMessageType(String value) {

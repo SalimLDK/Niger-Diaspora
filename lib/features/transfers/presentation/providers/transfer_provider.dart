@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/app_settings_provider.dart';
@@ -212,39 +212,39 @@ class RecipientNotifier extends _$RecipientNotifier {
   FutureOr<void> build() {}
 
   Future<RecipientEntity?> createRecipient(RecipientEntity recipient) async {
-    debugPrint('🔵 RecipientNotifier.createRecipient() called');
+    // debugPrint('🔵 RecipientNotifier.createRecipient() called');
     state = const AsyncLoading();
-    debugPrint('🔵 State set to AsyncLoading');
+    // debugPrint('🔵 State set to AsyncLoading');
 
     final repository = ref.read(transferRepositoryProvider);
-    debugPrint('🔵 Repository obtained');
+    // debugPrint('🔵 Repository obtained');
 
-    debugPrint('🔵 Calling repository.createRecipient()...');
+    // debugPrint('🔵 Calling repository.createRecipient()...');
     final result = await repository.createRecipient(recipient);
-    debugPrint('🔵 repository.createRecipient() returned');
+    // debugPrint('🔵 repository.createRecipient() returned');
 
     return result.fold(
       (failure) {
-        debugPrint('❌ createRecipient failed: ${failure.message}');
+        // debugPrint('❌ createRecipient failed: ${failure.message}');
         state = AsyncError(failure.message, StackTrace.current);
         return null;
       },
       (created) {
-        debugPrint('✅ createRecipient succeeded');
+        // debugPrint('✅ createRecipient succeeded');
         // Don't update state to AsyncData - it causes "Future already completed" error
         // The state will be updated by the invalidation of userRecipientsProvider
-        debugPrint(
-          '🔵 Skipping state update (prevents Future already completed error)',
-        );
+        // debugPrint(
+        //   '🔵 Skipping state update (prevents Future already completed error)',
+        // );
 
         // Defer invalidation to refresh the recipients list
-        debugPrint('🔵 Scheduling provider invalidation');
+        // debugPrint('🔵 Scheduling provider invalidation');
         Future.microtask(() {
-          debugPrint('🔵 Invalidating userRecipientsProvider');
+          // debugPrint('🔵 Invalidating userRecipientsProvider');
           ref.invalidate(userRecipientsProvider(recipient.userId));
-          debugPrint('🔵 Provider invalidated');
+          // debugPrint('🔵 Provider invalidated');
         });
-        debugPrint('🔵 Returning created recipient');
+        // debugPrint('🔵 Returning created recipient');
         return created;
       },
     );

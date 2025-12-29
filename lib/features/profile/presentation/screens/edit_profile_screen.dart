@@ -299,9 +299,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: source,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 95,
     );
 
     if (image != null) {

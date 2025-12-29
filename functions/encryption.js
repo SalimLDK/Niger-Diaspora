@@ -60,7 +60,7 @@ function decryptText(encryptedFullText) {
         return decryptedText;
     } catch (error) {
         // If decryption fails (wrong key, corrupted data, legacy format), return original
-        console.log(`Decryption failed for text, returning original: ${error.message}`);
+        // console.log(`Decryption failed for text, returning original: ${error.message}`);
         return encryptedFullText;
     }
 }

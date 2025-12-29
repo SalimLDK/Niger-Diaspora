@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/currency_provider.dart';
+import '../../../../core/services/currency_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../data/datasources/marketplace_remote_datasource.dart';
 import '../../data/repositories/marketplace_repository_impl.dart';
 import '../../domain/entities/product_entity.dart';
@@ -33,11 +36,13 @@ MarketplaceRepository marketplaceRepository(Ref ref) {
 Future<List<ProductEntity>> products(
   Ref ref, {
   ProductCategory? category,
+  Country? country,
   String? sellerId,
 }) async {
   final repository = ref.watch(marketplaceRepositoryProvider);
   final result = await repository.getProducts(
     category: category,
+    country: country,
     sellerId: sellerId,
   );
   return result.fold(
@@ -121,16 +126,11 @@ class ProductNotifier extends _$ProductNotifier {
   FutureOr<void> build() {}
 
   Future<ProductEntity?> createProduct(ProductEntity product) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.createProduct(product);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return null;
-      },
+      (failure) => null,
       (created) {
-        state = const AsyncData(null);
         ref.invalidate(productsProvider);
         return created;
       },
@@ -138,16 +138,11 @@ class ProductNotifier extends _$ProductNotifier {
   }
 
   Future<ProductEntity?> updateProduct(ProductEntity product) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.updateProduct(product);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return null;
-      },
+      (failure) => null,
       (updated) {
-        state = const AsyncData(null);
         ref.invalidate(productsProvider);
         ref.invalidate(productProvider(product.id));
         return updated;
@@ -156,16 +151,11 @@ class ProductNotifier extends _$ProductNotifier {
   }
 
   Future<bool> deleteProduct(String id) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.deleteProduct(id);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         ref.invalidate(productsProvider);
         return true;
       },
@@ -193,7 +183,6 @@ class OrderNotifier extends _$OrderNotifier {
     String? shippingAddress,
     String? buyerNote,
   }) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.createOrder(
       product: product,
@@ -204,12 +193,8 @@ class OrderNotifier extends _$OrderNotifier {
       buyerNote: buyerNote,
     );
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return null;
-      },
+      (failure) => null,
       (order) {
-        state = const AsyncData(null);
         ref.invalidate(buyerOrdersProvider(buyerId));
         ref.invalidate(productProvider(product.id));
         return order;
@@ -218,16 +203,11 @@ class OrderNotifier extends _$OrderNotifier {
   }
 
   Future<bool> payOrder(String orderId, String buyerId) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.payOrder(orderId);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         ref.invalidate(buyerOrdersProvider(buyerId));
         return true;
       },
@@ -239,16 +219,11 @@ class OrderNotifier extends _$OrderNotifier {
     String sellerId,
     String? trackingNumber,
   ) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.markAsShipped(orderId, trackingNumber);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         ref.invalidate(sellerOrdersProvider(sellerId));
         return true;
       },
@@ -256,16 +231,11 @@ class OrderNotifier extends _$OrderNotifier {
   }
 
   Future<bool> confirmDelivery(String orderId, String buyerId) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.confirmDelivery(orderId);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         ref.invalidate(buyerOrdersProvider(buyerId));
         return true;
       },
@@ -273,16 +243,11 @@ class OrderNotifier extends _$OrderNotifier {
   }
 
   Future<bool> releaseEscrow(String orderId, String buyerId) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.releaseEscrow(orderId);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         ref.invalidate(buyerOrdersProvider(buyerId));
         return true;
       },
@@ -295,16 +260,11 @@ class OrderNotifier extends _$OrderNotifier {
     String? buyerId,
     String? sellerId,
   }) async {
-    state = const AsyncLoading();
     final repository = ref.read(marketplaceRepositoryProvider);
     final result = await repository.cancelOrder(orderId, reason);
     return result.fold(
-      (failure) {
-        state = AsyncError(failure.message, StackTrace.current);
-        return false;
-      },
+      (failure) => false,
       (_) {
-        state = const AsyncData(null);
         if (buyerId != null) ref.invalidate(buyerOrdersProvider(buyerId));
         if (sellerId != null) ref.invalidate(sellerOrdersProvider(sellerId));
         return true;
@@ -344,8 +304,7 @@ class CartItem {
         product: ProductEntity.fromJson(productJson),
         quantity: json['quantity'] as int? ?? 1,
       );
-    } catch (e) {
-      debugPrint('Error parsing CartItem: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -378,8 +337,8 @@ class CartNotifier extends _$CartNotifier {
 
       // Also try to sync from cloud if logged in
       await _syncFromCloud();
-    } catch (e) {
-      debugPrint('Error loading cart: $e');
+    } catch (_) {
+      // Ignore cart loading errors
     }
   }
 
@@ -388,8 +347,8 @@ class CartNotifier extends _$CartNotifier {
       final prefs = await SharedPreferences.getInstance();
       final cartJson = jsonEncode(state.map((e) => e.toJson()).toList());
       await prefs.setString(_cartKey, cartJson);
-    } catch (e) {
-      debugPrint('Error saving cart locally: $e');
+    } catch (_) {
+      // Ignore cart saving errors
     }
   }
 
@@ -415,8 +374,8 @@ class CartNotifier extends _$CartNotifier {
           .collection('cart')
           .doc('items')
           .set({'items': cartData, 'updatedAt': FieldValue.serverTimestamp()});
-    } catch (e) {
-      debugPrint('Error syncing cart to cloud: $e');
+    } catch (_) {
+      // Ignore cloud sync errors
     }
   }
 
@@ -466,8 +425,8 @@ class CartNotifier extends _$CartNotifier {
           await _saveCartToLocal();
         }
       }
-    } catch (e) {
-      debugPrint('Error syncing cart from cloud: $e');
+    } catch (_) {
+      // Ignore cloud sync errors
     }
   }
 
@@ -529,6 +488,28 @@ class CartNotifier extends _$CartNotifier {
       state.fold(0.0, (total, item) => total + item.total);
 
   int get itemCount => state.fold(0, (total, item) => total + item.quantity);
+
+  /// Retourne les totaux par devise
+  Map<String, double> get totalsByCurrency {
+    final totals = <String, double>{};
+    for (final item in state) {
+      final currency = item.product.currency;
+      totals[currency] = (totals[currency] ?? 0.0) + item.total;
+    }
+    return totals;
+  }
+
+  /// Verifie si le panier contient plusieurs devises
+  bool get hasMultipleCurrencies => totalsByCurrency.keys.length > 1;
+
+  /// Retourne la devise principale du panier (celle avec le plus grand montant)
+  String get primaryCurrency {
+    if (state.isEmpty) return 'XOF';
+    final totals = totalsByCurrency;
+    return totals.entries
+        .reduce((a, b) => a.value > b.value ? a : b)
+        .key;
+  }
 }
 
 // ============ SELECTED CATEGORY ============
@@ -541,4 +522,118 @@ class SelectedCategory extends _$SelectedCategory {
   void select(ProductCategory? category) {
     state = category;
   }
+}
+
+// ============ SELECTED COUNTRY ============
+
+@riverpod
+class SelectedCountry extends _$SelectedCountry {
+  @override
+  Country? build() {
+    // Initialize with user's country asynchronously
+    _initFromUserProfile();
+    return null;
+  }
+
+  void _initFromUserProfile() {
+    try {
+      final user = ref.read(currentUserAsyncProvider).valueOrNull;
+      if (user != null) {
+        final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
+        if (profile?.currentCountry != null) {
+          final countryName = profile!.currentCountry!;
+          // Convert string to Country enum
+          final country = Country.values.firstWhere(
+            (c) => c.name.toLowerCase() == countryName.toLowerCase(),
+            orElse: () => Country.niger,
+          );
+          state = country;
+        }
+      }
+    } catch (_) {
+      // Ignore errors, keep default null (show all)
+    }
+  }
+
+  void select(Country? country) {
+    state = country;
+  }
+}
+
+// ============ MULTI-CURRENCY CART PROVIDERS ============
+
+/// Provider pour le total du panier converti dans la devise preferee de l'utilisateur
+@riverpod
+double cartTotalInPreferredCurrency(Ref ref) {
+  final cartItems = ref.watch(cartNotifierProvider);
+  final preferredCurrencyAsync = ref.watch(userCurrencyPreferenceProvider);
+  final preferredCurrency = preferredCurrencyAsync.valueOrNull ?? Currency.eur;
+  final currencyService = ref.watch(currencyServiceProvider);
+
+  double total = 0.0;
+  for (final item in cartItems) {
+    final itemCurrency = CurrencyExtension.fromCode(item.product.currency);
+    final itemTotal = item.total;
+
+    // Convertir vers la devise preferee
+    final converted = currencyService.convert(
+      itemTotal,
+      itemCurrency,
+      preferredCurrency,
+    );
+    total += converted;
+  }
+
+  return total;
+}
+
+/// Provider pour le total du panier formate avec le symbole de devise
+@riverpod
+String formattedCartTotal(Ref ref) {
+  final total = ref.watch(cartTotalInPreferredCurrencyProvider);
+  final preferredCurrencyAsync = ref.watch(userCurrencyPreferenceProvider);
+  final preferredCurrency = preferredCurrencyAsync.valueOrNull ?? Currency.eur;
+  final currencyService = ref.watch(currencyServiceProvider);
+
+  return currencyService.format(total, preferredCurrency);
+}
+
+/// Provider pour obtenir le prix d'un article du panier converti
+@riverpod
+({double originalTotal, double convertedTotal, Currency originalCurrency, Currency targetCurrency})
+cartItemConverted(Ref ref, String productId) {
+  final cartItems = ref.watch(cartNotifierProvider);
+  final preferredCurrencyAsync = ref.watch(userCurrencyPreferenceProvider);
+  final preferredCurrency = preferredCurrencyAsync.valueOrNull ?? Currency.eur;
+  final currencyService = ref.watch(currencyServiceProvider);
+
+  final item = cartItems.firstWhere(
+    (i) => i.product.id == productId,
+    orElse: () => throw Exception('Item not found in cart'),
+  );
+
+  final originalCurrency = CurrencyExtension.fromCode(item.product.currency);
+  final originalTotal = item.total;
+  final convertedTotal = currencyService.convert(
+    originalTotal,
+    originalCurrency,
+    preferredCurrency,
+  );
+
+  return (
+    originalTotal: originalTotal,
+    convertedTotal: convertedTotal,
+    originalCurrency: originalCurrency,
+    targetCurrency: preferredCurrency,
+  );
+}
+
+/// Provider pour verifier si le panier a plusieurs devises
+@riverpod
+bool cartHasMultipleCurrencies(Ref ref) {
+  final cartItems = ref.watch(cartNotifierProvider);
+  if (cartItems.isEmpty) return false;
+
+  final currencies = cartItems.map((item) => item.product.currency).toSet();
+  return currencies.length > 1;
 }

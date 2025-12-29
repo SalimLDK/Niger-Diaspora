@@ -18,6 +18,7 @@ import '../../../settings/presentation/widgets/blocked_users_modal.dart';
 import '../../../settings/presentation/widgets/bug_report_dialog.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
+import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -398,6 +399,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   // Avatar avec effet glow
                   GestureDetector(
                     onTap: () {
+                      HapticFeedback.mediumImpact();
+                      // Si photo existe, ouvrir en plein écran
+                      if (photoUrl != null) {
+                        FullScreenImageViewer.show(
+                          context,
+                          imageUrl: photoUrl,
+                          heroTag: 'profile_avatar',
+                          senderName: displayName,
+                        );
+                      } else {
+                        // Sinon, aller à l'édition du profil
+                        context.push('/profile/edit');
+                      }
+                    },
+                    onLongPress: () {
                       HapticFeedback.mediumImpact();
                       context.push('/profile/edit');
                     },

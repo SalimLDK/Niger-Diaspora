@@ -46,6 +46,7 @@ mixin _$MessageModel {
   String? get replyToId => throw _privateConstructorUsedError;
   Map<String, dynamic>? get replyToMessageData =>
       throw _privateConstructorUsedError;
+  Map<String, dynamic>? get productData => throw _privateConstructorUsedError;
 
   /// Serializes this MessageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -89,6 +90,7 @@ abstract class $MessageModelCopyWith<$Res> {
     List<String> reactions,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   });
 }
 
@@ -131,6 +133,7 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? reactions = null,
     Object? replyToId = freezed,
     Object? replyToMessageData = freezed,
+    Object? productData = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -254,6 +257,11 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.replyToMessageData
                     : replyToMessageData // ignore: cast_nullable_to_non_nullable
                         as Map<String, dynamic>?,
+            productData:
+                freezed == productData
+                    ? _value.productData
+                    : productData // ignore: cast_nullable_to_non_nullable
+                        as Map<String, dynamic>?,
           )
           as $Val,
     );
@@ -294,6 +302,7 @@ abstract class _$$MessageModelImplCopyWith<$Res>
     List<String> reactions,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   });
 }
 
@@ -335,6 +344,7 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? reactions = null,
     Object? replyToId = freezed,
     Object? replyToMessageData = freezed,
+    Object? productData = freezed,
   }) {
     return _then(
       _$MessageModelImpl(
@@ -458,6 +468,11 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value._replyToMessageData
                 : replyToMessageData // ignore: cast_nullable_to_non_nullable
                     as Map<String, dynamic>?,
+        productData:
+            freezed == productData
+                ? _value._productData
+                : productData // ignore: cast_nullable_to_non_nullable
+                    as Map<String, dynamic>?,
       ),
     );
   }
@@ -491,6 +506,7 @@ class _$MessageModelImpl extends _MessageModel {
     final List<String> reactions = const [],
     this.replyToId,
     final Map<String, dynamic>? replyToMessageData,
+    final Map<String, dynamic>? productData,
   }) : _audioWaveform = audioWaveform,
        _readBy = readBy,
        _readAt = readAt,
@@ -498,6 +514,7 @@ class _$MessageModelImpl extends _MessageModel {
        _reportedBy = reportedBy,
        _reactions = reactions,
        _replyToMessageData = replyToMessageData,
+       _productData = productData,
        super._();
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -604,9 +621,19 @@ class _$MessageModelImpl extends _MessageModel {
     return EqualUnmodifiableMapView(value);
   }
 
+  final Map<String, dynamic>? _productData;
+  @override
+  Map<String, dynamic>? get productData {
+    final value = _productData;
+    if (value == null) return null;
+    if (_productData is EqualUnmodifiableMapView) return _productData;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy, reactions: $reactions, replyToId: $replyToId, replyToMessageData: $replyToMessageData)';
+    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy, reactions: $reactions, replyToId: $replyToId, replyToMessageData: $replyToMessageData, productData: $productData)';
   }
 
   @override
@@ -665,6 +692,10 @@ class _$MessageModelImpl extends _MessageModel {
             const DeepCollectionEquality().equals(
               other._replyToMessageData,
               _replyToMessageData,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._productData,
+              _productData,
             ));
   }
 
@@ -696,6 +727,7 @@ class _$MessageModelImpl extends _MessageModel {
     const DeepCollectionEquality().hash(_reactions),
     replyToId,
     const DeepCollectionEquality().hash(_replyToMessageData),
+    const DeepCollectionEquality().hash(_productData),
   ]);
 
   /// Create a copy of MessageModel
@@ -738,6 +770,7 @@ abstract class _MessageModel extends MessageModel {
     final List<String> reactions,
     final String? replyToId,
     final Map<String, dynamic>? replyToMessageData,
+    final Map<String, dynamic>? productData,
   }) = _$MessageModelImpl;
   const _MessageModel._() : super._();
 
@@ -792,6 +825,8 @@ abstract class _MessageModel extends MessageModel {
   String? get replyToId;
   @override
   Map<String, dynamic>? get replyToMessageData;
+  @override
+  Map<String, dynamic>? get productData;
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.

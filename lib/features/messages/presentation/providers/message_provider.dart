@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -121,7 +120,7 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   Future<void> loadInitial() async {
-    debugPrint('🔄 Loading initial messages for $conversationId');
+    // debugPrint('🔄 Loading initial messages for $conversationId');
     try {
       final isOffline = !ref.read(connectivityNotifierProvider);
 
@@ -133,7 +132,7 @@ class PaginatedMessages extends _$PaginatedMessages {
 
       cachedResult.fold(
         (failure) {
-          debugPrint('⚠️ Cache miss or error: ${failure.message}');
+          // debugPrint('⚠️ Cache miss or error: ${failure.message}');
           // If offline and cache fails, that's an error state
           if (isOffline) {
             state = MessagePaginationState(
@@ -150,7 +149,7 @@ class PaginatedMessages extends _$PaginatedMessages {
         },
         (cachedMessages) {
           if (cachedMessages.isNotEmpty) {
-            debugPrint('✅ Loaded ${cachedMessages.length} cached messages');
+            // debugPrint('✅ Loaded ${cachedMessages.length} cached messages');
             state = MessagePaginationState(
               messages: cachedMessages,
               hasMore: cachedMessages.length >= _pageSize, // Approx
@@ -162,7 +161,7 @@ class PaginatedMessages extends _$PaginatedMessages {
             );
           } else {
             // Cache empty
-            debugPrint('⚠️ Cache empty');
+            // debugPrint('⚠️ Cache empty');
             state = MessagePaginationState(
               isLoadingInitial: true,
               isOffline: isOffline,
@@ -182,9 +181,9 @@ class PaginatedMessages extends _$PaginatedMessages {
 
         result.fold(
           (failure) {
-            debugPrint(
-              '❌ Error fetching fresh messages for $conversationId: ${failure.message}',
-            );
+            // debugPrint(
+            //   '❌ Error fetching fresh messages for $conversationId: ${failure.message}',
+            // );
             // If we already have cached messages, we keep them and just stop loading
             // Maybe show a snackbar or silent error?
             if (state.messages.isNotEmpty) {
@@ -200,9 +199,9 @@ class PaginatedMessages extends _$PaginatedMessages {
             }
           },
           (paginatedMessages) {
-            debugPrint(
-              '✅ Loaded ${paginatedMessages.messages.length} fresh messages for $conversationId',
-            );
+            // debugPrint(
+            //   '✅ Loaded ${paginatedMessages.messages.length} fresh messages for $conversationId',
+            // );
 
             state = MessagePaginationState(
               messages: paginatedMessages.messages,
@@ -223,9 +222,11 @@ class PaginatedMessages extends _$PaginatedMessages {
           },
         );
       }
-    } catch (e, stackTrace) {
-      debugPrint('❌ Exception loading messages: $e');
-      debugPrint(stackTrace.toString());
+    } catch (
+      e //, stackTrace
+    ) {
+      // debugPrint('❌ Exception loading messages: $e');
+      // debugPrint(stackTrace.toString());
       state = MessagePaginationState(error: e.toString());
     }
   }
@@ -260,8 +261,8 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   void _listenForNewMessages(DateTime afterTimestamp) {
-    debugPrint('📡 Starting real-time message listener for $conversationId');
-    debugPrint('   Listening for messages after: $afterTimestamp');
+    // debugPrint('📡 Starting real-time message listener for $conversationId');
+    // debugPrint('   Listening for messages after: $afterTimestamp');
 
     _newMessagesSubscription?.cancel();
     _newMessagesSubscription = ref
@@ -273,23 +274,19 @@ class PaginatedMessages extends _$PaginatedMessages {
         .listen((either) {
           either.fold(
             (failure) {
-              debugPrint('❌ Real-time stream error: ${failure.message}');
+              // debugPrint('❌ Real-time stream error: ${failure.message}');
             },
             (newMessages) {
               if (newMessages.isNotEmpty) {
-                debugPrint(
-                  '📨 Received ${newMessages.length} new messages from stream',
-                );
+                // debugPrint(
+                //   '📨 Received ${newMessages.length} new messages from stream',
+                // );
                 final existingMessages = List<MessageEntity>.from(
                   state.messages,
                 );
-                debugPrint(
-                  '   Current message count: ${existingMessages.length}',
-                );
-
-                int replaced = 0;
-                int added = 0;
-                int skipped = 0;
+                // debugPrint(
+                //   '   Current message count: ${existingMessages.length}',
+                // );
 
                 // Since newMessages are sorted (Oldest -> Newest), we can append them
                 for (final newMessage in newMessages) {
@@ -307,43 +304,35 @@ class PaginatedMessages extends _$PaginatedMessages {
                                 .inSeconds <
                             10 &&
                         (m.content == newMessage.content ||
-                            m.type != MessageType.text), // For media, don't check content
+                            m.type !=
+                                MessageType
+                                    .text), // For media, don't check content
                   );
 
                   if (optimisticIndex != -1) {
                     // Replace optimistic message with real one
-                    debugPrint(
-                      '   🔄 Replacing optimistic message ${existingMessages[optimisticIndex].id} with ${newMessage.id}',
-                    );
+                    // debugPrint(
+                    //   '   🔄 Replacing optimistic message ${existingMessages[optimisticIndex].id} with ${newMessage.id}',
+                    // );
                     existingMessages[optimisticIndex] = newMessage;
-                    replaced++;
                   } else if (!existingMessages.any(
                     (m) => m.id == newMessage.id,
                   )) {
                     // Add new message if it doesn't exist
-                    debugPrint('   ➕ Adding new message: ${newMessage.id}');
+                    // debugPrint('   ➕ Adding new message: ${newMessage.id}');
                     existingMessages.add(newMessage);
-                    added++;
-                  } else {
-                    debugPrint(
-                      '   ⏭️  Skipping duplicate message: ${newMessage.id}',
-                    );
-                    skipped++;
                   }
+                  // Duplicate message - skip
                 }
-
-                debugPrint(
-                  '   Summary: $replaced replaced, $added added, $skipped skipped',
-                );
 
                 // Re-sort to be safe, though appending sorted new messages to sorted existing should work
                 existingMessages.sort(
                   (a, b) => a.createdAt.compareTo(b.createdAt),
                 );
 
-                debugPrint(
-                  '   Final message count: ${existingMessages.length}',
-                );
+                // debugPrint(
+                //   '   Final message count: ${existingMessages.length}',
+                // );
                 state = state.copyWith(messages: existingMessages);
               }
             },
@@ -352,7 +341,7 @@ class PaginatedMessages extends _$PaginatedMessages {
   }
 
   void _listenForMessageUpdates() {
-    debugPrint('📡 Starting message updates listener for $conversationId');
+    // debugPrint('📡 Starting message updates listener for $conversationId');
 
     _messageUpdatesSubscription?.cancel();
     _messageUpdatesSubscription = ref
@@ -361,12 +350,12 @@ class PaginatedMessages extends _$PaginatedMessages {
         .listen((either) {
           either.fold(
             (failure) {
-              debugPrint('❌ Message updates stream error: ${failure.message}');
+              // debugPrint('❌ Message updates stream error: ${failure.message}');
             },
             (updatedMessage) {
-              debugPrint(
-                '🔄 Received message update: ${updatedMessage.id} (reactions: ${updatedMessage.reactions.length})',
-              );
+              // debugPrint(
+              //   '🔄 Received message update: ${updatedMessage.id} (reactions: ${updatedMessage.reactions.length})',
+              // );
 
               final existingMessages = List<MessageEntity>.from(state.messages);
               final index = existingMessages.indexWhere(
@@ -377,7 +366,7 @@ class PaginatedMessages extends _$PaginatedMessages {
                 // Update the existing message with new data
                 existingMessages[index] = updatedMessage;
                 state = state.copyWith(messages: existingMessages);
-                debugPrint('   ✅ Updated message at index $index');
+                // debugPrint('   ✅ Updated message at index $index');
               }
             },
           );
@@ -394,7 +383,7 @@ class PaginatedMessages extends _$PaginatedMessages {
     final existingMessages = List<MessageEntity>.from(state.messages);
     existingMessages.removeWhere((m) => m.id == messageId);
     state = state.copyWith(messages: existingMessages);
-    debugPrint('🗑️ Removed message $messageId optimistically');
+    // debugPrint('🗑️ Removed message $messageId optimistically');
   }
 
   /// Mark a message as deleted for current user (optimistic update)
@@ -434,7 +423,7 @@ class PaginatedMessages extends _$PaginatedMessages {
       );
       existingMessages[index] = updatedMessage;
       state = state.copyWith(messages: existingMessages);
-      debugPrint('🗑️ Marked message $messageId as deleted for $userId');
+      // debugPrint('🗑️ Marked message $messageId as deleted for $userId');
     }
   }
 
@@ -475,15 +464,15 @@ class PaginatedMessages extends _$PaginatedMessages {
       );
       existingMessages[index] = updatedMessage;
       state = state.copyWith(messages: existingMessages);
-      debugPrint('🗑️ Marked message $messageId as deleted for everyone');
+      // debugPrint('🗑️ Marked message $messageId as deleted for everyone');
     }
   }
 
   void addOptimisticMessage(MessageEntity message) {
-    debugPrint('➕ Adding optimistic message: ${message.id}');
-    debugPrint(
-      '   Current count: ${state.messages.length} -> ${state.messages.length + 1}',
-    );
+    // debugPrint('➕ Adding optimistic message: ${message.id}');
+    // debugPrint(
+    //   '   Current count: ${state.messages.length} -> ${state.messages.length + 1}',
+    // );
     state = state.copyWith(messages: [...state.messages, message]);
   }
 
@@ -583,7 +572,7 @@ class PaginatedMessages extends _$PaginatedMessages {
       }
     } catch (e) {
       // Revert on failure
-      debugPrint('❌ Failed to toggle reaction: $e');
+      // debugPrint('❌ Failed to toggle reaction: $e');
       final revertedMessages = List<MessageEntity>.from(state.messages);
       // Ensure we are still looking at the same valid index/message ID
       if (revertedMessages.length > messageIndex &&
@@ -610,6 +599,7 @@ class SendMessage extends _$SendMessage {
     int attempt = 1,
     int maxAttempts = 3,
     MessageEntity? replyToMessage,
+    Map<String, dynamic>? productData,
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
@@ -646,6 +636,7 @@ class SendMessage extends _$SendMessage {
       readAt: {},
       replyToId: replyToMessage?.id,
       replyToMessageData: replyToMessageData,
+      productData: productData,
     );
 
     // Add to UI immediately (only on first attempt)
@@ -668,15 +659,16 @@ class SendMessage extends _$SendMessage {
           content: content,
           replyToId: replyToMessage?.id,
           replyToMessageData: replyToMessageData,
+          productData: productData,
         );
 
     return result.fold(
       (failure) async {
         // Retry on network failure if not exceeded max attempts
         if (attempt < maxAttempts) {
-          debugPrint(
-            '⚠️ Message send failed (attempt $attempt/$maxAttempts), retrying...',
-          );
+          // debugPrint(
+          //   '⚠️ Message send failed (attempt $attempt/$maxAttempts), retrying...',
+          // );
 
           // Exponential backoff: wait 2s, then 4s, etc
           await Future.delayed(Duration(seconds: attempt * 2));
@@ -689,11 +681,12 @@ class SendMessage extends _$SendMessage {
             attempt: attempt + 1,
             maxAttempts: maxAttempts,
             replyToMessage: replyToMessage,
+            productData: productData,
           );
         }
 
         // Final failure after all retries
-        debugPrint('❌ Message send failed after $maxAttempts attempts');
+        // debugPrint('❌ Message send failed after $maxAttempts attempts');
 
         // Update status to failed in UI
         ref
@@ -956,7 +949,7 @@ class DeleteMessage extends _$DeleteMessage {
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) {
-      debugPrint('❌ DeleteMessage: No current user');
+      // debugPrint('❌ DeleteMessage: No current user');
       return false;
     }
 
@@ -977,14 +970,14 @@ class DeleteMessage extends _$DeleteMessage {
 
     return result.fold(
       (failure) {
-        debugPrint('❌ DeleteMessage deleteForMe failed: ${failure.message}');
+        // debugPrint('❌ DeleteMessage deleteForMe failed: ${failure.message}');
         state = AsyncValue.error(failure.message, StackTrace.current);
         // Revert optimistic update by refreshing
         ref.invalidate(paginatedMessagesProvider(conversationId));
         return false;
       },
       (_) {
-        debugPrint('✅ DeleteMessage deleteForMe success');
+        // debugPrint('✅ DeleteMessage deleteForMe success');
         state = const AsyncValue.data(null);
         // Message already hidden by optimistic update, no need to refresh
         return true;
@@ -1012,16 +1005,16 @@ class DeleteMessage extends _$DeleteMessage {
 
     return result.fold(
       (failure) {
-        debugPrint(
-          '❌ DeleteMessage deleteForEveryone failed: ${failure.message}',
-        );
+        // debugPrint(
+        //   '❌ DeleteMessage deleteForEveryone failed: ${failure.message}',
+        // );
         state = AsyncValue.error(failure.message, StackTrace.current);
         // Revert optimistic update by refreshing
         ref.invalidate(paginatedMessagesProvider(conversationId));
         return false;
       },
       (_) {
-        debugPrint('✅ DeleteMessage deleteForEveryone success');
+        // debugPrint('✅ DeleteMessage deleteForEveryone success');
         state = const AsyncValue.data(null);
         // Message already updated by optimistic update, no need to refresh
         return true;

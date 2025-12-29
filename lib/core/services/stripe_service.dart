@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -147,10 +149,10 @@ class StripeService {
     required String transactionId,
     Map<String, dynamic>? metadata,
   }) async {
-    try {
-      // Note: You'll need to create a Cloud Function endpoint
-      // For now, we'll create a document that a Cloud Function can listen to
+    StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? subscription;
+    Timer? timeoutTimer;
 
+    try {
       final requestDoc = _firestore.collection('payment_intents').doc();
 
       await requestDoc.set({
@@ -163,25 +165,60 @@ class StripeService {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // Wait for Cloud Function to process and add clientSecret
-      final snapshot = await requestDoc.snapshots().firstWhere((snapshot) {
-        final data = snapshot.data();
-        return data != null &&
-            (data['status'] == 'created' || data['status'] == 'error');
-      }, orElse: () => throw Exception('Payment intent creation timeout'));
+      // Use Completer for safe Future completion (prevents "Future already completed")
+      final completer = Completer<Map<String, dynamic>?>();
 
-      final data = snapshot.data();
-      if (data == null || data['status'] == 'error') {
-        throw Exception(data?['error'] ?? 'Failed to create payment intent');
-      }
+      // Set up timeout
+      timeoutTimer = Timer(const Duration(seconds: 30), () {
+        if (!completer.isCompleted) {
+          subscription?.cancel();
+          completer.completeError(Exception(
+            'Payment intent creation timeout. Verifiez que les Cloud Functions sont deployees.',
+          ));
+        }
+      });
 
-      return {
-        'clientSecret': data['clientSecret'],
-        'paymentIntentId': data['paymentIntentId'],
-      };
+      // Listen to document changes
+      subscription = requestDoc.snapshots().listen(
+        (snapshot) {
+          final data = snapshot.data();
+          if (data != null &&
+              (data['status'] == 'created' || data['status'] == 'error')) {
+            // Only complete if not already completed
+            if (!completer.isCompleted) {
+              timeoutTimer?.cancel();
+              subscription?.cancel();
+
+              if (data['status'] == 'error') {
+                completer.completeError(
+                  Exception(data['error'] ?? 'Failed to create payment intent'),
+                );
+              } else {
+                completer.complete({
+                  'clientSecret': data['clientSecret'],
+                  'paymentIntentId': data['paymentIntentId'],
+                });
+              }
+            }
+          }
+        },
+        onError: (error) {
+          if (!completer.isCompleted) {
+            timeoutTimer?.cancel();
+            subscription?.cancel();
+            completer.completeError(error);
+          }
+        },
+      );
+
+      return await completer.future;
     } catch (e) {
       debugPrint('Error creating payment intent: $e');
       rethrow;
+    } finally {
+      // Clean up resources
+      timeoutTimer?.cancel();
+      await subscription?.cancel();
     }
   }
 

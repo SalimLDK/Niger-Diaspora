@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../../core/models/country.dart';
+
+export '../../../../core/models/country.dart';
 
 part 'product_entity.freezed.dart';
 
@@ -17,7 +20,8 @@ class ProductEntity with _$ProductEntity {
     @Default([]) List<String> imageUrls,
     @Default(ProductCategory.other) ProductCategory category,
     @Default(ProductCondition.newProduct) ProductCondition condition,
-    String? location,
+    String? location, // City/address details
+    Country? country, // Country for filtering
     @Default(true) bool isAvailable,
     @Default(1) int quantity,
     @Default(0) int viewCount,
@@ -46,6 +50,7 @@ class ProductEntity with _$ProductEntity {
     'category': category.name,
     'condition': condition.name,
     'location': location,
+    'country': country?.name,
     'isAvailable': isAvailable,
     'quantity': quantity,
     'viewCount': viewCount,
@@ -78,6 +83,12 @@ class ProductEntity with _$ProductEntity {
         orElse: () => ProductCondition.newProduct,
       ),
       location: json['location'] as String?,
+      country: json['country'] != null
+          ? Country.values.firstWhere(
+              (e) => e.name == json['country'],
+              orElse: () => Country.other,
+            )
+          : null,
       isAvailable: json['isAvailable'] as bool? ?? true,
       quantity: json['quantity'] as int? ?? 1,
       viewCount: json['viewCount'] as int? ?? 0,

@@ -22,6 +22,9 @@ OrderModel _$OrderModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OrderModel {
   String get id => throw _privateConstructorUsedError;
+
+  /// Session ID to group orders from the same cart checkout
+  String? get sessionId => throw _privateConstructorUsedError;
   String get productId => throw _privateConstructorUsedError;
   String get productTitle => throw _privateConstructorUsedError;
   String? get productImageUrl => throw _privateConstructorUsedError;
@@ -74,6 +77,7 @@ abstract class $OrderModelCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
+    String? sessionId,
     String productId,
     String productTitle,
     String? productImageUrl,
@@ -119,6 +123,7 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
   @override
   $Res call({
     Object? id = null,
+    Object? sessionId = freezed,
     Object? productId = null,
     Object? productTitle = null,
     Object? productImageUrl = freezed,
@@ -153,6 +158,11 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
                     ? _value.id
                     : id // ignore: cast_nullable_to_non_nullable
                         as String,
+            sessionId:
+                freezed == sessionId
+                    ? _value.sessionId
+                    : sessionId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             productId:
                 null == productId
                     ? _value.productId
@@ -300,6 +310,7 @@ abstract class _$$OrderModelImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
+    String? sessionId,
     String productId,
     String productTitle,
     String? productImageUrl,
@@ -344,6 +355,7 @@ class __$$OrderModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? sessionId = freezed,
     Object? productId = null,
     Object? productTitle = null,
     Object? productImageUrl = freezed,
@@ -378,6 +390,11 @@ class __$$OrderModelImplCopyWithImpl<$Res>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                     as String,
+        sessionId:
+            freezed == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         productId:
             null == productId
                 ? _value.productId
@@ -518,6 +535,7 @@ class __$$OrderModelImplCopyWithImpl<$Res>
 class _$OrderModelImpl extends _OrderModel {
   const _$OrderModelImpl({
     required this.id,
+    this.sessionId,
     required this.productId,
     required this.productTitle,
     this.productImageUrl,
@@ -551,6 +569,10 @@ class _$OrderModelImpl extends _OrderModel {
 
   @override
   final String id;
+
+  /// Session ID to group orders from the same cart checkout
+  @override
+  final String? sessionId;
   @override
   final String productId;
   @override
@@ -615,7 +637,7 @@ class _$OrderModelImpl extends _OrderModel {
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, productId: $productId, productTitle: $productTitle, productImageUrl: $productImageUrl, buyerId: $buyerId, buyerName: $buyerName, sellerId: $sellerId, sellerName: $sellerName, amount: $amount, platformFee: $platformFee, sellerAmount: $sellerAmount, currency: $currency, quantity: $quantity, status: $status, escrowStatus: $escrowStatus, escrowId: $escrowId, shippingAddress: $shippingAddress, trackingNumber: $trackingNumber, buyerNote: $buyerNote, sellerNote: $sellerNote, createdAt: $createdAt, paidAt: $paidAt, shippedAt: $shippedAt, deliveredAt: $deliveredAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason)';
+    return 'OrderModel(id: $id, sessionId: $sessionId, productId: $productId, productTitle: $productTitle, productImageUrl: $productImageUrl, buyerId: $buyerId, buyerName: $buyerName, sellerId: $sellerId, sellerName: $sellerName, amount: $amount, platformFee: $platformFee, sellerAmount: $sellerAmount, currency: $currency, quantity: $quantity, status: $status, escrowStatus: $escrowStatus, escrowId: $escrowId, shippingAddress: $shippingAddress, trackingNumber: $trackingNumber, buyerNote: $buyerNote, sellerNote: $sellerNote, createdAt: $createdAt, paidAt: $paidAt, shippedAt: $shippedAt, deliveredAt: $deliveredAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason)';
   }
 
   @override
@@ -624,6 +646,8 @@ class _$OrderModelImpl extends _OrderModel {
         (other.runtimeType == runtimeType &&
             other is _$OrderModelImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
             (identical(other.productTitle, productTitle) ||
@@ -679,6 +703,7 @@ class _$OrderModelImpl extends _OrderModel {
   int get hashCode => Object.hashAll([
     runtimeType,
     id,
+    sessionId,
     productId,
     productTitle,
     productImageUrl,
@@ -724,6 +749,7 @@ class _$OrderModelImpl extends _OrderModel {
 abstract class _OrderModel extends OrderModel {
   const factory _OrderModel({
     required final String id,
+    final String? sessionId,
     required final String productId,
     required final String productTitle,
     final String? productImageUrl,
@@ -758,6 +784,10 @@ abstract class _OrderModel extends OrderModel {
 
   @override
   String get id;
+
+  /// Session ID to group orders from the same cart checkout
+  @override
+  String? get sessionId;
   @override
   String get productId;
   @override

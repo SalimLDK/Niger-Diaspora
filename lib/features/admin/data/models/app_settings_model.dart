@@ -332,6 +332,8 @@ class ExchangeRatesModel {
   final double cadToXof;
   final double chfToXof;
   final DateTime? lastUpdated;
+  final String? exchangeRateApiKey;
+  final int refreshIntervalMinutes;
 
   ExchangeRatesModel({
     this.eurToXof = 655.957,
@@ -340,6 +342,8 @@ class ExchangeRatesModel {
     this.cadToXof = 455.0,
     this.chfToXof = 690.0,
     this.lastUpdated,
+    this.exchangeRateApiKey,
+    this.refreshIntervalMinutes = 60,
   });
 
   factory ExchangeRatesModel.fromJson(Map<String, dynamic> json) =>
@@ -352,6 +356,8 @@ class ExchangeRatesModel {
         lastUpdated: json['lastUpdated'] is Timestamp
             ? (json['lastUpdated'] as Timestamp).toDate()
             : null,
+        exchangeRateApiKey: json['exchangeRateApiKey'] as String?,
+        refreshIntervalMinutes: json['refreshIntervalMinutes'] as int? ?? 60,
       );
 
   Map<String, dynamic> toJson() => {
@@ -363,6 +369,8 @@ class ExchangeRatesModel {
         'lastUpdated': lastUpdated != null
             ? Timestamp.fromDate(lastUpdated!)
             : null,
+        'exchangeRateApiKey': exchangeRateApiKey,
+        'refreshIntervalMinutes': refreshIntervalMinutes,
       };
 
   ExchangeRatesEntity toEntity() => ExchangeRatesEntity(
@@ -372,6 +380,8 @@ class ExchangeRatesModel {
         cadToXof: cadToXof,
         chfToXof: chfToXof,
         lastUpdated: lastUpdated,
+        exchangeRateApiKey: exchangeRateApiKey,
+        refreshIntervalMinutes: refreshIntervalMinutes,
       );
 
   static ExchangeRatesModel fromEntity(ExchangeRatesEntity entity) =>
@@ -382,6 +392,8 @@ class ExchangeRatesModel {
         cadToXof: entity.cadToXof,
         chfToXof: entity.chfToXof,
         lastUpdated: entity.lastUpdated,
+        exchangeRateApiKey: entity.exchangeRateApiKey,
+        refreshIntervalMinutes: entity.refreshIntervalMinutes,
       );
 }
 

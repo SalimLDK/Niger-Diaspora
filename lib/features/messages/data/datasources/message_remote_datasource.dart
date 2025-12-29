@@ -58,6 +58,7 @@ abstract class MessageRemoteDataSource {
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   });
 
   /// Envoyer un message avec fichier (Legacy - prefer split methods)
@@ -552,6 +553,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? productData,
   }) async {
     final now = DateTime.now().toIso8601String();
     final encryptedContent = _encryptionService.encryptText(content);
@@ -566,6 +568,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       'createdAt': now,
       'replyToId': replyToId,
       'replyToMessageData': replyToMessageData,
+      if (productData != null) 'productData': productData,
     };
 
     // Create message in RTDB - this is the critical operation
@@ -575,7 +578,9 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     // Try to update conversation metadata (non-critical)
     await _updateConversationLastMessage(
       conversationId: conversationId,
-      lastMessage: content,
+      lastMessage: productData != null
+          ? '🛒 ${productData['title'] ?? 'Produit'}'
+          : content,
       senderId: senderId,
     );
 
@@ -600,6 +605,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         readAt: {senderId: DateTime.parse(now)},
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
+        productData: productData,
       );
     }
   }

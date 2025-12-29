@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/tax_provider.dart';
 import '../../../../core/services/tax_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 
@@ -42,11 +44,73 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   double? _customTaxRate;
   bool _taxIncludedInPrice = false;
 
-  // Currency (can be made selectable in the future)
-  final Currency _selectedCurrency = Currency.xof;
+  // Currency
+  Currency _selectedCurrency = Currency.xof;
+
+  // Country - will be initialized from user's profile
+  Country? _selectedCountry;
 
   String _formatPrice(double amount) {
     return CurrencyService.instance.format(amount, _selectedCurrency);
+  }
+
+  // Common currencies shown first
+  static const _commonCurrencies = [
+    Currency.xof,
+    Currency.eur,
+    Currency.usd,
+    Currency.xaf,
+    Currency.ngn,
+    Currency.ghs,
+    Currency.gbp,
+    Currency.cad,
+  ];
+
+  List<DropdownMenuItem<Currency>> _buildCurrencyItems() {
+    final items = <DropdownMenuItem<Currency>>[];
+
+    // Add common currencies first
+    for (final currency in _commonCurrencies) {
+      items.add(_buildCurrencyMenuItem(currency));
+    }
+
+    // Add divider
+    items.add(
+      DropdownMenuItem<Currency>(
+        enabled: false,
+        child: Divider(color: Colors.grey.shade300),
+      ),
+    );
+
+    // Add remaining currencies
+    for (final currency in Currency.values) {
+      if (!_commonCurrencies.contains(currency)) {
+        items.add(_buildCurrencyMenuItem(currency));
+      }
+    }
+
+    return items;
+  }
+
+  DropdownMenuItem<Currency> _buildCurrencyMenuItem(Currency currency) {
+    return DropdownMenuItem(
+      value: currency,
+      child: Row(
+        children: [
+          Text(currency.flag, style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 8),
+          Text(currency.code, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              currency.name,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool get _isEditing => widget.product != null;
@@ -63,6 +127,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       _selectedCategory = widget.product!.category;
       _selectedCondition = widget.product!.condition;
       _existingImageUrls = List.from(widget.product!.imageUrls);
+      // Currency
+      _selectedCurrency = CurrencyExtension.fromCode(widget.product!.currency);
+      // Country
+      _selectedCountry = widget.product!.country;
       // Tax settings
       _taxIncludedInPrice = widget.product!.taxIncludedInPrice;
       if (widget.product!.customTaxRate != null) {
@@ -79,6 +147,31 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       }
     } else {
       _quantityController.text = '1';
+      // Load user's country from profile
+      _initUserCountry();
+    }
+  }
+
+  void _initUserCountry() {
+    try {
+      final user = ref.read(currentUserAsyncProvider).valueOrNull;
+      if (user != null) {
+        final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
+        if (profile?.currentCountry != null) {
+          final countryName = profile!.currentCountry!;
+          final country = Country.values.firstWhere(
+            (c) => c.name.toLowerCase() == countryName.toLowerCase(),
+            orElse: () => Country.niger,
+          );
+          setState(() => _selectedCountry = country);
+        } else {
+          setState(() => _selectedCountry = Country.niger);
+        }
+      } else {
+        setState(() => _selectedCountry = Country.niger);
+      }
+    } catch (_) {
+      setState(() => _selectedCountry = Country.niger);
     }
   }
 
@@ -127,10 +220,19 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-      if (currentUser == null) {
+      // Get current Firebase user directly (avoids StreamProvider race conditions)
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
         throw Exception('Utilisateur non connecte');
       }
+
+      // Try to get extended user data, or use Firebase user data as fallback
+      final currentUserAsync = ref.read(currentUserAsyncProvider);
+      final extendedUser = currentUserAsync.valueOrNull;
+
+      final userId = extendedUser?.id ?? firebaseUser.uid;
+      final displayName = extendedUser?.displayName ?? firebaseUser.displayName ?? 'Vendeur';
+      final photoUrl = extendedUser?.photoUrl ?? firebaseUser.photoURL;
 
       // Upload new images
       final imageUploadService = ref.read(imageUploadServiceProvider);
@@ -167,9 +269,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
       final product = ProductEntity(
         id: productId,
-        sellerId: currentUser.id,
-        sellerName: currentUser.displayName,
-        sellerPhotoUrl: currentUser.photoUrl,
+        sellerId: userId,
+        sellerName: displayName,
+        sellerPhotoUrl: photoUrl,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         price: double.parse(_priceController.text),
@@ -181,6 +283,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             _locationController.text.trim().isNotEmpty
                 ? _locationController.text.trim()
                 : null,
+        country: _selectedCountry,
         quantity: int.parse(_quantityController.text),
         isTaxable: isTaxable,
         customTaxRate: effectiveCustomTaxRate,
@@ -524,7 +627,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Price and quantity
+            // Price, quantity and currency
             Row(
               children: [
                 Expanded(
@@ -532,9 +635,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   child: TextFormField(
                     controller: _priceController,
                     decoration: InputDecoration(
-                      labelText: 'Prix (${_selectedCurrency.code})',
+                      labelText: 'Prix',
                       hintText: '50000',
                       border: const OutlineInputBorder(),
+                      suffixText: _selectedCurrency.code,
                     ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
@@ -570,6 +674,23 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+
+            // Currency selector
+            DropdownButtonFormField<Currency>(
+              value: _selectedCurrency,
+              decoration: const InputDecoration(
+                labelText: 'Devise',
+                border: OutlineInputBorder(),
+              ),
+              isExpanded: true,
+              items: _buildCurrencyItems(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedCurrency = value);
+                }
+              },
             ),
             const SizedBox(height: 16),
 
@@ -623,11 +744,63 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Country
+            DropdownButtonFormField<Country>(
+              value: _selectedCountry,
+              decoration: const InputDecoration(
+                labelText: 'Pays',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.public),
+              ),
+              isExpanded: true,
+              items: [
+                // Priority countries first
+                ...priorityCountries.map((country) => DropdownMenuItem(
+                  value: country,
+                  child: Row(
+                    children: [
+                      Text(country.flag, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(width: 12),
+                      Text(country.label),
+                    ],
+                  ),
+                )),
+                // Divider
+                const DropdownMenuItem<Country>(
+                  enabled: false,
+                  child: Divider(),
+                ),
+                // Other countries
+                ...Country.values
+                    .where((c) => !priorityCountries.contains(c))
+                    .map((country) => DropdownMenuItem(
+                  value: country,
+                  child: Row(
+                    children: [
+                      Text(country.flag, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(width: 12),
+                      Text(country.label),
+                    ],
+                  ),
+                )),
+              ],
+              onChanged: (value) {
+                setState(() => _selectedCountry = value);
+              },
+              validator: (value) {
+                if (value == null) {
+                  return 'Selectionnez un pays';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
             // Location
             TextFormField(
               controller: _locationController,
               decoration: const InputDecoration(
-                labelText: 'Localisation (optionnel)',
+                labelText: 'Ville/Adresse (optionnel)',
                 hintText: 'Ex: Niamey',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_on_outlined),

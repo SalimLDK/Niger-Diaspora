@@ -36,7 +36,7 @@ class AppConfig {
   /// In development: Set via --dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_xxx
   /// Get your key from: https://dashboard.stripe.com/test/apikeys
   /// WARNING: Never commit real API keys to version control
-  static const String _testPublishableKey = '';
+  static const String _testPublishableKey = 'pk_test_51SiMSAPg6wD0IqJlzZp3k6cvuopQV1miWhawS72kvR9vVYbZqojcPrx8ZkviF5xhGiGglYJaupOQKcT9puYpEU4500y6jREukt';
 
   /// Merchant identifier for Apple Pay
   static const String stripeMerchantIdentifier = 'merchant.com.diasponiger';

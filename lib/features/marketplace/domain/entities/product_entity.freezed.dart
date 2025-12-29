@@ -28,7 +28,10 @@ mixin _$ProductEntity {
   List<String> get imageUrls => throw _privateConstructorUsedError;
   ProductCategory get category => throw _privateConstructorUsedError;
   ProductCondition get condition => throw _privateConstructorUsedError;
-  String? get location => throw _privateConstructorUsedError;
+  String? get location =>
+      throw _privateConstructorUsedError; // City/address details
+  Country? get country =>
+      throw _privateConstructorUsedError; // Country for filtering
   bool get isAvailable => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   int get viewCount => throw _privateConstructorUsedError;
@@ -69,6 +72,7 @@ abstract class $ProductEntityCopyWith<$Res> {
     ProductCategory category,
     ProductCondition condition,
     String? location,
+    Country? country,
     bool isAvailable,
     int quantity,
     int viewCount,
@@ -108,6 +112,7 @@ class _$ProductEntityCopyWithImpl<$Res, $Val extends ProductEntity>
     Object? category = null,
     Object? condition = null,
     Object? location = freezed,
+    Object? country = freezed,
     Object? isAvailable = null,
     Object? quantity = null,
     Object? viewCount = null,
@@ -180,6 +185,11 @@ class _$ProductEntityCopyWithImpl<$Res, $Val extends ProductEntity>
                     ? _value.location
                     : location // ignore: cast_nullable_to_non_nullable
                         as String?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
+                        as Country?,
             isAvailable:
                 null == isAvailable
                     ? _value.isAvailable
@@ -253,6 +263,7 @@ abstract class _$$ProductEntityImplCopyWith<$Res>
     ProductCategory category,
     ProductCondition condition,
     String? location,
+    Country? country,
     bool isAvailable,
     int quantity,
     int viewCount,
@@ -291,6 +302,7 @@ class __$$ProductEntityImplCopyWithImpl<$Res>
     Object? category = null,
     Object? condition = null,
     Object? location = freezed,
+    Object? country = freezed,
     Object? isAvailable = null,
     Object? quantity = null,
     Object? viewCount = null,
@@ -363,6 +375,11 @@ class __$$ProductEntityImplCopyWithImpl<$Res>
                 ? _value.location
                 : location // ignore: cast_nullable_to_non_nullable
                     as String?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
+                    as Country?,
         isAvailable:
             null == isAvailable
                 ? _value.isAvailable
@@ -429,6 +446,7 @@ class _$ProductEntityImpl extends _ProductEntity {
     this.category = ProductCategory.other,
     this.condition = ProductCondition.newProduct,
     this.location,
+    this.country,
     this.isAvailable = true,
     this.quantity = 1,
     this.viewCount = 0,
@@ -476,6 +494,10 @@ class _$ProductEntityImpl extends _ProductEntity {
   final ProductCondition condition;
   @override
   final String? location;
+  // City/address details
+  @override
+  final Country? country;
+  // Country for filtering
   @override
   @JsonKey()
   final bool isAvailable;
@@ -512,7 +534,7 @@ class _$ProductEntityImpl extends _ProductEntity {
 
   @override
   String toString() {
-    return 'ProductEntity(id: $id, sellerId: $sellerId, sellerName: $sellerName, sellerPhotoUrl: $sellerPhotoUrl, title: $title, description: $description, price: $price, currency: $currency, imageUrls: $imageUrls, category: $category, condition: $condition, location: $location, isAvailable: $isAvailable, quantity: $quantity, viewCount: $viewCount, tags: $tags, isTaxable: $isTaxable, customTaxRate: $customTaxRate, taxIncludedInPrice: $taxIncludedInPrice, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ProductEntity(id: $id, sellerId: $sellerId, sellerName: $sellerName, sellerPhotoUrl: $sellerPhotoUrl, title: $title, description: $description, price: $price, currency: $currency, imageUrls: $imageUrls, category: $category, condition: $condition, location: $location, country: $country, isAvailable: $isAvailable, quantity: $quantity, viewCount: $viewCount, tags: $tags, isTaxable: $isTaxable, customTaxRate: $customTaxRate, taxIncludedInPrice: $taxIncludedInPrice, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -543,6 +565,7 @@ class _$ProductEntityImpl extends _ProductEntity {
                 other.condition == condition) &&
             (identical(other.location, location) ||
                 other.location == location) &&
+            (identical(other.country, country) || other.country == country) &&
             (identical(other.isAvailable, isAvailable) ||
                 other.isAvailable == isAvailable) &&
             (identical(other.quantity, quantity) ||
@@ -577,6 +600,7 @@ class _$ProductEntityImpl extends _ProductEntity {
     category,
     condition,
     location,
+    country,
     isAvailable,
     quantity,
     viewCount,
@@ -611,6 +635,7 @@ abstract class _ProductEntity extends ProductEntity {
     final ProductCategory category,
     final ProductCondition condition,
     final String? location,
+    final Country? country,
     final bool isAvailable,
     final int quantity,
     final int viewCount,
@@ -646,7 +671,9 @@ abstract class _ProductEntity extends ProductEntity {
   @override
   ProductCondition get condition;
   @override
-  String? get location;
+  String? get location; // City/address details
+  @override
+  Country? get country; // Country for filtering
   @override
   bool get isAvailable;
   @override

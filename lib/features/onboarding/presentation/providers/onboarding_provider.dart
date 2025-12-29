@@ -122,10 +122,10 @@ class OnboardingNotifier extends _$OnboardingNotifier {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
-            .update({
+            .set({
           'hasGivenConsent': true,
           'consentDate': FieldValue.serverTimestamp(),
-        });
+        }, SetOptions(merge: true));
       }
       state = state.copyWith(hasGivenConsent: true);
     } catch (e) {
@@ -141,9 +141,9 @@ class OnboardingNotifier extends _$OnboardingNotifier {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
-            .update({
+            .set({
           'profileConfigComplete': true,
-        });
+        }, SetOptions(merge: true));
       }
       state = state.copyWith(profileConfigComplete: true);
     } catch (e) {

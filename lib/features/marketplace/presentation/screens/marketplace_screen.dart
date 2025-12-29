@@ -22,7 +22,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final category = ref.read(selectedCategoryProvider);
-      ref.invalidate(productsProvider(category: category));
+      final country = ref.read(selectedCountryProvider);
+      ref.invalidate(productsProvider(category: category, country: country));
     });
     _searchController.addListener(() {
       setState(() {});
@@ -35,12 +36,33 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     super.dispose();
   }
 
+  void _showCountryPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (ctx, scrollController) => _CountryPickerSheet(
+          scrollController: scrollController,
+          onCountrySelected: (Country? country) {
+            ref.read(selectedCountryProvider.notifier).select(country);
+            Navigator.pop(ctx);
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final selectedCountry = ref.watch(selectedCountryProvider);
     final productsAsync = ref.watch(
-      productsProvider(category: selectedCategory),
+      productsProvider(category: selectedCategory, country: selectedCountry),
     );
 
     return Scaffold(
@@ -62,6 +84,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             onPressed: () => context.push('/marketplace/cart'),
           ),
           IconButton(
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () => context.push('/marketplace/my-orders'),
+          ),
+          IconButton(
             icon: const Icon(Icons.inventory_2_outlined),
             onPressed: () => context.push('/marketplace/my-listings'),
           ),
@@ -78,14 +104,44 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             },
           ),
 
+          // Country filter - single button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                ActionChip(
+                  avatar: Text(
+                    selectedCountry?.flag ?? '🌍',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  label: Text(
+                    selectedCountry?.label ?? 'Tous les pays',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  onPressed: () => _showCountryPicker(context),
+                ),
+                if (selectedCountry != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => ref.read(selectedCountryProvider.notifier).select(null),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
           // Category filter
           SizedBox(
-            height: 50,
+            height: 44,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _CategoryChip(
+                _FilterChip(
                   label: 'Tout',
                   isSelected: selectedCategory == null,
                   onTap:
@@ -94,7 +150,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                           .select(null),
                 ),
                 ...ProductCategory.values.map(
-                  (category) => _CategoryChip(
+                  (category) => _FilterChip(
                     label: category.label,
                     isSelected: selectedCategory == category,
                     onTap:
@@ -209,12 +265,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
+class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CategoryChip({
+  const _FilterChip({
     required this.label,
     required this.isSelected,
     required this.onTap,
@@ -225,9 +281,99 @@ class _CategoryChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
-        label: Text(label),
+        label: Text(label, style: const TextStyle(fontSize: 13)),
         selected: isSelected,
         onSelected: (_) => onTap(),
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
+  }
+}
+
+class _CountryPickerSheet extends StatelessWidget {
+  final ScrollController scrollController;
+  final void Function(Country?) onCountrySelected;
+
+  const _CountryPickerSheet({
+    required this.scrollController,
+    required this.onCountrySelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Title
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Choisir un pays',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const Divider(),
+          // Country list grouped by region
+          Expanded(
+            child: ListView(
+              controller: scrollController,
+              children: [
+                // "All countries" option
+                ListTile(
+                  leading: const Text('🌍', style: TextStyle(fontSize: 24)),
+                  title: const Text('Tous les pays'),
+                  dense: true,
+                  onTap: () => onCountrySelected(null),
+                ),
+                const Divider(),
+                for (final region in Region.values) ...[
+                  // Region header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Text(
+                      '${region.flag} ${region.label}',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Countries in this region
+                  ...getCountriesByRegion(region).map(
+                    (country) => ListTile(
+                      leading: Text(
+                        country.flag,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                      title: Text(country.label),
+                      dense: true,
+                      onTap: () => onCountrySelected(country),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

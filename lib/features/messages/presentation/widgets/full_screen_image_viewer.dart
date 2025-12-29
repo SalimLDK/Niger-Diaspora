@@ -12,6 +12,7 @@ class FullScreenImageViewer extends StatefulWidget {
   final String? heroTag;
   final String? senderName;
   final DateTime? sentAt;
+  final bool showActions;
 
   const FullScreenImageViewer({
     super.key,
@@ -19,6 +20,7 @@ class FullScreenImageViewer extends StatefulWidget {
     this.heroTag,
     this.senderName,
     this.sentAt,
+    this.showActions = true,
   });
 
   /// Show the full screen image viewer
@@ -28,6 +30,7 @@ class FullScreenImageViewer extends StatefulWidget {
     String? heroTag,
     String? senderName,
     DateTime? sentAt,
+    bool showActions = true,
   }) {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -39,6 +42,7 @@ class FullScreenImageViewer extends StatefulWidget {
             heroTag: heroTag,
             senderName: senderName,
             sentAt: sentAt,
+            showActions: showActions,
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -176,32 +180,34 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                 ],
               )
             : null,
-        actions: [
-          if (_isDownloading)
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  value: _downloadProgress > 0 ? _downloadProgress : null,
-                  strokeWidth: 2,
-                  color: Colors.white,
+        actions: widget.showActions
+            ? [
+                if (_isDownloading)
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        value: _downloadProgress > 0 ? _downloadProgress : null,
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                else
+                  IconButton(
+                    onPressed: _downloadImage,
+                    icon: const Icon(Icons.download),
+                    tooltip: 'Télécharger',
+                  ),
+                IconButton(
+                  onPressed: _shareImage,
+                  icon: const Icon(Icons.share),
+                  tooltip: 'Partager',
                 ),
-              ),
-            )
-          else
-            IconButton(
-              onPressed: _downloadImage,
-              icon: const Icon(Icons.download),
-              tooltip: 'Télécharger',
-            ),
-          IconButton(
-            onPressed: _shareImage,
-            icon: const Icon(Icons.share),
-            tooltip: 'Partager',
-          ),
-        ],
+              ]
+            : null,
       ),
       body: GestureDetector(
         onTap: () => Navigator.of(context).pop(),

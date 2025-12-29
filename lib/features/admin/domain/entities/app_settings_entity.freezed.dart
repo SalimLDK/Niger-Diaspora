@@ -1438,6 +1438,12 @@ mixin _$ExchangeRatesEntity {
   double get chfToXof => throw _privateConstructorUsedError;
   DateTime? get lastUpdated => throw _privateConstructorUsedError;
 
+  /// API key for exchangerate-api.com (stored in Firestore admin settings)
+  String? get exchangeRateApiKey => throw _privateConstructorUsedError;
+
+  /// Refresh interval in minutes for fetching new rates (default: 60)
+  int get refreshIntervalMinutes => throw _privateConstructorUsedError;
+
   /// Create a copy of ExchangeRatesEntity
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1459,6 +1465,8 @@ abstract class $ExchangeRatesEntityCopyWith<$Res> {
     double cadToXof,
     double chfToXof,
     DateTime? lastUpdated,
+    String? exchangeRateApiKey,
+    int refreshIntervalMinutes,
   });
 }
 
@@ -1483,6 +1491,8 @@ class _$ExchangeRatesEntityCopyWithImpl<$Res, $Val extends ExchangeRatesEntity>
     Object? cadToXof = null,
     Object? chfToXof = null,
     Object? lastUpdated = freezed,
+    Object? exchangeRateApiKey = freezed,
+    Object? refreshIntervalMinutes = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1516,6 +1526,16 @@ class _$ExchangeRatesEntityCopyWithImpl<$Res, $Val extends ExchangeRatesEntity>
                     ? _value.lastUpdated
                     : lastUpdated // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            exchangeRateApiKey:
+                freezed == exchangeRateApiKey
+                    ? _value.exchangeRateApiKey
+                    : exchangeRateApiKey // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            refreshIntervalMinutes:
+                null == refreshIntervalMinutes
+                    ? _value.refreshIntervalMinutes
+                    : refreshIntervalMinutes // ignore: cast_nullable_to_non_nullable
+                        as int,
           )
           as $Val,
     );
@@ -1538,6 +1558,8 @@ abstract class _$$ExchangeRatesEntityImplCopyWith<$Res>
     double cadToXof,
     double chfToXof,
     DateTime? lastUpdated,
+    String? exchangeRateApiKey,
+    int refreshIntervalMinutes,
   });
 }
 
@@ -1561,6 +1583,8 @@ class __$$ExchangeRatesEntityImplCopyWithImpl<$Res>
     Object? cadToXof = null,
     Object? chfToXof = null,
     Object? lastUpdated = freezed,
+    Object? exchangeRateApiKey = freezed,
+    Object? refreshIntervalMinutes = null,
   }) {
     return _then(
       _$ExchangeRatesEntityImpl(
@@ -1594,6 +1618,16 @@ class __$$ExchangeRatesEntityImplCopyWithImpl<$Res>
                 ? _value.lastUpdated
                 : lastUpdated // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        exchangeRateApiKey:
+            freezed == exchangeRateApiKey
+                ? _value.exchangeRateApiKey
+                : exchangeRateApiKey // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        refreshIntervalMinutes:
+            null == refreshIntervalMinutes
+                ? _value.refreshIntervalMinutes
+                : refreshIntervalMinutes // ignore: cast_nullable_to_non_nullable
+                    as int,
       ),
     );
   }
@@ -1609,6 +1643,8 @@ class _$ExchangeRatesEntityImpl extends _ExchangeRatesEntity {
     this.cadToXof = 455.0,
     this.chfToXof = 690.0,
     this.lastUpdated,
+    this.exchangeRateApiKey,
+    this.refreshIntervalMinutes = 60,
   }) : super._();
 
   @override
@@ -1629,9 +1665,18 @@ class _$ExchangeRatesEntityImpl extends _ExchangeRatesEntity {
   @override
   final DateTime? lastUpdated;
 
+  /// API key for exchangerate-api.com (stored in Firestore admin settings)
+  @override
+  final String? exchangeRateApiKey;
+
+  /// Refresh interval in minutes for fetching new rates (default: 60)
+  @override
+  @JsonKey()
+  final int refreshIntervalMinutes;
+
   @override
   String toString() {
-    return 'ExchangeRatesEntity(eurToXof: $eurToXof, usdToXof: $usdToXof, gbpToXof: $gbpToXof, cadToXof: $cadToXof, chfToXof: $chfToXof, lastUpdated: $lastUpdated)';
+    return 'ExchangeRatesEntity(eurToXof: $eurToXof, usdToXof: $usdToXof, gbpToXof: $gbpToXof, cadToXof: $cadToXof, chfToXof: $chfToXof, lastUpdated: $lastUpdated, exchangeRateApiKey: $exchangeRateApiKey, refreshIntervalMinutes: $refreshIntervalMinutes)';
   }
 
   @override
@@ -1650,7 +1695,11 @@ class _$ExchangeRatesEntityImpl extends _ExchangeRatesEntity {
             (identical(other.chfToXof, chfToXof) ||
                 other.chfToXof == chfToXof) &&
             (identical(other.lastUpdated, lastUpdated) ||
-                other.lastUpdated == lastUpdated));
+                other.lastUpdated == lastUpdated) &&
+            (identical(other.exchangeRateApiKey, exchangeRateApiKey) ||
+                other.exchangeRateApiKey == exchangeRateApiKey) &&
+            (identical(other.refreshIntervalMinutes, refreshIntervalMinutes) ||
+                other.refreshIntervalMinutes == refreshIntervalMinutes));
   }
 
   @override
@@ -1662,6 +1711,8 @@ class _$ExchangeRatesEntityImpl extends _ExchangeRatesEntity {
     cadToXof,
     chfToXof,
     lastUpdated,
+    exchangeRateApiKey,
+    refreshIntervalMinutes,
   );
 
   /// Create a copy of ExchangeRatesEntity
@@ -1684,6 +1735,8 @@ abstract class _ExchangeRatesEntity extends ExchangeRatesEntity {
     final double cadToXof,
     final double chfToXof,
     final DateTime? lastUpdated,
+    final String? exchangeRateApiKey,
+    final int refreshIntervalMinutes,
   }) = _$ExchangeRatesEntityImpl;
   const _ExchangeRatesEntity._() : super._();
 
@@ -1699,6 +1752,14 @@ abstract class _ExchangeRatesEntity extends ExchangeRatesEntity {
   double get chfToXof;
   @override
   DateTime? get lastUpdated;
+
+  /// API key for exchangerate-api.com (stored in Firestore admin settings)
+  @override
+  String? get exchangeRateApiKey;
+
+  /// Refresh interval in minutes for fetching new rates (default: 60)
+  @override
+  int get refreshIntervalMinutes;
 
   /// Create a copy of ExchangeRatesEntity
   /// with the given fields replaced by the non-null parameter values.

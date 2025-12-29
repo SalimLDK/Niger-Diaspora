@@ -21,6 +21,7 @@ import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
+import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -293,8 +294,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     super.build(context); // Important for KeepAlive
     final l10n = AppLocalizations.of(context)!;
 
-    // Watch the specific profile for this user
-    final profileAsync = ref.watch(profileNotifierProvider(widget.userId));
+    // Watch the specific profile for this user (Stream pour mises à jour temps réel)
+    final profileAsync = ref.watch(userStreamProvider(widget.userId));
 
     return profileAsync.when(
       loading:
@@ -447,40 +448,57 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: context.surfaceColor,
-                          borderRadius: BorderRadius.circular(28),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child:
-                            profile.photoUrl != null
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(28),
-                                  child: Image.network(
-                                    profile.photoUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (_, __, ___) => Icon(
-                                          Icons.person,
-                                          size: 50,
-                                          color: context.adaptivePrimaryColor,
-                                        ),
-                                  ),
-                                )
-                                : Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: context.adaptivePrimaryColor,
+                      GestureDetector(
+                        onTap: () {
+                          if (profile.photoUrl != null) {
+                            HapticFeedback.mediumImpact();
+                            FullScreenImageViewer.show(
+                              context,
+                              imageUrl: profile.photoUrl!,
+                              heroTag: 'profile_view_avatar_${profile.id}',
+                              senderName: profile.displayName,
+                              showActions: false,
+                            );
+                          }
+                        },
+                        child: Hero(
+                          tag: 'profile_view_avatar_${profile.id}',
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: context.surfaceColor,
+                              borderRadius: BorderRadius.circular(28),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
+                              ],
+                            ),
+                            child:
+                                profile.photoUrl != null
+                                    ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(28),
+                                      child: Image.network(
+                                        profile.photoUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) => Icon(
+                                              Icons.person,
+                                              size: 50,
+                                              color: context.adaptivePrimaryColor,
+                                            ),
+                                      ),
+                                    )
+                                    : Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: context.adaptivePrimaryColor,
+                                    ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

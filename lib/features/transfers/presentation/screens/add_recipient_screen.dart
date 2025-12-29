@@ -496,16 +496,16 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
   Future<void> _submit() async {
     // Guard against double submission (sync check before async setState)
     if (_isSubmitting || _isLoading) {
-      debugPrint(
-        '🚫 Submit blocked: _isSubmitting=$_isSubmitting, _isLoading=$_isLoading',
-      );
+      // debugPrint(
+      //   '🚫 Submit blocked: _isSubmitting=$_isSubmitting, _isLoading=$_isLoading',
+      // );
       return;
     }
     _isSubmitting = true;
-    debugPrint('✅ Submit started');
+    // debugPrint('✅ Submit started');
 
     if (!_formKey.currentState!.validate()) {
-      debugPrint('❌ Form validation failed');
+      // debugPrint('❌ Form validation failed');
       _isSubmitting = false;
       return;
     }
@@ -520,7 +520,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         throw Exception('Utilisateur non connecte');
       }
 
-      debugPrint('👤 User: ${user.id}');
+      // debugPrint('👤 User: ${user.id}');
 
       final recipient = RecipientEntity(
         id: widget.existingRecipient?.id ?? '',
@@ -554,23 +554,23 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         lastUsedAt: widget.existingRecipient?.lastUsedAt,
       );
 
-      debugPrint('💾 Saving recipient: ${recipient.fullName}');
+      // debugPrint('💾 Saving recipient: ${recipient.fullName}');
 
       final notifier = ref.read(recipientNotifierProvider.notifier);
 
       if (_isEditing) {
         await notifier.updateRecipient(recipient);
-        debugPrint('✏️ Recipient updated');
+        // debugPrint('✏️ Recipient updated');
       } else {
         await notifier.createRecipient(recipient);
-        debugPrint('➕ Recipient created');
+        // debugPrint('➕ Recipient created');
       }
 
-      debugPrint('📱 mounted=$mounted');
+      // debugPrint('📱 mounted=$mounted');
 
       if (mounted) {
         navigatedSuccessfully = true;
-        debugPrint('🎉 Showing success snackbar');
+        // debugPrint('🎉 Showing success snackbar');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -582,17 +582,17 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           ),
         );
 
-        debugPrint('🔙 canPop=${context.canPop()}');
+        // debugPrint('🔙 canPop=${context.canPop()}');
         if (context.canPop()) {
-          debugPrint('🚀 Calling context.pop()');
+          // debugPrint('🚀 Calling context.pop()');
           context.pop(recipient);
-          debugPrint('✅ context.pop() called');
+          // debugPrint('✅ context.pop() called');
         } else {
-          debugPrint('⚠️ Cannot pop - no route to pop');
+          // debugPrint('⚠️ Cannot pop - no route to pop');
         }
       }
     } catch (e) {
-      debugPrint('❌ Error in submit: $e');
+      // debugPrint('❌ Error in submit: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -603,18 +603,18 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       }
     } finally {
       _isSubmitting = false;
-      debugPrint(
-        '🔄 Finally block: navigatedSuccessfully=$navigatedSuccessfully, mounted=$mounted',
-      );
+      // debugPrint(
+      //   '🔄 Finally block: navigatedSuccessfully=$navigatedSuccessfully, mounted=$mounted',
+      // );
       // Only update loading state if we didn't navigate away successfully
       if (!navigatedSuccessfully && mounted) {
-        debugPrint('⏸️ Setting _isLoading=false');
+        // debugPrint('⏸️ Setting _isLoading=false');
         setState(() => _isLoading = false);
       } else {
-        debugPrint('✋ Skipping setState (navigated or not mounted)');
+        // debugPrint('✋ Skipping setState (navigated or not mounted)');
       }
     }
-    debugPrint('🏁 Submit method completed');
+    // debugPrint('🏁 Submit method completed');
   }
 
   Future<void> _confirmDelete() async {

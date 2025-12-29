@@ -23,6 +23,12 @@ CurrencyService currencyService(Ref ref) {
     chfToXof: exchangeRates.chfToXof,
   );
 
+  // Configure API key from Firestore admin settings
+  service.setApiKey(exchangeRates.exchangeRateApiKey);
+
+  // Configure refresh interval from admin settings
+  service.setRefreshInterval(exchangeRates.refreshIntervalMinutes);
+
   // Initialize in background (will fetch from API if available)
   service.initialize();
   return service;

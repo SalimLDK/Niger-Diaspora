@@ -24,7 +24,7 @@ class EmbassyDetailScreen extends StatelessWidget {
   Future<void> _openWebsite(String url) async {
     final Uri launchUri = Uri.parse(url);
     if (!await launchUrl(launchUri, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not launch $url');
+      // debugPrint('Could not launch $url');
     }
   }
 
@@ -35,7 +35,7 @@ class EmbassyDetailScreen extends StatelessWidget {
       Uri.parse(googleMapsUrl),
       mode: LaunchMode.externalApplication,
     )) {
-      debugPrint('Could not launch map');
+      // debugPrint('Could not launch map');
     }
   }
 

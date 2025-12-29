@@ -40,6 +40,11 @@ service cloud.firestore {
       match /blocked_users/{blockId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Cart subcollection (for marketplace)
+      match /cart/{cartId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Profiles collection (separate from users in some architectures)
@@ -148,13 +153,13 @@ service cloud.firestore {
     // Payment Intents (Stripe)
     match /payment_intents/{intentId} {
       allow create: if isAuthenticated();
-      
-      // Allow listing payment intents with userId filter
-      allow list: if isAuthenticated();
-      
+
+      // Allow listing payment intents only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
       // Allow getting specific intent if user owns it
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      
+
       allow update: if false; // Should be handled by Cloud Functions
     }
 
@@ -172,7 +177,21 @@ service cloud.firestore {
       allow get: if isAuthenticated() && (resource.data.isAvailable == true || resource.data.sellerId == request.auth.uid);
 
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
+
+      // Only seller can update their products
+      // Quantity changes are handled by Cloud Functions (onOrderCreated, onOrderUpdated)
+      // ViewCount can be incremented by anyone
+      allow update: if isAuthenticated() && (
+        // Seller can update anything EXCEPT quantity (managed by Cloud Functions)
+        (resource.data.sellerId == request.auth.uid &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['quantity'])) ||
+        // Seller CAN update quantity directly (for manual stock adjustments)
+        resource.data.sellerId == request.auth.uid ||
+        // Any user can increment viewCount only
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+      );
+
+      allow delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
     }
 
     // Businesses
@@ -202,31 +221,33 @@ service cloud.firestore {
 
     // Transactions (Money Transfers)
     match /transactions/{transactionId} {
-      // Allow listing transactions (queries must filter by senderId or receiverId)
-      allow list: if isAuthenticated();
-      
+      // Allow listing transactions only if user is sender or receiver (enforced filter)
+      allow list: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+
       // Allow getting specific transaction if user is sender or receiver
-      allow get: if isAuthenticated() && 
-        (resource.data.senderId == request.auth.uid || 
+      allow get: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
-      
+
       allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
-      
-      allow update: if isAuthenticated() && 
-        (resource.data.senderId == request.auth.uid || 
+
+      allow update: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
-      
+
       allow delete: if false; // Transactions should not be deleted
     }
 
     // Recipients (for Money Transfers)
     match /recipients/{recipientId} {
-      // Allow listing recipients with userId filter
-      allow list: if isAuthenticated();
-      
+      // Allow listing recipients only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
       // Allow getting specific recipient if user owns it
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      
+
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
@@ -235,18 +256,72 @@ service cloud.firestore {
     match /orders/{orderId} {
       // Allow listing orders (queries must filter by buyerId or sellerId)
       allow list: if isAuthenticated();
-      
+
       // Allow getting specific order if user is buyer or seller
-      allow get: if isAuthenticated() && 
-        (resource.data.buyerId == request.auth.uid || 
+      allow get: if isAuthenticated() &&
+        (resource.data.buyerId == request.auth.uid ||
          resource.data.sellerId == request.auth.uid);
-      
+
+      // Only buyer can create orders
       allow create: if isAuthenticated() && request.resource.data.buyerId == request.auth.uid;
-      
-      allow update: if isAuthenticated() && 
-        (resource.data.buyerId == request.auth.uid || 
-         resource.data.sellerId == request.auth.uid);
-      
+
+      // Controlled updates based on role and valid state transitions
+      allow update: if isAuthenticated() && (
+        // ========== SELLER PERMISSIONS ==========
+        (resource.data.sellerId == request.auth.uid && (
+          // Mark as shipped (from paid status) - can include tracking number and timestamp
+          (request.resource.data.status == 'shipped' &&
+           resource.data.status == 'paid' &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'shippedAt', 'trackingNumber'])) ||
+
+          // Cancel order (only before shipping) - includes cancellation reason and timestamp
+          (request.resource.data.status == 'cancelled' &&
+           resource.data.status in ['pending', 'paid'] &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'cancelledAt', 'cancellationReason', 'escrowStatus'])) ||
+
+          // Update tracking number or seller note only (no status change)
+          (request.resource.data.status == resource.data.status &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['trackingNumber', 'sellerNote']))
+        )) ||
+
+        // ========== BUYER PERMISSIONS ==========
+        (resource.data.buyerId == request.auth.uid && (
+          // Confirm delivery (from shipped status)
+          (request.resource.data.status == 'delivered' &&
+           resource.data.status == 'shipped' &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'deliveredAt'])) ||
+
+          // Complete order / release escrow (from delivered status)
+          (request.resource.data.status == 'completed' &&
+           resource.data.status == 'delivered' &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'completedAt', 'escrowStatus'])) ||
+
+          // Cancel order (only before shipping)
+          (request.resource.data.status == 'cancelled' &&
+           resource.data.status in ['pending', 'paid'] &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'cancelledAt', 'cancellationReason', 'escrowStatus'])) ||
+
+          // Update buyer note only (no status change)
+          (request.resource.data.status == resource.data.status &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['buyerNote']))
+        )) ||
+
+        // ========== PAYMENT STATUS UPDATE ==========
+        // Allow updating to 'paid' status with escrow info
+        (resource.data.buyerId == request.auth.uid &&
+         request.resource.data.status == 'paid' &&
+         resource.data.status == 'pending' &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'paidAt', 'escrowStatus']))
+      );
+
       allow delete: if false; // Orders should not be deleted
     }
 
@@ -278,7 +353,8 @@ service cloud.firestore {
 
     // Profile Share Links - users can create and manage temporary links to their profile
     match /profile_share_links/{linkId} {
-      allow list: if isAuthenticated(); // Queries should filter by userId
+      // Allow listing only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
@@ -286,11 +362,13 @@ service cloud.firestore {
 
     // Escrow Transactions - managed by participants, often with backend involvement
     match /escrow_transactions/{transactionId} {
-      allow list: if isAuthenticated(); // Queries should filter by participantId
-      allow get: if isAuthenticated() && 
+      // Allow listing only if user is participant or initiator (enforced filter)
+      allow list: if isAuthenticated() &&
+        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      allow get: if isAuthenticated() &&
         (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.initiatorId;
-      allow update: if isAuthenticated() && 
+      allow update: if isAuthenticated() &&
         (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
       allow delete: if false; // Escrow transactions should not be deleted by users
     }
@@ -306,7 +384,8 @@ service cloud.firestore {
 
     // Business Boosts - managed by business owners
     match /business_boosts/{boostId} {
-      allow list: if isAuthenticated(); // Queries should filter by businessId
+      // Allow listing only for the business owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
       allow create: if isAuthenticated() && request.resource.data.businessOwnerId == request.auth.uid;
       allow update, delete: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
@@ -478,6 +557,10 @@ service cloud.firestore {
 
     match /users/{userId}/sessions/{sessionId} {
       allow read, delete: if isAdmin();
+    }
+
+    match /users/{userId}/cart/{cartId} {
+      allow read: if isAdmin();
     }
 
     // Admin: Manage legal content (Terms, Privacy Policy)

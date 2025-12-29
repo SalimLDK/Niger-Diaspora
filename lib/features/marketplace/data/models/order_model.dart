@@ -11,6 +11,8 @@ class OrderModel with _$OrderModel {
 
   const factory OrderModel({
     required String id,
+    /// Session ID to group orders from the same cart checkout
+    String? sessionId,
     required String productId,
     required String productTitle,
     String? productImageUrl,
@@ -61,6 +63,7 @@ class OrderModel with _$OrderModel {
   factory OrderModel.fromEntity(OrderEntity entity) {
     return OrderModel(
       id: entity.id,
+      sessionId: entity.sessionId,
       productId: entity.productId,
       productTitle: entity.productTitle,
       productImageUrl: entity.productImageUrl,
@@ -93,6 +96,7 @@ class OrderModel with _$OrderModel {
   OrderEntity toEntity() {
     return OrderEntity(
       id: id,
+      sessionId: sessionId,
       productId: productId,
       productTitle: productTitle,
       productImageUrl: productImageUrl,

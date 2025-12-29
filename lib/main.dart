@@ -16,6 +16,7 @@ import 'core/services/preferences_service.dart';
 import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
 import 'core/services/online_status_service.dart';
+import 'core/services/encryption_service.dart';
 
 import 'package:timezone/data/latest_all.dart' as tz;
 
@@ -31,14 +32,19 @@ void main() async {
       );
     }
   } catch (e) {
-    debugPrint('Firebase already initialized: $e');
+    // debugPrint('Firebase already initialized: $e');
   }
 
   // Initialize preferences service FIRST
   await PreferencesService.instance.initialize();
 
-  // Initialize Stripe for payments
-  await StripeService.instance.initialize();
+  // Initialize encryption service for message encryption/decryption
+  await EncryptionService.instance.initialize();
+
+  // Initialize Stripe for payments (skip on web as flutter_stripe is not web-compatible)
+  if (!kIsWeb) {
+    await StripeService.instance.initialize();
+  }
 
   // Initialize Google Maps renderer FIRST (fixes visual glitches)
   await GoogleMapsService.instance.initialize();
@@ -55,23 +61,27 @@ void main() async {
   // Initialize Performance Monitoring
   await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
 
-  // Activate Firebase App Check
+  // Activate Firebase App Check (skip on web)
   // Debug mode: uses DebugProvider (requires adding token to console)
   // Release mode: uses PlayIntegrity (requires SHA-256 in console)
-  await FirebaseAppCheck.instance.activate(
-    androidProvider:
-        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
-  );
+  if (!kIsWeb) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider:
+          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+    );
+  }
 
-  // Set up background message handler
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  // Set up background message handler (skip on web)
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // Initialize notification service
-  await NotificationService().initialize();
+    // Initialize notification service
+    await NotificationService().initialize();
 
-  // Initialize Background Location Service
-  await BackgroundLocationService().initialize();
+    // Initialize Background Location Service
+    await BackgroundLocationService().initialize();
+  }
 
   // Initialize Online Status Service
   await OnlineStatusService.instance.initialize();

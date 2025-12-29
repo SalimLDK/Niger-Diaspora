@@ -346,16 +346,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             labelText: 'Devise',
             border: OutlineInputBorder(),
           ),
-          items: const [
-            DropdownMenuItem(value: 'EUR', child: Text('EUR - Euro')),
-            DropdownMenuItem(value: 'USD', child: Text('USD - Dollar US')),
-            DropdownMenuItem(value: 'GBP', child: Text('GBP - Livre Sterling')),
-            DropdownMenuItem(
-              value: 'CAD',
-              child: Text('CAD - Dollar Canadien'),
-            ),
-            DropdownMenuItem(value: 'CHF', child: Text('CHF - Franc Suisse')),
-          ],
+          isExpanded: true,
+          items: _buildTransferCurrencyItems(),
           onChanged: (value) {
             if (value != null) {
               ref.read(selectedCurrencyProvider.notifier).select(value);
@@ -853,7 +845,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           .setExchangeRate(rateResult);
       ref.read(transferStateNotifierProvider.notifier).setFee(feeResult);
     } catch (e) {
-      debugPrint('Error updating fee/rate: $e');
+      // debugPrint('Error updating fee/rate: $e');
     }
   }
 
@@ -921,20 +913,55 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     }
   }
 
-  String _getCurrencySymbol(String currency) {
-    switch (currency) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'CAD':
-        return 'CA\$';
-      case 'CHF':
-        return 'CHF ';
-      default:
-        return '';
-    }
+  String _getCurrencySymbol(String currencyCode) {
+    final currency = CurrencyExtension.fromCode(currencyCode);
+    return currency.symbol;
+  }
+
+  // Currencies commonly used for money transfers
+  static const _transferCurrencies = [
+    // Major diaspora currencies
+    Currency.eur,
+    Currency.usd,
+    Currency.gbp,
+    Currency.cad,
+    Currency.chf,
+    // Other common transfer currencies
+    Currency.aud,
+    Currency.nzd,
+    Currency.sek,
+    Currency.nok,
+    Currency.dkk,
+    // Middle East
+    Currency.aed,
+    Currency.sar,
+    Currency.qar,
+    Currency.kwd,
+  ];
+
+  List<DropdownMenuItem<String>> _buildTransferCurrencyItems() {
+    return _transferCurrencies.map((currency) {
+      return DropdownMenuItem<String>(
+        value: currency.code,
+        child: Row(
+          children: [
+            Text(currency.flag, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              currency.code,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                currency.name,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 }

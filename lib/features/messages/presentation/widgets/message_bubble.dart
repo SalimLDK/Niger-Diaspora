@@ -14,6 +14,7 @@ import 'full_screen_image_viewer.dart';
 import 'optimized_image_bubble.dart';
 import 'document_bubble.dart';
 import 'video_bubble.dart';
+import 'product_message_card.dart';
 
 /// Position of a message in a group of consecutive messages from the same sender
 enum MessageGroupPosition { first, middle, last, single }
@@ -941,9 +942,10 @@ class _MessageBubbleState extends State<MessageBubble>
 
   Widget _buildTextContent(BuildContext context) {
     final isEmojiOnly = _isEmojiOnly(widget.message.content);
+    final hasProduct = widget.message.hasProduct;
 
     // Emoji-only messages: larger text, no bubble background
-    if (isEmojiOnly) {
+    if (isEmojiOnly && !hasProduct) {
       return Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 6),
         child: Column(
@@ -967,6 +969,12 @@ class _MessageBubbleState extends State<MessageBubble>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Product card if attached
+          if (hasProduct)
+            ProductMessageCard(
+              productData: widget.message.productData!,
+              isMe: widget.isMe,
+            ),
           // Message content with inline time
           Row(
             mainAxisSize: MainAxisSize.min,

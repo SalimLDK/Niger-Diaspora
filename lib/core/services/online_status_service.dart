@@ -32,7 +32,7 @@ class OnlineStatusService {
   bool _isUserAuthenticated() {
     final user = _auth.currentUser;
     if (user == null) {
-      debugPrint('⚠️ OnlineStatusService: User is not authenticated');
+      // debugPrint('⚠️ OnlineStatusService: User is not authenticated');
       return false;
     }
     return true;
@@ -41,11 +41,11 @@ class OnlineStatusService {
   /// Initialize the online status service
   Future<void> initialize() async {
     if (_initialized) {
-      debugPrint('⚠️ OnlineStatusService: Already initialized');
+      // debugPrint('⚠️ OnlineStatusService: Already initialized');
       return;
     }
 
-    debugPrint('🟢 OnlineStatusService: Initializing...');
+    // debugPrint('🟢 OnlineStatusService: Initializing...');
 
     // Listen to auth state changes
     _authStateSubscription = _auth.authStateChanges().listen((user) {
@@ -62,25 +62,25 @@ class OnlineStatusService {
     );
 
     _initialized = true;
-    debugPrint('✅ OnlineStatusService: Initialized successfully');
+    // debugPrint('✅ OnlineStatusService: Initialized successfully');
   }
 
   /// Setup presence tracking for a specific user
   Future<void> _setupPresenceForUser(String userId) async {
     // Validate authentication first
     if (!_isUserAuthenticated()) {
-      debugPrint(
-        '❌ OnlineStatusService: Cannot setup presence - user not authenticated',
-      );
+      // debugPrint(
+      //   '❌ OnlineStatusService: Cannot setup presence - user not authenticated',
+      // );
       return;
     }
 
     if (_currentUserId == userId) {
-      debugPrint('⚠️ OnlineStatusService: Already tracking user $userId');
+      // debugPrint('⚠️ OnlineStatusService: Already tracking user $userId');
       return;
     }
 
-    debugPrint('🔄 OnlineStatusService: Setting up presence for user $userId');
+    // debugPrint('🔄 OnlineStatusService: Setting up presence for user $userId');
 
     // Teardown any existing presence
     await _teardownPresence();
@@ -95,9 +95,9 @@ class OnlineStatusService {
       final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
 
       if (!showOnlineStatus) {
-        debugPrint(
-          '🔒 OnlineStatusService: User has disabled online status visibility',
-        );
+        // debugPrint(
+        //   '🔒 OnlineStatusService: User has disabled online status visibility',
+        // );
         // Set as offline and don't track presence
         await _setOffline(userId);
         return;
@@ -108,7 +108,7 @@ class OnlineStatusService {
         final connected = event.snapshot.value as bool? ?? false;
 
         if (connected) {
-          debugPrint('🌐 OnlineStatusService: Connected to Firebase');
+          // debugPrint('🌐 OnlineStatusService: Connected to Firebase');
           await _setOnline(userId);
 
           // When disconnected, mark as offline
@@ -119,28 +119,28 @@ class OnlineStatusService {
             });
           } catch (e) {
             if (e is FirebaseException && e.code == 'permission-denied') {
-              debugPrint(
-                '❌ OnlineStatusService: Permission denied setting disconnect handler. '
-                'User may not be authenticated or Firebase rules may be incorrect.',
-              );
+              // debugPrint(
+            //     '❌ OnlineStatusService: Permission denied setting disconnect handler. '
+            //     'User may not be authenticated or Firebase rules may be incorrect.',
+            // );
             } else {
-              debugPrint(
-                '❌ OnlineStatusService: Error setting disconnect handler: $e',
-              );
+              // debugPrint(
+              //   '❌ OnlineStatusService: Error setting disconnect handler: $e',
+              // );
             }
           }
         } else {
-          debugPrint('📴 OnlineStatusService: Disconnected from Firebase');
+          // debugPrint('📴 OnlineStatusService: Disconnected from Firebase');
         }
       });
     } catch (e) {
       if (e is FirebaseException && e.code == 'permission-denied') {
-        debugPrint(
-          '❌ OnlineStatusService: Permission denied in _setupPresenceForUser. '
-          'Check Firebase Realtime Database rules and ensure user is authenticated.',
-        );
+        // debugPrint(
+        //   '❌ OnlineStatusService: Permission denied in _setupPresenceForUser. '
+        //   'Check Firebase Realtime Database rules and ensure user is authenticated.',
+        // );
       } else {
-        debugPrint('❌ OnlineStatusService: Error setting up presence: $e');
+        // debugPrint('❌ OnlineStatusService: Error setting up presence: $e');
       }
     }
   }
@@ -151,14 +151,14 @@ class OnlineStatusService {
 
     // Validate authentication before any lifecycle operations
     if (!_isUserAuthenticated()) {
-      debugPrint(
-        '⚠️ OnlineStatusService: Skipping lifecycle state change - '
-        'user not authenticated',
-      );
+      // debugPrint(
+      //   '⚠️ OnlineStatusService: Skipping lifecycle state change - '
+      //   'user not authenticated',
+      // );
       return;
     }
 
-    debugPrint('🔄 OnlineStatusService: Lifecycle state changed to $state');
+    // debugPrint('🔄 OnlineStatusService: Lifecycle state changed to $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -181,17 +181,17 @@ class OnlineStatusService {
   Future<void> _setOnline(String userId) async {
     // Validate authentication before any operations
     if (!_isUserAuthenticated()) {
-      debugPrint(
-        '❌ OnlineStatusService: Cannot set online - user not authenticated',
-      );
+      // debugPrint(
+      //   '❌ OnlineStatusService: Cannot set online - user not authenticated',
+      // );
       return;
     }
 
     // Null-safety check for presence reference
     if (_presenceRef == null) {
-      debugPrint(
-        '⚠️ OnlineStatusService: Cannot set online - presence ref is null',
-      );
+      // debugPrint(
+      //   '⚠️ OnlineStatusService: Cannot set online - presence ref is null',
+      // );
       return;
     }
 
@@ -201,14 +201,14 @@ class OnlineStatusService {
       final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
 
       if (!showOnlineStatus) {
-        debugPrint(
-          '🔒 OnlineStatusService: User privacy setting prevents online status',
-        );
+        // debugPrint(
+        //   '🔒 OnlineStatusService: User privacy setting prevents online status',
+        // );
         await _setOffline(userId);
         return;
       }
 
-      debugPrint('✅ OnlineStatusService: Setting user $userId to ONLINE');
+      // debugPrint('✅ OnlineStatusService: Setting user $userId to ONLINE');
 
       // Update Realtime Database
       await _presenceRef!.set({
@@ -227,15 +227,15 @@ class OnlineStatusService {
       _startHeartbeat(userId);
     } catch (e) {
       if (e is FirebaseException && e.code == 'permission-denied') {
-        debugPrint(
-          '❌ OnlineStatusService: Permission denied when setting user online. '
-          'User ID: $userId. Check Firebase Realtime Database rules and '
-          'ensure user authentication token is valid.',
-        );
+        // debugPrint(
+        //   '❌ OnlineStatusService: Permission denied when setting user online. '
+        //   'User ID: $userId. Check Firebase Realtime Database rules and '
+        //   'ensure user authentication token is valid.',
+        // );
       } else {
-        debugPrint(
-          '❌ OnlineStatusService: Error setting online for user $userId: $e',
-        );
+        // debugPrint(
+        //   '❌ OnlineStatusService: Error setting online for user $userId: $e',
+        // );
       }
     }
   }
@@ -250,9 +250,9 @@ class OnlineStatusService {
         await _firestore.collection('users').doc(userId).update({
           'lastSeen': FieldValue.serverTimestamp(),
         });
-        debugPrint('💓 OnlineStatusService: Heartbeat sent for $userId');
+        // debugPrint('💓 OnlineStatusService: Heartbeat sent for $userId');
       } catch (e) {
-        debugPrint('❌ OnlineStatusService: Heartbeat failed: $e');
+        // debugPrint('❌ OnlineStatusService: Heartbeat failed: $e');
       }
     });
   }
@@ -263,15 +263,15 @@ class OnlineStatusService {
 
     // Validate authentication before operations
     if (!_isUserAuthenticated()) {
-      debugPrint(
-        '⚠️ OnlineStatusService: Cannot set offline - user not authenticated. '
-        'This may be expected during sign-out.',
-      );
+      // debugPrint(
+      //   '⚠️ OnlineStatusService: Cannot set offline - user not authenticated. '
+      //   'This may be expected during sign-out.',
+      // );
       // Continue anyway for sign-out scenarios
     }
 
     try {
-      debugPrint('⚫ OnlineStatusService: Setting user $userId to OFFLINE');
+      // debugPrint('⚫ OnlineStatusService: Setting user $userId to OFFLINE');
 
       // Update Realtime Database
       await _database.ref('presence/$userId').set({
@@ -286,15 +286,15 @@ class OnlineStatusService {
       });
     } catch (e) {
       if (e is FirebaseException && e.code == 'permission-denied') {
-        debugPrint(
-          '❌ OnlineStatusService: Permission denied when setting user offline. '
-          'User ID: $userId. This may be expected during sign-out or if '
-          'authentication token has expired.',
-        );
+        // debugPrint(
+        //   '❌ OnlineStatusService: Permission denied when setting user offline. '
+        //   'User ID: $userId. This may be expected during sign-out or if '
+        //   'authentication token has expired.',
+        // );
       } else {
-        debugPrint(
-          '❌ OnlineStatusService: Error setting offline for user $userId: $e',
-        );
+        // debugPrint(
+        //   '❌ OnlineStatusService: Error setting offline for user $userId: $e',
+        // );
       }
     }
   }
@@ -303,9 +303,9 @@ class OnlineStatusService {
   Future<void> updateOnlineStatusVisibility(bool showStatus) async {
     if (_currentUserId == null) return;
 
-    debugPrint(
-      '🔄 OnlineStatusService: Updating status visibility to $showStatus',
-    );
+    // debugPrint(
+    //   '🔄 OnlineStatusService: Updating status visibility to $showStatus',
+    // );
 
     try {
       // Update Firestore
@@ -323,7 +323,7 @@ class OnlineStatusService {
         _connectedSubscription = null;
       }
     } catch (e) {
-      debugPrint('❌ OnlineStatusService: Error updating visibility: $e');
+      // debugPrint('❌ OnlineStatusService: Error updating visibility: $e');
     }
   }
 
@@ -358,12 +358,12 @@ class OnlineStatusService {
     _connectedRef = null;
     _currentUserId = null;
 
-    debugPrint('🔄 OnlineStatusService: Presence tracking torn down');
+    // debugPrint('🔄 OnlineStatusService: Presence tracking torn down');
   }
 
   /// Dispose of the service
   Future<void> dispose() async {
-    debugPrint('🔄 OnlineStatusService: Disposing...');
+    // debugPrint('🔄 OnlineStatusService: Disposing...');
 
     await _teardownPresence();
     await _authStateSubscription?.cancel();
@@ -373,6 +373,6 @@ class OnlineStatusService {
     _lifecycleListener = null;
     _initialized = false;
 
-    debugPrint('✅ OnlineStatusService: Disposed');
+    // debugPrint('✅ OnlineStatusService: Disposed');
   }
 }

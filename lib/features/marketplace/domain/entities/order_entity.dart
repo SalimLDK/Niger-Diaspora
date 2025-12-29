@@ -6,6 +6,8 @@ part 'order_entity.freezed.dart';
 class OrderEntity with _$OrderEntity {
   const factory OrderEntity({
     required String id,
+    /// Session ID to group orders from the same cart checkout
+    String? sessionId,
     required String productId,
     required String productTitle,
     String? productImageUrl,

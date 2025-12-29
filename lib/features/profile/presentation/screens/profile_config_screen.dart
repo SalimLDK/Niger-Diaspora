@@ -72,27 +72,27 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   }
 
   void _loadInitialData() {
-    debugPrint('🔵 DEBUG: _loadInitialData called');
+    // debugPrint('🔵 DEBUG: _loadInitialData called');
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
 
     if (currentUser != null && mounted) {
-      debugPrint('🟢 DEBUG: User found: ${currentUser.id}');
+      // debugPrint('🟢 DEBUG: User found: ${currentUser.id}');
       setState(() {
         // 1. Try pre-fill displayName from Firebase Auth user
         if (!_hasManuallyEdited &&
             currentUser.displayName != null &&
             currentUser.displayName!.isNotEmpty) {
           _displayNameController.text = currentUser.displayName!;
-          debugPrint(
-            '✅ DEBUG: DisplayName set from Auth: ${currentUser.displayName}',
-          );
+          // debugPrint(
+          //   '✅ DEBUG: DisplayName set from Auth: ${currentUser.displayName}',
+          // );
         }
 
         // 2. Try to load additional data from profile
         final profile =
             ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
         if (profile != null) {
-          debugPrint('🟢 DEBUG: Profile found: ${profile.toString()}');
+          // debugPrint('🟢 DEBUG: Profile found: ${profile.toString()}');
 
           // Fallback: If Auth name was empty but profile has name, use it
           if (!_hasManuallyEdited &&
@@ -100,22 +100,22 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               profile.displayName != null &&
               profile.displayName!.isNotEmpty) {
             _displayNameController.text = profile.displayName!;
-            debugPrint(
-              '✅ DEBUG: DisplayName set from Profile: ${profile.displayName}',
-            );
+            // debugPrint(
+            //   '✅ DEBUG: DisplayName set from Profile: ${profile.displayName}',
+            // );
           }
 
           // Pre-fill profession
           if (profile.profession != null && profile.profession!.isNotEmpty) {
             _selectedProfession = profile.profession;
-            debugPrint('✅ DEBUG: Profession set: ${profile.profession}');
+            // debugPrint('✅ DEBUG: Profession set: ${profile.profession}');
           }
         } else {
-          debugPrint('🟠 DEBUG: Profile is null');
+          // debugPrint('🟠 DEBUG: Profile is null');
         }
       });
     } else {
-      debugPrint('🔴 DEBUG: currentUser is null in _loadInitialData');
+      // debugPrint('🔴 DEBUG: currentUser is null in _loadInitialData');
     }
   }
 
@@ -175,10 +175,12 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       await ref
           .read(onboardingNotifierProvider.notifier)
           .markProfileConfigComplete();
-    } catch (e, stackTrace) {
+    } catch (
+      e //, stackTrace
+    ) {
       // Log error for debugging only in debug mode
-      debugPrint('Error in _handleComplete: $e');
-      debugPrint('Stack trace: $stackTrace');
+      // debugPrint('Error in _handleComplete: $e');
+      // debugPrint('Stack trace: $stackTrace');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -780,9 +782,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: source,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 95,
     );
 
     if (image != null) {

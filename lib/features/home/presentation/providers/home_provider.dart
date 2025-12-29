@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
@@ -82,7 +82,7 @@ class HomeStatsNotifier extends _$HomeStatsNotifier {
 
       return stats;
     } catch (e) {
-      debugPrint('❌ Error fetching home stats: $e');
+      // debugPrint('❌ Error fetching home stats: $e');
       // If error, try returning cached data or rethrow
       final cached = _loadFromCache();
       if (cached != null) return cached;
@@ -103,7 +103,7 @@ class HomeStatsNotifier extends _$HomeStatsNotifier {
         );
       }
     } catch (e) {
-      debugPrint('⚠️ Failed to load cached stats: $e');
+      // debugPrint('⚠️ Failed to load cached stats: $e');
     }
     return null;
   }
@@ -118,7 +118,7 @@ class HomeStatsNotifier extends _$HomeStatsNotifier {
       });
       await prefs.prefs.setString(_cacheKey, json);
     } catch (e) {
-      debugPrint('⚠️ Failed to cache stats: $e');
+      // debugPrint('⚠️ Failed to cache stats: $e');
     }
   }
 

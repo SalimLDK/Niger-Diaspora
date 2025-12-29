@@ -7,15 +7,25 @@ admin.initializeApp();
 /**
  * Triggered when a new document is created in the 'notifications' collection.
  * Sends a push notification to the user's devices.
+ *
+ * NOTE: This function does NOT send notifications for type "message"
+ * because onMessageCreated already handles those directly.
  */
 exports.sendNotificationOnCreate = functions.firestore
     .document("notifications/{notificationId}")
     .onCreate(async (snapshot, context) => {
         const notificationData = snapshot.data();
         const userId = notificationData.userId;
+        const notificationType = String(notificationData.type || "general");
 
         if (!userId) {
-            console.log("No userId in notification document");
+            // console.log("No userId in notification document");
+            return null;
+        }
+
+        // Skip message notifications - they are handled by onMessageCreated
+        if (notificationType === "message") {
+            // console.log("Skipping message notification - handled by onMessageCreated");
             return null;
         }
 
@@ -24,7 +34,7 @@ exports.sendNotificationOnCreate = functions.firestore
             const userDoc = await admin.firestore().collection("users").doc(userId).get();
 
             if (!userDoc.exists) {
-                console.log(`User ${userId} does not exist`);
+                // console.log(`User ${userId} does not exist`);
                 return null;
             }
 
@@ -32,19 +42,39 @@ exports.sendNotificationOnCreate = functions.firestore
             const fcmTokens = userData.fcmTokens;
 
             if (!fcmTokens || !Array.isArray(fcmTokens) || fcmTokens.length === 0) {
-                console.log(`No FCM tokens for user ${userId}`);
+                // console.log(`No FCM tokens for user ${userId}`);
                 return null;
             }
 
             // Prepare the message payload
-            const payload = {
-                notification: {
-                    title: notificationData.title || "Nouvelle notification",
-                    body: notificationData.body || "Vous avez une nouvelle notification",
-                },
+            const title = notificationData.title || "Nouvelle notification";
+            const body = notificationData.body || "Vous avez une nouvelle notification";
+
+            // Get the appropriate channel based on notification type
+            const channelId = notificationType === "order" ? "orders_channel" :
+                              notificationType === "newOrder" ? "orders_channel" :
+                              notificationType === "orderPaid" ? "orders_channel" :
+                              notificationType === "orderShipped" ? "orders_channel" :
+                              notificationType === "orderDelivered" ? "orders_channel" :
+                              notificationType === "orderCancelled" ? "orders_channel" :
+                              notificationType === "orderCompleted" ? "orders_channel" :
+                              notificationType === "eventReminder" ? "event_reminders_channel" :
+                              notificationType === "eventAttendance" ? "events_channel" :
+                              notificationType === "localEvent" ? "events_channel" :
+                              notificationType === "friendRequest" ? "friends_channel" :
+                              notificationType === "friendAccepted" ? "friends_channel" :
+                              "general_channel";
+
+            // console.log(`Sending ${notificationType} notification to ${fcmTokens.length} tokens for user ${userId}`);
+
+            // Send multicast message with Android/iOS config (using sendEachForMulticast)
+            const response = await admin.messaging().sendEachForMulticast({
+                tokens: fcmTokens,
+                notification: { title, body },
                 data: {
-                    // Ensure all data values are strings
-                    type: String(notificationData.type || "general"),
+                    type: notificationType,
+                    title: title,
+                    body: body,
                     targetId: String(notificationData.targetId || ""),
                     click_action: "FLUTTER_NOTIFICATION_CLICK",
                     ...Object.keys(notificationData.data || {}).reduce((acc, key) => {
@@ -52,14 +82,21 @@ exports.sendNotificationOnCreate = functions.firestore
                         return acc;
                     }, {}),
                 },
-            };
-
-            console.log(`Sending notification to ${fcmTokens.length} tokens for user ${userId}`);
-
-            // Send multicast message
-            const response = await admin.messaging().sendMulticast({
-                tokens: fcmTokens,
-                ...payload,
+                android: {
+                    priority: "high",
+                    notification: {
+                        channelId: channelId,
+                        sound: "default",
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            sound: "default",
+                            badge: 1,
+                        },
+                    },
+                },
             });
 
             // Cleanup invalid tokens
@@ -72,7 +109,7 @@ exports.sendNotificationOnCreate = functions.firestore
                 });
 
                 if (failedTokens.length > 0) {
-                    console.log(`Removing ${failedTokens.length} invalid tokens`);
+                    // console.log(`Removing ${failedTokens.length} invalid tokens`);
                     await admin.firestore().collection("users").doc(userId).update({
                         fcmTokens: admin.firestore.FieldValue.arrayRemove(...failedTokens),
                     });
@@ -89,19 +126,21 @@ exports.sendNotificationOnCreate = functions.firestore
 /**
  * Triggered when a new message is created in Firebase Realtime Database.
  * Sends push notifications to all participants except the sender.
- * 
+ *
  * Path: messages/{conversationId}/{messageId}
+ *
+ * IMPORTANT: The database is in europe-west1, so the function must be in the same region
  */
-exports.onMessageCreated = functions.database
+exports.onMessageCreated = functions
+    .region("europe-west1")
+    .database.instance("diaspo-niger-default-rtdb")
     .ref("/messages/{conversationId}/{messageId}")
     .onCreate(async (snapshot, context) => {
         const message = snapshot.val();
         const conversationId = context.params.conversationId;
         const messageId = context.params.messageId;
 
-        console.log(`New message created in conversation ${conversationId}`);
-
-        const messageType = message.type || "text";
+        // console.log(`New message created in conversation ${conversationId}`);
 
         try {
             // Get conversation details from Firestore
@@ -111,7 +150,7 @@ exports.onMessageCreated = functions.database
                 .get();
 
             if (!conversationDoc.exists) {
-                console.log(`Conversation ${conversationId} not found in Firestore`);
+                // console.log(`Conversation ${conversationId} not found in Firestore`);
                 return null;
             }
 
@@ -125,7 +164,7 @@ exports.onMessageCreated = functions.database
             const recipients = participantIds.filter((id) => id !== senderId);
 
             if (recipients.length === 0) {
-                console.log("No recipients to notify");
+                // console.log("No recipients to notify");
                 return null;
             }
 
@@ -174,7 +213,7 @@ exports.onMessageCreated = functions.database
 
             for (const recipientId of recipients) {
                 if (mutedBy.includes(recipientId)) {
-                    console.log(`User ${recipientId} has muted this conversation`);
+                    // console.log(`User ${recipientId} has muted this conversation`);
                     continue;
                 }
 
@@ -188,7 +227,7 @@ exports.onMessageCreated = functions.database
                     if (messageType === "system") {
                         const systemMessagesEnabled = userData.notifySystemMessages === true;
                         if (!systemMessagesEnabled) {
-                            console.log(`User ${recipientId} has disabled system message notifications`);
+                            // console.log(`User ${recipientId} has disabled system message notifications`);
                             continue;
                         }
                     }
@@ -201,7 +240,7 @@ exports.onMessageCreated = functions.database
             }
 
             if (allTokens.length === 0) {
-                console.log("No valid tokens to send notification");
+                // console.log("No valid tokens to send notification");
                 return null;
             }
 
@@ -228,18 +267,19 @@ exports.onMessageCreated = functions.database
                 );
             }
             await Promise.all(notificationPromises);
-            console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
+            // console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
 
-            // Send push notification
-            const response = await admin.messaging().sendMulticast({
+            // Send push notification using sendEachForMulticast (sendMulticast is deprecated)
+            const response = await admin.messaging().sendEachForMulticast({
                 tokens: allTokens,
                 notification: { title, body },
                 data: {
                     type: "message",
+                    title: title,
+                    body: body,
                     conversationId,
                     messageId,
                     senderId,
-                    userId: "", // Will be set per-user in the Firestore notification doc
                     click_action: "FLUTTER_NOTIFICATION_CLICK",
                 },
                 android: {
@@ -251,7 +291,7 @@ exports.onMessageCreated = functions.database
                 },
             });
 
-            console.log(`Successfully sent ${response.successCount}/${allTokens.length} push notifications`);
+            // console.log(`Successfully sent ${response.successCount}/${allTokens.length} push notifications`);
 
             // Clean up invalid tokens
             if (response.failureCount > 0) {
@@ -263,7 +303,7 @@ exports.onMessageCreated = functions.database
                 });
 
                 if (invalidTokens.length > 0) {
-                    console.log(`Removing ${invalidTokens.length} invalid tokens`);
+                    // console.log(`Removing ${invalidTokens.length} invalid tokens`);
                     const updates = {};
                     invalidTokens.forEach(({ token, userId }) => {
                         if (!updates[userId]) updates[userId] = [];
@@ -289,37 +329,46 @@ exports.onMessageCreated = functions.database
 
 /**
  * Triggered when a conversation is updated (new message).
- * Sends push notifications to all participants except the sender.
+ *
+ * DISABLED: This function is no longer needed because onMessageCreated
+ * already handles message notifications directly from Realtime Database.
+ * Keeping this code commented for reference.
  */
 exports.sendChatNotification = functions.firestore
     .document("conversations/{conversationId}")
     .onUpdate(async (change, context) => {
+        // DISABLED - onMessageCreated handles message notifications
+        // console.log("sendChatNotification is disabled - using onMessageCreated instead");
+        return null;
+
+        /*
         const before = change.before.data();
         const after = change.after.data();
 
         // Check if lastMessage changed (new message sent)
         if (!after.lastMessage || before.lastMessage === after.lastMessage) {
-            console.log("No new message detected");
+            // console.log("No new message detected");
             return null;
         }
 
         const conversationId = context.params.conversationId;
         const senderId = after.lastMessageSenderId;
         const participantIds = after.participantIds || [];
+        const mutedBy = after.mutedBy || [];
         const conversationType = after.type; // 'individual' or 'group'
         const lastMessage = after.lastMessage;
 
         if (!senderId || participantIds.length === 0) {
-            console.log("Missing sender or participants");
+            // console.log("Missing sender or participants");
             return null;
         }
 
         try {
-            // Get all participants' tokens (except sender)
-            const recipients = participantIds.filter((id) => id !== senderId);
+            // Get all participants' tokens (except sender and muted users)
+            const recipients = participantIds.filter((id) => id !== senderId && !mutedBy.includes(id));
 
             if (recipients.length === 0) {
-                console.log("No recipients to notify");
+                // console.log("No recipients to notify");
                 return null;
             }
 
@@ -374,42 +423,55 @@ exports.sendChatNotification = functions.firestore
                 );
             }
             await Promise.all(notificationPromises);
-            console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
+            // console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
 
             if (allTokens.length === 0) {
-                console.log("No tokens found for recipients, but notifications stored");
+                // console.log("No tokens found for recipients, but notifications stored");
                 return { success: true, sentCount: 0, storedCount: notificationPromises.length };
             }
 
-            // Prepare the message payload
-            const payload = {
+            // console.log(`Sending chat notification to ${allTokens.length} tokens`);
+
+            // Send multicast message with Android/iOS config (using sendEachForMulticast)
+            const response = await admin.messaging().sendEachForMulticast({
+                tokens: allTokens,
                 notification: {
                     title: title,
                     body: truncatedBody,
                 },
                 data: {
                     type: "message",
+                    title: title,
+                    body: truncatedBody,
                     conversationId: conversationId,
                     senderId: senderId,
                     click_action: "FLUTTER_NOTIFICATION_CLICK",
                 },
-            };
-
-            console.log(`Sending chat notification to ${allTokens.length} tokens`);
-
-            // Send multicast message
-            const response = await admin.messaging().sendMulticast({
-                tokens: allTokens,
-                ...payload,
+                android: {
+                    priority: "high",
+                    notification: {
+                        channelId: "messages",
+                        sound: "default",
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            sound: "default",
+                            badge: 1,
+                        },
+                    },
+                },
             });
 
-            console.log(`Successfully sent ${response.successCount} push notifications`);
+            // console.log(`Successfully sent ${response.successCount} push notifications`);
 
             return { success: true, sentCount: response.successCount };
         } catch (error) {
-            console.error("Error sending chat notification:", error);
+            // console.error("Error sending chat notification:", error);
             return null;
         }
+        */
     });
 
 /**
@@ -419,7 +481,7 @@ exports.sendChatNotification = functions.firestore
 exports.sendEventReminders = functions.pubsub
     .schedule("every 1 hours")
     .onRun(async (context) => {
-        console.log("Running event reminders check...");
+        // console.log("Running event reminders check...");
 
         try {
             const now = new Date();
@@ -434,7 +496,7 @@ exports.sendEventReminders = functions.pubsub
                 .where("status", "==", "upcoming")
                 .get();
 
-            console.log(`Found ${eventsSnapshot.size} events starting in 24 hours`);
+            // console.log(`Found ${eventsSnapshot.size} events starting in 24 hours`);
 
             if (eventsSnapshot.empty) {
                 return null;
@@ -474,11 +536,11 @@ exports.sendEventReminders = functions.pubsub
             }
 
             await Promise.all(promises);
-            console.log(`Created ${promises.length} event reminder notifications`);
+            // console.log(`Created ${promises.length} event reminder notifications`);
 
             return { success: true, count: promises.length };
         } catch (error) {
-            console.error("Error sending event reminders:", error);
+            // console.error("Error sending event reminders:", error);
             return null;
         }
     });
@@ -539,7 +601,7 @@ exports.createStripePaymentIntent = functions.firestore
         const data = snapshot.data();
         const intentId = context.params.intentId;
 
-        console.log(`Creating Stripe payment intent for: ${intentId}`);
+        // console.log(`Creating Stripe payment intent for: ${intentId}`);
 
         try {
             // Validate required fields
@@ -564,7 +626,7 @@ exports.createStripePaymentIntent = functions.firestore
                 },
             });
 
-            console.log(`Payment intent created: ${paymentIntent.id}`);
+            // console.log(`Payment intent created: ${paymentIntent.id}`);
 
             // Update the document with the payment intent details
             await snapshot.ref.update({
@@ -579,7 +641,7 @@ exports.createStripePaymentIntent = functions.firestore
                 paymentIntentId: paymentIntent.id,
             };
         } catch (error) {
-            console.error("Error creating payment intent:", error);
+            // console.error("Error creating payment intent:", error);
 
             // Update document with error status
             await snapshot.ref.update({
@@ -613,7 +675,7 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const webhookSecret = functions.config().stripe?.webhook_secret;
 
     if (!webhookSecret) {
-        console.error("Webhook secret not configured");
+        // console.error("Webhook secret not configured");
         return res.status(500).send("Webhook secret not configured");
     }
 
@@ -627,11 +689,11 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
             webhookSecret
         );
     } catch (err) {
-        console.error("Webhook signature verification failed:", err.message);
+        // console.error("Webhook signature verification failed:", err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    console.log(`Received webhook event: ${event.type}`);
+    // console.log(`Received webhook event: ${event.type}`);
 
     try {
         switch (event.type) {
@@ -644,12 +706,12 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                 break;
 
             default:
-                console.log(`Unhandled event type: ${event.type}`);
+                // console.log(`Unhandled event type: ${event.type}`);
         }
 
         res.json({ received: true });
     } catch (error) {
-        console.error("Error processing webhook:", error);
+        // console.error("Error processing webhook:", error);
         res.status(500).send("Webhook processing error");
     }
 });
@@ -658,12 +720,12 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
  * Handle successful payment
  */
 async function handlePaymentSuccess(paymentIntent) {
-    console.log(`Payment succeeded: ${paymentIntent.id}`);
+    // console.log(`Payment succeeded: ${paymentIntent.id}`);
 
     const transactionId = paymentIntent.metadata.transactionId;
 
     if (!transactionId) {
-        console.log("No transaction ID in metadata");
+        // console.log("No transaction ID in metadata");
         return;
     }
 
@@ -676,9 +738,9 @@ async function handlePaymentSuccess(paymentIntent) {
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        console.log(`Transaction ${transactionId} marked as processing`);
+        // console.log(`Transaction ${transactionId} marked as processing`);
     } catch (error) {
-        console.error("Error updating transaction:", error);
+        // console.error("Error updating transaction:", error);
     }
 }
 
@@ -686,12 +748,12 @@ async function handlePaymentSuccess(paymentIntent) {
  * Handle failed payment
  */
 async function handlePaymentFailure(paymentIntent) {
-    console.log(`Payment failed: ${paymentIntent.id}`);
+    // console.log(`Payment failed: ${paymentIntent.id}`);
 
     const transactionId = paymentIntent.metadata.transactionId;
 
     if (!transactionId) {
-        console.log("No transaction ID in metadata");
+        // console.log("No transaction ID in metadata");
         return;
     }
 
@@ -704,11 +766,214 @@ async function handlePaymentFailure(paymentIntent) {
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        console.log(`Transaction ${transactionId} marked as failed`);
+        // console.log(`Transaction ${transactionId} marked as failed`);
     } catch (error) {
-        console.error("Error updating transaction:", error);
+        // console.error("Error updating transaction:", error);
     }
 }
+
+// ============================================================================
+// MARKETPLACE: ORDER & PRODUCT QUANTITY MANAGEMENT
+// ============================================================================
+
+/**
+ * Triggered when a new order is created.
+ * Decrements the product quantity securely on the server side.
+ */
+exports.onOrderCreated = functions.firestore
+    .document("orders/{orderId}")
+    .onCreate(async (snapshot, context) => {
+        const orderData = snapshot.data();
+        const orderId = context.params.orderId;
+
+        // console.log(`New order created: ${orderId}`);
+
+        const { productId, quantity, sellerId, buyerId } = orderData;
+
+        if (!productId || !quantity) {
+            // console.error("Missing productId or quantity in order");
+            return null;
+        }
+
+        try {
+            const productRef = admin.firestore().collection("products").doc(productId);
+
+            // Use a transaction to ensure atomic update
+            await admin.firestore().runTransaction(async (transaction) => {
+                const productDoc = await transaction.get(productRef);
+
+                if (!productDoc.exists) {
+                    throw new Error(`Product ${productId} not found`);
+                }
+
+                const productData = productDoc.data();
+                const currentQuantity = productData.quantity || 0;
+
+                if (currentQuantity < quantity) {
+                    // Not enough stock - cancel the order
+                    transaction.update(snapshot.ref, {
+                        status: "cancelled",
+                        cancellationReason: "Stock insuffisant",
+                        cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+                    });
+                    throw new Error(`Insufficient stock: requested ${quantity}, available ${currentQuantity}`);
+                }
+
+                // Decrement the quantity
+                transaction.update(productRef, {
+                    quantity: admin.firestore.FieldValue.increment(-quantity),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+
+                // console.log(`Decremented product ${productId} quantity by ${quantity}`);
+            });
+
+            // Notify the seller about the new order
+            const buyerDoc = await admin.firestore().collection("users").doc(buyerId).get();
+            const buyerName = buyerDoc.exists ? (buyerDoc.data().displayName || "Un acheteur") : "Un acheteur";
+
+            await admin.firestore().collection("notifications").add({
+                userId: sellerId,
+                title: "Nouvelle commande",
+                body: `${buyerName} a passé une commande pour "${orderData.productTitle}"`,
+                type: "order",
+                targetId: orderId,
+                data: {
+                    orderId: orderId,
+                    productId: productId,
+                    buyerId: buyerId,
+                },
+                isRead: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            return { success: true };
+        } catch (error) {
+            // console.error("Error processing order creation:", error);
+            return { success: false, error: error.message };
+        }
+    });
+
+/**
+ * Triggered when an order is updated.
+ * Handles status changes, especially cancellations to restore product quantity.
+ */
+exports.onOrderUpdated = functions.firestore
+    .document("orders/{orderId}")
+    .onUpdate(async (change, context) => {
+        const before = change.before.data();
+        const after = change.after.data();
+        const orderId = context.params.orderId;
+
+        // Check if status changed to cancelled
+        if (before.status !== "cancelled" && after.status === "cancelled") {
+            // console.log(`Order ${orderId} was cancelled, restoring product quantity`);
+
+            const { productId, quantity, sellerId, buyerId } = after;
+
+            if (!productId || !quantity) {
+                // console.error("Missing productId or quantity in order");
+                return null;
+            }
+
+            try {
+                // Restore product quantity
+                await admin.firestore().collection("products").doc(productId).update({
+                    quantity: admin.firestore.FieldValue.increment(quantity),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+
+                // console.log(`Restored product ${productId} quantity by ${quantity}`);
+
+                // Notify the other party about the cancellation
+                const cancelledBy = after.cancelledBy || (before.status === "pending" ? buyerId : sellerId);
+                const otherPartyId = cancelledBy === buyerId ? sellerId : buyerId;
+
+                const cancellerDoc = await admin.firestore().collection("users").doc(cancelledBy).get();
+                const cancellerName = cancellerDoc.exists ?
+                    (cancellerDoc.data().displayName || "L'utilisateur") : "L'utilisateur";
+
+                await admin.firestore().collection("notifications").add({
+                    userId: otherPartyId,
+                    title: "Commande annulée",
+                    body: `${cancellerName} a annulé la commande pour "${after.productTitle}"`,
+                    type: "orderCancelled",
+                    targetId: orderId,
+                    data: {
+                        orderId: orderId,
+                        productId: productId,
+                        reason: after.cancellationReason || "Aucune raison spécifiée",
+                    },
+                    isRead: false,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+
+                return { success: true };
+            } catch (error) {
+                // console.error("Error restoring product quantity:", error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Check if status changed to shipped
+        if (before.status !== "shipped" && after.status === "shipped") {
+            // console.log(`Order ${orderId} was shipped, notifying buyer`);
+
+            await admin.firestore().collection("notifications").add({
+                userId: after.buyerId,
+                title: "Commande expédiée",
+                body: `Votre commande "${after.productTitle}" a été expédiée${after.trackingNumber ? ` (Suivi: ${after.trackingNumber})` : ""}`,
+                type: "orderShipped",
+                targetId: orderId,
+                data: {
+                    orderId: orderId,
+                    trackingNumber: after.trackingNumber || "",
+                },
+                isRead: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+
+        // Check if status changed to delivered
+        if (before.status !== "delivered" && after.status === "delivered") {
+            // console.log(`Order ${orderId} was delivered, notifying seller`);
+
+            await admin.firestore().collection("notifications").add({
+                userId: after.sellerId,
+                title: "Commande livrée",
+                body: `L'acheteur a confirmé la réception de "${after.productTitle}"`,
+                type: "orderDelivered",
+                targetId: orderId,
+                data: {
+                    orderId: orderId,
+                },
+                isRead: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+
+        // Check if status changed to completed (escrow released)
+        if (before.status !== "completed" && after.status === "completed") {
+            // console.log(`Order ${orderId} completed, escrow released`);
+
+            await admin.firestore().collection("notifications").add({
+                userId: after.sellerId,
+                title: "Paiement libéré",
+                body: `Le paiement pour "${after.productTitle}" a été libéré. Montant: ${after.sellerAmount} ${after.currency}`,
+                type: "orderCompleted",
+                targetId: orderId,
+                data: {
+                    orderId: orderId,
+                    amount: String(after.sellerAmount),
+                    currency: after.currency,
+                },
+                isRead: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+
+        return null;
+    });
 
 /**
  * Triggered when a new event is created.
@@ -720,14 +985,14 @@ exports.notifyLocalEventCreated = functions.firestore
         const eventData = snapshot.data();
         const eventId = context.params.eventId;
 
-        console.log(`New event created: ${eventId} - ${eventData.title}`);
+        // console.log(`New event created: ${eventId} - ${eventData.title}`);
 
         const eventCity = eventData.city || eventData.location?.city;
         const eventCountry = eventData.country || eventData.location?.country;
         const organizerId = eventData.organizerId;
 
         if (!eventCity && !eventCountry) {
-            console.log("Event has no location info, skipping local notifications");
+            // console.log("Event has no location info, skipping local notifications");
             return null;
         }
 
@@ -745,7 +1010,7 @@ exports.notifyLocalEventCreated = functions.firestore
 
             const usersSnapshot = await usersQuery.get();
 
-            console.log(`Found ${usersSnapshot.size} users in the same location`);
+            // console.log(`Found ${usersSnapshot.size} users in the same location`);
 
             if (usersSnapshot.empty) {
                 return null;
@@ -795,11 +1060,11 @@ exports.notifyLocalEventCreated = functions.firestore
             }
 
             await Promise.all(promises);
-            console.log(`Created ${notificationCount} local event notifications`);
+            // console.log(`Created ${notificationCount} local event notifications`);
 
             return { success: true, count: notificationCount };
         } catch (error) {
-            console.error("Error sending local event notifications:", error);
+            // console.error("Error sending local event notifications:", error);
             return null;
         }
     });

@@ -362,6 +362,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         break;
       case NotificationType.eventReminder:
       case NotificationType.eventUpdate:
+      case NotificationType.eventAttendance:
         if (notification.targetId != null) {
           context.push('/events/${notification.targetId}');
         }
@@ -369,9 +370,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
       case NotificationType.newFollower:
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
         if (notification.targetId != null) {
           context.push('/profile/${notification.targetId}');
         }
+        break;
+      case NotificationType.order:
+      case NotificationType.newOrder:
+      case NotificationType.orderPaid:
+      case NotificationType.orderShipped:
+      case NotificationType.orderDelivered:
+      case NotificationType.orderCancelled:
+      case NotificationType.orderCompleted:
+        // All order-related notifications go to my orders
+        context.push('/marketplace/my-orders');
         break;
       case NotificationType.general:
         // No specific navigation
@@ -612,9 +624,12 @@ class _NotificationItem extends StatelessWidget {
         return Icons.person;
       case NotificationType.eventUpdate:
         return Icons.update;
+      case NotificationType.eventAttendance:
+        return Icons.event_available;
       case NotificationType.friendRequest:
         return Icons.person_add_alt;
       case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
         return Icons.how_to_reg;
       case NotificationType.groupJoinRequest:
         return Icons.group_add;
@@ -630,6 +645,19 @@ class _NotificationItem extends StatelessWidget {
         return Icons.person_pin_circle;
       case NotificationType.proximityAlert:
         return Icons.radar;
+      case NotificationType.order:
+      case NotificationType.newOrder:
+        return Icons.shopping_bag;
+      case NotificationType.orderPaid:
+        return Icons.payment;
+      case NotificationType.orderShipped:
+        return Icons.local_shipping;
+      case NotificationType.orderDelivered:
+        return Icons.check_circle;
+      case NotificationType.orderCancelled:
+        return Icons.cancel;
+      case NotificationType.orderCompleted:
+        return Icons.check_circle;
     }
   }
 
@@ -651,9 +679,12 @@ class _NotificationItem extends StatelessWidget {
         return Colors.teal;
       case NotificationType.eventUpdate:
         return Colors.amber;
+      case NotificationType.eventAttendance:
+        return Colors.teal;
       case NotificationType.friendRequest:
         return Colors.indigo;
       case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
         return Colors.green;
       case NotificationType.groupJoinRequest:
         return Colors.deepPurple;
@@ -669,6 +700,19 @@ class _NotificationItem extends StatelessWidget {
         return Colors.orange;
       case NotificationType.proximityAlert:
         return Colors.deepOrange;
+      case NotificationType.order:
+      case NotificationType.newOrder:
+        return Colors.green;
+      case NotificationType.orderPaid:
+        return Colors.blue;
+      case NotificationType.orderShipped:
+        return Colors.purple;
+      case NotificationType.orderDelivered:
+        return Colors.green;
+      case NotificationType.orderCancelled:
+        return Colors.red;
+      case NotificationType.orderCompleted:
+        return Colors.green;
     }
   }
 

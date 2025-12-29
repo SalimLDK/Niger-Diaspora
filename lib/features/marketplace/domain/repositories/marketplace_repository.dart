@@ -7,6 +7,7 @@ abstract class MarketplaceRepository {
   // Products
   Future<Either<Failure, List<ProductEntity>>> getProducts({
     ProductCategory? category,
+    Country? country,
     String? sellerId,
     int limit = 20,
   });
@@ -29,6 +30,7 @@ abstract class MarketplaceRepository {
     required int quantity,
     String? shippingAddress,
     String? buyerNote,
+    String? sessionId,
     double platformFeePercent = 0.05, // 5% default
   });
   Future<Either<Failure, OrderEntity>> payOrder(String orderId);

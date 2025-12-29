@@ -28,7 +28,7 @@ class SplashScreen extends StatelessWidget {
               ),
               child: const Center(
                 child: Text(
-                  'ND',
+                  'DN',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,

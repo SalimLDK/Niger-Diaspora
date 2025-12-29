@@ -1,77 +1,45 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final encryptionServiceProvider = Provider<EncryptionService>((ref) {
-  return EncryptionService();
+  return EncryptionService.instance;
 });
 
 class EncryptionService {
-  static const String _keyStorageKey = 'diaspo_encryption_key';
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
-    iOptions: IOSOptions(
-      accessibility: KeychainAccessibility.first_unlock_this_device,
-    ),
-  );
+  // Singleton pattern
+  static final EncryptionService instance = EncryptionService._internal();
+  factory EncryptionService() => instance;
+  EncryptionService._internal();
+
+  // Shared key with Firebase Cloud Functions (functions/encryption.js)
+  // IMPORTANT: This key must match the KEY_STRING in functions/encryption.js
+  static const String _sharedKeyString = 'DiaspoNigerSecureKey2025ForApps!';
 
   encrypt.Key? _key;
   encrypt.Encrypter? _encrypter;
   bool _isInitialized = false;
 
-  /// Initialize the encryption service by loading or generating the key
+  /// Initialize the encryption service with the shared key
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      String? storedKey = await _secureStorage.read(key: _keyStorageKey);
-
-      if (storedKey == null || storedKey.isEmpty) {
-        // Generate a new random 32-byte key for AES-256
-        storedKey = _generateSecureKey();
-        await _secureStorage.write(key: _keyStorageKey, value: storedKey);
-        debugPrint('🔐 Generated new encryption key');
-      } else {
-        debugPrint('🔐 Loaded existing encryption key');
-      }
-
-      _key = encrypt.Key.fromBase64(storedKey);
+      // Use the same fixed key as the server (Cloud Functions)
+      // This ensures messages can be decrypted by both client and server
+      final keyBytes = utf8.encode(_sharedKeyString);
+      _key = encrypt.Key(Uint8List.fromList(keyBytes));
       _encrypter = encrypt.Encrypter(
         encrypt.AES(_key!, mode: encrypt.AESMode.cbc),
       );
       _isInitialized = true;
+      debugPrint('🔐 Encryption service initialized with shared key');
     } catch (e) {
       debugPrint('❌ Error initializing encryption service: $e');
-      // Fallback to a derived key if secure storage fails
-      _useFallbackKey();
+      _isInitialized = false;
     }
-  }
-
-  /// Generate a cryptographically secure random 32-byte key
-  String _generateSecureKey() {
-    final random = Random.secure();
-    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
-    return base64Encode(bytes);
-  }
-
-  /// Fallback key derivation (only used if secure storage fails)
-  void _useFallbackKey() {
-    // Use a deterministic but unique key based on a salt
-    // This is less secure but ensures the app doesn't crash
-    const fallbackSalt = 'diaspo_niger_fallback_2025';
-    final bytes = utf8.encode(fallbackSalt.padRight(32, 'x').substring(0, 32));
-    _key = encrypt.Key(Uint8List.fromList(bytes));
-    _encrypter = encrypt.Encrypter(
-      encrypt.AES(_key!, mode: encrypt.AESMode.cbc),
-    );
-    _isInitialized = true;
-    debugPrint('⚠️ Using fallback encryption key');
   }
 
   /// Ensure the service is initialized before use
@@ -108,6 +76,35 @@ class EncryptionService {
     return encryptText(plainText);
   }
 
+  /// Vérifie si une chaîne est du base64 valide
+  bool _isValidBase64(String str) {
+    if (str.isEmpty) return false;
+    // Base64 ne contient que A-Za-z0-9+/= et sa longueur doit être multiple de 4 (avec padding)
+    final base64Regex = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
+    return base64Regex.hasMatch(str) && str.length % 4 == 0;
+  }
+
+  /// Vérifie si le texte a le format d'un message chiffré valide
+  bool _looksLikeEncryptedText(String text) {
+    final parts = text.split(':');
+    if (parts.length != 2) return false;
+
+    final ivPart = parts[0];
+    final ciphertextPart = parts[1];
+
+    // L'IV en base64 pour 16 bytes doit faire exactement 24 caractères (avec padding ==)
+    // ou 22-24 caractères selon le padding
+    if (ivPart.length < 22 || ivPart.length > 24) return false;
+
+    // Les deux parties doivent être du base64 valide
+    if (!_isValidBase64(ivPart) || !_isValidBase64(ciphertextPart)) return false;
+
+    // Le ciphertext doit avoir une longueur minimale (au moins un bloc AES = 16 bytes = ~24 chars en base64)
+    if (ciphertextPart.length < 20) return false;
+
+    return true;
+  }
+
   /// Déchiffre le texte à partir du format "iv:base64ciphertext"
   /// Retourne le texte original si le format est invalide ou si le déchiffrement échoue
   String decryptText(String encryptedFullText) {
@@ -118,21 +115,23 @@ class EncryptionService {
       return encryptedFullText;
     }
 
+    // Vérifier si le texte ressemble vraiment à du contenu chiffré
+    if (!_looksLikeEncryptedText(encryptedFullText)) {
+      // Pas le bon format, c'est probablement un ancien message non chiffré
+      return encryptedFullText;
+    }
+
     try {
       final parts = encryptedFullText.split(':');
-      if (parts.length != 2) {
-        // Pas le bon format, on suppose que c'est un ancien message non chiffré
-        return encryptedFullText;
-      }
-
       final iv = encrypt.IV.fromBase64(parts[0]);
       final encrypted = encrypt.Encrypted.fromBase64(parts[1]);
 
       return _encrypter!.decrypt(encrypted, iv: iv);
     } catch (e) {
-      // En cas d'erreur (clé changée, données corrompues, format legacy bizarre), on retourne le texte tel quel
-      debugPrint('⚠️ Decryption failed, returning original text: $e');
-      return encryptedFullText;
+      // En cas d'erreur de déchiffrement (clé changée, données corrompues)
+      // Le message a été chiffré avec une autre clé et ne peut pas être récupéré
+      debugPrint('⚠️ Decryption failed (likely different key): $e');
+      return '[Message illisible]';
     }
   }
 
