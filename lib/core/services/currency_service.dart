@@ -141,9 +141,10 @@ class CurrencyService {
   static const String _cacheKey = 'exchange_rates_cache';
   static const String _lastFetchKey = 'exchange_rates_last_fetch';
 
-  // Fallback rates (XOF-based) - Used when API is unavailable
+  // Default fallback rates (XOF-based) - Used when API is unavailable
   // EUR/XOF is fixed at 655.957 (CFA zone peg)
-  static const Map<String, double> _fallbackRates = {
+  // These can be overridden by admin settings via setFallbackRates()
+  Map<String, double> _fallbackRates = {
     'EUR_XOF': 655.957, // Fixed rate (CFA peg)
     'USD_XOF': 615.0,
     'GBP_XOF': 780.0,
@@ -155,6 +156,29 @@ class CurrencyService {
     'XOF_CAD': 0.002198,
     'XOF_CHF': 0.001449,
   };
+
+  /// Update fallback rates from admin settings
+  /// This allows the admin to configure rates that are used when the API is unavailable
+  void setFallbackRates({
+    required double eurToXof,
+    required double usdToXof,
+    required double gbpToXof,
+    required double cadToXof,
+    required double chfToXof,
+  }) {
+    _fallbackRates = {
+      'EUR_XOF': eurToXof,
+      'USD_XOF': usdToXof,
+      'GBP_XOF': gbpToXof,
+      'CAD_XOF': cadToXof,
+      'CHF_XOF': chfToXof,
+      'XOF_EUR': 1 / eurToXof,
+      'XOF_USD': 1 / usdToXof,
+      'XOF_GBP': 1 / gbpToXof,
+      'XOF_CAD': 1 / cadToXof,
+      'XOF_CHF': 1 / chfToXof,
+    };
+  }
 
   Map<String, ExchangeRate> _cachedRates = {};
   DateTime? _lastFetch;

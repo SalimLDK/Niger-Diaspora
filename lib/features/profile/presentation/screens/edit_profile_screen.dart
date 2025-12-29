@@ -96,7 +96,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     authState.maybeWhen(
       authenticated: (user) {
         // D'abord vérifier si le profil est déjà chargé (priorité aux données profil)
-        final existingProfile = ref.read(profileNotifierProvider).valueOrNull;
+        final existingProfile =
+            ref.read(profileNotifierProvider(user.id)).valueOrNull;
         if (existingProfile != null && existingProfile.id == user.id) {
           // Utiliser les données du profil existant (pas besoin de recharger)
           _displayNameController.text =
@@ -131,10 +132,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           _displayNameController.text = user.displayName ?? '';
           _photoUrl = user.photoUrl;
 
-          // Charger le profil depuis Firestore seulement si pas déjà chargé
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(profileNotifierProvider.notifier).loadProfile(user.id);
-          });
+          // Provider auto-loads, no explicit call needed here if watched/listened elsewhere
         }
       },
       orElse: () {},
@@ -312,8 +310,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         authenticated: (user) async {
           setState(() => _isLoading = true);
           final url = await ref
-              .read(profileNotifierProvider.notifier)
-              .uploadPhoto(user.id, image.path);
+              .read(profileNotifierProvider(user.id).notifier)
+              .uploadPhoto(image.path);
           if (url != null) {
             setState(() {
               _photoUrl = url;
@@ -394,7 +392,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           languages: _selectedLanguages,
         );
 
-        await ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+        await ref
+            .read(profileNotifierProvider(user.id).notifier)
+            .updateProfile(profile);
 
         if (mounted) {
           final l10n = AppLocalizations.of(context)!;
@@ -438,36 +438,41 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         .read(authNotifierProvider)
         .maybeWhen(authenticated: (user) => user, orElse: () => null);
 
-    ref.listen(profileNotifierProvider, (previous, next) {
-      next.whenData((profile) {
-        if (profile != null) {
-          // Priorité au displayName du profil, sinon utiliser celui de l'auth
-          _displayNameController.text =
-              profile.displayName ?? authUser?.displayName ?? '';
-          _bioController.text = profile.bio ?? '';
-          _completePhoneNumber = profile.phoneNumber ?? '';
-          _currentCityController.text = profile.currentCity ?? '';
+    if (authUser != null) {
+      ref.listen(profileNotifierProvider(authUser.id), (previous, next) {
+        next.whenData((profile) {
+          if (profile != null) {
+            // Priorité au displayName du profil, sinon utiliser celui de l'auth
+            _displayNameController.text =
+                profile.displayName ?? authUser.displayName ?? '';
+            _bioController.text = profile.bio ?? '';
+            _completePhoneNumber = profile.phoneNumber ?? '';
+            _currentCityController.text = profile.currentCity ?? '';
 
-          // Charger les sélections
-          _loadProfessionFromProfile(profile.profession);
-          _loadCountryFromProfile(profile.currentCountry, profile.countryCode);
-          _loadOriginFromProfile(profile.originRegion, profile.originCity);
+            // Charger les sélections
+            _loadProfessionFromProfile(profile.profession);
+            _loadCountryFromProfile(
+              profile.currentCountry,
+              profile.countryCode,
+            );
+            _loadOriginFromProfile(profile.originRegion, profile.originCity);
 
-          setState(() {
-            _isVisible = profile.isVisible;
-            _phoneVisibility = profile.phoneVisibility;
-            _isPhoneVerified = profile.isPhoneVerified;
-            // Si le numéro est vérifié, stocker le numéro vérifié
-            if (profile.isPhoneVerified && profile.phoneNumber != null) {
-              _verifiedPhoneNumber = profile.phoneNumber!;
-            }
-            _selectedInterests = List.from(profile.interests);
-            _selectedLanguages = List.from(profile.languages);
-            _photoUrl = profile.photoUrl ?? authUser?.photoUrl;
-          });
-        }
+            setState(() {
+              _isVisible = profile.isVisible;
+              _phoneVisibility = profile.phoneVisibility;
+              _isPhoneVerified = profile.isPhoneVerified;
+              // Si le numéro est vérifié, stocker le numéro vérifié
+              if (profile.isPhoneVerified && profile.phoneNumber != null) {
+                _verifiedPhoneNumber = profile.phoneNumber!;
+              }
+              _selectedInterests = List.from(profile.interests);
+              _selectedLanguages = List.from(profile.languages);
+              _photoUrl = profile.photoUrl ?? authUser.photoUrl;
+            });
+          }
+        });
       });
-    });
+    }
 
     final l10n = AppLocalizations.of(context)!;
 
@@ -947,9 +952,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   Widget _buildHeader() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: context.adaptivePrimaryGradient,
-      ),
+      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
       child: Stack(
         children: [
           // Motifs décoratifs

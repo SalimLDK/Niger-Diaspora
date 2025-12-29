@@ -94,6 +94,25 @@ class BusinessRepositoryImpl implements BusinessRepository {
   }
 
   @override
+  Future<Either<Failure, List<BusinessEntity>>> getBusinessesByLocation({
+    String? country,
+    String? city,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      final businesses = await remoteDataSource.getBusinessesByLocation(
+        country: country,
+        city: city,
+      );
+      return Right(businesses.map((b) => b.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, BusinessEntity>> getBusinessById(String id) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));

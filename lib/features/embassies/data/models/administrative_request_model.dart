@@ -102,8 +102,18 @@ class AdministrativeRequestModel with _$AdministrativeRequestModel {
 
   factory AdministrativeRequestModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    data['id'] = doc.id;
-    return AdministrativeRequestModel.fromJson(data);
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
+    });
+
+    return AdministrativeRequestModel.fromJson(processedData);
   }
 
   Map<String, dynamic> toFirestore() {

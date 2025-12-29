@@ -202,11 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Fonctionnalité bientôt disponible'),
-                        ),
-                      );
+                      context.push('/auth/forgot-password');
                     },
                     child: Text(
                       'Mot de passe oublié ?',

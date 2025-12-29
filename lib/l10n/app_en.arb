@@ -1,6 +1,8 @@
 {
   "@@locale": "en",
-  "appTitle": "Niger Diaspora",
+  "appTitle": "Diaspo Niger",
+
+  "you": "You",
 
   "welcomeTitle": "Welcome",
   "joinDiaspora": "Join the Nigerien diaspora",
@@ -99,6 +101,7 @@
   "appDescription": "A platform connecting the Nigerien diaspora.",
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
+  "codeOfConduct": "Code of Conduct",
   "legalUpdateTitle": "Terms update",
   "legalUpdateDescription": "Our terms of service and/or privacy policy have been updated. Please read and accept them to continue using the app.",
   "summaryOfChanges": "Summary of changes:",
@@ -481,7 +484,7 @@
   "markAsRead": "Mark as read",
   "accountDeletedSuccess": "Your account has been successfully deleted",
   "errorDeletingAccount": "Error deleting account",
-  "allRightsReserved": "© 2024 Niger Diaspora. All rights reserved.",
+  "allRightsReserved": "© 2025 Diaspo Niger. All rights reserved.",
   "mobileAppDescription": "Mobile platform connecting the Nigerien diaspora.",
 
   "currentCountry": "Current country",

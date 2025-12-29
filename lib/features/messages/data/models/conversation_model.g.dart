@@ -44,6 +44,7 @@ _$ConversationModelImpl _$$ConversationModelImplFromJson(
   unreadCount: json['unreadCount'] as Map<String, dynamic>? ?? const {},
   mutedBy: json['mutedBy'] as Map<String, dynamic>? ?? const {},
   archivedBy: json['archivedBy'] as Map<String, dynamic>? ?? const {},
+  deletedBy: json['deletedBy'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$$ConversationModelImplToJson(
@@ -66,6 +67,7 @@ Map<String, dynamic> _$$ConversationModelImplToJson(
   'unreadCount': instance.unreadCount,
   'mutedBy': instance.mutedBy,
   'archivedBy': instance.archivedBy,
+  'deletedBy': instance.deletedBy,
 };
 
 const _$MessageStatusEnumMap = {

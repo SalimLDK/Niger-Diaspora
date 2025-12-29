@@ -78,12 +78,22 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     );
   }
 
-  Future<bool> deleteConversation(String conversationId) async {
+  Future<bool> deleteConversation(
+    String conversationId, {
+    bool forEveryone = false,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return false;
+
     state = const AsyncValue.loading();
 
     final result = await ref
         .read(messageRepositoryProvider)
-        .deleteConversation(conversationId);
+        .deleteConversation(
+          conversationId: conversationId,
+          userId: currentUser.id,
+          forEveryone: forEveryone,
+        );
 
     return result.fold(
       (failure) {

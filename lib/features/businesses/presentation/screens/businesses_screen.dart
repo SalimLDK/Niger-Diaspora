@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,7 @@ class BusinessesScreen extends ConsumerStatefulWidget {
 class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
   final _searchController = TextEditingController();
   bool _isSearching = false;
+  bool _showLocationFilter = false;
 
   @override
   void initState() {
@@ -67,10 +69,25 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
               });
             },
           ),
+          IconButton(
+            icon: Icon(
+              _showLocationFilter ? Icons.filter_alt : Icons.filter_alt_outlined,
+              color: ref.watch(selectedBusinessLocationProvider).hasFilter
+                  ? theme.colorScheme.primary
+                  : null,
+            ),
+            onPressed: () {
+              setState(() {
+                _showLocationFilter = !_showLocationFilter;
+              });
+            },
+          ),
         ],
       ),
       body: Column(
         children: [
+          // Location filter (collapsible)
+          if (_showLocationFilter) _buildLocationFilter(theme),
           // Category filter chips
           SizedBox(
             height: 50,
@@ -207,6 +224,177 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         },
         icon: const Icon(Icons.add),
         label: const Text('Ajouter'),
+      ),
+    );
+  }
+
+  Widget _buildLocationFilter(ThemeData theme) {
+    final locationFilter = ref.watch(selectedBusinessLocationProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Filtrer par localisation',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              if (locationFilter.hasFilter)
+                TextButton.icon(
+                  onPressed: () {
+                    ref.read(selectedBusinessLocationProvider.notifier).clear();
+                  },
+                  icon: const Icon(Icons.clear, size: 16),
+                  label: const Text('Réinitialiser'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    showCountryPicker(
+                      context: context,
+                      showPhoneCode: false,
+                      countryListTheme: CountryListThemeData(
+                        flagSize: 25,
+                        backgroundColor: theme.colorScheme.surface,
+                        textStyle: theme.textTheme.bodyMedium,
+                        bottomSheetHeight: 500,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        inputDecoration: InputDecoration(
+                          labelText: 'Rechercher un pays',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      onSelect: (Country country) {
+                        ref
+                            .read(selectedBusinessLocationProvider.notifier)
+                            .setCountry(country.name);
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.public, size: 18),
+                  label: Text(
+                    locationFilter.country ?? 'Pays',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: locationFilter.country != null
+                        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showCityDialog(theme, locationFilter.city),
+                  icon: const Icon(Icons.location_city, size: 18),
+                  label: Text(
+                    locationFilter.city ?? 'Ville',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: locationFilter.city != null
+                        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              onPressed: () {
+                ref.read(selectedBusinessLocationProvider.notifier).useMyLocation();
+              },
+              icon: Icon(
+                locationFilter.useMyLocation
+                    ? Icons.my_location
+                    : Icons.my_location_outlined,
+                size: 18,
+              ),
+              label: const Text('Utiliser ma localisation'),
+              style: FilledButton.styleFrom(
+                backgroundColor: locationFilter.useMyLocation
+                    ? theme.colorScheme.primaryContainer
+                    : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCityDialog(ThemeData theme, String? currentCity) {
+    final controller = TextEditingController(text: currentCity ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Entrer la ville'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Ex: Paris, Niamey, New York...',
+            prefixIcon: Icon(Icons.location_city),
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final city = controller.text.trim();
+              if (city.isNotEmpty) {
+                ref.read(selectedBusinessLocationProvider.notifier).setCity(city);
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Appliquer'),
+          ),
+        ],
       ),
     );
   }

@@ -16,6 +16,9 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       lastLoginAt: const TimestampConverter().fromJson(json['lastLoginAt']),
       isAdmin: json['isAdmin'] as bool? ?? false,
+      isBanned: json['isBanned'] as bool? ?? false,
+      banReason: json['banReason'] as String?,
+      bannedAt: const TimestampConverter().fromJson(json['bannedAt']),
     );
 
 Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
@@ -28,4 +31,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'lastLoginAt': const TimestampConverter().toJson(instance.lastLoginAt),
       'isAdmin': instance.isAdmin,
+      'isBanned': instance.isBanned,
+      'banReason': instance.banReason,
+      'bannedAt': const TimestampConverter().toJson(instance.bannedAt),
     };

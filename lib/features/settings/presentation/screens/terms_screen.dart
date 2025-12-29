@@ -78,21 +78,21 @@ class TermsScreen extends ConsumerWidget {
       children: [
         _buildSection(
           context,
-          'Bienvenue sur Niger Diaspora',
+          'Bienvenue sur Diaspo Niger',
           'En utilisant notre application, vous acceptez les présentes conditions '
               'd\'utilisation. Veuillez les lire attentivement avant de continuer.',
         ),
         _buildSection(
           context,
           '1. Acceptation des conditions',
-          'En accédant à Niger Diaspora ou en l\'utilisant, vous acceptez d\'être '
+          'En accédant à Diaspo Niger ou en l\'utilisant, vous acceptez d\'être '
               'lié par ces conditions d\'utilisation. Si vous n\'acceptez pas ces '
               'conditions, veuillez ne pas utiliser l\'application.',
         ),
         _buildSection(
           context,
           '2. Description du service',
-          'Niger Diaspora est une plateforme de mise en relation destinée aux '
+          'Diaspo Niger est une plateforme de mise en relation destinée aux '
               'membres de la diaspora nigérienne à travers le monde. L\'application '
               'permet de :\n\n'
               '- Créer un profil personnel\n'
@@ -104,7 +104,7 @@ class TermsScreen extends ConsumerWidget {
         _buildSection(
           context,
           '3. Inscription et compte',
-          'Pour utiliser Niger Diaspora, vous devez créer un compte en fournissant '
+          'Pour utiliser Diaspo Niger, vous devez créer un compte en fournissant '
               'des informations exactes et à jour. Vous êtes responsable de la '
               'confidentialité de vos identifiants de connexion et de toutes les '
               'activités effectuées sur votre compte.',
@@ -112,7 +112,7 @@ class TermsScreen extends ConsumerWidget {
         _buildSection(
           context,
           '4. Règles de conduite',
-          'En utilisant Niger Diaspora, vous vous engagez à :\n\n'
+          'En utilisant Diaspo Niger, vous vous engagez à :\n\n'
               '- Respecter les autres utilisateurs\n'
               '- Ne pas publier de contenu illégal, offensant ou inapproprié\n'
               '- Ne pas harceler ou intimider d\'autres membres\n'
@@ -128,7 +128,7 @@ class TermsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          'Dernière mise à jour : Décembre 2024',
+          'Dernière mise à jour : Décembre 2025',
           style: TextStyle(
             fontSize: 12,
             color: context.textTertiaryColor,

@@ -62,8 +62,18 @@ class EmbassyMessageModel with _$EmbassyMessageModel {
 
   factory EmbassyMessageModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    data['id'] = doc.id;
-    return EmbassyMessageModel.fromJson(data);
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
+    });
+
+    return EmbassyMessageModel.fromJson(processedData);
   }
 
   Map<String, dynamic> toFirestore() {

@@ -37,10 +37,18 @@ class TransactionModel with _$TransactionModel {
 
   factory TransactionModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return TransactionModel.fromJson({
-      'id': doc.id,
-      ...data,
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
     });
+
+    return TransactionModel.fromJson(processedData);
   }
 
   factory TransactionModel.fromEntity(TransactionEntity entity) {

@@ -19,6 +19,8 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$OnboardingState {
   bool get hasSeenIntro => throw _privateConstructorUsedError;
   bool get hasSeenCoachMarks => throw _privateConstructorUsedError;
+  bool get hasGivenConsent => throw _privateConstructorUsedError;
+  bool get profileConfigComplete => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   int get currentPage => throw _privateConstructorUsedError;
 
@@ -39,6 +41,8 @@ abstract class $OnboardingStateCopyWith<$Res> {
   $Res call({
     bool hasSeenIntro,
     bool hasSeenCoachMarks,
+    bool hasGivenConsent,
+    bool profileConfigComplete,
     bool isLoading,
     int currentPage,
   });
@@ -61,6 +65,8 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
   $Res call({
     Object? hasSeenIntro = null,
     Object? hasSeenCoachMarks = null,
+    Object? hasGivenConsent = null,
+    Object? profileConfigComplete = null,
     Object? isLoading = null,
     Object? currentPage = null,
   }) {
@@ -75,6 +81,16 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
                 null == hasSeenCoachMarks
                     ? _value.hasSeenCoachMarks
                     : hasSeenCoachMarks // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            hasGivenConsent:
+                null == hasGivenConsent
+                    ? _value.hasGivenConsent
+                    : hasGivenConsent // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            profileConfigComplete:
+                null == profileConfigComplete
+                    ? _value.profileConfigComplete
+                    : profileConfigComplete // ignore: cast_nullable_to_non_nullable
                         as bool,
             isLoading:
                 null == isLoading
@@ -104,6 +120,8 @@ abstract class _$$OnboardingStateImplCopyWith<$Res>
   $Res call({
     bool hasSeenIntro,
     bool hasSeenCoachMarks,
+    bool hasGivenConsent,
+    bool profileConfigComplete,
     bool isLoading,
     int currentPage,
   });
@@ -125,6 +143,8 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
   $Res call({
     Object? hasSeenIntro = null,
     Object? hasSeenCoachMarks = null,
+    Object? hasGivenConsent = null,
+    Object? profileConfigComplete = null,
     Object? isLoading = null,
     Object? currentPage = null,
   }) {
@@ -139,6 +159,16 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
             null == hasSeenCoachMarks
                 ? _value.hasSeenCoachMarks
                 : hasSeenCoachMarks // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        hasGivenConsent:
+            null == hasGivenConsent
+                ? _value.hasGivenConsent
+                : hasGivenConsent // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        profileConfigComplete:
+            null == profileConfigComplete
+                ? _value.profileConfigComplete
+                : profileConfigComplete // ignore: cast_nullable_to_non_nullable
                     as bool,
         isLoading:
             null == isLoading
@@ -161,6 +191,8 @@ class _$OnboardingStateImpl implements _OnboardingState {
   const _$OnboardingStateImpl({
     this.hasSeenIntro = false,
     this.hasSeenCoachMarks = false,
+    this.hasGivenConsent = false,
+    this.profileConfigComplete = false,
     this.isLoading = true,
     this.currentPage = 0,
   });
@@ -173,6 +205,12 @@ class _$OnboardingStateImpl implements _OnboardingState {
   final bool hasSeenCoachMarks;
   @override
   @JsonKey()
+  final bool hasGivenConsent;
+  @override
+  @JsonKey()
+  final bool profileConfigComplete;
+  @override
+  @JsonKey()
   final bool isLoading;
   @override
   @JsonKey()
@@ -180,7 +218,7 @@ class _$OnboardingStateImpl implements _OnboardingState {
 
   @override
   String toString() {
-    return 'OnboardingState(hasSeenIntro: $hasSeenIntro, hasSeenCoachMarks: $hasSeenCoachMarks, isLoading: $isLoading, currentPage: $currentPage)';
+    return 'OnboardingState(hasSeenIntro: $hasSeenIntro, hasSeenCoachMarks: $hasSeenCoachMarks, hasGivenConsent: $hasGivenConsent, profileConfigComplete: $profileConfigComplete, isLoading: $isLoading, currentPage: $currentPage)';
   }
 
   @override
@@ -192,6 +230,10 @@ class _$OnboardingStateImpl implements _OnboardingState {
                 other.hasSeenIntro == hasSeenIntro) &&
             (identical(other.hasSeenCoachMarks, hasSeenCoachMarks) ||
                 other.hasSeenCoachMarks == hasSeenCoachMarks) &&
+            (identical(other.hasGivenConsent, hasGivenConsent) ||
+                other.hasGivenConsent == hasGivenConsent) &&
+            (identical(other.profileConfigComplete, profileConfigComplete) ||
+                other.profileConfigComplete == profileConfigComplete) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.currentPage, currentPage) ||
@@ -203,6 +245,8 @@ class _$OnboardingStateImpl implements _OnboardingState {
     runtimeType,
     hasSeenIntro,
     hasSeenCoachMarks,
+    hasGivenConsent,
+    profileConfigComplete,
     isLoading,
     currentPage,
   );
@@ -223,6 +267,8 @@ abstract class _OnboardingState implements OnboardingState {
   const factory _OnboardingState({
     final bool hasSeenIntro,
     final bool hasSeenCoachMarks,
+    final bool hasGivenConsent,
+    final bool profileConfigComplete,
     final bool isLoading,
     final int currentPage,
   }) = _$OnboardingStateImpl;
@@ -231,6 +277,10 @@ abstract class _OnboardingState implements OnboardingState {
   bool get hasSeenIntro;
   @override
   bool get hasSeenCoachMarks;
+  @override
+  bool get hasGivenConsent;
+  @override
+  bool get profileConfigComplete;
   @override
   bool get isLoading;
   @override

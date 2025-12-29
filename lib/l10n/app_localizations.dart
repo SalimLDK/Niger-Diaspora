@@ -98,8 +98,14 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Niger Diaspora'**
+  /// **'Diaspo Niger'**
   String get appTitle;
+
+  /// No description provided for @you.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous'**
+  String get you;
 
   /// No description provided for @welcomeTitle.
   ///
@@ -562,6 +568,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Politique de confidentialité'**
   String get privacyPolicy;
+
+  /// No description provided for @codeOfConduct.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de conduite'**
+  String get codeOfConduct;
 
   /// No description provided for @legalUpdateTitle.
   ///
@@ -2426,7 +2438,7 @@ abstract class AppLocalizations {
   /// No description provided for @allRightsReserved.
   ///
   /// In fr, this message translates to:
-  /// **'© 2024 Niger Diaspora. Tous droits réservés.'**
+  /// **'© 2025 Diaspo Niger. Tous droits réservés.'**
   String get allRightsReserved;
 
   /// No description provided for @mobileAppDescription.

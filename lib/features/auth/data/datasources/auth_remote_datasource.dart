@@ -27,6 +27,8 @@ abstract class AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser();
 
   Stream<UserModel?> get authStateChanges;
+
+  Future<void> sendPasswordResetEmail(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -59,7 +61,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       await _updateLastLogin(credential.user!.uid);
 
-      return _mapFirebaseUserToModel(credential.user!);
+      return _getUserDataFromFirestore(credential.user!);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -99,7 +101,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         photoUrl: userCredential.user!.photoURL,
       );
 
-      return _mapFirebaseUserToModel(userCredential.user!);
+      // Fetch from Firestore to get isAdmin and other fields
+      return _getUserDataFromFirestore(userCredential.user!);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -137,7 +140,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         email: email,
       );
 
-      return _mapFirebaseUserToModel(updatedUser);
+      // Fetch from Firestore to get all fields (for consistency with other methods)
+      return _getUserDataFromFirestore(updatedUser);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -299,14 +303,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser() async {
     final user = _firebaseAuth.currentUser;
     if (user == null) return null;
-    return _mapFirebaseUserToModel(user);
+    // Fetch from Firestore to get isAdmin and other fields
+    return _getUserDataFromFirestore(user);
   }
 
   @override
   Stream<UserModel?> get authStateChanges {
-    return _firebaseAuth.authStateChanges().map((user) {
+    return _firebaseAuth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;
-      return _mapFirebaseUserToModel(user);
+      // Fetch from Firestore to get isAdmin and other fields
+      return _getUserDataFromFirestore(user);
     });
   }
 
@@ -339,6 +345,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'photoUrl': photoUrl ?? user.photoURL,
         'phoneNumber': user.phoneNumber,
         'hasSeenOnboarding': false,
+        'hasGivenConsent': false,
+        'profileConfigComplete': false,
         'createdAt': FieldValue.serverTimestamp(),
         'lastLoginAt': FieldValue.serverTimestamp(),
       });
@@ -378,8 +386,42 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Ce compte a ete desactive';
       case 'too-many-requests':
         return 'Trop de tentatives. Reessayez plus tard';
+      case 'invalid-credential':
+        return 'Email ou mot de passe incorrect';
       default:
-        return 'Une erreur est survenue';
+        return 'Une erreur est survenue ($code)';
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    } catch (e) {
+      throw ServerException('Echec de l\'envoi de l\'email: ${e.toString()}');
+    }
+  }
+
+  Future<UserModel> _getUserDataFromFirestore(User firebaseUser) async {
+    try {
+      final doc =
+          await _firestore.collection('users').doc(firebaseUser.uid).get();
+
+      if (doc.exists) {
+        return UserModel.fromFirestore(doc).copyWith(
+          // Ensure these fields are up to date from Auth if missing in Firestore
+          email: firebaseUser.email,
+          // We prioritize values from Firestore if they exist, but fallback to Auth
+        );
+      }
+
+      // If doc doesn't exist, fallback to Auth data
+      return _mapFirebaseUserToModel(firebaseUser);
+    } catch (e) {
+      // Fallback if read fails
+      return _mapFirebaseUserToModel(firebaseUser);
     }
   }
 }

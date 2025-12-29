@@ -44,10 +44,18 @@ class OrderModel with _$OrderModel {
 
   factory OrderModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return OrderModel.fromJson({
-      'id': doc.id,
-      ...data,
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
     });
+
+    return OrderModel.fromJson(processedData);
   }
 
   factory OrderModel.fromEntity(OrderEntity entity) {

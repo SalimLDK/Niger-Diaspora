@@ -982,7 +982,7 @@ Voir plus de d\u00e9tails sur DiaspoNiger
     final calendarEvent = Event(
       title: event.title,
       description:
-          '${event.description}\n\n${l10n.organizedBy} ${event.organizerName ?? "Niger Diaspora"}',
+          '${event.description}\n\n${l10n.organizedBy} ${event.organizerName ?? "Diaspo Niger"}',
       location:
           event.isOnline ? (event.onlineLink ?? l10n.online) : event.location,
       startDate: event.startDate,

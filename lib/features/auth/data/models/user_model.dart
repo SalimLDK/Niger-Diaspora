@@ -18,6 +18,9 @@ class UserModel with _$UserModel {
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
     @Default(false) bool isAdmin,
+    @Default(false) bool isBanned,
+    String? banReason,
+    @TimestampConverter() DateTime? bannedAt,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -25,7 +28,18 @@ class UserModel with _$UserModel {
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return UserModel.fromJson({...data, 'id': doc.id});
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
+    });
+
+    return UserModel.fromJson(processedData);
   }
 
   Map<String, dynamic> toFirestore() {
@@ -44,6 +58,9 @@ class UserModel with _$UserModel {
       createdAt: createdAt,
       lastLoginAt: lastLoginAt,
       isAdmin: isAdmin,
+      isBanned: isBanned,
+      banReason: banReason,
+      bannedAt: bannedAt,
     );
   }
 }

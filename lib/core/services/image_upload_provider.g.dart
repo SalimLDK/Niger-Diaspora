@@ -7,7 +7,7 @@ part of 'image_upload_provider.dart';
 // **************************************************************************
 
 String _$imageUploadServiceHash() =>
-    r'e7b0e8f2a4115a91c5888bcb28c8d2dbc0a3ccf4';
+    r'7467e3c96963ae3b782f8334bf144fd6654c046d';
 
 /// See also [imageUploadService].
 @ProviderFor(imageUploadService)

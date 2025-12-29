@@ -19,6 +19,9 @@ import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../friends/domain/repositories/friend_repository.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
+import '../utils/marker_painter.dart';
+import '../utils/cluster_marker_generator.dart';
+import '../widgets/map_legend.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -42,7 +45,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   double _selectedRadius = 50; // Rayon par défaut en km
   String? _userCountry; // Pays de l'utilisateur pour le filtre "Pays entier"
   bool _isLoading = true;
-  bool _hasLocationPermission = false;
+
   bool _mapsInitialized = false;
   bool _isReciprocityRestricted = false;
 
@@ -183,7 +186,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       if (!mounted) return;
 
       setState(() {
-        _hasLocationPermission = true;
         _currentPosition = LatLng(position.latitude, position.longitude);
       });
 
@@ -231,7 +233,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       if (e.toString().contains('Location services are disabled')) {
         _showLocationError(enableLocationMsg, settingsLabel);
       } else if (e.toString().contains('denied')) {
-        setState(() => _hasLocationPermission = false);
         _showLocationError(permissionDeniedMsg, settingsLabel);
       } else {
         _showLocationError(unableToGetLocationMsg, settingsLabel);
@@ -246,21 +247,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _loadNearbyMembers(double latitude, double longitude) async {
-    debugPrint('🗺️ MapScreen: Loading nearby members...');
-    debugPrint('  📍 Center position: ($latitude, $longitude)');
-    debugPrint('  📏 Selected radius: ${_selectedRadius}km');
-    debugPrint('  🔍 Selected filter: $_selectedFilter');
-
     try {
       final dataSource = ProfileRemoteDataSourceImpl();
       List<ProfileModel> members;
 
       // Si rayon = 0 et pays connu, chercher par pays
       if (_selectedRadius == 0 && _userCountry != null) {
-        debugPrint('  🌍 Searching by country: $_userCountry');
         members = await dataSource.getProfilesByCountry(_userCountry!);
       } else if (_selectedRadius == 0) {
-        debugPrint('  🌍 No country set, using large radius (5000km)');
         // Si pas de pays connu, utiliser un grand rayon par défaut
         members = await dataSource.getNearbyProfiles(
           latitude,
@@ -275,13 +269,62 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         );
       }
 
-      debugPrint('  ✅ Total members loaded: ${members.length}');
-
       if (!mounted) return;
 
+      // Filter by presence - STRICT: only show truly active users
+      // 1. Online within last 1 hour
+      // 2. OR Location updated within last 5 minutes
+      debugPrint('  🔍 Applying presence filter...');
+      final now = DateTime.now();
+      final filteredMembers =
+          members.where((p) {
+            debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
+            debugPrint('      - isOnline: ${p.isOnline}');
+            debugPrint('      - lastSeen: ${p.lastSeen}');
+            debugPrint('      - locationUpdatedAt: ${p.locationUpdatedAt}');
+
+            if (p.isOnline) {
+              // Check if "Online" status is recent (within 1 hour)
+              if (p.lastSeen != null) {
+                final diffOnline = now.difference(p.lastSeen!);
+                debugPrint(
+                  '      - diffOnline: ${diffOnline.inMinutes} minutes',
+                );
+                if (diffOnline.inHours < 1) {
+                  debugPrint('      ✅ PASS: Online within 1 hour');
+                  return true;
+                }
+              }
+            }
+
+            if (p.locationUpdatedAt != null) {
+              final diffLocation = now.difference(p.locationUpdatedAt!);
+              debugPrint(
+                '      - diffLocation: ${diffLocation.inSeconds} seconds',
+              );
+              // Show members with location updated in last 5 minutes
+              if (diffLocation.inMinutes < 5) {
+                debugPrint('      ✅ PASS: Location updated within 5 minutes');
+                return true;
+              }
+            }
+
+            debugPrint('      ❌ FAIL: Not recently active');
+            return false;
+          }).toList();
+
+      debugPrint(
+        '  ✅ After presence filter: ${filteredMembers.length} members',
+      );
+
       setState(() {
-        _nearbyMembers = members;
+        debugPrint(
+          '  🔄 Setting _nearbyMembers to ${filteredMembers.length} members',
+        );
+        _nearbyMembers = filteredMembers;
+        debugPrint('  🔄 Calling _updateMarkers...');
         _updateMarkers();
+        debugPrint('  ✅ _updateMarkers completed');
       });
 
       debugPrint(
@@ -289,6 +332,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     } catch (e) {
       debugPrint('  ❌ Error loading members: $e');
+      debugPrint('  ❌ Stack trace: ${StackTrace.current}');
       // En cas d'erreur, continuer avec une liste vide
       if (mounted) {
         setState(() {
@@ -324,310 +368,100 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   /// Retourne la taille du marqueur adaptée au niveau de zoom
   double _getMarkerSizeForZoom() {
     if (_currentZoom < 10) {
-      return 60.0; // Zoom loin : pins petits
+      return 44.0; // Zoom loin : pins compacts (minimum accessible)
     } else if (_currentZoom < 14) {
-      return 90.0; // Zoom moyen : pins normaux
+      return 56.0; // Zoom moyen : pins normaux
     } else {
-      return 110.0; // Zoom proche : pins détaillés
+      return 68.0; // Zoom proche : pins détaillés
     }
   }
 
-  /// Crée un marqueur personnalisé avec la photo de profil de l'utilisateur
-  Future<BitmapDescriptor> _createMarkerFromPhoto(
-    String? photoUrl,
+  /// Crée un marqueur drop-pin style Google Maps
+  Future<BitmapDescriptor> _createSimpleMarker(
     String userId,
     bool isFriend,
-    String? profession,
-    DateTime? lastLoginAt,
     bool isOnline,
   ) async {
-    // Si déjà en cache avec même config et non expiré, retourner directement
+    final bool isSelected = userId == _selectedMarkerId;
+    final baseSize = _getMarkerSizeForZoom();
+    final scale = isSelected ? 1.15 : 1.0;
+    final markerSize = baseSize * scale;
+
     final cacheKey =
-        '${userId}_${isFriend}_${profession}_${lastLoginAt?.millisecondsSinceEpoch}_${isOnline}_${_currentZoom.toInt()}';
+        'droppin_${isFriend}_${isOnline}_${_currentZoom.toInt()}_$isSelected';
     if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
       return _markerCache[cacheKey]!;
     }
 
-    // Nettoyer le cache expiré périodiquement
     _cleanExpiredCache();
 
-    // Taille adaptative selon le zoom
-    final markerSize = _getMarkerSizeForZoom();
-    final bool isSelected = userId == _selectedMarkerId;
-    final double borderWidth =
-        isSelected ? 8.0 : 4.0; // Bordure plus épaisse si sélectionné
-    final double photoSize = markerSize - (borderWidth * 2);
-    final double shadowWidth = 2.0;
-
-    try {
-      if (photoUrl != null) {
-        // Charger l'image depuis le réseau
-        final completer = Completer<ui.Image>();
-        final imageProvider = NetworkImage(photoUrl);
-        final imageStream = imageProvider.resolve(const ImageConfiguration());
-
-        late ImageStreamListener listener;
-        listener = ImageStreamListener(
-          (ImageInfo info, bool _) {
-            completer.complete(info.image);
-            imageStream.removeListener(listener);
-          },
-          onError: (exception, stackTrace) {
-            if (!completer.isCompleted) {
-              completer.completeError(exception);
-            }
-            imageStream.removeListener(listener);
-          },
-        );
-        imageStream.addListener(listener);
-
-        // Attendre l'image avec timeout
-        final image = await completer.future.timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw Exception('Timeout loading image'),
-        );
-
-        // Créer le marqueur avec la photo
-        final pictureRecorder = ui.PictureRecorder();
-        final canvas = Canvas(pictureRecorder);
-
-        // Dessiner une ombre douce pour meilleure visibilité
-        final shadowPaint =
-            Paint()
-              ..color = Colors.white.withValues(alpha: 0.6)
-              ..style = PaintingStyle.fill
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-        canvas.drawCircle(
-          Offset(markerSize / 2, markerSize / 2),
-          markerSize / 2 + shadowWidth,
-          shadowPaint,
-        );
-
-        // Déterminer les couleurs selon le statut d'ami
-        final borderColors =
-            isFriend
-                ? [AppColors.secondary, AppColors.secondaryDark]
-                : [AppColors.primary, AppColors.primaryDark];
-
-        // Dessiner le fond avec bordure dégradée (verte pour amis, orange pour non-amis)
-        final borderGradient = ui.Gradient.radial(
-          Offset(markerSize / 2, markerSize / 2),
-          markerSize / 2,
-          borderColors,
-          [0.0, 1.0],
-        );
-        final borderPaint =
-            Paint()
-              ..shader = borderGradient
-              ..style = PaintingStyle.fill;
-        canvas.drawCircle(
-          Offset(markerSize / 2, markerSize / 2),
-          markerSize / 2,
-          borderPaint,
-        );
-
-        // Créer un clip circulaire pour la photo
-        final photoRect = Rect.fromCenter(
-          center: Offset(markerSize / 2, markerSize / 2),
-          width: photoSize,
-          height: photoSize,
-        );
-
-        canvas.save();
-        canvas.clipPath(Path()..addOval(photoRect));
-
-        // Dessiner l'image
-        final srcRect = Rect.fromLTWH(
-          0,
-          0,
-          image.width.toDouble(),
-          image.height.toDouble(),
-        );
-        canvas.drawImageRect(image, srcRect, photoRect, Paint());
-        canvas.restore();
-
-        // Dessiner l'ombre du triangle
-        final triangleShadowPath =
-            Path()
-              ..moveTo(markerSize / 2 - 12, markerSize - 5)
-              ..lineTo(markerSize / 2, markerSize + 15)
-              ..lineTo(markerSize / 2 + 12, markerSize - 5)
-              ..close();
-        canvas.drawPath(triangleShadowPath, shadowPaint);
-
-        // Dessiner le triangle indicateur de position
-        final trianglePath =
-            Path()
-              ..moveTo(markerSize / 2 - 10, markerSize - 5)
-              ..lineTo(markerSize / 2, markerSize + 12)
-              ..lineTo(markerSize / 2 + 10, markerSize - 5)
-              ..close();
-        canvas.drawPath(trianglePath, borderPaint);
-
-        // Ajouter badge de profession en bas à droite
-        if (profession != null) {
-          _drawProfessionBadge(canvas, profession, markerSize);
-        }
-
-        // Ajouter indicateur de statut en ligne en haut à droite
-        if (lastLoginAt != null || isOnline) {
-          _drawOnlineStatus(
-            canvas,
-            lastLoginAt ?? DateTime.now(),
-            markerSize,
-            isOnline,
-          );
-        }
-
-        final picture = pictureRecorder.endRecording();
-        final img = await picture.toImage(
-          (markerSize + (shadowWidth * 2)).toInt(),
-          (markerSize + 18 + (shadowWidth * 2)).toInt(),
-        );
-        final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-        final bytes = byteData!.buffer.asUint8List();
-
-        final descriptor = BitmapDescriptor.bytes(bytes);
-        _markerCache[cacheKey] = descriptor;
-        _cacheExpiration[cacheKey] = DateTime.now().add(
-          const Duration(minutes: 30),
-        );
-        return descriptor;
-      }
-    } catch (e) {
-      debugPrint('Erreur création marqueur photo: $e');
-    }
-
-    // Marqueur par défaut si pas de photo ou erreur
-    return _createDefaultMarker(
-      userId,
-      isFriend,
-      profession,
-      lastLoginAt,
-      isOnline,
-    );
-  }
-
-  /// Crée un marqueur par défaut avec une icône de personne
-  Future<BitmapDescriptor> _createDefaultMarker(
-    String userId,
-    bool isFriend,
-    String? profession,
-    DateTime? lastLoginAt,
-    bool isOnline,
-  ) async {
-    final cacheKey =
-        'default_${userId}_${isFriend}_${profession}_${lastLoginAt?.millisecondsSinceEpoch}_${isOnline}_${_currentZoom.toInt()}';
-    if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
-      return _markerCache[cacheKey]!;
-    }
-
-    final markerSize = _getMarkerSizeForZoom();
-
-    final double shadowWidth = 2.0;
+    // Couleur selon le type (vert pour amis, orange pour membres)
+    final color = isFriend ? AppColors.secondary : AppColors.primary;
 
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
 
-    // Dessiner une ombre douce
+    // Créer le chemin du drop-pin
+    final dropPinPath = MarkerPainter.createDropPinPath(markerSize);
+
+    // Ombre portée
     final shadowPaint =
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.6)
-          ..style = PaintingStyle.fill
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawCircle(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2 + shadowWidth,
-      shadowPaint,
-    );
+          ..color = Colors.black.withValues(alpha: 0.3)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(dropPinPath.shift(const Offset(0, 2)), shadowPaint);
 
-    // Fond avec dégradé radial (vert pour amis, orange pour non-amis)
-    final gradientColors =
-        isFriend
-            ? [AppColors.secondary, AppColors.secondaryDark]
-            : [AppColors.primary, AppColors.primaryDark];
-    final gradient = ui.Gradient.radial(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2,
-      gradientColors,
-      [0.0, 1.0],
-    );
-    final paint = Paint()..shader = gradient;
-    canvas.drawCircle(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2,
-      paint,
-    );
+    // Fond coloré du pin
+    final fillPaint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill;
+    canvas.drawPath(dropPinPath, fillPaint);
 
-    // Icône de personne (cercle pour la tête + arc pour le corps)
-    final iconPaint =
+    // Bordure blanche fine
+    final borderPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+    canvas.drawPath(dropPinPath, borderPaint);
+
+    // Cercle blanc au centre (dans le bulbe)
+    final bulbCenterY = markerSize * 0.40;
+    final whiteCircleRadius = markerSize * 0.18;
+    final centerPaint =
         Paint()
           ..color = Colors.white
           ..style = PaintingStyle.fill;
-
-    // Tête
     canvas.drawCircle(
-      Offset(markerSize / 2, markerSize / 2 - 8),
-      14,
-      iconPaint,
+      Offset(markerSize / 2, bulbCenterY),
+      whiteCircleRadius,
+      centerPaint,
     );
 
-    // Corps (arc)
-    final bodyPath =
-        Path()
-          ..moveTo(markerSize / 2 - 22, markerSize / 2 + 28)
-          ..quadraticBezierTo(
-            markerSize / 2,
-            markerSize / 2 + 5,
-            markerSize / 2 + 22,
-            markerSize / 2 + 28,
-          )
-          ..arcToPoint(
-            Offset(markerSize / 2 - 22, markerSize / 2 + 28),
-            radius: const Radius.circular(24),
-            clockwise: false,
-          );
-    canvas.drawPath(bodyPath, iconPaint);
+    // Indicateur en ligne (petit point vert en haut à droite)
+    if (isOnline) {
+      final statusSize = markerSize * 0.14;
+      final statusX = markerSize * 0.72;
+      final statusY = markerSize * 0.12;
 
-    // Dessiner l'ombre du triangle
-    final triangleShadowPath =
-        Path()
-          ..moveTo(markerSize / 2 - 12, markerSize - 5)
-          ..lineTo(markerSize / 2, markerSize + 15)
-          ..lineTo(markerSize / 2 + 12, markerSize - 5)
-          ..close();
-    canvas.drawPath(triangleShadowPath, shadowPaint);
+      // Fond blanc
+      final bgPaint =
+          Paint()
+            ..color = Colors.white
+            ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(statusX, statusY), statusSize + 1.5, bgPaint);
 
-    // Triangle indicateur en bas
-    final trianglePaint = Paint()..shader = gradient;
-    final trianglePath =
-        Path()
-          ..moveTo(markerSize / 2 - 10, markerSize - 5)
-          ..lineTo(markerSize / 2, markerSize + 12)
-          ..lineTo(markerSize / 2 + 10, markerSize - 5)
-          ..close();
-    canvas.drawPath(trianglePath, trianglePaint);
-
-    // Ajouter badge de profession en bas à droite
-    if (profession != null) {
-      _drawProfessionBadge(canvas, profession, markerSize);
-    }
-
-    // Ajouter indicateur de statut en ligne en haut à droite
-    if (lastLoginAt != null || isOnline) {
-      _drawOnlineStatus(
-        canvas,
-        lastLoginAt ?? DateTime.now(),
-        markerSize,
-        isOnline,
-      );
+      // Point vert
+      final onlinePaint =
+          Paint()
+            ..color = AppColors.success
+            ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(statusX, statusY), statusSize, onlinePaint);
     }
 
     final picture = pictureRecorder.endRecording();
-    final img = await picture.toImage(
-      (markerSize + (shadowWidth * 2)).toInt(),
-      (markerSize + 18 + (shadowWidth * 2)).toInt(),
-    );
+    final img = await picture.toImage(markerSize.toInt(), markerSize.toInt());
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     final bytes = byteData!.buffer.asUint8List();
 
@@ -641,285 +475,174 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   // --- Helpers d'affichage ---
 
-  Future<BitmapDescriptor> _createClusterMarker(int count) async {
-    final size = 80.0;
-    final pictureRecorder = ui.PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
+  /// Crée un marqueur discret pour la position actuelle de l'utilisateur
+  /// (petit point rouge avec cercle pulsant pour ne pas masquer les autres membres)
+  Future<BitmapDescriptor> _createCurrentUserMarker() async {
+    // Marqueur plus petit que les autres pour ne pas gêner la visibilité
+    final markerSize = 32.0; // Taille fixe, petit
+    final cacheKey = 'current_user_dot_${_currentZoom.toInt()}';
 
-    // Cercle de fond (Vert/Orange mix ou Secondaire)
-    final paint =
-        Paint()
-          ..color = AppColors.secondary
-          ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
-
-    // Bordure
-    final borderPaint =
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4;
-
-    canvas.drawCircle(Offset(size / 2, size / 2), size / 2 - 2, borderPaint);
-
-    // Texte du compteur (e.g. "5+")
-    final textSpan = TextSpan(
-      text: count > 99 ? '99+' : count.toString(),
-      style: const TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        size / 2 - textPainter.width / 2,
-        size / 2 - textPainter.height / 2,
-      ),
-    );
-
-    final picture = pictureRecorder.endRecording();
-    final img = await picture.toImage(size.toInt(), size.toInt());
-    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-
-    return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
-  }
-
-  /// Dessine un badge de profession avec emoji
-  void _drawProfessionBadge(
-    Canvas canvas,
-    String profession,
-    double markerSize,
-  ) {
-    final String emoji = _getProfessionEmoji(profession);
-
-    const double badgeSize = 22;
-    final badgeX = markerSize - badgeSize / 2 + 2;
-    final badgeY = markerSize - badgeSize / 2 - 8;
-
-    // Cercle blanc pour le badge
-    final badgePaint =
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(badgeX, badgeY), badgeSize / 2, badgePaint);
-
-    // Bordure subtile
-    final borderPaint =
-        Paint()
-          ..color = Colors.black.withValues(alpha: 0.1)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1;
-    canvas.drawCircle(Offset(badgeX, badgeY), badgeSize / 2, borderPaint);
-
-    // Dessiner l'emoji (utiliser un painter de texte)
-    final textPainter = TextPainter(
-      text: TextSpan(text: emoji, style: const TextStyle(fontSize: 14)),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(badgeX - textPainter.width / 2, badgeY - textPainter.height / 2),
-    );
-  }
-
-  /// Retourne l'emoji correspondant à la profession
-  String _getProfessionEmoji(String profession) {
-    final p = profession.toLowerCase();
-
-    // Entrepreneurs
-    if (p.contains('entrepreneur') ||
-        p.contains('commercant') ||
-        p.contains('business') ||
-        p.contains('fondateur') ||
-        p.contains('ceo') ||
-        p.contains('gérant')) {
-      return '👨‍💼';
-    }
-
-    // Étudiants
-    if (p.contains('etudiant') ||
-        p.contains('student') ||
-        p.contains('élève') ||
-        p.contains('stagiaire') ||
-        p.contains('apprenant')) {
-      return '🎓';
-    }
-
-    // Artistes
-    if (p.contains('artiste') ||
-        p.contains('artist') ||
-        p.contains('chanteur') ||
-        p.contains('musicien') ||
-        p.contains('peintre') ||
-        p.contains('acteur') ||
-        p.contains('écrivain') ||
-        p.contains('auteur') ||
-        p.contains('designer') ||
-        p.contains('créateur') ||
-        p.contains('artisan')) {
-      return '🎨';
-    }
-
-    // Professionnels (par défaut)
-    return '💼';
-  }
-
-  /// Dessine un indicateur de statut en ligne
-  void _drawOnlineStatus(
-    Canvas canvas,
-    DateTime lastLoginAt,
-    double markerSize,
-    bool isOnline,
-  ) {
-    Color statusColor;
-    if (isOnline) {
-      statusColor = AppColors.success; // Vert pour en ligne
-    } else {
-      final now = DateTime.now();
-      final difference = now.difference(lastLoginAt);
-
-      if (difference.inMinutes < 60) {
-        statusColor = AppColors.warning; // Orange pour récemment actif (< 1h)
-      } else {
-        statusColor = Colors.grey; // Gris pour inactif
-      }
-    }
-
-    const double statusSize = 14;
-    final statusX = markerSize - statusSize / 2 + 2;
-    final statusY = statusSize / 2 + 2;
-
-    // Cercle blanc de fond
-    final bgPaint =
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(statusX, statusY), statusSize / 2 + 1, bgPaint);
-
-    // Cercle de statut coloré
-    final statusPaint =
-        Paint()
-          ..color = statusColor
-          ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(statusX, statusY), statusSize / 2, statusPaint);
-  }
-
-  /// Crée un marqueur personnalisé pour une ambassade
-  Future<BitmapDescriptor> _createEmbassyMarker(
-    String embassyId,
-    bool isSelected,
-  ) async {
-    final cacheKey =
-        'embassy_${embassyId}_${isSelected}_${_currentZoom.toInt()}';
     if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
       return _markerCache[cacheKey]!;
     }
 
-    final markerSize = _getMarkerSizeForZoom();
-    final double shadowWidth = 2.0;
+    // Rouge pour l'utilisateur actuel
+    const userColor = Color(0xFFE53935);
 
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
 
-    // Dessiner une ombre douce
+    final center = Offset(markerSize / 2, markerSize / 2);
+
+    // Cercle externe semi-transparent (effet de halo)
+    final haloPaint =
+        Paint()
+          ..color = userColor.withValues(alpha: 0.2)
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, markerSize / 2 - 2, haloPaint);
+
+    // Cercle moyen semi-transparent
+    final midPaint =
+        Paint()
+          ..color = userColor.withValues(alpha: 0.4)
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, markerSize / 3, midPaint);
+
+    // Cercle central rouge plein
+    final centerPaint =
+        Paint()
+          ..color = userColor
+          ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, markerSize / 5, centerPaint);
+
+    // Bordure blanche fine autour du point central
+    final borderPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+    canvas.drawCircle(center, markerSize / 5, borderPaint);
+
+    final picture = pictureRecorder.endRecording();
+    final img = await picture.toImage(markerSize.toInt(), markerSize.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    final bytes = byteData!.buffer.asUint8List();
+
+    final descriptor = BitmapDescriptor.bytes(bytes);
+    _markerCache[cacheKey] = descriptor;
+    _cacheExpiration[cacheKey] = DateTime.now().add(
+      const Duration(minutes: 30),
+    );
+    return descriptor;
+  }
+
+  /// Crée un marqueur de cluster amélioré avec avatars
+  Future<BitmapDescriptor> _createClusterMarker(
+    int count, {
+    List<ProfileModel>? members,
+  }) async {
+    // Utiliser le nouveau générateur de clusters
+    if (members != null && members.isNotEmpty) {
+      return ClusterMarkerGenerator.createClusterMarker(members);
+    }
+    return ClusterMarkerGenerator.createSimpleClusterMarker(count);
+  }
+
+  /// Crée un marqueur drop-pin pour une ambassade avec icône bâtiment
+  Future<BitmapDescriptor> _createEmbassyMarker(
+    String embassyId,
+    bool isSelected,
+  ) async {
+    final scale = isSelected ? 1.15 : 1.0;
+    final markerSize = _getMarkerSizeForZoom() * scale;
+
+    final cacheKey = 'embassy_droppin_${isSelected}_${_currentZoom.toInt()}';
+    if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
+      return _markerCache[cacheKey]!;
+    }
+
+    // Bleu foncé pour les ambassades
+    const embassyColor = Color(0xFF1976D2);
+
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Créer le chemin du drop-pin
+    final dropPinPath = MarkerPainter.createDropPinPath(markerSize);
+
+    // Ombre portée
     final shadowPaint =
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.6)
-          ..style = PaintingStyle.fill
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawCircle(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2 + shadowWidth,
-      shadowPaint,
-    );
+          ..color = Colors.black.withValues(alpha: 0.3)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(dropPinPath.shift(const Offset(0, 2)), shadowPaint);
 
-    // Fond avec dégradé bleu (couleur distinctive pour ambassades)
-    final gradientColors = [
-      const Color(0xFF1976D2), // Blue
-      const Color(0xFF0D47A1), // Dark Blue
-    ];
-    final gradient = ui.Gradient.radial(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2,
-      gradientColors,
-      [0.0, 1.0],
-    );
-    final paint = Paint()..shader = gradient;
-    canvas.drawCircle(
-      Offset(markerSize / 2, markerSize / 2),
-      markerSize / 2,
-      paint,
-    );
+    // Fond bleu du pin
+    final fillPaint =
+        Paint()
+          ..color = embassyColor
+          ..style = PaintingStyle.fill;
+    canvas.drawPath(dropPinPath, fillPaint);
 
-    // Icône d'ambassade (bâtiment avec drapeau)
+    // Bordure blanche fine
+    final borderPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+    canvas.drawPath(dropPinPath, borderPaint);
+
+    // Dessiner l'icône de bâtiment au centre du bulbe
+    final bulbCenterX = markerSize / 2;
+    final bulbCenterY = markerSize * 0.40;
+    final iconScale = markerSize / 80;
+
     final iconPaint =
         Paint()
           ..color = Colors.white
           ..style = PaintingStyle.fill;
 
-    // Dessiner un bâtiment simplifié (rectangle avec colonnes)
-    final buildingRect = Rect.fromCenter(
-      center: Offset(markerSize / 2, markerSize / 2),
-      width: 32,
-      height: 28,
+    // Base du bâtiment (rectangle)
+    final buildingWidth = 18 * iconScale;
+    final buildingHeight = 14 * iconScale;
+    canvas.drawRect(
+      Rect.fromCenter(
+        center: Offset(bulbCenterX, bulbCenterY + 2 * iconScale),
+        width: buildingWidth,
+        height: buildingHeight,
+      ),
+      iconPaint,
     );
-    canvas.drawRect(buildingRect, iconPaint);
-
-    // Colonnes (3 rectangles verticaux)
-    final columnPaint =
-        Paint()
-          ..color = const Color(0xFF1976D2)
-          ..style = PaintingStyle.fill;
-
-    for (int i = 0; i < 3; i++) {
-      final columnX = markerSize / 2 - 12 + (i * 12);
-      final columnRect = Rect.fromLTWH(columnX, markerSize / 2 - 8, 4, 16);
-      canvas.drawRect(columnRect, columnPaint);
-    }
 
     // Toit triangulaire
     final roofPath =
         Path()
-          ..moveTo(markerSize / 2 - 18, markerSize / 2 - 14)
-          ..lineTo(markerSize / 2, markerSize / 2 - 22)
-          ..lineTo(markerSize / 2 + 18, markerSize / 2 - 14)
+          ..moveTo(bulbCenterX - 11 * iconScale, bulbCenterY - 5 * iconScale)
+          ..lineTo(bulbCenterX, bulbCenterY - 12 * iconScale)
+          ..lineTo(bulbCenterX + 11 * iconScale, bulbCenterY - 5 * iconScale)
           ..close();
     canvas.drawPath(roofPath, iconPaint);
 
-    // Dessiner l'ombre du triangle
-    final triangleShadowPath =
-        Path()
-          ..moveTo(markerSize / 2 - 12, markerSize - 5)
-          ..lineTo(markerSize / 2, markerSize + 15)
-          ..lineTo(markerSize / 2 + 12, markerSize - 5)
-          ..close();
-    canvas.drawPath(triangleShadowPath, shadowPaint);
-
-    // Triangle indicateur en bas
-    final trianglePaint = Paint()..shader = gradient;
-    final trianglePath =
-        Path()
-          ..moveTo(markerSize / 2 - 10, markerSize - 5)
-          ..lineTo(markerSize / 2, markerSize + 12)
-          ..lineTo(markerSize / 2 + 10, markerSize - 5)
-          ..close();
-    canvas.drawPath(trianglePath, trianglePaint);
+    // Colonnes (lignes verticales sur le bâtiment)
+    final columnPaint =
+        Paint()
+          ..color = embassyColor
+          ..style = PaintingStyle.fill;
+    for (int i = 0; i < 3; i++) {
+      final columnX = bulbCenterX - 6 * iconScale + (i * 6 * iconScale);
+      canvas.drawRect(
+        Rect.fromLTWH(
+          columnX - 1 * iconScale,
+          bulbCenterY - 3 * iconScale,
+          2 * iconScale,
+          10 * iconScale,
+        ),
+        columnPaint,
+      );
+    }
 
     final picture = pictureRecorder.endRecording();
-    final img = await picture.toImage(
-      (markerSize + (shadowWidth * 2)).toInt(),
-      (markerSize + 18 + (shadowWidth * 2)).toInt(),
-    );
+    final img = await picture.toImage(markerSize.toInt(), markerSize.toInt());
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     final bytes = byteData!.buffer.asUint8List();
 
@@ -1228,16 +951,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final l10n = AppLocalizations.of(context)!;
     final markers = <Marker>{};
 
-    // Ajouter le marqueur de position actuelle
+    // Ajouter le marqueur de position actuelle (petit point rouge discret)
     if (_currentPosition != null) {
+      final currentUserIcon = await _createCurrentUserMarker();
       markers.add(
         Marker(
           markerId: const MarkerId('current_location'),
           position: _currentPosition!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
+          icon: currentUserIcon,
+          anchor: const Offset(0.5, 0.5), // Centré car c'est un point, pas un pin
           infoWindow: InfoWindow(title: l10n.youAreHere),
+          zIndexInt: 0, // En dessous des autres marqueurs
         ),
       );
     }
@@ -1281,7 +1005,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             lngSum / clusterMembers.length,
           );
 
-          final icon = await _createClusterMarker(clusterMembers.length);
+          final icon = await _createClusterMarker(
+            clusterMembers.length,
+            members: clusterMembers,
+          );
 
           markers.add(
             Marker(
@@ -1326,15 +1053,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ) ??
           false;
 
-      // Créer le marqueur avec toutes les infos visuelles
-      final icon = await _createMarkerFromPhoto(
-        member.photoUrl,
+      // Créer le marqueur simple
+      final icon = await _createSimpleMarker(
         member.id,
         isFriend,
-        member.profession,
-        member.lastLoginAt,
         member.isOnline,
       );
+
+      // Construire le snippet pour l'accessibilité
+      final accessibilitySnippet = [
+        if (member.profession != null && member.profession!.isNotEmpty)
+          member.profession,
+        member.isOnline ? 'En ligne' : null,
+        isFriend ? 'Ami' : null,
+      ].where((s) => s != null).join(' - ');
 
       markers.add(
         Marker(
@@ -1343,14 +1075,29 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           icon: icon,
           anchor: const Offset(0.5, 1.0),
           onTap: () => _showMemberDetails(member),
+          // InfoWindow pour l'accessibilité (lecteurs d'écran)
+          infoWindow: InfoWindow(
+            title: member.displayName ?? 'Membre',
+            snippet:
+                accessibilitySnippet.isNotEmpty ? accessibilitySnippet : null,
+          ),
         ),
       );
     }
   }
 
   bool _matchesFilter(String? profession, String filterKey) {
-    if (filterKey == 'all') return true;
-    if (profession == null || profession.isEmpty) return false;
+    debugPrint(
+      '  🔍 _matchesFilter: profession="$profession", filterKey="$filterKey"',
+    );
+    if (filterKey == 'all') {
+      debugPrint('    ✅ Filter is "all", returning true');
+      return true;
+    }
+    if (profession == null || profession.isEmpty) {
+      debugPrint('    ❌ Profession is null/empty, returning false');
+      return false;
+    }
 
     final p = profession.toLowerCase();
 
@@ -1930,7 +1677,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       }
                     },
                     onMapCreated: (controller) {
-                      _controller.complete(controller);
+                      if (!_controller.isCompleted) {
+                        _controller.complete(controller);
+                      }
                       // Move camera to current position if available
                       if (_currentPosition != null) {
                         controller.animateCamera(
@@ -1939,7 +1688,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       }
                     },
                     markers: {..._markers, ..._embassyMarkers},
-                    myLocationEnabled: _hasLocationPermission,
+                    myLocationEnabled: false,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
                     mapToolbarEnabled: false,
@@ -2035,6 +1784,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               ),
                             ),
                   ),
+
+                  // Légende flottante
+                  if (!_isReciprocityRestricted)
+                    const Positioned(bottom: 200, left: 16, child: MapLegend()),
 
                   // Bottom Sheet Preview
                   if (!_isReciprocityRestricted)

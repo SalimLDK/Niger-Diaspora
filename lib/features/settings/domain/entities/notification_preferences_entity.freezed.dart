@@ -21,6 +21,9 @@ mixin _$NotificationPreferencesEntity {
   bool get newEvents => throw _privateConstructorUsedError;
   bool get groupActivity => throw _privateConstructorUsedError;
   bool get eventReminders => throw _privateConstructorUsedError;
+  bool get localEvents =>
+      throw _privateConstructorUsedError; // Notifications for events in my city
+  bool get systemMessages => throw _privateConstructorUsedError;
 
   /// Create a copy of NotificationPreferencesEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -45,6 +48,8 @@ abstract class $NotificationPreferencesEntityCopyWith<$Res> {
     bool newEvents,
     bool groupActivity,
     bool eventReminders,
+    bool localEvents,
+    bool systemMessages,
   });
 }
 
@@ -70,6 +75,8 @@ class _$NotificationPreferencesEntityCopyWithImpl<
     Object? newEvents = null,
     Object? groupActivity = null,
     Object? eventReminders = null,
+    Object? localEvents = null,
+    Object? systemMessages = null,
   }) {
     return _then(
       _value.copyWith(
@@ -93,6 +100,16 @@ class _$NotificationPreferencesEntityCopyWithImpl<
                     ? _value.eventReminders
                     : eventReminders // ignore: cast_nullable_to_non_nullable
                         as bool,
+            localEvents:
+                null == localEvents
+                    ? _value.localEvents
+                    : localEvents // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            systemMessages:
+                null == systemMessages
+                    ? _value.systemMessages
+                    : systemMessages // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -113,6 +130,8 @@ abstract class _$$NotificationPreferencesEntityImplCopyWith<$Res>
     bool newEvents,
     bool groupActivity,
     bool eventReminders,
+    bool localEvents,
+    bool systemMessages,
   });
 }
 
@@ -138,6 +157,8 @@ class __$$NotificationPreferencesEntityImplCopyWithImpl<$Res>
     Object? newEvents = null,
     Object? groupActivity = null,
     Object? eventReminders = null,
+    Object? localEvents = null,
+    Object? systemMessages = null,
   }) {
     return _then(
       _$NotificationPreferencesEntityImpl(
@@ -161,6 +182,16 @@ class __$$NotificationPreferencesEntityImplCopyWithImpl<$Res>
                 ? _value.eventReminders
                 : eventReminders // ignore: cast_nullable_to_non_nullable
                     as bool,
+        localEvents:
+            null == localEvents
+                ? _value.localEvents
+                : localEvents // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        systemMessages:
+            null == systemMessages
+                ? _value.systemMessages
+                : systemMessages // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -175,6 +206,8 @@ class _$NotificationPreferencesEntityImpl
     this.newEvents = true,
     this.groupActivity = true,
     this.eventReminders = true,
+    this.localEvents = true,
+    this.systemMessages = false,
   });
 
   @override
@@ -189,10 +222,17 @@ class _$NotificationPreferencesEntityImpl
   @override
   @JsonKey()
   final bool eventReminders;
+  @override
+  @JsonKey()
+  final bool localEvents;
+  // Notifications for events in my city
+  @override
+  @JsonKey()
+  final bool systemMessages;
 
   @override
   String toString() {
-    return 'NotificationPreferencesEntity(messages: $messages, newEvents: $newEvents, groupActivity: $groupActivity, eventReminders: $eventReminders)';
+    return 'NotificationPreferencesEntity(messages: $messages, newEvents: $newEvents, groupActivity: $groupActivity, eventReminders: $eventReminders, localEvents: $localEvents, systemMessages: $systemMessages)';
   }
 
   @override
@@ -207,7 +247,11 @@ class _$NotificationPreferencesEntityImpl
             (identical(other.groupActivity, groupActivity) ||
                 other.groupActivity == groupActivity) &&
             (identical(other.eventReminders, eventReminders) ||
-                other.eventReminders == eventReminders));
+                other.eventReminders == eventReminders) &&
+            (identical(other.localEvents, localEvents) ||
+                other.localEvents == localEvents) &&
+            (identical(other.systemMessages, systemMessages) ||
+                other.systemMessages == systemMessages));
   }
 
   @override
@@ -217,6 +261,8 @@ class _$NotificationPreferencesEntityImpl
     newEvents,
     groupActivity,
     eventReminders,
+    localEvents,
+    systemMessages,
   );
 
   /// Create a copy of NotificationPreferencesEntity
@@ -239,6 +285,8 @@ abstract class _NotificationPreferencesEntity
     final bool newEvents,
     final bool groupActivity,
     final bool eventReminders,
+    final bool localEvents,
+    final bool systemMessages,
   }) = _$NotificationPreferencesEntityImpl;
 
   @override
@@ -249,6 +297,10 @@ abstract class _NotificationPreferencesEntity
   bool get groupActivity;
   @override
   bool get eventReminders;
+  @override
+  bool get localEvents; // Notifications for events in my city
+  @override
+  bool get systemMessages;
 
   /// Create a copy of NotificationPreferencesEntity
   /// with the given fields replaced by the non-null parameter values.

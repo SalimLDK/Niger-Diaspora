@@ -29,4 +29,11 @@ class FirebaseCollections {
   static const String businesses = 'businesses';
   static const String businessBoosts = 'business_boosts';
   static const String businessReviews = 'business_reviews';
+  static const String businessPosts = 'business_posts';
+
+  // Admin Configuration
+  static const String appConfig = 'app_config';
+  static const String appSettings = 'settings'; // document under app_config
+  static const String reports = 'reports';
+  static const String embassies = 'embassies';
 }

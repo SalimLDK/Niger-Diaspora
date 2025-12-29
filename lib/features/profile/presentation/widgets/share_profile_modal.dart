@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/profile_share_provider.dart';
@@ -78,7 +77,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     // Si on a un userId, générer directement l'URL sans Firebase
     if (widget.userId != null) {
       setState(() {
-        _shareUrl = 'https://diasponiger.com/p/u/${widget.userId}';
+        _shareUrl = 'https://diaspo-niger.web.app/p/u/${widget.userId}';
         _isLoading = false;
       });
       return;
@@ -174,8 +173,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                           _buildShareButtons(isDark),
                           const SizedBox(height: 16),
 
-                          // Scan QR code button
-                          _buildScanButton(isDark),
+                          // TODO: Scan QR code button - disabled temporarily
+                          // _buildScanButton(isDark),
                         ],
                       ],
                     ),
@@ -625,65 +624,6 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     );
   }
 
-  Widget _buildScanButton(bool isDark) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          Navigator.pop(context);
-          context.push('/qr-scanner');
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.secondary,
-                AppColors.secondary.withValues(alpha: 0.8),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.secondary.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.qr_code_scanner_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Scanner un QR code',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _copyLink() {
     if (_shareUrl != null) {
       HapticFeedback.mediumImpact();
@@ -700,7 +640,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
   Future<void> _shareViaWhatsApp() async {
     if (_shareUrl == null) return;
     HapticFeedback.lightImpact();
-    final message = 'Découvrez mon profil sur Niger Diaspora: $_shareUrl';
+    final message = 'Découvrez mon profil sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://wa.me/?text=${Uri.encodeComponent(message)}',
     );
@@ -723,7 +663,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
   Future<void> _shareViaTwitter() async {
     if (_shareUrl == null) return;
     HapticFeedback.lightImpact();
-    final message = 'Découvrez mon profil sur Niger Diaspora: $_shareUrl';
+    final message = 'Découvrez mon profil sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://twitter.com/intent/tweet?text=${Uri.encodeComponent(message)}',
     );
@@ -736,8 +676,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     if (_shareUrl == null) return;
     HapticFeedback.lightImpact();
     await Share.share(
-      'Découvrez mon profil sur Niger Diaspora: $_shareUrl',
-      subject: 'Mon profil Niger Diaspora',
+      'Découvrez mon profil sur Diaspo Niger: $_shareUrl',
+      subject: 'Mon profil Diaspo Niger',
     );
   }
 }

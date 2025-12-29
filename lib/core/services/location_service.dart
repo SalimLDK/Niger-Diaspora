@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
@@ -51,6 +53,48 @@ class LocationService {
         timeLimit: Duration(seconds: 15),
       ),
     );
+  }
+
+  /// Request background location permission (required for Android 10+)
+  /// Must be called AFTER foreground location permission is granted.
+  Future<bool> requestBackgroundLocationPermission() async {
+    if (Platform.isAndroid) {
+      // Check if we already have background permission
+      final status = await Permission.locationAlways.status;
+      if (status.isGranted) {
+        return true;
+      }
+
+      // Request background location permission
+      final result = await Permission.locationAlways.request();
+      return result.isGranted;
+    }
+
+    // On iOS, requesting "always" is handled by Geolocator
+    return true;
+  }
+
+  /// Check if background location permission is granted
+  Future<bool> hasBackgroundLocationPermission() async {
+    if (Platform.isAndroid) {
+      return await Permission.locationAlways.isGranted;
+    }
+    // On iOS, check via Geolocator
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.always;
+  }
+
+  /// Request notification permission (required for Android 13+)
+  Future<bool> requestNotificationPermission() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.notification.status;
+      if (status.isGranted) {
+        return true;
+      }
+      final result = await Permission.notification.request();
+      return result.isGranted;
+    }
+    return true;
   }
 
   /// Get the last known position.

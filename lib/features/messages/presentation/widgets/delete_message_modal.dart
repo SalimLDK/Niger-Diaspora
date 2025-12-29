@@ -10,6 +10,7 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
   final MessageEntity message;
   final String conversationId;
   final String currentUserId;
+  final bool isAdmin;
   final VoidCallback? onDeleted;
 
   const DeleteMessageModal({
@@ -17,6 +18,7 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
     required this.message,
     required this.conversationId,
     required this.currentUserId,
+    this.isAdmin = false,
     this.onDeleted,
   });
 
@@ -25,6 +27,7 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
     required MessageEntity message,
     required String conversationId,
     required String currentUserId,
+    bool isAdmin = false,
     VoidCallback? onDeleted,
   }) {
     return showModalBottomSheet(
@@ -36,6 +39,7 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
             message: message,
             conversationId: conversationId,
             currentUserId: currentUserId,
+            isAdmin: isAdmin,
             onDeleted: onDeleted,
           ),
     );
@@ -46,13 +50,15 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
 }
 
 class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
-  bool _isLoading = false;
-
   bool get _canDeleteForEveryone =>
+      widget.isAdmin ||
       widget.message.canDeleteForEveryone(widget.currentUserId);
 
   Future<void> _deleteForMe() async {
-    setState(() => _isLoading = true);
+    // Unfocus to prevent keyboard from appearing
+    FocusScope.of(context).unfocus();
+    // Close modal immediately - deletion happens in background with optimistic update
+    Navigator.pop(context);
 
     final success = await ref
         .read(deleteMessageProvider.notifier)
@@ -61,65 +67,32 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
           messageId: widget.message.id,
         );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Navigator.pop(context);
+    if (success) {
+      widget.onDeleted?.call();
+    }
+    // No SnackBar - the message disappears instantly thanks to optimistic update
+  }
 
-      if (success) {
-        widget.onDeleted?.call();
+  Future<void> _deleteForEveryone() async {
+    // Check for time limit (only for non-admins)
+    if (!widget.isAdmin &&
+        DateTime.now().difference(widget.message.createdAt).inHours >= 1) {
+      if (mounted) {
+        Navigator.pop(context); // Close modal
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Message supprimé'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la suppression'),
+            content: Text('Impossible de supprimer le message après 1h'),
             backgroundColor: Colors.red,
           ),
         );
       }
+      return;
     }
-  }
 
-  Future<void> _deleteForEveryone() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: context.surfaceColor,
-            title: Text(
-              'Supprimer pour tous',
-              style: TextStyle(color: context.textPrimaryColor),
-            ),
-            content: Text(
-              'Ce message sera supprimé pour tous les participants de la conversation.',
-              style: TextStyle(color: context.textSecondaryColor),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                  'Annuler',
-                  style: TextStyle(color: context.textSecondaryColor),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Supprimer',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() => _isLoading = true);
+    // Unfocus to prevent keyboard from appearing
+    FocusScope.of(context).unfocus();
+    // Close modal immediately - deletion happens in background with optimistic update
+    Navigator.pop(context);
 
     final success = await ref
         .read(deleteMessageProvider.notifier)
@@ -128,27 +101,10 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
           messageId: widget.message.id,
         );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Navigator.pop(context);
-
-      if (success) {
-        widget.onDeleted?.call();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Message supprimé pour tous'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la suppression'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (success) {
+      widget.onDeleted?.call();
     }
+    // No SnackBar - the message shows "supprimé" instantly thanks to optimistic update
   }
 
   Future<void> _reportMessage() async {
@@ -159,29 +115,19 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 
     if (reason == null || !mounted) return;
 
-    setState(() => _isLoading = true);
+    // Unfocus to prevent keyboard from appearing
+    FocusScope.of(context).unfocus();
+    // Close modal immediately
+    Navigator.pop(context);
 
-    final success = await ref
+    await ref
         .read(conversationActionsNotifierProvider.notifier)
         .reportMessage(
           conversationId: widget.conversationId,
           messageId: widget.message.id,
           reason: reason,
         );
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Message signalé' : 'Erreur lors du signalement',
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
-    }
+    // No SnackBar - silent operation
   }
 
   @override
@@ -221,72 +167,63 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 
             const SizedBox(height: 8),
 
-            if (_isLoading)
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: CircularProgressIndicator(
-                  color: context.adaptivePrimaryColor,
-                ),
-              )
-            else ...[
-              // Delete for me option
+            // Delete for me option
+            _OptionTile(
+              icon: Icons.delete_outline,
+              title: 'Supprimer pour moi',
+              subtitle: 'Le message sera supprimé uniquement de votre vue',
+              onTap: _deleteForMe,
+            ),
+
+            // Delete for everyone option (if allowed)
+            if (_canDeleteForEveryone)
               _OptionTile(
-                icon: Icons.delete_outline,
-                title: 'Supprimer pour moi',
-                subtitle: 'Le message sera supprimé uniquement de votre vue',
-                onTap: _deleteForMe,
+                icon: Icons.delete_forever,
+                title: 'Supprimer pour tous',
+                subtitle:
+                    'Le message sera supprimé pour tous les participants',
+                isDestructive: true,
+                onTap: _deleteForEveryone,
               ),
 
-              // Delete for everyone option (if allowed)
-              if (_canDeleteForEveryone)
-                _OptionTile(
-                  icon: Icons.delete_forever,
-                  title: 'Supprimer pour tous',
-                  subtitle:
-                      'Le message sera supprimé pour tous les participants',
-                  isDestructive: true,
-                  onTap: _deleteForEveryone,
-                ),
+            // Report message option (for messages not sent by current user)
+            if (widget.message.senderId != widget.currentUserId)
+              _OptionTile(
+                icon: Icons.flag_outlined,
+                title: 'Signaler le message',
+                subtitle: 'Signaler ce message aux administrateurs',
+                isDestructive: true,
+                onTap: _reportMessage,
+              ),
 
-              // Report message option (for messages not sent by current user)
-              if (widget.message.senderId != widget.currentUserId)
-                _OptionTile(
-                  icon: Icons.flag_outlined,
-                  title: 'Signaler le message',
-                  subtitle: 'Signaler ce message aux administrateurs',
-                  isDestructive: true,
-                  onTap: _reportMessage,
-                ),
+            const SizedBox(height: 8),
 
-              const SizedBox(height: 8),
-
-              // Cancel button
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+            // Cancel button
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      'Annuler',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: context.textSecondaryColor,
-                      ),
+                  ),
+                  child: Text(
+                    'Annuler',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
 
             const SizedBox(height: 8),
           ],

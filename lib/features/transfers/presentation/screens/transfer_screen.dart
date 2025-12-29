@@ -24,6 +24,11 @@ class TransferScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+          tooltip: 'Retour',
+        ),
         title: const Text('Transferts'),
         actions: [
           IconButton(

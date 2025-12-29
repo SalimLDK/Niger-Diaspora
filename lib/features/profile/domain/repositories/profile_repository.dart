@@ -4,6 +4,7 @@ import '../entities/profile_entity.dart';
 
 abstract class ProfileRepository {
   Future<Either<Failure, ProfileEntity>> getProfile(String userId);
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId);
   Future<Either<Failure, ProfileEntity>> updateProfile(ProfileEntity profile);
   Future<Either<Failure, String>> uploadProfilePhoto(
     String userId,

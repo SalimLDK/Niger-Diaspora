@@ -1,6 +1,8 @@
 {
   "@@locale": "fr",
-  "appTitle": "Niger Diaspora",
+  "appTitle": "Diaspo Niger",
+
+  "you": "Vous",
 
   "welcomeTitle": "Bienvenue",
   "joinDiaspora": "Rejoins la diaspora nigérienne",
@@ -99,6 +101,7 @@
   "appDescription": "Plateforme de mise en relation de la diaspora nigérienne.",
   "termsOfService": "Conditions d'utilisation",
   "privacyPolicy": "Politique de confidentialité",
+  "codeOfConduct": "Code de conduite",
   "legalUpdateTitle": "Mise à jour des conditions",
   "legalUpdateDescription": "Nos conditions d'utilisation et/ou notre politique de confidentialité ont été mises à jour. Veuillez les lire et les accepter pour continuer à utiliser l'application.",
   "summaryOfChanges": "Résumé des changements :",
@@ -481,7 +484,7 @@
   "markAsRead": "Marquer comme lu",
   "accountDeletedSuccess": "Votre compte a été supprimé avec succès",
   "errorDeletingAccount": "Erreur lors de la suppression",
-  "allRightsReserved": "© 2024 Niger Diaspora. Tous droits réservés.",
+  "allRightsReserved": "© 2025 Diaspo Niger. Tous droits réservés.",
   "mobileAppDescription": "Plateforme mobile de mise en relation de la diaspora nigérienne.",
 
   "currentCountry": "Pays actuel",

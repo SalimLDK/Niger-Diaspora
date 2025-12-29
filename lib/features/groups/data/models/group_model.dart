@@ -30,7 +30,18 @@ class GroupModel with _$GroupModel {
 
   factory GroupModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return GroupModel.fromJson({...data, 'id': doc.id});
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
+    });
+
+    return GroupModel.fromJson(processedData);
   }
 
   GroupEntity toEntity() => GroupEntity(

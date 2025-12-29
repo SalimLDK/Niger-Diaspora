@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/business_remote_datasource.dart';
+import '../../data/models/business_post_model.dart';
 import '../../data/repositories/business_repository_impl.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_boost_entity.dart';
+import '../../domain/entities/business_post_entity.dart';
 import '../../domain/repositories/business_repository.dart';
 
 part 'business_provider.g.dart';
@@ -80,6 +83,20 @@ class BusinessesNotifier extends _$BusinessesNotifier {
     state = const AsyncValue.loading();
     final repository = ref.read(businessRepositoryProvider);
     final result = await repository.getNearbyBusinesses(lat, lng, radiusKm);
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (businesses) => state = AsyncValue.data(businesses),
+    );
+  }
+
+  Future<void> loadByLocation({String? country, String? city}) async {
+    state = const AsyncValue.loading();
+    final repository = ref.read(businessRepositoryProvider);
+    final result = await repository.getBusinessesByLocation(
+      country: country,
+      city: city,
+    );
     result.fold(
       (failure) =>
           state = AsyncValue.error(failure.message, StackTrace.current),
@@ -262,5 +279,191 @@ class SelectedBusinessCategory extends _$SelectedBusinessCategory {
   void clear() {
     state = null;
     ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+  }
+}
+
+// Location filter for businesses
+class BusinessLocationFilter {
+  final String? country;
+  final String? city;
+  final bool useMyLocation;
+
+  const BusinessLocationFilter({
+    this.country,
+    this.city,
+    this.useMyLocation = false,
+  });
+
+  bool get hasFilter => country != null || city != null || useMyLocation;
+
+  BusinessLocationFilter copyWith({
+    String? country,
+    String? city,
+    bool? useMyLocation,
+  }) {
+    return BusinessLocationFilter(
+      country: country ?? this.country,
+      city: city ?? this.city,
+      useMyLocation: useMyLocation ?? this.useMyLocation,
+    );
+  }
+}
+
+@Riverpod(keepAlive: true)
+class SelectedBusinessLocation extends _$SelectedBusinessLocation {
+  @override
+  BusinessLocationFilter build() {
+    // Try to load user's location from profile
+    _loadUserLocation();
+    return const BusinessLocationFilter();
+  }
+
+  void _loadUserLocation() {
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (user != null) {
+      final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
+      if (profile != null && profile.currentCountry != null) {
+        state = BusinessLocationFilter(
+          country: profile.currentCountry,
+          city: profile.currentCity,
+          useMyLocation: true,
+        );
+        _applyFilter();
+      }
+    }
+  }
+
+  void setCountry(String? country) {
+    state = BusinessLocationFilter(
+      country: country,
+      city: state.city,
+      useMyLocation: false,
+    );
+    _applyFilter();
+  }
+
+  void setCity(String? city) {
+    state = BusinessLocationFilter(
+      country: state.country,
+      city: city,
+      useMyLocation: false,
+    );
+    _applyFilter();
+  }
+
+  void useMyLocation() {
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (user != null) {
+      final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
+      if (profile != null) {
+        state = BusinessLocationFilter(
+          country: profile.currentCountry,
+          city: profile.currentCity,
+          useMyLocation: true,
+        );
+        _applyFilter();
+      }
+    }
+  }
+
+  void clear() {
+    state = const BusinessLocationFilter();
+    ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+  }
+
+  void _applyFilter() {
+    final notifier = ref.read(businessesNotifierProvider.notifier);
+    if (state.city != null && state.city!.isNotEmpty) {
+      notifier.loadByLocation(country: state.country, city: state.city);
+    } else if (state.country != null && state.country!.isNotEmpty) {
+      notifier.loadByLocation(country: state.country);
+    } else {
+      notifier.loadBusinesses();
+    }
+  }
+}
+
+// ============ BUSINESS POSTS ============
+
+@riverpod
+class BusinessPostsNotifier extends _$BusinessPostsNotifier {
+  @override
+  AsyncValue<List<BusinessPostEntity>> build(String businessId) {
+    loadPosts(businessId);
+    return const AsyncValue.loading();
+  }
+
+  Future<void> loadPosts(String businessId) async {
+    state = const AsyncValue.loading();
+    try {
+      final dataSource = ref.read(businessRemoteDataSourceProvider);
+      final posts = await dataSource.getBusinessPosts(businessId);
+      state = AsyncValue.data(posts.map((m) => m.toEntity()).toList());
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+    }
+  }
+
+  Future<void> refresh(String businessId) async {
+    await loadPosts(businessId);
+  }
+}
+
+@riverpod
+class BusinessOffersNotifier extends _$BusinessOffersNotifier {
+  @override
+  AsyncValue<List<BusinessPostEntity>> build(String businessId) {
+    loadOffers(businessId);
+    return const AsyncValue.loading();
+  }
+
+  Future<void> loadOffers(String businessId) async {
+    state = const AsyncValue.loading();
+    try {
+      final dataSource = ref.read(businessRemoteDataSourceProvider);
+      final offers = await dataSource.getActiveOffers(businessId);
+      state = AsyncValue.data(offers.map((m) => m.toEntity()).toList());
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+    }
+  }
+}
+
+@riverpod
+class BusinessPostActions extends _$BusinessPostActions {
+  @override
+  FutureOr<void> build() {}
+
+  Future<BusinessPostEntity?> createPost(BusinessPostEntity post) async {
+    state = const AsyncLoading();
+    try {
+      final dataSource = ref.read(businessRemoteDataSourceProvider);
+      final model = BusinessPostModel.fromEntity(post);
+      final created = await dataSource.createPost(model);
+      state = const AsyncData(null);
+      // Refresh the posts list
+      ref.invalidate(businessPostsNotifierProvider(post.businessId));
+      ref.invalidate(businessOffersNotifierProvider(post.businessId));
+      return created.toEntity();
+    } catch (e) {
+      state = AsyncError(e.toString(), StackTrace.current);
+      return null;
+    }
+  }
+
+  Future<bool> deletePost(String postId, String businessId) async {
+    state = const AsyncLoading();
+    try {
+      final dataSource = ref.read(businessRemoteDataSourceProvider);
+      await dataSource.deletePost(postId);
+      state = const AsyncData(null);
+      // Refresh the posts list
+      ref.invalidate(businessPostsNotifierProvider(businessId));
+      ref.invalidate(businessOffersNotifierProvider(businessId));
+      return true;
+    } catch (e) {
+      state = AsyncError(e.toString(), StackTrace.current);
+      return false;
+    }
   }
 }

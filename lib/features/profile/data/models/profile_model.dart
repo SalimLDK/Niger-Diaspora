@@ -40,6 +40,7 @@ class ProfileModel with _$ProfileModel {
     @Default(false) bool isOnline,
     DateTime? lastSeen,
     @Default(true) bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   }) = _ProfileModel;
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) =>
@@ -77,6 +78,7 @@ class ProfileModel with _$ProfileModel {
     isOnline: isOnline,
     lastSeen: lastSeen,
     showOnlineStatus: showOnlineStatus,
+    locationUpdatedAt: locationUpdatedAt,
   );
 
   factory ProfileModel.fromEntity(ProfileEntity entity) => ProfileModel(
@@ -111,5 +113,6 @@ class ProfileModel with _$ProfileModel {
     isOnline: entity.isOnline,
     lastSeen: entity.lastSeen,
     showOnlineStatus: entity.showOnlineStatus,
+    locationUpdatedAt: entity.locationUpdatedAt,
   );
 }

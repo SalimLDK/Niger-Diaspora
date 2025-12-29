@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Niger Diaspora</string>
+	<string>Diaspo Niger</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Niger Diaspora</string>
+	<string>Diaspo Niger</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -49,7 +49,34 @@
 	<string>Nous avons besoin d'accéder à votre caméra pour scanner les QR codes des profils</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Nous avons besoin d'accéder à votre microphone pour envoyer des messages vocaux</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Nous avons besoin de votre localisation pour vous montrer les membres de la diaspora nigérienne à proximité et afficher votre position sur la carte</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Nous avons besoin de votre localisation en arrière-plan pour maintenir votre position à jour sur la carte et permettre aux autres membres de vous trouver</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Nous avons besoin de votre localisation pour vous connecter avec les membres de la diaspora nigérienne à proximité</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Nous avons besoin de cette permission pour sauvegarder des images dans votre galerie</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>diasponiger</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>diasponiger</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

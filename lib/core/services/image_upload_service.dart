@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -7,13 +8,23 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-enum ImageUploadType {
-  profile,
-  event,
-  group,
-  message,
-  product,
-  business,
+enum ImageUploadType { profile, event, group, message, product, business }
+
+/// Configuration for image uploads - can be set from admin settings
+class ImageUploadConfig {
+  final int maxWidth;
+  final int maxHeight;
+  final int quality;
+  final int maxImagesPerUpload;
+  final int minWidthForCompression;
+
+  const ImageUploadConfig({
+    this.maxWidth = 1024,
+    this.maxHeight = 1024,
+    this.quality = 85,
+    this.maxImagesPerUpload = 5,
+    this.minWidthForCompression = 800,
+  });
 }
 
 class ImageUploadService {
@@ -24,14 +35,28 @@ class ImageUploadService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
 
+  /// Current configuration - can be updated from admin settings
+  ImageUploadConfig _config = const ImageUploadConfig();
+
+  /// Update configuration from admin settings
+  void setConfig(ImageUploadConfig config) {
+    _config = config;
+  }
+
+  /// Get current configuration
+  ImageUploadConfig get config => _config;
+
   /// Pick an image from gallery
-  Future<File?> pickImageFromGallery({int maxWidth = 1024, int maxHeight = 1024}) async {
+  Future<File?> pickImageFromGallery({
+    int? maxWidth,
+    int? maxHeight,
+  }) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: maxWidth.toDouble(),
-        maxHeight: maxHeight.toDouble(),
-        imageQuality: 85,
+        maxWidth: (maxWidth ?? _config.maxWidth).toDouble(),
+        maxHeight: (maxHeight ?? _config.maxHeight).toDouble(),
+        imageQuality: _config.quality,
       );
 
       if (pickedFile == null) return null;
@@ -44,13 +69,16 @@ class ImageUploadService {
   }
 
   /// Pick an image from camera
-  Future<File?> pickImageFromCamera({int maxWidth = 1024, int maxHeight = 1024}) async {
+  Future<File?> pickImageFromCamera({
+    int? maxWidth,
+    int? maxHeight,
+  }) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: maxWidth.toDouble(),
-        maxHeight: maxHeight.toDouble(),
-        imageQuality: 85,
+        maxWidth: (maxWidth ?? _config.maxWidth).toDouble(),
+        maxHeight: (maxHeight ?? _config.maxHeight).toDouble(),
+        imageQuality: _config.quality,
       );
 
       if (pickedFile == null) return null;
@@ -63,17 +91,19 @@ class ImageUploadService {
   }
 
   /// Pick multiple images from gallery
-  Future<List<File>> pickMultipleImages({int maxImages = 5}) async {
+  Future<List<File>> pickMultipleImages({int? maxImages}) async {
     try {
       final List<XFile> pickedFiles = await _picker.pickMultiImage(
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
+        maxWidth: _config.maxWidth.toDouble(),
+        maxHeight: _config.maxHeight.toDouble(),
+        imageQuality: _config.quality,
       );
 
       if (pickedFiles.isEmpty) return [];
 
-      final files = pickedFiles.take(maxImages).map((xFile) => File(xFile.path)).toList();
+      final limit = maxImages ?? _config.maxImagesPerUpload;
+      final files =
+          pickedFiles.take(limit).map((xFile) => File(xFile.path)).toList();
       return files;
     } catch (e) {
       debugPrint('Error picking multiple images: $e');
@@ -82,7 +112,12 @@ class ImageUploadService {
   }
 
   /// Compress an image file
-  Future<File?> compressImage(File file, {int quality = 85, int minWidth = 800, int minHeight = 800}) async {
+  Future<File?> compressImage(
+    File file, {
+    int? quality,
+    int? minWidth,
+    int? minHeight,
+  }) async {
     try {
       final dir = await getTemporaryDirectory();
       final targetPath = path.join(
@@ -93,9 +128,9 @@ class ImageUploadService {
       final XFile? result = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
         targetPath,
-        quality: quality,
-        minWidth: minWidth,
-        minHeight: minHeight,
+        quality: quality ?? _config.quality,
+        minWidth: minWidth ?? _config.minWidthForCompression,
+        minHeight: minHeight ?? _config.minWidthForCompression,
       );
 
       if (result == null) return null;
@@ -116,13 +151,25 @@ class ImageUploadService {
     void Function(double progress)? onProgress,
   }) async {
     try {
+      // Check authentication first
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('❌ Upload failed: User not authenticated');
+        throw Exception('User must be logged in to upload files');
+      }
+
       // Compress image first
       final compressedFile = await compressImage(file);
-      if (compressedFile == null) return null;
+      if (compressedFile == null) {
+        debugPrint('❌ Upload failed: Image compression failed');
+        return null;
+      }
 
       // Generate storage path
       final storagePath = customPath ?? _getStoragePath(type, id);
       final ref = _storage.ref().child(storagePath);
+
+      debugPrint('📤 Uploading image to: $storagePath');
 
       // Upload with progress tracking
       final uploadTask = ref.putFile(
@@ -141,11 +188,49 @@ class ImageUploadService {
 
       // Get download URL
       final downloadUrl = await ref.getDownloadURL();
-      debugPrint('Image uploaded successfully: $downloadUrl');
+      debugPrint('✅ Image uploaded successfully: $downloadUrl');
 
       return downloadUrl;
+    } on FirebaseException catch (e) {
+      // Handle specific Firebase Storage errors
+      switch (e.code) {
+        case 'unauthorized':
+          debugPrint(
+            '❌ Upload failed: Unauthorized - Check Firebase Storage rules and user authentication',
+          );
+          debugPrint('   User ID: ${FirebaseAuth.instance.currentUser?.uid}');
+          debugPrint('   Error: ${e.message}');
+          throw Exception(
+            'You do not have permission to upload files. Please check your account permissions.',
+          );
+
+        case 'canceled':
+          debugPrint('⚠️ Upload canceled by user');
+          return null;
+
+        case 'unknown':
+        case 'network-request-failed':
+          debugPrint('❌ Upload failed: Network error - ${e.message}');
+          throw Exception(
+            'Network connection failed. Please check your internet connection and try again.',
+          );
+
+        case 'retry-limit-exceeded':
+          debugPrint('❌ Upload failed: Too many retries');
+          throw Exception(
+            'Upload failed after multiple attempts. Please try again later.',
+          );
+
+        case 'invalid-checksum':
+          debugPrint('❌ Upload failed: File corrupted during upload');
+          throw Exception('File upload was corrupted. Please try again.');
+
+        default:
+          debugPrint('❌ Upload failed: ${e.code} - ${e.message}');
+          throw Exception('Upload failed: ${e.message ?? 'Unknown error'}');
+      }
     } catch (e) {
-      debugPrint('Error uploading image: $e');
+      debugPrint('❌ Unexpected error uploading image: $e');
       return null;
     }
   }

@@ -42,7 +42,7 @@ class SupportService {
   Future<bool> sendContactEmail({String? additionalInfo}) async {
     return sendEmail(
       to: supportEmail,
-      subject: 'Support - Niger Diaspora App',
+      subject: 'Support - Diaspo Niger App',
       body: _buildContactEmailBody(additionalInfo),
     );
   }
@@ -54,7 +54,7 @@ class SupportService {
   }) async {
     return sendEmail(
       to: bugReportEmail,
-      subject: 'Bug Report - Niger Diaspora App',
+      subject: 'Bug Report - Diaspo Niger App',
       body: _buildBugReportEmailBody(bugDescription, stepsToReproduce),
     );
   }
@@ -77,8 +77,10 @@ class SupportService {
 
   String _encodeQueryParameters(Map<String, String> params) {
     return params.entries
-        .map((e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
   }
 
@@ -99,7 +101,10 @@ class SupportService {
     return buffer.toString();
   }
 
-  String _buildBugReportEmailBody(String bugDescription, String? stepsToReproduce) {
+  String _buildBugReportEmailBody(
+    String bugDescription,
+    String? stepsToReproduce,
+  ) {
     final buffer = StringBuffer();
     buffer.writeln('=== RAPPORT DE BUG ===');
     buffer.writeln();

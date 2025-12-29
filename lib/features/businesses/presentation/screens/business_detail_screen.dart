@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
+import '../../domain/entities/business_post_entity.dart';
 import '../providers/business_provider.dart';
 
 class BusinessDetailScreen extends ConsumerStatefulWidget {
@@ -292,11 +294,526 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                // Opening Hours
+                if (business.openingHours.isNotEmpty) ...[
+                  _OpeningHoursSection(openingHours: business.openingHours),
+                  const SizedBox(height: 24),
+                ],
+                // Active Offers
+                _OffersSection(businessId: business.id),
+                const SizedBox(height: 24),
+                // Posts/Announcements
+                _PostsSection(businessId: business.id, isOwner: isOwner),
+                const SizedBox(height: 24),
+                // Contact Button
+                if (!isOwner)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        context.push('/messages/new', extra: {
+                          'recipientId': business.ownerId,
+                          'recipientName': business.ownerName ?? business.name,
+                        });
+                      },
+                      icon: const Icon(Icons.message),
+                      label: const Text('Contacter'),
+                    ),
+                  ),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OpeningHoursSection extends StatelessWidget {
+  final Map<String, OpeningHours> openingHours;
+
+  const _OpeningHoursSection({required this.openingHours});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    final dayLabels = {
+      'lundi': 'Lundi',
+      'mardi': 'Mardi',
+      'mercredi': 'Mercredi',
+      'jeudi': 'Jeudi',
+      'vendredi': 'Vendredi',
+      'samedi': 'Samedi',
+      'dimanche': 'Dimanche',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Horaires d\'ouverture',
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ...days.where((day) => openingHours.containsKey(day)).map((day) {
+          final hours = openingHours[day]!;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(dayLabels[day] ?? day, style: theme.textTheme.bodyMedium),
+                Text(
+                  hours.isClosed ? 'Ferme' : '${hours.open} - ${hours.close}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: hours.isClosed ? theme.colorScheme.error : null,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _OffersSection extends ConsumerWidget {
+  final String businessId;
+
+  const _OffersSection({required this.businessId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final offersAsync = ref.watch(businessOffersNotifierProvider(businessId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.local_offer, color: Colors.orange, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Offres en cours',
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        offersAsync.when(
+          data: (offers) {
+            if (offers.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: theme.colorScheme.outline),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Aucune offre en cours',
+                      style: TextStyle(color: theme.colorScheme.outline),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Column(
+              children: offers.map((offer) => _OfferCard(offer: offer)).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _OfferCard extends StatelessWidget {
+  final BusinessPostEntity offer;
+
+  const _OfferCard({required this.offer});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasDiscount = offer.discountPercent != null && offer.discountPercent! > 0;
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.orange.withValues(alpha: 0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (hasDiscount)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '-${offer.discountPercent}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                if (hasDiscount) const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    offer.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(offer.content, style: theme.textTheme.bodyMedium),
+            if (offer.promoCode != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.orange),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.confirmation_number, size: 16, color: Colors.orange),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Code: ${offer.promoCode}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (offer.offerEndDate != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Valable jusqu\'au ${dateFormat.format(offer.offerEndDate!)}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PostsSection extends ConsumerWidget {
+  final String businessId;
+  final bool isOwner;
+
+  const _PostsSection({required this.businessId, required this.isOwner});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final postsAsync = ref.watch(businessPostsNotifierProvider(businessId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.article, color: theme.colorScheme.primary, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Actualites',
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (isOwner)
+              TextButton.icon(
+                onPressed: () {
+                  _showCreatePostDialog(context, ref);
+                },
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Ajouter'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        postsAsync.when(
+          data: (posts) {
+            // Filter out offers (they're shown in the offers section)
+            final filteredPosts = posts.where((p) => p.type != BusinessPostType.offer).toList();
+            if (filteredPosts.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: theme.colorScheme.outline),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Aucune actualite',
+                      style: TextStyle(color: theme.colorScheme.outline),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Column(
+              children: filteredPosts.map((post) => _PostCard(
+                post: post,
+                isOwner: isOwner,
+                onDelete: () => _deletePost(context, ref, post),
+              )).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  void _showCreatePostDialog(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    BusinessPostType selectedType = BusinessPostType.announcement;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Nouvelle publication'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<BusinessPostType>(
+                  value: selectedType,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                  items: BusinessPostType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Row(
+                        children: [
+                          Icon(type.icon, size: 18, color: type.color),
+                          const SizedBox(width: 8),
+                          Text(type.label),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => selectedType = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Titre',
+                    hintText: 'Ex: Nouvelle collection disponible',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: contentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Contenu',
+                    hintText: 'Decrivez votre actualite...',
+                  ),
+                  maxLines: 4,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (titleController.text.isEmpty || contentController.text.isEmpty) {
+                  return;
+                }
+                final post = BusinessPostEntity(
+                  id: '',
+                  businessId: businessId,
+                  title: titleController.text,
+                  content: contentController.text,
+                  type: selectedType,
+                );
+                await ref.read(businessPostActionsProvider.notifier).createPost(post);
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Publier'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _deletePost(BuildContext context, WidgetRef ref, BusinessPostEntity post) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer'),
+        content: const Text('Voulez-vous vraiment supprimer cette publication ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await ref.read(businessPostActionsProvider.notifier).deletePost(post.id, businessId);
+              if (context.mounted) Navigator.pop(context);
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostCard extends StatelessWidget {
+  final BusinessPostEntity post;
+  final bool isOwner;
+  final VoidCallback onDelete;
+
+  const _PostCard({
+    required this.post,
+    required this.isOwner,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat('dd/MM/yyyy a HH:mm');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Post images
+          if (post.imageUrls.isNotEmpty)
+            SizedBox(
+              height: 150,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: post.imageUrls.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: index == 0 ? 0 : 4,
+                      right: index == post.imageUrls.length - 1 ? 0 : 4,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrls[index],
+                        fit: BoxFit.cover,
+                        width: 200,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: post.type.color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(post.type.icon, size: 14, color: post.type.color),
+                          const SizedBox(width: 4),
+                          Text(
+                            post.type.label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: post.type.color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    if (isOwner)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: onDelete,
+                        color: theme.colorScheme.error,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  post.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(post.content, style: theme.textTheme.bodyMedium),
+                const SizedBox(height: 8),
+                if (post.createdAt != null)
+                  Text(
+                    dateFormat.format(post.createdAt!),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

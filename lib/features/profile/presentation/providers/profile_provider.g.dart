@@ -187,25 +187,143 @@ class _UserStreamProviderElement
   String get userId => (origin as UserStreamProvider).userId;
 }
 
-String _$profileNotifierHash() => r'445140526ac1f4688b3b61a5bed376ed6fec09d7';
+String _$profileNotifierHash() => r'aa6cb7e8b3a40c4dd298b9868c2c2f7f2f700cb1';
+
+abstract class _$ProfileNotifier
+    extends BuildlessAsyncNotifier<ProfileEntity?> {
+  late final String userId;
+
+  FutureOr<ProfileEntity?> build(String userId);
+}
 
 /// See also [ProfileNotifier].
 @ProviderFor(ProfileNotifier)
-final profileNotifierProvider =
-    NotifierProvider<ProfileNotifier, AsyncValue<ProfileEntity?>>.internal(
-      ProfileNotifier.new,
-      name: r'profileNotifierProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$profileNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const profileNotifierProvider = ProfileNotifierFamily();
 
-typedef _$ProfileNotifier = Notifier<AsyncValue<ProfileEntity?>>;
+/// See also [ProfileNotifier].
+class ProfileNotifierFamily extends Family<AsyncValue<ProfileEntity?>> {
+  /// See also [ProfileNotifier].
+  const ProfileNotifierFamily();
+
+  /// See also [ProfileNotifier].
+  ProfileNotifierProvider call(String userId) {
+    return ProfileNotifierProvider(userId);
+  }
+
+  @override
+  ProfileNotifierProvider getProviderOverride(
+    covariant ProfileNotifierProvider provider,
+  ) {
+    return call(provider.userId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'profileNotifierProvider';
+}
+
+/// See also [ProfileNotifier].
+class ProfileNotifierProvider
+    extends AsyncNotifierProviderImpl<ProfileNotifier, ProfileEntity?> {
+  /// See also [ProfileNotifier].
+  ProfileNotifierProvider(String userId)
+    : this._internal(
+        () => ProfileNotifier()..userId = userId,
+        from: profileNotifierProvider,
+        name: r'profileNotifierProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$profileNotifierHash,
+        dependencies: ProfileNotifierFamily._dependencies,
+        allTransitiveDependencies:
+            ProfileNotifierFamily._allTransitiveDependencies,
+        userId: userId,
+      );
+
+  ProfileNotifierProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final String userId;
+
+  @override
+  FutureOr<ProfileEntity?> runNotifierBuild(
+    covariant ProfileNotifier notifier,
+  ) {
+    return notifier.build(userId);
+  }
+
+  @override
+  Override overrideWith(ProfileNotifier Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: ProfileNotifierProvider._internal(
+        () => create()..userId = userId,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AsyncNotifierProviderElement<ProfileNotifier, ProfileEntity?>
+  createElement() {
+    return _ProfileNotifierProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProfileNotifierProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ProfileNotifierRef on AsyncNotifierProviderRef<ProfileEntity?> {
+  /// The parameter `userId` of this provider.
+  String get userId;
+}
+
+class _ProfileNotifierProviderElement
+    extends AsyncNotifierProviderElement<ProfileNotifier, ProfileEntity?>
+    with ProfileNotifierRef {
+  _ProfileNotifierProviderElement(super.provider);
+
+  @override
+  String get userId => (origin as ProfileNotifierProvider).userId;
+}
+
 String _$nearbyProfilesNotifierHash() =>
-    r'da1f66570c7a5d0183c6bd8ce21a9e199491e383';
+    r'2fa84c3fc378ed4b4188e3ad98cdd8fed6f9a3f3';
 
 /// See also [NearbyProfilesNotifier].
 @ProviderFor(NearbyProfilesNotifier)

@@ -3,8 +3,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/group_remote_datasource.dart';
+import '../../data/datasources/group_request_datasource.dart';
 import '../../data/repositories/group_repository_impl.dart';
 import '../../domain/entities/group_entity.dart';
+import '../../domain/entities/group_request_entity.dart';
 import '../../domain/repositories/group_repository.dart';
 
 part 'group_provider.g.dart';
@@ -15,9 +17,15 @@ GroupRemoteDataSource groupRemoteDataSource(Ref ref) {
 }
 
 @riverpod
+GroupRequestDataSource groupRequestDataSource(Ref ref) {
+  return GroupRequestDataSourceImpl();
+}
+
+@riverpod
 GroupRepository groupRepository(Ref ref) {
   return GroupRepositoryImpl(
     remoteDataSource: ref.watch(groupRemoteDataSourceProvider),
+    requestDataSource: ref.watch(groupRequestDataSourceProvider),
     networkInfo: ref.watch(networkInfoProvider),
   );
 }
@@ -31,14 +39,32 @@ class GroupsNotifier extends _$GroupsNotifier {
   }
 
   Future<void> loadGroups() async {
-    state = const AsyncValue.loading();
     final repository = ref.read(groupRepositoryProvider);
-    final result = await repository.getGroups();
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (groups) => state = AsyncValue.data(groups),
+
+    // 1. Try to load from cache first (Cache-First Strategy)
+    final cachedResult = repository.getCachedGroups();
+    cachedResult.fold(
+      (failure) {
+        // Cache miss or error - show loading
+        state = const AsyncValue.loading();
+      },
+      (cachedGroups) {
+        if (cachedGroups.isNotEmpty) {
+          state = AsyncValue.data(cachedGroups);
+        } else {
+          state = const AsyncValue.loading();
+        }
+      },
     );
+
+    // 2. Fetch from network
+    final result = await repository.getGroups();
+    result.fold((failure) {
+      // Only update to error if we don't have cached data
+      if (state.valueOrNull == null || state.valueOrNull!.isEmpty) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+      }
+    }, (groups) => state = AsyncValue.data(groups));
   }
 
   Future<void> loadGroupsByCategory(GroupCategory category) async {
@@ -164,4 +190,29 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
       return true;
     });
   }
+}
+
+/// Stream provider for real-time group updates
+@riverpod
+Stream<GroupEntity?> groupStream(Ref ref, String groupId) {
+  final repository = ref.watch(groupRepositoryProvider);
+  return repository.getGroupStream(groupId).map((either) {
+    return either.fold((failure) => null, (group) => group);
+  });
+}
+
+@riverpod
+Stream<List<GroupRequestEntity>> groupPendingRequests(Ref ref, String groupId) {
+  final repository = ref.watch(groupRepositoryProvider);
+  return repository.getPendingRequests(groupId).map((either) {
+    return either.fold((failure) => [], (requests) => requests);
+  });
+}
+
+@riverpod
+Stream<List<GroupRequestEntity>> myGroupRequests(Ref ref, String userId) {
+  final repository = ref.watch(groupRepositoryProvider);
+  return repository.getMyGroupRequests(userId).map((either) {
+    return either.fold((failure) => [], (requests) => requests);
+  });
 }

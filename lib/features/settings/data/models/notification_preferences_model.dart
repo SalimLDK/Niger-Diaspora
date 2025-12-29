@@ -13,23 +13,30 @@ class NotificationPreferencesModel with _$NotificationPreferencesModel {
     @Default(true) bool newEvents,
     @Default(true) bool groupActivity,
     @Default(true) bool eventReminders,
+    @Default(true) bool localEvents,
+    @Default(false) bool systemMessages,
   }) = _NotificationPreferencesModel;
 
   factory NotificationPreferencesModel.fromJson(Map<String, dynamic> json) =>
       _$NotificationPreferencesModelFromJson(json);
 
   NotificationPreferencesEntity toEntity() => NotificationPreferencesEntity(
-        messages: messages,
-        newEvents: newEvents,
-        groupActivity: groupActivity,
-        eventReminders: eventReminders,
-      );
+    messages: messages,
+    newEvents: newEvents,
+    groupActivity: groupActivity,
+    eventReminders: eventReminders,
+    localEvents: localEvents,
+    systemMessages: systemMessages,
+  );
 
-  static NotificationPreferencesModel fromEntity(NotificationPreferencesEntity entity) =>
-      NotificationPreferencesModel(
-        messages: entity.messages,
-        newEvents: entity.newEvents,
-        groupActivity: entity.groupActivity,
-        eventReminders: entity.eventReminders,
-      );
+  static NotificationPreferencesModel fromEntity(
+    NotificationPreferencesEntity entity,
+  ) => NotificationPreferencesModel(
+    messages: entity.messages,
+    newEvents: entity.newEvents,
+    groupActivity: entity.groupActivity,
+    eventReminders: entity.eventReminders,
+    localEvents: entity.localEvents,
+    systemMessages: entity.systemMessages,
+  );
 }

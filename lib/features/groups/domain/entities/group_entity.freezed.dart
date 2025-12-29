@@ -29,6 +29,8 @@ mixin _$GroupEntity {
   bool get isPrivate => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
+  Map<String, DateTime> get memberJoinedAt =>
+      throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Create a copy of GroupEntity
@@ -58,6 +60,7 @@ abstract class $GroupEntityCopyWith<$Res> {
     bool isPrivate,
     String? location,
     List<String> tags,
+    Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
   });
 }
@@ -89,6 +92,7 @@ class _$GroupEntityCopyWithImpl<$Res, $Val extends GroupEntity>
     Object? isPrivate = null,
     Object? location = freezed,
     Object? tags = null,
+    Object? memberJoinedAt = null,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -153,6 +157,11 @@ class _$GroupEntityCopyWithImpl<$Res, $Val extends GroupEntity>
                     ? _value.tags
                     : tags // ignore: cast_nullable_to_non_nullable
                         as List<String>,
+            memberJoinedAt:
+                null == memberJoinedAt
+                    ? _value.memberJoinedAt
+                    : memberJoinedAt // ignore: cast_nullable_to_non_nullable
+                        as Map<String, DateTime>,
             createdAt:
                 freezed == createdAt
                     ? _value.createdAt
@@ -186,6 +195,7 @@ abstract class _$$GroupEntityImplCopyWith<$Res>
     bool isPrivate,
     String? location,
     List<String> tags,
+    Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
   });
 }
@@ -216,6 +226,7 @@ class __$$GroupEntityImplCopyWithImpl<$Res>
     Object? isPrivate = null,
     Object? location = freezed,
     Object? tags = null,
+    Object? memberJoinedAt = null,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -280,6 +291,11 @@ class __$$GroupEntityImplCopyWithImpl<$Res>
                 ? _value._tags
                 : tags // ignore: cast_nullable_to_non_nullable
                     as List<String>,
+        memberJoinedAt:
+            null == memberJoinedAt
+                ? _value._memberJoinedAt
+                : memberJoinedAt // ignore: cast_nullable_to_non_nullable
+                    as Map<String, DateTime>,
         createdAt:
             freezed == createdAt
                 ? _value.createdAt
@@ -306,10 +322,12 @@ class _$GroupEntityImpl implements _GroupEntity {
     this.isPrivate = false,
     this.location,
     final List<String> tags = const [],
+    final Map<String, DateTime> memberJoinedAt = const {},
     this.createdAt,
   }) : _adminIds = adminIds,
        _memberIds = memberIds,
-       _tags = tags;
+       _tags = tags,
+       _memberJoinedAt = memberJoinedAt;
 
   @override
   final String id;
@@ -358,12 +376,21 @@ class _$GroupEntityImpl implements _GroupEntity {
     return EqualUnmodifiableListView(_tags);
   }
 
+  final Map<String, DateTime> _memberJoinedAt;
+  @override
+  @JsonKey()
+  Map<String, DateTime> get memberJoinedAt {
+    if (_memberJoinedAt is EqualUnmodifiableMapView) return _memberJoinedAt;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_memberJoinedAt);
+  }
+
   @override
   final DateTime? createdAt;
 
   @override
   String toString() {
-    return 'GroupEntity(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, createdAt: $createdAt)';
+    return 'GroupEntity(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, memberJoinedAt: $memberJoinedAt, createdAt: $createdAt)';
   }
 
   @override
@@ -393,6 +420,10 @@ class _$GroupEntityImpl implements _GroupEntity {
             (identical(other.location, location) ||
                 other.location == location) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
+            const DeepCollectionEquality().equals(
+              other._memberJoinedAt,
+              _memberJoinedAt,
+            ) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -412,6 +443,7 @@ class _$GroupEntityImpl implements _GroupEntity {
     isPrivate,
     location,
     const DeepCollectionEquality().hash(_tags),
+    const DeepCollectionEquality().hash(_memberJoinedAt),
     createdAt,
   );
 
@@ -438,6 +470,7 @@ abstract class _GroupEntity implements GroupEntity {
     final bool isPrivate,
     final String? location,
     final List<String> tags,
+    final Map<String, DateTime> memberJoinedAt,
     final DateTime? createdAt,
   }) = _$GroupEntityImpl;
 
@@ -465,6 +498,8 @@ abstract class _GroupEntity implements GroupEntity {
   String? get location;
   @override
   List<String> get tags;
+  @override
+  Map<String, DateTime> get memberJoinedAt;
   @override
   DateTime? get createdAt;
 

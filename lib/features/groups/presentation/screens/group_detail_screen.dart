@@ -10,6 +10,7 @@ import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
+import '../../domain/entities/group_request_entity.dart';
 import '../providers/group_provider.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -47,9 +48,15 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
-    final groupAsync = ref.watch(groupDetailNotifierProvider);
 
-    final group = widget.initialGroup ?? groupAsync.valueOrNull;
+    // Use stream for real-time updates
+    final groupStream = ref.watch(groupStreamProvider(widget.groupId));
+
+    final group = groupStream.when(
+      data: (streamGroup) => widget.initialGroup ?? streamGroup,
+      loading: () => widget.initialGroup,
+      error: (_, __) => widget.initialGroup,
+    );
 
     if (group == null) {
       return Scaffold(
@@ -91,6 +98,41 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               onPressed: () => context.pop(),
             ),
             actions: [
+              if (isAdmin) ...[
+                Consumer(
+                  builder: (context, ref, child) {
+                    final requestsAsync = ref.watch(
+                      groupPendingRequestsProvider(group.id),
+                    );
+                    final count = requestsAsync.valueOrNull?.length ?? 0;
+
+                    if (count == 0 && !isCreator) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return IconButton(
+                      icon: Badge(
+                        label: Text('$count'),
+                        isLabelVisible: count > 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.notifications_active,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.push('/groups/${group.id}/requests');
+                      },
+                    );
+                  },
+                ),
+              ],
               if (isCreator || isAdmin)
                 IconButton(
                   icon: Container(
@@ -432,21 +474,104 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     ),
                   ],
                 )
-                : SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _joinGroup(group.id),
-                    icon: const Icon(Icons.group_add),
-                    label: Text(l10n.joinTheGroup),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.adaptivePrimaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
+                : Consumer(
+                  builder: (context, ref, child) {
+                    if (!group.isPrivate) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _joinGroup(group.id),
+                          icon: const Icon(Icons.group_add),
+                          label: Text(l10n.joinTheGroup),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: context.adaptivePrimaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      );
+                    }
+
+                    // For private groups, check pending requests
+                    final currentUser =
+                        ref.watch(currentUserProvider).valueOrNull;
+                    if (currentUser == null) return const SizedBox.shrink();
+
+                    final myRequestsAsync = ref.watch(
+                      myGroupRequestsProvider(currentUser.id),
+                    );
+
+                    final myRequests = myRequestsAsync.valueOrNull ?? [];
+                    final hasPendingRequest = myRequests.any(
+                      (r) =>
+                          r.groupId == group.id &&
+                          r.status == GroupRequestStatus.pending,
+                    );
+
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            hasPendingRequest
+                                ? null // Disable if pending
+                                : () => _requestToJoin(group),
+                        icon: Icon(
+                          hasPendingRequest
+                              ? Icons.hourglass_empty
+                              : Icons.person_add,
+                        ),
+                        label: Text(
+                          hasPendingRequest
+                              ? 'Demande en attente'
+                              : 'Demander à rejoindre',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.adaptivePrimaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    );
+                  },
                 ),
       ),
     );
+  }
+
+  Future<void> _requestToJoin(GroupEntity group) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final repository = ref.read(groupRepositoryProvider);
+      final result = await repository.requestToJoinGroup(
+        groupId: group.id,
+        groupName: group.name,
+        groupImageUrl: group.imageUrl,
+        requesterId: currentUser.id,
+        requesterName: currentUser.displayName ?? 'Utilisateur',
+        requesterPhotoUrl: currentUser.photoUrl,
+      );
+
+      if (mounted) {
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(failure.message)));
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Demande envoyée avec succès')),
+            );
+          },
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _joinGroup(String groupId) async {

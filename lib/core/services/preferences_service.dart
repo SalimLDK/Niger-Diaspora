@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Centralized service for managing all app preferences using SharedPreferences.
@@ -69,6 +70,8 @@ class PreferencesService {
   static const String _keyNotifyFriendRequests = 'notify_friend_requests';
   static const String _keyNotifyGroups = 'notify_groups';
   static const String _keyNotifyEventReminders = 'notify_event_reminders';
+  static const String _keyNotifyLocalEvents = 'notify_local_events';
+  static const String _keyNotifySystemMessages = 'notify_system_messages';
   static const String _keyNotificationSound = 'notification_sound';
   static const String _keyNotificationVibration = 'notification_vibration';
   static const String _keyQuietHoursEnabled = 'quiet_hours_enabled';
@@ -83,10 +86,13 @@ class PreferencesService {
   static const String _keyDataSaverMode = 'data_saver_mode';
 
   // Privacy & Security
-  // Privacy & Security
   static const String _keyBiometricEnabled = 'biometric_enabled';
   static const String _keyAnalyticsOptOut = 'analytics_opt_out';
   static const String _keySessionId = 'session_id'; // Internal session tracking
+
+  // Chat Background Customization
+  static const String _keyDefaultChatBackground = 'default_chat_background';
+  static const String _keyCustomChatBackgrounds = 'custom_chat_backgrounds';
 
   // ============================
   // SESSION
@@ -163,6 +169,15 @@ class PreferencesService {
   Future<void> setNotifyEventReminders(bool enabled) =>
       prefs.setBool(_keyNotifyEventReminders, enabled);
 
+  bool get notifyLocalEvents => prefs.getBool(_keyNotifyLocalEvents) ?? true;
+  Future<void> setNotifyLocalEvents(bool enabled) =>
+      prefs.setBool(_keyNotifyLocalEvents, enabled);
+
+  bool get notifySystemMessages =>
+      prefs.getBool(_keyNotifySystemMessages) ?? false;
+  Future<void> setNotifySystemMessages(bool enabled) =>
+      prefs.setBool(_keyNotifySystemMessages, enabled);
+
   bool get notificationSound => prefs.getBool(_keyNotificationSound) ?? true;
   Future<void> setNotificationSound(bool enabled) =>
       prefs.setBool(_keyNotificationSound, enabled);
@@ -222,6 +237,64 @@ class PreferencesService {
   bool get analyticsOptOut => prefs.getBool(_keyAnalyticsOptOut) ?? false;
   Future<void> setAnalyticsOptOut(bool optOut) =>
       prefs.setBool(_keyAnalyticsOptOut, optOut);
+
+  // ============================
+  // CHAT BACKGROUND CUSTOMIZATION
+  // ============================
+
+  /// Get the default chat background (applies to all conversations)
+  String? get defaultChatBackground =>
+      prefs.getString(_keyDefaultChatBackground);
+
+  /// Set the default chat background (JSON encoded ChatBackgroundModel)
+  Future<void> setDefaultChatBackground(String backgroundJson) =>
+      prefs.setString(_keyDefaultChatBackground, backgroundJson);
+
+  /// Remove the default chat background
+  Future<void> clearDefaultChatBackground() =>
+      prefs.remove(_keyDefaultChatBackground);
+
+  /// Get custom backgrounds for specific conversations (`Map<conversationId, backgroundJson>`)
+  Map<String, String> get customChatBackgrounds {
+    final jsonString = prefs.getString(_keyCustomChatBackgrounds);
+    if (jsonString == null || jsonString.isEmpty) return {};
+
+    try {
+      final Map<String, dynamic> decoded = Map<String, dynamic>.from(
+        jsonDecode(jsonString),
+      );
+      return decoded.map((key, value) => MapEntry(key, value.toString()));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Set a custom background for a specific conversation
+  Future<void> setCustomChatBackground(
+    String conversationId,
+    String backgroundJson,
+  ) async {
+    final current = customChatBackgrounds;
+    current[conversationId] = backgroundJson;
+    await prefs.setString(_keyCustomChatBackgrounds, jsonEncode(current));
+  }
+
+  /// Remove custom background for a specific conversation
+  Future<void> removeCustomChatBackground(String conversationId) async {
+    final current = customChatBackgrounds;
+    current.remove(conversationId);
+    if (current.isEmpty) {
+      await prefs.remove(_keyCustomChatBackgrounds);
+    } else {
+      await prefs.setString(_keyCustomChatBackgrounds, jsonEncode(current));
+    }
+  }
+
+  /// Get background for a specific conversation (returns null if using default)
+  String? getConversationBackground(String conversationId) {
+    final custom = customChatBackgrounds;
+    return custom[conversationId];
+  }
 
   // ============================
   // UTILITY METHODS

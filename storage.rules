@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to validate file size (max 10MB for images, 100MB for videos)
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // Helper function to validate image file types
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Helper function to validate video file types
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+    
+    // Helper function to validate audio file types
+    function isAudio() {
+      return request.resource.contentType.matches('audio/.*');
+    }
+    
+    // Helper function to validate document file types
+    function isDocument() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*') ||
+             request.resource.contentType.matches('text/.*');
+    }
+    
+    // Profile images - users can only upload/read their own profile pictures
+    match /profiles/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isValidSize(10);
+    }
+    
+    // Message media - authenticated users can upload, size limits vary by type
+    match /messages/{conversationId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (
+        (isImage() && isValidSize(10)) ||
+        (isVideo() && isValidSize(100)) ||
+        (isAudio() && isValidSize(10)) ||
+        (isDocument() && isValidSize(10))
+      );
+    }
+    
+    // Group images - authenticated users can upload
+    match /groups/{groupId}/{allPaths=**} {
+      allow read: if true; // Public groups may be viewable by anyone
+      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+    }
+    
+    // Event images - authenticated users can upload
+    match /events/{eventId}/{allPaths=**} {
+      allow read: if true; // Events are public
+      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+    }
+    
+    // Product images - sellers can upload
+    match /products/{productId}/{allPaths=**} {
+      allow read: if true; // Products are public
+      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+    }
+    
+    // Business images - business owners can upload
+    match /businesses/{businessId}/{allPaths=**} {
+      allow read: if true; // Businesses are public
+      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

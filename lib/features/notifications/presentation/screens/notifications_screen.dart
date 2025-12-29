@@ -339,32 +339,43 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     }
 
     // Navigate based on type
-    if (notification.targetId != null) {
-      switch (notification.type) {
-        case NotificationType.message:
+    switch (notification.type) {
+      // Location-based notifications -> navigate to map
+      case NotificationType.localEvent:
+      case NotificationType.nearbyMember:
+      case NotificationType.proximityAlert:
+        context.push('/map');
+        break;
+      case NotificationType.message:
+        if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
-          break;
-        case NotificationType.groupInvite:
-        case NotificationType.newMember:
-        case NotificationType.groupJoinRequest:
-        case NotificationType.groupRequestApproved:
-        case NotificationType.groupRequestRejected:
+        }
+        break;
+      case NotificationType.groupInvite:
+      case NotificationType.newMember:
+      case NotificationType.groupJoinRequest:
+      case NotificationType.groupRequestApproved:
+      case NotificationType.groupRequestRejected:
+        if (notification.targetId != null) {
           context.push('/groups/${notification.targetId}');
-          break;
-        case NotificationType.eventReminder:
-        case NotificationType.eventUpdate:
+        }
+        break;
+      case NotificationType.eventReminder:
+      case NotificationType.eventUpdate:
+        if (notification.targetId != null) {
           context.push('/events/${notification.targetId}');
-          break;
-        case NotificationType.newFollower:
-        case NotificationType.friendRequest:
-        case NotificationType.friendRequestAccepted:
-          // Navigate to profile
+        }
+        break;
+      case NotificationType.newFollower:
+      case NotificationType.friendRequest:
+      case NotificationType.friendRequestAccepted:
+        if (notification.targetId != null) {
           context.push('/profile/${notification.targetId}');
-          break;
-        case NotificationType.general:
-          // No specific navigation
-          break;
-      }
+        }
+        break;
+      case NotificationType.general:
+        // No specific navigation
+        break;
     }
   }
 
@@ -613,6 +624,12 @@ class _NotificationItem extends StatelessWidget {
         return Icons.cancel_outlined;
       case NotificationType.general:
         return Icons.notifications_none;
+      case NotificationType.localEvent:
+        return Icons.location_on;
+      case NotificationType.nearbyMember:
+        return Icons.person_pin_circle;
+      case NotificationType.proximityAlert:
+        return Icons.radar;
     }
   }
 
@@ -646,6 +663,12 @@ class _NotificationItem extends StatelessWidget {
         return Colors.red;
       case NotificationType.general:
         return context.textSecondaryColor;
+      case NotificationType.localEvent:
+        return Colors.red;
+      case NotificationType.nearbyMember:
+        return Colors.orange;
+      case NotificationType.proximityAlert:
+        return Colors.deepOrange;
     }
   }
 

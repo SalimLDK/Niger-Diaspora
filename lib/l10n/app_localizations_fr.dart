@@ -9,7 +9,10 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'Niger Diaspora';
+  String get appTitle => 'Diaspo Niger';
+
+  @override
+  String get you => 'Vous';
 
   @override
   String get welcomeTitle => 'Bienvenue';
@@ -245,6 +248,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get codeOfConduct => 'Code de conduite';
 
   @override
   String get legalUpdateTitle => 'Mise à jour des conditions';
@@ -1199,7 +1205,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorDeletingAccount => 'Erreur lors de la suppression';
 
   @override
-  String get allRightsReserved => '© 2024 Niger Diaspora. Tous droits réservés.';
+  String get allRightsReserved => '© 2025 Diaspo Niger. Tous droits réservés.';
 
   @override
   String get mobileAppDescription => 'Plateforme mobile de mise en relation de la diaspora nigérienne.';

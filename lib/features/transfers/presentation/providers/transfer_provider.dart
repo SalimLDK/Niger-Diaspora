@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/providers/app_settings_provider.dart';
 import '../../data/datasources/transfer_remote_datasource.dart';
 import '../../data/repositories/transfer_repository_impl.dart';
 import '../../domain/entities/transaction_entity.dart';
@@ -17,9 +19,31 @@ TransferRemoteDatasource transferRemoteDatasource(Ref ref) {
 
 @riverpod
 TransferRepository transferRepository(Ref ref) {
+  // Get fee settings from global app settings (with defaults as fallback)
+  final feeSettings = ref.watch(feeSettingsProvider);
+  final exchangeRates = ref.watch(exchangeRatesProvider);
+
   return TransferRepositoryImpl(
     remoteDatasource: ref.watch(transferRemoteDatasourceProvider),
+    feeConfig: TransferFeeConfig(
+      feePercentage: feeSettings.transferFeePercent,
+      minimumFee: feeSettings.transferFeeMin,
+      maximumFee: feeSettings.transferFeeMax,
+    ),
+    exchangeRateConfig: ExchangeRateConfig(
+      eurToXof: exchangeRates.eurToXof,
+      usdToXof: exchangeRates.usdToXof,
+      gbpToXof: exchangeRates.gbpToXof,
+      cadToXof: exchangeRates.cadToXof,
+      chfToXof: exchangeRates.chfToXof,
+    ),
   );
+}
+
+/// Provider to get the current fee percentage for display
+@riverpod
+double transferFeePercent(Ref ref) {
+  return ref.watch(feeSettingsProvider).transferFeePercent;
 }
 
 // ============ TRANSACTIONS ============
@@ -131,8 +155,11 @@ class TransactionNotifier extends _$TransactionNotifier {
         return null;
       },
       (transaction) {
-        state = const AsyncData(null);
-        ref.invalidate(userTransactionsProvider(senderId));
+        // Don't update state to AsyncData - causes "Future already completed" error
+        // State will be updated via provider invalidation
+        Future.microtask(() {
+          ref.invalidate(userTransactionsProvider(senderId));
+        });
         return transaction;
       },
     );
@@ -185,19 +212,39 @@ class RecipientNotifier extends _$RecipientNotifier {
   FutureOr<void> build() {}
 
   Future<RecipientEntity?> createRecipient(RecipientEntity recipient) async {
+    debugPrint('🔵 RecipientNotifier.createRecipient() called');
     state = const AsyncLoading();
-    final repository = ref.read(transferRepositoryProvider);
+    debugPrint('🔵 State set to AsyncLoading');
 
+    final repository = ref.read(transferRepositoryProvider);
+    debugPrint('🔵 Repository obtained');
+
+    debugPrint('🔵 Calling repository.createRecipient()...');
     final result = await repository.createRecipient(recipient);
+    debugPrint('🔵 repository.createRecipient() returned');
 
     return result.fold(
       (failure) {
+        debugPrint('❌ createRecipient failed: ${failure.message}');
         state = AsyncError(failure.message, StackTrace.current);
         return null;
       },
       (created) {
-        state = const AsyncData(null);
-        ref.invalidate(userRecipientsProvider(recipient.userId));
+        debugPrint('✅ createRecipient succeeded');
+        // Don't update state to AsyncData - it causes "Future already completed" error
+        // The state will be updated by the invalidation of userRecipientsProvider
+        debugPrint(
+          '🔵 Skipping state update (prevents Future already completed error)',
+        );
+
+        // Defer invalidation to refresh the recipients list
+        debugPrint('🔵 Scheduling provider invalidation');
+        Future.microtask(() {
+          debugPrint('🔵 Invalidating userRecipientsProvider');
+          ref.invalidate(userRecipientsProvider(recipient.userId));
+          debugPrint('🔵 Provider invalidated');
+        });
+        debugPrint('🔵 Returning created recipient');
         return created;
       },
     );

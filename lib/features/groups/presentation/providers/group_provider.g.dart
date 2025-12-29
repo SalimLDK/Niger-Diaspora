@@ -27,7 +27,28 @@ final groupRemoteDataSourceProvider =
 // ignore: unused_element
 typedef GroupRemoteDataSourceRef =
     AutoDisposeProviderRef<GroupRemoteDataSource>;
-String _$groupRepositoryHash() => r'3abceba78d0e12c1a11ab00bed320cd5902aed44';
+String _$groupRequestDataSourceHash() =>
+    r'fddd1a1254177a8bcfaf6d962602066c3dec3b92';
+
+/// See also [groupRequestDataSource].
+@ProviderFor(groupRequestDataSource)
+final groupRequestDataSourceProvider =
+    AutoDisposeProvider<GroupRequestDataSource>.internal(
+      groupRequestDataSource,
+      name: r'groupRequestDataSourceProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$groupRequestDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GroupRequestDataSourceRef =
+    AutoDisposeProviderRef<GroupRequestDataSource>;
+String _$groupRepositoryHash() => r'aaec2bb56ba24c538d4bd35ef993f96480674079';
 
 /// See also [groupRepository].
 @ProviderFor(groupRepository)
@@ -198,7 +219,390 @@ class _GroupByNameProviderElement
   String get groupName => (origin as GroupByNameProvider).groupName;
 }
 
-String _$groupsNotifierHash() => r'402dd3221aa2dbddf1cb000cc013e8efa57fa184';
+String _$groupStreamHash() => r'e11dcbe825673146bb3636f646084b568ce3ab4d';
+
+/// Stream provider for real-time group updates
+///
+/// Copied from [groupStream].
+@ProviderFor(groupStream)
+const groupStreamProvider = GroupStreamFamily();
+
+/// Stream provider for real-time group updates
+///
+/// Copied from [groupStream].
+class GroupStreamFamily extends Family<AsyncValue<GroupEntity?>> {
+  /// Stream provider for real-time group updates
+  ///
+  /// Copied from [groupStream].
+  const GroupStreamFamily();
+
+  /// Stream provider for real-time group updates
+  ///
+  /// Copied from [groupStream].
+  GroupStreamProvider call(String groupId) {
+    return GroupStreamProvider(groupId);
+  }
+
+  @override
+  GroupStreamProvider getProviderOverride(
+    covariant GroupStreamProvider provider,
+  ) {
+    return call(provider.groupId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'groupStreamProvider';
+}
+
+/// Stream provider for real-time group updates
+///
+/// Copied from [groupStream].
+class GroupStreamProvider extends AutoDisposeStreamProvider<GroupEntity?> {
+  /// Stream provider for real-time group updates
+  ///
+  /// Copied from [groupStream].
+  GroupStreamProvider(String groupId)
+    : this._internal(
+        (ref) => groupStream(ref as GroupStreamRef, groupId),
+        from: groupStreamProvider,
+        name: r'groupStreamProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$groupStreamHash,
+        dependencies: GroupStreamFamily._dependencies,
+        allTransitiveDependencies: GroupStreamFamily._allTransitiveDependencies,
+        groupId: groupId,
+      );
+
+  GroupStreamProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.groupId,
+  }) : super.internal();
+
+  final String groupId;
+
+  @override
+  Override overrideWith(
+    Stream<GroupEntity?> Function(GroupStreamRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GroupStreamProvider._internal(
+        (ref) => create(ref as GroupStreamRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        groupId: groupId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<GroupEntity?> createElement() {
+    return _GroupStreamProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupStreamProvider && other.groupId == groupId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, groupId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GroupStreamRef on AutoDisposeStreamProviderRef<GroupEntity?> {
+  /// The parameter `groupId` of this provider.
+  String get groupId;
+}
+
+class _GroupStreamProviderElement
+    extends AutoDisposeStreamProviderElement<GroupEntity?>
+    with GroupStreamRef {
+  _GroupStreamProviderElement(super.provider);
+
+  @override
+  String get groupId => (origin as GroupStreamProvider).groupId;
+}
+
+String _$groupPendingRequestsHash() =>
+    r'01b3f55eb46e76a21997b0f516ae42db88592ca3';
+
+/// See also [groupPendingRequests].
+@ProviderFor(groupPendingRequests)
+const groupPendingRequestsProvider = GroupPendingRequestsFamily();
+
+/// See also [groupPendingRequests].
+class GroupPendingRequestsFamily
+    extends Family<AsyncValue<List<GroupRequestEntity>>> {
+  /// See also [groupPendingRequests].
+  const GroupPendingRequestsFamily();
+
+  /// See also [groupPendingRequests].
+  GroupPendingRequestsProvider call(String groupId) {
+    return GroupPendingRequestsProvider(groupId);
+  }
+
+  @override
+  GroupPendingRequestsProvider getProviderOverride(
+    covariant GroupPendingRequestsProvider provider,
+  ) {
+    return call(provider.groupId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'groupPendingRequestsProvider';
+}
+
+/// See also [groupPendingRequests].
+class GroupPendingRequestsProvider
+    extends AutoDisposeStreamProvider<List<GroupRequestEntity>> {
+  /// See also [groupPendingRequests].
+  GroupPendingRequestsProvider(String groupId)
+    : this._internal(
+        (ref) => groupPendingRequests(ref as GroupPendingRequestsRef, groupId),
+        from: groupPendingRequestsProvider,
+        name: r'groupPendingRequestsProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$groupPendingRequestsHash,
+        dependencies: GroupPendingRequestsFamily._dependencies,
+        allTransitiveDependencies:
+            GroupPendingRequestsFamily._allTransitiveDependencies,
+        groupId: groupId,
+      );
+
+  GroupPendingRequestsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.groupId,
+  }) : super.internal();
+
+  final String groupId;
+
+  @override
+  Override overrideWith(
+    Stream<List<GroupRequestEntity>> Function(GroupPendingRequestsRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GroupPendingRequestsProvider._internal(
+        (ref) => create(ref as GroupPendingRequestsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        groupId: groupId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<GroupRequestEntity>> createElement() {
+    return _GroupPendingRequestsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupPendingRequestsProvider && other.groupId == groupId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, groupId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GroupPendingRequestsRef
+    on AutoDisposeStreamProviderRef<List<GroupRequestEntity>> {
+  /// The parameter `groupId` of this provider.
+  String get groupId;
+}
+
+class _GroupPendingRequestsProviderElement
+    extends AutoDisposeStreamProviderElement<List<GroupRequestEntity>>
+    with GroupPendingRequestsRef {
+  _GroupPendingRequestsProviderElement(super.provider);
+
+  @override
+  String get groupId => (origin as GroupPendingRequestsProvider).groupId;
+}
+
+String _$myGroupRequestsHash() => r'71c6635611e02bc6427e6080f4c185aef5d4c12e';
+
+/// See also [myGroupRequests].
+@ProviderFor(myGroupRequests)
+const myGroupRequestsProvider = MyGroupRequestsFamily();
+
+/// See also [myGroupRequests].
+class MyGroupRequestsFamily
+    extends Family<AsyncValue<List<GroupRequestEntity>>> {
+  /// See also [myGroupRequests].
+  const MyGroupRequestsFamily();
+
+  /// See also [myGroupRequests].
+  MyGroupRequestsProvider call(String userId) {
+    return MyGroupRequestsProvider(userId);
+  }
+
+  @override
+  MyGroupRequestsProvider getProviderOverride(
+    covariant MyGroupRequestsProvider provider,
+  ) {
+    return call(provider.userId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'myGroupRequestsProvider';
+}
+
+/// See also [myGroupRequests].
+class MyGroupRequestsProvider
+    extends AutoDisposeStreamProvider<List<GroupRequestEntity>> {
+  /// See also [myGroupRequests].
+  MyGroupRequestsProvider(String userId)
+    : this._internal(
+        (ref) => myGroupRequests(ref as MyGroupRequestsRef, userId),
+        from: myGroupRequestsProvider,
+        name: r'myGroupRequestsProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$myGroupRequestsHash,
+        dependencies: MyGroupRequestsFamily._dependencies,
+        allTransitiveDependencies:
+            MyGroupRequestsFamily._allTransitiveDependencies,
+        userId: userId,
+      );
+
+  MyGroupRequestsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final String userId;
+
+  @override
+  Override overrideWith(
+    Stream<List<GroupRequestEntity>> Function(MyGroupRequestsRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: MyGroupRequestsProvider._internal(
+        (ref) => create(ref as MyGroupRequestsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<GroupRequestEntity>> createElement() {
+    return _MyGroupRequestsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MyGroupRequestsProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MyGroupRequestsRef
+    on AutoDisposeStreamProviderRef<List<GroupRequestEntity>> {
+  /// The parameter `userId` of this provider.
+  String get userId;
+}
+
+class _MyGroupRequestsProviderElement
+    extends AutoDisposeStreamProviderElement<List<GroupRequestEntity>>
+    with MyGroupRequestsRef {
+  _MyGroupRequestsProviderElement(super.provider);
+
+  @override
+  String get userId => (origin as MyGroupRequestsProvider).userId;
+}
+
+String _$groupsNotifierHash() => r'25b035e59ab8e14b591948968b7e6e8f50f25f16';
 
 /// See also [GroupsNotifier].
 @ProviderFor(GroupsNotifier)

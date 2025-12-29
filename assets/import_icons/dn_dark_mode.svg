@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2D2D2D;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="darkOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E97424;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59942;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fond sombre avec coins arrondis -->
+  <rect width="200" height="200" rx="44" fill="url(#darkBg)"/>
+  
+  <!-- Texte DN en dégradé orange pour dark mode -->
+  <text x="100" y="130" 
+        font-family="'Arial Black', 'Arial Bold', 'Helvetica Bold', sans-serif" 
+        font-size="95" 
+        font-weight="900" 
+        fill="url(#darkOrange)" 
+        text-anchor="middle"
+        letter-spacing="2">DN</text>
+</svg>

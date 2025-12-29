@@ -35,6 +35,10 @@ enum NotificationType {
   groupJoinRequest,
   groupRequestApproved,
   groupRequestRejected,
+  // Location-based notifications
+  localEvent,
+  nearbyMember,
+  proximityAlert,
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -64,6 +68,12 @@ extension NotificationTypeExtension on NotificationType {
         return 'Demande approuvée';
       case NotificationType.groupRequestRejected:
         return 'Demande refusée';
+      case NotificationType.localEvent:
+        return 'Événement local';
+      case NotificationType.nearbyMember:
+        return 'Membre à proximité';
+      case NotificationType.proximityAlert:
+        return 'Alerte proximité';
     }
   }
 
@@ -93,6 +103,12 @@ extension NotificationTypeExtension on NotificationType {
         return 'check_circle';
       case NotificationType.groupRequestRejected:
         return 'cancel';
+      case NotificationType.localEvent:
+        return 'location_on';
+      case NotificationType.nearbyMember:
+        return 'person_pin';
+      case NotificationType.proximityAlert:
+        return 'radar';
     }
   }
 }

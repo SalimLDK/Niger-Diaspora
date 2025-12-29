@@ -8,7 +8,7 @@ import '../../domain/entities/profile_share_link_entity.dart';
 
 part 'profile_share_provider.g.dart';
 
-const String _baseShareUrl = 'https://diasponiger.com/p/';
+const String _baseShareUrl = 'https://diaspo-niger.web.app/p/';
 
 @riverpod
 ProfileShareDataSource profileShareDataSource(Ref ref) {
@@ -40,13 +40,15 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
     } catch (e) {
       // Fallback: utiliser l'ID utilisateur directement si la génération échoue
       final fallbackUrl = '${_baseShareUrl}u/${currentUser.id}';
-      state = AsyncValue.data(ProfileShareLinkEntity(
-        id: 'fallback',
-        userId: currentUser.id,
-        shortCode: 'u/${currentUser.id}',
-        createdAt: DateTime.now(),
-        clickCount: 0,
-      ));
+      state = AsyncValue.data(
+        ProfileShareLinkEntity(
+          id: 'fallback',
+          userId: currentUser.id,
+          shortCode: 'u/${currentUser.id}',
+          createdAt: DateTime.now(),
+          clickCount: 0,
+        ),
+      );
       return fallbackUrl;
     }
   }
@@ -62,8 +64,8 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
     final link = await generateShareLink();
     if (link != null) {
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-      final message = customMessage ??
-          'Découvrez mon profil sur Niger Diaspora: $link';
+      final message =
+          customMessage ?? 'Découvrez mon profil sur Diaspo Niger: $link';
       await Share.share(
         message,
         subject: 'Profil de ${currentUser?.displayName ?? "Utilisateur"}',
@@ -77,8 +79,7 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
 }
 
 @riverpod
-Future<String?> profileUserIdFromShareCode(
-    Ref ref, String shortCode) async {
+Future<String?> profileUserIdFromShareCode(Ref ref, String shortCode) async {
   final dataSource = ref.watch(profileShareDataSourceProvider);
   return await dataSource.getUserIdByShareCode(shortCode);
 }

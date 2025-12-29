@@ -6,30 +6,8 @@ part of 'feature_flag_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$featureFlagServiceHash() =>
-    r'9b8168802619e3ff9a806e8456bb92fe30064afa';
-
-/// Provider for FeatureFlagService
-///
-/// Copied from [featureFlagService].
-@ProviderFor(featureFlagService)
-final featureFlagServiceProvider =
-    AutoDisposeProvider<FeatureFlagService>.internal(
-      featureFlagService,
-      name: r'featureFlagServiceProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$featureFlagServiceHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FeatureFlagServiceRef = AutoDisposeProviderRef<FeatureFlagService>;
 String _$isMoneyTransferEnabledHash() =>
-    r'66d2c876e19511a84d47eb2135c0d307c6a5a551';
+    r'e3b74ea9e90ddee91a95db6fe0c2026a47a3cac3';
 
 /// Provider to check if money transfer feature is enabled
 ///
@@ -50,7 +28,7 @@ final isMoneyTransferEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsMoneyTransferEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isMarketplaceEnabledHash() =>
-    r'8c4974245c27d7237dc258a40226c8f358b3364b';
+    r'786824dceb73495309c47a4662e7778f433a7297';
 
 /// Provider to check if marketplace feature is enabled
 ///
@@ -71,7 +49,7 @@ final isMarketplaceEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsMarketplaceEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isBusinessDirectoryEnabledHash() =>
-    r'eea6617491b74a0d9b19455ce90ff737f49afb44';
+    r'05b0c5deaf51954eb9984a3503893b18e3acacec';
 
 /// Provider to check if business directory feature is enabled
 ///
@@ -91,5 +69,107 @@ final isBusinessDirectoryEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsBusinessDirectoryEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isEventsEnabledHash() => r'7ec25d367870b20966f4d92d5a3651b35e1f9b0c';
+
+/// Provider to check if events feature is enabled
+///
+/// Copied from [isEventsEnabled].
+@ProviderFor(isEventsEnabled)
+final isEventsEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isEventsEnabled,
+  name: r'isEventsEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isEventsEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsEventsEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isGroupsEnabledHash() => r'636ade80421a5567362c791ea4388b4cf5e23297';
+
+/// Provider to check if groups feature is enabled
+///
+/// Copied from [isGroupsEnabled].
+@ProviderFor(isGroupsEnabled)
+final isGroupsEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isGroupsEnabled,
+  name: r'isGroupsEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isGroupsEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsGroupsEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isEmbassiesEnabledHash() =>
+    r'675763160f6fbe121dde862bc3141576725b27b2';
+
+/// Provider to check if embassies feature is enabled
+///
+/// Copied from [isEmbassiesEnabled].
+@ProviderFor(isEmbassiesEnabled)
+final isEmbassiesEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isEmbassiesEnabled,
+  name: r'isEmbassiesEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isEmbassiesEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsEmbassiesEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isMaintenanceModeHash() => r'cf17e003455a0a28a66e3c615192920831316300';
+
+/// Provider to check if app is in maintenance mode
+///
+/// Copied from [isMaintenanceMode].
+@ProviderFor(isMaintenanceMode)
+final isMaintenanceModeProvider = AutoDisposeProvider<bool>.internal(
+  isMaintenanceMode,
+  name: r'isMaintenanceModeProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isMaintenanceModeHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsMaintenanceModeRef = AutoDisposeProviderRef<bool>;
+String _$maintenanceMessageHash() =>
+    r'2cdad47b26032ae796100660c74b5df35a4d3426';
+
+/// Provider for maintenance message
+///
+/// Copied from [maintenanceMessage].
+@ProviderFor(maintenanceMessage)
+final maintenanceMessageProvider = AutoDisposeProvider<String?>.internal(
+  maintenanceMessage,
+  name: r'maintenanceMessageProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$maintenanceMessageHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef MaintenanceMessageRef = AutoDisposeProviderRef<String?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

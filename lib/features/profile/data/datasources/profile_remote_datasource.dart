@@ -29,6 +29,8 @@ abstract class ProfileRemoteDataSource {
     DateTime lastSeen,
   );
   Future<void> updateOnlineStatusVisibility(String userId, bool showStatus);
+  Future<void> updateNotifyLocalEvents(String userId, bool enabled);
+  ProfileModel? getCachedProfile(String userId);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -498,6 +500,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> updateNotifyLocalEvents(String userId, bool enabled) async {
+    try {
+      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
+        {'notifyLocalEvents': enabled},
+      );
+    } on FirebaseException catch (e) {
+      debugPrint('Erreur lors de la mise à jour notifyLocalEvents: ${e.message}');
+    }
+  }
+
   Map<String, dynamic> _convertTimestamps(Map<String, dynamic> data) {
     final result = Map<String, dynamic>.from(data);
 
@@ -508,5 +521,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     });
 
     return result;
+  }
+
+  @override
+  ProfileModel? getCachedProfile(String userId) {
+    try {
+      final cachedData = _cache.getCachedProfile(userId);
+      if (cachedData != null) {
+        return ProfileModel.fromJson(cachedData);
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération du profil en cache: $e');
+    }
+    return null;
   }
 }

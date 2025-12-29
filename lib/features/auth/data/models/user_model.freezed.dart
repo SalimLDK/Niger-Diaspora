@@ -31,6 +31,10 @@ mixin _$UserModel {
   @TimestampConverter()
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
   bool get isAdmin => throw _privateConstructorUsedError;
+  bool get isBanned => throw _privateConstructorUsedError;
+  String? get banReason => throw _privateConstructorUsedError;
+  @TimestampConverter()
+  DateTime? get bannedAt => throw _privateConstructorUsedError;
 
   /// Serializes this UserModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,6 +60,9 @@ abstract class $UserModelCopyWith<$Res> {
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
     bool isAdmin,
+    bool isBanned,
+    String? banReason,
+    @TimestampConverter() DateTime? bannedAt,
   });
 }
 
@@ -82,6 +89,9 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
     Object? isAdmin = null,
+    Object? isBanned = null,
+    Object? banReason = freezed,
+    Object? bannedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -125,6 +135,21 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
                     ? _value.isAdmin
                     : isAdmin // ignore: cast_nullable_to_non_nullable
                         as bool,
+            isBanned:
+                null == isBanned
+                    ? _value.isBanned
+                    : isBanned // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            banReason:
+                freezed == banReason
+                    ? _value.banReason
+                    : banReason // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            bannedAt:
+                freezed == bannedAt
+                    ? _value.bannedAt
+                    : bannedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
           )
           as $Val,
     );
@@ -149,6 +174,9 @@ abstract class _$$UserModelImplCopyWith<$Res>
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
     bool isAdmin,
+    bool isBanned,
+    String? banReason,
+    @TimestampConverter() DateTime? bannedAt,
   });
 }
 
@@ -174,6 +202,9 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
     Object? isAdmin = null,
+    Object? isBanned = null,
+    Object? banReason = freezed,
+    Object? bannedAt = freezed,
   }) {
     return _then(
       _$UserModelImpl(
@@ -217,6 +248,21 @@ class __$$UserModelImplCopyWithImpl<$Res>
                 ? _value.isAdmin
                 : isAdmin // ignore: cast_nullable_to_non_nullable
                     as bool,
+        isBanned:
+            null == isBanned
+                ? _value.isBanned
+                : isBanned // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        banReason:
+            freezed == banReason
+                ? _value.banReason
+                : banReason // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        bannedAt:
+            freezed == bannedAt
+                ? _value.bannedAt
+                : bannedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
       ),
     );
   }
@@ -234,6 +280,9 @@ class _$UserModelImpl extends _UserModel {
     @TimestampConverter() this.createdAt,
     @TimestampConverter() this.lastLoginAt,
     this.isAdmin = false,
+    this.isBanned = false,
+    this.banReason,
+    @TimestampConverter() this.bannedAt,
   }) : super._();
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -258,10 +307,18 @@ class _$UserModelImpl extends _UserModel {
   @override
   @JsonKey()
   final bool isAdmin;
+  @override
+  @JsonKey()
+  final bool isBanned;
+  @override
+  final String? banReason;
+  @override
+  @TimestampConverter()
+  final DateTime? bannedAt;
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin)';
+    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
   }
 
   @override
@@ -281,7 +338,13 @@ class _$UserModelImpl extends _UserModel {
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
                 other.lastLoginAt == lastLoginAt) &&
-            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin));
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin) &&
+            (identical(other.isBanned, isBanned) ||
+                other.isBanned == isBanned) &&
+            (identical(other.banReason, banReason) ||
+                other.banReason == banReason) &&
+            (identical(other.bannedAt, bannedAt) ||
+                other.bannedAt == bannedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -296,6 +359,9 @@ class _$UserModelImpl extends _UserModel {
     createdAt,
     lastLoginAt,
     isAdmin,
+    isBanned,
+    banReason,
+    bannedAt,
   );
 
   /// Create a copy of UserModel
@@ -322,6 +388,9 @@ abstract class _UserModel extends UserModel {
     @TimestampConverter() final DateTime? createdAt,
     @TimestampConverter() final DateTime? lastLoginAt,
     final bool isAdmin,
+    final bool isBanned,
+    final String? banReason,
+    @TimestampConverter() final DateTime? bannedAt,
   }) = _$UserModelImpl;
   const _UserModel._() : super._();
 
@@ -346,6 +415,13 @@ abstract class _UserModel extends UserModel {
   DateTime? get lastLoginAt;
   @override
   bool get isAdmin;
+  @override
+  bool get isBanned;
+  @override
+  String? get banReason;
+  @override
+  @TimestampConverter()
+  DateTime? get bannedAt;
 
   /// Create a copy of UserModel
   /// with the given fields replaced by the non-null parameter values.

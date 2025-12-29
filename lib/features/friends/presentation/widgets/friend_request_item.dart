@@ -76,6 +76,7 @@ class FriendRequestItem extends ConsumerWidget {
                               : () async {
                                 final success = await notifier.declineRequest(
                                   request.id,
+                                  senderId: request.senderId,
                                 );
                                 if (context.mounted && success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -97,6 +98,7 @@ class FriendRequestItem extends ConsumerWidget {
                               : () async {
                                 final success = await notifier.acceptRequest(
                                   request.id,
+                                  senderId: request.senderId,
                                 );
                                 if (context.mounted && success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +123,7 @@ class FriendRequestItem extends ConsumerWidget {
                           : () async {
                             final success = await notifier.cancelRequest(
                               request.id,
+                              receiverId: request.receiverId,
                             );
                             if (context.mounted && success) {
                               ScaffoldMessenger.of(context).showSnackBar(

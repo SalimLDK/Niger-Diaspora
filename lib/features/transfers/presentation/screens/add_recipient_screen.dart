@@ -29,6 +29,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
   String? _selectedMobileProvider;
   bool _isFavorite = false;
   bool _isLoading = false;
+  bool _isSubmitting = false; // Guard against double submission
 
   bool get _isEditing => widget.existingRecipient != null;
 
@@ -493,15 +494,33 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    // Guard against double submission (sync check before async setState)
+    if (_isSubmitting || _isLoading) {
+      debugPrint(
+        '🚫 Submit blocked: _isSubmitting=$_isSubmitting, _isLoading=$_isLoading',
+      );
+      return;
+    }
+    _isSubmitting = true;
+    debugPrint('✅ Submit started');
+
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('❌ Form validation failed');
+      _isSubmitting = false;
+      return;
+    }
 
     setState(() => _isLoading = true);
+
+    bool navigatedSuccessfully = false;
 
     try {
       final user = ref.read(currentUserAsyncProvider).value;
       if (user == null) {
         throw Exception('Utilisateur non connecte');
       }
+
+      debugPrint('👤 User: ${user.id}');
 
       final recipient = RecipientEntity(
         id: widget.existingRecipient?.id ?? '',
@@ -535,15 +554,23 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         lastUsedAt: widget.existingRecipient?.lastUsedAt,
       );
 
+      debugPrint('💾 Saving recipient: ${recipient.fullName}');
+
       final notifier = ref.read(recipientNotifierProvider.notifier);
 
       if (_isEditing) {
         await notifier.updateRecipient(recipient);
+        debugPrint('✏️ Recipient updated');
       } else {
         await notifier.createRecipient(recipient);
+        debugPrint('➕ Recipient created');
       }
 
+      debugPrint('📱 mounted=$mounted');
+
       if (mounted) {
+        navigatedSuccessfully = true;
+        debugPrint('🎉 Showing success snackbar');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -554,9 +581,18 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
             backgroundColor: AppColors.success,
           ),
         );
-        context.pop(recipient);
+
+        debugPrint('🔙 canPop=${context.canPop()}');
+        if (context.canPop()) {
+          debugPrint('🚀 Calling context.pop()');
+          context.pop(recipient);
+          debugPrint('✅ context.pop() called');
+        } else {
+          debugPrint('⚠️ Cannot pop - no route to pop');
+        }
       }
     } catch (e) {
+      debugPrint('❌ Error in submit: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -566,10 +602,19 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         );
       }
     } finally {
-      if (mounted) {
+      _isSubmitting = false;
+      debugPrint(
+        '🔄 Finally block: navigatedSuccessfully=$navigatedSuccessfully, mounted=$mounted',
+      );
+      // Only update loading state if we didn't navigate away successfully
+      if (!navigatedSuccessfully && mounted) {
+        debugPrint('⏸️ Setting _isLoading=false');
         setState(() => _isLoading = false);
+      } else {
+        debugPrint('✋ Skipping setState (navigated or not mounted)');
       }
     }
+    debugPrint('🏁 Submit method completed');
   }
 
   Future<void> _confirmDelete() async {
@@ -612,7 +657,10 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
               backgroundColor: AppColors.success,
             ),
           );
-          context.pop();
+          if (context.canPop()) {
+            context.pop();
+          }
+          return;
         }
       } catch (e) {
         if (mounted) {

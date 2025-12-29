@@ -3,6 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/event_entity.dart';
 
 abstract class EventRepository {
+  Either<Failure, List<EventEntity>> getCachedEvents();
   Future<Either<Failure, List<EventEntity>>> getEvents();
   Future<Either<Failure, List<EventEntity>>> getUpcomingEvents();
   Future<Either<Failure, List<EventEntity>>> getPastEvents();

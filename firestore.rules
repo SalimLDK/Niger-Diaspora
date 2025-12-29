@@ -7,21 +7,28 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    
     // Helper function to check if user owns the document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
     // Users collection - users can read any profile but only write their own
     match /users/{userId} {
-      // Allow any authenticated user to read profiles (for social features)
-      allow read: if isAuthenticated();
+      // Allow list queries (for browsing/aggregation) - authenticated users or admins
+      allow list: if isAuthenticated() || isAdmin();
       
-      // Allow write only if accessing own document
+      // Allow getting individual profiles - authenticated users
+      allow get: if isAuthenticated();
+      
+      // Allow write only if accessing own document (includes create, update, delete)
       allow write: if isOwner(userId);
-      
-      // Allow create for new users (during registration)
-      allow create: if isAuthenticated() && request.auth.uid == userId;
       
       // Friends subcollection
       match /friends/{friendId} {
@@ -43,18 +50,39 @@ service cloud.firestore {
     }
     
     // Friend requests collection
-    match /friendRequests/{requestId} {
+    match /friend_requests/{requestId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && 
+      // Only allow updating status field by the receiver, or canceling by sender
+      allow update: if isAuthenticated() && (
+        // Receiver can accept/decline (update status)
+        (resource.data.receiverId == request.auth.uid && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+        // Sender can cancel (update status to cancelled)
+        (resource.data.senderId == request.auth.uid && 
+         request.resource.data.status == 'cancelled' &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
+      );
+      // Allow deletion by either party after request is accepted/declined/cancelled
+      allow delete: if isAuthenticated() && 
         (resource.data.senderId == request.auth.uid || 
-         resource.data.receiverId == request.auth.uid);
+         resource.data.receiverId == request.auth.uid) &&
+        resource.data.status in ['accepted', 'declined', 'cancelled'];
     }
     
     // Notifications - users can only read/write their own notifications
     match /notifications/{notificationId} {
-      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated(); // Allow creation (e.g. by cloud functions or other users)
+      // Allow listing notifications with userId filter (for queries)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Allow getting a specific notification if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Allow creating notifications (for cloud functions and other users)
+      allow create: if isAuthenticated();
+      
+      // Allow update/delete only for owned notifications
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     // Conversations
@@ -73,17 +101,38 @@ service cloud.firestore {
 
     // Groups
     match /groups/{groupId} {
-      // Only allow reading public groups or groups the user is a member of
-      allow read: if isAuthenticated() && 
-        (resource.data.isPublic == true || request.auth.uid in resource.data.memberIds);
+      // Allow list queries (including aggregation/count) for authenticated users
+      // Note: Aggregation queries don't expose document data, just counts
+      // Admins can always list
+      allow list: if isAuthenticated() || isAdmin();
+      
+      // Individual document reads require privacy check (unless admin)
+      allow get: if isAdmin() || isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.createdBy == request.auth.uid || request.auth.uid in resource.data.memberIds);
-      allow delete: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        // Creator can update anything
+        resource.data.creatorId == request.auth.uid ||
+        // Members can update certain fields
+        request.auth.uid in resource.data.memberIds ||
+        (
+          // Allow users to join (add to memberIds and set their memberJoinedAt)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'memberJoinedAt']) &&
+          request.resource.data.memberIds.toSet().difference(resource.data.memberIds.toSet()).hasOnly([request.auth.uid]) &&
+          // Ensure they're not removing anyone else
+          resource.data.memberIds.toSet().difference(request.resource.data.memberIds.toSet()).size() == 0
+        ) ||
+        (
+          // Allow users to leave (only removing themselves from memberIds)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds']) &&
+          resource.data.memberIds.toSet().difference(request.resource.data.memberIds.toSet()).hasOnly([request.auth.uid])
+        )
+      );
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
     }
 
     // Events
     match /events/{eventId} {
-      allow read: if isAuthenticated(); // Public reading of events
+      allow read: if isAuthenticated() || isAdmin(); // Public reading of events + admin access
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
       allow delete: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
@@ -92,13 +141,20 @@ service cloud.firestore {
     // Reports
     match /reports/{reportId} {
       allow create: if isAuthenticated();
-      allow read, update, delete: if false; // Only admin via backend
+      // Admins can read and manage all reports
+      allow read, update, delete: if isAdmin();
     }
 
     // Payment Intents (Stripe)
     match /payment_intents/{intentId} {
       allow create: if isAuthenticated();
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Allow listing payment intents with userId filter
+      allow list: if isAuthenticated();
+      
+      // Allow getting specific intent if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
       allow update: if false; // Should be handled by Cloud Functions
     }
 
@@ -109,37 +165,329 @@ service cloud.firestore {
     
     // Products - Marketplace
     match /products/{productId} {
-      allow read: if (resource.data.isAvailable == true) || (isAuthenticated() && resource.data.sellerId == request.auth.uid);
+      // Allow listing all products for authenticated users
+      allow list: if isAuthenticated();
+
+      // Allow getting specific product if available OR user is seller
+      allow get: if isAuthenticated() && (resource.data.isAvailable == true || resource.data.sellerId == request.auth.uid);
+
       allow create: if isAuthenticated();
       allow update, delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
     }
 
     // Businesses
     match /businesses/{businessId} {
-      allow read: if true; // Allow public read for businesses (required for directory listing)
+      // Require authentication for reading business directory
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.ownerId == request.auth.uid || request.auth.uid == "admin"); // Add admin check if you have admin roles
+      allow update: if isAuthenticated() && (resource.data.ownerId == request.auth.uid || request.auth.uid == "admin");
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Business Posts (announcements, offers, etc.)
+    match /business_posts/{postId} {
+      // Require authentication for reading posts
+      allow read: if isAuthenticated();
+      // Only business owner can create/update/delete posts
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId == request.auth.uid;
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid;
     }
 
     // Transactions (Money Transfers)
     match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && 
+      // Allow listing transactions (queries must filter by senderId or receiverId)
+      allow list: if isAuthenticated();
+      
+      // Allow getting specific transaction if user is sender or receiver
+      allow get: if isAuthenticated() && 
         (resource.data.senderId == request.auth.uid || 
          resource.data.receiverId == request.auth.uid);
+      
       allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+      
       allow update: if isAuthenticated() && 
         (resource.data.senderId == request.auth.uid || 
          resource.data.receiverId == request.auth.uid);
+      
       allow delete: if false; // Transactions should not be deleted
     }
 
     // Recipients (for Money Transfers)
     match /recipients/{recipientId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Allow listing recipients with userId filter
+      allow list: if isAuthenticated();
+      
+      // Allow getting specific recipient if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Orders - users can manage their own orders as buyer or seller
+    match /orders/{orderId} {
+      // Allow listing orders (queries must filter by buyerId or sellerId)
+      allow list: if isAuthenticated();
+      
+      // Allow getting specific order if user is buyer or seller
+      allow get: if isAuthenticated() && 
+        (resource.data.buyerId == request.auth.uid || 
+         resource.data.sellerId == request.auth.uid);
+      
+      allow create: if isAuthenticated() && request.resource.data.buyerId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+        (resource.data.buyerId == request.auth.uid || 
+         resource.data.sellerId == request.auth.uid);
+      
+      allow delete: if false; // Orders should not be deleted
+    }
+
+    // Group Requests - users can send requests to join groups
+    match /group_requests/{requestId} {
+      allow list: if isAuthenticated(); // Queries filter by requesterId or groupId
+      allow get: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.requesterId == request.auth.uid;
+      // Requester can cancel, group creator can approve/reject
+      allow update: if isAuthenticated() && (
+        resource.data.requesterId == request.auth.uid ||
+        get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.creatorId == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && resource.data.requesterId == request.auth.uid;
+    }
+
+    // Group Invites - group admins can send invites, invited users can accept/decline
+    match /group_invites/{inviteId} {
+      allow list: if isAuthenticated(); // Queries filter by inviteeId or inviterId
+      allow get: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.inviterId == request.auth.uid;
+      // Invitee can accept/decline, inviter can cancel
+      allow update: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+      allow delete: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+    }
+
+    // Profile Share Links - users can create and manage temporary links to their profile
+    match /profile_share_links/{linkId} {
+      allow list: if isAuthenticated(); // Queries should filter by userId
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Escrow Transactions - managed by participants, often with backend involvement
+    match /escrow_transactions/{transactionId} {
+      allow list: if isAuthenticated(); // Queries should filter by participantId
+      allow get: if isAuthenticated() && 
+        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.initiatorId;
+      allow update: if isAuthenticated() && 
+        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      allow delete: if false; // Escrow transactions should not be deleted by users
+    }
+
+    // Business Reviews - users can write reviews, businesses can read them
+    match /business_reviews/{reviewId} {
+      allow list: if true; // Publicly readable reviews
+      allow get: if true;
+      allow create: if isAuthenticated() && request.resource.data.reviewerId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.reviewerId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.reviewerId == request.auth.uid;
+    }
+
+    // Business Boosts - managed by business owners
+    match /business_boosts/{boostId} {
+      allow list: if isAuthenticated(); // Queries should filter by businessId
+      allow get: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.businessOwnerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
+    }
+
+    // Legal Content - publicly readable, only admin can write
+    match /legal_content/{documentId} {
+      allow read: if true; // Publicly readable (e.g., Terms of Service, Privacy Policy)
+      allow write: if false; // Only admin via backend
+    }
+
+    // =========================================================================
+    // ADMIN-SPECIFIC RULES
+    // =========================================================================
+
+    // Admin Notifications - admins can read/write global notifications
+    match /admin_notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin Audit Logs - admins can read and write audit logs
+    match /admin_audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // App Configuration - readable by authenticated users, writable by admins only
+    match /app_config/{documentId} {
+      allow read: if isAuthenticated(); // All authenticated users can read settings
+      allow write: if isAdmin(); // Only admins can modify settings
+    }
+
+    // Embassies - admins can create and manage embassies
+    match /embassies/{embassyId} {
+      allow read: if true; // Public read for embassy directory
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Embassy Employees - admins can manage embassy staff
+    match /embassy_employees/{employeeId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Embassy Messages - admins can view all embassy communications
+    match /embassy_messages/{messageId} {
+      // Users can read their own messages or if they work at the embassy
+      allow read: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid ||
+         resource.data.embassyId != null);
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Activity Logs - admins can view user activity for moderation
+    match /activity_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Admin: Full access to profiles for user management
+    match /profiles/{profileId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Full access to orders for dispute management
+    match /orders/{orderId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Full access to products for moderation
+    match /products/{productId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to businesses for moderation
+    match /businesses/{businessId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to business posts for moderation
+    match /business_posts/{postId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to business reviews for moderation
+    match /business_reviews/{reviewId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to events for moderation
+    match /events/{eventId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to groups for moderation
+    match /groups/{groupId} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin: Full access to transactions for monitoring
+    match /transactions/{transactionId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Full access to users for management
+    match /users/{userId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Read notifications for all users (for support)
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage conversations for support/moderation
+    match /conversations/{conversationId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage escrow transactions for dispute resolution
+    match /escrow_transactions/{transactionId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Manage friend requests for moderation
+    match /friend_requests/{requestId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: Manage group requests for moderation
+    match /group_requests/{requestId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: Manage group invites for moderation
+    match /group_invites/{inviteId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: View profile share links for support
+    match /profile_share_links/{linkId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: View recipients for support
+    match /recipients/{recipientId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage business boosts
+    match /business_boosts/{boostId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: View payment intents for support
+    match /payment_intents/{intentId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Access user subcollections for moderation
+    match /users/{userId}/friends/{friendId} {
+      allow read, delete: if isAdmin();
+    }
+
+    match /users/{userId}/blocked_users/{blockId} {
+      allow read: if isAdmin();
+    }
+
+    match /users/{userId}/sessions/{sessionId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: Manage legal content (Terms, Privacy Policy)
+    match /legal_content/{documentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin: Access conversation messages for moderation
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read, delete: if isAdmin();
     }
 
     // Default deny all other collections

@@ -41,10 +41,14 @@ class ConversationEntity extends Equatable {
     this.unreadCount = const {},
     this.mutedBy = const {},
     this.archivedBy = const {},
+    this.deletedBy = const {},
   });
+
+  final Map<String, DateTime> deletedBy;
 
   bool isMutedBy(String userId) => mutedBy[userId] ?? false;
   bool isArchivedBy(String userId) => archivedBy[userId] ?? false;
+  bool isDeletedFor(String userId) => deletedBy.containsKey(userId);
 
   bool get isGroup => type == ConversationType.group;
   bool get isIndividual => type == ConversationType.individual;
@@ -78,6 +82,7 @@ class ConversationEntity extends Equatable {
     Map<String, int>? unreadCount,
     Map<String, bool>? mutedBy,
     Map<String, bool>? archivedBy,
+    Map<String, DateTime>? deletedBy,
   }) {
     return ConversationEntity(
       id: id ?? this.id,
@@ -97,6 +102,7 @@ class ConversationEntity extends Equatable {
       unreadCount: unreadCount ?? this.unreadCount,
       mutedBy: mutedBy ?? this.mutedBy,
       archivedBy: archivedBy ?? this.archivedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
     );
   }
 
@@ -119,5 +125,6 @@ class ConversationEntity extends Equatable {
     unreadCount,
     mutedBy,
     archivedBy,
+    deletedBy,
   ];
 }

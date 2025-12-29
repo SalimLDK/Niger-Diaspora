@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/firebase_collections.dart';
 import '../constants/app_colors.dart';
+import 'background_location_service.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -42,13 +43,28 @@ class NotificationService {
     await _getToken();
 
     // Listen for token refresh
-    _messaging.onTokenRefresh.listen(_saveTokenToDatabase);
+    _messaging.onTokenRefresh.listen(
+      _saveTokenToDatabase,
+      onError: (error) {
+        debugPrint('❌ Error in token refresh listener: $error');
+      },
+    );
 
     // Handle foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen(
+      _handleForegroundMessage,
+      onError: (error) {
+        debugPrint('❌ Error in foreground message listener: $error');
+      },
+    );
 
     // Handle notification tap when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleNotificationTap,
+      onError: (error) {
+        debugPrint('❌ Error in message opened listener: $error');
+      },
+    );
 
     // Check if app was opened from a notification
     final initialMessage = await _messaging.getInitialMessage();
@@ -109,10 +125,10 @@ class NotificationService {
 
     if (androidPlugin == null) return;
 
-    // Messages channel
+    // Messages channel (matches Firebase function channel ID)
     await androidPlugin.createNotificationChannel(
       const AndroidNotificationChannel(
-        'messages_channel',
+        'messages',
         'Messages',
         description: 'Notifications for new messages',
         importance: Importance.high,
@@ -177,6 +193,31 @@ class NotificationService {
         description: 'General application notifications',
         importance: Importance.defaultImportance,
         playSound: true,
+      ),
+    );
+
+    // Background Location Channel (Critical for OnePlus/Android 12+ crash prevention)
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        BackgroundLocationService.notificationChannelId,
+        BackgroundLocationService.notificationChannelName,
+        description: BackgroundLocationService.notificationChannelDescription,
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+        showBadge: false,
+      ),
+    );
+
+    // Proximity channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'proximity_channel',
+        'Proximity Notifications',
+        description: 'Notifications for nearby members',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
       ),
     );
 
@@ -447,7 +488,7 @@ class NotificationService {
   (String, String, Importance) _getChannelForType(String? type) {
     switch (type) {
       case 'message':
-        return ('messages_channel', 'Messages', Importance.high);
+        return ('messages', 'Messages', Importance.high);
       case 'friendRequest':
       case 'friendRequestAccepted':
         return ('friends_channel', 'Friend Requests', Importance.high);

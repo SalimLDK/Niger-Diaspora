@@ -32,6 +32,68 @@ class ProductEntity with _$ProductEntity {
 
   const ProductEntity._();
 
+  /// Convert to JSON for local storage
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'sellerId': sellerId,
+    'sellerName': sellerName,
+    'sellerPhotoUrl': sellerPhotoUrl,
+    'title': title,
+    'description': description,
+    'price': price,
+    'currency': currency,
+    'imageUrls': imageUrls,
+    'category': category.name,
+    'condition': condition.name,
+    'location': location,
+    'isAvailable': isAvailable,
+    'quantity': quantity,
+    'viewCount': viewCount,
+    'tags': tags,
+    'isTaxable': isTaxable,
+    'customTaxRate': customTaxRate,
+    'taxIncludedInPrice': taxIncludedInPrice,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
+  };
+
+  /// Create from JSON
+  static ProductEntity fromJson(Map<String, dynamic> json) {
+    return ProductEntity(
+      id: json['id'] as String? ?? '',
+      sellerId: json['sellerId'] as String? ?? '',
+      sellerName: json['sellerName'] as String?,
+      sellerPhotoUrl: json['sellerPhotoUrl'] as String?,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency'] as String? ?? 'XOF',
+      imageUrls: (json['imageUrls'] as List<dynamic>?)?.cast<String>() ?? [],
+      category: ProductCategory.values.firstWhere(
+        (e) => e.name == json['category'],
+        orElse: () => ProductCategory.other,
+      ),
+      condition: ProductCondition.values.firstWhere(
+        (e) => e.name == json['condition'],
+        orElse: () => ProductCondition.newProduct,
+      ),
+      location: json['location'] as String?,
+      isAvailable: json['isAvailable'] as bool? ?? true,
+      quantity: json['quantity'] as int? ?? 1,
+      viewCount: json['viewCount'] as int? ?? 0,
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      isTaxable: json['isTaxable'] as bool? ?? true,
+      customTaxRate: (json['customTaxRate'] as num?)?.toDouble(),
+      taxIncludedInPrice: json['taxIncludedInPrice'] as bool? ?? false,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'] as String)
+          : null,
+    );
+  }
+
   /// Get effective tax rate based on settings
   double get effectiveTaxRate {
     if (!isTaxable) return 0.0;

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/business_entity.dart';
 
@@ -40,6 +41,42 @@ class BusinessModel with _$BusinessModel {
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) =>
       _$BusinessModelFromJson(json);
+
+  /// Factory pour créer un BusinessModel depuis un document Firestore
+  /// Gère correctement la conversion des Timestamps en DateTime
+  factory BusinessModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    // Convertir les Timestamps en strings ISO8601 pour la désérialisation JSON
+    final processedData = <String, dynamic>{
+      ...data,
+      'id': doc.id,
+    };
+
+    // Conversion des timestamps
+    if (data['createdAt'] is Timestamp) {
+      processedData['createdAt'] = (data['createdAt'] as Timestamp).toDate().toIso8601String();
+    }
+    if (data['updatedAt'] is Timestamp) {
+      processedData['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+    }
+    if (data['boostExpiresAt'] is Timestamp) {
+      processedData['boostExpiresAt'] = (data['boostExpiresAt'] as Timestamp).toDate().toIso8601String();
+    }
+
+    // Assurer que les listes sont bien des List<String>
+    if (data['photoUrls'] != null) {
+      processedData['photoUrls'] = (data['photoUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    }
+    if (data['tags'] != null) {
+      processedData['tags'] = (data['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    }
+    if (data['services'] != null) {
+      processedData['services'] = (data['services'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    }
+
+    return BusinessModel.fromJson(processedData);
+  }
 
   BusinessEntity toEntity() => BusinessEntity(
         id: id,

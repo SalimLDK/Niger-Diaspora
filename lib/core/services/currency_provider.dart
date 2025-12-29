@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../providers/app_settings_provider.dart';
 import 'currency_service.dart';
 
 part 'currency_provider.g.dart';
@@ -11,7 +12,18 @@ part 'currency_provider.g.dart';
 @riverpod
 CurrencyService currencyService(Ref ref) {
   final service = CurrencyService.instance;
-  // Initialize in background
+
+  // Get exchange rates from app settings and configure fallback rates
+  final exchangeRates = ref.watch(exchangeRatesProvider);
+  service.setFallbackRates(
+    eurToXof: exchangeRates.eurToXof,
+    usdToXof: exchangeRates.usdToXof,
+    gbpToXof: exchangeRates.gbpToXof,
+    cadToXof: exchangeRates.cadToXof,
+    chfToXof: exchangeRates.chfToXof,
+  );
+
+  // Initialize in background (will fetch from API if available)
   service.initialize();
   return service;
 }

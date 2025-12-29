@@ -46,11 +46,9 @@ final messageRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MessageRepositoryRef = AutoDisposeProviderRef<MessageRepository>;
-String _$conversationsHash() => r'e43a752352878dbfd7156bfefd44c463835a3e3d';
+String _$conversationsHash() => r'0f4bb5558df44c55c0236b3218da6d41f08a0bba';
 
-/// Stream des conversations de l'utilisateur actuel
-///
-/// Copied from [conversations].
+/// See also [conversations].
 @ProviderFor(conversations)
 final conversationsProvider =
     AutoDisposeStreamProvider<List<ConversationEntity>>.internal(
@@ -378,7 +376,7 @@ final totalUnreadCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TotalUnreadCountRef = AutoDisposeProviderRef<int>;
-String _$paginatedMessagesHash() => r'3e09c002aa9a9c0e86f62f1318a88e22a24316f1';
+String _$paginatedMessagesHash() => r'34578de326008e385ae5cd627086a67d7a98e9ca';
 
 abstract class _$PaginatedMessages
     extends BuildlessNotifier<MessagePaginationState> {
@@ -527,7 +525,7 @@ class _PaginatedMessagesProviderElement
       (origin as PaginatedMessagesProvider).conversationId;
 }
 
-String _$sendMessageHash() => r'd6fbee1ff7f7edd52047382d346082ca4e1e92a1';
+String _$sendMessageHash() => r'fa3737a2ea4356894dc364d895a0b8da9c14c9d7';
 
 /// Notifier pour envoyer des messages
 ///
@@ -588,7 +586,7 @@ final markAsReadProvider =
     );
 
 typedef _$MarkAsRead = AutoDisposeNotifier<AsyncValue<void>>;
-String _$deleteMessageHash() => r'f220687f766e4ecf553b5a02cf4189f355c0e80f';
+String _$deleteMessageHash() => r'141b2f6f01f455f3e608bda3998c7853f2cca14b';
 
 /// Notifier pour supprimer des messages
 ///

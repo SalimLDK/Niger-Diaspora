@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Charte graphique premium Niger Diaspora
+/// Charte graphique premium Diaspo Niger
 /// Palette inspiree du drapeau nigerien et des tons saheliens
 class AppColors {
   AppColors._();

@@ -13,6 +13,9 @@ abstract class MessageRepository {
     String userId,
   );
 
+  /// Récupérer les conversations depuis le cache local (instantané)
+  Either<Failure, List<ConversationEntity>> getCachedConversations();
+
   /// Stream d'une conversation spécifique (pour détecter suppression/changements)
   Stream<Either<Failure, ConversationEntity?>> getConversationStream(
     String conversationId,
@@ -30,10 +33,22 @@ abstract class MessageRepository {
     String? beforeMessageId,
   });
 
+  /// Récupérer les messages en cache pour une conversation
+  Either<Failure, List<MessageEntity>> getCachedMessages({
+    required String conversationId,
+    int? limit,
+    String? beforeMessageId,
+  });
+
   /// Stream des nouveaux messages après un timestamp donné
   Stream<Either<Failure, List<MessageEntity>>> getNewMessagesStream({
     required String conversationId,
     required DateTime afterTimestamp,
+  });
+
+  /// Stream pour écouter les modifications de messages existants (réactions, éditions)
+  Stream<Either<Failure, MessageEntity>> getMessageUpdatesStream({
+    required String conversationId,
   });
 
   /// Envoyer un message texte
@@ -43,6 +58,8 @@ abstract class MessageRepository {
     required String senderName,
     String? senderPhotoUrl,
     required String content,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   });
 
   /// Envoyer un message avec fichier (image ou document)
@@ -56,6 +73,8 @@ abstract class MessageRepository {
     String? caption,
     void Function(double)? onProgress,
     bool Function()? checkCancelled,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   });
 
   /// Créer une conversation individuelle
@@ -80,7 +99,11 @@ abstract class MessageRepository {
   });
 
   /// Supprimer une conversation
-  Future<Either<Failure, void>> deleteConversation(String conversationId);
+  Future<Either<Failure, void>> deleteConversation({
+    required String conversationId,
+    required String userId,
+    bool forEveryone = false,
+  });
 
   /// Obtenir ou créer une conversation individuelle existante
   Future<Either<Failure, ConversationEntity>>
@@ -98,6 +121,8 @@ abstract class MessageRepository {
     required File audioFile,
     required int duration,
     required List<double> waveform,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   });
 
   /// Récupérer les médias d'une conversation (images et fichiers, pas audio)

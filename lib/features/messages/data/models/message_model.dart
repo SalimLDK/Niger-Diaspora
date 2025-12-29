@@ -32,6 +32,9 @@ class MessageModel with _$MessageModel {
     @Default(false) bool deletedForEveryone,
     DateTime? deletedAt,
     @Default([]) List<String> reportedBy,
+    @Default([]) List<String> reactions,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>
@@ -50,6 +53,9 @@ class MessageModel with _$MessageModel {
       'deletedAt': _timestampToIso(data['deletedAt']),
       'reportedBy':
           (data['reportedBy'] as List<dynamic>?)?.cast<String>() ?? [],
+      'reactions': (data['reactions'] as List<dynamic>?)?.cast<String>() ?? [],
+      'replyToId': data['replyToId'],
+      'replyToMessageData': data['replyToMessageData'],
     });
   }
 
@@ -96,6 +102,9 @@ class MessageModel with _$MessageModel {
     deletedForEveryone: deletedForEveryone,
     deletedAt: deletedAt,
     reportedBy: reportedBy,
+    reactions: reactions,
+    replyToId: replyToId,
+    replyToMessageData: replyToMessageData,
   );
 
   factory MessageModel.fromEntity(MessageEntity entity) => MessageModel(
@@ -120,6 +129,9 @@ class MessageModel with _$MessageModel {
     deletedForEveryone: entity.deletedForEveryone,
     deletedAt: entity.deletedAt,
     reportedBy: entity.reportedBy,
+    reactions: entity.reactions,
+    replyToId: entity.replyToId,
+    replyToMessageData: entity.replyToMessageData,
   );
 
   static MessageType _parseMessageType(String value) {

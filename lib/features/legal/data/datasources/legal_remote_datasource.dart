@@ -8,6 +8,7 @@ import '../models/legal_content_model.dart';
 abstract class LegalRemoteDataSource {
   Future<LegalContentModel> getTerms();
   Future<LegalContentModel> getPrivacyPolicy();
+  Future<LegalContentModel> getCodeOfConduct();
   Future<UserLegalAcceptance?> getUserAcceptance(String userId);
   Future<void> saveUserAcceptance(String userId, UserLegalAcceptance acceptance);
   Future<bool> needsAcceptance(String userId);
@@ -32,6 +33,11 @@ class LegalRemoteDataSourceImpl implements LegalRemoteDataSource {
   @override
   Future<LegalContentModel> getPrivacyPolicy() async {
     return _getLegalContent('privacy');
+  }
+
+  @override
+  Future<LegalContentModel> getCodeOfConduct() async {
+    return _getLegalContent('conduct');
   }
 
   Future<LegalContentModel> _getLegalContent(String type) async {

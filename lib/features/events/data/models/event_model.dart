@@ -40,7 +40,18 @@ class EventModel with _$EventModel {
 
   factory EventModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return EventModel.fromJson({...data, 'id': doc.id});
+
+    // Convert Timestamps to DateTime
+    final processedData = <String, dynamic>{'id': doc.id};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        processedData[key] = value.toDate();
+      } else {
+        processedData[key] = value;
+      }
+    });
+
+    return EventModel.fromJson(processedData);
   }
 
   EventEntity toEntity() => EventEntity(

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -67,7 +66,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       curve: Curves.easeOutBack,
     );
     _animationController.forward();
-    _shareUrl = 'https://diasponiger.com/g/${widget.groupId}';
+    _shareUrl = 'https://diaspo-niger.web.app/g/${widget.groupId}';
   }
 
   @override
@@ -129,8 +128,8 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                         _buildShareButtons(isDark, l10n),
                         const SizedBox(height: 16),
 
-                        // Scan QR code button
-                        _buildScanButton(isDark, l10n),
+                        // TODO: Scan QR code button - disabled temporarily
+                        // _buildScanButton(isDark, l10n),
                       ],
                     ),
                   ),
@@ -502,60 +501,6 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     );
   }
 
-  Widget _buildScanButton(bool isDark, AppLocalizations l10n) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          Navigator.pop(context);
-          context.push('/qr-scanner');
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            gradient: context.adaptivePrimaryGradient,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.qr_code_scanner_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Scanner un QR code',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _copyLink() {
     HapticFeedback.mediumImpact();
     Clipboard.setData(ClipboardData(text: _shareUrl));
@@ -570,7 +515,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   Future<void> _shareViaWhatsApp() async {
     HapticFeedback.lightImpact();
     final message =
-        'Rejoignez le groupe "${widget.groupName}" sur Niger Diaspora: $_shareUrl';
+        'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://wa.me/?text=${Uri.encodeComponent(message)}',
     );
@@ -592,7 +537,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   Future<void> _shareViaTwitter() async {
     HapticFeedback.lightImpact();
     final message =
-        'Rejoignez le groupe "${widget.groupName}" sur Niger Diaspora: $_shareUrl';
+        'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://twitter.com/intent/tweet?text=${Uri.encodeComponent(message)}',
     );
@@ -604,7 +549,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   Future<void> _shareViaSystem() async {
     HapticFeedback.lightImpact();
     await Share.share(
-      'Rejoignez le groupe "${widget.groupName}" sur Niger Diaspora: $_shareUrl',
+      'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl',
       subject: widget.groupName,
     );
   }

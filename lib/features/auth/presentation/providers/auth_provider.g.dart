@@ -100,6 +100,27 @@ final signOutUseCaseProvider = AutoDisposeProvider<SignOut>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SignOutUseCaseRef = AutoDisposeProviderRef<SignOut>;
+String _$sendPasswordResetEmailUseCaseHash() =>
+    r'771eadae47d686e92afc4d9c2a1119ceffe9038d';
+
+/// See also [sendPasswordResetEmailUseCase].
+@ProviderFor(sendPasswordResetEmailUseCase)
+final sendPasswordResetEmailUseCaseProvider =
+    AutoDisposeProvider<SendPasswordResetEmail>.internal(
+      sendPasswordResetEmailUseCase,
+      name: r'sendPasswordResetEmailUseCaseProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$sendPasswordResetEmailUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SendPasswordResetEmailUseCaseRef =
+    AutoDisposeProviderRef<SendPasswordResetEmail>;
 String _$currentUserHash() => r'3578808cf73813fa908cac5fce6872262b34aae2';
 
 /// See also [currentUser].
@@ -137,7 +158,7 @@ final currentUserAsyncProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserAsyncRef = AutoDisposeStreamProviderRef<UserEntity?>;
-String _$authNotifierHash() => r'be5bb22a9a557954483c4ff04408e8a23961b07c';
+String _$authNotifierHash() => r'632210c19cd3007a9e8bc5ad77aab807b643debf';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

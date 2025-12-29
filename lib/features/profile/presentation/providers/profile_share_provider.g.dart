@@ -177,7 +177,7 @@ class _ProfileUserIdFromShareCodeProviderElement
 }
 
 String _$profileShareNotifierHash() =>
-    r'bb3c20b2afd0cc83fc1cba97ed752fb7a4f7cab7';
+    r'0d3984bf5977494e974c99c1fb7c5ed120e9dc99';
 
 /// See also [ProfileShareNotifier].
 @ProviderFor(ProfileShareNotifier)

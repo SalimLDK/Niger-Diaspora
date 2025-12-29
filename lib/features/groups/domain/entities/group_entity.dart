@@ -17,6 +17,7 @@ class GroupEntity with _$GroupEntity {
     @Default(false) bool isPrivate,
     String? location,
     @Default([]) List<String> tags,
+    @Default({}) Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
   }) = _GroupEntity;
 }

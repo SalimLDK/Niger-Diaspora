@@ -28,18 +28,33 @@
                 ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
                 ".write": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
                 "$messageId": {
-                    ".validate": "newData.hasChildren(['senderId', 'content', 'type', 'createdAt']) && newData.child('senderId').val() === auth.uid",
+                    ".validate": "newData.hasChildren(['senderId', 'type', 'createdAt'])",
                     "content": {
-                        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 10000"
+                        ".validate": "newData.isString() && newData.val().length < 10000"
                     },
                     "type": {
-                        ".validate": "newData.isString() && (newData.val() === 'text' || newData.val() === 'image' || newData.val() === 'audio' || newData.val() === 'video' || newData.val() === 'file')"
+                        ".validate": "newData.isString() && (newData.val() === 'text' || newData.val() === 'image' || newData.val() === 'audio' || newData.val() === 'video' || newData.val() === 'file' || newData.val() === 'system')"
                     },
                     "createdAt": {
                         ".validate": "newData.isString()"
                     },
                     "senderId": {
-                        ".validate": "newData.isString() && newData.val() === auth.uid"
+                        ".validate": "newData.isString() && (data.exists() ? data.val() === newData.val() : newData.val() === auth.uid)"
+                    },
+                    "deletedFor": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "deletedForEveryone": {
+                        ".validate": "newData.isBoolean()"
+                    },
+                    "deletedAt": {
+                        ".validate": "newData.isString()"
+                    },
+                    "reactions": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "reportedBy": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
                     }
                 }
             }

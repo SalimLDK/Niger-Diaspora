@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -12,6 +13,7 @@ import '../../domain/entities/message_entity.dart';
 import '../../domain/entities/paginated_messages.dart';
 import '../../domain/repositories/message_repository.dart';
 import '../datasources/message_remote_datasource.dart';
+import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 
 class MessageRepositoryImpl implements MessageRepository {
@@ -34,8 +36,20 @@ class MessageRepositoryImpl implements MessageRepository {
     return remoteDataSource
         .getConversations(userId)
         .map((conversations) {
+          // Filter out deleted conversations
+          final filteredConversations =
+              conversations.where((c) {
+                return !c.deletedBy.containsKey(userId);
+              }).toList();
+
+          // Cache the conversations
+          // Convert models to json maps for caching
+          final conversationsMap =
+              filteredConversations.map((c) => c.toJson()).toList();
+          cacheService.cacheConversations(conversationsMap);
+
           return Right<Failure, List<ConversationEntity>>(
-            conversations.map((c) => c.toEntity()).toList(),
+            filteredConversations.map((c) => c.toEntity()).toList(),
           );
         })
         .handleError((error) {
@@ -43,6 +57,33 @@ class MessageRepositoryImpl implements MessageRepository {
             ServerFailure(error.toString()),
           );
         });
+  }
+
+  @override
+  Either<Failure, List<ConversationEntity>> getCachedConversations() {
+    try {
+      final cachedMap = cacheService.getAllCachedConversations();
+      // Sort by lastMessageAt descending if needed, though cache might be unordered
+      // Assuming cache service returns list, we sort it here to be safe
+      cachedMap.sort((a, b) {
+        final aTime = a['lastMessageAt'] as String?;
+        final bTime = b['lastMessageAt'] as String?;
+        if (aTime == null || bTime == null) return 0;
+        return bTime.compareTo(aTime); // Descending
+      });
+
+      final entities =
+          cachedMap
+              .map((map) => ConversationModel.fromJson(map))
+              // Note: Cache is already filtered by userId during caching in getConversations()
+              // Deleted conversations are filtered out before caching, so this is safe
+              .map((model) => model.toEntity())
+              .toList();
+
+      return Right(entities);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
   }
 
   @override
@@ -62,6 +103,30 @@ class MessageRepositoryImpl implements MessageRepository {
             ServerFailure(error.toString()),
           );
         });
+  }
+
+  @override
+  Either<Failure, List<MessageEntity>> getCachedMessages({
+    required String conversationId,
+    int? limit,
+    String? beforeMessageId,
+  }) {
+    try {
+      final cachedMessages = cacheService.getCachedMessages(
+        conversationId,
+        limit: limit,
+        beforeMessageId: beforeMessageId,
+      );
+
+      final entities =
+          cachedMessages
+              .map((m) => MessageModel.fromJson(m).toEntity())
+              .toList();
+
+      return Right(entities);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
   }
 
   @override
@@ -89,6 +154,8 @@ class MessageRepositoryImpl implements MessageRepository {
     required String senderName,
     String? senderPhotoUrl,
     required String content,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -101,6 +168,8 @@ class MessageRepositoryImpl implements MessageRepository {
         senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
         content: content,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
     } on ServerException catch (e) {
@@ -121,6 +190,8 @@ class MessageRepositoryImpl implements MessageRepository {
     String? caption,
     void Function(double customProgress)? onProgress,
     bool Function()? checkCancelled,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -216,6 +287,8 @@ class MessageRepositoryImpl implements MessageRepository {
           mimeType: mimeType,
           type: type.name,
           caption: caption,
+          replyToId: replyToId,
+          replyToMessageData: replyToMessageData,
         );
         return Right(message.toEntity());
       });
@@ -299,16 +372,24 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteConversation(
-    String conversationId,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
-    }
-
+  Future<Either<Failure, void>> deleteConversation({
+    required String conversationId,
+    required String userId,
+    bool forEveryone = false,
+  }) async {
     try {
-      await remoteDataSource.deleteConversation(conversationId);
-      return const Right(null);
+      if (await networkInfo.isConnected) {
+        await remoteDataSource.deleteConversation(
+          conversationId: conversationId,
+          userId: userId,
+          forEveryone: forEveryone,
+        );
+        return const Right(null);
+      } else {
+        // Offline deletion not fully supported yet for sync,
+        // but could implement local marking if needed.
+        return Left(NetworkFailure('Non disponible hors connexion'));
+      }
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -356,24 +437,36 @@ class MessageRepositoryImpl implements MessageRepository {
     required int limit,
     String? beforeMessageId,
   }) async {
+    debugPrint(
+      '📥 Repository: getMessagesPaginated called for $conversationId',
+    );
     final isConnected = await networkInfo.isConnected;
+    debugPrint('📡 Repository: isConnected = $isConnected');
 
     if (isConnected) {
       try {
+        debugPrint('🌐 Repository: Fetching from remote data source...');
         final (messages, _) = await remoteDataSource.getMessagesPaginated(
           conversationId: conversationId,
           limit: limit,
           lastMessageKey: beforeMessageId,
         );
 
+        debugPrint(
+          '📦 Repository: Received ${messages.length} messages from remote',
+        );
+
         // _lastDocument = lastDoc; // Not needed anymore
 
         final entities = messages.map((m) => m.toEntity()).toList();
-        final hasMore = messages.length >= limit;
+        // Fix: use > instead of >= to avoid false positive when exactly limit messages returned
+        final hasMore = messages.length == limit;
 
         // Cache the messages
         final messageMaps = messages.map((m) => m.toJson()).toList();
         await cacheService.cacheMessages(conversationId, messageMaps);
+
+        debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
 
         return Right(
           PaginatedMessages(
@@ -385,8 +478,10 @@ class MessageRepositoryImpl implements MessageRepository {
           ),
         );
       } on ServerException catch (e) {
+        debugPrint('❌ Repository: ServerException - ${e.message}');
         return Left(ServerFailure(e.message));
       } catch (e) {
+        debugPrint('❌ Repository: Unexpected error - ${e.toString()}');
         return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
       }
     } else {
@@ -451,6 +546,22 @@ class MessageRepositoryImpl implements MessageRepository {
         });
   }
 
+  @override
+  Stream<Either<Failure, MessageEntity>> getMessageUpdatesStream({
+    required String conversationId,
+  }) {
+    return remoteDataSource
+        .getMessageUpdatesStream(conversationId: conversationId)
+        .map((message) {
+          return Right<Failure, MessageEntity>(message.toEntity());
+        })
+        .handleError((error) {
+          return Left<Failure, MessageEntity>(
+            ServerFailure(error.toString()),
+          );
+        });
+  }
+
   void resetPagination() {
     // _lastDocument = null;
   }
@@ -464,6 +575,8 @@ class MessageRepositoryImpl implements MessageRepository {
     required File audioFile,
     required int duration,
     required List<double> waveform,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -478,6 +591,8 @@ class MessageRepositoryImpl implements MessageRepository {
         audioFile: audioFile,
         duration: duration,
         waveform: waveform,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
     } on ServerException catch (e) {

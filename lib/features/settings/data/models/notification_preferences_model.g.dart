@@ -13,6 +13,8 @@ _$NotificationPreferencesModelImpl _$$NotificationPreferencesModelImplFromJson(
   newEvents: json['newEvents'] as bool? ?? true,
   groupActivity: json['groupActivity'] as bool? ?? true,
   eventReminders: json['eventReminders'] as bool? ?? true,
+  localEvents: json['localEvents'] as bool? ?? true,
+  systemMessages: json['systemMessages'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$NotificationPreferencesModelImplToJson(
@@ -22,4 +24,6 @@ Map<String, dynamic> _$$NotificationPreferencesModelImplToJson(
   'newEvents': instance.newEvents,
   'groupActivity': instance.groupActivity,
   'eventReminders': instance.eventReminders,
+  'localEvents': instance.localEvents,
+  'systemMessages': instance.systemMessages,
 };

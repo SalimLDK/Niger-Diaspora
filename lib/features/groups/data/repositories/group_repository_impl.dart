@@ -2,20 +2,41 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/repositories/group_repository.dart';
 import '../datasources/group_remote_datasource.dart';
+import '../datasources/group_request_datasource.dart';
 import '../models/group_model.dart';
+import '../../domain/entities/group_request_entity.dart';
 
 class GroupRepositoryImpl implements GroupRepository {
   final GroupRemoteDataSource remoteDataSource;
+  final GroupRequestDataSource requestDataSource;
   final NetworkInfo networkInfo;
+  final CacheService cacheService;
 
   GroupRepositoryImpl({
     required this.remoteDataSource,
+    required this.requestDataSource,
     required this.networkInfo,
-  });
+    CacheService? cacheService,
+  }) : cacheService = cacheService ?? CacheService.instance;
+
+  @override
+  Either<Failure, List<GroupEntity>> getCachedGroups() {
+    try {
+      final cachedData = cacheService.getAllCachedGroups();
+      final entities =
+          cachedData
+              .map((data) => GroupModel.fromJson(data).toEntity())
+              .toList();
+      return Right(entities);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, List<GroupEntity>>> getGroups() async {
@@ -55,6 +76,28 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(group.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Stream<Either<Failure, GroupEntity?>> getGroupStream(String groupId) {
+    try {
+      return remoteDataSource
+          .getGroupStream(groupId)
+          .map<Either<Failure, GroupEntity?>>((groupModel) {
+            if (groupModel == null) {
+              return const Right(null);
+            }
+            return Right(groupModel.toEntity());
+          })
+          .handleError((error) {
+            if (error is ServerException) {
+              return Left(ServerFailure(error.message));
+            }
+            return Left(ServerFailure(error.toString()));
+          });
+    } catch (e) {
+      return Stream.value(Left(ServerFailure(e.toString())));
     }
   }
 
@@ -145,6 +188,22 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
+  Future<Either<Failure, void>> removeMember(
+    String groupId,
+    String userId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      await remoteDataSource.removeMember(groupId, userId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<GroupEntity>>> getMyGroups(String userId) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -167,6 +226,104 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(groups.map((g) => g.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    }
+  }
+
+  // Join Requests
+  @override
+  Future<Either<Failure, void>> requestToJoinGroup({
+    required String groupId,
+    required String groupName,
+    String? groupImageUrl,
+    required String requesterId,
+    required String requesterName,
+    String? requesterPhotoUrl,
+    String? message,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      await requestDataSource.requestToJoinGroup(
+        groupId: groupId,
+        groupName: groupName,
+        groupImageUrl: groupImageUrl,
+        requesterId: requesterId,
+        requesterName: requesterName,
+        requesterPhotoUrl: requesterPhotoUrl,
+        message: message,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> approveJoinRequest(String requestId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      await requestDataSource.approveJoinRequest(requestId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> rejectJoinRequest(String requestId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      await requestDataSource.rejectJoinRequest(requestId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Stream<Either<Failure, List<GroupRequestEntity>>> getPendingRequests(
+    String groupId,
+  ) {
+    try {
+      return requestDataSource
+          .getPendingRequests(groupId)
+          .map<Either<Failure, List<GroupRequestEntity>>>((models) {
+            return Right(models.map((m) => m.toEntity()).toList());
+          })
+          .handleError((error) {
+            if (error is ServerException) {
+              return Left(ServerFailure(error.message));
+            }
+            return Left(ServerFailure(error.toString()));
+          });
+    } catch (e) {
+      return Stream.value(Left(ServerFailure(e.toString())));
+    }
+  }
+
+  @override
+  Stream<Either<Failure, List<GroupRequestEntity>>> getMyGroupRequests(
+    String userId,
+  ) {
+    try {
+      return requestDataSource
+          .getMyGroupRequests(userId)
+          .map<Either<Failure, List<GroupRequestEntity>>>((models) {
+            return Right(models.map((m) => m.toEntity()).toList());
+          })
+          .handleError((error) {
+            if (error is ServerException) {
+              return Left(ServerFailure(error.message));
+            }
+            return Left(ServerFailure(error.toString()));
+          });
+    } catch (e) {
+      return Stream.value(Left(ServerFailure(e.toString())));
     }
   }
 }

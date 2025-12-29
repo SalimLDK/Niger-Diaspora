@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/preferences_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 
 part 'notification_preferences_provider.g.dart';
 
@@ -10,6 +12,8 @@ class NotificationPreferences {
   final bool friendRequestsEnabled;
   final bool groupsEnabled;
   final bool eventRemindersEnabled;
+  final bool localEventsEnabled;
+  final bool systemMessagesEnabled;
   final bool soundEnabled;
   final bool vibrationEnabled;
   final bool quietHoursEnabled;
@@ -24,6 +28,8 @@ class NotificationPreferences {
     required this.friendRequestsEnabled,
     required this.groupsEnabled,
     required this.eventRemindersEnabled,
+    required this.localEventsEnabled,
+    required this.systemMessagesEnabled,
     required this.soundEnabled,
     required this.vibrationEnabled,
     required this.quietHoursEnabled,
@@ -39,6 +45,8 @@ class NotificationPreferences {
     bool? friendRequestsEnabled,
     bool? groupsEnabled,
     bool? eventRemindersEnabled,
+    bool? localEventsEnabled,
+    bool? systemMessagesEnabled,
     bool? soundEnabled,
     bool? vibrationEnabled,
     bool? quietHoursEnabled,
@@ -55,6 +63,9 @@ class NotificationPreferences {
       groupsEnabled: groupsEnabled ?? this.groupsEnabled,
       eventRemindersEnabled:
           eventRemindersEnabled ?? this.eventRemindersEnabled,
+      localEventsEnabled: localEventsEnabled ?? this.localEventsEnabled,
+      systemMessagesEnabled:
+          systemMessagesEnabled ?? this.systemMessagesEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
@@ -80,6 +91,8 @@ class NotificationPreferencesNotifier
       friendRequestsEnabled: _prefs.notifyFriendRequests,
       groupsEnabled: _prefs.notifyGroups,
       eventRemindersEnabled: _prefs.notifyEventReminders,
+      localEventsEnabled: _prefs.notifyLocalEvents,
+      systemMessagesEnabled: _prefs.notifySystemMessages,
       soundEnabled: _prefs.notificationSound,
       vibrationEnabled: _prefs.notificationVibration,
       quietHoursEnabled: _prefs.quietHoursEnabled,
@@ -113,6 +126,23 @@ class NotificationPreferencesNotifier
   Future<void> setEventRemindersEnabled(bool enabled) async {
     await _prefs.setNotifyEventReminders(enabled);
     state = state.copyWith(eventRemindersEnabled: enabled);
+  }
+
+  Future<void> setLocalEventsEnabled(bool enabled) async {
+    await _prefs.setNotifyLocalEvents(enabled);
+    state = state.copyWith(localEventsEnabled: enabled);
+
+    // Sync to Firestore for Cloud Function queries
+    final userId = ref.read(currentUserProvider).valueOrNull?.id;
+    if (userId != null) {
+      final datasource = ref.read(profileRemoteDataSourceProvider);
+      await datasource.updateNotifyLocalEvents(userId, enabled);
+    }
+  }
+
+  Future<void> setSystemMessagesEnabled(bool enabled) async {
+    await _prefs.setNotifySystemMessages(enabled);
+    state = state.copyWith(systemMessagesEnabled: enabled);
   }
 
   Future<void> setSoundEnabled(bool enabled) async {

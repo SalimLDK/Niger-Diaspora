@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_page.dart';
 
@@ -26,7 +27,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
 
   final List<OnboardingPageData> _pages = const [
     OnboardingPageData(
-      title: 'Bienvenue sur\nNiger Diaspora',
+      title: 'Bienvenue sur\nDiaspo Niger',
       description:
           'Connectez-vous avec la diaspora nigerienne partout dans le monde. Retrouvez vos compatriotes et partagez ensemble.',
       icon: Icons.people_outline,
@@ -101,7 +102,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -115,7 +116,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                   child: Text(
                     'Passer',
                     style: TextStyle(
-                      color: AppColors.textTertiary,
+                      color: context.textTertiaryColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),

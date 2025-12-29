@@ -246,7 +246,7 @@ class _FriendshipStatusProviderElement
 }
 
 String _$friendRequestNotifierHash() =>
-    r'9e0b55333fb7f7be55d7b1a02f51316296a44d56';
+    r'0d8733cac0dc3691a7344f825c76bdcb67616361';
 
 /// See also [FriendRequestNotifier].
 @ProviderFor(FriendRequestNotifier)

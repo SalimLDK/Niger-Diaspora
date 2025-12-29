@@ -18,6 +18,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/background_location_service.dart';
+import '../../../../core/services/location_service.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
 
@@ -35,26 +36,20 @@ class ProfileViewScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileViewScreen> createState() => _ProfileViewScreenState();
 }
 
-class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
-  ProfileEntity? _profile;
-  bool _isLoading = true;
+class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
+    with AutomaticKeepAliveClientMixin {
   bool _isBackgroundLocationEnabled = false;
   bool _isCurrentUser = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _checkIfCurrentUser();
     _loadBackgroundLocationStatus();
-    if (widget.initialProfile != null) {
-      _profile = widget.initialProfile;
-      _isLoading = false;
-    } else {
-      // Use addPostFrameCallback to avoid modifying provider during build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _loadProfile();
-      });
-    }
+    // Profile is auto-loaded by the provider
   }
 
   void _checkIfCurrentUser() {
@@ -79,7 +74,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
 
   Future<void> _toggleBackgroundLocation(bool value) async {
     if (value) {
-      // 1. Check current permission
+      // Step 1: Check basic location permission
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
@@ -105,9 +100,31 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
               ),
             ),
           );
+          await Geolocator.openAppSettings();
         }
         return;
       }
+
+      // Step 2: Request background location permission (Android 10+)
+      final hasBackgroundPermission =
+          await LocationService.instance.requestBackgroundLocationPermission();
+      if (!hasBackgroundPermission) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Permission de localisation en arrière-plan requise. Veuillez sélectionner 'Toujours autoriser' dans les paramètres.",
+              ),
+              duration: Duration(seconds: 4),
+            ),
+          );
+          await Geolocator.openAppSettings();
+        }
+        return;
+      }
+
+      // Step 3: Request notification permission (Android 13+)
+      await LocationService.instance.requestNotificationPermission();
     }
 
     await BackgroundLocationService.setEnabled(value);
@@ -129,47 +146,11 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
     }
   }
 
-  Future<void> _loadProfile() async {
-    debugPrint(
-      '🔍 ProfileViewScreen: Loading profile for userId: ${widget.userId}',
-    );
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .loadProfile(widget.userId);
-
-      if (!mounted) return;
-
-      final profile = ref.read(profileNotifierProvider).valueOrNull;
-      debugPrint('✅ ProfileViewScreen: Profile loaded successfully');
-      debugPrint('   - displayName: ${profile?.displayName}');
-      debugPrint('   - email: ${profile?.email}');
-      debugPrint('   - profession: ${profile?.profession}');
-      debugPrint('   - bio: ${profile?.bio}');
-      debugPrint('   - currentCity: ${profile?.currentCity}');
-      debugPrint('   - skills: ${profile?.skills}');
-      setState(() {
-        _profile = profile;
-        _isLoading = false;
-      });
-    } catch (e, stackTrace) {
-      debugPrint('❌ ProfileViewScreen: Error loading profile: $e');
-      debugPrint('Stack trace: $stackTrace');
-      if (mounted) {
-        setState(() => _isLoading = false);
-        // Show error to user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du chargement du profil: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> _startConversation() async {
-    if (_profile == null || _profile!.displayName == 'Utilisateur supprimé') {
+    final profile =
+        ref.read(profileNotifierProvider(widget.userId)).valueOrNull;
+
+    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Impossible de discuter avec un utilisateur supprimé'),
@@ -182,15 +163,15 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
     // Create or get existing conversation with this user
     final conversation = await ref
         .read(createConversationProvider.notifier)
-        .createIndividual(_profile!.id);
+        .createIndividual(profile.id);
 
     if (conversation != null && mounted) {
       context.push(
         '/messages/${conversation.id}',
         extra: {
-          'name': _profile!.displayName,
-          'imageUrl': _profile!.photoUrl,
-          'otherUserId': _profile!.id,
+          'name': profile.displayName,
+          'imageUrl': profile.photoUrl,
+          'otherUserId': profile.id,
           'isGroup': false,
         },
       );
@@ -198,7 +179,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
   }
 
   Future<void> _sendFriendRequest() async {
-    if (_profile == null || _profile!.displayName == 'Utilisateur supprimé') {
+    final profile =
+        ref.read(profileNotifierProvider(widget.userId)).valueOrNull;
+    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
       return;
     }
 
@@ -206,9 +189,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
     final success = await ref
         .read(friendRequestNotifierProvider.notifier)
         .sendRequest(
-          receiverId: _profile!.id,
-          receiverName: _profile!.displayName ?? l10n.member,
-          receiverPhotoUrl: _profile!.photoUrl,
+          receiverId: profile.id,
+          receiverName: profile.displayName ?? l10n.member,
+          receiverPhotoUrl: profile.photoUrl,
         );
 
     if (mounted) {
@@ -223,10 +206,11 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
     }
   }
 
-  String _buildLocationString(AppLocalizations l10n) {
-    final city = _profile?.currentCity;
-    final region = _profile?.currentRegion;
-    final country = _profile?.currentCountry;
+  String _buildLocationString(AppLocalizations l10n, ProfileEntity? profile) {
+    if (profile == null) return '';
+    final city = profile.currentCity;
+    final region = profile.currentRegion;
+    final country = profile.currentCountry;
 
     final parts = <String>[];
 
@@ -245,9 +229,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
     return parts.join(', ');
   }
 
-  String _buildOriginString(AppLocalizations l10n) {
-    final region = _profile?.originRegion;
-    final city = _profile?.originCity;
+  String _buildOriginString(AppLocalizations l10n, ProfileEntity? profile) {
+    if (profile == null) return '';
+    final region = profile.originRegion;
+    final city = profile.originCity;
 
     if (region != null &&
         region.isNotEmpty &&
@@ -263,106 +248,150 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
   }
 
   Widget _buildMediaSection(BuildContext context, WidgetRef ref) {
-    // Récupérer l'ID de la conversation avec cet utilisateur
     final conversationIdAsync = ref.watch(
       userConversationIdProvider(widget.userId),
     );
 
     return conversationIdAsync.when(
       data: (conversationId) {
-        if (conversationId == null) {
-          return const SizedBox.shrink();
-        }
-
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: MediaGalleryCompact(
             conversationId: conversationId,
-            onViewAll: () {
-              context.push('/messages/$conversationId/media');
-            },
+            onViewAll:
+                conversationId != null
+                    ? () {
+                      context.push('/messages/$conversationId/media');
+                    }
+                    : null,
           ),
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () {
+        return const Padding(
+          padding: EdgeInsets.only(bottom: 16),
+          child: MediaGalleryCompact(
+            conversationId: null, // Will show loading skeleton
+            showEmptyState: true,
+          ),
+        );
+      },
+      error: (e, s) {
+        return const Padding(
+          padding: EdgeInsets.only(bottom: 16),
+          child: MediaGalleryCompact(
+            conversationId: null,
+            showEmptyState: true,
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Important for KeepAlive
     final l10n = AppLocalizations.of(context)!;
 
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-        ),
-        body: Center(
-          child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
-        ),
-      );
-    }
+    // Watch the specific profile for this user
+    final profileAsync = ref.watch(profileNotifierProvider(widget.userId));
 
-    if (_profile == null) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-          title: Text(l10n.profileTitle),
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.person_off,
-                    size: 64,
-                    color: AppColors.error.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.deletedProfile,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.accountNoLongerExists,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+    return profileAsync.when(
+      loading:
+          () => Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: Center(
+              child: CircularProgressIndicator(
+                color: context.adaptivePrimaryColor,
+              ),
             ),
           ),
-        ),
-      );
-    }
+      error:
+          (err, stack) => Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: Center(child: Text('Erreur: $err')),
+          ),
+      data: (profile) {
+        if (profile == null) {
+          return _buildDeletedProfile(context, l10n);
+        }
+        return _buildProfileContent(context, profile, l10n);
+      },
+    );
+  }
 
-    final locationString = _buildLocationString(l10n);
-    final originString = _buildOriginString(l10n);
+  Widget _buildDeletedProfile(BuildContext context, AppLocalizations l10n) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(l10n.profileTitle),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.person_off,
+                  size: 64,
+                  color: AppColors.error.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.deletedProfile,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.accountNoLongerExists,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileContent(
+    BuildContext context,
+    ProfileEntity profile,
+    AppLocalizations l10n,
+  ) {
+    final locationString = _buildLocationString(l10n, profile);
+    final originString = _buildOriginString(l10n, profile);
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -383,7 +412,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
               onPressed: () => context.pop(),
             ),
             actions: [
-              if (_profile?.displayName != 'Utilisateur supprimé')
+              if (profile.displayName != 'Utilisateur supprimé')
                 IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
@@ -400,9 +429,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                     HapticFeedback.lightImpact();
                     ShareProfileDialog.show(
                       context,
-                      userName: _profile?.displayName,
-                      userPhotoUrl: _profile?.photoUrl,
-                      userId: _profile?.id,
+                      userName: profile.displayName,
+                      userPhotoUrl: profile.photoUrl,
+                      userId: profile.id,
                     );
                   },
                 ),
@@ -433,11 +462,11 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                           ],
                         ),
                         child:
-                            _profile!.photoUrl != null
+                            profile.photoUrl != null
                                 ? ClipRRect(
                                   borderRadius: BorderRadius.circular(28),
                                   child: Image.network(
-                                    _profile!.photoUrl!,
+                                    profile.photoUrl!,
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (_, __, ___) => Icon(
@@ -468,8 +497,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                   // Nom
                   Center(
                     child: Text(
-                      _profile!.displayName?.isNotEmpty == true
-                          ? _profile!.displayName!
+                      profile.displayName?.isNotEmpty == true
+                          ? profile.displayName!
                           : 'Nouvel utilisateur',
                       style: TextStyle(
                         fontSize: 24,
@@ -483,14 +512,14 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                   const SizedBox(height: 8),
                   Center(
                     child: OnlineStatusIndicator(
-                      userId: _profile!.id,
+                      userId: profile.id,
                       showText: true,
                       dotSize: 10,
                     ),
                   ),
 
-                  if (_profile!.profession != null &&
-                      _profile!.profession!.isNotEmpty) ...[
+                  if (profile.profession != null &&
+                      profile.profession!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Center(
                       child: Container(
@@ -505,7 +534,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _profile!.profession!,
+                          profile.profession!,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -586,18 +615,18 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      _profile!.bio?.isNotEmpty == true
-                          ? _profile!.bio!
+                      profile.bio?.isNotEmpty == true
+                          ? profile.bio!
                           : 'Aucune biographie',
                       style: TextStyle(
                         fontSize: 14,
                         color:
-                            _profile!.bio?.isNotEmpty == true
+                            profile.bio?.isNotEmpty == true
                                 ? context.textSecondaryColor
                                 : context.textTertiaryColor,
                         height: 1.5,
                         fontStyle:
-                            _profile!.bio?.isNotEmpty == true
+                            profile.bio?.isNotEmpty == true
                                 ? FontStyle.normal
                                 : FontStyle.italic,
                       ),
@@ -618,12 +647,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _profile!.skills.isNotEmpty
+                  profile.skills.isNotEmpty
                       ? Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children:
-                            _profile!.skills
+                            profile.skills
                                 .map(
                                   (skill) => Container(
                                     padding: const EdgeInsets.symmetric(
@@ -667,12 +696,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _profile!.interests.isNotEmpty
+                  profile.interests.isNotEmpty
                       ? Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children:
-                            _profile!.interests
+                            profile.interests
                                 .map(
                                   (interest) => Container(
                                     padding: const EdgeInsets.symmetric(
@@ -705,7 +734,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                   const SizedBox(height: 16),
 
                   // Langues
-                  if (_profile!.languages.isNotEmpty) ...[
+                  if (profile.languages.isNotEmpty) ...[
                     Text(
                       l10n.languagesSpoken,
                       style: TextStyle(
@@ -719,7 +748,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children:
-                          _profile!.languages
+                          profile.languages
                               .map(
                                 (language) => Container(
                                   padding: const EdgeInsets.symmetric(
@@ -890,23 +919,157 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen> {
                   break;
 
                 case FriendshipStatus.pendingReceived:
-                  buttonText = 'Accepter la demande';
-                  buttonIcon = Icons.person_add;
-                  onPressed = () async {
-                    // Find the request and accept it
-                    final requests = await ref.read(
-                      receivedFriendRequestsProvider.future,
-                    );
-                    final request = requests.firstWhere(
-                      (r) => r.senderId == widget.userId,
-                      orElse: () => throw Exception('Request not found'),
-                    );
-                    await ref
-                        .read(friendRequestNotifierProvider.notifier)
-                        .acceptRequest(request.id);
-                  };
-                  backgroundColor = context.successColor;
-                  break;
+                  // Return two buttons side-by-side for pendingReceived
+                  return Container(
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      top: 16,
+                      bottom: MediaQuery.of(context).padding.bottom + 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.surfaceColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              try {
+                                // Find the request and decline it
+                                final requests = await ref.read(
+                                  receivedFriendRequestsProvider.future,
+                                );
+
+                                final request = requests.firstWhere(
+                                  (r) => r.senderId == widget.userId,
+                                );
+
+                                // Decline the request
+                                final success = await ref
+                                    .read(
+                                      friendRequestNotifierProvider.notifier,
+                                    )
+                                    .declineRequest(
+                                      request.id,
+                                      senderId: widget.userId,
+                                    );
+
+                                if (context.mounted && success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Demande d\'ami refusée'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              } on StateError {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Cette demande n\'existe plus.',
+                                      ),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Erreur: $e'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.close),
+                            label: const Text('Refuser'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: BorderSide(color: AppColors.error),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              try {
+                                // Find the request and accept it
+                                final requests = await ref.read(
+                                  receivedFriendRequestsProvider.future,
+                                );
+
+                                final request = requests.firstWhere(
+                                  (r) => r.senderId == widget.userId,
+                                );
+
+                                // Accept the request
+                                final success = await ref
+                                    .read(
+                                      friendRequestNotifierProvider.notifier,
+                                    )
+                                    .acceptRequest(
+                                      request.id,
+                                      senderId: widget.userId,
+                                    );
+
+                                if (context.mounted && success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Demande d\'ami acceptée'),
+                                      backgroundColor: AppColors.success,
+                                    ),
+                                  );
+                                }
+                              } on StateError {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Cette demande n\'existe plus. '
+                                        'Elle a peut-être déjà été acceptée ou annulée.',
+                                      ),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Erreur lors de l\'acceptation: $e',
+                                      ),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.check),
+                            label: const Text('Accepter'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.successColor,
+                              foregroundColor: AppColors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
 
                 case FriendshipStatus.none:
                   buttonText = 'Envoyer une demande d\'ami';

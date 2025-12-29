@@ -121,7 +121,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
     );
   }
 
-  Future<bool> acceptRequest(String requestId) async {
+  Future<bool> acceptRequest(String requestId, {String? senderId}) async {
     state = const AsyncValue.loading();
 
     final repository = ref.read(friendRepositoryProvider);
@@ -135,13 +135,18 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       (_) {
         state = const AsyncValue.data(null);
         ref.invalidate(receivedFriendRequestsProvider);
+        ref.invalidate(sentFriendRequestsProvider);
         ref.invalidate(friendsProvider);
+        // Invalidate friendship status for the other user if provided
+        if (senderId != null) {
+          ref.invalidate(friendshipStatusProvider(senderId));
+        }
         return true;
       },
     );
   }
 
-  Future<bool> declineRequest(String requestId) async {
+  Future<bool> declineRequest(String requestId, {String? senderId}) async {
     state = const AsyncValue.loading();
 
     final repository = ref.read(friendRepositoryProvider);
@@ -155,12 +160,16 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       (_) {
         state = const AsyncValue.data(null);
         ref.invalidate(receivedFriendRequestsProvider);
+        // Invalidate friendship status for the other user if provided
+        if (senderId != null) {
+          ref.invalidate(friendshipStatusProvider(senderId));
+        }
         return true;
       },
     );
   }
 
-  Future<bool> cancelRequest(String requestId) async {
+  Future<bool> cancelRequest(String requestId, {String? receiverId}) async {
     state = const AsyncValue.loading();
 
     final repository = ref.read(friendRepositoryProvider);
@@ -174,6 +183,10 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       (_) {
         state = const AsyncValue.data(null);
         ref.invalidate(sentFriendRequestsProvider);
+        // Invalidate friendship status for the other user if provided
+        if (receiverId != null) {
+          ref.invalidate(friendshipStatusProvider(receiverId));
+        }
         return true;
       },
     );

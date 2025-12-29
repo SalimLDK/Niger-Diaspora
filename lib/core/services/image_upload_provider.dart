@@ -3,13 +3,26 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../providers/app_settings_provider.dart';
 import 'image_upload_service.dart';
 
 part 'image_upload_provider.g.dart';
 
 @riverpod
 ImageUploadService imageUploadService(Ref ref) {
-  return ImageUploadService();
+  final service = ImageUploadService();
+
+  // Get media limits from app settings and configure the service
+  final mediaLimits = ref.watch(mediaLimitsProvider);
+  service.setConfig(ImageUploadConfig(
+    maxWidth: mediaLimits.imageMaxWidth,
+    maxHeight: mediaLimits.imageMaxHeight,
+    quality: mediaLimits.imageQuality,
+    maxImagesPerUpload: mediaLimits.maxImagesPerUpload,
+    minWidthForCompression: mediaLimits.minWidthForCompression,
+  ));
+
+  return service;
 }
 
 @riverpod

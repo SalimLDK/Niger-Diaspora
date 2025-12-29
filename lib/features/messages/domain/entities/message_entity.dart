@@ -6,7 +6,7 @@ enum MessageStatus {
   failed, // Échec d'envoi
 }
 
-enum MessageType { text, image, file, audio, video }
+enum MessageType { text, image, file, audio, video, system }
 
 class MessageEntity extends Equatable {
   final String id;
@@ -33,6 +33,13 @@ class MessageEntity extends Equatable {
   deletedForEveryone; // If true, message is deleted for all participants
   final DateTime? deletedAt; // When the message was deleted for everyone
   final List<String> reportedBy;
+  final List<String>
+  reactions; // List of emoji reactions (e.g., ['❤️', '👍', '😂'])
+
+  // Reply fields
+  final String? replyToId; // ID of the message being replied to
+  final Map<String, dynamic>?
+  replyToMessageData; // Snapshot of replied message (to avoid needing to fetch)
 
   const MessageEntity({
     required this.id,
@@ -57,6 +64,9 @@ class MessageEntity extends Equatable {
     this.deletedForEveryone = false,
     this.deletedAt,
     this.reportedBy = const [],
+    this.reactions = const [],
+    this.replyToId,
+    this.replyToMessageData,
   });
 
   bool get isText => type == MessageType.text;
@@ -64,6 +74,7 @@ class MessageEntity extends Equatable {
   bool get isFile => type == MessageType.file;
   bool get isAudio => type == MessageType.audio;
   bool get isVideo => type == MessageType.video;
+  bool get isSystem => type == MessageType.system;
 
   String get audioDurationFormatted {
     if (audioDuration == null) return '0:00';
@@ -121,5 +132,8 @@ class MessageEntity extends Equatable {
     deletedForEveryone,
     deletedAt,
     reportedBy,
+    reactions,
+    replyToId,
+    replyToMessageData,
   ];
 }

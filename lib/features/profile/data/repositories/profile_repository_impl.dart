@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -21,9 +22,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<Either<Failure, ProfileEntity>> getProfile(String userId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
-    }
+    // Removal of explicit network check to allow DataSource to handle offline/cache logic fallback
+    // if (!await networkInfo.isConnected) {
+    //   return const Left(NetworkFailure('Pas de connexion internet'));
+    // }
 
     try {
       final profile = await remoteDataSource.getProfile(userId);
@@ -40,6 +42,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
         );
       }
       return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId) {
+    try {
+      final profile = remoteDataSource.getCachedProfile(userId);
+      return Right(profile?.toEntity());
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
     }
   }
 
@@ -144,10 +156,38 @@ class ProfileRepositoryImpl implements ProfileRepository {
         final otherMembers =
             nearbyProfiles.where((p) => p.id != userId).toList();
 
-        if (otherMembers.isNotEmpty) {
-          await NotificationService().showProximityNotification(
-            otherMembers.length,
-          );
+        // Apply presence filter: only count members that are actually online/active
+        final now = DateTime.now();
+        final activeMembers =
+            otherMembers.where((member) {
+              // Check if online within last 1 hour (STRICT)
+              if (member.isOnline && member.lastSeen != null) {
+                final diffOnline = now.difference(member.lastSeen!);
+                if (diffOnline.inHours < 1) return true;
+              }
+
+              // OR location updated within last 5 minutes (STRICT)
+              if (member.locationUpdatedAt != null) {
+                final diffLocation = now.difference(member.locationUpdatedAt!);
+                if (diffLocation.inMinutes < 5) return true;
+              }
+
+              return false;
+            }).toList();
+
+        if (activeMembers.isNotEmpty) {
+          // Only show proximity notification once per install
+          final prefs = await SharedPreferences.getInstance();
+          final hasShownProximityNotification =
+              prefs.getBool('has_shown_proximity_notification') ?? false;
+
+          if (!hasShownProximityNotification) {
+            await NotificationService().showProximityNotification(
+              activeMembers.length,
+            );
+            // Mark as shown
+            await prefs.setBool('has_shown_proximity_notification', true);
+          }
         }
       } catch (e) {
         // Silently fail for proximity check to not bloat main logic errors

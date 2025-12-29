@@ -28,7 +28,7 @@ final transferRemoteDatasourceProvider =
 typedef TransferRemoteDatasourceRef =
     AutoDisposeProviderRef<TransferRemoteDatasource>;
 String _$transferRepositoryHash() =>
-    r'2d4bd1922bbd20e7a3970d9f8c03fd8487875fcb';
+    r'a4be3c2185d5645d867f1dde2e6910aa76a1d7c8';
 
 /// See also [transferRepository].
 @ProviderFor(transferRepository)
@@ -47,6 +47,27 @@ final transferRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TransferRepositoryRef = AutoDisposeProviderRef<TransferRepository>;
+String _$transferFeePercentHash() =>
+    r'bdfd3db8139646535afac2657927f57fdb27d179';
+
+/// Provider to get the current fee percentage for display
+///
+/// Copied from [transferFeePercent].
+@ProviderFor(transferFeePercent)
+final transferFeePercentProvider = AutoDisposeProvider<double>.internal(
+  transferFeePercent,
+  name: r'transferFeePercentProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$transferFeePercentHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TransferFeePercentRef = AutoDisposeProviderRef<double>;
 String _$userTransactionsHash() => r'b955c35484f236300982ef4b4cd4534aadb498f5';
 
 /// Copied from Dart SDK
@@ -957,7 +978,7 @@ class _TransferFeeProviderElement
 }
 
 String _$transactionNotifierHash() =>
-    r'46c3db2906537a8f5a76be5cf2228deabd0dcb03';
+    r'2e0b840c8a94dc46b549e3da791bb6cd67a37d6c';
 
 /// See also [TransactionNotifier].
 @ProviderFor(TransactionNotifier)
@@ -974,7 +995,7 @@ final transactionNotifierProvider =
     );
 
 typedef _$TransactionNotifier = AutoDisposeAsyncNotifier<void>;
-String _$recipientNotifierHash() => r'742a58861b4186cf2df1fdbf9a0d198957e12904';
+String _$recipientNotifierHash() => r'16f78b5b26a5fad4595517881b90d69de9b48c19';
 
 /// See also [RecipientNotifier].
 @ProviderFor(RecipientNotifier)

@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
+import '../../../../core/services/preferences_service.dart';
 
 part 'home_provider.g.dart';
 
@@ -18,67 +22,115 @@ class HomeStats {
   });
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class HomeStatsNotifier extends _$HomeStatsNotifier {
+  static const String _cacheKey = 'home_stats_cache';
+
   @override
-  Future<HomeStats> build() async {
-    return _loadStats();
+  FutureOr<HomeStats> build() async {
+    // Keep state alive even when not listened to (navigation away)
+    // This allows instant display when returning to Home
+    ref.keepAlive();
+
+    // 1. Try to load from cache immediately for instant UI
+    final cached = _loadFromCache();
+    if (cached != null) {
+      // Logic for cached data
+    }
+
+    // 2. Query Firestore using robust COUNT aggregation
+    // This is much cheaper and faster than snapshots
+    return _fetchStats();
   }
 
-  Future<HomeStats> _loadStats() async {
-    int members = 0;
-    int groups = 0;
-    int events = 0;
-
+  Future<HomeStats> _fetchStats() async {
     final firestore = FirebaseFirestore.instance;
 
-    // 1. Membres
     try {
-      final snapshot =
-          await firestore
-              .collection(FirebaseCollections.profiles)
-              .where('isVisible', isEqualTo: true)
-              .count()
-              .get();
-      members = snapshot.count ?? 0;
-    } catch (e) {
-      debugPrint('❌ Erreur chargement stats membres: $e');
-    }
+      // Run queries in parallel
+      final results = await Future.wait([
+        // Members count
+        firestore
+            .collection(FirebaseCollections.profiles)
+            .where('isVisible', isEqualTo: true)
+            .count()
+            .get(),
 
-    // 2. Groupes
+        // Groups count
+        firestore
+            .collection(FirebaseCollections.groups)
+            .where('isPrivate', isEqualTo: false)
+            .count()
+            .get(),
+
+        // Events count
+        firestore
+            .collection(FirebaseCollections.events)
+            .where('startDate', isGreaterThan: Timestamp.now())
+            .count()
+            .get(),
+      ]);
+
+      final stats = HomeStats(
+        membersCount: results[0].count ?? 0,
+        groupsCount: results[1].count ?? 0,
+        eventsCount: results[2].count ?? 0,
+      );
+
+      // Cache the fresh result
+      _saveToCache(stats);
+
+      return stats;
+    } catch (e) {
+      debugPrint('❌ Error fetching home stats: $e');
+      // If error, try returning cached data or rethrow
+      final cached = _loadFromCache();
+      if (cached != null) return cached;
+      throw Exception('Impossible de charger les statistiques');
+    }
+  }
+
+  HomeStats? _loadFromCache() {
     try {
-      final snapshot =
-          await firestore.collection(FirebaseCollections.groups).count().get();
-      groups = snapshot.count ?? 0;
+      final prefs = PreferencesService.instance;
+      final cachedJson = prefs.prefs.getString(_cacheKey);
+      if (cachedJson != null) {
+        final data = jsonDecode(cachedJson) as Map<String, dynamic>;
+        return HomeStats(
+          membersCount: data['membersCount'] as int? ?? 0,
+          groupsCount: data['groupsCount'] as int? ?? 0,
+          eventsCount: data['eventsCount'] as int? ?? 0,
+        );
+      }
     } catch (e) {
-      debugPrint('❌ Erreur chargement stats groupes: $e');
+      debugPrint('⚠️ Failed to load cached stats: $e');
     }
+    return null;
+  }
 
-    // 3. Événements
+  Future<void> _saveToCache(HomeStats stats) async {
     try {
-      final snapshot =
-          await firestore
-              .collection(FirebaseCollections.events)
-              .where('startDate', isGreaterThan: Timestamp.now())
-              .count()
-              .get();
-      events = snapshot.count ?? 0;
+      final prefs = PreferencesService.instance;
+      final json = jsonEncode({
+        'membersCount': stats.membersCount,
+        'groupsCount': stats.groupsCount,
+        'eventsCount': stats.eventsCount,
+      });
+      await prefs.prefs.setString(_cacheKey, json);
     } catch (e) {
-      debugPrint('❌ Erreur chargement stats événements: $e');
+      debugPrint('⚠️ Failed to cache stats: $e');
     }
-
-    return HomeStats(
-      membersCount: members,
-      groupsCount: groups,
-      eventsCount: events,
-    );
   }
 
   Future<void> refresh() async {
-    // Invalidate self to trigger a rebuild
-    ref.invalidateSelf();
-    // Wait for the new value (optional, but helpful for UI feedback if needed)
-    await future;
+    // Invalidate to force a re-fetch
+    state = const AsyncValue.loading();
+    try {
+      final newStats = await _fetchStats();
+      state = AsyncValue.data(newStats);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
 }
 

@@ -39,7 +39,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Niger Diaspora',
+              'Diaspo Niger',
               style: Theme.of(
                 context,
               ).textTheme.displayMedium?.copyWith(color: AppColors.textPrimary),

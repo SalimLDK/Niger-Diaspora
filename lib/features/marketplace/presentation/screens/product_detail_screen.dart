@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 
@@ -194,25 +195,42 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundImage:
-                              product.sellerPhotoUrl != null
-                                  ? CachedNetworkImageProvider(
-                                    product.sellerPhotoUrl!,
-                                  )
-                                  : null,
-                          child:
-                              product.sellerPhotoUrl == null
-                                  ? const Icon(Icons.person)
-                                  : null,
-                        ),
-                        title: Text(product.sellerName ?? 'Vendeur'),
-                        subtitle: const Text('Voir le profil'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          // Navigate to seller profile
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final sellerProfileAsync = ref.watch(
+                            profileNotifierProvider(product.sellerId),
+                          );
+
+                          return sellerProfileAsync.when(
+                            data: (sellerProfile) {
+                              return _SellerCard(
+                                sellerId: product.sellerId,
+                                sellerName: sellerProfile?.displayName ??
+                                    product.sellerName ??
+                                    'Vendeur',
+                                sellerPhotoUrl: sellerProfile?.photoUrl,
+                                sellerProfile: sellerProfile,
+                                isOwner: isOwner,
+                              );
+                            },
+                            loading:
+                                () => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.person),
+                                  ),
+                                  title: Text(product.sellerName ?? 'Vendeur'),
+                                  subtitle: const Text('Chargement...'),
+                                ),
+                            error:
+                                (_, __) => _SellerCard(
+                                  sellerId: product.sellerId,
+                                  sellerName: product.sellerName ?? 'Vendeur',
+                                  sellerPhotoUrl: product.sellerPhotoUrl,
+                                  sellerProfile: null,
+                                  isOwner: isOwner,
+                                ),
+                          );
                         },
                       ),
                       const SizedBox(height: 24),
@@ -484,6 +502,113 @@ class _StatItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SellerCard extends StatelessWidget {
+  final String sellerId;
+  final String sellerName;
+  final String? sellerPhotoUrl;
+  final dynamic sellerProfile;
+  final bool isOwner;
+
+  const _SellerCard({
+    required this.sellerId,
+    required this.sellerName,
+    this.sellerPhotoUrl,
+    this.sellerProfile,
+    required this.isOwner,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Seller info row
+          InkWell(
+            onTap: () {
+              context.push(
+                '/profile/$sellerId',
+                extra: sellerProfile,
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundImage: sellerPhotoUrl != null
+                        ? CachedNetworkImageProvider(sellerPhotoUrl!)
+                        : null,
+                    child: sellerPhotoUrl == null
+                        ? const Icon(Icons.person)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sellerName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Voir le profil',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.outline,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Contact button (only if not owner)
+          if (!isOwner) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  // Navigate to messages with seller
+                  context.push(
+                    '/messages/new',
+                    extra: {'recipientId': sellerId, 'recipientName': sellerName},
+                  );
+                },
+                icon: const Icon(Icons.message_outlined),
+                label: const Text('Contacter le vendeur'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

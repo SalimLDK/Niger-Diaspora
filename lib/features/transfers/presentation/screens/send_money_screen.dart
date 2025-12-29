@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,9 +24,11 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
   bool _amountValid = false;
+  Timer? _debounceTimer;
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _amountController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -358,6 +362,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               ref
                   .read(transferStateNotifierProvider.notifier)
                   .setCurrency(value);
+              // Mettre à jour le taux de change et les frais pour la nouvelle devise
+              _updateFeeAndRateDebounced();
             }
           },
         ),
@@ -406,7 +412,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               _amountValid = amount >= 5;
             });
             ref.read(transferStateNotifierProvider.notifier).setAmount(amount);
-            _updateFeeAndRate();
+            _updateFeeAndRateDebounced();
           },
         ),
         const SizedBox(height: 16),
@@ -434,6 +440,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   Widget _buildFeePreview(ThemeData theme, String selectedCurrency) {
     final transferState = ref.watch(transferStateNotifierProvider);
+    final feePercent = ref.watch(transferFeePercentProvider);
 
     if (transferState.amount <= 0) {
       return const SizedBox.shrink();
@@ -458,7 +465,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             ),
             if (transferState.fee != null)
               _buildFeeRow(
-                'Frais (2.5%)',
+                'Frais (${(feePercent * 100).toStringAsFixed(1)}%)',
                 '${transferState.fee!.toStringAsFixed(2)} $selectedCurrency',
               ),
             const Divider(),
@@ -490,34 +497,37 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.3,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Le bénéficiaire recevra',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(
+                      alpha: 0.3,
                     ),
-                    Text(
-                      '${transferState.amountInXof.toStringAsFixed(0)} XOF',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
                     ),
-                  ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Le bénéficiaire recevra',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${transferState.amountInXof.toStringAsFixed(0)} XOF',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -538,12 +548,17 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color,
+          Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: color,
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
             ),
           ),
         ],
@@ -706,80 +721,90 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               children: [
                 Icon(Icons.info_outline),
                 SizedBox(width: 8),
-                Text('Confirmer le transfert'),
+                Flexible(child: Text('Confirmer le transfert')),
               ],
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Vous êtes sur le point d\'envoyer:',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(
-                      alpha: 0.3,
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vous êtes sur le point d\'envoyer:',
+                      style: theme.textTheme.bodyMedium,
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
                         children: [
-                          const Text('Montant:'),
-                          Text(
-                            '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Montant:'),
+                              Text(
+                                '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Frais:'),
+                              Text(
+                                '${transferState.fee!.toStringAsFixed(2)} $selectedCurrency',
+                              ),
+                            ],
+                          ),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Total:'),
+                              Text(
+                                '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Frais:'),
-                          Text(
-                            '${transferState.fee!.toStringAsFixed(2)} $selectedCurrency',
-                          ),
-                        ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'À: ${transferState.selectedRecipient?.fullName}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
                       ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Total:'),
-                          Text(
-                            '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Cette action est irréversible. Voulez-vous continuer?',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'À: ${transferState.selectedRecipient?.fullName}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Cette action est irréversible. Voulez-vous continuer?',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
-              ],
+              ),
             ),
             actions: [
               TextButton(
@@ -795,7 +820,19 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     );
   }
 
+  void _updateFeeAndRateDebounced() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _doUpdateFeeAndRate();
+    });
+  }
+
   Future<void> _updateFeeAndRate() async {
+    _debounceTimer?.cancel();
+    await _doUpdateFeeAndRate();
+  }
+
+  Future<void> _doUpdateFeeAndRate() async {
     final selectedCurrency = ref.read(selectedCurrencyProvider);
     final amount = double.tryParse(_amountController.text) ?? 0;
 
@@ -808,6 +845,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       final feeResult = await ref.read(
         transferFeeProvider(amount, selectedCurrency).future,
       );
+
+      if (!mounted) return;
 
       ref
           .read(transferStateNotifierProvider.notifier)
@@ -843,18 +882,20 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           );
 
       if (transaction != null && mounted) {
-        // Reset state
-        ref.read(transferStateNotifierProvider.notifier).reset();
-
-        // Navigate to transaction detail
-        context.go('/transfers/${transaction.id}');
-
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Transfert initie avec succes'),
             backgroundColor: Colors.green,
           ),
         );
+
+        // Reset state
+        ref.read(transferStateNotifierProvider.notifier).reset();
+
+        // Navigate to transfers list (replaces current route)
+        // This way, back button from transaction details goes to /transfers
+        context.go('/transfers');
       }
     } catch (e) {
       if (mounted) {

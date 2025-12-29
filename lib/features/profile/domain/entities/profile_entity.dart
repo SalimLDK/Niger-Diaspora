@@ -36,5 +36,6 @@ class ProfileEntity with _$ProfileEntity {
     @Default(false) bool isOnline,
     DateTime? lastSeen,
     @Default(true) bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   }) = _ProfileEntity;
 }

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,12 +9,21 @@ abstract class NetworkInfo {
 }
 
 class NetworkInfoImpl implements NetworkInfo {
+  final Connectivity _connectivity;
+
+  NetworkInfoImpl({Connectivity? connectivity})
+    : _connectivity = connectivity ?? Connectivity();
+
   @override
   Future<bool> get isConnected async {
     try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } on SocketException catch (_) {
+      final result = await _connectivity.checkConnectivity();
+      // Check if we have any connection (wifi, mobile, ethernet, etc.)
+      return result.contains(ConnectivityResult.mobile) ||
+          result.contains(ConnectivityResult.wifi) ||
+          result.contains(ConnectivityResult.ethernet) ||
+          result.contains(ConnectivityResult.vpn);
+    } catch (_) {
       return false;
     }
   }

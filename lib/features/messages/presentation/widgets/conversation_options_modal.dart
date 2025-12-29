@@ -13,6 +13,8 @@ class ConversationOptionsModal extends ConsumerStatefulWidget {
   final bool isMuted;
   final bool isArchived;
   final bool isGroup;
+  final bool isAdmin;
+  final VoidCallback? onChangeBackground;
 
   const ConversationOptionsModal({
     super.key,
@@ -23,6 +25,8 @@ class ConversationOptionsModal extends ConsumerStatefulWidget {
     this.isMuted = false,
     this.isArchived = false,
     this.isGroup = false,
+    this.isAdmin = false,
+    this.onChangeBackground,
   });
 
   @override
@@ -87,35 +91,78 @@ class _ConversationOptionsModalState
   }
 
   Future<void> _deleteConversation() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Supprimer la conversation'),
-            content: const Text(
-              'Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Supprimer'),
-              ),
-            ],
-          ),
-    );
+    String deleteType = 'me'; // Default to soft delete
 
-    if (confirmed != true || !mounted) return;
+    if (widget.isAdmin) {
+      final choice = await showDialog<String>(
+        context: context,
+        builder:
+            (context) => SimpleDialog(
+              title: const Text('Supprimer la conversation'),
+              children: [
+                SimpleDialogOption(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 24,
+                  ),
+                  onPressed: () => Navigator.pop(context, 'me'),
+                  child: const Text('Supprimer pour moi'),
+                ),
+                SimpleDialogOption(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 24,
+                  ),
+                  onPressed: () => Navigator.pop(context, 'all'),
+                  child: const Text(
+                    'Supprimer pour tout le monde',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+      );
+
+      if (choice == null) return;
+      deleteType = choice;
+    } else {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Supprimer la conversation'),
+              content: const Text(
+                'Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible pour vous.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text('Supprimer'),
+                ),
+              ],
+            ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    if (!mounted) return;
 
     setState(() => _isLoading = true);
 
     final success = await ref
         .read(conversationActionsNotifierProvider.notifier)
-        .deleteConversation(widget.conversationId);
+        .deleteConversation(
+          widget.conversationId,
+          forEveryone: deleteType == 'all',
+        );
+
+    // ... existing success handling ...
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -288,6 +335,15 @@ class _ConversationOptionsModalState
               title: widget.isArchived ? 'Désarchiver' : 'Archiver',
               onTap: _archiveConversation,
             ),
+            if (widget.onChangeBackground != null)
+              _buildOption(
+                icon: Icons.wallpaper_outlined,
+                title: 'Changer le fond d\'écran',
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onChangeBackground?.call();
+                },
+              ),
             _buildOption(
               icon: Icons.delete_outline,
               title: 'Supprimer la conversation',

@@ -29,6 +29,7 @@ class ConversationModel with _$ConversationModel {
     @Default({}) Map<String, dynamic> unreadCount,
     @Default({}) Map<String, dynamic> mutedBy,
     @Default({}) Map<String, dynamic> archivedBy,
+    @Default({}) Map<String, dynamic> deletedBy,
   }) = _ConversationModel;
 
   factory ConversationModel.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +45,7 @@ class ConversationModel with _$ConversationModel {
       'unreadCount': _convertUnreadCount(data['unreadCount']),
       'mutedBy': _convertBoolMap(data['mutedBy']),
       'archivedBy': _convertBoolMap(data['archivedBy']),
+      'deletedBy': _convertDeletedBy(data['deletedBy']),
       'lastMessageStatus': _parseMessageStatus(data['lastMessageStatus']),
       'adminIds': (data['adminIds'] as List<dynamic>?)?.cast<String>() ?? [],
       'reportedBy':
@@ -102,6 +104,7 @@ class ConversationModel with _$ConversationModel {
     unreadCount: _parseUnreadCount(unreadCount),
     mutedBy: _parseBoolMap(mutedBy),
     archivedBy: _parseBoolMap(archivedBy),
+    deletedBy: _parseDeletedBy(deletedBy),
   );
 
   factory ConversationModel.fromEntity(ConversationEntity entity) =>
@@ -123,6 +126,9 @@ class ConversationModel with _$ConversationModel {
         unreadCount: entity.unreadCount.map((k, v) => MapEntry(k, v)),
         mutedBy: entity.mutedBy.map((k, v) => MapEntry(k, v)),
         archivedBy: entity.archivedBy.map((k, v) => MapEntry(k, v)),
+        deletedBy: entity.deletedBy.map(
+          (k, v) => MapEntry(k, v.toIso8601String()),
+        ),
       );
 
   static ConversationType _parseConversationType(String value) {
@@ -169,6 +175,25 @@ class ConversationModel with _$ConversationModel {
     data.forEach((key, value) {
       if (value is bool) {
         result[key] = value;
+      }
+    });
+    return result;
+  }
+
+  static Map<String, dynamic> _convertDeletedBy(dynamic data) {
+    if (data == null) return {};
+    if (data is! Map) return {};
+    return Map<String, dynamic>.from(data);
+  }
+
+  static Map<String, DateTime> _parseDeletedBy(Map<String, dynamic> data) {
+    final Map<String, DateTime> result = {};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        result[key] = value.toDate();
+      } else if (value is String) {
+        final dt = DateTime.tryParse(value);
+        if (dt != null) result[key] = dt;
       }
     });
     return result;

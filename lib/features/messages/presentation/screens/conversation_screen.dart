@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -23,6 +24,11 @@ import '../../../groups/presentation/providers/group_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
+import '../../../../core/services/preferences_service.dart';
+import '../../../settings/data/models/chat_background_model.dart';
+import '../../../settings/domain/entities/chat_background_entity.dart';
+import '../widgets/chat_background_picker_modal.dart';
+import 'dart:convert';
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -30,7 +36,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
   final String? conversationImageUrl;
   final String? otherUserId;
   final bool isGroup;
-  final String? groupId; // Add groupId parameter
+  final String? groupId;
 
   const ConversationScreen({
     super.key,
@@ -39,16 +45,33 @@ class ConversationScreen extends ConsumerStatefulWidget {
     this.conversationImageUrl,
     this.otherUserId,
     this.isGroup = false,
-    this.groupId, // Add to constructor
+    this.groupId,
   });
 
   @override
   ConsumerState<ConversationScreen> createState() => _ConversationScreenState();
 }
 
-class _ConversationScreenState extends ConsumerState<ConversationScreen> {
+class _ConversationScreenState extends ConsumerState<ConversationScreen>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   bool _isNearBottom = true;
+
+  // Use ValueNotifier for scroll button visibility to avoid full rebuilds
+  final ValueNotifier<bool> _showScrollToBottomButton = ValueNotifier(false);
+
+  // Reply state
+  MessageEntity? _replyToMessage;
+
+  // Animation for scroll button
+  late AnimationController _scrollButtonController;
+  late Animation<double> _scrollButtonAnimation;
+
+  // Chat background
+  ChatBackgroundEntity? _chatBackground;
+
+  // For highlighting a message when scrolling to it
+  String? _highlightedMessageId;
 
   @override
   void initState() {
@@ -60,9 +83,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     debugPrint('   otherUserId: ${widget.otherUserId}');
 
     _scrollController.addListener(_onScroll);
-    // Marquer comme lu à l'ouverture
+
+    _scrollButtonController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _scrollButtonAnimation = CurvedAnimation(
+      parent: _scrollButtonController,
+      curve: Curves.easeOut,
+    );
+
+    // Mark as read on open
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
+      _loadChatBackground();
     });
   }
 
@@ -70,6 +105,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _scrollButtonController.dispose();
+    _showScrollToBottomButton.dispose();
     super.dispose();
   }
 
@@ -90,6 +127,51 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
     _isNearBottom = (maxScroll - currentScroll) <= 100;
+
+    // Show/hide scroll to bottom button (using ValueNotifier to avoid setState)
+    final shouldShowButton = (maxScroll - currentScroll) > 300;
+    if (shouldShowButton != _showScrollToBottomButton.value) {
+      _showScrollToBottomButton.value = shouldShowButton;
+      if (shouldShowButton) {
+        _scrollButtonController.forward();
+      } else {
+        _scrollButtonController.reverse();
+      }
+    }
+  }
+
+  /// Scroll to a specific message by ID
+  void _scrollToMessage(String messageId) {
+    final paginationState = ref.read(
+      paginatedMessagesProvider(widget.conversationId),
+    );
+    final messages = paginationState.messages;
+    final index = messages.indexWhere((m) => m.id == messageId);
+
+    if (index != -1 && _scrollController.hasClients) {
+      // Estimate position - each message is roughly 80 pixels
+      // This is approximate, for exact positioning we'd need GlobalKey per message
+      final estimatedPosition = index * 80.0;
+      _scrollController.animateTo(
+        estimatedPosition.clamp(0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+
+      // Highlight the message temporarily
+      setState(() {
+        _highlightedMessageId = messageId;
+      });
+
+      // Remove highlight after animation
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _highlightedMessageId = null;
+          });
+        }
+      });
+    }
   }
 
   void _scrollToBottom() {
@@ -102,7 +184,124 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     }
   }
 
+  MessageEntity? _getReplyEntity(MessageEntity message) {
+    // Check for null or empty replyToMessageData
+    if (message.replyToMessageData == null ||
+        message.replyToMessageData!.isEmpty) {
+      return null;
+    }
+    final data = message.replyToMessageData!;
+
+    // Validate required fields exist
+    if (data['id'] == null || data['senderId'] == null) {
+      debugPrint(
+        '⚠️ Invalid reply data: missing id or senderId. Data: $data',
+      );
+      return null;
+    }
+
+    try {
+      return MessageEntity(
+        id: data['id'] as String? ?? '',
+        senderId: data['senderId'] as String? ?? '',
+        senderName: data['senderName'] as String? ?? 'Utilisateur',
+        content: data['content'] as String? ?? '',
+        type: MessageType.values.firstWhere(
+          (e) => e.name == data['type'],
+          orElse: () => MessageType.text,
+        ),
+        createdAt: DateTime.now(),
+        readBy: const [],
+        readAt: const {},
+        fileUrl: data['fileUrl'] as String?,
+        fileName: data['fileName'] as String?,
+      );
+    } catch (e) {
+      debugPrint('❌ Error parsing reply entity: $e');
+      debugPrint('   Data: $data');
+      return null;
+    }
+  }
+
+  void _handleReply(MessageEntity message) {
+    setState(() {
+      _replyToMessage = message;
+    });
+  }
+
+  void _cancelReply() {
+    setState(() {
+      _replyToMessage = null;
+    });
+  }
+
+  Future<void> _loadChatBackground() async {
+    try {
+      final prefs = PreferencesService.instance;
+
+      // Try to load conversation-specific background first
+      final customBgJson = prefs.getConversationBackground(
+        widget.conversationId,
+      );
+
+      if (customBgJson != null && customBgJson.isNotEmpty) {
+        final model = ChatBackgroundModel.fromJson(jsonDecode(customBgJson));
+        setState(() {
+          _chatBackground = model.toEntity();
+        });
+        return;
+      }
+
+      // Fall back to default background
+      final defaultBgJson = prefs.defaultChatBackground;
+      if (defaultBgJson != null && defaultBgJson.isNotEmpty) {
+        final model = ChatBackgroundModel.fromJson(jsonDecode(defaultBgJson));
+        setState(() {
+          _chatBackground = model.toEntity();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading chat background: $e');
+    }
+  }
+
+  Future<void> _showBackgroundPicker() async {
+    final result = await ChatBackgroundPickerModal.show(
+      context,
+      conversationId: widget.conversationId,
+      currentBackground: _chatBackground,
+    );
+
+    if (result != null) {
+      setState(() {
+        _chatBackground = result;
+      });
+    }
+  }
+
+  Future<void> _handleReact(MessageEntity message, String emoji) async {
+    debugPrint('🎭 _handleReact called');
+    try {
+      await ref
+          .read(paginatedMessagesProvider(widget.conversationId).notifier)
+          .toggleReaction(message.id, emoji);
+      debugPrint('   ✅ Reaction toggled (optimistic)');
+    } catch (e) {
+      debugPrint('  ❌ Error toggling reaction: $e');
+    }
+  }
+
   void _showConversationOptions() {
+    final conversation =
+        ref.read(conversationStreamProvider(widget.conversationId)).valueOrNull;
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+
+    final isAdmin =
+        conversation != null &&
+        currentUser != null &&
+        (conversation.createdBy == currentUser.id ||
+            conversation.adminIds.contains(currentUser.id));
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -113,8 +312,105 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             otherUserName: widget.conversationName,
             otherUserPhotoUrl: widget.conversationImageUrl,
             isGroup: widget.isGroup,
+            isAdmin: isAdmin,
+            onChangeBackground: _showBackgroundPicker,
           ),
     );
+  }
+
+  // Get date separator label
+  String _getDateLabel(DateTime date, AppLocalizations l10n) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final messageDate = DateTime(date.year, date.month, date.day);
+
+    if (messageDate == today) {
+      return "Aujourd'hui";
+    } else if (messageDate == yesterday) {
+      return 'Hier';
+    } else if (now.difference(date).inDays < 7) {
+      // Show day name for last week
+      return DateFormat.EEEE('fr').format(date);
+    } else {
+      return DateFormat.yMMMd('fr').format(date);
+    }
+  }
+
+  // Check if we need a date separator
+  bool _needsDateSeparator(List<MessageEntity> messages, int index) {
+    debugPrint(
+      '📅 _needsDateSeparator called: index=$index, total=${messages.length}',
+    );
+
+    if (index == 0) {
+      debugPrint('   ✅ First message, showing separator');
+      return true;
+    }
+
+    final currentMessage = messages[index];
+    final previousMessage = messages[index - 1];
+
+    final currentDate = DateTime(
+      currentMessage.createdAt.year,
+      currentMessage.createdAt.month,
+      currentMessage.createdAt.day,
+    );
+    final previousDate = DateTime(
+      previousMessage.createdAt.year,
+      previousMessage.createdAt.month,
+      previousMessage.createdAt.day,
+    );
+
+    final needsSeparator = currentDate != previousDate;
+    debugPrint('   Current: $currentDate, Previous: $previousDate');
+    debugPrint(
+      '   ${needsSeparator ? "✅ Different dates" : "❌ Same date"} -> needsSeparator=$needsSeparator',
+    );
+
+    return needsSeparator;
+  }
+
+  // Get message group position
+  MessageGroupPosition _getMessageGroupPosition(
+    List<MessageEntity> messages,
+    int index,
+    String? currentUserId,
+  ) {
+    final message = messages[index];
+
+    final hasPreviousSameSender =
+        index > 0 && messages[index - 1].senderId == message.senderId;
+    final hasNextSameSender =
+        index < messages.length - 1 &&
+        messages[index + 1].senderId == message.senderId;
+
+    // Check for date separator break
+    final hasDateBreak = _needsDateSeparator(messages, index);
+    final hasNextDateBreak =
+        index < messages.length - 1 && _needsDateSeparator(messages, index + 1);
+
+    if (hasDateBreak) {
+      // After date separator, treat as first message
+      if (hasNextSameSender && !hasNextDateBreak) {
+        return MessageGroupPosition.first;
+      }
+      return MessageGroupPosition.single;
+    }
+
+    if (!hasPreviousSameSender && !hasNextSameSender) {
+      return MessageGroupPosition.single;
+    } else if (!hasPreviousSameSender &&
+        hasNextSameSender &&
+        !hasNextDateBreak) {
+      return MessageGroupPosition.first;
+    } else if (hasPreviousSameSender &&
+        hasNextSameSender &&
+        !hasNextDateBreak) {
+      return MessageGroupPosition.middle;
+    } else {
+      return MessageGroupPosition.last;
+    }
   }
 
   @override
@@ -137,10 +433,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
     final l10n = AppLocalizations.of(context)!;
 
-    // Check if conversation exists (it might be null if deleted)
+    // Check if conversation exists
     final isDeleted = !conversationAsync.isLoading && conversation == null;
 
-    // Check if other user is blocked (only for individual chats)
+    // Check if other user is blocked
     bool isBlocked = false;
     if (!widget.isGroup && conversation != null) {
       final otherUserId = conversation.getOtherParticipantId(
@@ -152,7 +448,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // Stream other user's profile if it's an individual chat
     AsyncValue<dynamic>? otherUserAsync;
     if (!widget.isGroup && widget.otherUserId != null) {
-      // Use the profile provider to get real-time updates
       otherUserAsync = ref.watch(userStreamProvider(widget.otherUserId!));
     }
 
@@ -179,225 +474,294 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     });
 
     return Scaffold(
-      backgroundColor: context.backgroundColor,
+      backgroundColor:
+          _chatBackground?.isDefault ?? true ? context.backgroundColor : null,
+      extendBodyBehindAppBar:
+          _chatBackground != null && !_chatBackground!.isDefault,
       appBar: _buildAppBar(otherUser),
-      body: Column(
-        children: [
-          // Offline indicator
-          if (paginationState.isOffline)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.wifi_off,
-                    size: 14,
-                    color: context.adaptivePrimaryColor,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    l10n.offlineMode,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.adaptivePrimaryColor,
-                      fontWeight: FontWeight.w500,
+      body: Container(
+        decoration:
+            _chatBackground != null && !_chatBackground!.isDefault
+                ? BoxDecoration(
+                  color:
+                      _chatBackground!.isColor ? _chatBackground!.color : null,
+                  image:
+                      _chatBackground!.isImage &&
+                              _chatBackground!.imageUrl != null
+                          ? DecorationImage(
+                            image: NetworkImage(_chatBackground!.imageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                          : _chatBackground!.isImage &&
+                              _chatBackground!.localImagePath != null
+                          ? DecorationImage(
+                            image: FileImage(
+                              File(_chatBackground!.localImagePath!),
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                          : null,
+                )
+                : null,
+        child: Stack(
+          children: [
+            // Semi-transparent overlay for readability
+            if (_chatBackground != null && !_chatBackground!.isDefault)
+              Container(
+                color:
+                    context.isDarkMode
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.3),
+              ),
+            Column(
+              children: [
+                // Offline indicator
+                if (paginationState.isOffline)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 16,
+                    ),
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.wifi_off,
+                          size: 14,
+                          color: context.adaptivePrimaryColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.offlineMode,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.adaptivePrimaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          // Messages
-          Expanded(
-            child: _buildMessageList(paginationState, currentUser?.id, l10n),
-          ),
+                // Messages
+                Expanded(
+                  child: _buildMessageList(
+                    paginationState,
+                    currentUser?.id,
+                    l10n,
+                  ),
+                ),
 
-          // Typing indicator
-          if (!isDeleted && !isBlocked)
-            TypingIndicatorWidget(
-              conversationId: widget.conversationId,
-              currentUserId: currentUser?.id,
-              userNames:
-                  widget.otherUserId != null
-                      ? {
-                        widget.otherUserId!:
-                            displayName ??
-                            widget.conversationName ??
-                            'Utilisateur',
+                // Typing indicator
+                if (!isDeleted && !isBlocked)
+                  TypingIndicatorWidget(
+                    conversationId: widget.conversationId,
+                    currentUserId: currentUser?.id,
+                    userNames:
+                        widget.otherUserId != null
+                            ? {
+                              widget.otherUserId!:
+                                  displayName ??
+                                  widget.conversationName ??
+                                  'Utilisateur',
+                            }
+                            : null,
+                  ),
+
+                // Input or Blocked/Deleted Message
+                if (isDeleted ||
+                    (otherUser != null &&
+                        otherUser.displayName == 'Utilisateur supprimé'))
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: context.surfaceColor,
+                    width: double.infinity,
+                    child: Text(
+                      isDeleted
+                          ? "Ce groupe a été supprimé"
+                          : "Cet utilisateur a été supprimé",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color:
+                            context.isDarkMode
+                                ? AppColors.errorDark
+                                : AppColors.error,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                else if (isBlocked)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: context.surfaceColor,
+                    width: double.infinity,
+                    child: Text(
+                      "Vous avez bloqué cet utilisateur",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color:
+                            context.isDarkMode
+                                ? AppColors.errorDark
+                                : AppColors.error,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                else
+                  MessageInput(
+                    isLoading: sendMessageState.isLoading,
+                    replyToMessage: _replyToMessage,
+                    onCancelReply: _cancelReply,
+                    onTyping: () {
+                      ref
+                          .read(typingIndicatorNotifierProvider.notifier)
+                          .onUserTyping(widget.conversationId);
+                    },
+                    onSendText: (text) async {
+                      // Stop typing indicator when sending
+                      ref
+                          .read(typingIndicatorNotifierProvider.notifier)
+                          .stopTyping();
+
+                      // Clear reply
+                      final replyTo = _replyToMessage;
+                      _cancelReply();
+
+                      // Generate unique message ID for tracking
+                      final messageId =
+                          'temp_${DateTime.now().millisecondsSinceEpoch}';
+
+                      // Send with retry logic
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendText(
+                            conversationId: widget.conversationId,
+                            content: text,
+                            optimisticMessageId: messageId,
+                            replyToMessage: replyTo,
+                          );
+
+                      if (!mounted) return;
+
+                      if (!success) {
+                        ref
+                            .read(
+                              paginatedMessagesProvider(
+                                widget.conversationId,
+                              ).notifier,
+                            )
+                            .updateMessageStatus(
+                              messageId,
+                              MessageStatus.failed,
+                            );
                       }
-                      : null,
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'text',
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                            'is_reply': replyTo != null ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
+                    onSendFile: (
+                      File file,
+                      bool isImage, {
+                      String? caption,
+                    }) async {
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendFile(
+                            conversationId: widget.conversationId,
+                            file: file,
+                            type:
+                                isImage ? MessageType.image : MessageType.file,
+                            caption: caption,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': isImage ? 'image' : 'file',
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
+                    onSendAudio: (
+                      File audioFile,
+                      int duration,
+                      List<double> waveform,
+                    ) async {
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendAudio(
+                            conversationId: widget.conversationId,
+                            audioFile: audioFile,
+                            duration: duration,
+                            waveform: waveform,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'audio',
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                            'duration': duration,
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
+                  ),
+              ],
             ),
 
-          // Input or Blocked/Deleted Message
-          if (isDeleted ||
-              (otherUser != null &&
-                  otherUser.displayName == 'Utilisateur supprimé'))
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: context.surfaceColor,
-              width: double.infinity,
-              child: Text(
-                isDeleted
-                    ? "Ce groupe a été supprimé"
-                    : "Cet utilisateur a été supprimé",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color:
-                      context.isDarkMode
-                          ? AppColors.errorDark
-                          : AppColors.error,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          else if (isBlocked)
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: context.surfaceColor,
-              width: double.infinity,
-              child: Text(
-                "Vous avez bloqué cet utilisateur",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color:
-                      context.isDarkMode
-                          ? AppColors.errorDark
-                          : AppColors.error,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          else
-            MessageInput(
-              isLoading: sendMessageState.isLoading,
-              onTyping: () {
-                ref
-                    .read(typingIndicatorNotifierProvider.notifier)
-                    .onUserTyping(widget.conversationId);
-              },
-              onSendText: (text) async {
-                // Stop typing indicator when sending
-                ref.read(typingIndicatorNotifierProvider.notifier).stopTyping();
-                // Generate unique message ID
-                final messageId =
-                    'temp_${DateTime.now().millisecondsSinceEpoch}';
-
-                // Add optimistic message immediately
-                final currentUser =
-                    ref.read(currentUserAsyncProvider).valueOrNull;
-                if (currentUser != null) {
-                  final optimisticMessage = MessageEntity(
-                    id: messageId,
-                    senderId: currentUser.id,
-                    senderName: currentUser.displayName ?? 'You',
-                    senderPhotoUrl: currentUser.photoUrl,
-                    content: text,
-                    type: MessageType.text,
-                    status: MessageStatus.sending, // Message en cours d'envoi
-                    createdAt: DateTime.now(),
-                    readBy: [currentUser.id],
-                  );
-
-                  ref
-                      .read(
-                        paginatedMessagesProvider(
-                          widget.conversationId,
-                        ).notifier,
-                      )
-                      .addOptimisticMessage(optimisticMessage);
-                }
-
-                // Send with retry logic
-                final success = await ref
-                    .read(sendMessageProvider.notifier)
-                    .sendText(
-                      conversationId: widget.conversationId,
-                      content: text,
-                      optimisticMessageId: messageId,
-                    );
-
-                if (!mounted) return;
-
-                // If final failure after all retries, mark as failed
-                if (!success) {
-                  ref
-                      .read(
-                        paginatedMessagesProvider(
-                          widget.conversationId,
-                        ).notifier,
-                      )
-                      .updateMessageStatus(messageId, MessageStatus.failed);
-                }
-
-                if (success) {
-                  AnalyticsService.instance.logEvent(
-                    name: 'send_message',
-                    parameters: {
-                      'type': 'text',
-                      'conversation_id': widget.conversationId,
-                      'is_group': widget.isGroup,
-                    },
-                  );
-                  _scrollToBottom();
-                }
-              },
-              onSendFile: (File file, bool isImage, {String? caption}) async {
-                final success = await ref
-                    .read(sendMessageProvider.notifier)
-                    .sendFile(
-                      conversationId: widget.conversationId,
-                      file: file,
-                      type: isImage ? MessageType.image : MessageType.file,
-                      caption: caption,
-                    );
-
-                if (!mounted) return;
-
-                if (success) {
-                  AnalyticsService.instance.logEvent(
-                    name: 'send_message',
-                    parameters: {
-                      'type': isImage ? 'image' : 'file',
-                      'conversation_id': widget.conversationId,
-                      'is_group': widget.isGroup,
-                    },
-                  );
-                  _scrollToBottom();
-                }
-              },
-              onSendAudio: (
-                File audioFile,
-                int duration,
-                List<double> waveform,
-              ) async {
-                final success = await ref
-                    .read(sendMessageProvider.notifier)
-                    .sendAudio(
-                      conversationId: widget.conversationId,
-                      audioFile: audioFile,
-                      duration: duration,
-                      waveform: waveform,
-                    );
-
-                if (!mounted) return;
-
-                if (success) {
-                  AnalyticsService.instance.logEvent(
-                    name: 'send_message',
-                    parameters: {
-                      'type': 'audio',
-                      'conversation_id': widget.conversationId,
-                      'is_group': widget.isGroup,
-                      'duration': duration,
-                    },
-                  );
-                  _scrollToBottom();
-                }
+            // Scroll to bottom FAB
+            ValueListenableBuilder<bool>(
+              valueListenable: _showScrollToBottomButton,
+              builder: (context, showButton, child) {
+                if (!showButton) return const SizedBox.shrink();
+                return Positioned(
+                  bottom: 100,
+                  right: 16,
+                  child: ScaleTransition(
+                    scale: _scrollButtonAnimation,
+                    child: FloatingActionButton.small(
+                      onPressed: _scrollToBottom,
+                      backgroundColor: context.surfaceColor,
+                      elevation: 4,
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                  ),
+                );
               },
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -496,31 +860,156 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         }
 
         final message = messages[messageIndex];
+
+        // Hide message if deleted for current user
+        if (currentUserId != null && message.isDeletedFor(currentUserId)) {
+          return const SizedBox.shrink();
+        }
+
         final isMe = message.senderId == currentUserId;
+
+        // Get group position for linked bubbles
+        final groupPosition = _getMessageGroupPosition(
+          messages,
+          messageIndex,
+          currentUserId,
+        );
+
+        // Only show sender info for the first message in a group (first or single)
+        // This avoids redundant display of sender name for consecutive messages
         final showSenderInfo =
             widget.isGroup &&
             !isMe &&
-            (messageIndex == 0 ||
-                messages[messageIndex - 1].senderId != message.senderId);
+            (groupPosition == MessageGroupPosition.first ||
+                groupPosition == MessageGroupPosition.single);
 
-        return MessageBubble(
-          message: message,
-          isMe: isMe,
-          showSenderInfo: showSenderInfo,
-          conversationId: widget.conversationId,
-          currentUserId: currentUserId,
-          onSenderTap: (userId) {
-            if (widget.isGroup) {
-              context.push('/profile/$userId');
-            }
-          },
+        // Check if we need a date separator
+        final needsSeparator = _needsDateSeparator(messages, messageIndex);
+        debugPrint('🔹 Message $messageIndex: needsSeparator=$needsSeparator');
+
+        final conversation =
+            ref
+                .watch(conversationStreamProvider(widget.conversationId))
+                .valueOrNull;
+        final isAdmin =
+            conversation != null &&
+            currentUserId != null &&
+            (conversation.createdBy == currentUserId ||
+                conversation.adminIds.contains(currentUserId));
+
+        return Column(
+          children: [
+            // Date separator
+            if (needsSeparator) _buildDateSeparator(message.createdAt, l10n),
+
+            // Message bubble with highlight animation
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                color:
+                    _highlightedMessageId == message.id
+                        ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Align(
+                alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                child: MessageBubble(
+                  message: message,
+                  isMe: isMe,
+                  showSenderInfo: showSenderInfo,
+                  groupPosition: groupPosition,
+                  conversationId: widget.conversationId,
+                  currentUserId: currentUserId,
+                  isAdmin: isAdmin,
+                  onReply: _handleReply,
+                  onReact: _handleReact,
+                  onSenderTap: (userId) {
+                    if (widget.isGroup) {
+                      context.push('/profile/$userId');
+                    }
+                  },
+                  replyToMessage: _getReplyEntity(message),
+                  onScrollToMessage: _scrollToMessage,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
+  Widget _buildDateSeparator(DateTime date, AppLocalizations l10n) {
+    final label = _getDateLabel(date, l10n);
+    debugPrint(
+      '🔷 _buildDateSeparator: Building separator with label="$label" for date=$date',
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              color: context.outlineColor.withValues(alpha: 0.1),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _getDateLabel(date, l10n),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: context.outlineColor.withValues(alpha: 0.1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCallComingSoon({required bool isVideo}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isVideo ? Icons.videocam : Icons.call,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              isVideo
+                  ? 'Appel vidéo - Bientôt disponible'
+                  : 'Appel vocal - Bientôt disponible',
+            ),
+          ],
+        ),
+        backgroundColor: context.adaptivePrimaryColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(dynamic otherUser) {
-    // Determined displayed name and image
     final displayName =
         widget.isGroup
             ? widget.conversationName
@@ -530,6 +1019,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         widget.isGroup
             ? widget.conversationImageUrl
             : otherUser?.photoUrl ?? widget.conversationImageUrl;
+
+    // Check if user is deleted
+    final isDeletedUser =
+        otherUser != null && otherUser.displayName == 'Utilisateur supprimé';
 
     return AppBar(
       backgroundColor: context.surfaceColor,
@@ -548,7 +1041,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           if (widget.isGroup) {
             String? groupIdToUse = widget.groupId;
 
-            // Fallback: if groupId is null, try to find group by name
             if (groupIdToUse == null && widget.conversationName != null) {
               debugPrint(
                 '   🔍 groupId is null, searching by name: ${widget.conversationName}',
@@ -569,8 +1061,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               );
             }
           } else if (widget.otherUserId != null) {
-            if (otherUser != null &&
-                otherUser.displayName == 'Utilisateur supprimé') {
+            if (isDeletedUser) {
               return;
             }
             debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
@@ -619,7 +1110,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               size: 20,
                             ),
                   ),
-                  if (!widget.isGroup && widget.otherUserId != null)
+                  // Online indicator dot on avatar (only for individual chats)
+                  if (!widget.isGroup &&
+                      widget.otherUserId != null &&
+                      !isDeletedUser)
                     Positioned(
                       bottom: -2,
                       right: -2,
@@ -642,7 +1136,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Name
                     Text(
                       displayName ?? AppLocalizations.of(context)!.conversation,
                       style: TextStyle(
@@ -653,12 +1149,27 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // Status text below name
                     if (widget.isGroup)
                       Text(
                         AppLocalizations.of(context)!.group,
                         style: TextStyle(
                           fontSize: 12,
                           color: context.textTertiaryColor,
+                        ),
+                      )
+                    else if (!widget.isGroup &&
+                        widget.otherUserId != null &&
+                        !isDeletedUser)
+                      // Online status text for individual chats
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: OnlineStatusIndicator(
+                          key: ValueKey(widget.otherUserId),
+                          userId: widget.otherUserId!,
+                          showText: true,
+                          showDot: true, // Show dot on the left of text
+                          dotSize: 8,
                         ),
                       ),
                   ],
@@ -669,6 +1180,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         ),
       ),
       actions: [
+        // Call buttons for individual chats only
+        if (!widget.isGroup && !isDeletedUser) ...[
+          IconButton(
+            onPressed: () => _showCallComingSoon(isVideo: false),
+            icon: Icon(Icons.call_outlined, color: context.textPrimaryColor),
+            tooltip: 'Appel vocal',
+          ),
+          IconButton(
+            onPressed: () => _showCallComingSoon(isVideo: true),
+            icon: Icon(
+              Icons.videocam_outlined,
+              color: context.textPrimaryColor,
+            ),
+            tooltip: 'Appel vidéo',
+          ),
+        ],
+        // More options button
         IconButton(
           onPressed: () => _showConversationOptions(),
           icon: _buildMoreValuesIcon(context),
@@ -691,36 +1219,110 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context)!;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated chat illustration
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    context.adaptivePrimaryColor.withValues(alpha: 0.15),
+                    context.adaptiveSecondaryColor.withValues(alpha: 0.1),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 48,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                  // Small decorative elements
+                  Positioned(
+                    top: 20,
+                    right: 20,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: context.adaptiveSecondaryColor.withValues(
+                          alpha: 0.5,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 25,
+                    left: 18,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: context.adaptivePrimaryColor.withValues(
+                          alpha: 0.5,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Icon(
-              Icons.chat_bubble_outline,
-              size: 48,
-              color: context.adaptivePrimaryColor,
+            const SizedBox(height: 32),
+            Text(
+              l10n.noMessages,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.noMessages,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: context.textPrimaryColor,
+            const SizedBox(height: 12),
+            Text(
+              widget.isGroup
+                  ? "Soyez le premier à envoyer un message dans ce groupe !"
+                  : l10n.sendFirstMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.textSecondaryColor,
+                height: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.sendFirstMessage,
-            style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
-          ),
-        ],
+            const SizedBox(height: 24),
+            // Subtle hint with arrow
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.arrow_downward_rounded,
+                  size: 16,
+                  color: context.textTertiaryColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Tapez votre message ci-dessous",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textTertiaryColor,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

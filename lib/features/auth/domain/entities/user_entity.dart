@@ -13,5 +13,8 @@ class UserEntity with _$UserEntity {
     DateTime? createdAt,
     DateTime? lastLoginAt,
     @Default(false) bool isAdmin,
+    @Default(false) bool isBanned,
+    String? banReason,
+    DateTime? bannedAt,
   }) = _UserEntity;
 }

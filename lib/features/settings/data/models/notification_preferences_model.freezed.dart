@@ -27,6 +27,8 @@ mixin _$NotificationPreferencesModel {
   bool get newEvents => throw _privateConstructorUsedError;
   bool get groupActivity => throw _privateConstructorUsedError;
   bool get eventReminders => throw _privateConstructorUsedError;
+  bool get localEvents => throw _privateConstructorUsedError;
+  bool get systemMessages => throw _privateConstructorUsedError;
 
   /// Serializes this NotificationPreferencesModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +56,8 @@ abstract class $NotificationPreferencesModelCopyWith<$Res> {
     bool newEvents,
     bool groupActivity,
     bool eventReminders,
+    bool localEvents,
+    bool systemMessages,
   });
 }
 
@@ -79,6 +83,8 @@ class _$NotificationPreferencesModelCopyWithImpl<
     Object? newEvents = null,
     Object? groupActivity = null,
     Object? eventReminders = null,
+    Object? localEvents = null,
+    Object? systemMessages = null,
   }) {
     return _then(
       _value.copyWith(
@@ -102,6 +108,16 @@ class _$NotificationPreferencesModelCopyWithImpl<
                     ? _value.eventReminders
                     : eventReminders // ignore: cast_nullable_to_non_nullable
                         as bool,
+            localEvents:
+                null == localEvents
+                    ? _value.localEvents
+                    : localEvents // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            systemMessages:
+                null == systemMessages
+                    ? _value.systemMessages
+                    : systemMessages // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -122,6 +138,8 @@ abstract class _$$NotificationPreferencesModelImplCopyWith<$Res>
     bool newEvents,
     bool groupActivity,
     bool eventReminders,
+    bool localEvents,
+    bool systemMessages,
   });
 }
 
@@ -147,6 +165,8 @@ class __$$NotificationPreferencesModelImplCopyWithImpl<$Res>
     Object? newEvents = null,
     Object? groupActivity = null,
     Object? eventReminders = null,
+    Object? localEvents = null,
+    Object? systemMessages = null,
   }) {
     return _then(
       _$NotificationPreferencesModelImpl(
@@ -170,6 +190,16 @@ class __$$NotificationPreferencesModelImplCopyWithImpl<$Res>
                 ? _value.eventReminders
                 : eventReminders // ignore: cast_nullable_to_non_nullable
                     as bool,
+        localEvents:
+            null == localEvents
+                ? _value.localEvents
+                : localEvents // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        systemMessages:
+            null == systemMessages
+                ? _value.systemMessages
+                : systemMessages // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -183,6 +213,8 @@ class _$NotificationPreferencesModelImpl extends _NotificationPreferencesModel {
     this.newEvents = true,
     this.groupActivity = true,
     this.eventReminders = true,
+    this.localEvents = true,
+    this.systemMessages = false,
   }) : super._();
 
   factory _$NotificationPreferencesModelImpl.fromJson(
@@ -201,10 +233,16 @@ class _$NotificationPreferencesModelImpl extends _NotificationPreferencesModel {
   @override
   @JsonKey()
   final bool eventReminders;
+  @override
+  @JsonKey()
+  final bool localEvents;
+  @override
+  @JsonKey()
+  final bool systemMessages;
 
   @override
   String toString() {
-    return 'NotificationPreferencesModel(messages: $messages, newEvents: $newEvents, groupActivity: $groupActivity, eventReminders: $eventReminders)';
+    return 'NotificationPreferencesModel(messages: $messages, newEvents: $newEvents, groupActivity: $groupActivity, eventReminders: $eventReminders, localEvents: $localEvents, systemMessages: $systemMessages)';
   }
 
   @override
@@ -219,7 +257,11 @@ class _$NotificationPreferencesModelImpl extends _NotificationPreferencesModel {
             (identical(other.groupActivity, groupActivity) ||
                 other.groupActivity == groupActivity) &&
             (identical(other.eventReminders, eventReminders) ||
-                other.eventReminders == eventReminders));
+                other.eventReminders == eventReminders) &&
+            (identical(other.localEvents, localEvents) ||
+                other.localEvents == localEvents) &&
+            (identical(other.systemMessages, systemMessages) ||
+                other.systemMessages == systemMessages));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -230,6 +272,8 @@ class _$NotificationPreferencesModelImpl extends _NotificationPreferencesModel {
     newEvents,
     groupActivity,
     eventReminders,
+    localEvents,
+    systemMessages,
   );
 
   /// Create a copy of NotificationPreferencesModel
@@ -257,6 +301,8 @@ abstract class _NotificationPreferencesModel
     final bool newEvents,
     final bool groupActivity,
     final bool eventReminders,
+    final bool localEvents,
+    final bool systemMessages,
   }) = _$NotificationPreferencesModelImpl;
   const _NotificationPreferencesModel._() : super._();
 
@@ -271,6 +317,10 @@ abstract class _NotificationPreferencesModel
   bool get groupActivity;
   @override
   bool get eventReminders;
+  @override
+  bool get localEvents;
+  @override
+  bool get systemMessages;
 
   /// Create a copy of NotificationPreferencesModel
   /// with the given fields replaced by the non-null parameter values.

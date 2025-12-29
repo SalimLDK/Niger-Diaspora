@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <!-- Adaptive icon safe zone: 66dp diameter circle centered at 54,54 -->
+  
+  <!-- Texte DN blanc centré -->
+  <text x="54" y="70" 
+        font-family="'Arial Black', 'Arial Bold', 'Helvetica Bold', sans-serif" 
+        font-size="48" 
+        font-weight="900" 
+        fill="white" 
+        text-anchor="middle"
+        letter-spacing="1">DN</text>
+</svg>

@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
@@ -12,11 +13,27 @@ import '../models/event_model.dart';
 class EventRepositoryImpl implements EventRepository {
   final EventRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final CacheService cacheService;
 
   EventRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
-  });
+    CacheService? cacheService,
+  }) : cacheService = cacheService ?? CacheService.instance;
+
+  @override
+  Either<Failure, List<EventEntity>> getCachedEvents() {
+    try {
+      final cachedData = cacheService.getAllCachedEvents();
+      final entities =
+          cachedData
+              .map((data) => EventModel.fromJson(data).toEntity())
+              .toList();
+      return Right(entities);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, List<EventEntity>>> getEvents() async {

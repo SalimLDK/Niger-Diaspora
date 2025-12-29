@@ -25,6 +25,9 @@ mixin _$UserEntity {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
   bool get isAdmin => throw _privateConstructorUsedError;
+  bool get isBanned => throw _privateConstructorUsedError;
+  String? get banReason => throw _privateConstructorUsedError;
+  DateTime? get bannedAt => throw _privateConstructorUsedError;
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -49,6 +52,9 @@ abstract class $UserEntityCopyWith<$Res> {
     DateTime? createdAt,
     DateTime? lastLoginAt,
     bool isAdmin,
+    bool isBanned,
+    String? banReason,
+    DateTime? bannedAt,
   });
 }
 
@@ -75,6 +81,9 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
     Object? isAdmin = null,
+    Object? isBanned = null,
+    Object? banReason = freezed,
+    Object? bannedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -118,6 +127,21 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                     ? _value.isAdmin
                     : isAdmin // ignore: cast_nullable_to_non_nullable
                         as bool,
+            isBanned:
+                null == isBanned
+                    ? _value.isBanned
+                    : isBanned // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            banReason:
+                freezed == banReason
+                    ? _value.banReason
+                    : banReason // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            bannedAt:
+                freezed == bannedAt
+                    ? _value.bannedAt
+                    : bannedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
           )
           as $Val,
     );
@@ -142,6 +166,9 @@ abstract class _$$UserEntityImplCopyWith<$Res>
     DateTime? createdAt,
     DateTime? lastLoginAt,
     bool isAdmin,
+    bool isBanned,
+    String? banReason,
+    DateTime? bannedAt,
   });
 }
 
@@ -167,6 +194,9 @@ class __$$UserEntityImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
     Object? isAdmin = null,
+    Object? isBanned = null,
+    Object? banReason = freezed,
+    Object? bannedAt = freezed,
   }) {
     return _then(
       _$UserEntityImpl(
@@ -210,6 +240,21 @@ class __$$UserEntityImplCopyWithImpl<$Res>
                 ? _value.isAdmin
                 : isAdmin // ignore: cast_nullable_to_non_nullable
                     as bool,
+        isBanned:
+            null == isBanned
+                ? _value.isBanned
+                : isBanned // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        banReason:
+            freezed == banReason
+                ? _value.banReason
+                : banReason // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        bannedAt:
+            freezed == bannedAt
+                ? _value.bannedAt
+                : bannedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
       ),
     );
   }
@@ -227,6 +272,9 @@ class _$UserEntityImpl implements _UserEntity {
     this.createdAt,
     this.lastLoginAt,
     this.isAdmin = false,
+    this.isBanned = false,
+    this.banReason,
+    this.bannedAt,
   });
 
   @override
@@ -246,10 +294,17 @@ class _$UserEntityImpl implements _UserEntity {
   @override
   @JsonKey()
   final bool isAdmin;
+  @override
+  @JsonKey()
+  final bool isBanned;
+  @override
+  final String? banReason;
+  @override
+  final DateTime? bannedAt;
 
   @override
   String toString() {
-    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin)';
+    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
   }
 
   @override
@@ -269,7 +324,13 @@ class _$UserEntityImpl implements _UserEntity {
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
                 other.lastLoginAt == lastLoginAt) &&
-            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin));
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin) &&
+            (identical(other.isBanned, isBanned) ||
+                other.isBanned == isBanned) &&
+            (identical(other.banReason, banReason) ||
+                other.banReason == banReason) &&
+            (identical(other.bannedAt, bannedAt) ||
+                other.bannedAt == bannedAt));
   }
 
   @override
@@ -283,6 +344,9 @@ class _$UserEntityImpl implements _UserEntity {
     createdAt,
     lastLoginAt,
     isAdmin,
+    isBanned,
+    banReason,
+    bannedAt,
   );
 
   /// Create a copy of UserEntity
@@ -304,6 +368,9 @@ abstract class _UserEntity implements UserEntity {
     final DateTime? createdAt,
     final DateTime? lastLoginAt,
     final bool isAdmin,
+    final bool isBanned,
+    final String? banReason,
+    final DateTime? bannedAt,
   }) = _$UserEntityImpl;
 
   @override
@@ -322,6 +389,12 @@ abstract class _UserEntity implements UserEntity {
   DateTime? get lastLoginAt;
   @override
   bool get isAdmin;
+  @override
+  bool get isBanned;
+  @override
+  String? get banReason;
+  @override
+  DateTime? get bannedAt;
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.

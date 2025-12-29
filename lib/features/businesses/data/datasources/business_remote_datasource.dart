@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../models/business_model.dart';
 import '../models/business_boost_model.dart';
+import '../models/business_post_model.dart';
 
 abstract class BusinessRemoteDataSource {
   // Businesses - Read
@@ -11,6 +12,7 @@ abstract class BusinessRemoteDataSource {
   Future<List<BusinessModel>> getBusinessesByCategory(String category);
   Future<List<BusinessModel>> searchBusinesses(String query);
   Future<List<BusinessModel>> getNearbyBusinesses(double lat, double lng, double radiusKm);
+  Future<List<BusinessModel>> getBusinessesByLocation({String? country, String? city});
   Future<BusinessModel> getBusinessById(String id);
   Future<BusinessModel?> getMyBusiness(String ownerId);
 
@@ -25,6 +27,13 @@ abstract class BusinessRemoteDataSource {
   Future<List<BusinessBoostModel>> getBoostHistory(String businessId);
   Future<BusinessBoostModel?> getActiveBoost(String businessId);
   Future<void> updateBusinessBoostStatus(String businessId, bool isBoosted, DateTime? expiresAt);
+
+  // Posts
+  Future<List<BusinessPostModel>> getBusinessPosts(String businessId, {int limit = 20});
+  Future<List<BusinessPostModel>> getActiveOffers(String businessId);
+  Future<BusinessPostModel> createPost(BusinessPostModel post);
+  Future<BusinessPostModel> updatePost(BusinessPostModel post);
+  Future<void> deletePost(String postId);
 }
 
 class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
@@ -216,6 +225,45 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
   }
 
   @override
+  Future<List<BusinessModel>> getBusinessesByLocation({
+    String? country,
+    String? city,
+  }) async {
+    try {
+      final isConnected = await _connectivity.isConnected();
+      if (!isConnected) {
+        throw ServerException('Pas de connexion internet');
+      }
+
+      Query query = _businessesCollection;
+
+      // Appliquer les filtres de localisation
+      if (country != null && country.isNotEmpty) {
+        query = query.where('country', isEqualTo: country);
+      }
+      if (city != null && city.isNotEmpty) {
+        query = query.where('city', isEqualTo: city);
+      }
+
+      // Trier par boost puis par date
+      query = query
+          .orderBy('isBoosted', descending: true)
+          .orderBy('createdAt', descending: true)
+          .limit(50);
+
+      final snapshot = await query.get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return BusinessModel.fromJson(_convertTimestamps(data));
+      }).toList();
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors du chargement');
+    }
+  }
+
+  @override
   Future<BusinessModel> createBusiness(BusinessModel business) async {
     try {
       final data = business.toJson();
@@ -361,5 +409,120 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
       }
     });
     return result;
+  }
+
+  // ============ POSTS ============
+
+  CollectionReference get _postsCollection =>
+      _firestore.collection(FirebaseCollections.businessPosts);
+
+  @override
+  Future<List<BusinessPostModel>> getBusinessPosts(
+    String businessId, {
+    int limit = 20,
+  }) async {
+    try {
+      final isConnected = await _connectivity.isConnected();
+      if (!isConnected) {
+        throw ServerException('Pas de connexion internet');
+      }
+
+      final snapshot = await _postsCollection
+          .where('businessId', isEqualTo: businessId)
+          .where('isActive', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return BusinessPostModel.fromJson(_convertTimestamps(data));
+      }).toList();
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors du chargement des posts');
+    }
+  }
+
+  @override
+  Future<List<BusinessPostModel>> getActiveOffers(String businessId) async {
+    try {
+      final isConnected = await _connectivity.isConnected();
+      if (!isConnected) {
+        throw ServerException('Pas de connexion internet');
+      }
+
+      final now = DateTime.now();
+      final snapshot = await _postsCollection
+          .where('businessId', isEqualTo: businessId)
+          .where('type', isEqualTo: 'offer')
+          .where('isActive', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      // Filtrer côté client les offres encore valides
+      final posts = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return BusinessPostModel.fromJson(_convertTimestamps(data));
+      }).where((post) {
+        if (post.offerEndDate == null) return true;
+        final endDate = DateTime.tryParse(post.offerEndDate!);
+        return endDate == null || endDate.isAfter(now);
+      }).toList();
+
+      return posts;
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors du chargement des offres');
+    }
+  }
+
+  @override
+  Future<BusinessPostModel> createPost(BusinessPostModel post) async {
+    try {
+      final data = post.toJson();
+      data.remove('id');
+      data['createdAt'] = FieldValue.serverTimestamp();
+      data['updatedAt'] = FieldValue.serverTimestamp();
+      data['viewCount'] = 0;
+      data['likeCount'] = 0;
+      data['isActive'] = true;
+
+      final docRef = await _postsCollection.add(data);
+
+      final doc = await docRef.get();
+      final postData = doc.data() as Map<String, dynamic>;
+      postData['id'] = doc.id;
+      return BusinessPostModel.fromJson(_convertTimestamps(postData));
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la creation du post');
+    }
+  }
+
+  @override
+  Future<BusinessPostModel> updatePost(BusinessPostModel post) async {
+    try {
+      final data = post.toJson();
+      data.remove('id');
+      data['updatedAt'] = FieldValue.serverTimestamp();
+
+      await _postsCollection.doc(post.id).update(data);
+
+      final doc = await _postsCollection.doc(post.id).get();
+      final postData = doc.data() as Map<String, dynamic>;
+      postData['id'] = doc.id;
+      return BusinessPostModel.fromJson(_convertTimestamps(postData));
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la mise a jour du post');
+    }
+  }
+
+  @override
+  Future<void> deletePost(String postId) async {
+    try {
+      await _postsCollection.doc(postId).delete();
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la suppression du post');
+    }
   }
 }

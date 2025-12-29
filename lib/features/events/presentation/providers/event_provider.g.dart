@@ -45,7 +45,7 @@ final eventRepositoryProvider = AutoDisposeProvider<EventRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef EventRepositoryRef = AutoDisposeProviderRef<EventRepository>;
-String _$eventsNotifierHash() => r'f074910d9346dc99d871cfeab2f774fe1fced79b';
+String _$eventsNotifierHash() => r'03d40170e474c615e2ef52aacf077c5de0c9aa62';
 
 /// See also [EventsNotifier].
 @ProviderFor(EventsNotifier)

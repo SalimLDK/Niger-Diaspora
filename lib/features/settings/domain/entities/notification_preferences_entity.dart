@@ -9,5 +9,7 @@ class NotificationPreferencesEntity with _$NotificationPreferencesEntity {
     @Default(true) bool newEvents,
     @Default(true) bool groupActivity,
     @Default(true) bool eventReminders,
+    @Default(true) bool localEvents, // Notifications for events in my city
+    @Default(false) bool systemMessages, // Notifications for system messages
   }) = _NotificationPreferencesEntity;
 }

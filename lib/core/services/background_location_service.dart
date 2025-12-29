@@ -13,6 +13,9 @@ import '../../../firebase_options.dart';
 
 class BackgroundLocationService {
   static const String notificationChannelId = 'background_location_channel';
+  static const String notificationChannelName = 'Diaspo Niger Location Service';
+  static const String notificationChannelDescription =
+      'Service de localisation en arrière-plan';
   static const int notificationId = 888;
   static const String prefKeyEnabled = 'background_location_enabled';
 
@@ -158,7 +161,13 @@ class BackgroundLocationService {
                   .doc(user.uid)
                   .update({
                     'location': GeoPoint(position.latitude, position.longitude),
+                    'latitude':
+                        position
+                            .latitude, // Ensure these flat fields are also updated for queries
+                    'longitude': position.longitude,
                     'lastSeen': FieldValue.serverTimestamp(),
+                    'locationUpdatedAt':
+                        FieldValue.serverTimestamp(), // Link to presence filter
                   });
 
               debugPrint(

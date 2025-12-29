@@ -14,10 +14,8 @@ class QrScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
-    with SingleTickerProviderStateMixin {
-  final MobileScannerController _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-  );
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late MobileScannerController _controller;
 
   bool _isProcessing = false;
   bool _flashOn = false;
@@ -27,6 +25,26 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    _controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      returnImage: false,
+      autoStart: false,
+    );
+
+    // Start camera after first frame to avoid "widget tree locked" errors
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        try {
+          await _controller.start();
+          debugPrint('Camera started successfully');
+        } catch (e) {
+          debugPrint('Error starting camera: $e');
+        }
+      }
+    });
+
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -35,7 +53,44 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('QrScanner lifecycle: $state');
+
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        return;
+      case AppLifecycleState.paused:
+        // Only stop camera when fully paused (app in background)
+        if (mounted && _controller.value.isInitialized) {
+          _controller.stop();
+        }
+        break;
+      case AppLifecycleState.resumed:
+        // Restart camera when app comes back to foreground
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (mounted && !_controller.value.isRunning) {
+              try {
+                await _controller.start();
+              } catch (e) {
+                debugPrint('Error restarting camera: $e');
+              }
+            }
+          });
+        }
+        break;
+      case AppLifecycleState.inactive:
+        // Don't stop camera on inactive - it's too aggressive
+        // (triggers on notifications, app switcher, etc.)
+        break;
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Dispose controller which internally handles stopping
     _controller.dispose();
     _animationController.dispose();
     super.dispose();
@@ -72,7 +127,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     String? userId;
     String? shortCode;
 
-    if (uri.host.contains('diasponiger.com') && uri.pathSegments.length >= 2) {
+    if ((uri.host.contains('diasponiger.com') ||
+            uri.host.contains('diaspo-niger.web.app')) &&
+        uri.pathSegments.length >= 2) {
       if (uri.pathSegments[0] == 'p') {
         if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'u') {
           userId = uri.pathSegments[2];
@@ -83,7 +140,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     }
 
     if (userId != null && userId.isNotEmpty) {
-      _navigateToProfile(userId);
+      await _navigateToProfile(userId);
       return;
     }
 
@@ -94,7 +151,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         );
         if (mounted) {
           if (resolvedId != null) {
-            _navigateToProfile(resolvedId);
+            await _navigateToProfile(resolvedId);
           } else {
             _showError('Lien expiré ou introuvable');
           }
@@ -108,7 +165,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     _showError('QR code invalide ou format non reconnu');
   }
 
-  void _navigateToProfile(String userId) {
+  Future<void> _navigateToProfile(String userId) async {
+    // Stop camera before navigating to prevent BufferQueue errors
+    await _controller.stop();
+
+    if (!mounted) return;
+
     // Close scanner and navigate to profile
     context.pop();
     context.push('/profile/$userId');
@@ -160,24 +222,89 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     HapticFeedback.lightImpact();
   }
 
+  bool _canPop = false;
+
+  void _onBack() async {
+    // If already processing back, ignore
+    if (_canPop) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      if (_controller.value.isInitialized) {
+        await _controller.stop();
+      }
+    } catch (e) {
+      debugPrint('Error stopping camera: $e');
+    }
+
+    if (mounted) {
+      setState(() => _canPop = true);
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Camera view
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+    return PopScope(
+      canPop: _canPop,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        _onBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            // Camera view - always mount, just overlay loading when not ready
+            MobileScanner(
+              controller: _controller,
+              onDetect: _onDetect,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, child) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error, color: AppColors.error, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Erreur caméra: ${error.errorCode.name}',
+                        style: TextStyle(color: AppColors.white),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            // Loading overlay while camera initializes
+            ValueListenableBuilder<MobileScannerState>(
+              valueListenable: _controller,
+              builder: (context, state, child) {
+                if (!state.isInitialized || !state.isRunning) {
+                  return Container(
+                    color: Colors.black,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
-          // Overlay with scanning frame
-          _buildOverlay(),
+            // Overlay with scanning frame
+            _buildOverlay(),
 
-          // Top bar
-          _buildTopBar(),
+            // Top bar
+            _buildTopBar(),
 
-          // Bottom controls
-          _buildBottomControls(),
-        ],
+            // Bottom controls
+            _buildBottomControls(),
+          ],
+        ),
       ),
     );
   }
@@ -328,10 +455,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               color: Colors.black.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  context.pop();
-                },
+                onTap: _onBack,
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.all(12),

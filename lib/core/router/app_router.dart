@@ -6,6 +6,8 @@ import 'router_codec.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/consent_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_intro_screen.dart';
 import '../../features/onboarding/presentation/providers/onboarding_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -25,6 +27,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_view_screen.dart';
 import '../../features/profile/presentation/screens/qr_scanner_screen.dart';
+import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
@@ -40,6 +43,7 @@ import '../../features/search/presentation/providers/search_provider.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/terms_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
+import '../../features/settings/presentation/screens/code_of_conduct_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../shell/main_shell.dart';
 // Business Directory
@@ -116,7 +120,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isSplashRoute = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isConsentRoute = state.matchedLocation == '/consent';
+      final isProfileConfigRoute = state.matchedLocation == '/profile-config';
       final isOnboardingRoute = state.matchedLocation == '/onboarding/intro';
+      final isLegalRoute =
+          state.matchedLocation == '/settings/terms' ||
+          state.matchedLocation == '/settings/privacy' ||
+          state.matchedLocation == '/settings/code-of-conduct';
 
       // 1. If auth is loading, stay on splash
       if (isAuthLoading) {
@@ -133,14 +143,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/splash';
       }
 
-      // 4. Check if user needs to see onboarding
-      if (!onboardingState.hasSeenIntro) {
+      // 4. Check if user has given consent (except for terms/privacy pages)
+      if (!onboardingState.hasGivenConsent && !isLegalRoute) {
+        return isConsentRoute ? null : '/consent';
+      }
+
+      // 5. Check if user has completed profile configuration (except for terms/privacy pages)
+      if (!onboardingState.profileConfigComplete && !isLegalRoute) {
+        return isProfileConfigRoute ? null : '/profile-config';
+      }
+
+      // 6. Check if user needs to see onboarding (except for terms/privacy pages)
+      if (!onboardingState.hasSeenIntro && !isLegalRoute) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 5. User is authenticated and has seen onboarding
-      // Redirect to home if on splash, auth, or onboarding pages
-      if (isSplashRoute || isAuthRoute || isOnboardingRoute) {
+      // 7. User is authenticated and has completed all setup steps
+      // Redirect to home if on splash, auth, consent, profile-config, or onboarding pages
+      if (isSplashRoute ||
+          isAuthRoute ||
+          isConsentRoute ||
+          isProfileConfigRoute ||
+          isOnboardingRoute) {
         return '/home';
       }
 
@@ -160,6 +184,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/auth/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      // Consent screen
+      GoRoute(
+        path: '/consent',
+        builder: (context, state) => const ConsentScreen(),
+      ),
+      // Profile configuration
+      GoRoute(
+        path: '/profile-config',
+        builder: (context, state) => const ProfileConfigScreen(),
       ),
       // Onboarding route
       GoRoute(
@@ -293,6 +331,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/privacy',
         builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/settings/code-of-conduct',
+        builder: (context, state) => const CodeOfConductScreen(),
       ),
       // Embassies routes
       GoRoute(

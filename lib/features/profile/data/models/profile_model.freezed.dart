@@ -52,6 +52,7 @@ mixin _$ProfileModel {
   bool get isOnline => throw _privateConstructorUsedError;
   DateTime? get lastSeen => throw _privateConstructorUsedError;
   bool get showOnlineStatus => throw _privateConstructorUsedError;
+  DateTime? get locationUpdatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this ProfileModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -102,6 +103,7 @@ abstract class $ProfileModelCopyWith<$Res> {
     bool isOnline,
     DateTime? lastSeen,
     bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   });
 }
 
@@ -151,6 +153,7 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? isOnline = null,
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
+    Object? locationUpdatedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -309,6 +312,11 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                     ? _value.showOnlineStatus
                     : showOnlineStatus // ignore: cast_nullable_to_non_nullable
                         as bool,
+            locationUpdatedAt:
+                freezed == locationUpdatedAt
+                    ? _value.locationUpdatedAt
+                    : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
           )
           as $Val,
     );
@@ -356,6 +364,7 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     bool isOnline,
     DateTime? lastSeen,
     bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   });
 }
 
@@ -404,6 +413,7 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? isOnline = null,
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
+    Object? locationUpdatedAt = freezed,
   }) {
     return _then(
       _$ProfileModelImpl(
@@ -562,6 +572,11 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
                 ? _value.showOnlineStatus
                 : showOnlineStatus // ignore: cast_nullable_to_non_nullable
                     as bool,
+        locationUpdatedAt:
+            freezed == locationUpdatedAt
+                ? _value.locationUpdatedAt
+                : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
       ),
     );
   }
@@ -602,6 +617,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     this.isOnline = false,
     this.lastSeen,
     this.showOnlineStatus = true,
+    this.locationUpdatedAt,
   }) : _interests = interests,
        _skills = skills,
        _languages = languages,
@@ -703,10 +719,12 @@ class _$ProfileModelImpl extends _ProfileModel {
   @override
   @JsonKey()
   final bool showOnlineStatus;
+  @override
+  final DateTime? locationUpdatedAt;
 
   @override
   String toString() {
-    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus)';
+    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt)';
   }
 
   @override
@@ -775,7 +793,9 @@ class _$ProfileModelImpl extends _ProfileModel {
             (identical(other.lastSeen, lastSeen) ||
                 other.lastSeen == lastSeen) &&
             (identical(other.showOnlineStatus, showOnlineStatus) ||
-                other.showOnlineStatus == showOnlineStatus));
+                other.showOnlineStatus == showOnlineStatus) &&
+            (identical(other.locationUpdatedAt, locationUpdatedAt) ||
+                other.locationUpdatedAt == locationUpdatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -813,6 +833,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     isOnline,
     lastSeen,
     showOnlineStatus,
+    locationUpdatedAt,
   ]);
 
   /// Create a copy of ProfileModel
@@ -862,6 +883,7 @@ abstract class _ProfileModel extends ProfileModel {
     final bool isOnline,
     final DateTime? lastSeen,
     final bool showOnlineStatus,
+    final DateTime? locationUpdatedAt,
   }) = _$ProfileModelImpl;
   const _ProfileModel._() : super._();
 
@@ -930,6 +952,8 @@ abstract class _ProfileModel extends ProfileModel {
   DateTime? get lastSeen;
   @override
   bool get showOnlineStatus;
+  @override
+  DateTime? get locationUpdatedAt;
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.

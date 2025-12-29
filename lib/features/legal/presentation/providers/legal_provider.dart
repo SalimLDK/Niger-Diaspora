@@ -24,6 +24,12 @@ Future<LegalContentModel> privacyPolicy(Ref ref) async {
 }
 
 @riverpod
+Future<LegalContentModel> codeOfConduct(Ref ref) async {
+  final dataSource = ref.watch(legalDataSourceProvider);
+  return dataSource.getCodeOfConduct();
+}
+
+@riverpod
 Future<bool> needsLegalAcceptance(Ref ref) async {
   final userAsync = ref.watch(currentUserProvider);
   final user = userAsync.valueOrNull;

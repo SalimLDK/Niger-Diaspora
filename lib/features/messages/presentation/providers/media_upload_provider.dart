@@ -118,7 +118,10 @@ class MediaUpload extends _$MediaUpload {
   void cancel() {
     if (state.isUploading) {
       _isCancelled = true;
-      _cancelCompleter?.complete();
+      // Only complete if not already completed
+      if (_cancelCompleter != null && !_cancelCompleter!.isCompleted) {
+        _cancelCompleter!.complete();
+      }
       state = state.copyWith(status: MediaUploadStatus.cancelled);
       // Auto reset after short delay
       Future.delayed(const Duration(milliseconds: 300), reset);

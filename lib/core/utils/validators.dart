@@ -20,8 +20,41 @@ class Validators {
       return 'Le mot de passe est requis';
     }
 
+    if (value.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères';
+    }
+
+    // Check for uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'Le mot de passe doit contenir au moins une majuscule';
+    }
+
+    // Check for lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Le mot de passe doit contenir au moins une minuscule';
+    }
+
+    // Check for digit
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'Le mot de passe doit contenir au moins un chiffre';
+    }
+
+    // Check for special character
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]').hasMatch(value)) {
+      return 'Le mot de passe doit contenir au moins un caractère spécial';
+    }
+
+    return null;
+  }
+
+  /// Validation simplifiée pour la connexion (pas de règles de complexité)
+  static String? loginPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Le mot de passe est requis';
+    }
+
     if (value.length < 6) {
-      return 'Le mot de passe doit contenir au moins 6 caracteres';
+      return 'Le mot de passe doit contenir au moins 6 caractères';
     }
 
     return null;

@@ -10,8 +10,9 @@ import '../models/order_model.dart';
 class MarketplaceRepositoryImpl implements MarketplaceRepository {
   final MarketplaceRemoteDatasource _remoteDatasource;
 
-  MarketplaceRepositoryImpl({required MarketplaceRemoteDatasource remoteDatasource})
-      : _remoteDatasource = remoteDatasource;
+  MarketplaceRepositoryImpl({
+    required MarketplaceRemoteDatasource remoteDatasource,
+  }) : _remoteDatasource = remoteDatasource;
 
   // ============ PRODUCTS ============
 
@@ -44,7 +45,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
-  Future<Either<Failure, ProductEntity>> createProduct(ProductEntity product) async {
+  Future<Either<Failure, ProductEntity>> createProduct(
+    ProductEntity product,
+  ) async {
     try {
       final model = ProductModel.fromEntity(product);
       final created = await _remoteDatasource.createProduct(model);
@@ -55,7 +58,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
-  Future<Either<Failure, ProductEntity>> updateProduct(ProductEntity product) async {
+  Future<Either<Failure, ProductEntity>> updateProduct(
+    ProductEntity product,
+  ) async {
     try {
       final model = ProductModel.fromEntity(product);
       final updated = await _remoteDatasource.updateProduct(model);
@@ -76,7 +81,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
-  Future<Either<Failure, List<ProductEntity>>> searchProducts(String query) async {
+  Future<Either<Failure, List<ProductEntity>>> searchProducts(
+    String query,
+  ) async {
     try {
       final products = await _remoteDatasource.searchProducts(query);
       return Right(products.map((p) => p.toEntity()).toList());
@@ -105,7 +112,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   // ============ ORDERS ============
 
   @override
-  Future<Either<Failure, List<OrderEntity>>> getBuyerOrders(String buyerId) async {
+  Future<Either<Failure, List<OrderEntity>>> getBuyerOrders(
+    String buyerId,
+  ) async {
     try {
       final orders = await _remoteDatasource.getBuyerOrders(buyerId);
       return Right(orders.map((o) => o.toEntity()).toList());
@@ -115,7 +124,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
-  Future<Either<Failure, List<OrderEntity>>> getSellerOrders(String sellerId) async {
+  Future<Either<Failure, List<OrderEntity>>> getSellerOrders(
+    String sellerId,
+  ) async {
     try {
       final orders = await _remoteDatasource.getSellerOrders(sellerId);
       return Right(orders.map((o) => o.toEntity()).toList());
@@ -145,15 +156,18 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
     double platformFeePercent = 0.05,
   }) async {
     try {
-      final amount = product.price * quantity;
-      final platformFee = amount * platformFeePercent;
-      final sellerAmount = amount - platformFee;
+      // Calculate amounts with proper rounding to avoid floating point precision issues
+      // This is especially important for certain currencies
+      final amount = (product.price * quantity * 100).round() / 100;
+      final platformFee = (amount * platformFeePercent * 100).round() / 100;
+      final sellerAmount = (amount - platformFee * 100).round() / 100;
 
       final orderModel = OrderModel(
         id: '',
         productId: product.id,
         productTitle: product.title,
-        productImageUrl: product.imageUrls.isNotEmpty ? product.imageUrls.first : null,
+        productImageUrl:
+            product.imageUrls.isNotEmpty ? product.imageUrls.first : null,
         buyerId: buyerId,
         buyerName: buyerName,
         sellerId: product.sellerId,
@@ -188,9 +202,14 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
 
   @override
   Future<Either<Failure, OrderEntity>> markAsShipped(
-      String orderId, String? trackingNumber) async {
+    String orderId,
+    String? trackingNumber,
+  ) async {
     try {
-      final order = await _remoteDatasource.markAsShipped(orderId, trackingNumber);
+      final order = await _remoteDatasource.markAsShipped(
+        orderId,
+        trackingNumber,
+      );
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -218,7 +237,10 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
-  Future<Either<Failure, OrderEntity>> cancelOrder(String orderId, String reason) async {
+  Future<Either<Failure, OrderEntity>> cancelOrder(
+    String orderId,
+    String reason,
+  ) async {
     try {
       final order = await _remoteDatasource.cancelOrder(orderId, reason);
       return Right(order.toEntity());
@@ -230,7 +252,10 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   @override
   Future<Either<Failure, OrderEntity>> refundOrder(String orderId) async {
     try {
-      final order = await _remoteDatasource.updateOrderStatus(orderId, 'refunded');
+      final order = await _remoteDatasource.updateOrderStatus(
+        orderId,
+        'refunded',
+      );
       return Right(order.toEntity());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -239,7 +264,9 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
 
   @override
   Stream<OrderEntity> watchOrder(String orderId) {
-    return _remoteDatasource.watchOrder(orderId).map((model) => model.toEntity());
+    return _remoteDatasource
+        .watchOrder(orderId)
+        .map((model) => model.toEntity());
   }
 
   @override

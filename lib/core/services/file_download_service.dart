@@ -22,7 +22,8 @@ class FileDownloadService {
   }) async {
     try {
       // Generate file name if not provided
-      final name = fileName ??
+      final name =
+          fileName ??
           'niger_diaspora_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       // Get temporary directory
@@ -30,14 +31,10 @@ class FileDownloadService {
       final tempPath = '${tempDir.path}/$name';
 
       // Download the file
-      await _dio.download(
-        imageUrl,
-        tempPath,
-        onReceiveProgress: onProgress,
-      );
+      await _dio.download(imageUrl, tempPath, onReceiveProgress: onProgress);
 
       // Save to gallery
-      await Gal.putImage(tempPath, album: 'Niger Diaspora');
+      await Gal.putImage(tempPath, album: 'Diaspo Niger');
 
       // Clean up temp file
       final tempFile = File(tempPath);
@@ -63,11 +60,7 @@ class FileDownloadService {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/$fileName';
 
-      await _dio.download(
-        url,
-        filePath,
-        onReceiveProgress: onProgress,
-      );
+      await _dio.download(url, filePath, onReceiveProgress: onProgress);
 
       final file = File(filePath);
       if (await file.exists()) {
@@ -88,16 +81,12 @@ class FileDownloadService {
     void Function(int, int)? onProgress,
   }) async {
     try {
-      final name = fileName ??
-          'download_${DateTime.now().millisecondsSinceEpoch}';
+      final name =
+          fileName ?? 'download_${DateTime.now().millisecondsSinceEpoch}';
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/$name';
 
-      await _dio.download(
-        url,
-        filePath,
-        onReceiveProgress: onProgress,
-      );
+      await _dio.download(url, filePath, onReceiveProgress: onProgress);
 
       final file = File(filePath);
       if (await file.exists()) {

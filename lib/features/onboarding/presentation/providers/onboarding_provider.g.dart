@@ -28,7 +28,7 @@ final onboardingRepositoryProvider =
 typedef OnboardingRepositoryRef =
     AutoDisposeFutureProviderRef<OnboardingRepository>;
 String _$onboardingNotifierHash() =>
-    r'13b4ba5f277a59b64cc8bb2235057dad9433dbba';
+    r'39a9312b66d5437a810ef9c8b9f3b07edb6c3f5c';
 
 /// See also [OnboardingNotifier].
 @ProviderFor(OnboardingNotifier)

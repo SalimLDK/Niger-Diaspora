@@ -15,6 +15,46 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      final result = await authRepo.signInWithGoogle();
+
+      result.fold(
+        (failure) {
+          setState(() {
+            _errorMessage = failure.message;
+            _isLoading = false;
+          });
+        },
+        (user) {
+          if (user.isAdmin) {
+            if (mounted) {
+              Navigator.of(context).pushReplacementNamed('/dashboard');
+            }
+          } else {
+            // Not an admin
+            authRepo.signOut();
+            setState(() {
+              _errorMessage = "Accès refusé. Compte administrateur requis.";
+              _isLoading = false;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _handleLogin() async {
     setState(() {
       _isLoading = true;
@@ -108,6 +148,40 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               ),
               const SizedBox(height: 32),
+              // Google Sign-In Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _handleGoogleLogin,
+                  icon: const Text(
+                    'G',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  label: const Text('Sign in with Google'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Divider
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(

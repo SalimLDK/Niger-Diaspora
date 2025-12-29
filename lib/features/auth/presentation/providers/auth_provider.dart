@@ -11,6 +11,7 @@ import '../../domain/usecases/sign_in_with_email.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
+import '../../domain/usecases/send_password_reset_email.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import 'auth_state.dart';
@@ -46,6 +47,11 @@ SignUp signUpUseCase(Ref ref) {
 @riverpod
 SignOut signOutUseCase(Ref ref) {
   return SignOut(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+SendPasswordResetEmail sendPasswordResetEmailUseCase(Ref ref) {
+  return SendPasswordResetEmail(ref.watch(authRepositoryProvider));
 }
 
 @riverpod
@@ -170,6 +176,24 @@ class AuthNotifier extends _$AuthNotifier {
 
     // Then try to delete again
     return deleteAccount();
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    // Note: We don't set loading state here to avoid disrupting the UI state too much
+    // or we could use a separate state if needed, but for now we just return the result
+    // actually, let's keep it simple and just make the call.
+    // The UI can handle its own loading state or we can add it here if we want to block the UI.
+    // Let's rely on the UI to show a loader because we don't want to change the whole auth state
+    // just for a password reset email request which might happen when unauthenticated.
+
+    final result = await ref
+        .read(sendPasswordResetEmailUseCaseProvider)
+        .call(email);
+
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (_) => null,
+    );
   }
 }
 

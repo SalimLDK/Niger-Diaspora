@@ -201,7 +201,10 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
       await _firestore
           .collection(FirebaseCollections.friendRequests)
           .doc(requestId)
-          .delete();
+          .update({
+            'status': 'cancelled',
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de l\'annulation');
     }

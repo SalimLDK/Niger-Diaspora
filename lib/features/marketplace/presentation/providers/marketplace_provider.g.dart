@@ -48,7 +48,7 @@ final marketplaceRepositoryProvider =
 // ignore: unused_element
 typedef MarketplaceRepositoryRef =
     AutoDisposeProviderRef<MarketplaceRepository>;
-String _$productsHash() => r'e993a7ad7e7490dcd6b6dab178f03df17e175ffb';
+String _$productsHash() => r'97a5d4c415d58d6502b65448950dedfc9fea62e8';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -106,7 +106,7 @@ class ProductsFamily extends Family<AsyncValue<List<ProductEntity>>> {
 }
 
 /// See also [products].
-class ProductsProvider extends AutoDisposeFutureProvider<List<ProductEntity>> {
+class ProductsProvider extends FutureProvider<List<ProductEntity>> {
   /// See also [products].
   ProductsProvider({ProductCategory? category, String? sellerId})
     : this._internal(
@@ -161,7 +161,7 @@ class ProductsProvider extends AutoDisposeFutureProvider<List<ProductEntity>> {
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<ProductEntity>> createElement() {
+  FutureProviderElement<List<ProductEntity>> createElement() {
     return _ProductsProviderElement(this);
   }
 
@@ -184,7 +184,7 @@ class ProductsProvider extends AutoDisposeFutureProvider<List<ProductEntity>> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin ProductsRef on AutoDisposeFutureProviderRef<List<ProductEntity>> {
+mixin ProductsRef on FutureProviderRef<List<ProductEntity>> {
   /// The parameter `category` of this provider.
   ProductCategory? get category;
 
@@ -193,7 +193,7 @@ mixin ProductsRef on AutoDisposeFutureProviderRef<List<ProductEntity>> {
 }
 
 class _ProductsProviderElement
-    extends AutoDisposeFutureProviderElement<List<ProductEntity>>
+    extends FutureProviderElement<List<ProductEntity>>
     with ProductsRef {
   _ProductsProviderElement(super.provider);
 
@@ -1205,12 +1205,12 @@ final orderNotifierProvider =
     );
 
 typedef _$OrderNotifier = AutoDisposeAsyncNotifier<void>;
-String _$cartNotifierHash() => r'2e58d4ed0aaf264db4e48cdf522011d2ec46f2fc';
+String _$cartNotifierHash() => r'7cfbf59cbb4388540dac7695f6dfedd6905724a0';
 
 /// See also [CartNotifier].
 @ProviderFor(CartNotifier)
 final cartNotifierProvider =
-    AutoDisposeNotifierProvider<CartNotifier, List<CartItem>>.internal(
+    NotifierProvider<CartNotifier, List<CartItem>>.internal(
       CartNotifier.new,
       name: r'cartNotifierProvider',
       debugGetCreateSourceHash:
@@ -1221,7 +1221,7 @@ final cartNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$CartNotifier = AutoDisposeNotifier<List<CartItem>>;
+typedef _$CartNotifier = Notifier<List<CartItem>>;
 String _$selectedCategoryHash() => r'83b8c001cf48417c6732ed7b77c42c40bd1e46e8';
 
 /// See also [SelectedCategory].

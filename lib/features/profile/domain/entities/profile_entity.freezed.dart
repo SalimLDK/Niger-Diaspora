@@ -48,6 +48,7 @@ mixin _$ProfileEntity {
   bool get isOnline => throw _privateConstructorUsedError;
   DateTime? get lastSeen => throw _privateConstructorUsedError;
   bool get showOnlineStatus => throw _privateConstructorUsedError;
+  DateTime? get locationUpdatedAt => throw _privateConstructorUsedError;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -95,6 +96,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
     bool isOnline,
     DateTime? lastSeen,
     bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   });
 }
 
@@ -144,6 +146,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? isOnline = null,
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
+    Object? locationUpdatedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -302,6 +305,11 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     ? _value.showOnlineStatus
                     : showOnlineStatus // ignore: cast_nullable_to_non_nullable
                         as bool,
+            locationUpdatedAt:
+                freezed == locationUpdatedAt
+                    ? _value.locationUpdatedAt
+                    : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
           )
           as $Val,
     );
@@ -349,6 +357,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     bool isOnline,
     DateTime? lastSeen,
     bool showOnlineStatus,
+    DateTime? locationUpdatedAt,
   });
 }
 
@@ -397,6 +406,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? isOnline = null,
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
+    Object? locationUpdatedAt = freezed,
   }) {
     return _then(
       _$ProfileEntityImpl(
@@ -555,6 +565,11 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 ? _value.showOnlineStatus
                 : showOnlineStatus // ignore: cast_nullable_to_non_nullable
                     as bool,
+        locationUpdatedAt:
+            freezed == locationUpdatedAt
+                ? _value.locationUpdatedAt
+                : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
       ),
     );
   }
@@ -595,6 +610,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     this.isOnline = false,
     this.lastSeen,
     this.showOnlineStatus = true,
+    this.locationUpdatedAt,
   }) : _interests = interests,
        _skills = skills,
        _languages = languages;
@@ -692,10 +708,12 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   @override
   @JsonKey()
   final bool showOnlineStatus;
+  @override
+  final DateTime? locationUpdatedAt;
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt)';
   }
 
   @override
@@ -764,7 +782,9 @@ class _$ProfileEntityImpl implements _ProfileEntity {
             (identical(other.lastSeen, lastSeen) ||
                 other.lastSeen == lastSeen) &&
             (identical(other.showOnlineStatus, showOnlineStatus) ||
-                other.showOnlineStatus == showOnlineStatus));
+                other.showOnlineStatus == showOnlineStatus) &&
+            (identical(other.locationUpdatedAt, locationUpdatedAt) ||
+                other.locationUpdatedAt == locationUpdatedAt));
   }
 
   @override
@@ -801,6 +821,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     isOnline,
     lastSeen,
     showOnlineStatus,
+    locationUpdatedAt,
   ]);
 
   /// Create a copy of ProfileEntity
@@ -845,6 +866,7 @@ abstract class _ProfileEntity implements ProfileEntity {
     final bool isOnline,
     final DateTime? lastSeen,
     final bool showOnlineStatus,
+    final DateTime? locationUpdatedAt,
   }) = _$ProfileEntityImpl;
 
   @override
@@ -909,6 +931,8 @@ abstract class _ProfileEntity implements ProfileEntity {
   DateTime? get lastSeen;
   @override
   bool get showOnlineStatus;
+  @override
+  DateTime? get locationUpdatedAt;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.

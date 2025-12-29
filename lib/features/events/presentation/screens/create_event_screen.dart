@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
@@ -38,6 +39,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   bool _isLoading = false;
   final List<XFile> _selectedPosters = [];
   final _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill location from user's profile
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _prefillLocation();
+    });
+  }
+
+  void _prefillLocation() {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser != null) {
+      final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+      if (profile != null && _locationController.text.isEmpty) {
+        final parts = <String>[];
+        if (profile.currentCity != null && profile.currentCity!.isNotEmpty) {
+          parts.add(profile.currentCity!);
+        }
+        if (profile.currentCountry != null && profile.currentCountry!.isNotEmpty) {
+          parts.add(profile.currentCountry!);
+        }
+        if (parts.isNotEmpty) {
+          setState(() {
+            _locationController.text = parts.join(', ');
+          });
+        }
+      }
+    }
+  }
 
   @override
   void dispose() {

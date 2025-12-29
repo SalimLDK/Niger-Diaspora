@@ -39,6 +39,7 @@ mixin _$ConversationModel {
   Map<String, dynamic> get unreadCount => throw _privateConstructorUsedError;
   Map<String, dynamic> get mutedBy => throw _privateConstructorUsedError;
   Map<String, dynamic> get archivedBy => throw _privateConstructorUsedError;
+  Map<String, dynamic> get deletedBy => throw _privateConstructorUsedError;
 
   /// Serializes this ConversationModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -75,6 +76,7 @@ abstract class $ConversationModelCopyWith<$Res> {
     Map<String, dynamic> unreadCount,
     Map<String, dynamic> mutedBy,
     Map<String, dynamic> archivedBy,
+    Map<String, dynamic> deletedBy,
   });
 }
 
@@ -110,6 +112,7 @@ class _$ConversationModelCopyWithImpl<$Res, $Val extends ConversationModel>
     Object? unreadCount = null,
     Object? mutedBy = null,
     Object? archivedBy = null,
+    Object? deletedBy = null,
   }) {
     return _then(
       _value.copyWith(
@@ -198,6 +201,11 @@ class _$ConversationModelCopyWithImpl<$Res, $Val extends ConversationModel>
                     ? _value.archivedBy
                     : archivedBy // ignore: cast_nullable_to_non_nullable
                         as Map<String, dynamic>,
+            deletedBy:
+                null == deletedBy
+                    ? _value.deletedBy
+                    : deletedBy // ignore: cast_nullable_to_non_nullable
+                        as Map<String, dynamic>,
           )
           as $Val,
     );
@@ -231,6 +239,7 @@ abstract class _$$ConversationModelImplCopyWith<$Res>
     Map<String, dynamic> unreadCount,
     Map<String, dynamic> mutedBy,
     Map<String, dynamic> archivedBy,
+    Map<String, dynamic> deletedBy,
   });
 }
 
@@ -265,6 +274,7 @@ class __$$ConversationModelImplCopyWithImpl<$Res>
     Object? unreadCount = null,
     Object? mutedBy = null,
     Object? archivedBy = null,
+    Object? deletedBy = null,
   }) {
     return _then(
       _$ConversationModelImpl(
@@ -353,6 +363,11 @@ class __$$ConversationModelImplCopyWithImpl<$Res>
                 ? _value._archivedBy
                 : archivedBy // ignore: cast_nullable_to_non_nullable
                     as Map<String, dynamic>,
+        deletedBy:
+            null == deletedBy
+                ? _value._deletedBy
+                : deletedBy // ignore: cast_nullable_to_non_nullable
+                    as Map<String, dynamic>,
       ),
     );
   }
@@ -379,12 +394,14 @@ class _$ConversationModelImpl extends _ConversationModel {
     final Map<String, dynamic> unreadCount = const {},
     final Map<String, dynamic> mutedBy = const {},
     final Map<String, dynamic> archivedBy = const {},
+    final Map<String, dynamic> deletedBy = const {},
   }) : _participantIds = participantIds,
        _adminIds = adminIds,
        _reportedBy = reportedBy,
        _unreadCount = unreadCount,
        _mutedBy = mutedBy,
        _archivedBy = archivedBy,
+       _deletedBy = deletedBy,
        super._();
 
   factory _$ConversationModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -470,9 +487,18 @@ class _$ConversationModelImpl extends _ConversationModel {
     return EqualUnmodifiableMapView(_archivedBy);
   }
 
+  final Map<String, dynamic> _deletedBy;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get deletedBy {
+    if (_deletedBy is EqualUnmodifiableMapView) return _deletedBy;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_deletedBy);
+  }
+
   @override
   String toString() {
-    return 'ConversationModel(id: $id, type: $type, name: $name, imageUrl: $imageUrl, groupId: $groupId, participantIds: $participantIds, adminIds: $adminIds, reportedBy: $reportedBy, lastMessage: $lastMessage, lastMessageSenderId: $lastMessageSenderId, lastMessageStatus: $lastMessageStatus, lastMessageAt: $lastMessageAt, createdAt: $createdAt, createdBy: $createdBy, unreadCount: $unreadCount, mutedBy: $mutedBy, archivedBy: $archivedBy)';
+    return 'ConversationModel(id: $id, type: $type, name: $name, imageUrl: $imageUrl, groupId: $groupId, participantIds: $participantIds, adminIds: $adminIds, reportedBy: $reportedBy, lastMessage: $lastMessage, lastMessageSenderId: $lastMessageSenderId, lastMessageStatus: $lastMessageStatus, lastMessageAt: $lastMessageAt, createdAt: $createdAt, createdBy: $createdBy, unreadCount: $unreadCount, mutedBy: $mutedBy, archivedBy: $archivedBy, deletedBy: $deletedBy)';
   }
 
   @override
@@ -515,6 +541,10 @@ class _$ConversationModelImpl extends _ConversationModel {
             const DeepCollectionEquality().equals(
               other._archivedBy,
               _archivedBy,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._deletedBy,
+              _deletedBy,
             ));
   }
 
@@ -539,6 +569,7 @@ class _$ConversationModelImpl extends _ConversationModel {
     const DeepCollectionEquality().hash(_unreadCount),
     const DeepCollectionEquality().hash(_mutedBy),
     const DeepCollectionEquality().hash(_archivedBy),
+    const DeepCollectionEquality().hash(_deletedBy),
   );
 
   /// Create a copy of ConversationModel
@@ -577,6 +608,7 @@ abstract class _ConversationModel extends ConversationModel {
     final Map<String, dynamic> unreadCount,
     final Map<String, dynamic> mutedBy,
     final Map<String, dynamic> archivedBy,
+    final Map<String, dynamic> deletedBy,
   }) = _$ConversationModelImpl;
   const _ConversationModel._() : super._();
 
@@ -617,6 +649,8 @@ abstract class _ConversationModel extends ConversationModel {
   Map<String, dynamic> get mutedBy;
   @override
   Map<String, dynamic> get archivedBy;
+  @override
+  Map<String, dynamic> get deletedBy;
 
   /// Create a copy of ConversationModel
   /// with the given fields replaced by the non-null parameter values.

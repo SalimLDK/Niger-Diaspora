@@ -6,7 +6,7 @@ part of 'media_upload_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$mediaUploadHash() => r'6051304860c06ebea9ece5ce7cfd51f3edfbc547';
+String _$mediaUploadHash() => r'7ab41a0de55b98f1d535704ef7bb7de0a449156d';
 
 /// Provider for managing media upload state with progress and cancellation
 ///

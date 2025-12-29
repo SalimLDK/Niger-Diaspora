@@ -31,14 +31,41 @@ class EventsNotifier extends _$EventsNotifier {
   }
 
   Future<void> loadUpcomingEvents() async {
-    state = const AsyncValue.loading();
     final repository = ref.read(eventRepositoryProvider);
-    final result = await repository.getUpcomingEvents();
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (events) => state = AsyncValue.data(events),
+
+    // 1. Try to load from cache first (Cache-First Strategy)
+    final cachedResult = repository.getCachedEvents();
+    cachedResult.fold(
+      (failure) {
+        // Cache miss or error - show loading
+        state = const AsyncValue.loading();
+      },
+      (cachedEvents) {
+        if (cachedEvents.isNotEmpty) {
+          // Filter upcoming events from cache
+          final now = DateTime.now();
+          final upcomingCached =
+              cachedEvents.where((e) => e.startDate.isAfter(now)).toList();
+
+          if (upcomingCached.isNotEmpty) {
+            state = AsyncValue.data(upcomingCached);
+          } else {
+            state = const AsyncValue.loading();
+          }
+        } else {
+          state = const AsyncValue.loading();
+        }
+      },
     );
+
+    // 2. Fetch from network
+    final result = await repository.getUpcomingEvents();
+    result.fold((failure) {
+      // Only update to error if we don't have cached data
+      if (state.valueOrNull == null || state.valueOrNull!.isEmpty) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+      }
+    }, (events) => state = AsyncValue.data(events));
   }
 
   Future<void> loadEventsByCategory(EventCategory category) async {

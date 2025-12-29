@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/marketplace_remote_datasource.dart';
 import '../../data/repositories/marketplace_repository_impl.dart';
 import '../../domain/entities/product_entity.dart';
@@ -324,12 +329,147 @@ class CartItem {
   }
 
   double get total => product.price * quantity;
+
+  Map<String, dynamic> toJson() => {
+    'productId': product.id,
+    'quantity': quantity,
+    'product': product.toJson(),
+  };
+
+  static CartItem? fromJson(Map<String, dynamic> json) {
+    try {
+      final productJson = json['product'] as Map<String, dynamic>?;
+      if (productJson == null) return null;
+      return CartItem(
+        product: ProductEntity.fromJson(productJson),
+        quantity: json['quantity'] as int? ?? 1,
+      );
+    } catch (e) {
+      debugPrint('Error parsing CartItem: $e');
+      return null;
+    }
+  }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CartNotifier extends _$CartNotifier {
+  static const String _cartKey = 'marketplace_cart';
+
   @override
-  List<CartItem> build() => [];
+  List<CartItem> build() {
+    // Load cart on initialization
+    _loadCartFromLocal();
+    return [];
+  }
+
+  Future<void> _loadCartFromLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartJson = prefs.getString(_cartKey);
+      if (cartJson != null) {
+        final List<dynamic> decoded = jsonDecode(cartJson);
+        final items =
+            decoded
+                .map((e) => CartItem.fromJson(e as Map<String, dynamic>))
+                .whereType<CartItem>()
+                .toList();
+        state = items;
+      }
+
+      // Also try to sync from cloud if logged in
+      await _syncFromCloud();
+    } catch (e) {
+      debugPrint('Error loading cart: $e');
+    }
+  }
+
+  Future<void> _saveCartToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartJson = jsonEncode(state.map((e) => e.toJson()).toList());
+      await prefs.setString(_cartKey, cartJson);
+    } catch (e) {
+      debugPrint('Error saving cart locally: $e');
+    }
+  }
+
+  Future<void> _syncToCloud() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final cartData =
+          state
+              .map(
+                (item) => {
+                  'productId': item.product.id,
+                  'quantity': item.quantity,
+                  'addedAt': FieldValue.serverTimestamp(),
+                },
+              )
+              .toList();
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .doc('items')
+          .set({'items': cartData, 'updatedAt': FieldValue.serverTimestamp()});
+    } catch (e) {
+      debugPrint('Error syncing cart to cloud: $e');
+    }
+  }
+
+  Future<void> _syncFromCloud() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('cart')
+              .doc('items')
+              .get();
+
+      if (!doc.exists) return;
+
+      final items = doc.data()?['items'] as List<dynamic>?;
+      if (items == null || items.isEmpty) return;
+
+      // If local cart is empty, use cloud cart
+      if (state.isEmpty) {
+        final repository = ref.read(marketplaceRepositoryProvider);
+        final loadedItems = <CartItem>[];
+
+        for (final item in items) {
+          final productId = item['productId'] as String?;
+          final quantity = item['quantity'] as int? ?? 1;
+          if (productId != null) {
+            final result = await repository.getProduct(productId);
+            result.fold(
+              (_) {}, // Ignore failed products
+              (product) {
+                if (product.isAvailable && product.quantity >= quantity) {
+                  loadedItems.add(
+                    CartItem(product: product, quantity: quantity),
+                  );
+                }
+              },
+            );
+          }
+        }
+
+        if (loadedItems.isNotEmpty) {
+          state = loadedItems;
+          await _saveCartToLocal();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error syncing cart from cloud: $e');
+    }
+  }
 
   void addToCart(ProductEntity product, {int quantity = 1}) {
     final existingIndex = state.indexWhere(
@@ -344,10 +484,12 @@ class CartNotifier extends _$CartNotifier {
           existingItem.copyWith(quantity: newQuantity),
           ...state.sublist(existingIndex + 1),
         ];
+        _persistCart();
       }
     } else {
       if (quantity <= product.quantity) {
         state = [...state, CartItem(product: product, quantity: quantity)];
+        _persistCart();
       }
     }
   }
@@ -363,21 +505,30 @@ class CartNotifier extends _$CartNotifier {
           state[index].copyWith(quantity: quantity),
           ...state.sublist(index + 1),
         ];
+        _persistCart();
       }
     }
   }
 
   void removeFromCart(String productId) {
     state = state.where((item) => item.product.id != productId).toList();
+    _persistCart();
   }
 
   void clearCart() {
     state = [];
+    _persistCart();
   }
 
-  double get totalAmount => state.fold(0, (sum, item) => sum + item.total);
+  void _persistCart() {
+    _saveCartToLocal();
+    _syncToCloud();
+  }
 
-  int get itemCount => state.fold(0, (sum, item) => sum + item.quantity);
+  double get totalAmount =>
+      state.fold(0.0, (total, item) => total + item.total);
+
+  int get itemCount => state.fold(0, (total, item) => total + item.quantity);
 }
 
 // ============ SELECTED CATEGORY ============

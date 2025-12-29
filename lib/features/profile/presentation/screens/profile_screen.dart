@@ -65,26 +65,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   Future<void> _loadProfile() async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
-      // Ne charger le profil que s'il n'est pas déjà chargé pour cet utilisateur
-      final existingProfile = ref.read(profileNotifierProvider).valueOrNull;
-      if (existingProfile == null || existingProfile.id != currentUser.id) {
-        await ref
-            .read(profileNotifierProvider.notifier)
-            .loadProfile(currentUser.id);
-      }
-
+      // Auto-load handled by provider
       _loadSettings();
     }
   }
 
   void _loadSettings() {
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
-    if (profile != null) {
-      setState(() {
-        _notificationsEnabled = profile.notificationsEnabled;
-        _locationEnabled = profile.shareLocation;
-        _profileVisible = profile.isVisible;
-      });
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (user != null) {
+      final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
+      if (profile != null) {
+        setState(() {
+          _notificationsEnabled = profile.notificationsEnabled;
+          _locationEnabled = profile.shareLocation;
+          _profileVisible = profile.isVisible;
+        });
+      }
     }
   }
 
@@ -374,7 +370,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   Widget _buildHeader(dynamic user, AppLocalizations l10n) {
     // Utiliser les données du profil si disponibles (car elles sont mises à jour)
-    final profileAsync = ref.watch(profileNotifierProvider);
+    // Need user id to watch profile
+    final profileAsync =
+        user != null
+            ? ref.watch(profileNotifierProvider(user.id))
+            : const AsyncValue.data(null);
     final profile = profileAsync.valueOrNull;
 
     // Priorité aux données du profil, sinon fallback sur les données auth
@@ -383,9 +383,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final email = profile?.email ?? user?.email ?? '';
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: context.adaptivePrimaryGradient,
-      ),
+      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
       child: Stack(
         children: [
           // Motifs décoratifs
@@ -716,7 +714,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Future<void> _saveSettingsToProfile() async {
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (user == null) return;
+
+    final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
     if (profile == null) return;
 
     final updatedProfile = profile.copyWith(
@@ -726,7 +727,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
 
     await ref
-        .read(profileNotifierProvider.notifier)
+        .read(profileNotifierProvider(user.id).notifier)
         .updateProfile(updatedProfile);
   }
 
@@ -742,8 +743,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final profile =
+        currentUser != null
+            ? ref.read(profileNotifierProvider(currentUser.id)).valueOrNull
+            : null;
+
     ShareProfileModal.show(
       context,
       userName: profile?.displayName ?? currentUser?.displayName,
@@ -1218,31 +1223,78 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   void _showAbout(AppLocalizations l10n) {
     HapticFeedback.lightImpact();
-    showAboutDialog(
+    showDialog(
       context: context,
-      applicationName: l10n.appTitle,
-      applicationVersion: '1.0.0',
-      applicationIcon: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          gradient: context.adaptivePrimaryGradient,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: context.adaptivePrimaryGradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.people, color: AppColors.white, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.appTitle,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${l10n.version} 1.0.0',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        child: const Icon(Icons.people, color: AppColors.white, size: 32),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.mobileAppDescription,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.textSecondaryColor),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.allRightsReserved,
+              style: TextStyle(
+                fontSize: 12,
+                color: context.textTertiaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
       ),
-      applicationLegalese: l10n.allRightsReserved,
-      children: [
-        const SizedBox(height: 16),
-        Text(l10n.mobileAppDescription, textAlign: TextAlign.center),
-      ],
     );
   }
 

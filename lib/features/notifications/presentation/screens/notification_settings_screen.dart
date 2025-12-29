@@ -90,6 +90,29 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       .setEventRemindersEnabled(value);
                 },
               ),
+              const _SettingsDivider(),
+              _SettingsSwitchTile(
+                title: 'Evenements locaux',
+                subtitle: 'Recevoir des notifications pour les nouveaux evenements dans ma ville',
+                value: preferences.localEventsEnabled,
+                onChanged: (value) {
+                  ref
+                      .read(notificationPreferencesNotifierProvider.notifier)
+                      .setLocalEventsEnabled(value);
+                },
+              ),
+              const _SettingsDivider(),
+              _SettingsSwitchTile(
+                title: 'Messages système',
+                subtitle:
+                    'Recevoir des notifications pour les évènements système (ex: nouveau membre)',
+                value: preferences.systemMessagesEnabled,
+                onChanged: (value) {
+                  ref
+                      .read(notificationPreferencesNotifierProvider.notifier)
+                      .setSystemMessagesEnabled(value);
+                },
+              ),
             ],
           ),
 

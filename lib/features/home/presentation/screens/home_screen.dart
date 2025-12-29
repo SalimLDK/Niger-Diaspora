@@ -34,9 +34,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   // GlobalKeys for coach marks
   final GlobalKey _profilePictureKey = GlobalKey();
+  final GlobalKey _qrScannerKey = GlobalKey();
   final GlobalKey _notificationBellKey = GlobalKey();
   final GlobalKey _searchBarKey = GlobalKey();
   final GlobalKey _statsRowKey = GlobalKey();
+  final GlobalKey _servicesKey = GlobalKey();
   final GlobalKey _nearbyMembersKey = GlobalKey();
   final GlobalKey _upcomingEventsKey = GlobalKey();
 
@@ -48,7 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(homeStatsNotifierProvider.notifier).refresh();
       _loadData();
       _checkAndShowCoachMarks();
     });
@@ -89,6 +90,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   List<TargetFocus> _createTargets() {
+    final hasServices =
+        ref.read(isMoneyTransferEnabledProvider) ||
+        ref.read(isMarketplaceEnabledProvider) ||
+        ref.read(isBusinessDirectoryEnabledProvider);
+
     return [
       TargetFocus(
         identify: "profile",
@@ -104,6 +110,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 title: "Votre profil",
                 description:
                     "Appuyez ici pour acceder a votre profil et le completer avec vos informations.",
+              );
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "qrScanner",
+        keyTarget: _qrScannerKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return const CoachMarkContent(
+                title: "Scanner QR",
+                description:
+                    "Scannez les codes QR des profils pour ajouter rapidement de nouveaux contacts.",
               );
             },
           ),
@@ -166,6 +191,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+      // Services section (only if at least one service is enabled)
+      if (hasServices)
+        TargetFocus(
+          identify: "services",
+          keyTarget: _servicesKey,
+          alignSkip: Alignment.topRight,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return const CoachMarkContent(
+                  title: "Services",
+                  description:
+                      "Acces rapide aux services: transferts d'argent, boutique et annuaire des entreprises.",
+                );
+              },
+            ),
+          ],
+        ),
       TargetFocus(
         identify: "nearbyMembers",
         keyTarget: _nearbyMembersKey,
@@ -211,14 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _loadData() async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
-      // Ne charger le profil que s'il n'est pas déjà chargé pour cet utilisateur
-      var profile = ref.read(profileNotifierProvider).valueOrNull;
-      if (profile == null || profile.id != currentUser.id) {
-        await ref
-            .read(profileNotifierProvider.notifier)
-            .loadProfile(currentUser.id);
-        profile = ref.read(profileNotifierProvider).valueOrNull;
-      }
+      // Le profil est chargé automatiquement par le provider family si écouté
+      // Mais ici on veut peut-être forcer le rafraichissement ou juste lire
+      // On s'assure juste que c'est init
+      ref.read(profileNotifierProvider(currentUser.id));
 
       // Déterminer la localisation
       double lat = 13.5116; // Par défaut: Niamey
@@ -237,9 +279,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           });
 
           // Mettre à jour la position du profil
+          // updateLocation prend (lat, lng), userId est dans le provider
           ref
-              .read(profileNotifierProvider.notifier)
-              .updateLocation(currentUser.id, lat, lng);
+              .read(profileNotifierProvider(currentUser.id).notifier)
+              .updateLocation(lat, lng);
 
           // Charger les profils à proximité UNIQUEMENT si la localisation est active
           ref
@@ -314,7 +357,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authNotifierProvider);
-    final profileAsync = ref.watch(profileNotifierProvider);
+    final authUser = authState.maybeWhen(
+      authenticated: (user) => user,
+      orElse: () => null,
+    );
+    final profileAsync =
+        authUser != null
+            ? ref.watch(profileNotifierProvider(authUser.id))
+            : const AsyncValue.data(null);
     final homeStats = ref.watch(homeStatsNotifierProvider);
     final nearbyProfiles = ref.watch(nearbyProfilesNotifierProvider);
 
@@ -336,10 +386,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Priorité aux données du profil, sinon fallback sur auth
     final profile = profileAsync.valueOrNull;
-    final authUser = authState.maybeWhen(
-      authenticated: (user) => user,
-      orElse: () => null,
-    );
 
     final userName = profile?.displayName ?? authUser?.displayName ?? l10n.user;
     final userPhotoUrl = profile?.photoUrl ?? authUser?.photoUrl;
@@ -445,6 +491,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ],
                               ),
                             ),
+
+                            // TODO: QR Scanner button - disabled temporarily
+                            // GestureDetector(
+                            //   key: _qrScannerKey,
+                            //   onTap: () => context.push('/qr-scanner'),
+                            //   child: Container(
+                            //     padding: const EdgeInsets.all(12),
+                            //     margin: const EdgeInsets.only(right: 8),
+                            //     decoration: BoxDecoration(
+                            //       color: AppColors.white.withValues(
+                            //         alpha: 0.15,
+                            //       ),
+                            //       borderRadius: BorderRadius.circular(14),
+                            //     ),
+                            //     child: const Icon(
+                            //       Icons.qr_code_scanner,
+                            //       color: AppColors.white,
+                            //       size: 24,
+                            //     ),
+                            //   ),
+                            // ),
 
                             GestureDetector(
                               key: _notificationBellKey,
@@ -687,6 +754,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ref.watch(isMarketplaceEnabledProvider) ||
                       ref.watch(isBusinessDirectoryEnabledProvider))
                     Column(
+                      key: _servicesKey,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         HomeSectionHeader(

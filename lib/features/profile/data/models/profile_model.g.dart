@@ -55,6 +55,10 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
           ? null
           : DateTime.parse(json['lastSeen'] as String),
   showOnlineStatus: json['showOnlineStatus'] as bool? ?? true,
+  locationUpdatedAt:
+      json['locationUpdatedAt'] == null
+          ? null
+          : DateTime.parse(json['locationUpdatedAt'] as String),
 );
 
 Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
@@ -90,4 +94,5 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'isOnline': instance.isOnline,
       'lastSeen': instance.lastSeen?.toIso8601String(),
       'showOnlineStatus': instance.showOnlineStatus,
+      'locationUpdatedAt': instance.locationUpdatedAt?.toIso8601String(),
     };

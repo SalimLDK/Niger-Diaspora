@@ -42,6 +42,10 @@ mixin _$MessageModel {
   bool get deletedForEveryone => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
   List<String> get reportedBy => throw _privateConstructorUsedError;
+  List<String> get reactions => throw _privateConstructorUsedError;
+  String? get replyToId => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get replyToMessageData =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this MessageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -82,6 +86,9 @@ abstract class $MessageModelCopyWith<$Res> {
     bool deletedForEveryone,
     DateTime? deletedAt,
     List<String> reportedBy,
+    List<String> reactions,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   });
 }
 
@@ -121,6 +128,9 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? deletedForEveryone = null,
     Object? deletedAt = freezed,
     Object? reportedBy = null,
+    Object? reactions = null,
+    Object? replyToId = freezed,
+    Object? replyToMessageData = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -229,6 +239,21 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.reportedBy
                     : reportedBy // ignore: cast_nullable_to_non_nullable
                         as List<String>,
+            reactions:
+                null == reactions
+                    ? _value.reactions
+                    : reactions // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            replyToId:
+                freezed == replyToId
+                    ? _value.replyToId
+                    : replyToId // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            replyToMessageData:
+                freezed == replyToMessageData
+                    ? _value.replyToMessageData
+                    : replyToMessageData // ignore: cast_nullable_to_non_nullable
+                        as Map<String, dynamic>?,
           )
           as $Val,
     );
@@ -266,6 +291,9 @@ abstract class _$$MessageModelImplCopyWith<$Res>
     bool deletedForEveryone,
     DateTime? deletedAt,
     List<String> reportedBy,
+    List<String> reactions,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
   });
 }
 
@@ -304,6 +332,9 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? deletedForEveryone = null,
     Object? deletedAt = freezed,
     Object? reportedBy = null,
+    Object? reactions = null,
+    Object? replyToId = freezed,
+    Object? replyToMessageData = freezed,
   }) {
     return _then(
       _$MessageModelImpl(
@@ -412,6 +443,21 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value._reportedBy
                 : reportedBy // ignore: cast_nullable_to_non_nullable
                     as List<String>,
+        reactions:
+            null == reactions
+                ? _value._reactions
+                : reactions // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        replyToId:
+            freezed == replyToId
+                ? _value.replyToId
+                : replyToId // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        replyToMessageData:
+            freezed == replyToMessageData
+                ? _value._replyToMessageData
+                : replyToMessageData // ignore: cast_nullable_to_non_nullable
+                    as Map<String, dynamic>?,
       ),
     );
   }
@@ -442,11 +488,16 @@ class _$MessageModelImpl extends _MessageModel {
     this.deletedForEveryone = false,
     this.deletedAt,
     final List<String> reportedBy = const [],
+    final List<String> reactions = const [],
+    this.replyToId,
+    final Map<String, dynamic>? replyToMessageData,
   }) : _audioWaveform = audioWaveform,
        _readBy = readBy,
        _readAt = readAt,
        _deletedFor = deletedFor,
        _reportedBy = reportedBy,
+       _reactions = reactions,
+       _replyToMessageData = replyToMessageData,
        super._();
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -531,9 +582,31 @@ class _$MessageModelImpl extends _MessageModel {
     return EqualUnmodifiableListView(_reportedBy);
   }
 
+  final List<String> _reactions;
+  @override
+  @JsonKey()
+  List<String> get reactions {
+    if (_reactions is EqualUnmodifiableListView) return _reactions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_reactions);
+  }
+
+  @override
+  final String? replyToId;
+  final Map<String, dynamic>? _replyToMessageData;
+  @override
+  Map<String, dynamic>? get replyToMessageData {
+    final value = _replyToMessageData;
+    if (value == null) return null;
+    if (_replyToMessageData is EqualUnmodifiableMapView)
+      return _replyToMessageData;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy)';
+    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy, reactions: $reactions, replyToId: $replyToId, replyToMessageData: $replyToMessageData)';
   }
 
   @override
@@ -582,6 +655,16 @@ class _$MessageModelImpl extends _MessageModel {
             const DeepCollectionEquality().equals(
               other._reportedBy,
               _reportedBy,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._reactions,
+              _reactions,
+            ) &&
+            (identical(other.replyToId, replyToId) ||
+                other.replyToId == replyToId) &&
+            const DeepCollectionEquality().equals(
+              other._replyToMessageData,
+              _replyToMessageData,
             ));
   }
 
@@ -610,6 +693,9 @@ class _$MessageModelImpl extends _MessageModel {
     deletedForEveryone,
     deletedAt,
     const DeepCollectionEquality().hash(_reportedBy),
+    const DeepCollectionEquality().hash(_reactions),
+    replyToId,
+    const DeepCollectionEquality().hash(_replyToMessageData),
   ]);
 
   /// Create a copy of MessageModel
@@ -649,6 +735,9 @@ abstract class _MessageModel extends MessageModel {
     final bool deletedForEveryone,
     final DateTime? deletedAt,
     final List<String> reportedBy,
+    final List<String> reactions,
+    final String? replyToId,
+    final Map<String, dynamic>? replyToMessageData,
   }) = _$MessageModelImpl;
   const _MessageModel._() : super._();
 
@@ -697,6 +786,12 @@ abstract class _MessageModel extends MessageModel {
   DateTime? get deletedAt;
   @override
   List<String> get reportedBy;
+  @override
+  List<String> get reactions;
+  @override
+  String? get replyToId;
+  @override
+  Map<String, dynamic>? get replyToMessageData;
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.

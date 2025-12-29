@@ -42,16 +42,29 @@ MessageRepository messageRepository(Ref ref) {
   );
 }
 
-/// Stream des conversations de l'utilisateur actuel
 @riverpod
-Stream<List<ConversationEntity>> conversations(Ref ref) {
+Stream<List<ConversationEntity>> conversations(Ref ref) async* {
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   if (currentUser == null) {
-    return Stream.value([]);
+    yield [];
+    return;
   }
 
-  return ref
-      .watch(messageRepositoryProvider)
+  final repository = ref.watch(messageRepositoryProvider);
+
+  // 1. Yield cached conversations immediately (Cache First)
+  final cachedResult = repository.getCachedConversations();
+  final cachedData = cachedResult.fold(
+    (failure) => <ConversationEntity>[],
+    (data) => data,
+  );
+
+  if (cachedData.isNotEmpty) {
+    yield cachedData;
+  }
+
+  // 2. Yield from live stream (Network/Live)
+  yield* repository
       .getConversations(currentUser.id)
       .map(
         (either) => either.fold(
@@ -92,20 +105,17 @@ Stream<List<MessageEntity>> messages(Ref ref, String conversationId) {
 @Riverpod(keepAlive: true)
 class PaginatedMessages extends _$PaginatedMessages {
   StreamSubscription<dynamic>? _newMessagesSubscription;
+  StreamSubscription<dynamic>? _messageUpdatesSubscription;
 
   @override
   MessagePaginationState build(String conversationId) {
     ref.onDispose(() {
       _newMessagesSubscription?.cancel();
+      _messageUpdatesSubscription?.cancel();
     });
 
-    // Load initial messages - using WidgetsBinding instead of microtask
-    // to ensure it runs after the widget tree is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.isLoadingInitial) {
-        loadInitial();
-      }
-    });
+    // Load initial messages immediately using microtask
+    Future.microtask(() => loadInitial());
 
     return const MessagePaginationState(isLoadingInitial: true);
   }
@@ -114,61 +124,105 @@ class PaginatedMessages extends _$PaginatedMessages {
     debugPrint('🔄 Loading initial messages for $conversationId');
     try {
       final isOffline = !ref.read(connectivityNotifierProvider);
-      state = MessagePaginationState(
-        isLoadingInitial: true,
-        isOffline: isOffline,
+
+      // 1. Try to load from cache first (Cache-First Strategy)
+      // Always attempt to load from cache to show something immediately
+      final cachedResult = ref
+          .read(messageRepositoryProvider)
+          .getCachedMessages(conversationId: conversationId, limit: _pageSize);
+
+      cachedResult.fold(
+        (failure) {
+          debugPrint('⚠️ Cache miss or error: ${failure.message}');
+          // If offline and cache fails, that's an error state
+          if (isOffline) {
+            state = MessagePaginationState(
+              error: failure.message,
+              isOffline: isOffline,
+            );
+          } else {
+            // If online, we continue to network fetch, show loading if no data yet
+            state = MessagePaginationState(
+              isLoadingInitial: true,
+              isOffline: isOffline,
+            );
+          }
+        },
+        (cachedMessages) {
+          if (cachedMessages.isNotEmpty) {
+            debugPrint('✅ Loaded ${cachedMessages.length} cached messages');
+            state = MessagePaginationState(
+              messages: cachedMessages,
+              hasMore: cachedMessages.length >= _pageSize, // Approx
+              lastMessageId: cachedMessages.first.id,
+              oldestMessageTimestamp: cachedMessages.first.createdAt,
+              isOffline: isOffline,
+              isLoadingInitial:
+                  !isOffline, // Still loading if online (fetching fresh)
+            );
+          } else {
+            // Cache empty
+            debugPrint('⚠️ Cache empty');
+            state = MessagePaginationState(
+              isLoadingInitial: true,
+              isOffline: isOffline,
+            );
+          }
+        },
       );
 
-      final result = await ref
-          .read(messageRepositoryProvider)
-          .getMessagesPaginated(
-            conversationId: conversationId,
-            limit: _pageSize,
-          );
+      // 2. Fetch from network (if online)
+      if (!isOffline) {
+        final result = await ref
+            .read(messageRepositoryProvider)
+            .getMessagesPaginated(
+              conversationId: conversationId,
+              limit: _pageSize,
+            );
 
-      result.fold(
-        (failure) {
-          debugPrint(
-            '❌ Error loading messages for $conversationId: ${failure.message}',
-          );
-          state = MessagePaginationState(
-            error: failure.message,
-            isOffline: isOffline,
-          );
-        },
-        (paginatedMessages) {
-          debugPrint(
-            '✅ Loaded ${paginatedMessages.messages.length} initial messages for $conversationId',
-          );
-          // Log first few message IDs for debugging
-          if (paginatedMessages.messages.isNotEmpty) {
-            final sampleIds = paginatedMessages.messages
-                .take(3)
-                .map((m) => m.id)
-                .join(', ');
-            debugPrint('   Sample message IDs: $sampleIds');
-          }
+        result.fold(
+          (failure) {
+            debugPrint(
+              '❌ Error fetching fresh messages for $conversationId: ${failure.message}',
+            );
+            // If we already have cached messages, we keep them and just stop loading
+            // Maybe show a snackbar or silent error?
+            if (state.messages.isNotEmpty) {
+              state = state.copyWith(
+                isLoadingInitial: false,
+                isOffline: true,
+              ); // Treat as offline/error
+            } else {
+              state = MessagePaginationState(
+                error: failure.message,
+                isOffline: isOffline,
+              );
+            }
+          },
+          (paginatedMessages) {
+            debugPrint(
+              '✅ Loaded ${paginatedMessages.messages.length} fresh messages for $conversationId',
+            );
 
-          state = MessagePaginationState(
-            messages: paginatedMessages.messages,
-            hasMore: paginatedMessages.hasMore,
-            lastMessageId: paginatedMessages.lastMessageId,
-            oldestMessageTimestamp: paginatedMessages.oldestMessageTimestamp,
-            isOffline: isOffline,
-          );
+            state = MessagePaginationState(
+              messages: paginatedMessages.messages,
+              hasMore: paginatedMessages.hasMore,
+              lastMessageId: paginatedMessages.lastMessageId,
+              oldestMessageTimestamp: paginatedMessages.oldestMessageTimestamp,
+              isOffline: isOffline,
+              isLoadingInitial: false,
+            );
 
-          // Start listening for new messages if online
-          // Use the LAST message (most recent) to listen for newer ones
-          // If no messages, listen for messages after NOW (or slightly before to catch concurrents)
-          if (!isOffline) {
+            // Start listening for new messages and updates
             final lastTimestamp =
                 paginatedMessages.messages.isNotEmpty
                     ? paginatedMessages.messages.last.createdAt
                     : DateTime.now().subtract(const Duration(seconds: 10));
             _listenForNewMessages(lastTimestamp);
-          }
-        },
-      );
+            _listenForMessageUpdates();
+          },
+        );
+      }
     } catch (e, stackTrace) {
       debugPrint('❌ Exception loading messages: $e');
       debugPrint(stackTrace.toString());
@@ -240,17 +294,20 @@ class PaginatedMessages extends _$PaginatedMessages {
                 // Since newMessages are sorted (Oldest -> Newest), we can append them
                 for (final newMessage in newMessages) {
                   // Check if this message replaces an optimistic message
-                  // Match by content and approximate timestamp (within 5 seconds)
+                  // Match by senderId, type, and approximate timestamp (within 10 seconds)
+                  // Use multiple criteria for more robust matching
                   final optimisticIndex = existingMessages.indexWhere(
                     (m) =>
                         m.id.startsWith('temp_') &&
-                        m.content == newMessage.content &&
                         m.senderId == newMessage.senderId &&
+                        m.type == newMessage.type &&
                         m.createdAt
                                 .difference(newMessage.createdAt)
                                 .abs()
                                 .inSeconds <
-                            5,
+                            10 &&
+                        (m.content == newMessage.content ||
+                            m.type != MessageType.text), // For media, don't check content
                   );
 
                   if (optimisticIndex != -1) {
@@ -294,9 +351,132 @@ class PaginatedMessages extends _$PaginatedMessages {
         });
   }
 
+  void _listenForMessageUpdates() {
+    debugPrint('📡 Starting message updates listener for $conversationId');
+
+    _messageUpdatesSubscription?.cancel();
+    _messageUpdatesSubscription = ref
+        .read(messageRepositoryProvider)
+        .getMessageUpdatesStream(conversationId: conversationId)
+        .listen((either) {
+          either.fold(
+            (failure) {
+              debugPrint('❌ Message updates stream error: ${failure.message}');
+            },
+            (updatedMessage) {
+              debugPrint(
+                '🔄 Received message update: ${updatedMessage.id} (reactions: ${updatedMessage.reactions.length})',
+              );
+
+              final existingMessages = List<MessageEntity>.from(state.messages);
+              final index = existingMessages.indexWhere(
+                (m) => m.id == updatedMessage.id,
+              );
+
+              if (index != -1) {
+                // Update the existing message with new data
+                existingMessages[index] = updatedMessage;
+                state = state.copyWith(messages: existingMessages);
+                debugPrint('   ✅ Updated message at index $index');
+              }
+            },
+          );
+        });
+  }
+
   Future<void> refresh() async {
     _newMessagesSubscription?.cancel();
     await loadInitial();
+  }
+
+  /// Remove a message optimistically (for delete operations)
+  void removeMessageOptimistically(String messageId) {
+    final existingMessages = List<MessageEntity>.from(state.messages);
+    existingMessages.removeWhere((m) => m.id == messageId);
+    state = state.copyWith(messages: existingMessages);
+    debugPrint('🗑️ Removed message $messageId optimistically');
+  }
+
+  /// Mark a message as deleted for current user (optimistic update)
+  void markMessageDeletedForMe(String messageId, String userId) {
+    final existingMessages = List<MessageEntity>.from(state.messages);
+    final index = existingMessages.indexWhere((m) => m.id == messageId);
+
+    if (index != -1) {
+      final message = existingMessages[index];
+      // Create updated message with user added to deletedFor
+      final updatedMessage = MessageEntity(
+        id: message.id,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderPhotoUrl: message.senderPhotoUrl,
+        content: message.content,
+        type: message.type,
+        status: message.status,
+        fileUrl: message.fileUrl,
+        fileName: message.fileName,
+        fileSize: message.fileSize,
+        mimeType: message.mimeType,
+        audioDuration: message.audioDuration,
+        audioWaveform: message.audioWaveform,
+        thumbnailUrl: message.thumbnailUrl,
+        videoDuration: message.videoDuration,
+        readBy: message.readBy,
+        readAt: message.readAt,
+        createdAt: message.createdAt,
+        deletedFor: [...message.deletedFor, userId],
+        deletedForEveryone: message.deletedForEveryone,
+        deletedAt: message.deletedAt,
+        reportedBy: message.reportedBy,
+        reactions: message.reactions,
+        replyToId: message.replyToId,
+        replyToMessageData: message.replyToMessageData,
+      );
+      existingMessages[index] = updatedMessage;
+      state = state.copyWith(messages: existingMessages);
+      debugPrint('🗑️ Marked message $messageId as deleted for $userId');
+    }
+  }
+
+  /// Mark a message as deleted for everyone (optimistic update)
+  void markMessageDeletedForEveryone(String messageId) {
+    final existingMessages = List<MessageEntity>.from(state.messages);
+    final index = existingMessages.indexWhere((m) => m.id == messageId);
+
+    if (index != -1) {
+      final message = existingMessages[index];
+      // Create updated message with deletedForEveryone = true
+      final updatedMessage = MessageEntity(
+        id: message.id,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderPhotoUrl: message.senderPhotoUrl,
+        content: '🚫 Message supprimé',
+        type: message.type,
+        status: message.status,
+        fileUrl: null,
+        fileName: message.fileName,
+        fileSize: message.fileSize,
+        mimeType: message.mimeType,
+        audioDuration: message.audioDuration,
+        audioWaveform: null,
+        thumbnailUrl: null,
+        videoDuration: message.videoDuration,
+        readBy: message.readBy,
+        readAt: message.readAt,
+        createdAt: message.createdAt,
+        deletedFor: message.deletedFor,
+        deletedForEveryone: true,
+        deletedAt: DateTime.now(),
+        reportedBy: message.reportedBy,
+        reactions: message.reactions,
+        replyToId: message.replyToId,
+        replyToMessageData: message.replyToMessageData,
+      );
+      existingMessages[index] = updatedMessage;
+      state = state.copyWith(messages: existingMessages);
+      debugPrint('🗑️ Marked message $messageId as deleted for everyone');
+    }
   }
 
   void addOptimisticMessage(MessageEntity message) {
@@ -333,6 +513,86 @@ class PaginatedMessages extends _$PaginatedMessages {
 
     state = state.copyWith(messages: messages);
   }
+
+  Future<void> toggleReaction(String messageId, String emoji) async {
+    final messageIndex = state.messages.indexWhere((m) => m.id == messageId);
+    if (messageIndex == -1) return;
+
+    final message = state.messages[messageIndex];
+    final currentReactions = List<String>.from(message.reactions);
+    final hasReaction = currentReactions.contains(emoji);
+
+    // Optimistic Update
+    if (hasReaction) {
+      currentReactions.remove(emoji);
+    } else {
+      currentReactions.add(emoji);
+    }
+
+    // Manual copy since no copyWith
+    final updatedMessage = MessageEntity(
+      id: message.id,
+      senderId: message.senderId,
+      senderName: message.senderName,
+      senderPhotoUrl: message.senderPhotoUrl,
+      content: message.content,
+      type: message.type,
+      status: message.status,
+      fileUrl: message.fileUrl,
+      fileName: message.fileName,
+      fileSize: message.fileSize,
+      mimeType: message.mimeType,
+      audioDuration: message.audioDuration,
+      audioWaveform: message.audioWaveform,
+      thumbnailUrl: message.thumbnailUrl,
+      videoDuration: message.videoDuration,
+      readBy: message.readBy,
+      readAt: message.readAt,
+      createdAt: message.createdAt,
+      deletedFor: message.deletedFor,
+      deletedForEveryone: message.deletedForEveryone,
+      deletedAt: message.deletedAt,
+      reportedBy: message.reportedBy,
+      reactions: currentReactions,
+      replyToId: message.replyToId,
+      replyToMessageData: message.replyToMessageData,
+    );
+
+    final updatedMessages = List<MessageEntity>.from(state.messages);
+    updatedMessages[messageIndex] = updatedMessage;
+    state = state.copyWith(messages: updatedMessages);
+
+    // Persist
+    try {
+      if (hasReaction) {
+        await ref
+            .read(messageRemoteDataSourceProvider)
+            .removeReaction(
+              conversationId: conversationId,
+              messageId: messageId,
+              emoji: emoji,
+            );
+      } else {
+        await ref
+            .read(messageRemoteDataSourceProvider)
+            .addReaction(
+              conversationId: conversationId,
+              messageId: messageId,
+              emoji: emoji,
+            );
+      }
+    } catch (e) {
+      // Revert on failure
+      debugPrint('❌ Failed to toggle reaction: $e');
+      final revertedMessages = List<MessageEntity>.from(state.messages);
+      // Ensure we are still looking at the same valid index/message ID
+      if (revertedMessages.length > messageIndex &&
+          revertedMessages[messageIndex].id == messageId) {
+        revertedMessages[messageIndex] = message; // Restore original
+        state = state.copyWith(messages: revertedMessages);
+      }
+    }
+  }
 }
 
 /// Notifier pour envoyer des messages
@@ -349,14 +609,54 @@ class SendMessage extends _$SendMessage {
     String? optimisticMessageId,
     int attempt = 1,
     int maxAttempts = 3,
+    MessageEntity? replyToMessage,
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
-    // Only show loading on first attempt
-    if (attempt == 1) {
-      state = const AsyncValue.loading();
+    // Prepare reply data
+    Map<String, dynamic>? replyToMessageData;
+    if (replyToMessage != null) {
+      replyToMessageData = {
+        'id': replyToMessage.id,
+        'senderId': replyToMessage.senderId,
+        'senderName': replyToMessage.senderName,
+        'content': replyToMessage.content,
+        'type': replyToMessage.type.name,
+        'fileUrl': replyToMessage.fileUrl,
+        'fileName': replyToMessage.fileName,
+      };
     }
+
+    // Generate a temporary ID for optimistic UI if not provided
+    final tempId =
+        optimisticMessageId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Create optimistic message
+    final optimisticMessage = MessageEntity(
+      id: tempId,
+      senderId: currentUser.id,
+      senderName: currentUser.displayName ?? 'Utilisateur',
+      senderPhotoUrl: currentUser.photoUrl,
+      content: content,
+      type: MessageType.text,
+      status: MessageStatus.sending,
+      createdAt: DateTime.now(),
+      readBy: [],
+      readAt: {},
+      replyToId: replyToMessage?.id,
+      replyToMessageData: replyToMessageData,
+    );
+
+    // Add to UI immediately (only on first attempt)
+    if (attempt == 1) {
+      ref
+          .read(paginatedMessagesProvider(conversationId).notifier)
+          .addOptimisticMessage(optimisticMessage);
+    }
+
+    // Only show loading on valid state if needed, but we want UI to be non-blocking
+    // state = const AsyncValue.loading();
 
     final result = await ref
         .read(messageRepositoryProvider)
@@ -366,6 +666,8 @@ class SendMessage extends _$SendMessage {
           senderName: currentUser.displayName ?? 'Utilisateur',
           senderPhotoUrl: currentUser.photoUrl,
           content: content,
+          replyToId: replyToMessage?.id,
+          replyToMessageData: replyToMessageData,
         );
 
     return result.fold(
@@ -376,26 +678,35 @@ class SendMessage extends _$SendMessage {
             '⚠️ Message send failed (attempt $attempt/$maxAttempts), retrying...',
           );
 
-          // Exponential backoff: wait 2s, then 4s
+          // Exponential backoff: wait 2s, then 4s, etc
           await Future.delayed(Duration(seconds: attempt * 2));
 
-          // Retry recursively and return the result
+          // Retry recursively
           return await sendText(
             conversationId: conversationId,
             content: content,
-            optimisticMessageId: optimisticMessageId,
+            optimisticMessageId: tempId, // Pass the same ID to avoid duplicates
             attempt: attempt + 1,
             maxAttempts: maxAttempts,
+            replyToMessage: replyToMessage,
           );
         }
 
         // Final failure after all retries
         debugPrint('❌ Message send failed after $maxAttempts attempts');
+
+        // Update status to failed in UI
+        ref
+            .read(paginatedMessagesProvider(conversationId).notifier)
+            .updateMessageStatus(tempId, MessageStatus.failed);
+
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
       (message) {
         state = const AsyncValue.data(null);
+        // The real-time stream will handle replacing the optimistic message
+        // based on content matching in PaginatedMessages._listenForNewMessages
         return true;
       },
     );
@@ -406,9 +717,24 @@ class SendMessage extends _$SendMessage {
     required File file,
     required MessageType type,
     String? caption,
+    MessageEntity? replyToMessage,
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
+
+    // Prepare reply data
+    Map<String, dynamic>? replyToMessageData;
+    if (replyToMessage != null) {
+      replyToMessageData = {
+        'id': replyToMessage.id,
+        'senderId': replyToMessage.senderId,
+        'senderName': replyToMessage.senderName,
+        'content': replyToMessage.content,
+        'type': replyToMessage.type.name,
+        'fileUrl': replyToMessage.fileUrl,
+        'fileName': replyToMessage.fileName,
+      };
+    }
 
     // Initialize upload state
     final uploadNotifier = ref.read(mediaUploadProvider.notifier);
@@ -440,6 +766,8 @@ class SendMessage extends _$SendMessage {
             return ref.read(mediaUploadProvider).status ==
                 MediaUploadStatus.cancelled;
           },
+          replyToId: replyToMessage?.id,
+          replyToMessageData: replyToMessageData,
         );
 
     return result.fold(
@@ -467,9 +795,24 @@ class SendMessage extends _$SendMessage {
     required File audioFile,
     required int duration,
     required List<double> waveform,
+    MessageEntity? replyToMessage,
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
+
+    // Prepare reply data
+    Map<String, dynamic>? replyToMessageData;
+    if (replyToMessage != null) {
+      replyToMessageData = {
+        'id': replyToMessage.id,
+        'senderId': replyToMessage.senderId,
+        'senderName': replyToMessage.senderName,
+        'content': replyToMessage.content,
+        'type': replyToMessage.type.name,
+        'fileUrl': replyToMessage.fileUrl,
+        'fileName': replyToMessage.fileName,
+      };
+    }
 
     state = const AsyncValue.loading();
 
@@ -483,6 +826,8 @@ class SendMessage extends _$SendMessage {
           audioFile: audioFile,
           duration: duration,
           waveform: waveform,
+          replyToId: replyToMessage?.id,
+          replyToMessageData: replyToMessageData,
         );
 
     return result.fold(
@@ -610,7 +955,15 @@ class DeleteMessage extends _$DeleteMessage {
     required String messageId,
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (currentUser == null) return false;
+    if (currentUser == null) {
+      debugPrint('❌ DeleteMessage: No current user');
+      return false;
+    }
+
+    // Optimistic update - mark message as deleted for this user immediately
+    ref
+        .read(paginatedMessagesProvider(conversationId).notifier)
+        .markMessageDeletedForMe(messageId, currentUser.id);
 
     state = const AsyncValue.loading();
 
@@ -624,13 +977,16 @@ class DeleteMessage extends _$DeleteMessage {
 
     return result.fold(
       (failure) {
+        debugPrint('❌ DeleteMessage deleteForMe failed: ${failure.message}');
         state = AsyncValue.error(failure.message, StackTrace.current);
+        // Revert optimistic update by refreshing
+        ref.invalidate(paginatedMessagesProvider(conversationId));
         return false;
       },
       (_) {
+        debugPrint('✅ DeleteMessage deleteForMe success');
         state = const AsyncValue.data(null);
-        // Refresh the messages list to reflect the deletion
-        ref.invalidate(paginatedMessagesProvider(conversationId));
+        // Message already hidden by optimistic update, no need to refresh
         return true;
       },
     );
@@ -640,6 +996,11 @@ class DeleteMessage extends _$DeleteMessage {
     required String conversationId,
     required String messageId,
   }) async {
+    // Optimistic update - mark message as deleted for everyone immediately
+    ref
+        .read(paginatedMessagesProvider(conversationId).notifier)
+        .markMessageDeletedForEveryone(messageId);
+
     state = const AsyncValue.loading();
 
     final result = await ref
@@ -651,13 +1012,18 @@ class DeleteMessage extends _$DeleteMessage {
 
     return result.fold(
       (failure) {
+        debugPrint(
+          '❌ DeleteMessage deleteForEveryone failed: ${failure.message}',
+        );
         state = AsyncValue.error(failure.message, StackTrace.current);
+        // Revert optimistic update by refreshing
+        ref.invalidate(paginatedMessagesProvider(conversationId));
         return false;
       },
       (_) {
+        debugPrint('✅ DeleteMessage deleteForEveryone success');
         state = const AsyncValue.data(null);
-        // Refresh the messages list to reflect the deletion
-        ref.invalidate(paginatedMessagesProvider(conversationId));
+        // Message already updated by optimistic update, no need to refresh
         return true;
       },
     );

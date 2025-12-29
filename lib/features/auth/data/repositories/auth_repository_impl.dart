@@ -134,4 +134,16 @@ class AuthRepositoryImpl implements AuthRepository {
       return userModel?.toEntity();
     });
   }
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
+    try {
+      await remoteDataSource.sendPasswordResetEmail(email);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
 }

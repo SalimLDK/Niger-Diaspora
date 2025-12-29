@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 
-/// Theme premium Niger Diaspora
+/// Theme premium Diaspo Niger
 /// Light theme: Chaleureux avec tons sable
 /// Dark theme: Ebene chaud avec glow orange subtil
 class AppTheme {
@@ -1308,106 +1308,220 @@ class AppTheme {
     final textTertiary =
         isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
 
-    return TextTheme(
-      // Display
-      displayLarge: GoogleFonts.playfairDisplay(
-        fontSize: 40,
-        fontWeight: FontWeight.w700,
-        height: 1.15,
-        color: textPrimary,
-      ),
-      displayMedium: GoogleFonts.playfairDisplay(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        height: 1.20,
-        color: textPrimary,
-      ),
-      displaySmall: GoogleFonts.playfairDisplay(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-        height: 1.25,
-        color: textPrimary,
-      ),
+    try {
+      // Attempt to load Google Fonts
+      return TextTheme(
+        // Display
+        displayLarge: GoogleFonts.playfairDisplay(
+          fontSize: 48,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
+          color: textPrimary,
+        ),
+        displayMedium: GoogleFonts.playfairDisplay(
+          fontSize: 40,
+          fontWeight: FontWeight.w700,
+          height: 1.20,
+          color: textPrimary,
+        ),
+        displaySmall: GoogleFonts.playfairDisplay(
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          height: 1.25,
+          color: textPrimary,
+        ),
 
-      // Headline
-      headlineLarge: GoogleFonts.playfairDisplay(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        height: 1.30,
-        color: textPrimary,
-      ),
-      headlineMedium: GoogleFonts.playfairDisplay(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        height: 1.35,
-        color: textPrimary,
-      ),
-      headlineSmall: GoogleFonts.playfairDisplay(
-        fontSize: 20,
-        fontWeight: FontWeight.w500,
-        height: 1.35,
-        color: textPrimary,
-      ),
+        // Headline
+        headlineLarge: GoogleFonts.playfairDisplay(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          height: 1.30,
+          color: textPrimary,
+        ),
+        headlineMedium: GoogleFonts.playfairDisplay(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+          color: textPrimary,
+        ),
+        headlineSmall: GoogleFonts.playfairDisplay(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+        ),
 
-      // Title
-      titleLarge: GoogleFonts.inter(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        height: 1.40,
-        color: textPrimary,
-      ),
-      titleMedium: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        height: 1.45,
-        color: textPrimary,
-      ),
-      titleSmall: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        height: 1.45,
-        color: textPrimary,
-      ),
+        // Title
+        titleLarge: GoogleFonts.inter(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        titleMedium: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        titleSmall: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          height: 1.45,
+          color: textPrimary,
+        ),
 
-      // Body
-      bodyLarge: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        height: 1.55,
-        color: textSecondary,
-      ),
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        height: 1.55,
-        color: textSecondary,
-      ),
-      bodySmall: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        height: 1.50,
-        color: textTertiary,
-      ),
+        // Body
+        bodyLarge: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          height: 1.55,
+          color: textSecondary,
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          height: 1.55,
+          color: textSecondary,
+        ),
+        bodySmall: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          height: 1.50,
+          color: textTertiary,
+        ),
 
-      // Label
-      labelLarge: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        height: 1.40,
-        color: textPrimary,
-      ),
-      labelMedium: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        height: 1.35,
-        color: textSecondary,
-      ),
-      labelSmall: GoogleFonts.inter(
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        height: 1.30,
-        color: textTertiary,
-      ),
-    );
+        // Label
+        labelLarge: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        labelMedium: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 1.35,
+          color: textSecondary,
+        ),
+        labelSmall: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          height: 1.30,
+          color: textTertiary,
+        ),
+      );
+    } catch (e) {
+      // Fallback to system fonts if Google Fonts fail to load
+      debugPrint('⚠️ Google Fonts failed to load, using system fonts: $e');
+
+      return TextTheme(
+        // Display
+        displayLarge: TextStyle(
+          fontSize: 48,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+        displayMedium: TextStyle(
+          fontSize: 40,
+          fontWeight: FontWeight.w700,
+          height: 1.20,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+        displaySmall: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          height: 1.25,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+
+        // Headline
+        headlineLarge: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          height: 1.30,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+          fontFamily: 'serif',
+        ),
+
+        // Title
+        titleLarge: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          height: 1.45,
+          color: textPrimary,
+        ),
+
+        // Body
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          height: 1.55,
+          color: textSecondary,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          height: 1.55,
+          color: textSecondary,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          height: 1.50,
+          color: textTertiary,
+        ),
+
+        // Label
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          height: 1.40,
+          color: textPrimary,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 1.35,
+          color: textSecondary,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          height: 1.30,
+          color: textTertiary,
+        ),
+      );
+    }
   }
 }

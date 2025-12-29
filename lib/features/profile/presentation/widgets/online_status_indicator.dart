@@ -16,6 +16,7 @@ import '../providers/online_status_provider.dart';
 class OnlineStatusIndicator extends ConsumerWidget {
   final String userId;
   final bool showText;
+  final bool showDot;
   final double dotSize;
   final TextStyle? textStyle;
 
@@ -23,6 +24,7 @@ class OnlineStatusIndicator extends ConsumerWidget {
     super.key,
     required this.userId,
     this.showText = true,
+    this.showDot = true,
     this.dotSize = 8.0,
     this.textStyle,
   });
@@ -53,6 +55,7 @@ class OnlineStatusIndicator extends ConsumerWidget {
         return _OnlineStatusContent(
           userId: userId,
           showText: showText,
+          showDot: showDot,
           dotSize: dotSize,
           textStyle: textStyle,
         );
@@ -67,12 +70,14 @@ class OnlineStatusIndicator extends ConsumerWidget {
 class _OnlineStatusContent extends ConsumerWidget {
   final String userId;
   final bool showText;
+  final bool showDot;
   final double dotSize;
   final TextStyle? textStyle;
 
   const _OnlineStatusContent({
     required this.userId,
     required this.showText,
+    required this.showDot,
     required this.dotSize,
     this.textStyle,
   });
@@ -105,23 +110,24 @@ class _OnlineStatusContent extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: dotSize,
-          height: dotSize,
-          decoration: BoxDecoration(
-            color: context.successColor,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: context.successColor.withValues(alpha: 0.4),
-                blurRadius: 4,
-                spreadRadius: 1,
-              ),
-            ],
+        if (showDot)
+          Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(
+              color: context.successColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: context.successColor.withValues(alpha: 0.4),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
           ),
-        ),
         if (showText) ...[
-          const SizedBox(width: 6),
+          if (showDot) const SizedBox(width: 6),
           Text(
             'En ligne',
             style:
@@ -149,16 +155,17 @@ class _OnlineStatusContent extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: dotSize,
-          height: dotSize,
-          decoration: BoxDecoration(
-            color: context.textTertiaryColor,
-            shape: BoxShape.circle,
+        if (showDot)
+          Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(
+              color: context.textTertiaryColor,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
         if (showText) ...[
-          const SizedBox(width: 6),
+          if (showDot) const SizedBox(width: 6),
           Text(
             lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
             style:

@@ -60,6 +60,25 @@ final privacyPolicyProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef PrivacyPolicyRef = AutoDisposeFutureProviderRef<LegalContentModel>;
+String _$codeOfConductHash() => r'131d1c70a510bf0ddaec99f988adc5e31de92971';
+
+/// See also [codeOfConduct].
+@ProviderFor(codeOfConduct)
+final codeOfConductProvider =
+    AutoDisposeFutureProvider<LegalContentModel>.internal(
+      codeOfConduct,
+      name: r'codeOfConductProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$codeOfConductHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CodeOfConductRef = AutoDisposeFutureProviderRef<LegalContentModel>;
 String _$needsLegalAcceptanceHash() =>
     r'6de11a589f1ca15eecadc7c50940860a7721bfd5';
 

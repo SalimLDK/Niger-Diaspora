@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +30,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
   final List<String> _services = [];
   final _serviceController = TextEditingController();
   bool _isLoading = false;
+  Country? _selectedCountry;
+  String _phoneCode = '+227'; // Default Niger
 
   @override
   void dispose() {
@@ -82,6 +85,10 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
       }
 
       // Create business entity
+      final phoneNumber = _phoneController.text.trim().isNotEmpty
+          ? '$_phoneCode ${_phoneController.text.trim()}'
+          : null;
+
       final business = BusinessEntity(
         id: '',
         ownerId: currentUser.id,
@@ -90,11 +97,12 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
         photoUrls: imageUrls,
-        phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+        phone: phoneNumber,
         email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
         website: _websiteController.text.trim().isNotEmpty ? _websiteController.text.trim() : null,
         address: _addressController.text.trim().isNotEmpty ? _addressController.text.trim() : null,
         city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
+        country: _selectedCountry?.name,
         services: _services,
       );
 
@@ -253,10 +261,11 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Telephone',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
+                prefixText: '$_phoneCode ',
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -285,21 +294,79 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             // Location
             Text('Localisation', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Adresse',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+
+            // Country picker
+            InkWell(
+              onTap: () {
+                showCountryPicker(
+                  context: context,
+                  showPhoneCode: true,
+                  countryListTheme: CountryListThemeData(
+                    flagSize: 25,
+                    backgroundColor: theme.scaffoldBackgroundColor,
+                    textStyle: theme.textTheme.bodyMedium,
+                    bottomSheetHeight: MediaQuery.of(context).size.height * 0.7,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    inputDecoration: InputDecoration(
+                      labelText: 'Rechercher un pays',
+                      hintText: 'Tapez le nom du pays',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  onSelect: (Country country) {
+                    setState(() {
+                      _selectedCountry = country;
+                      _phoneCode = '+${country.phoneCode}';
+                    });
+                  },
+                );
+              },
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Pays',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: _selectedCountry != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            _selectedCountry!.flagEmoji,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                        )
+                      : const Icon(Icons.flag),
+                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                ),
+                child: Text(
+                  _selectedCountry?.name ?? 'Selectionner un pays',
+                  style: _selectedCountry != null
+                      ? theme.textTheme.bodyLarge
+                      : theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
+
             TextFormField(
               controller: _cityController,
               decoration: const InputDecoration(
                 labelText: 'Ville',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_city),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(
+                labelText: 'Adresse',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on),
               ),
             ),
             const SizedBox(height: 24),

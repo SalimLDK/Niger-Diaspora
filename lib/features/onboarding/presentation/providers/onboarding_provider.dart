@@ -45,6 +45,8 @@ class OnboardingNotifier extends _$OnboardingNotifier {
 
       bool hasSeenOnboarding = false;
       bool hasSeenCoachMarks = false;
+      bool hasGivenConsent = false;
+      bool profileConfigComplete = false;
 
       hasSeenOnboardingResult.fold(
         (failure) => hasSeenOnboarding = false,
@@ -56,9 +58,30 @@ class OnboardingNotifier extends _$OnboardingNotifier {
         (value) => hasSeenCoachMarks = value,
       );
 
+      // Load consent and profile config status from Firestore
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        try {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid)
+              .get();
+
+          if (userDoc.exists) {
+            final data = userDoc.data();
+            hasGivenConsent = data?['hasGivenConsent'] == true;
+            profileConfigComplete = data?['profileConfigComplete'] == true;
+          }
+        } catch (_) {
+          // Silently fail, defaults remain false
+        }
+      }
+
       state = state.copyWith(
         hasSeenIntro: hasSeenOnboarding,
         hasSeenCoachMarks: hasSeenCoachMarks,
+        hasGivenConsent: hasGivenConsent,
+        profileConfigComplete: profileConfigComplete,
         isLoading: false,
       );
     } catch (e) {
@@ -90,6 +113,43 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   Future<void> skipAll() async {
     await completeIntro();
     await completeCoachMarks();
+  }
+
+  Future<void> markConsentGiven() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .update({
+          'hasGivenConsent': true,
+          'consentDate': FieldValue.serverTimestamp(),
+        });
+      }
+      state = state.copyWith(hasGivenConsent: true);
+    } catch (e) {
+      // Still update local state
+      state = state.copyWith(hasGivenConsent: true);
+    }
+  }
+
+  Future<void> markProfileConfigComplete() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .update({
+          'profileConfigComplete': true,
+        });
+      }
+      state = state.copyWith(profileConfigComplete: true);
+    } catch (e) {
+      // Still update local state
+      state = state.copyWith(profileConfigComplete: true);
+    }
   }
 
   void setCurrentPage(int page) {

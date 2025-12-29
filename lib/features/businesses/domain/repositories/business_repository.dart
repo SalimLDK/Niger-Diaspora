@@ -18,6 +18,10 @@ abstract class BusinessRepository {
     double longitude,
     double radiusKm,
   );
+  Future<Either<Failure, List<BusinessEntity>>> getBusinessesByLocation({
+    String? country,
+    String? city,
+  });
   Future<Either<Failure, BusinessEntity>> getBusinessById(String id);
   Future<Either<Failure, BusinessEntity?>> getMyBusiness(String ownerId);
 

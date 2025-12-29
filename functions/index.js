@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { decryptText } = require("./encryption");
 
 admin.initializeApp();
 
@@ -86,6 +87,207 @@ exports.sendNotificationOnCreate = functions.firestore
     });
 
 /**
+ * Triggered when a new message is created in Firebase Realtime Database.
+ * Sends push notifications to all participants except the sender.
+ * 
+ * Path: messages/{conversationId}/{messageId}
+ */
+exports.onMessageCreated = functions.database
+    .ref("/messages/{conversationId}/{messageId}")
+    .onCreate(async (snapshot, context) => {
+        const message = snapshot.val();
+        const conversationId = context.params.conversationId;
+        const messageId = context.params.messageId;
+
+        console.log(`New message created in conversation ${conversationId}`);
+
+        const messageType = message.type || "text";
+
+        try {
+            // Get conversation details from Firestore
+            const conversationDoc = await admin.firestore()
+                .collection("conversations")
+                .doc(conversationId)
+                .get();
+
+            if (!conversationDoc.exists) {
+                console.log(`Conversation ${conversationId} not found in Firestore`);
+                return null;
+            }
+
+            const conversation = conversationDoc.data();
+            const senderId = message.senderId;
+            const participantIds = conversation.participantIds || [];
+            const mutedBy = conversation.mutedBy || [];
+            const conversationType = conversation.type;
+
+            // Get recipients (exclude sender)
+            const recipients = participantIds.filter((id) => id !== senderId);
+
+            if (recipients.length === 0) {
+                console.log("No recipients to notify");
+                return null;
+            }
+
+            // Get sender's name
+            const senderDoc = await admin.firestore().collection("users").doc(senderId).get();
+            const senderName = senderDoc.exists ? (senderDoc.data().displayName || "Un utilisateur") : "Un utilisateur";
+
+            // Prepare notification content based on message type
+            let messagePreview = message.content || "";
+            const messageType = message.type || "text";
+
+            switch (messageType) {
+                case "image":
+                    messagePreview = "📸 Photo";
+                    break;
+                case "video":
+                    messagePreview = "🎥 Vidéo";
+                    break;
+                case "audio":
+                    messagePreview = "🎙️ Message vocal";
+                    break;
+                case "file":
+                    messagePreview = `📄 ${message.fileName || "Document"}`;
+                    break;
+                default:
+                    // Decrypt text messages before displaying in notification
+                    messagePreview = decryptText(messagePreview);
+                    if (messagePreview.length > 100) {
+                        messagePreview = messagePreview.substring(0, 100) + "...";
+                    }
+            }
+
+            // Determine notification title and body
+            let title, body;
+            if (conversationType === "group") {
+                title = conversation.name || "Groupe";
+                body = `${senderName}: ${messagePreview}`;
+            } else {
+                title = senderName;
+                body = messagePreview;
+            }
+
+            // Collect tokens from recipients
+            const allTokens = [];
+            const tokenOwners = [];
+
+            for (const recipientId of recipients) {
+                if (mutedBy.includes(recipientId)) {
+                    console.log(`User ${recipientId} has muted this conversation`);
+                    continue;
+                }
+
+                const recipientDoc = await admin.firestore().collection("users").doc(recipientId).get();
+                if (recipientDoc.exists) {
+                    const userData = recipientDoc.data();
+                    const tokens = userData.fcmTokens || [];
+                    const notificationsEnabled = userData.notificationsEnabled !== false;
+
+                    // For system messages, check if user wants these notifications
+                    if (messageType === "system") {
+                        const systemMessagesEnabled = userData.notifySystemMessages === true;
+                        if (!systemMessagesEnabled) {
+                            console.log(`User ${recipientId} has disabled system message notifications`);
+                            continue;
+                        }
+                    }
+
+                    if (notificationsEnabled && tokens.length > 0) {
+                        allTokens.push(...tokens);
+                        tokens.forEach(() => tokenOwners.push(recipientId));
+                    }
+                }
+            }
+
+            if (allTokens.length === 0) {
+                console.log("No valid tokens to send notification");
+                return null;
+            }
+
+            // Store notification in Firestore for each recipient (for notification history)
+            const notificationPromises = [];
+            for (const recipientId of recipients) {
+                if (mutedBy.includes(recipientId)) continue;
+
+                notificationPromises.push(
+                    admin.firestore().collection("notifications").add({
+                        userId: recipientId,
+                        title: title,
+                        body: body,
+                        type: "message",
+                        targetId: conversationId,
+                        data: {
+                            conversationId,
+                            messageId,
+                            senderId,
+                        },
+                        isRead: false,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    })
+                );
+            }
+            await Promise.all(notificationPromises);
+            console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
+
+            // Send push notification
+            const response = await admin.messaging().sendMulticast({
+                tokens: allTokens,
+                notification: { title, body },
+                data: {
+                    type: "message",
+                    conversationId,
+                    messageId,
+                    senderId,
+                    userId: "", // Will be set per-user in the Firestore notification doc
+                    click_action: "FLUTTER_NOTIFICATION_CLICK",
+                },
+                android: {
+                    priority: "high",
+                    notification: { channelId: "messages", sound: "default" },
+                },
+                apns: {
+                    payload: { aps: { sound: "default", badge: 1 } },
+                },
+            });
+
+            console.log(`Successfully sent ${response.successCount}/${allTokens.length} push notifications`);
+
+            // Clean up invalid tokens
+            if (response.failureCount > 0) {
+                const invalidTokens = [];
+                response.responses.forEach((resp, idx) => {
+                    if (!resp.success && (resp.error.code === "messaging/invalid-registration-token" || resp.error.code === "messaging/registration-token-not-registered")) {
+                        invalidTokens.push({ token: allTokens[idx], userId: tokenOwners[idx] });
+                    }
+                });
+
+                if (invalidTokens.length > 0) {
+                    console.log(`Removing ${invalidTokens.length} invalid tokens`);
+                    const updates = {};
+                    invalidTokens.forEach(({ token, userId }) => {
+                        if (!updates[userId]) updates[userId] = [];
+                        updates[userId].push(token);
+                    });
+
+                    await Promise.all(
+                        Object.entries(updates).map(([userId, tokens]) =>
+                            admin.firestore().collection("users").doc(userId).update({
+                                fcmTokens: admin.firestore.FieldValue.arrayRemove(...tokens),
+                            })
+                        )
+                    );
+                }
+            }
+
+            return { success: true, sentCount: response.successCount };
+        } catch (error) {
+            console.error("Error sending message notification:", error);
+            return null;
+        }
+    });
+
+/**
  * Triggered when a conversation is updated (new message).
  * Sends push notifications to all participants except the sender.
  */
@@ -125,16 +327,19 @@ exports.sendChatNotification = functions.firestore
             const senderDoc = await admin.firestore().collection("users").doc(senderId).get();
             const senderName = senderDoc.exists ? (senderDoc.data().displayName || "Un utilisateur") : "Un utilisateur";
 
+            // Decrypt the last message for the notification
+            const decryptedMessage = decryptText(lastMessage);
+
             // Determine notification title and body
             let title;
             let body;
 
             if (conversationType === "group") {
                 title = after.name || "Groupe";
-                body = `${senderName}: ${lastMessage}`;
+                body = `${senderName}: ${decryptedMessage}`;
             } else {
                 title = senderName;
-                body = lastMessage;
+                body = decryptedMessage;
             }
 
             // Collect all tokens from recipients
@@ -147,16 +352,40 @@ exports.sendChatNotification = functions.firestore
                 }
             }
 
+            // Store notification in Firestore for each recipient (for notification history)
+            const notificationPromises = [];
+            const truncatedBody = body.length > 100 ? body.substring(0, 100) + "..." : body;
+
+            for (const recipientId of recipients) {
+                notificationPromises.push(
+                    admin.firestore().collection("notifications").add({
+                        userId: recipientId,
+                        title: title,
+                        body: truncatedBody,
+                        type: "message",
+                        targetId: conversationId,
+                        data: {
+                            conversationId: conversationId,
+                            senderId: senderId,
+                        },
+                        isRead: false,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    })
+                );
+            }
+            await Promise.all(notificationPromises);
+            console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
+
             if (allTokens.length === 0) {
-                console.log("No tokens found for recipients");
-                return null;
+                console.log("No tokens found for recipients, but notifications stored");
+                return { success: true, sentCount: 0, storedCount: notificationPromises.length };
             }
 
             // Prepare the message payload
             const payload = {
                 notification: {
                     title: title,
-                    body: body.length > 100 ? body.substring(0, 100) + "..." : body,
+                    body: truncatedBody,
                 },
                 data: {
                     type: "message",
@@ -174,7 +403,7 @@ exports.sendChatNotification = functions.firestore
                 ...payload,
             });
 
-            console.log(`Successfully sent ${response.successCount} notifications`);
+            console.log(`Successfully sent ${response.successCount} push notifications`);
 
             return { success: true, sentCount: response.successCount };
         } catch (error) {
@@ -480,3 +709,97 @@ async function handlePaymentFailure(paymentIntent) {
         console.error("Error updating transaction:", error);
     }
 }
+
+/**
+ * Triggered when a new event is created.
+ * Sends push notifications to users in the same city/country who have enabled local events notifications.
+ */
+exports.notifyLocalEventCreated = functions.firestore
+    .document("events/{eventId}")
+    .onCreate(async (snapshot, context) => {
+        const eventData = snapshot.data();
+        const eventId = context.params.eventId;
+
+        console.log(`New event created: ${eventId} - ${eventData.title}`);
+
+        const eventCity = eventData.city || eventData.location?.city;
+        const eventCountry = eventData.country || eventData.location?.country;
+        const organizerId = eventData.organizerId;
+
+        if (!eventCity && !eventCountry) {
+            console.log("Event has no location info, skipping local notifications");
+            return null;
+        }
+
+        try {
+            // Find users in the same city or country who want local event notifications
+            let usersQuery = admin.firestore().collection("users")
+                .where("notifyLocalEvents", "==", true);
+
+            // Add location filter - prefer city if available, otherwise country
+            if (eventCity) {
+                usersQuery = usersQuery.where("currentCity", "==", eventCity);
+            } else if (eventCountry) {
+                usersQuery = usersQuery.where("currentCountry", "==", eventCountry);
+            }
+
+            const usersSnapshot = await usersQuery.get();
+
+            console.log(`Found ${usersSnapshot.size} users in the same location`);
+
+            if (usersSnapshot.empty) {
+                return null;
+            }
+
+            const promises = [];
+            let notificationCount = 0;
+
+            for (const userDoc of usersSnapshot.docs) {
+                const userId = userDoc.id;
+
+                // Skip the event organizer
+                if (userId === organizerId) {
+                    continue;
+                }
+
+                const userData = userDoc.data();
+
+                // Double-check notifications are enabled
+                if (userData.notificationsEnabled === false) {
+                    continue;
+                }
+
+                notificationCount++;
+
+                // Create notification document
+                const notificationData = {
+                    userId: userId,
+                    title: "Nouvel événement dans votre ville",
+                    body: `"${eventData.title}" - ${eventCity || eventCountry}`,
+                    type: "localEvent",
+                    targetId: eventId,
+                    data: {
+                        eventId: eventId,
+                        eventTitle: eventData.title,
+                        city: eventCity || "",
+                        country: eventCountry || "",
+                    },
+                    isRead: false,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                };
+
+                // This will trigger sendNotificationOnCreate
+                promises.push(
+                    admin.firestore().collection("notifications").add(notificationData)
+                );
+            }
+
+            await Promise.all(promises);
+            console.log(`Created ${notificationCount} local event notifications`);
+
+            return { success: true, count: notificationCount };
+        } catch (error) {
+            console.error("Error sending local event notifications:", error);
+            return null;
+        }
+    });

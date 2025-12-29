@@ -28,6 +28,16 @@ class OnlineStatusService {
   bool _initialized = false;
   String? _currentUserId;
 
+  /// Check if user is currently authenticated
+  bool _isUserAuthenticated() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      debugPrint('⚠️ OnlineStatusService: User is not authenticated');
+      return false;
+    }
+    return true;
+  }
+
   /// Initialize the online status service
   Future<void> initialize() async {
     if (_initialized) {
@@ -57,6 +67,14 @@ class OnlineStatusService {
 
   /// Setup presence tracking for a specific user
   Future<void> _setupPresenceForUser(String userId) async {
+    // Validate authentication first
+    if (!_isUserAuthenticated()) {
+      debugPrint(
+        '❌ OnlineStatusService: Cannot setup presence - user not authenticated',
+      );
+      return;
+    }
+
     if (_currentUserId == userId) {
       debugPrint('⚠️ OnlineStatusService: Already tracking user $userId');
       return;
@@ -71,41 +89,74 @@ class OnlineStatusService {
     _presenceRef = _database.ref('presence/$userId');
     _connectedRef = _database.ref('.info/connected');
 
-    // Check user's privacy preference
-    final userDoc = await _firestore.collection('users').doc(userId).get();
-    final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
+    try {
+      // Check user's privacy preference
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
 
-    if (!showOnlineStatus) {
-      debugPrint(
-        '🔒 OnlineStatusService: User has disabled online status visibility',
-      );
-      // Set as offline and don't track presence
-      await _setOffline(userId);
-      return;
-    }
-
-    // Listen to connection state
-    _connectedSubscription = _connectedRef!.onValue.listen((event) async {
-      final connected = event.snapshot.value as bool? ?? false;
-
-      if (connected) {
-        debugPrint('🌐 OnlineStatusService: Connected to Firebase');
-        await _setOnline(userId);
-
-        // When disconnected, mark as offline
-        await _presenceRef!.onDisconnect().set({
-          'isOnline': false,
-          'lastSeen': ServerValue.timestamp,
-        });
-      } else {
-        debugPrint('📴 OnlineStatusService: Disconnected from Firebase');
+      if (!showOnlineStatus) {
+        debugPrint(
+          '🔒 OnlineStatusService: User has disabled online status visibility',
+        );
+        // Set as offline and don't track presence
+        await _setOffline(userId);
+        return;
       }
-    });
+
+      // Listen to connection state
+      _connectedSubscription = _connectedRef!.onValue.listen((event) async {
+        final connected = event.snapshot.value as bool? ?? false;
+
+        if (connected) {
+          debugPrint('🌐 OnlineStatusService: Connected to Firebase');
+          await _setOnline(userId);
+
+          // When disconnected, mark as offline
+          try {
+            await _presenceRef!.onDisconnect().set({
+              'isOnline': false,
+              'lastSeen': ServerValue.timestamp,
+            });
+          } catch (e) {
+            if (e is FirebaseException && e.code == 'permission-denied') {
+              debugPrint(
+                '❌ OnlineStatusService: Permission denied setting disconnect handler. '
+                'User may not be authenticated or Firebase rules may be incorrect.',
+              );
+            } else {
+              debugPrint(
+                '❌ OnlineStatusService: Error setting disconnect handler: $e',
+              );
+            }
+          }
+        } else {
+          debugPrint('📴 OnlineStatusService: Disconnected from Firebase');
+        }
+      });
+    } catch (e) {
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        debugPrint(
+          '❌ OnlineStatusService: Permission denied in _setupPresenceForUser. '
+          'Check Firebase Realtime Database rules and ensure user is authenticated.',
+        );
+      } else {
+        debugPrint('❌ OnlineStatusService: Error setting up presence: $e');
+      }
+    }
   }
 
   /// Handle app lifecycle state changes
   void _handleLifecycleStateChange(AppLifecycleState state) {
     if (_currentUserId == null) return;
+
+    // Validate authentication before any lifecycle operations
+    if (!_isUserAuthenticated()) {
+      debugPrint(
+        '⚠️ OnlineStatusService: Skipping lifecycle state change - '
+        'user not authenticated',
+      );
+      return;
+    }
 
     debugPrint('🔄 OnlineStatusService: Lifecycle state changed to $state');
 
@@ -124,8 +175,26 @@ class OnlineStatusService {
     }
   }
 
+  Timer? _heartbeatTimer;
+
   /// Set user status to online
   Future<void> _setOnline(String userId) async {
+    // Validate authentication before any operations
+    if (!_isUserAuthenticated()) {
+      debugPrint(
+        '❌ OnlineStatusService: Cannot set online - user not authenticated',
+      );
+      return;
+    }
+
+    // Null-safety check for presence reference
+    if (_presenceRef == null) {
+      debugPrint(
+        '⚠️ OnlineStatusService: Cannot set online - presence ref is null',
+      );
+      return;
+    }
+
     try {
       // Check privacy preference
       final userDoc = await _firestore.collection('users').doc(userId).get();
@@ -142,7 +211,7 @@ class OnlineStatusService {
       debugPrint('✅ OnlineStatusService: Setting user $userId to ONLINE');
 
       // Update Realtime Database
-      await _presenceRef?.set({
+      await _presenceRef!.set({
         'isOnline': true,
         'lastSeen': ServerValue.timestamp,
       });
@@ -152,13 +221,55 @@ class OnlineStatusService {
         'isOnline': true,
         'lastSeen': FieldValue.serverTimestamp(),
       });
+
+      // Start heartbeat to keep lastSeen fresh in Firestore
+      // (This fix preventing "ghosts" who crash and stay online in Firestore forever)
+      _startHeartbeat(userId);
     } catch (e) {
-      debugPrint('❌ OnlineStatusService: Error setting online: $e');
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        debugPrint(
+          '❌ OnlineStatusService: Permission denied when setting user online. '
+          'User ID: $userId. Check Firebase Realtime Database rules and '
+          'ensure user authentication token is valid.',
+        );
+      } else {
+        debugPrint(
+          '❌ OnlineStatusService: Error setting online for user $userId: $e',
+        );
+      }
     }
+  }
+
+  void _startHeartbeat(String userId) {
+    _heartbeatTimer?.cancel();
+    // Update lastSeen every 10 minutes
+    _heartbeatTimer = Timer.periodic(const Duration(minutes: 10), (
+      timer,
+    ) async {
+      try {
+        await _firestore.collection('users').doc(userId).update({
+          'lastSeen': FieldValue.serverTimestamp(),
+        });
+        debugPrint('💓 OnlineStatusService: Heartbeat sent for $userId');
+      } catch (e) {
+        debugPrint('❌ OnlineStatusService: Heartbeat failed: $e');
+      }
+    });
   }
 
   /// Set user status to offline
   Future<void> _setOffline(String userId) async {
+    _heartbeatTimer?.cancel();
+
+    // Validate authentication before operations
+    if (!_isUserAuthenticated()) {
+      debugPrint(
+        '⚠️ OnlineStatusService: Cannot set offline - user not authenticated. '
+        'This may be expected during sign-out.',
+      );
+      // Continue anyway for sign-out scenarios
+    }
+
     try {
       debugPrint('⚫ OnlineStatusService: Setting user $userId to OFFLINE');
 
@@ -174,7 +285,17 @@ class OnlineStatusService {
         'lastSeen': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('❌ OnlineStatusService: Error setting offline: $e');
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        debugPrint(
+          '❌ OnlineStatusService: Permission denied when setting user offline. '
+          'User ID: $userId. This may be expected during sign-out or if '
+          'authentication token has expired.',
+        );
+      } else {
+        debugPrint(
+          '❌ OnlineStatusService: Error setting offline for user $userId: $e',
+        );
+      }
     }
   }
 

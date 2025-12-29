@@ -27,21 +27,73 @@
     "database": {
         "rules": "database.rules.json"
     },
+    "storage": {
+        "rules": "storage.rules"
+    },
     "functions": {
         "source": "functions"
     },
-    "hosting": {
-        "public": "public",
-        "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
-        ],
-        "rewrites": [
-            {
-                "source": "**",
-                "destination": "/index.html"
-            }
-        ]
-    }
+    "hosting": [
+        {
+            "site": "diaspo-niger",
+            "public": "build/web",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ],
+            "headers": [
+                {
+                    "source": "**/*.@(js|css)",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "max-age=31536000"
+                        }
+                    ]
+                },
+                {
+                    "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "max-age=31536000"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "site": "diaspo-niger-admin",
+            "public": "build/web-admin",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ],
+            "headers": [
+                {
+                    "source": "**/*.@(js|css)",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "max-age=31536000"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

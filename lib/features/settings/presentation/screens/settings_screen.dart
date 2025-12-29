@@ -17,6 +17,11 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/notification_preferences_provider.dart';
 import '../widgets/blocked_users_modal.dart';
 import '../widgets/bug_report_dialog.dart';
+import '../../../messages/presentation/widgets/chat_background_picker_modal.dart';
+import '../../domain/entities/chat_background_entity.dart';
+import 'dart:convert';
+import '../../data/models/chat_background_model.dart';
+import '../../../../core/services/preferences_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -29,32 +34,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _locationEnabled = true;
   bool _profileVisible = true;
+  ChatBackgroundEntity? _globalBackground;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfile();
-    });
+    // Profile loading and syncing is handled by ref.listen in build
+    _loadGlobalBackground();
   }
 
-  Future<void> _loadProfile() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (currentUser != null) {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .loadProfile(currentUser.id);
-      _loadSettings();
+  Future<void> _loadGlobalBackground() async {
+    try {
+      final prefs = PreferencesService.instance;
+      final bgJson = prefs.defaultChatBackground;
+
+      if (bgJson != null && bgJson.isNotEmpty) {
+        final model = ChatBackgroundModel.fromJson(jsonDecode(bgJson));
+        if (mounted) {
+          setState(() {
+            _globalBackground = model.toEntity();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading global background: $e');
     }
   }
 
-  void _loadSettings() {
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
-    if (profile != null) {
+  Future<void> _showGlobalBackgroundPicker() async {
+    final result = await ChatBackgroundPickerModal.show(
+      context,
+      currentBackground: _globalBackground,
+    );
+
+    if (result != null) {
       setState(() {
-        _notificationsEnabled = profile.notificationsEnabled;
-        _locationEnabled = profile.shareLocation;
-        _profileVisible = profile.isVisible;
+        _globalBackground = result;
       });
     }
   }
@@ -63,6 +78,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
+
+    if (currentUser != null) {
+      ref.listen(profileNotifierProvider(currentUser.id), (previous, next) {
+        next.whenData((profile) {
+          if (profile != null) {
+            setState(() {
+              _notificationsEnabled = profile.notificationsEnabled;
+              _locationEnabled = profile.shareLocation;
+              _profileVisible = profile.isVisible;
+            });
+          }
+        });
+      });
+    }
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -202,6 +231,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
+                icon: Icons.wallpaper,
+                title: 'Fond d\'écran des conversations',
+                subtitle:
+                    _globalBackground?.isDefault ?? true
+                        ? 'Thème par défaut'
+                        : _globalBackground?.isColor ?? false
+                        ? 'Couleur personnalisée'
+                        : 'Image personnalisée',
+                onTap: () => _showGlobalBackgroundPicker(),
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
                 icon: Icons.help_outline,
                 title: l10n.helpAndSupport,
                 onTap: () => _showHelpSupport(),
@@ -210,7 +251,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.info_outline,
                 title: l10n.about,
-                subtitle: '${l10n.version} 1.0.0',
+                subtitle: '${l10n.version} 1.1.0',
                 onTap: () => _showAbout(),
               ),
               const _SettingsDivider(),
@@ -224,6 +265,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 icon: Icons.privacy_tip,
                 title: l10n.privacyPolicy,
                 onTap: () => _showPrivacyPolicy(),
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
+                icon: Icons.gavel,
+                title: l10n.codeOfConduct,
+                onTap: () => context.push('/settings/code-of-conduct'),
               ),
             ],
           ),
@@ -287,7 +334,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveSettingsToProfile() async {
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (user == null) return;
+
+    final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
     if (profile == null) return;
 
     final updatedProfile = profile.copyWith(
@@ -297,7 +347,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     await ref
-        .read(profileNotifierProvider.notifier)
+        .read(profileNotifierProvider(user.id).notifier)
         .updateProfile(updatedProfile);
   }
 
@@ -737,20 +787,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showAbout() {
     final l10n = AppLocalizations.of(context)!;
-    showAboutDialog(
+    showDialog(
       context: context,
-      applicationName: l10n.appTitle,
-      applicationVersion: '1.0.0',
-      applicationIcon: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          gradient: context.adaptivePrimaryGradient,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(Icons.people, color: AppColors.white, size: 32),
-      ),
-      children: [Text(l10n.appDescription)],
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: context.adaptivePrimaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.people,
+                    color: AppColors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.appTitle, style: const TextStyle(fontSize: 18)),
+                    const Text(
+                      '1.0.0',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            content: Text(l10n.appDescription),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
     );
   }
 

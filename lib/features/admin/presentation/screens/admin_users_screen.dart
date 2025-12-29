@@ -11,6 +11,12 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
+  // Modern color palette (matching dashboard)
+  static const Color _primaryColor = Color(0xFF6366F1);
+  static const Color _cardColor = Colors.white;
+  static const Color _textPrimary = Color(0xFF1E293B);
+  static const Color _textSecondary = Color(0xFF64748B);
+
   @override
   void initState() {
     super.initState();
@@ -22,35 +28,44 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   Future<void> _handleForceLogout(String userId, String userName) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Confirmer la déconnexion'),
-            content: Text(
-              'Voulez-vous vraiment déconnecter $userName de tous ses appareils ?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Déconnecter'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Confirmer la déconnexion'),
+        content: Text(
+          'Voulez-vous vraiment déconnecter $userName de tous ses appareils ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Déconnecter'),
+          ),
+        ],
+      ),
     );
 
     if (confirm == true) {
+      final currentAdmin = ref.read(currentAdminProvider);
+      if (currentAdmin == null) {
+        if (mounted) {
+          _showSnackBar('Erreur: Admin non connecté');
+        }
+        return;
+      }
+
       final success = await ref
           .read(adminDashboardNotifierProvider.notifier)
-          .forceLogoutUser(userId);
+          .forceLogoutUser(userId, adminId: currentAdmin.id, adminName: currentAdmin.name);
 
       if (success && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$userName a été déconnecté.')));
+        _showSnackBar('$userName a été déconnecté.');
       }
     }
   }
@@ -59,106 +74,330 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   Widget build(BuildContext context) {
     final adminState = ref.watch(adminDashboardNotifierProvider);
 
-    if (adminState.isLoading && adminState.recentUsers.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        _buildPageHeader(),
+        const SizedBox(height: 24),
+        Expanded(
+          child: adminState.isLoading && adminState.recentUsers.isEmpty
+              ? _buildLoadingState()
+              : adminState.recentUsers.isEmpty
+                  ? _buildEmptyState()
+                  : _buildUsersList(adminState),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPageHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Gestion des Utilisateurs',
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: _textPrimary,
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                ref
-                    .read(adminDashboardNotifierProvider.notifier)
-                    .fetchRecentUsers();
-              },
+            SizedBox(height: 4),
+            Text(
+              'Gérez les comptes utilisateurs et les sessions',
+              style: TextStyle(
+                fontSize: 14,
+                color: _textSecondary,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: Card(
-            elevation: 2,
-            child: ListView.separated(
-              itemCount: adminState.recentUsers.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final user = adminState.recentUsers[index];
-                final lastLogin =
-                    user.lastLoginAt != null
-                        ? DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(user.lastLoginAt!)
-                        : 'Jamais';
+        _buildRefreshButton(),
+      ],
+    );
+  }
 
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage:
-                        user.photoUrl != null
-                            ? NetworkImage(user.photoUrl!)
-                            : null,
-                    child:
-                        user.photoUrl == null ? const Icon(Icons.person) : null,
-                  ),
-                  title: Text(user.displayName ?? 'No Name'),
-                  subtitle: Text(user.email ?? 'No Email'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Dernière connexion: $lastLogin',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          if (user.isAdmin)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'Admin',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                            ),
-                        ],
+  Widget _buildRefreshButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          ref.read(adminDashboardNotifierProvider.notifier).fetchRecentUsers();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(
+            Icons.refresh_rounded,
+            color: _textSecondary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUsersList(AdminDashboardState adminState) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: ListView.separated(
+          itemCount: adminState.recentUsers.length,
+          separatorBuilder: (context, index) => Divider(
+            height: 1,
+            color: Colors.grey.withAlpha(30),
+          ),
+          itemBuilder: (context, index) {
+            final user = adminState.recentUsers[index];
+            final lastLogin = user.lastLoginAt != null
+                ? DateFormat('dd/MM/yyyy HH:mm').format(user.lastLoginAt!)
+                : 'Jamais';
+
+            return _buildUserTile(user, lastLogin);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserTile(dynamic user, String lastLogin) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // Avatar
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: user.photoUrl == null
+                  ? const LinearGradient(
+                      colors: [_primaryColor, Color(0xFF8B5CF6)],
+                    )
+                  : null,
+              image: user.photoUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(user.photoUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: user.photoUrl == null
+                ? const Icon(Icons.person_rounded, color: Colors.white, size: 24)
+                : null,
+          ),
+          const SizedBox(width: 16),
+          // User info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        user.displayName ?? 'Sans nom',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: _textPrimary,
+                        ),
                       ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.logout, color: Colors.red),
-                        tooltip: 'Déconnecter de force',
-                        onPressed:
-                            () => _handleForceLogout(
-                              user.id,
-                              user.displayName ?? 'Utilisateur',
-                            ),
-                      ),
-                    ],
+                    ),
+                    if (user.isAdmin) _buildAdminBadge(),
+                    if (user.isBanned) _buildBannedBadge(),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user.email ?? 'Pas d\'email',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: _textSecondary,
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 12,
+                      color: _textSecondary.withAlpha(150),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Dernière connexion: $lastLogin',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: _textSecondary.withAlpha(150),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Action button
+          _buildLogoutButton(user),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminBadge() {
+    return Container(
+      margin: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF59E0B).withAlpha(20),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFF59E0B).withAlpha(50)),
+      ),
+      child: const Text(
+        'Admin',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFFF59E0B),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannedBadge() {
+    return Container(
+      margin: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF4444).withAlpha(20),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFEF4444).withAlpha(50)),
+      ),
+      child: const Text(
+        'Banni',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFFEF4444),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(dynamic user) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _handleForceLogout(
+          user.id,
+          user.displayName ?? 'Utilisateur',
+        ),
+        borderRadius: BorderRadius.circular(10),
+        child: Tooltip(
+          message: 'Déconnecter de force',
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withAlpha(15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.logout_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
             ),
           ),
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: _cardColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(8),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: const CircularProgressIndicator(
+              strokeWidth: 3,
+              valueColor: AlwaysStoppedAnimation(_primaryColor),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Chargement des utilisateurs...',
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.people_outline_rounded,
+            size: 64,
+            color: _textSecondary.withAlpha(100),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Aucun utilisateur trouvé',
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 }
