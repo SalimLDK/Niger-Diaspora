@@ -488,13 +488,13 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   void _onDoubleTap() {
-    debugPrint('👆 Double-tap detected on message: ${widget.message.id}');
+    // debugPrint('👆 Double-tap detected on message: ${widget.message.id}');
     if (widget.onReact != null) {
       HapticFeedback.lightImpact();
-      debugPrint('❤️ Calling onReact with heart emoji');
+      // debugPrint('❤️ Calling onReact with heart emoji');
       widget.onReact?.call(widget.message, '❤️');
     } else {
-      debugPrint('⚠️ onReact callback is null!');
+      // debugPrint('⚠️ onReact callback is null!');
     }
   }
 

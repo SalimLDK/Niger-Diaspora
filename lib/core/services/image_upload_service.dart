@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -48,10 +48,7 @@ class ImageUploadService {
   ImageUploadConfig get config => _config;
 
   /// Pick an image from gallery
-  Future<File?> pickImageFromGallery({
-    int? maxWidth,
-    int? maxHeight,
-  }) async {
+  Future<File?> pickImageFromGallery({int? maxWidth, int? maxHeight}) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -70,10 +67,7 @@ class ImageUploadService {
   }
 
   /// Pick an image from camera
-  Future<File?> pickImageFromCamera({
-    int? maxWidth,
-    int? maxHeight,
-  }) async {
+  Future<File?> pickImageFromCamera({int? maxWidth, int? maxHeight}) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
@@ -235,15 +229,15 @@ class ImageUploadService {
           );
 
         case 'invalid-checksum':
-          debugPrint('❌ Upload failed: File corrupted during upload');
+          // debugPrint('❌ Upload failed: File corrupted during upload');
           throw Exception('File upload was corrupted. Please try again.');
 
         default:
-          debugPrint('❌ Upload failed: ${e.code} - ${e.message}');
+          // debugPrint('❌ Upload failed: ${e.code} - ${e.message}');
           throw Exception('Upload failed: ${e.message ?? 'Unknown error'}');
       }
     } catch (e) {
-      debugPrint('❌ Unexpected error uploading image: $e');
+      // debugPrint('❌ Unexpected error uploading image: $e');
       return null;
     }
   }
@@ -280,10 +274,10 @@ class ImageUploadService {
     try {
       final ref = _storage.refFromURL(url);
       await ref.delete();
-      debugPrint('Image deleted successfully');
+      // debugPrint('Image deleted successfully');
       return true;
     } catch (e) {
-      debugPrint('Error deleting image: $e');
+      // debugPrint('Error deleting image: $e');
       return false;
     }
   }
