@@ -92,14 +92,14 @@ class StripeService {
       );
 
       if (paymentData == null) {
-        debugPrint('Failed to create payment intent');
+        // debugPrint('Failed to create payment intent');
         return null;
       }
 
       final clientSecret = paymentData['clientSecret'] as String;
       final paymentIntentId = paymentData['paymentIntentId'] as String;
 
-      debugPrint('Payment intent created: $paymentIntentId');
+      // debugPrint('Payment intent created: $paymentIntentId');
 
       // 2. Initialize payment sheet
       await Stripe.instance.initPaymentSheet(
@@ -115,7 +115,7 @@ class StripeService {
         ),
       );
 
-      debugPrint('Payment sheet initialized');
+      // debugPrint('Payment sheet initialized');
 
       // 3. Present payment sheet
       await Stripe.instance.presentPaymentSheet();

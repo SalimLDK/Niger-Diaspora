@@ -306,7 +306,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
       await _conversationParticipantsRef(conversationId).set(participantsMap);
     } catch (e) {
-      debugPrint('⚠️ Failed to sync participants to RTDB: $e');
+      // debugPrint('⚠️ Failed to sync participants to RTDB: $e');
       // Don't throw - this is for security rules, not critical path
     }
   }
@@ -319,7 +319,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     try {
       await _conversationParticipantsRef(conversationId).child(userId).remove();
     } catch (e) {
-      debugPrint('⚠️ Failed to remove participant from RTDB: $e');
+      // debugPrint('⚠️ Failed to remove participant from RTDB: $e');
     }
   }
 
@@ -592,7 +592,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       return MessageModel.fromJson(data);
     } catch (e) {
       // If we can't retrieve it, create a minimal model
-      debugPrint('⚠️ Could not retrieve created message, using minimal model');
+      // debugPrint('⚠️ Could not retrieve created message, using minimal model');
       return MessageModel(
         id: newMessageRef.key!,
         senderId: senderId,
@@ -1005,12 +1005,12 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
       await Future.wait(listResult.items.map((ref) => ref.delete()));
 
-      debugPrint(
-        'Deleted ${listResult.items.length} files from storage for conversation $conversationId',
-      );
+      // debugPrint(
+      //   'Deleted ${listResult.items.length} files from storage for conversation $conversationId',
+      // );
     } catch (e) {
       // Log but don't blocking deletion of conversation
-      debugPrint('⚠️ Error deleting files from storage: $e');
+      // debugPrint('⚠️ Error deleting files from storage: $e');
     }
   }
 
@@ -1081,7 +1081,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     } catch (e) {
       // Don't throw - message is already created in RTDB
       // Just log the error to avoid retry creating duplicate messages
-      debugPrint('⚠️ Failed to update conversation metadata: $e');
+      // debugPrint('⚠️ Failed to update conversation metadata: $e');
     }
   }
 
