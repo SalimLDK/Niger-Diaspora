@@ -74,7 +74,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
           fileToSend = await _compressor.compressImage(widget.file);
         }
       } catch (e) {
-        debugPrint('Erreur de compression: $e');
+        // debugPrint('Erreur de compression: $e');
         // Continue avec le fichier original en cas d'erreur
       }
 

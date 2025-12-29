@@ -186,7 +186,7 @@ class ImageUploadService {
             onProgress(progress);
           },
           onError: (e) {
-            debugPrint('Progress tracking error: $e');
+            // debugPrint('Progress tracking error: $e');
           },
           cancelOnError: true,
         );
@@ -201,35 +201,35 @@ class ImageUploadService {
 
       // Get download URL
       final downloadUrl = await ref.getDownloadURL();
-      debugPrint('✅ Image uploaded successfully: $downloadUrl');
+      // debugPrint('✅ Image uploaded successfully: $downloadUrl');
 
       return downloadUrl;
     } on FirebaseException catch (e) {
       // Handle specific Firebase Storage errors
       switch (e.code) {
         case 'unauthorized':
-          debugPrint(
-            '❌ Upload failed: Unauthorized - Check Firebase Storage rules and user authentication',
-          );
-          debugPrint('   User ID: ${FirebaseAuth.instance.currentUser?.uid}');
-          debugPrint('   Error: ${e.message}');
+          // debugPrint(
+          //   '❌ Upload failed: Unauthorized - Check Firebase Storage rules and user authentication',
+          // );
+          // debugPrint('   User ID: ${FirebaseAuth.instance.currentUser?.uid}');
+          // debugPrint('   Error: ${e.message}');
           throw Exception(
             'You do not have permission to upload files. Please check your account permissions.',
           );
 
         case 'canceled':
-          debugPrint('⚠️ Upload canceled by user');
+          // debugPrint('⚠️ Upload canceled by user');
           return null;
 
         case 'unknown':
         case 'network-request-failed':
-          debugPrint('❌ Upload failed: Network error - ${e.message}');
+          // debugPrint('❌ Upload failed: Network error - ${e.message}');
           throw Exception(
             'Network connection failed. Please check your internet connection and try again.',
           );
 
         case 'retry-limit-exceeded':
-          debugPrint('❌ Upload failed: Too many retries');
+          // debugPrint('❌ Upload failed: Too many retries');
           throw Exception(
             'Upload failed after multiple attempts. Please try again later.',
           );
