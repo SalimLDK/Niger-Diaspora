@@ -28,8 +28,6 @@ class SecurePreferencesService {
   static const String _keySessionId = 'secure_session_id';
   static const String _keyAuthToken = 'secure_auth_token';
   static const String _keyRefreshToken = 'secure_refresh_token';
-  static const String _keyUserCredentials = 'secure_user_credentials';
-  static const String _keyEncryptionKey = 'secure_encryption_key';
 
   // ============================
   // SESSION MANAGEMENT
