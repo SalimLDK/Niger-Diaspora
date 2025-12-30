@@ -995,7 +995,7 @@ final transactionNotifierProvider =
     );
 
 typedef _$TransactionNotifier = AutoDisposeAsyncNotifier<void>;
-String _$recipientNotifierHash() => r'16f78b5b26a5fad4595517881b90d69de9b48c19';
+String _$recipientNotifierHash() => r'6562f4b49c7a120d351680101dab132577a44429';
 
 /// See also [RecipientNotifier].
 @ProviderFor(RecipientNotifier)

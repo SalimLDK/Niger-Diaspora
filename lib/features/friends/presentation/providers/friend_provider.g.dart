@@ -102,7 +102,7 @@ final sentFriendRequestsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SentFriendRequestsRef = StreamProviderRef<List<FriendRequestEntity>>;
-String _$friendshipStatusHash() => r'b0e87966e3d49ad3a59f0f8785fcc58139d3fe08';
+String _$friendshipStatusHash() => r'a081cfa812f494ca0587f50a1d1b7b79df20892a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -125,16 +125,28 @@ class _SystemHash {
   }
 }
 
-/// See also [friendshipStatus].
+/// Provider that derives friendship status from existing streams
+/// This ensures real-time updates when friend requests change
+///
+/// Copied from [friendshipStatus].
 @ProviderFor(friendshipStatus)
 const friendshipStatusProvider = FriendshipStatusFamily();
 
-/// See also [friendshipStatus].
-class FriendshipStatusFamily extends Family<AsyncValue<FriendshipStatus>> {
-  /// See also [friendshipStatus].
+/// Provider that derives friendship status from existing streams
+/// This ensures real-time updates when friend requests change
+///
+/// Copied from [friendshipStatus].
+class FriendshipStatusFamily extends Family<FriendshipStatus> {
+  /// Provider that derives friendship status from existing streams
+  /// This ensures real-time updates when friend requests change
+  ///
+  /// Copied from [friendshipStatus].
   const FriendshipStatusFamily();
 
-  /// See also [friendshipStatus].
+  /// Provider that derives friendship status from existing streams
+  /// This ensures real-time updates when friend requests change
+  ///
+  /// Copied from [friendshipStatus].
   FriendshipStatusProvider call(String otherUserId) {
     return FriendshipStatusProvider(otherUserId);
   }
@@ -161,9 +173,15 @@ class FriendshipStatusFamily extends Family<AsyncValue<FriendshipStatus>> {
   String? get name => r'friendshipStatusProvider';
 }
 
-/// See also [friendshipStatus].
-class FriendshipStatusProvider extends FutureProvider<FriendshipStatus> {
-  /// See also [friendshipStatus].
+/// Provider that derives friendship status from existing streams
+/// This ensures real-time updates when friend requests change
+///
+/// Copied from [friendshipStatus].
+class FriendshipStatusProvider extends Provider<FriendshipStatus> {
+  /// Provider that derives friendship status from existing streams
+  /// This ensures real-time updates when friend requests change
+  ///
+  /// Copied from [friendshipStatus].
   FriendshipStatusProvider(String otherUserId)
     : this._internal(
         (ref) => friendshipStatus(ref as FriendshipStatusRef, otherUserId),
@@ -193,7 +211,7 @@ class FriendshipStatusProvider extends FutureProvider<FriendshipStatus> {
 
   @override
   Override overrideWith(
-    FutureOr<FriendshipStatus> Function(FriendshipStatusRef provider) create,
+    FriendshipStatus Function(FriendshipStatusRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -210,7 +228,7 @@ class FriendshipStatusProvider extends FutureProvider<FriendshipStatus> {
   }
 
   @override
-  FutureProviderElement<FriendshipStatus> createElement() {
+  ProviderElement<FriendshipStatus> createElement() {
     return _FriendshipStatusProviderElement(this);
   }
 
@@ -231,13 +249,12 @@ class FriendshipStatusProvider extends FutureProvider<FriendshipStatus> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin FriendshipStatusRef on FutureProviderRef<FriendshipStatus> {
+mixin FriendshipStatusRef on ProviderRef<FriendshipStatus> {
   /// The parameter `otherUserId` of this provider.
   String get otherUserId;
 }
 
-class _FriendshipStatusProviderElement
-    extends FutureProviderElement<FriendshipStatus>
+class _FriendshipStatusProviderElement extends ProviderElement<FriendshipStatus>
     with FriendshipStatusRef {
   _FriendshipStatusProviderElement(super.provider);
 

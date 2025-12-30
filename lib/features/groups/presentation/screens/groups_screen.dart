@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -19,12 +20,15 @@ class GroupsScreen extends ConsumerStatefulWidget {
 
 class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   GroupCategory? _selectedCategory;
+  String? _selectedCountry;
+  String? _selectedRegion;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
+      _loadDefaultCountryFilter();
     });
   }
 
@@ -34,6 +38,49 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
       ref.read(myGroupsNotifierProvider.notifier).loadMyGroups(currentUser.id);
     }
     ref.read(groupsNotifierProvider.notifier).loadGroups();
+  }
+
+  void _loadDefaultCountryFilter() {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    final profileAsync = ref.read(profileNotifierProvider(currentUser.id));
+    profileAsync.whenData((profile) {
+      final availableCountries = ref.read(availableGroupCountriesProvider);
+
+      if (profile?.currentCountry != null &&
+          profile!.currentCountry!.isNotEmpty &&
+          availableCountries.contains(profile.currentCountry)) {
+        // Utiliser le pays du profil s'il existe dans les groupes disponibles
+        setState(() => _selectedCountry = profile.currentCountry);
+      } else if (availableCountries.contains('Niger')) {
+        // Sinon, utiliser Niger par défaut s'il existe dans les groupes
+        setState(() => _selectedCountry = 'Niger');
+      }
+      // Si Niger n'existe pas non plus, on laisse sur "Tous" (null)
+    });
+  }
+
+  /// Applique tous les filtres actifs (catégorie, pays, région) à une liste de groupes
+  List<GroupEntity> _applyFilters(List<GroupEntity> groups) {
+    var filtered = groups;
+
+    // Filtre par catégorie
+    if (_selectedCategory != null) {
+      filtered = filtered.where((g) => g.category == _selectedCategory).toList();
+    }
+
+    // Filtre par pays d'accueil
+    if (_selectedCountry != null) {
+      filtered = filtered.where((g) => g.country == _selectedCountry).toList();
+    }
+
+    // Filtre par région d'origine
+    if (_selectedRegion != null) {
+      filtered = filtered.where((g) => g.originRegion == _selectedRegion).toList();
+    }
+
+    return filtered;
   }
 
   @override
@@ -196,6 +243,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                 ),
               ),
             ),
+            // Filtres géographiques (pays d'accueil + région d'origine)
+            SliverToBoxAdapter(
+              child: _buildGeoFilters(),
+            ),
             // Contenu principal
             SliverPadding(
               padding: const EdgeInsets.all(20),
@@ -213,12 +264,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   myGroupsAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (myGroups) {
-                      final filteredGroups =
-                          _selectedCategory == null
-                              ? myGroups
-                              : myGroups
-                                  .where((g) => g.category == _selectedCategory)
-                                  .toList();
+                      final filteredGroups = _applyFilters(myGroups);
 
                       if (filteredGroups.isEmpty) {
                         return _buildEmptyMyGroups();
@@ -249,17 +295,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                     error: (error, _) => _buildErrorWidget(l10n.loadingError),
                   ),
 
-                  const SizedBox(height: 28),
-
-                  // Découvrir
-                  _SectionHeader(
-                    title: l10n.discover,
-                    icon: Icons.explore,
-                    iconColor: context.adaptiveSecondaryColor,
-                  ),
-
-                  const SizedBox(height: 16),
-
+                  // Section Découvrir - masquée si aucun groupe à découvrir
                   allGroupsAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (allGroups) {
@@ -268,62 +304,56 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                         data: (myGroups) {
                           // Filtrer les groupes déjà rejoints
                           final myGroupIds = myGroups.map((g) => g.id).toSet();
-                          var discoverGroups =
+                          final notJoinedGroups =
                               allGroups
                                   .where((g) => !myGroupIds.contains(g.id))
                                   .toList();
 
-                          // Appliquer le filtre de catégorie
-                          if (_selectedCategory != null) {
-                            discoverGroups =
-                                discoverGroups
-                                    .where(
-                                      (g) => g.category == _selectedCategory,
-                                    )
-                                    .toList();
-                          }
+                          // Appliquer tous les filtres
+                          final discoverGroups = _applyFilters(notJoinedGroups);
 
+                          // Ne rien afficher si aucun groupe à découvrir
                           if (discoverGroups.isEmpty) {
-                            return _buildEmptyDiscover();
+                            return const SizedBox.shrink();
                           }
 
                           return Column(
-                            children:
-                                discoverGroups
-                                    .map(
-                                      (group) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 28),
+                              _SectionHeader(
+                                title: l10n.discover,
+                                icon: Icons.explore,
+                                iconColor: context.adaptiveSecondaryColor,
+                              ),
+                              const SizedBox(height: 16),
+                              ...discoverGroups.map(
+                                (group) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _GroupCard(
+                                    group: group,
+                                    isJoined: false,
+                                    currentUserId: currentUser?.id ?? '',
+                                    onTap:
+                                        () => context.push(
+                                          '/groups/${group.id}',
+                                          extra: group,
                                         ),
-                                        child: _GroupCard(
-                                          group: group,
-                                          isJoined: false,
-                                          currentUserId: currentUser?.id ?? '',
-                                          onTap:
-                                              () => context.push(
-                                                '/groups/${group.id}',
-                                                extra: group,
-                                              ),
-                                          onJoinLeave:
-                                              () => _joinGroup(group.id),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
+                                    onJoinLeave: () => _joinGroup(group.id),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
                           );
                         },
-                        loading: () => _buildLoadingCards(4),
-                        error:
-                            (_, __) => _buildLoadingCards(
-                              4,
-                            ), // Show loading if myGroups failed
+                        loading: () => _buildDiscoverLoading(l10n),
+                        error: (_, __) => const SizedBox.shrink(),
                       );
                     },
-                    loading: () => _buildLoadingCards(4),
-                    error: (error, _) => _buildErrorWidget(l10n.loadingError),
+                    loading: () => _buildDiscoverLoading(l10n),
+                    error: (error, _) => const SizedBox.shrink(),
                   ),
-
-                  const SizedBox(height: 24),
                 ]),
               ),
             ),
@@ -419,25 +449,19 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     );
   }
 
-  Widget _buildEmptyDiscover() {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: context.cardDecoration,
-      child: Column(
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 48,
-            color: context.textTertiaryColor.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.noGroupsToDiscover,
-            style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
-          ),
-        ],
-      ),
+  Widget _buildDiscoverLoading(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 28),
+        _SectionHeader(
+          title: l10n.discover,
+          icon: Icons.explore,
+          iconColor: context.adaptiveSecondaryColor,
+        ),
+        const SizedBox(height: 16),
+        _buildLoadingCards(4),
+      ],
     );
   }
 
@@ -465,6 +489,122 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
             message,
             style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeoFilters() {
+    final countries = ref.watch(availableGroupCountriesProvider);
+    final regions = ref.watch(availableGroupRegionsProvider);
+
+    // Ne rien afficher si aucun filtre disponible
+    if (countries.isEmpty && regions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Filtres par pays d'accueil
+          if (countries.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.public,
+                    size: 14,
+                    color: context.textTertiaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Pays d\'accueil',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  _GeoFilterChip(
+                    label: 'Tous',
+                    isSelected: _selectedCountry == null,
+                    onTap: () => setState(() => _selectedCountry = null),
+                  ),
+                  ...countries.map(
+                    (country) => Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _GeoFilterChip(
+                        label: country,
+                        isSelected: _selectedCountry == country,
+                        onTap: () => setState(() => _selectedCountry = country),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Filtres par région d'origine
+          if (regions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 14,
+                    color: context.textTertiaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Région d\'origine',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  _GeoFilterChip(
+                    label: 'Toutes',
+                    isSelected: _selectedRegion == null,
+                    onTap: () => setState(() => _selectedRegion = null),
+                  ),
+                  ...regions.map(
+                    (region) => Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _GeoFilterChip(
+                        label: region,
+                        isSelected: _selectedRegion == region,
+                        onTap: () => setState(() => _selectedRegion = region),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -847,6 +987,57 @@ class _GroupCardLoading extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GeoFilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _GeoFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: isSelected ? context.adaptivePrimaryGradient : null,
+          color: isSelected ? null : context.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: context.borderColor,
+                  width: 1,
+                ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? AppColors.white : context.textSecondaryColor,
+          ),
+        ),
       ),
     );
   }

@@ -39,6 +39,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   String _phoneVisibility = ProfileOptions.phoneVisibilityEveryone;
   bool _isPhoneVerified = false;
   String? _photoUrl;
+  bool _pendingPhotoDelete = false; // Flag pour indiquer que l'utilisateur veut supprimer sa photo
   String _completePhoneNumber = '';
   String _verifiedPhoneNumber = '';
 
@@ -115,7 +116,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           }
           _selectedInterests = List.from(existingProfile.interests);
           _selectedLanguages = List.from(existingProfile.languages);
-          _photoUrl = existingProfile.photoUrl ?? user.photoUrl;
+          // Ne pas écraser _photoUrl si l'utilisateur veut supprimer sa photo
+          if (!_pendingPhotoDelete) {
+            _photoUrl = existingProfile.photoUrl ?? user.photoUrl;
+          }
 
           // Charger les sélections
           _loadProfessionFromProfile(existingProfile.profession);
@@ -130,7 +134,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         } else {
           // Fallback sur les données auth si pas de profil
           _displayNameController.text = user.displayName ?? '';
-          _photoUrl = user.photoUrl;
+          // Ne pas écraser _photoUrl si l'utilisateur veut supprimer sa photo
+          if (!_pendingPhotoDelete) {
+            _photoUrl = user.photoUrl;
+          }
 
           // Provider auto-loads, no explicit call needed here if watched/listened elsewhere
         }
@@ -285,7 +292,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                     isDestructive: true,
                     onTap: () {
                       Navigator.pop(context);
-                      setState(() => _photoUrl = null);
+                      setState(() {
+                        _photoUrl = null;
+                        _pendingPhotoDelete = true;
+                      });
                     },
                   ),
                 const SizedBox(height: 16),
@@ -315,6 +325,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           if (url != null) {
             setState(() {
               _photoUrl = url;
+              _pendingPhotoDelete = false; // Réinitialiser le flag car nouvelle photo
               _isLoading = false;
             });
           } else {
@@ -396,6 +407,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             .read(profileNotifierProvider(user.id).notifier)
             .updateProfile(profile);
 
+        // Réinitialiser le flag après sauvegarde réussie
+        _pendingPhotoDelete = false;
+
         if (mounted) {
           final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -467,7 +481,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               }
               _selectedInterests = List.from(profile.interests);
               _selectedLanguages = List.from(profile.languages);
-              _photoUrl = profile.photoUrl ?? authUser.photoUrl;
+              // Ne pas écraser _photoUrl si l'utilisateur veut supprimer sa photo
+              if (!_pendingPhotoDelete) {
+                _photoUrl = profile.photoUrl ?? authUser.photoUrl;
+              }
             });
           }
         });

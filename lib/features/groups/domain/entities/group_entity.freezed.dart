@@ -31,7 +31,11 @@ mixin _$GroupEntity {
   List<String> get tags => throw _privateConstructorUsedError;
   Map<String, DateTime> get memberJoinedAt =>
       throw _privateConstructorUsedError;
-  DateTime? get createdAt => throw _privateConstructorUsedError;
+  DateTime? get createdAt =>
+      throw _privateConstructorUsedError; // Filtres géographiques pour la diaspora
+  String? get country =>
+      throw _privateConstructorUsedError; // Pays d'accueil (France, USA, Canada...)
+  String? get originRegion => throw _privateConstructorUsedError;
 
   /// Create a copy of GroupEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -62,6 +66,8 @@ abstract class $GroupEntityCopyWith<$Res> {
     List<String> tags,
     Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
+    String? country,
+    String? originRegion,
   });
 }
 
@@ -94,6 +100,8 @@ class _$GroupEntityCopyWithImpl<$Res, $Val extends GroupEntity>
     Object? tags = null,
     Object? memberJoinedAt = null,
     Object? createdAt = freezed,
+    Object? country = freezed,
+    Object? originRegion = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -167,6 +175,16 @@ class _$GroupEntityCopyWithImpl<$Res, $Val extends GroupEntity>
                     ? _value.createdAt
                     : createdAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            originRegion:
+                freezed == originRegion
+                    ? _value.originRegion
+                    : originRegion // ignore: cast_nullable_to_non_nullable
+                        as String?,
           )
           as $Val,
     );
@@ -197,6 +215,8 @@ abstract class _$$GroupEntityImplCopyWith<$Res>
     List<String> tags,
     Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
+    String? country,
+    String? originRegion,
   });
 }
 
@@ -228,6 +248,8 @@ class __$$GroupEntityImplCopyWithImpl<$Res>
     Object? tags = null,
     Object? memberJoinedAt = null,
     Object? createdAt = freezed,
+    Object? country = freezed,
+    Object? originRegion = freezed,
   }) {
     return _then(
       _$GroupEntityImpl(
@@ -301,6 +323,16 @@ class __$$GroupEntityImplCopyWithImpl<$Res>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        originRegion:
+            freezed == originRegion
+                ? _value.originRegion
+                : originRegion // ignore: cast_nullable_to_non_nullable
+                    as String?,
       ),
     );
   }
@@ -324,6 +356,8 @@ class _$GroupEntityImpl implements _GroupEntity {
     final List<String> tags = const [],
     final Map<String, DateTime> memberJoinedAt = const {},
     this.createdAt,
+    this.country,
+    this.originRegion,
   }) : _adminIds = adminIds,
        _memberIds = memberIds,
        _tags = tags,
@@ -387,10 +421,16 @@ class _$GroupEntityImpl implements _GroupEntity {
 
   @override
   final DateTime? createdAt;
+  // Filtres géographiques pour la diaspora
+  @override
+  final String? country;
+  // Pays d'accueil (France, USA, Canada...)
+  @override
+  final String? originRegion;
 
   @override
   String toString() {
-    return 'GroupEntity(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, memberJoinedAt: $memberJoinedAt, createdAt: $createdAt)';
+    return 'GroupEntity(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, memberJoinedAt: $memberJoinedAt, createdAt: $createdAt, country: $country, originRegion: $originRegion)';
   }
 
   @override
@@ -425,7 +465,10 @@ class _$GroupEntityImpl implements _GroupEntity {
               _memberJoinedAt,
             ) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.country, country) || other.country == country) &&
+            (identical(other.originRegion, originRegion) ||
+                other.originRegion == originRegion));
   }
 
   @override
@@ -445,6 +488,8 @@ class _$GroupEntityImpl implements _GroupEntity {
     const DeepCollectionEquality().hash(_tags),
     const DeepCollectionEquality().hash(_memberJoinedAt),
     createdAt,
+    country,
+    originRegion,
   );
 
   /// Create a copy of GroupEntity
@@ -472,6 +517,8 @@ abstract class _GroupEntity implements GroupEntity {
     final List<String> tags,
     final Map<String, DateTime> memberJoinedAt,
     final DateTime? createdAt,
+    final String? country,
+    final String? originRegion,
   }) = _$GroupEntityImpl;
 
   @override
@@ -501,7 +548,11 @@ abstract class _GroupEntity implements GroupEntity {
   @override
   Map<String, DateTime> get memberJoinedAt;
   @override
-  DateTime? get createdAt;
+  DateTime? get createdAt; // Filtres géographiques pour la diaspora
+  @override
+  String? get country; // Pays d'accueil (France, USA, Canada...)
+  @override
+  String? get originRegion;
 
   /// Create a copy of GroupEntity
   /// with the given fields replaced by the non-null parameter values.

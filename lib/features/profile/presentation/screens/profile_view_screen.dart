@@ -106,25 +106,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         return;
       }
 
-      // Step 2: Request background location permission (Android 10+)
-      final hasBackgroundPermission =
-          await LocationService.instance.requestBackgroundLocationPermission();
-      if (!hasBackgroundPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Permission de localisation en arrière-plan requise. Veuillez sélectionner 'Toujours autoriser' dans les paramètres.",
-              ),
-              duration: Duration(seconds: 4),
-            ),
-          );
-          await Geolocator.openAppSettings();
-        }
-        return;
-      }
-
-      // Step 3: Request notification permission (Android 13+)
+      // Step 2: Request notification permission (Android 13+)
       await LocationService.instance.requestNotificationPermission();
     }
 
@@ -909,20 +891,18 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ),
       bottomNavigationBar: Consumer(
         builder: (context, ref, child) {
-          final friendshipStatus = ref.watch(
+          final status = ref.watch(
             friendshipStatusProvider(widget.userId),
           );
 
-          return friendshipStatus.when(
-            data: (status) {
-              // Determine button configuration based on friendship status
-              String buttonText = '';
-              IconData buttonIcon = Icons.help_outline;
-              VoidCallback? onPressed;
-              Color backgroundColor = context.adaptivePrimaryColor;
+          // Determine button configuration based on friendship status
+          String buttonText = '';
+          IconData buttonIcon = Icons.help_outline;
+          VoidCallback? onPressed;
+          Color backgroundColor = context.adaptivePrimaryColor;
 
-              switch (status) {
-                case FriendshipStatus.friends:
+          switch (status) {
+            case FriendshipStatus.friends:
                   buttonText = 'Envoyer un message';
                   buttonIcon = Icons.chat;
                   onPressed = _startConversation;
@@ -930,11 +910,83 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   break;
 
                 case FriendshipStatus.pendingSent:
-                  buttonText = 'Demande envoyée';
-                  buttonIcon = Icons.schedule;
-                  onPressed = null; // Disabled
-                  backgroundColor = context.textSecondaryColor;
-                  break;
+                  // Return a button to cancel the sent request
+                  return Container(
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      top: 16,
+                      bottom: MediaQuery.of(context).padding.bottom + 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.surfaceColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          // Find the sent request and cancel it
+                          final requests = await ref.read(
+                            sentFriendRequestsProvider.future,
+                          );
+
+                          final request = requests.firstWhere(
+                            (r) => r.receiverId == widget.userId,
+                          );
+
+                          // Cancel the request
+                          final success = await ref
+                              .read(friendRequestNotifierProvider.notifier)
+                              .cancelRequest(
+                                request.id,
+                                receiverId: widget.userId,
+                              );
+
+                          if (context.mounted && success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Demande d\'ami annulée'),
+                              ),
+                            );
+                          }
+                        } on StateError {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Cette demande n\'existe plus.',
+                                ),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erreur: $e'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.close),
+                      label: const Text('Annuler la demande'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: const BorderSide(color: AppColors.error),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                    ),
+                  );
 
                 case FriendshipStatus.pendingReceived:
                   // Return two buttons side-by-side for pendingReceived
@@ -1125,61 +1177,6 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   ),
                 ),
               );
-            },
-            loading:
-                () => Container(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: context.adaptivePrimaryColor,
-                    ),
-                  ),
-                ),
-            error:
-                (_, __) => Container(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton.icon(
-                    onPressed: _sendFriendRequest,
-                    icon: const Icon(Icons.person_add),
-                    label: const Text('Envoyer une demande d\'ami'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.adaptivePrimaryColor,
-                      foregroundColor: AppColors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                ),
-          );
         },
       ),
     );

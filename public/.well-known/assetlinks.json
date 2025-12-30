@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.diasponiger.diaspo_niger",
+            "sha256_cert_fingerprints": [
+                "35:67:B0:E9:C9:01:C2:0E:B8:76:E3:CB:0B:2A:69:28:5D:5D:BB:DC:FB:89:07:0D:9C:26:91:3E:91:3F:D1:F4"
+            ]
+        }
+    }
+]

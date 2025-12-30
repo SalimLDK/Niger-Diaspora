@@ -98,7 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     child: const Center(
                       child: Text(
-                        'ND',
+                        'DN',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,

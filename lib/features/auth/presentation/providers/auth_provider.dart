@@ -13,7 +13,9 @@ import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/send_password_reset_email.dart';
 import '../../../../core/services/session_service.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import 'auth_state.dart';
 
 part 'auth_provider.g.dart';
@@ -74,6 +76,9 @@ class AuthNotifier extends _$AuthNotifier {
 
         // Mettre à jour lastLoginAt pour que l'utilisateur apparaisse en ligne
         ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+
+        // Refresh onboarding status now that user is authenticated
+        ref.read(onboardingNotifierProvider.notifier).refresh();
       } else {
         state = const AuthState.unauthenticated();
       }
@@ -97,6 +102,8 @@ class AuthNotifier extends _$AuthNotifier {
       state = AuthState.authenticated(user);
       SessionService.instance.initialize(user.id, isNewLogin: true);
       ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+      // Refresh onboarding status now that user is authenticated
+      ref.read(onboardingNotifierProvider.notifier).refresh();
     });
   }
 
@@ -109,6 +116,8 @@ class AuthNotifier extends _$AuthNotifier {
       state = AuthState.authenticated(user);
       SessionService.instance.initialize(user.id, isNewLogin: true);
       ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+      // Refresh onboarding status now that user is authenticated
+      ref.read(onboardingNotifierProvider.notifier).refresh();
     });
   }
 
@@ -127,6 +136,10 @@ class AuthNotifier extends _$AuthNotifier {
 
   Future<void> signOut() async {
     SessionService.instance.dispose();
+
+    // Vider le cache local pour éviter les données obsolètes
+    await CacheService.instance.clearAllCache();
+
     final result = await ref.read(signOutUseCaseProvider).call();
 
     result.fold(
@@ -153,8 +166,9 @@ class AuthNotifier extends _$AuthNotifier {
         state = AuthState.error(failure.message);
         return false;
       },
-      (_) {
+      (_) async {
         SessionService.instance.dispose();
+        await CacheService.instance.clearAllCache();
         state = const AuthState.unauthenticated();
         return true;
       },

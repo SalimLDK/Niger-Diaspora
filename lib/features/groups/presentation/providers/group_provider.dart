@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/group_remote_datasource.dart';
 import '../../data/datasources/group_request_datasource.dart';
@@ -27,6 +28,7 @@ GroupRepository groupRepository(Ref ref) {
     remoteDataSource: ref.watch(groupRemoteDataSourceProvider),
     requestDataSource: ref.watch(groupRequestDataSourceProvider),
     networkInfo: ref.watch(networkInfoProvider),
+    messageRepository: ref.watch(messageRepositoryProvider),
   );
 }
 
@@ -215,4 +217,50 @@ Stream<List<GroupRequestEntity>> myGroupRequests(Ref ref, String userId) {
   return repository.getMyGroupRequests(userId).map((either) {
     return either.fold((failure) => [], (requests) => requests);
   });
+}
+
+/// Provider pour récupérer la liste des pays disponibles (depuis les groupes existants)
+@riverpod
+List<String> availableGroupCountries(Ref ref) {
+  final groupsAsync = ref.watch(groupsNotifierProvider);
+  final myGroupsAsync = ref.watch(myGroupsNotifierProvider);
+
+  final allGroups = <GroupEntity>[
+    ...groupsAsync.valueOrNull ?? [],
+    ...myGroupsAsync.valueOrNull ?? [],
+  ];
+
+  // Extraire les pays uniques non-null
+  final countries = allGroups
+      .map((g) => g.country)
+      .whereType<String>()
+      .where((c) => c.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+
+  return countries;
+}
+
+/// Provider pour récupérer la liste des régions d'origine disponibles
+@riverpod
+List<String> availableGroupRegions(Ref ref) {
+  final groupsAsync = ref.watch(groupsNotifierProvider);
+  final myGroupsAsync = ref.watch(myGroupsNotifierProvider);
+
+  final allGroups = <GroupEntity>[
+    ...groupsAsync.valueOrNull ?? [],
+    ...myGroupsAsync.valueOrNull ?? [],
+  ];
+
+  // Extraire les régions uniques non-null
+  final regions = allGroups
+      .map((g) => g.originRegion)
+      .whereType<String>()
+      .where((r) => r.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+
+  return regions;
 }

@@ -38,6 +38,14 @@ class OnboardingNotifier extends _$OnboardingNotifier {
 
   Future<void> _loadOnboardingStatus() async {
     try {
+      // Wait for Firebase Auth to be ready
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      // If no user yet, stay in loading state - will be refreshed when auth changes
+      if (currentUser == null) {
+        return;
+      }
+
       final repository = await ref.read(onboardingRepositoryProvider.future);
 
       final hasSeenOnboardingResult = await repository.hasSeenOnboarding();
@@ -59,22 +67,19 @@ class OnboardingNotifier extends _$OnboardingNotifier {
       );
 
       // Load consent and profile config status from Firestore
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        try {
-          final userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(currentUser.uid)
-              .get();
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
 
-          if (userDoc.exists) {
-            final data = userDoc.data();
-            hasGivenConsent = data?['hasGivenConsent'] == true;
-            profileConfigComplete = data?['profileConfigComplete'] == true;
-          }
-        } catch (_) {
-          // Silently fail, defaults remain false
+        if (userDoc.exists) {
+          final data = userDoc.data();
+          hasGivenConsent = data?['hasGivenConsent'] == true;
+          profileConfigComplete = data?['profileConfigComplete'] == true;
         }
+      } catch (_) {
+        // Silently fail, defaults remain false
       }
 
       state = state.copyWith(

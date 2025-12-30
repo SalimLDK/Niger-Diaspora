@@ -19,6 +19,9 @@ class GroupEntity with _$GroupEntity {
     @Default([]) List<String> tags,
     @Default({}) Map<String, DateTime> memberJoinedAt,
     DateTime? createdAt,
+    // Filtres géographiques pour la diaspora
+    String? country, // Pays d'accueil (France, USA, Canada...)
+    String? originRegion, // Région d'origine au Niger (Niamey, Zinder...)
   }) = _GroupEntity;
 }
 

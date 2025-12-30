@@ -60,19 +60,43 @@ Stream<List<FriendRequestEntity>> sentFriendRequests(Ref ref) {
       .map((either) => either.fold((_) => [], (requests) => requests));
 }
 
+/// Provider that derives friendship status from existing streams
+/// This ensures real-time updates when friend requests change
 @Riverpod(keepAlive: true)
-Future<FriendshipStatus> friendshipStatus(Ref ref, String otherUserId) async {
+FriendshipStatus friendshipStatus(Ref ref, String otherUserId) {
   final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) {
     return FriendshipStatus.none;
   }
 
-  final repository = ref.watch(friendRepositoryProvider);
-  final result = await repository.getFriendshipStatus(
-    currentUser.id,
-    otherUserId,
-  );
-  return result.fold((_) => FriendshipStatus.none, (status) => status);
+  // Watch the friends list
+  final friendsAsync = ref.watch(friendsProvider);
+  final friends = friendsAsync.valueOrNull ?? [];
+
+  // Check if already friends
+  if (friends.any((f) => f.id == otherUserId)) {
+    return FriendshipStatus.friends;
+  }
+
+  // Watch sent requests
+  final sentRequestsAsync = ref.watch(sentFriendRequestsProvider);
+  final sentRequests = sentRequestsAsync.valueOrNull ?? [];
+
+  // Check if current user sent a request to otherUserId
+  if (sentRequests.any((r) => r.receiverId == otherUserId)) {
+    return FriendshipStatus.pendingSent;
+  }
+
+  // Watch received requests
+  final receivedRequestsAsync = ref.watch(receivedFriendRequestsProvider);
+  final receivedRequests = receivedRequestsAsync.valueOrNull ?? [];
+
+  // Check if current user received a request from otherUserId
+  if (receivedRequests.any((r) => r.senderId == otherUserId)) {
+    return FriendshipStatus.pendingReceived;
+  }
+
+  return FriendshipStatus.none;
 }
 
 @Riverpod(keepAlive: true)

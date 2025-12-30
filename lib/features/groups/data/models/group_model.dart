@@ -23,6 +23,8 @@ class GroupModel with _$GroupModel {
     String? location,
     @Default([]) List<String> tags,
     DateTime? createdAt,
+    String? country,
+    String? originRegion,
   }) = _GroupModel;
 
   factory GroupModel.fromJson(Map<String, dynamic> json) =>
@@ -58,6 +60,8 @@ class GroupModel with _$GroupModel {
     location: location,
     tags: tags,
     createdAt: createdAt,
+    country: country,
+    originRegion: originRegion,
   );
 
   static GroupCategory _parseCategory(String value) {
@@ -81,5 +85,7 @@ class GroupModel with _$GroupModel {
     location: entity.location,
     tags: entity.tags,
     createdAt: entity.createdAt,
+    country: entity.country,
+    originRegion: entity.originRegion,
   );
 }

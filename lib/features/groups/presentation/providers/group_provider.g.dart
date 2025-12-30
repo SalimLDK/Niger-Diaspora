@@ -48,7 +48,7 @@ final groupRequestDataSourceProvider =
 // ignore: unused_element
 typedef GroupRequestDataSourceRef =
     AutoDisposeProviderRef<GroupRequestDataSource>;
-String _$groupRepositoryHash() => r'aaec2bb56ba24c538d4bd35ef993f96480674079';
+String _$groupRepositoryHash() => r'703db55e0de5aaf585532c8f38b4b41e1e19f8b5';
 
 /// See also [groupRepository].
 @ProviderFor(groupRepository)
@@ -602,6 +602,50 @@ class _MyGroupRequestsProviderElement
   String get userId => (origin as MyGroupRequestsProvider).userId;
 }
 
+String _$availableGroupCountriesHash() =>
+    r'c2579417eafb96c613f9d405d0bce298141f9b6a';
+
+/// Provider pour récupérer la liste des pays disponibles (depuis les groupes existants)
+///
+/// Copied from [availableGroupCountries].
+@ProviderFor(availableGroupCountries)
+final availableGroupCountriesProvider =
+    AutoDisposeProvider<List<String>>.internal(
+      availableGroupCountries,
+      name: r'availableGroupCountriesProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$availableGroupCountriesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AvailableGroupCountriesRef = AutoDisposeProviderRef<List<String>>;
+String _$availableGroupRegionsHash() =>
+    r'5e7b8b212a7bef5d8d20f8901aad23153d334384';
+
+/// Provider pour récupérer la liste des régions d'origine disponibles
+///
+/// Copied from [availableGroupRegions].
+@ProviderFor(availableGroupRegions)
+final availableGroupRegionsProvider =
+    AutoDisposeProvider<List<String>>.internal(
+      availableGroupRegions,
+      name: r'availableGroupRegionsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$availableGroupRegionsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AvailableGroupRegionsRef = AutoDisposeProviderRef<List<String>>;
 String _$groupsNotifierHash() => r'25b035e59ab8e14b591948968b7e6e8f50f25f16';
 
 /// See also [GroupsNotifier].

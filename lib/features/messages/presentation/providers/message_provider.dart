@@ -9,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/network/network_info.dart';
 import '../../../../core/providers/connectivity_provider.dart';
+import '../../../../core/utils/rtdb_sync_script.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/services/encryption_service.dart';
 import '../../data/datasources/message_remote_datasource.dart';
@@ -123,6 +124,11 @@ class PaginatedMessages extends _$PaginatedMessages {
     // debugPrint('🔄 Loading initial messages for $conversationId');
     try {
       final isOffline = !ref.read(connectivityNotifierProvider);
+
+      // Ensure RTDB has participants synced (fixes permission issues for typing/messages)
+      if (!isOffline) {
+        await RtdbSyncScript().syncConversationToRTDB(conversationId);
+      }
 
       // 1. Try to load from cache first (Cache-First Strategy)
       // Always attempt to load from cache to show something immediately

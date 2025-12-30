@@ -187,7 +187,7 @@ class _UserStreamProviderElement
   String get userId => (origin as UserStreamProvider).userId;
 }
 
-String _$profileNotifierHash() => r'9ca82bf82aace34d7a6f50356c9957abe3d6a3df';
+String _$profileNotifierHash() => r'aa6cb7e8b3a40c4dd298b9868c2c2f7f2f700cb1';
 
 abstract class _$ProfileNotifier
     extends BuildlessAsyncNotifier<ProfileEntity?> {

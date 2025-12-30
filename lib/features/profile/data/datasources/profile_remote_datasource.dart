@@ -99,6 +99,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       data.remove('id');
       data['updatedAt'] = FieldValue.serverTimestamp();
 
+      // Si photoUrl est null, utiliser FieldValue.delete() pour supprimer le champ
+      if (profile.photoUrl == null) {
+        data['photoUrl'] = FieldValue.delete();
+      }
+
       // Update Firestore document
       await _firestore
           .collection(FirebaseCollections.users)
@@ -109,9 +114,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null && currentUser.uid == profile.id) {
         await currentUser.updateDisplayName(profile.displayName);
-        if (profile.photoUrl != null) {
-          await currentUser.updatePhotoURL(profile.photoUrl);
-        }
+        // Mettre à jour photoURL même si null (pour supprimer)
+        await currentUser.updatePhotoURL(profile.photoUrl);
         // Reload user to ensure changes are reflected
         await currentUser.reload();
       }

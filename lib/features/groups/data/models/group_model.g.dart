@@ -31,6 +31,8 @@ _$GroupModelImpl _$$GroupModelImplFromJson(
       json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+  country: json['country'] as String?,
+  originRegion: json['originRegion'] as String?,
 );
 
 Map<String, dynamic> _$$GroupModelImplToJson(_$GroupModelImpl instance) =>
@@ -48,4 +50,6 @@ Map<String, dynamic> _$$GroupModelImplToJson(_$GroupModelImpl instance) =>
       'location': instance.location,
       'tags': instance.tags,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'country': instance.country,
+      'originRegion': instance.originRegion,
     };

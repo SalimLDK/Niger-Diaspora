@@ -23,17 +23,32 @@ service cloud.firestore {
     match /users/{userId} {
       // Allow list queries (for browsing/aggregation) - authenticated users or admins
       allow list: if isAuthenticated() || isAdmin();
-      
+
       // Allow getting individual profiles - authenticated users
       allow get: if isAuthenticated();
-      
+
       // Allow write only if accessing own document (includes create, update, delete)
-      allow write: if isOwner(userId);
-      
+      // Exception: allow updating friendIds array when accepting/removing a friend request
+      allow write: if isOwner(userId) || (
+        isAuthenticated() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendIds']) &&
+        (
+          // Allow adding current user to friendIds (accepting friend request)
+          (request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
+           resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).size() == 0) ||
+          // Allow removing current user from friendIds (unfriending)
+          (resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
+           request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).size() == 0)
+        )
+      );
+
       // Friends subcollection
       match /friends/{friendId} {
         allow read: if isAuthenticated();
-        allow write: if isOwner(userId);
+        // Allow write if:
+        // 1. User owns this friends collection (userId == auth.uid)
+        // 2. User is being added/removed as a friend (friendId == auth.uid)
+        allow write: if isOwner(userId) || (isAuthenticated() && friendId == request.auth.uid);
       }
 
       // Blocked Users subcollection

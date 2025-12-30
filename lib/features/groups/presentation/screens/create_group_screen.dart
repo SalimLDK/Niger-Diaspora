@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../domain/entities/group_entity.dart';
@@ -27,9 +28,73 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   final _tagsController = TextEditingController();
 
   GroupCategory _selectedCategory = GroupCategory.other;
+  String? _selectedCountry;
+  String? _selectedOriginRegion;
   bool _isPrivate = false;
   bool _isLoading = false;
   File? _selectedImage;
+
+  // Liste des pays d'accueil courants pour la diaspora nigérienne
+  static const List<String> _hostCountries = [
+    'Niger',
+    'France',
+    'États-Unis',
+    'Canada',
+    'Belgique',
+    'Allemagne',
+    'Royaume-Uni',
+    'Italie',
+    'Espagne',
+    'Suisse',
+    'Côte d\'Ivoire',
+    'Sénégal',
+    'Maroc',
+    'Autre',
+  ];
+
+  // Régions du Niger
+  static const List<String> _nigerRegions = [
+    'Niamey',
+    'Agadez',
+    'Diffa',
+    'Dosso',
+    'Maradi',
+    'Tahoua',
+    'Tillabéri',
+    'Zinder',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Pré-remplir le pays d'accueil depuis le profil utilisateur
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDefaultCountryFromProfile();
+    });
+  }
+
+  void _loadDefaultCountryFromProfile() {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    final profileAsync = ref.read(profileNotifierProvider(currentUser.id));
+    profileAsync.whenData((profile) {
+      if (profile?.currentCountry != null &&
+          profile!.currentCountry!.isNotEmpty) {
+        // Vérifier si le pays du profil est dans notre liste
+        final userCountry = profile.currentCountry!;
+        if (_hostCountries.contains(userCountry)) {
+          setState(() => _selectedCountry = userCountry);
+        } else {
+          // Si le pays n'est pas dans la liste, utiliser Niger par défaut
+          setState(() => _selectedCountry = 'Niger');
+        }
+      } else {
+        // Si pas de pays dans le profil, utiliser Niger par défaut
+        setState(() => _selectedCountry = 'Niger');
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -93,6 +158,8 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       adminIds: [currentUser.id],
       memberIds: [currentUser.id],
       createdAt: DateTime.now(),
+      country: _selectedCountry,
+      originRegion: _selectedOriginRegion,
     );
 
     final success = await ref
@@ -106,6 +173,8 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
           'category': _selectedCategory.name,
           'is_private': _isPrivate,
           'has_image': _selectedImage != null,
+          'has_country': _selectedCountry != null,
+          'has_origin_region': _selectedOriginRegion != null,
         },
       );
     }
@@ -253,12 +322,108 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
 
             const SizedBox(height: 20),
 
+            // Pays d'accueil
+            _buildLabel('Pays d\'accueil (optionnel)'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCountry,
+                  isExpanded: true,
+                  hint: Text(
+                    'Sélectionner un pays',
+                    style: TextStyle(color: context.textTertiaryColor),
+                  ),
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text(
+                        'Aucun',
+                        style: TextStyle(color: context.textTertiaryColor),
+                      ),
+                    ),
+                    ..._hostCountries.map(
+                      (country) => DropdownMenuItem(
+                        value: country,
+                        child: Text(country),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() => _selectedCountry = value);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Le pays où se trouve la communauté du groupe',
+              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Région d'origine
+            _buildLabel('Région d\'origine au Niger (optionnel)'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedOriginRegion,
+                  isExpanded: true,
+                  hint: Text(
+                    'Sélectionner une région',
+                    style: TextStyle(color: context.textTertiaryColor),
+                  ),
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text(
+                        'Aucune',
+                        style: TextStyle(color: context.textTertiaryColor),
+                      ),
+                    ),
+                    ..._nigerRegions.map(
+                      (region) => DropdownMenuItem(
+                        value: region,
+                        child: Text(region),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() => _selectedOriginRegion = value);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Pour regrouper les membres par région d\'origine',
+              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+            ),
+
+            const SizedBox(height: 20),
+
             // Localisation
-            _buildLabel('Localisation (optionnel)'),
+            _buildLabel('Localisation détaillée (optionnel)'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _locationController,
-              decoration: _inputDecoration('Ex: Paris, France'),
+              decoration: _inputDecoration('Ex: Paris 18e, Île-de-France'),
             ),
 
             const SizedBox(height: 20),

@@ -211,6 +211,15 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
         }
 
         final groupData = groupDoc.data() as Map<String, dynamic>;
+
+        // Check if group is private - requires approval
+        final isPrivate = groupData['isPrivate'] as bool? ?? false;
+        if (isPrivate) {
+          throw ServerException(
+            'Ce groupe est privé. Vous devez envoyer une demande d\'adhésion.',
+          );
+        }
+
         final currentMembers = List<String>.from(groupData['memberIds'] ?? []);
 
         // Check if user is already a member

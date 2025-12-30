@@ -178,7 +178,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final unableToGetLocationMsg = l10n.unableToGetLocation;
     final settingsLabel = l10n.settingsLabel;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isReciprocityRestricted = false; // Reset restriction flag when retrying
+    });
 
     try {
       final position = await LocationService.instance.getCurrentPosition();
@@ -1047,11 +1050,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (member.latitude != null && member.longitude != null) {
       // Vérifier si c'est un ami
       final friendshipStatus = ref.read(friendshipStatusProvider(member.id));
-      final isFriend =
-          friendshipStatus.whenOrNull(
-            data: (status) => status == FriendshipStatus.friends,
-          ) ??
-          false;
+      final isFriend = friendshipStatus == FriendshipStatus.friends;
 
       // Créer le marqueur simple
       final icon = await _createSimpleMarker(
@@ -1381,43 +1380,37 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           friendshipStatusProvider(member.id),
                         );
 
-                        return friendshipStatus.when(
-                          data: (status) {
-                            if (status != FriendshipStatus.friends) {
-                              return const SizedBox.shrink();
-                            }
+                        if (friendshipStatus != FriendshipStatus.friends) {
+                          return const SizedBox.shrink();
+                        }
 
-                            return Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  context.push(
-                                    '/messages/new',
-                                    extra: {
-                                      'selectedUserId': member.id,
-                                      'selectedUserName': member.displayName,
-                                      'selectedUserPhoto': member.photoUrl,
-                                    },
-                                  );
+                        return Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.push(
+                                '/messages/new',
+                                extra: {
+                                  'selectedUserId': member.id,
+                                  'selectedUserName': member.displayName,
+                                  'selectedUserPhoto': member.photoUrl,
                                 },
-                                icon: const Icon(Icons.chat_bubble_outline),
-                                label: Text(l10n.message),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: context.adaptivePrimaryColor,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.chat_bubble_outline),
+                            label: Text(l10n.message),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.adaptivePrimaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
                               ),
-                            );
-                          },
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
                         );
                       },
                     ),

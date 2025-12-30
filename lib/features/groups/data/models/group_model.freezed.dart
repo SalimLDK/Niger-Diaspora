@@ -34,6 +34,8 @@ mixin _$GroupModel {
   String? get location => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  String? get country => throw _privateConstructorUsedError;
+  String? get originRegion => throw _privateConstructorUsedError;
 
   /// Serializes this GroupModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -66,6 +68,8 @@ abstract class $GroupModelCopyWith<$Res> {
     String? location,
     List<String> tags,
     DateTime? createdAt,
+    String? country,
+    String? originRegion,
   });
 }
 
@@ -97,6 +101,8 @@ class _$GroupModelCopyWithImpl<$Res, $Val extends GroupModel>
     Object? location = freezed,
     Object? tags = null,
     Object? createdAt = freezed,
+    Object? country = freezed,
+    Object? originRegion = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -165,6 +171,16 @@ class _$GroupModelCopyWithImpl<$Res, $Val extends GroupModel>
                     ? _value.createdAt
                     : createdAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            originRegion:
+                freezed == originRegion
+                    ? _value.originRegion
+                    : originRegion // ignore: cast_nullable_to_non_nullable
+                        as String?,
           )
           as $Val,
     );
@@ -194,6 +210,8 @@ abstract class _$$GroupModelImplCopyWith<$Res>
     String? location,
     List<String> tags,
     DateTime? createdAt,
+    String? country,
+    String? originRegion,
   });
 }
 
@@ -224,6 +242,8 @@ class __$$GroupModelImplCopyWithImpl<$Res>
     Object? location = freezed,
     Object? tags = null,
     Object? createdAt = freezed,
+    Object? country = freezed,
+    Object? originRegion = freezed,
   }) {
     return _then(
       _$GroupModelImpl(
@@ -292,6 +312,16 @@ class __$$GroupModelImplCopyWithImpl<$Res>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        originRegion:
+            freezed == originRegion
+                ? _value.originRegion
+                : originRegion // ignore: cast_nullable_to_non_nullable
+                    as String?,
       ),
     );
   }
@@ -314,6 +344,8 @@ class _$GroupModelImpl extends _GroupModel {
     this.location,
     final List<String> tags = const [],
     this.createdAt,
+    this.country,
+    this.originRegion,
   }) : _adminIds = adminIds,
        _memberIds = memberIds,
        _tags = tags,
@@ -371,10 +403,14 @@ class _$GroupModelImpl extends _GroupModel {
 
   @override
   final DateTime? createdAt;
+  @override
+  final String? country;
+  @override
+  final String? originRegion;
 
   @override
   String toString() {
-    return 'GroupModel(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, createdAt: $createdAt)';
+    return 'GroupModel(id: $id, name: $name, description: $description, imageUrl: $imageUrl, creatorId: $creatorId, creatorName: $creatorName, adminIds: $adminIds, memberIds: $memberIds, category: $category, isPrivate: $isPrivate, location: $location, tags: $tags, createdAt: $createdAt, country: $country, originRegion: $originRegion)';
   }
 
   @override
@@ -405,7 +441,10 @@ class _$GroupModelImpl extends _GroupModel {
                 other.location == location) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.country, country) || other.country == country) &&
+            (identical(other.originRegion, originRegion) ||
+                other.originRegion == originRegion));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -425,6 +464,8 @@ class _$GroupModelImpl extends _GroupModel {
     location,
     const DeepCollectionEquality().hash(_tags),
     createdAt,
+    country,
+    originRegion,
   );
 
   /// Create a copy of GroupModel
@@ -456,6 +497,8 @@ abstract class _GroupModel extends GroupModel {
     final String? location,
     final List<String> tags,
     final DateTime? createdAt,
+    final String? country,
+    final String? originRegion,
   }) = _$GroupModelImpl;
   const _GroupModel._() : super._();
 
@@ -488,6 +531,10 @@ abstract class _GroupModel extends GroupModel {
   List<String> get tags;
   @override
   DateTime? get createdAt;
+  @override
+  String? get country;
+  @override
+  String? get originRegion;
 
   /// Create a copy of GroupModel
   /// with the given fields replaced by the non-null parameter values.

@@ -43,7 +43,7 @@ final adminDashboardNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$AdminDashboardNotifier = AutoDisposeNotifier<AdminDashboardState>;
 String _$adminBusinessNotifierHash() =>
-    r'1c2cbfbd3fdc126790bf22a3ad1fc27c50094558';
+    r'32be63fdb68849a02d3d9b86ccd64298096f9bff';
 
 /// See also [AdminBusinessNotifier].
 @ProviderFor(AdminBusinessNotifier)
@@ -63,7 +63,7 @@ final adminBusinessNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$AdminBusinessNotifier = AutoDisposeNotifier<AdminBusinessState>;
 String _$adminContentNotifierHash() =>
-    r'30c4536c88f7b2b30f6c898f44ad0a31a3c0e964';
+    r'bd46919db2659da671603cffb61e167677bed809';
 
 /// See also [AdminContentNotifier].
 @ProviderFor(AdminContentNotifier)

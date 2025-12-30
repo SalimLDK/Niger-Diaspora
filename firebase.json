@@ -36,10 +36,9 @@
     "hosting": [
         {
             "site": "diaspo-niger",
-            "public": "build/web",
+            "public": "public",
             "ignore": [
                 "firebase.json",
-                "**/.*",
                 "**/node_modules/**"
             ],
             "rewrites": [
@@ -50,20 +49,20 @@
             ],
             "headers": [
                 {
-                    "source": "**/*.@(js|css)",
-                    "headers": [
-                        {
-                            "key": "Cache-Control",
-                            "value": "max-age=31536000"
-                        }
-                    ]
-                },
-                {
                     "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
                     "headers": [
                         {
                             "key": "Cache-Control",
-                            "value": "max-age=31536000"
+                            "value": "public, max-age=3600"
+                        }
+                    ]
+                },
+                {
+                    "source": "**/*.@(html)",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "public, max-age=0, must-revalidate"
                         }
                     ]
                 }

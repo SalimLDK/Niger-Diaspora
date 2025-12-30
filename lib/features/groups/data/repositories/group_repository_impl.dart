@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../messages/domain/repositories/message_repository.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/repositories/group_repository.dart';
 import '../datasources/group_remote_datasource.dart';
@@ -16,11 +17,13 @@ class GroupRepositoryImpl implements GroupRepository {
   final GroupRequestDataSource requestDataSource;
   final NetworkInfo networkInfo;
   final CacheService cacheService;
+  final MessageRepository messageRepository;
 
   GroupRepositoryImpl({
     required this.remoteDataSource,
     required this.requestDataSource,
     required this.networkInfo,
+    required this.messageRepository,
     CacheService? cacheService,
   }) : cacheService = cacheService ?? CacheService.instance;
 
@@ -112,6 +115,15 @@ class GroupRepositoryImpl implements GroupRepository {
 
       // Subscribe to group topic
       await NotificationService().subscribeToTopic('group_${created.id}');
+
+      // Automatically create the group conversation
+      await messageRepository.createGroupConversation(
+        creatorId: created.creatorId,
+        participantIds: created.memberIds,
+        groupName: created.name,
+        groupImageUrl: created.imageUrl,
+        groupId: created.id,
+      );
 
       return Right(created.toEntity());
     } on ServerException catch (e) {
