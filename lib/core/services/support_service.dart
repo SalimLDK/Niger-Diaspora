@@ -1,16 +1,44 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../features/admin/domain/entities/app_settings_entity.dart';
+import '../../features/admin/presentation/providers/app_settings_provider.dart';
+
+part 'support_service.g.dart';
+
+/// Provider for SupportService with dynamic email settings
+@riverpod
+SupportService supportService(Ref ref) {
+  final urls = ref.watch(systemUrlsProvider);
+  return SupportService(urls: urls);
+}
 
 class SupportService {
-  static const String supportEmail = 'support@diasponiger.com';
-  static const String bugReportEmail = 'bugs@diasponiger.com';
-  static const String feedbackEmail = 'feedback@diasponiger.com';
+  final SystemUrlsEntity urls;
+
+  // Fallback constants (used when settings not loaded)
+  static const String defaultSupportEmail = 'support@diasponiger.com';
+  static const String defaultPrivacyEmail = 'privacy@diasponiger.com';
+  static const String defaultBugsEmail = 'bugs@diasponiger.com';
+  static const String defaultFeedbackEmail = 'feedback@diasponiger.com';
+  static const String defaultModerationEmail = 'moderation@diasponiger.com';
 
   static const String playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.diasponiger.app';
   static const String appStoreUrl =
       'https://apps.apple.com/app/diasponiger/id123456789';
+
+  SupportService({SystemUrlsEntity? urls})
+      : urls = urls ?? const SystemUrlsEntity();
+
+  // Dynamic email getters
+  String get supportEmail => urls.supportEmail;
+  String get privacyEmail => urls.privacyEmail;
+  String get bugsEmail => urls.bugsEmail;
+  String get feedbackEmail => urls.feedbackEmail;
+  String get moderationEmail => urls.moderationEmail;
 
   /// Open email client with pre-filled subject and body
   Future<bool> sendEmail({
@@ -53,9 +81,39 @@ class SupportService {
     String? stepsToReproduce,
   }) async {
     return sendEmail(
-      to: bugReportEmail,
+      to: bugsEmail,
       subject: 'Bug Report - Diaspo Niger App',
       body: _buildBugReportEmailBody(bugDescription, stepsToReproduce),
+    );
+  }
+
+  /// Send privacy-related email
+  Future<bool> sendPrivacyEmail({String? subject, String? body}) async {
+    return sendEmail(
+      to: privacyEmail,
+      subject: subject ?? 'Privacy Request - Diaspo Niger App',
+      body: body,
+    );
+  }
+
+  /// Send feedback email
+  Future<bool> sendFeedbackEmail({String? feedback}) async {
+    return sendEmail(
+      to: feedbackEmail,
+      subject: 'Feedback - Diaspo Niger App',
+      body: feedback,
+    );
+  }
+
+  /// Send moderation report email
+  Future<bool> sendModerationEmail({
+    required String reportType,
+    String? details,
+  }) async {
+    return sendEmail(
+      to: moderationEmail,
+      subject: 'Moderation Report: $reportType - Diaspo Niger App',
+      body: details,
     );
   }
 

@@ -2743,6 +2743,10 @@ abstract class _SystemIntervalsEntity implements SystemIntervalsEntity {
 mixin _$SystemUrlsEntity {
   String get shareBaseUrl => throw _privateConstructorUsedError;
   String get supportEmail => throw _privateConstructorUsedError;
+  String get privacyEmail => throw _privateConstructorUsedError;
+  String get bugsEmail => throw _privateConstructorUsedError;
+  String get feedbackEmail => throw _privateConstructorUsedError;
+  String get moderationEmail => throw _privateConstructorUsedError;
   String get stripeMerchantId => throw _privateConstructorUsedError;
   String get termsUrl => throw _privateConstructorUsedError;
   String get privacyUrl => throw _privateConstructorUsedError;
@@ -2764,6 +2768,10 @@ abstract class $SystemUrlsEntityCopyWith<$Res> {
   $Res call({
     String shareBaseUrl,
     String supportEmail,
+    String privacyEmail,
+    String bugsEmail,
+    String feedbackEmail,
+    String moderationEmail,
     String stripeMerchantId,
     String termsUrl,
     String privacyUrl,
@@ -2787,6 +2795,10 @@ class _$SystemUrlsEntityCopyWithImpl<$Res, $Val extends SystemUrlsEntity>
   $Res call({
     Object? shareBaseUrl = null,
     Object? supportEmail = null,
+    Object? privacyEmail = null,
+    Object? bugsEmail = null,
+    Object? feedbackEmail = null,
+    Object? moderationEmail = null,
     Object? stripeMerchantId = null,
     Object? termsUrl = null,
     Object? privacyUrl = null,
@@ -2802,6 +2814,26 @@ class _$SystemUrlsEntityCopyWithImpl<$Res, $Val extends SystemUrlsEntity>
                 null == supportEmail
                     ? _value.supportEmail
                     : supportEmail // ignore: cast_nullable_to_non_nullable
+                        as String,
+            privacyEmail:
+                null == privacyEmail
+                    ? _value.privacyEmail
+                    : privacyEmail // ignore: cast_nullable_to_non_nullable
+                        as String,
+            bugsEmail:
+                null == bugsEmail
+                    ? _value.bugsEmail
+                    : bugsEmail // ignore: cast_nullable_to_non_nullable
+                        as String,
+            feedbackEmail:
+                null == feedbackEmail
+                    ? _value.feedbackEmail
+                    : feedbackEmail // ignore: cast_nullable_to_non_nullable
+                        as String,
+            moderationEmail:
+                null == moderationEmail
+                    ? _value.moderationEmail
+                    : moderationEmail // ignore: cast_nullable_to_non_nullable
                         as String,
             stripeMerchantId:
                 null == stripeMerchantId
@@ -2836,6 +2868,10 @@ abstract class _$$SystemUrlsEntityImplCopyWith<$Res>
   $Res call({
     String shareBaseUrl,
     String supportEmail,
+    String privacyEmail,
+    String bugsEmail,
+    String feedbackEmail,
+    String moderationEmail,
     String stripeMerchantId,
     String termsUrl,
     String privacyUrl,
@@ -2858,6 +2894,10 @@ class __$$SystemUrlsEntityImplCopyWithImpl<$Res>
   $Res call({
     Object? shareBaseUrl = null,
     Object? supportEmail = null,
+    Object? privacyEmail = null,
+    Object? bugsEmail = null,
+    Object? feedbackEmail = null,
+    Object? moderationEmail = null,
     Object? stripeMerchantId = null,
     Object? termsUrl = null,
     Object? privacyUrl = null,
@@ -2873,6 +2913,26 @@ class __$$SystemUrlsEntityImplCopyWithImpl<$Res>
             null == supportEmail
                 ? _value.supportEmail
                 : supportEmail // ignore: cast_nullable_to_non_nullable
+                    as String,
+        privacyEmail:
+            null == privacyEmail
+                ? _value.privacyEmail
+                : privacyEmail // ignore: cast_nullable_to_non_nullable
+                    as String,
+        bugsEmail:
+            null == bugsEmail
+                ? _value.bugsEmail
+                : bugsEmail // ignore: cast_nullable_to_non_nullable
+                    as String,
+        feedbackEmail:
+            null == feedbackEmail
+                ? _value.feedbackEmail
+                : feedbackEmail // ignore: cast_nullable_to_non_nullable
+                    as String,
+        moderationEmail:
+            null == moderationEmail
+                ? _value.moderationEmail
+                : moderationEmail // ignore: cast_nullable_to_non_nullable
                     as String,
         stripeMerchantId:
             null == stripeMerchantId
@@ -2898,11 +2958,15 @@ class __$$SystemUrlsEntityImplCopyWithImpl<$Res>
 
 class _$SystemUrlsEntityImpl implements _SystemUrlsEntity {
   const _$SystemUrlsEntityImpl({
-    this.shareBaseUrl = 'https://diaspo-niger.web.app/p/',
+    this.shareBaseUrl = 'https://diasponiger.com/p/',
     this.supportEmail = 'support@diasponiger.com',
+    this.privacyEmail = 'privacy@diasponiger.com',
+    this.bugsEmail = 'bugs@diasponiger.com',
+    this.feedbackEmail = 'feedback@diasponiger.com',
+    this.moderationEmail = 'moderation@diasponiger.com',
     this.stripeMerchantId = 'merchant.com.diasponiger',
-    this.termsUrl = 'https://diaspo-niger.web.app/terms',
-    this.privacyUrl = 'https://diaspo-niger.web.app/privacy',
+    this.termsUrl = 'https://diasponiger.com/terms',
+    this.privacyUrl = 'https://diasponiger.com/privacy',
   });
 
   @override
@@ -2911,6 +2975,18 @@ class _$SystemUrlsEntityImpl implements _SystemUrlsEntity {
   @override
   @JsonKey()
   final String supportEmail;
+  @override
+  @JsonKey()
+  final String privacyEmail;
+  @override
+  @JsonKey()
+  final String bugsEmail;
+  @override
+  @JsonKey()
+  final String feedbackEmail;
+  @override
+  @JsonKey()
+  final String moderationEmail;
   @override
   @JsonKey()
   final String stripeMerchantId;
@@ -2923,7 +2999,7 @@ class _$SystemUrlsEntityImpl implements _SystemUrlsEntity {
 
   @override
   String toString() {
-    return 'SystemUrlsEntity(shareBaseUrl: $shareBaseUrl, supportEmail: $supportEmail, stripeMerchantId: $stripeMerchantId, termsUrl: $termsUrl, privacyUrl: $privacyUrl)';
+    return 'SystemUrlsEntity(shareBaseUrl: $shareBaseUrl, supportEmail: $supportEmail, privacyEmail: $privacyEmail, bugsEmail: $bugsEmail, feedbackEmail: $feedbackEmail, moderationEmail: $moderationEmail, stripeMerchantId: $stripeMerchantId, termsUrl: $termsUrl, privacyUrl: $privacyUrl)';
   }
 
   @override
@@ -2935,6 +3011,14 @@ class _$SystemUrlsEntityImpl implements _SystemUrlsEntity {
                 other.shareBaseUrl == shareBaseUrl) &&
             (identical(other.supportEmail, supportEmail) ||
                 other.supportEmail == supportEmail) &&
+            (identical(other.privacyEmail, privacyEmail) ||
+                other.privacyEmail == privacyEmail) &&
+            (identical(other.bugsEmail, bugsEmail) ||
+                other.bugsEmail == bugsEmail) &&
+            (identical(other.feedbackEmail, feedbackEmail) ||
+                other.feedbackEmail == feedbackEmail) &&
+            (identical(other.moderationEmail, moderationEmail) ||
+                other.moderationEmail == moderationEmail) &&
             (identical(other.stripeMerchantId, stripeMerchantId) ||
                 other.stripeMerchantId == stripeMerchantId) &&
             (identical(other.termsUrl, termsUrl) ||
@@ -2948,6 +3032,10 @@ class _$SystemUrlsEntityImpl implements _SystemUrlsEntity {
     runtimeType,
     shareBaseUrl,
     supportEmail,
+    privacyEmail,
+    bugsEmail,
+    feedbackEmail,
+    moderationEmail,
     stripeMerchantId,
     termsUrl,
     privacyUrl,
@@ -2969,6 +3057,10 @@ abstract class _SystemUrlsEntity implements SystemUrlsEntity {
   const factory _SystemUrlsEntity({
     final String shareBaseUrl,
     final String supportEmail,
+    final String privacyEmail,
+    final String bugsEmail,
+    final String feedbackEmail,
+    final String moderationEmail,
     final String stripeMerchantId,
     final String termsUrl,
     final String privacyUrl,
@@ -2978,6 +3070,14 @@ abstract class _SystemUrlsEntity implements SystemUrlsEntity {
   String get shareBaseUrl;
   @override
   String get supportEmail;
+  @override
+  String get privacyEmail;
+  @override
+  String get bugsEmail;
+  @override
+  String get feedbackEmail;
+  @override
+  String get moderationEmail;
   @override
   String get stripeMerchantId;
   @override

@@ -313,7 +313,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                             _SettingsTile(
                               icon: Icons.info_outline,
                               title: l10n.about,
-                              subtitle: '${l10n.version} 1.0.0',
+                              subtitle: '${l10n.version} 1.1.0+7',
                               onTap: () => _showAbout(l10n),
                             ),
                           ],
@@ -1273,7 +1273,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '${l10n.version} 1.0.0',
+                    '${l10n.version} 1.1.0+7',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,

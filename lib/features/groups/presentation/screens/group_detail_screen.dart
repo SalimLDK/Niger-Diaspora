@@ -78,62 +78,95 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final isCreator = group.creatorId == currentUser?.id;
     final isAdmin = group.adminIds.contains(currentUser?.id);
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar avec image
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.surfaceColor.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Check if we can pop
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          // Deep linked - navigate to home instead
+          if (context.mounted) {
+            context.go('/home');
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: CustomScrollView(
+          slivers: [
+            // App Bar avec image
+            SliverAppBar(
+              expandedHeight: 200,
+              pinned: true,
+              leading: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: context.textPrimaryColor,
+                  ),
                 ),
-                child: Icon(Icons.arrow_back, color: context.textPrimaryColor),
+                onPressed: () => context.pop(),
               ),
-              onPressed: () => context.pop(),
-            ),
-            actions: [
-              if (isAdmin) ...[
-                Consumer(
-                  builder: (context, ref, child) {
-                    final requestsAsync = ref.watch(
-                      groupPendingRequestsProvider(group.id),
-                    );
-                    final count = requestsAsync.valueOrNull?.length ?? 0;
+              actions: [
+                if (isAdmin) ...[
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final requestsAsync = ref.watch(
+                        groupPendingRequestsProvider(group.id),
+                      );
+                      final count = requestsAsync.valueOrNull?.length ?? 0;
 
-                    if (count == 0 && !isCreator) {
-                      return const SizedBox.shrink();
-                    }
+                      if (count == 0 && !isCreator) {
+                        return const SizedBox.shrink();
+                      }
 
-                    return IconButton(
-                      icon: Badge(
-                        label: Text('$count'),
-                        isLabelVisible: count > 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: context.surfaceColor.withValues(alpha: 0.9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.notifications_active,
-                            color: context.textPrimaryColor,
+                      return IconButton(
+                        icon: Badge(
+                          label: Text('$count'),
+                          isLabelVisible: count > 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: context.surfaceColor.withValues(
+                                alpha: 0.9,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.notifications_active,
+                              color: context.textPrimaryColor,
+                            ),
                           ),
                         ),
+                        onPressed: () {
+                          context.push('/groups/${group.id}/requests');
+                        },
+                      );
+                    },
+                  ),
+                ],
+                if (isCreator || isAdmin)
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
                       ),
-                      onPressed: () {
-                        context.push('/groups/${group.id}/requests');
-                      },
-                    );
-                  },
-                ),
-              ],
-              if (isCreator || isAdmin)
+                      child: Icon(Icons.edit, color: context.textPrimaryColor),
+                    ),
+                    onPressed: () {
+                      context.push('/groups/${group.id}/edit', extra: group);
+                    },
+                  ),
                 IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
@@ -141,348 +174,377 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       color: context.surfaceColor.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.edit, color: context.textPrimaryColor),
+                    child: Icon(Icons.share, color: context.textPrimaryColor),
                   ),
-                  onPressed: () {
-                    context.push('/groups/${group.id}/edit', extra: group);
-                  },
+                  onPressed: () => _shareGroup(group),
                 ),
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
+                const SizedBox(width: 8),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
                   decoration: BoxDecoration(
-                    color: context.surfaceColor.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
+                    gradient: context.adaptivePrimaryGradient,
                   ),
-                  child: Icon(Icons.share, color: context.textPrimaryColor),
-                ),
-                onPressed: () => _shareGroup(group),
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: context.adaptivePrimaryGradient,
-                ),
-                child:
-                    group.imageUrl != null
-                        ? Image.network(
-                          group.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (_, __, ___) => const Center(
-                                child: Icon(
-                                  Icons.groups,
-                                  size: 80,
-                                  color: Colors.white,
+                  child:
+                      group.imageUrl != null
+                          ? Image.network(
+                            group.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => const Center(
+                                  child: Icon(
+                                    Icons.groups,
+                                    size: 80,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
-                        )
-                        : const Center(
-                          child: Icon(
-                            Icons.groups,
-                            size: 80,
-                            color: Colors.white,
+                          )
+                          : const Center(
+                            child: Icon(
+                              Icons.groups,
+                              size: 80,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
+                ),
               ),
             ),
-          ),
 
-          // Contenu
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nom et catégorie
-                  Row(
+            // Contenu
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nom et catégorie
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            group.name,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.adaptivePrimaryColor.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            group.category.label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Stats
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow:
+                            context.isDarkMode
+                                ? null
+                                : [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _StatItem(
+                            icon: Icons.people,
+                            value: '${group.memberIds.length}',
+                            label: l10n.membersLabel,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: context.borderColor,
+                          ),
+                          _StatItem(
+                            icon: Icons.admin_panel_settings,
+                            value: '${group.adminIds.length}',
+                            label: l10n.admins,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: context.borderColor,
+                          ),
+                          _StatItem(
+                            icon: group.isPrivate ? Icons.lock : Icons.public,
+                            value: group.isPrivate ? l10n.private : l10n.public,
+                            label: l10n.access,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Description
+                    Text(
+                      l10n.aboutGroup,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        group.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.textSecondaryColor,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+
+                    if (group.location != null) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 18,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            group.location!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (group.tags.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children:
+                            group.tags
+                                .map(
+                                  (tag) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: context.surfaceVariantColor,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '#$tag',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: context.textSecondaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Médias partagés (avant les membres)
+                    if (isMember) _buildMediaSection(group),
+
+                    if (isMember) const SizedBox(height: 24),
+
+                    // Membres du groupe
+                    _buildMembersSection(context, group, l10n),
+
+                    const SizedBox(height: 24),
+
+                    // Créateur
+                    if (group.creatorName != null)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 16,
+                            color: context.textTertiaryColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.createdBy(group.creatorName!),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.textTertiaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child:
+              _isLoading
+                  ? Center(
+                    child: CircularProgressIndicator(
+                      color: context.adaptivePrimaryColor,
+                    ),
+                  )
+                  : isMember
+                  ? Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          group.name,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: context.textPrimaryColor,
+                        child: OutlinedButton.icon(
+                          onPressed:
+                              isCreator ? null : () => _leaveGroup(group.id),
+                          icon: Icon(
+                            isCreator ? Icons.star : Icons.exit_to_app,
+                            color:
+                                isCreator
+                                    ? context.adaptivePrimaryColor
+                                    : Colors.red,
+                          ),
+                          label: Text(
+                            isCreator ? l10n.creator : l10n.leaveGroup,
+                            style: TextStyle(
+                              color:
+                                  isCreator
+                                      ? context.adaptivePrimaryColor
+                                      : Colors.red,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color:
+                                  isCreator
+                                      ? context.adaptivePrimaryColor
+                                      : Colors.red,
+                            ),
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.adaptivePrimaryColor.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          group.category.label,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: context.adaptivePrimaryColor,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _startGroupConversation(group),
+                          icon: const Icon(Icons.chat),
+                          label: Text(l10n.discussion),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: context.adaptivePrimaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
                       ),
                     ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Stats
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow:
-                          context.isDarkMode
-                              ? null
-                              : [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _StatItem(
-                          icon: Icons.people,
-                          value: '${group.memberIds.length}',
-                          label: l10n.membersLabel,
-                        ),
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: context.borderColor,
-                        ),
-                        _StatItem(
-                          icon: Icons.admin_panel_settings,
-                          value: '${group.adminIds.length}',
-                          label: l10n.admins,
-                        ),
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: context.borderColor,
-                        ),
-                        _StatItem(
-                          icon: group.isPrivate ? Icons.lock : Icons.public,
-                          value: group.isPrivate ? l10n.private : l10n.public,
-                          label: l10n.access,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Description
-                  Text(
-                    l10n.aboutGroup,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      group.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: context.textSecondaryColor,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-
-                  if (group.location != null) ...[
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 18,
-                          color: context.adaptivePrimaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          group.location!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.textSecondaryColor,
+                  )
+                  : Consumer(
+                    builder: (context, ref, child) {
+                      if (!group.isPrivate) {
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _joinGroup(group.id),
+                            icon: const Icon(Icons.group_add),
+                            label: Text(l10n.joinTheGroup),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.adaptivePrimaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        );
+                      }
 
-                  if (group.tags.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children:
-                          group.tags
-                              .map(
-                                (tag) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: context.surfaceVariantColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    '#$tag',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: context.textSecondaryColor,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  ],
+                      // For private groups, check pending requests
+                      final currentUser =
+                          ref.watch(currentUserProvider).valueOrNull;
+                      if (currentUser == null) return const SizedBox.shrink();
 
-                  const SizedBox(height: 24),
+                      final myRequestsAsync = ref.watch(
+                        myGroupRequestsProvider(currentUser.id),
+                      );
 
-                  // Médias partagés (avant les membres)
-                  if (isMember) _buildMediaSection(group),
+                      final myRequests = myRequestsAsync.valueOrNull ?? [];
+                      final hasPendingRequest = myRequests.any(
+                        (r) =>
+                            r.groupId == group.id &&
+                            r.status == GroupRequestStatus.pending,
+                      );
 
-                  if (isMember) const SizedBox(height: 24),
-
-                  // Membres du groupe
-                  _buildMembersSection(context, group, l10n),
-
-                  const SizedBox(height: 24),
-
-                  // Créateur
-                  if (group.creatorName != null)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 16,
-                          color: context.textTertiaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.createdBy(group.creatorName!),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: context.textTertiaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-        ),
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child:
-            _isLoading
-                ? Center(
-                  child: CircularProgressIndicator(
-                    color: context.adaptivePrimaryColor,
-                  ),
-                )
-                : isMember
-                ? Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed:
-                            isCreator ? null : () => _leaveGroup(group.id),
-                        icon: Icon(
-                          isCreator ? Icons.star : Icons.exit_to_app,
-                          color:
-                              isCreator
-                                  ? context.adaptivePrimaryColor
-                                  : Colors.red,
-                        ),
-                        label: Text(
-                          isCreator ? l10n.creator : l10n.leaveGroup,
-                          style: TextStyle(
-                            color:
-                                isCreator
-                                    ? context.adaptivePrimaryColor
-                                    : Colors.red,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color:
-                                isCreator
-                                    ? context.adaptivePrimaryColor
-                                    : Colors.red,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _startGroupConversation(group),
-                        icon: const Icon(Icons.chat),
-                        label: Text(l10n.discussion),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.adaptivePrimaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-                : Consumer(
-                  builder: (context, ref, child) {
-                    if (!group.isPrivate) {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () => _joinGroup(group.id),
-                          icon: const Icon(Icons.group_add),
-                          label: Text(l10n.joinTheGroup),
+                          onPressed:
+                              hasPendingRequest
+                                  ? null // Disable if pending
+                                  : () => _requestToJoin(group),
+                          icon: Icon(
+                            hasPendingRequest
+                                ? Icons.hourglass_empty
+                                : Icons.person_add,
+                          ),
+                          label: Text(
+                            hasPendingRequest
+                                ? 'Demande en attente'
+                                : 'Demander à rejoindre',
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.adaptivePrimaryColor,
                             foregroundColor: Colors.white,
@@ -490,52 +552,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           ),
                         ),
                       );
-                    }
-
-                    // For private groups, check pending requests
-                    final currentUser =
-                        ref.watch(currentUserProvider).valueOrNull;
-                    if (currentUser == null) return const SizedBox.shrink();
-
-                    final myRequestsAsync = ref.watch(
-                      myGroupRequestsProvider(currentUser.id),
-                    );
-
-                    final myRequests = myRequestsAsync.valueOrNull ?? [];
-                    final hasPendingRequest = myRequests.any(
-                      (r) =>
-                          r.groupId == group.id &&
-                          r.status == GroupRequestStatus.pending,
-                    );
-
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed:
-                            hasPendingRequest
-                                ? null // Disable if pending
-                                : () => _requestToJoin(group),
-                        icon: Icon(
-                          hasPendingRequest
-                              ? Icons.hourglass_empty
-                              : Icons.person_add,
-                        ),
-                        label: Text(
-                          hasPendingRequest
-                              ? 'Demande en attente'
-                              : 'Demander à rejoindre',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.adaptivePrimaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-      ),
-    );
+                    },
+                  ),
+        ), // Close bottomNavigationBar (Container)
+      ), // Close PopScope child (Scaffold)
+    ); // Close PopScope
   }
 
   Future<void> _requestToJoin(GroupEntity group) async {

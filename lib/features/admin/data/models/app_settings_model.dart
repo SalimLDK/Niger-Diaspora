@@ -27,15 +27,15 @@ class AppSettingsModel {
     FeatureFlagsModel? featureFlags,
     this.lastUpdated,
     this.updatedBy,
-  })  : fees = fees ?? FeeSettingsModel(),
-        boostPricing = boostPricing ?? BoostPricingModel(),
-        taxRates = taxRates ?? TaxRatesModel(),
-        exchangeRates = exchangeRates ?? ExchangeRatesModel(),
-        mediaLimits = mediaLimits ?? MediaLimitsModel(),
-        validation = validation ?? ValidationRulesModel(),
-        intervals = intervals ?? SystemIntervalsModel(),
-        urls = urls ?? SystemUrlsModel(),
-        featureFlags = featureFlags ?? FeatureFlagsModel();
+  }) : fees = fees ?? FeeSettingsModel(),
+       boostPricing = boostPricing ?? BoostPricingModel(),
+       taxRates = taxRates ?? TaxRatesModel(),
+       exchangeRates = exchangeRates ?? ExchangeRatesModel(),
+       mediaLimits = mediaLimits ?? MediaLimitsModel(),
+       validation = validation ?? ValidationRulesModel(),
+       intervals = intervals ?? SystemIntervalsModel(),
+       urls = urls ?? SystemUrlsModel(),
+       featureFlags = featureFlags ?? FeatureFlagsModel();
 
   factory AppSettingsModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
@@ -44,75 +44,92 @@ class AppSettingsModel {
 
   factory AppSettingsModel.fromJson(Map<String, dynamic> json) {
     return AppSettingsModel(
-      fees: json['fees'] != null
-          ? FeeSettingsModel.fromJson(json['fees'] as Map<String, dynamic>)
-          : null,
-      boostPricing: json['boostPricing'] != null
-          ? BoostPricingModel.fromJson(
-              json['boostPricing'] as Map<String, dynamic>)
-          : null,
-      taxRates: json['taxRates'] != null
-          ? TaxRatesModel.fromJson(json['taxRates'] as Map<String, dynamic>)
-          : null,
-      exchangeRates: json['exchangeRates'] != null
-          ? ExchangeRatesModel.fromJson(
-              json['exchangeRates'] as Map<String, dynamic>)
-          : null,
-      mediaLimits: json['mediaLimits'] != null
-          ? MediaLimitsModel.fromJson(
-              json['mediaLimits'] as Map<String, dynamic>)
-          : null,
-      validation: json['validation'] != null
-          ? ValidationRulesModel.fromJson(
-              json['validation'] as Map<String, dynamic>)
-          : null,
-      intervals: json['intervals'] != null
-          ? SystemIntervalsModel.fromJson(
-              json['intervals'] as Map<String, dynamic>)
-          : null,
-      urls: json['urls'] != null
-          ? SystemUrlsModel.fromJson(json['urls'] as Map<String, dynamic>)
-          : null,
-      featureFlags: json['featureFlags'] != null
-          ? FeatureFlagsModel.fromJson(
-              json['featureFlags'] as Map<String, dynamic>)
-          : null,
-      lastUpdated: json['lastUpdated'] is Timestamp
-          ? (json['lastUpdated'] as Timestamp).toDate()
-          : null,
+      fees:
+          json['fees'] != null
+              ? FeeSettingsModel.fromJson(json['fees'] as Map<String, dynamic>)
+              : null,
+      boostPricing:
+          json['boostPricing'] != null
+              ? BoostPricingModel.fromJson(
+                json['boostPricing'] as Map<String, dynamic>,
+              )
+              : null,
+      taxRates:
+          json['taxRates'] != null
+              ? TaxRatesModel.fromJson(json['taxRates'] as Map<String, dynamic>)
+              : null,
+      exchangeRates:
+          json['exchangeRates'] != null
+              ? ExchangeRatesModel.fromJson(
+                json['exchangeRates'] as Map<String, dynamic>,
+              )
+              : null,
+      mediaLimits:
+          json['mediaLimits'] != null
+              ? MediaLimitsModel.fromJson(
+                json['mediaLimits'] as Map<String, dynamic>,
+              )
+              : null,
+      validation:
+          json['validation'] != null
+              ? ValidationRulesModel.fromJson(
+                json['validation'] as Map<String, dynamic>,
+              )
+              : null,
+      intervals:
+          json['intervals'] != null
+              ? SystemIntervalsModel.fromJson(
+                json['intervals'] as Map<String, dynamic>,
+              )
+              : null,
+      urls:
+          json['urls'] != null
+              ? SystemUrlsModel.fromJson(json['urls'] as Map<String, dynamic>)
+              : null,
+      featureFlags:
+          json['featureFlags'] != null
+              ? FeatureFlagsModel.fromJson(
+                json['featureFlags'] as Map<String, dynamic>,
+              )
+              : null,
+      lastUpdated:
+          json['lastUpdated'] is Timestamp
+              ? (json['lastUpdated'] as Timestamp).toDate()
+              : null,
       updatedBy: json['updatedBy'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'fees': fees.toJson(),
-        'boostPricing': boostPricing.toJson(),
-        'taxRates': taxRates.toJson(),
-        'exchangeRates': exchangeRates.toJson(),
-        'mediaLimits': mediaLimits.toJson(),
-        'validation': validation.toJson(),
-        'intervals': intervals.toJson(),
-        'urls': urls.toJson(),
-        'featureFlags': featureFlags.toJson(),
-        'lastUpdated': lastUpdated != null
+    'fees': fees.toJson(),
+    'boostPricing': boostPricing.toJson(),
+    'taxRates': taxRates.toJson(),
+    'exchangeRates': exchangeRates.toJson(),
+    'mediaLimits': mediaLimits.toJson(),
+    'validation': validation.toJson(),
+    'intervals': intervals.toJson(),
+    'urls': urls.toJson(),
+    'featureFlags': featureFlags.toJson(),
+    'lastUpdated':
+        lastUpdated != null
             ? Timestamp.fromDate(lastUpdated!)
             : FieldValue.serverTimestamp(),
-        'updatedBy': updatedBy,
-      };
+    'updatedBy': updatedBy,
+  };
 
   AppSettingsEntity toEntity() => AppSettingsEntity(
-        fees: fees.toEntity(),
-        boostPricing: boostPricing.toEntity(),
-        taxRates: taxRates.toEntity(),
-        exchangeRates: exchangeRates.toEntity(),
-        mediaLimits: mediaLimits.toEntity(),
-        validation: validation.toEntity(),
-        intervals: intervals.toEntity(),
-        urls: urls.toEntity(),
-        featureFlags: featureFlags.toEntity(),
-        lastUpdated: lastUpdated,
-        updatedBy: updatedBy,
-      );
+    fees: fees.toEntity(),
+    boostPricing: boostPricing.toEntity(),
+    taxRates: taxRates.toEntity(),
+    exchangeRates: exchangeRates.toEntity(),
+    mediaLimits: mediaLimits.toEntity(),
+    validation: validation.toEntity(),
+    intervals: intervals.toEntity(),
+    urls: urls.toEntity(),
+    featureFlags: featureFlags.toEntity(),
+    lastUpdated: lastUpdated,
+    updatedBy: updatedBy,
+  );
 
   static AppSettingsModel fromEntity(AppSettingsEntity entity) =>
       AppSettingsModel(
@@ -159,29 +176,28 @@ class FeeSettingsModel {
         transferFeeMax: (json['transferFeeMax'] as num?)?.toDouble() ?? 10000,
         marketplaceFeePercent:
             (json['marketplaceFeePercent'] as num?)?.toDouble() ?? 0.05,
-        marketplaceFeeMin:
-            (json['marketplaceFeeMin'] as num?)?.toDouble() ?? 0,
+        marketplaceFeeMin: (json['marketplaceFeeMin'] as num?)?.toDouble() ?? 0,
         marketplaceFeeMax:
             (json['marketplaceFeeMax'] as num?)?.toDouble() ?? 50000,
       );
 
   Map<String, dynamic> toJson() => {
-        'transferFeePercent': transferFeePercent,
-        'transferFeeMin': transferFeeMin,
-        'transferFeeMax': transferFeeMax,
-        'marketplaceFeePercent': marketplaceFeePercent,
-        'marketplaceFeeMin': marketplaceFeeMin,
-        'marketplaceFeeMax': marketplaceFeeMax,
-      };
+    'transferFeePercent': transferFeePercent,
+    'transferFeeMin': transferFeeMin,
+    'transferFeeMax': transferFeeMax,
+    'marketplaceFeePercent': marketplaceFeePercent,
+    'marketplaceFeeMin': marketplaceFeeMin,
+    'marketplaceFeeMax': marketplaceFeeMax,
+  };
 
   FeeSettingsEntity toEntity() => FeeSettingsEntity(
-        transferFeePercent: transferFeePercent,
-        transferFeeMin: transferFeeMin,
-        transferFeeMax: transferFeeMax,
-        marketplaceFeePercent: marketplaceFeePercent,
-        marketplaceFeeMin: marketplaceFeeMin,
-        marketplaceFeeMax: marketplaceFeeMax,
-      );
+    transferFeePercent: transferFeePercent,
+    transferFeeMin: transferFeeMin,
+    transferFeeMax: transferFeeMax,
+    marketplaceFeePercent: marketplaceFeePercent,
+    marketplaceFeeMin: marketplaceFeeMin,
+    marketplaceFeeMax: marketplaceFeeMax,
+  );
 
   static FeeSettingsModel fromEntity(FeeSettingsEntity entity) =>
       FeeSettingsModel(
@@ -220,31 +236,28 @@ class BoostPricingModel {
         standardBase: (json['standardBase'] as num?)?.toDouble() ?? 5000,
         featuredBase: (json['featuredBase'] as num?)?.toDouble() ?? 10000,
         premiumBase: (json['premiumBase'] as num?)?.toDouble() ?? 25000,
-        multiplier7Days:
-            (json['multiplier7Days'] as num?)?.toDouble() ?? 1.0,
-        multiplier30Days:
-            (json['multiplier30Days'] as num?)?.toDouble() ?? 3.0,
-        multiplier90Days:
-            (json['multiplier90Days'] as num?)?.toDouble() ?? 7.0,
+        multiplier7Days: (json['multiplier7Days'] as num?)?.toDouble() ?? 1.0,
+        multiplier30Days: (json['multiplier30Days'] as num?)?.toDouble() ?? 3.0,
+        multiplier90Days: (json['multiplier90Days'] as num?)?.toDouble() ?? 7.0,
       );
 
   Map<String, dynamic> toJson() => {
-        'standardBase': standardBase,
-        'featuredBase': featuredBase,
-        'premiumBase': premiumBase,
-        'multiplier7Days': multiplier7Days,
-        'multiplier30Days': multiplier30Days,
-        'multiplier90Days': multiplier90Days,
-      };
+    'standardBase': standardBase,
+    'featuredBase': featuredBase,
+    'premiumBase': premiumBase,
+    'multiplier7Days': multiplier7Days,
+    'multiplier30Days': multiplier30Days,
+    'multiplier90Days': multiplier90Days,
+  };
 
   BoostPricingEntity toEntity() => BoostPricingEntity(
-        standardBase: standardBase,
-        featuredBase: featuredBase,
-        premiumBase: premiumBase,
-        multiplier7Days: multiplier7Days,
-        multiplier30Days: multiplier30Days,
-        multiplier90Days: multiplier90Days,
-      );
+    standardBase: standardBase,
+    featuredBase: featuredBase,
+    premiumBase: premiumBase,
+    multiplier7Days: multiplier7Days,
+    multiplier30Days: multiplier30Days,
+    multiplier90Days: multiplier90Days,
+  );
 
   static BoostPricingModel fromEntity(BoostPricingEntity entity) =>
       BoostPricingModel(
@@ -281,44 +294,44 @@ class TaxRatesModel {
   });
 
   factory TaxRatesModel.fromJson(Map<String, dynamic> json) => TaxRatesModel(
-        alimentation: (json['alimentation'] as num?)?.toDouble() ?? 0.0,
-        artisanat: (json['artisanat'] as num?)?.toDouble() ?? 0.10,
-        standard: (json['standard'] as num?)?.toDouble() ?? 0.19,
-        electronique: (json['electronique'] as num?)?.toDouble() ?? 0.19,
-        vetements: (json['vetements'] as num?)?.toDouble() ?? 0.19,
-        services: (json['services'] as num?)?.toDouble() ?? 0.0,
-        immobilier: (json['immobilier'] as num?)?.toDouble() ?? 0.0,
-      );
+    alimentation: (json['alimentation'] as num?)?.toDouble() ?? 0.0,
+    artisanat: (json['artisanat'] as num?)?.toDouble() ?? 0.10,
+    standard: (json['standard'] as num?)?.toDouble() ?? 0.19,
+    electronique: (json['electronique'] as num?)?.toDouble() ?? 0.19,
+    vetements: (json['vetements'] as num?)?.toDouble() ?? 0.19,
+    services: (json['services'] as num?)?.toDouble() ?? 0.0,
+    immobilier: (json['immobilier'] as num?)?.toDouble() ?? 0.0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'alimentation': alimentation,
-        'artisanat': artisanat,
-        'standard': standard,
-        'electronique': electronique,
-        'vetements': vetements,
-        'services': services,
-        'immobilier': immobilier,
-      };
+    'alimentation': alimentation,
+    'artisanat': artisanat,
+    'standard': standard,
+    'electronique': electronique,
+    'vetements': vetements,
+    'services': services,
+    'immobilier': immobilier,
+  };
 
   TaxRatesEntity toEntity() => TaxRatesEntity(
-        alimentation: alimentation,
-        artisanat: artisanat,
-        standard: standard,
-        electronique: electronique,
-        vetements: vetements,
-        services: services,
-        immobilier: immobilier,
-      );
+    alimentation: alimentation,
+    artisanat: artisanat,
+    standard: standard,
+    electronique: electronique,
+    vetements: vetements,
+    services: services,
+    immobilier: immobilier,
+  );
 
   static TaxRatesModel fromEntity(TaxRatesEntity entity) => TaxRatesModel(
-        alimentation: entity.alimentation,
-        artisanat: entity.artisanat,
-        standard: entity.standard,
-        electronique: entity.electronique,
-        vetements: entity.vetements,
-        services: entity.services,
-        immobilier: entity.immobilier,
-      );
+    alimentation: entity.alimentation,
+    artisanat: entity.artisanat,
+    standard: entity.standard,
+    electronique: entity.electronique,
+    vetements: entity.vetements,
+    services: entity.services,
+    immobilier: entity.immobilier,
+  );
 }
 
 // ============================================================================
@@ -353,36 +366,36 @@ class ExchangeRatesModel {
         gbpToXof: (json['gbpToXof'] as num?)?.toDouble() ?? 770.0,
         cadToXof: (json['cadToXof'] as num?)?.toDouble() ?? 455.0,
         chfToXof: (json['chfToXof'] as num?)?.toDouble() ?? 690.0,
-        lastUpdated: json['lastUpdated'] is Timestamp
-            ? (json['lastUpdated'] as Timestamp).toDate()
-            : null,
+        lastUpdated:
+            json['lastUpdated'] is Timestamp
+                ? (json['lastUpdated'] as Timestamp).toDate()
+                : null,
         exchangeRateApiKey: json['exchangeRateApiKey'] as String?,
         refreshIntervalMinutes: json['refreshIntervalMinutes'] as int? ?? 60,
       );
 
   Map<String, dynamic> toJson() => {
-        'eurToXof': eurToXof,
-        'usdToXof': usdToXof,
-        'gbpToXof': gbpToXof,
-        'cadToXof': cadToXof,
-        'chfToXof': chfToXof,
-        'lastUpdated': lastUpdated != null
-            ? Timestamp.fromDate(lastUpdated!)
-            : null,
-        'exchangeRateApiKey': exchangeRateApiKey,
-        'refreshIntervalMinutes': refreshIntervalMinutes,
-      };
+    'eurToXof': eurToXof,
+    'usdToXof': usdToXof,
+    'gbpToXof': gbpToXof,
+    'cadToXof': cadToXof,
+    'chfToXof': chfToXof,
+    'lastUpdated':
+        lastUpdated != null ? Timestamp.fromDate(lastUpdated!) : null,
+    'exchangeRateApiKey': exchangeRateApiKey,
+    'refreshIntervalMinutes': refreshIntervalMinutes,
+  };
 
   ExchangeRatesEntity toEntity() => ExchangeRatesEntity(
-        eurToXof: eurToXof,
-        usdToXof: usdToXof,
-        gbpToXof: gbpToXof,
-        cadToXof: cadToXof,
-        chfToXof: chfToXof,
-        lastUpdated: lastUpdated,
-        exchangeRateApiKey: exchangeRateApiKey,
-        refreshIntervalMinutes: refreshIntervalMinutes,
-      );
+    eurToXof: eurToXof,
+    usdToXof: usdToXof,
+    gbpToXof: gbpToXof,
+    cadToXof: cadToXof,
+    chfToXof: chfToXof,
+    lastUpdated: lastUpdated,
+    exchangeRateApiKey: exchangeRateApiKey,
+    refreshIntervalMinutes: refreshIntervalMinutes,
+  );
 
   static ExchangeRatesModel fromEntity(ExchangeRatesEntity entity) =>
       ExchangeRatesModel(
@@ -441,37 +454,36 @@ class MediaLimitsModel {
         maxImageSizeMb: json['maxImageSizeMb'] as int? ?? 10,
         maxVideoSizeMb: json['maxVideoSizeMb'] as int? ?? 50,
         maxDocumentSizeMb: json['maxDocumentSizeMb'] as int? ?? 25,
-        maxAudioDurationSeconds:
-            json['maxAudioDurationSeconds'] as int? ?? 300,
+        maxAudioDurationSeconds: json['maxAudioDurationSeconds'] as int? ?? 300,
       );
 
   Map<String, dynamic> toJson() => {
-        'imageMaxWidth': imageMaxWidth,
-        'imageMaxHeight': imageMaxHeight,
-        'imageQuality': imageQuality,
-        'maxImagesPerUpload': maxImagesPerUpload,
-        'minWidthForCompression': minWidthForCompression,
-        'messageMaxChars': messageMaxChars,
-        'messageCharCountThreshold': messageCharCountThreshold,
-        'maxImageSizeMb': maxImageSizeMb,
-        'maxVideoSizeMb': maxVideoSizeMb,
-        'maxDocumentSizeMb': maxDocumentSizeMb,
-        'maxAudioDurationSeconds': maxAudioDurationSeconds,
-      };
+    'imageMaxWidth': imageMaxWidth,
+    'imageMaxHeight': imageMaxHeight,
+    'imageQuality': imageQuality,
+    'maxImagesPerUpload': maxImagesPerUpload,
+    'minWidthForCompression': minWidthForCompression,
+    'messageMaxChars': messageMaxChars,
+    'messageCharCountThreshold': messageCharCountThreshold,
+    'maxImageSizeMb': maxImageSizeMb,
+    'maxVideoSizeMb': maxVideoSizeMb,
+    'maxDocumentSizeMb': maxDocumentSizeMb,
+    'maxAudioDurationSeconds': maxAudioDurationSeconds,
+  };
 
   MediaLimitsEntity toEntity() => MediaLimitsEntity(
-        imageMaxWidth: imageMaxWidth,
-        imageMaxHeight: imageMaxHeight,
-        imageQuality: imageQuality,
-        maxImagesPerUpload: maxImagesPerUpload,
-        minWidthForCompression: minWidthForCompression,
-        messageMaxChars: messageMaxChars,
-        messageCharCountThreshold: messageCharCountThreshold,
-        maxImageSizeMb: maxImageSizeMb,
-        maxVideoSizeMb: maxVideoSizeMb,
-        maxDocumentSizeMb: maxDocumentSizeMb,
-        maxAudioDurationSeconds: maxAudioDurationSeconds,
-      );
+    imageMaxWidth: imageMaxWidth,
+    imageMaxHeight: imageMaxHeight,
+    imageQuality: imageQuality,
+    maxImagesPerUpload: maxImagesPerUpload,
+    minWidthForCompression: minWidthForCompression,
+    messageMaxChars: messageMaxChars,
+    messageCharCountThreshold: messageCharCountThreshold,
+    maxImageSizeMb: maxImageSizeMb,
+    maxVideoSizeMb: maxVideoSizeMb,
+    maxDocumentSizeMb: maxDocumentSizeMb,
+    maxAudioDurationSeconds: maxAudioDurationSeconds,
+  );
 
   static MediaLimitsModel fromEntity(MediaLimitsEntity entity) =>
       MediaLimitsModel(
@@ -517,27 +529,26 @@ class ValidationRulesModel {
         shareCodeLength: json['shareCodeLength'] as int? ?? 8,
         minSearchQueryLength: json['minSearchQueryLength'] as int? ?? 3,
         maxSearchQueryLength: json['maxSearchQueryLength'] as int? ?? 100,
-        messageDeleteWindowHours:
-            json['messageDeleteWindowHours'] as int? ?? 1,
+        messageDeleteWindowHours: json['messageDeleteWindowHours'] as int? ?? 1,
       );
 
   Map<String, dynamic> toJson() => {
-        'passwordMinLength': passwordMinLength,
-        'passwordMaxLength': passwordMaxLength,
-        'shareCodeLength': shareCodeLength,
-        'minSearchQueryLength': minSearchQueryLength,
-        'maxSearchQueryLength': maxSearchQueryLength,
-        'messageDeleteWindowHours': messageDeleteWindowHours,
-      };
+    'passwordMinLength': passwordMinLength,
+    'passwordMaxLength': passwordMaxLength,
+    'shareCodeLength': shareCodeLength,
+    'minSearchQueryLength': minSearchQueryLength,
+    'maxSearchQueryLength': maxSearchQueryLength,
+    'messageDeleteWindowHours': messageDeleteWindowHours,
+  };
 
   ValidationRulesEntity toEntity() => ValidationRulesEntity(
-        passwordMinLength: passwordMinLength,
-        passwordMaxLength: passwordMaxLength,
-        shareCodeLength: shareCodeLength,
-        minSearchQueryLength: minSearchQueryLength,
-        maxSearchQueryLength: maxSearchQueryLength,
-        messageDeleteWindowHours: messageDeleteWindowHours,
-      );
+    passwordMinLength: passwordMinLength,
+    passwordMaxLength: passwordMaxLength,
+    shareCodeLength: shareCodeLength,
+    minSearchQueryLength: minSearchQueryLength,
+    maxSearchQueryLength: maxSearchQueryLength,
+    messageDeleteWindowHours: messageDeleteWindowHours,
+  );
 
   static ValidationRulesModel fromEntity(ValidationRulesEntity entity) =>
       ValidationRulesModel(
@@ -580,20 +591,20 @@ class SystemIntervalsModel {
       );
 
   Map<String, dynamic> toJson() => {
-        'locationUpdateMinutes': locationUpdateMinutes,
-        'heartbeatMinutes': heartbeatMinutes,
-        'cacheMinutes': cacheMinutes,
-        'remoteConfigFetchMinutes': remoteConfigFetchMinutes,
-        'typingIndicatorSeconds': typingIndicatorSeconds,
-      };
+    'locationUpdateMinutes': locationUpdateMinutes,
+    'heartbeatMinutes': heartbeatMinutes,
+    'cacheMinutes': cacheMinutes,
+    'remoteConfigFetchMinutes': remoteConfigFetchMinutes,
+    'typingIndicatorSeconds': typingIndicatorSeconds,
+  };
 
   SystemIntervalsEntity toEntity() => SystemIntervalsEntity(
-        locationUpdateMinutes: locationUpdateMinutes,
-        heartbeatMinutes: heartbeatMinutes,
-        cacheMinutes: cacheMinutes,
-        remoteConfigFetchMinutes: remoteConfigFetchMinutes,
-        typingIndicatorSeconds: typingIndicatorSeconds,
-      );
+    locationUpdateMinutes: locationUpdateMinutes,
+    heartbeatMinutes: heartbeatMinutes,
+    cacheMinutes: cacheMinutes,
+    remoteConfigFetchMinutes: remoteConfigFetchMinutes,
+    typingIndicatorSeconds: typingIndicatorSeconds,
+  );
 
   static SystemIntervalsModel fromEntity(SystemIntervalsEntity entity) =>
       SystemIntervalsModel(
@@ -612,56 +623,80 @@ class SystemIntervalsModel {
 class SystemUrlsModel {
   final String shareBaseUrl;
   final String supportEmail;
+  final String privacyEmail;
+  final String bugsEmail;
+  final String feedbackEmail;
+  final String moderationEmail;
   final String stripeMerchantId;
   final String termsUrl;
   final String privacyUrl;
 
   SystemUrlsModel({
-    this.shareBaseUrl = 'https://diaspo-niger.web.app/p/',
+    this.shareBaseUrl = 'https://diasponiger.com/p/',
     this.supportEmail = 'support@diasponiger.com',
+    this.privacyEmail = 'privacy@diasponiger.com',
+    this.bugsEmail = 'bugs@diasponiger.com',
+    this.feedbackEmail = 'feedback@diasponiger.com',
+    this.moderationEmail = 'moderation@diasponiger.com',
     this.stripeMerchantId = 'merchant.com.diasponiger',
-    this.termsUrl = 'https://diaspo-niger.web.app/terms',
-    this.privacyUrl = 'https://diaspo-niger.web.app/privacy',
+    this.termsUrl = 'https://diasponiger.com/terms',
+    this.privacyUrl = 'https://diasponiger.com/privacy',
   });
 
-  factory SystemUrlsModel.fromJson(Map<String, dynamic> json) =>
-      SystemUrlsModel(
-        shareBaseUrl: json['shareBaseUrl'] as String? ??
-            'https://diaspo-niger.web.app/p/',
-        supportEmail:
-            json['supportEmail'] as String? ?? 'support@diasponiger.com',
-        stripeMerchantId:
-            json['stripeMerchantId'] as String? ?? 'merchant.com.diasponiger',
-        termsUrl: json['termsUrl'] as String? ??
-            'https://diaspo-niger.web.app/terms',
-        privacyUrl: json['privacyUrl'] as String? ??
-            'https://diaspo-niger.web.app/privacy',
-      );
+  factory SystemUrlsModel.fromJson(
+    Map<String, dynamic> json,
+  ) => SystemUrlsModel(
+    shareBaseUrl:
+        json['shareBaseUrl'] as String? ?? 'https://diasponiger.com/p/',
+    supportEmail: json['supportEmail'] as String? ?? 'support@diasponiger.com',
+    privacyEmail: json['privacyEmail'] as String? ?? 'privacy@diasponiger.com',
+    bugsEmail: json['bugsEmail'] as String? ?? 'bugs@diasponiger.com',
+    feedbackEmail:
+        json['feedbackEmail'] as String? ?? 'feedback@diasponiger.com',
+    moderationEmail:
+        json['moderationEmail'] as String? ?? 'moderation@diasponiger.com',
+    stripeMerchantId:
+        json['stripeMerchantId'] as String? ?? 'merchant.com.diasponiger',
+    termsUrl: json['termsUrl'] as String? ?? 'https://diasponiger.com/terms',
+    privacyUrl:
+        json['privacyUrl'] as String? ?? 'https://diasponiger.com/privacy',
+  );
 
   Map<String, dynamic> toJson() => {
-        'shareBaseUrl': shareBaseUrl,
-        'supportEmail': supportEmail,
-        'stripeMerchantId': stripeMerchantId,
-        'termsUrl': termsUrl,
-        'privacyUrl': privacyUrl,
-      };
+    'shareBaseUrl': shareBaseUrl,
+    'supportEmail': supportEmail,
+    'privacyEmail': privacyEmail,
+    'bugsEmail': bugsEmail,
+    'feedbackEmail': feedbackEmail,
+    'moderationEmail': moderationEmail,
+    'stripeMerchantId': stripeMerchantId,
+    'termsUrl': termsUrl,
+    'privacyUrl': privacyUrl,
+  };
 
   SystemUrlsEntity toEntity() => SystemUrlsEntity(
-        shareBaseUrl: shareBaseUrl,
-        supportEmail: supportEmail,
-        stripeMerchantId: stripeMerchantId,
-        termsUrl: termsUrl,
-        privacyUrl: privacyUrl,
-      );
+    shareBaseUrl: shareBaseUrl,
+    supportEmail: supportEmail,
+    privacyEmail: privacyEmail,
+    bugsEmail: bugsEmail,
+    feedbackEmail: feedbackEmail,
+    moderationEmail: moderationEmail,
+    stripeMerchantId: stripeMerchantId,
+    termsUrl: termsUrl,
+    privacyUrl: privacyUrl,
+  );
 
-  static SystemUrlsModel fromEntity(SystemUrlsEntity entity) =>
-      SystemUrlsModel(
-        shareBaseUrl: entity.shareBaseUrl,
-        supportEmail: entity.supportEmail,
-        stripeMerchantId: entity.stripeMerchantId,
-        termsUrl: entity.termsUrl,
-        privacyUrl: entity.privacyUrl,
-      );
+  static SystemUrlsModel fromEntity(SystemUrlsEntity entity) => SystemUrlsModel(
+    shareBaseUrl: entity.shareBaseUrl,
+    supportEmail: entity.supportEmail,
+    privacyEmail: entity.privacyEmail,
+    bugsEmail: entity.bugsEmail,
+    feedbackEmail: entity.feedbackEmail,
+    moderationEmail: entity.moderationEmail,
+    stripeMerchantId: entity.stripeMerchantId,
+    termsUrl: entity.termsUrl,
+    privacyUrl: entity.privacyUrl,
+  );
 }
 
 // ============================================================================
@@ -702,26 +737,26 @@ class FeatureFlagsModel {
       );
 
   Map<String, dynamic> toJson() => {
-        'moneyTransfer': moneyTransfer,
-        'marketplace': marketplace,
-        'businessDirectory': businessDirectory,
-        'events': events,
-        'groups': groups,
-        'embassies': embassies,
-        'maintenanceMode': maintenanceMode,
-        'maintenanceMessage': maintenanceMessage,
-      };
+    'moneyTransfer': moneyTransfer,
+    'marketplace': marketplace,
+    'businessDirectory': businessDirectory,
+    'events': events,
+    'groups': groups,
+    'embassies': embassies,
+    'maintenanceMode': maintenanceMode,
+    'maintenanceMessage': maintenanceMessage,
+  };
 
   FeatureFlagsEntity toEntity() => FeatureFlagsEntity(
-        moneyTransfer: moneyTransfer,
-        marketplace: marketplace,
-        businessDirectory: businessDirectory,
-        events: events,
-        groups: groups,
-        embassies: embassies,
-        maintenanceMode: maintenanceMode,
-        maintenanceMessage: maintenanceMessage,
-      );
+    moneyTransfer: moneyTransfer,
+    marketplace: marketplace,
+    businessDirectory: businessDirectory,
+    events: events,
+    groups: groups,
+    embassies: embassies,
+    maintenanceMode: maintenanceMode,
+    maintenanceMessage: maintenanceMessage,
+  );
 
   static FeatureFlagsModel fromEntity(FeatureFlagsEntity entity) =>
       FeatureFlagsModel(

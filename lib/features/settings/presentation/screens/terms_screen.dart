@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/support_service.dart';
 
 class TermsScreen extends ConsumerWidget {
   const TermsScreen({super.key});
@@ -49,7 +50,10 @@ class TermsScreen extends ConsumerWidget {
                 color: context.adaptivePrimaryColor,
               ),
             ),
-        error: (error, _) => _buildFallbackContent(context),
+        error: (error, _) => _buildFallbackContent(
+          context,
+          ref.watch(supportServiceProvider),
+        ),
       ),
     );
   }
@@ -72,7 +76,7 @@ class TermsScreen extends ConsumerWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
 
-  Widget _buildFallbackContent(BuildContext context) {
+  Widget _buildFallbackContent(BuildContext context, SupportService supportService) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -124,7 +128,7 @@ class TermsScreen extends ConsumerWidget {
           context,
           '5. Contact',
           'Pour toute question concernant ces conditions d\'utilisation, '
-              'contactez-nous à : support@diasponiger.com',
+              'contactez-nous à : ${supportService.supportEmail}',
         ),
         const SizedBox(height: 20),
         Text(

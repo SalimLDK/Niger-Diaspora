@@ -290,3 +290,40 @@ class FeatureChecker extends _$FeatureChecker {
   bool isGroupsEnabled() => state.groups;
   bool isEmbassiesEnabled() => state.embassies;
 }
+
+/// Provider for system URLs and emails
+@riverpod
+SystemUrlsEntity systemUrls(Ref ref) {
+  return ref.watch(appSettingsNotifierProvider).valueOrNull?.urls ??
+      const SystemUrlsEntity();
+}
+
+/// Provider for support email
+@riverpod
+String supportEmail(Ref ref) {
+  return ref.watch(systemUrlsProvider).supportEmail;
+}
+
+/// Provider for privacy email
+@riverpod
+String privacyEmail(Ref ref) {
+  return ref.watch(systemUrlsProvider).privacyEmail;
+}
+
+/// Provider for bugs email
+@riverpod
+String bugsEmail(Ref ref) {
+  return ref.watch(systemUrlsProvider).bugsEmail;
+}
+
+/// Provider for feedback email
+@riverpod
+String feedbackEmail(Ref ref) {
+  return ref.watch(systemUrlsProvider).feedbackEmail;
+}
+
+/// Provider for moderation email
+@riverpod
+String moderationEmail(Ref ref) {
+  return ref.watch(systemUrlsProvider).moderationEmail;
+}

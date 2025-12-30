@@ -6,6 +6,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/support_service.dart';
 
 class PrivacyPolicyScreen extends ConsumerWidget {
   const PrivacyPolicyScreen({super.key});
@@ -56,7 +57,12 @@ class PrivacyPolicyScreen extends ConsumerWidget {
                 color: context.adaptivePrimaryColor,
               ),
             ),
-        error: (error, _) => _buildFallbackContent(context, l10n, locale),
+        error: (error, _) => _buildFallbackContent(
+          context,
+          l10n,
+          locale,
+          ref.watch(supportServiceProvider),
+        ),
       ),
     );
   }
@@ -69,6 +75,7 @@ class PrivacyPolicyScreen extends ConsumerWidget {
     BuildContext context,
     AppLocalizations l10n,
     Locale locale,
+    SupportService supportService,
   ) {
     final fallbackDate = DateTime(2024, 12, 1);
     return ListView(
@@ -119,14 +126,14 @@ class PrivacyPolicyScreen extends ConsumerWidget {
               '- Droit à l\'effacement : supprimer votre compte et vos données\n'
               '- Droit à la portabilité : exporter vos données\n'
               '- Droit d\'opposition : vous opposer à certains traitements\n\n'
-              'Pour exercer ces droits, contactez-nous à : privacy@diasponiger.com',
+              'Pour exercer ces droits, contactez-nous à : ${supportService.privacyEmail}',
         ),
         _buildSection(
           context,
           '4. Contact',
           'Pour toute question concernant cette politique de confidentialité :\n\n'
-              'Email : privacy@diasponiger.com\n'
-              'Support : support@diasponiger.com',
+              'Email : ${supportService.privacyEmail}\n'
+              'Support : ${supportService.supportEmail}',
         ),
         const SizedBox(height: 20),
         Text(

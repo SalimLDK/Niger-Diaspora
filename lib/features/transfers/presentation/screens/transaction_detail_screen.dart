@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/support_service.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
@@ -464,7 +465,7 @@ class TransactionDetailScreen extends ConsumerWidget {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => _contactSupport(context, transaction),
+            onPressed: () => _contactSupport(context, transaction, ref),
             icon: const Icon(Icons.support_agent),
             label: const Text('Contacter le support'),
           ),
@@ -578,7 +579,8 @@ class TransactionDetailScreen extends ConsumerWidget {
     context.push('/transfers/send');
   }
 
-  void _contactSupport(BuildContext context, TransactionEntity transaction) {
+  void _contactSupport(BuildContext context, TransactionEntity transaction, WidgetRef ref) {
+    final supportService = ref.read(supportServiceProvider);
     showModalBottomSheet(
       context: context,
       builder:
@@ -596,12 +598,12 @@ class TransactionDetailScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
                   title: const Text('Email'),
-                  subtitle: const Text('support@diasponiger.com'),
+                  subtitle: Text(supportService.supportEmail),
                   onTap: () {
                     Navigator.pop(context);
                     final Uri emailLaunchUri = Uri(
                       scheme: 'mailto',
-                      path: 'support@diasponiger.com',
+                      path: supportService.supportEmail,
                       query: 'subject=Support Transaction ${transaction.id}',
                     );
                     launchUrl(emailLaunchUri);

@@ -180,6 +180,118 @@ final isMaintenanceModeProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsMaintenanceModeRef = AutoDisposeProviderRef<bool>;
+String _$systemUrlsHash() => r'e356ae37d7b65625bd9675b8019ffa6423e3e2a6';
+
+/// Provider for system URLs and emails
+///
+/// Copied from [systemUrls].
+@ProviderFor(systemUrls)
+final systemUrlsProvider = AutoDisposeProvider<SystemUrlsEntity>.internal(
+  systemUrls,
+  name: r'systemUrlsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$systemUrlsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SystemUrlsRef = AutoDisposeProviderRef<SystemUrlsEntity>;
+String _$supportEmailHash() => r'227c9240b81ac8c0fd2f56a5963bf5233b0cd786';
+
+/// Provider for support email
+///
+/// Copied from [supportEmail].
+@ProviderFor(supportEmail)
+final supportEmailProvider = AutoDisposeProvider<String>.internal(
+  supportEmail,
+  name: r'supportEmailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$supportEmailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SupportEmailRef = AutoDisposeProviderRef<String>;
+String _$privacyEmailHash() => r'83297073987c97e0fc98729c5fbe5122fcf07c37';
+
+/// Provider for privacy email
+///
+/// Copied from [privacyEmail].
+@ProviderFor(privacyEmail)
+final privacyEmailProvider = AutoDisposeProvider<String>.internal(
+  privacyEmail,
+  name: r'privacyEmailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$privacyEmailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef PrivacyEmailRef = AutoDisposeProviderRef<String>;
+String _$bugsEmailHash() => r'28c38361b3ccd17e83e18775af9d3a858788795b';
+
+/// Provider for bugs email
+///
+/// Copied from [bugsEmail].
+@ProviderFor(bugsEmail)
+final bugsEmailProvider = AutoDisposeProvider<String>.internal(
+  bugsEmail,
+  name: r'bugsEmailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$bugsEmailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BugsEmailRef = AutoDisposeProviderRef<String>;
+String _$feedbackEmailHash() => r'1dd7ba2d7ad8e546e11d9d7997e44f6cbe677fef';
+
+/// Provider for feedback email
+///
+/// Copied from [feedbackEmail].
+@ProviderFor(feedbackEmail)
+final feedbackEmailProvider = AutoDisposeProvider<String>.internal(
+  feedbackEmail,
+  name: r'feedbackEmailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$feedbackEmailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FeedbackEmailRef = AutoDisposeProviderRef<String>;
+String _$moderationEmailHash() => r'867be25e6dbf0fef5482d1977cdf7cdad84b6a1e';
+
+/// Provider for moderation email
+///
+/// Copied from [moderationEmail].
+@ProviderFor(moderationEmail)
+final moderationEmailProvider = AutoDisposeProvider<String>.internal(
+  moderationEmail,
+  name: r'moderationEmailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$moderationEmailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ModerationEmailRef = AutoDisposeProviderRef<String>;
 String _$appSettingsNotifierHash() =>
     r'7d18c40bd02bc2badc3f4bf88a11c367bc5a1237';
 

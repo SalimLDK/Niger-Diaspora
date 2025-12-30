@@ -376,334 +376,401 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final locationString = _buildLocationString(l10n, profile);
     final originString = _buildOriginString(l10n, profile);
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.surfaceColor.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Check if we can pop
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          // Deep linked - navigate to home instead
+          if (context.mounted) {
+            context.go('/home');
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 200,
+              pinned: true,
+              leading: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: context.textPrimaryColor,
+                  ),
                 ),
-                child: Icon(Icons.arrow_back, color: context.textPrimaryColor),
+                onPressed: () => context.pop(),
               ),
-              onPressed: () => context.pop(),
-            ),
-            actions: [
-              if (profile.displayName != 'Utilisateur supprimé')
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
+              actions: [
+                if (profile.displayName != 'Utilisateur supprimé')
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.share_outlined,
+                        color: context.textPrimaryColor,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.share_outlined,
-                      color: context.textPrimaryColor,
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ShareProfileDialog.show(
+                        context,
+                        userName: profile.displayName,
+                        userPhotoUrl: profile.photoUrl,
+                        userId: profile.id,
+                      );
+                    },
+                  ),
+                const SizedBox(width: 8),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: context.adaptivePrimaryGradient,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        GestureDetector(
+                          onTap: () {
+                            if (profile.photoUrl != null) {
+                              HapticFeedback.mediumImpact();
+                              FullScreenImageViewer.show(
+                                context,
+                                imageUrl: profile.photoUrl!,
+                                heroTag: 'profile_view_avatar_${profile.id}',
+                                senderName: profile.displayName,
+                                showActions: false,
+                              );
+                            }
+                          },
+                          child: Hero(
+                            tag: 'profile_view_avatar_${profile.id}',
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: context.surfaceColor,
+                                borderRadius: BorderRadius.circular(28),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child:
+                                  profile.photoUrl != null
+                                      ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(28),
+                                        child: Image.network(
+                                          profile.photoUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => Icon(
+                                                Icons.person,
+                                                size: 50,
+                                                color:
+                                                    context
+                                                        .adaptivePrimaryColor,
+                                              ),
+                                        ),
+                                      )
+                                      : Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: context.adaptivePrimaryColor,
+                                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    ShareProfileDialog.show(
-                      context,
-                      userName: profile.displayName,
-                      userPhotoUrl: profile.photoUrl,
-                      userId: profile.id,
-                    );
-                  },
                 ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: context.adaptivePrimaryGradient,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      GestureDetector(
-                        onTap: () {
-                          if (profile.photoUrl != null) {
-                            HapticFeedback.mediumImpact();
-                            FullScreenImageViewer.show(
-                              context,
-                              imageUrl: profile.photoUrl!,
-                              heroTag: 'profile_view_avatar_${profile.id}',
-                              senderName: profile.displayName,
-                              showActions: false,
-                            );
-                          }
-                        },
-                        child: Hero(
-                          tag: 'profile_view_avatar_${profile.id}',
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: context.surfaceColor,
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nom
+                    Center(
+                      child: Text(
+                        profile.displayName?.isNotEmpty == true
+                            ? profile.displayName!
+                            : 'Nouvel utilisateur',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+
+                    // Online Status Indicator
+                    const SizedBox(height: 8),
+                    Center(
+                      child: OnlineStatusIndicator(
+                        userId: profile.id,
+                        showText: true,
+                        dotSize: 10,
+                      ),
+                    ),
+
+                    if (profile.profession != null &&
+                        profile.profession!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.adaptivePrimaryColor.withValues(
+                              alpha: 0.1,
                             ),
-                            child:
-                                profile.photoUrl != null
-                                    ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(28),
-                                      child: Image.network(
-                                        profile.photoUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (_, __, ___) => Icon(
-                                              Icons.person,
-                                              size: 50,
-                                              color: context.adaptivePrimaryColor,
-                                            ),
-                                      ),
-                                    )
-                                    : Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: context.adaptivePrimaryColor,
-                                    ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            profile.profession!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: context.adaptivePrimaryColor,
+                            ),
                           ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nom
-                  Center(
-                    child: Text(
-                      profile.displayName?.isNotEmpty == true
-                          ? profile.displayName!
-                          : 'Nouvel utilisateur',
+
+                    // Current location (city, country)
+                    if (locationString.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 18,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              locationString,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: context.textSecondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // Origin (region, city in Niger)
+                    if (originString.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.home_outlined,
+                              size: 18,
+                              color: context.adaptiveSecondaryColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              originString,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: context.textTertiaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Bio
+                    Text(
+                      l10n.about,
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: context.textPrimaryColor,
                       ),
                     ),
-                  ),
-
-                  // Online Status Indicator
-                  const SizedBox(height: 8),
-                  Center(
-                    child: OnlineStatusIndicator(
-                      userId: profile.id,
-                      showText: true,
-                      dotSize: 10,
-                    ),
-                  ),
-
-                  if (profile.profession != null &&
-                      profile.profession!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.adaptivePrimaryColor.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          profile.profession!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                        ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
-                  ],
-
-                  // Current location (city, country)
-                  if (locationString.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 18,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            locationString,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // Origin (region, city in Niger)
-                  if (originString.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.home_outlined,
-                            size: 18,
-                            color: context.adaptiveSecondaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            originString,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.textTertiaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Bio
-                  Text(
-                    l10n.about,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: context.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      profile.bio?.isNotEmpty == true
-                          ? profile.bio!
-                          : 'Aucune biographie',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color:
-                            profile.bio?.isNotEmpty == true
-                                ? context.textSecondaryColor
-                                : context.textTertiaryColor,
-                        height: 1.5,
-                        fontStyle:
-                            profile.bio?.isNotEmpty == true
-                                ? FontStyle.normal
-                                : FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Médias partagés (si conversation existante)
-                  _buildMediaSection(context, ref),
-
-                  // Compétences
-                  Text(
-                    l10n.skills,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: context.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  profile.skills.isNotEmpty
-                      ? Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            profile.skills
-                                .map(
-                                  (skill) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: context.adaptivePrimaryColor
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      skill,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: context.adaptivePrimaryColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      )
-                      : Text(
-                        'Aucune compétence ajoutée',
+                      child: Text(
+                        profile.bio?.isNotEmpty == true
+                            ? profile.bio!
+                            : 'Aucune biographie',
                         style: TextStyle(
                           fontSize: 14,
-                          color: context.textTertiaryColor,
-                          fontStyle: FontStyle.italic,
+                          color:
+                              profile.bio?.isNotEmpty == true
+                                  ? context.textSecondaryColor
+                                  : context.textTertiaryColor,
+                          height: 1.5,
+                          fontStyle:
+                              profile.bio?.isNotEmpty == true
+                                  ? FontStyle.normal
+                                  : FontStyle.italic,
                         ),
                       ),
-                  const SizedBox(height: 16),
-
-                  // Intérêts
-                  Text(
-                    l10n.interests,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: context.textPrimaryColor,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  profile.interests.isNotEmpty
-                      ? Wrap(
+                    const SizedBox(height: 16),
+
+                    // Médias partagés (si conversation existante)
+                    _buildMediaSection(context, ref),
+
+                    // Compétences
+                    Text(
+                      l10n.skills,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    profile.skills.isNotEmpty
+                        ? Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              profile.skills
+                                  .map(
+                                    (skill) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: context.adaptivePrimaryColor
+                                            .withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        skill,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: context.adaptivePrimaryColor,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        )
+                        : Text(
+                          'Aucune compétence ajoutée',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.textTertiaryColor,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+
+                    // Intérêts
+                    Text(
+                      l10n.interests,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    profile.interests.isNotEmpty
+                        ? Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              profile.interests
+                                  .map(
+                                    (interest) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: context.surfaceVariantColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        interest,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: context.textSecondaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        )
+                        : Text(
+                          'Aucun intérêt ajouté',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.textTertiaryColor,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+
+                    // Langues
+                    if (profile.languages.isNotEmpty) ...[
+                      Text(
+                        l10n.languagesSpoken,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children:
-                            profile.interests
+                            profile.languages
                                 .map(
-                                  (interest) => Container(
+                                  (language) => Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 6,
@@ -713,7 +780,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
-                                      interest,
+                                      language,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: context.textSecondaryColor,
@@ -722,463 +789,412 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   ),
                                 )
                                 .toList(),
-                      )
-                      : Text(
-                        'Aucun intérêt ajouté',
+                      ),
+                    ],
+
+                    if (_isCurrentUser) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        "Paramètres",
                         style: TextStyle(
-                          fontSize: 14,
-                          color: context.textTertiaryColor,
-                          fontStyle: FontStyle.italic,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: context.textPrimaryColor,
                         ),
                       ),
-                  const SizedBox(height: 16),
-
-                  // Langues
-                  if (profile.languages.isNotEmpty) ...[
-                    Text(
-                      l10n.languagesSpoken,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children:
-                          profile.languages
-                              .map(
-                                (language) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: context.surfaceVariantColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    language,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: context.textSecondaryColor,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  ],
-
-                  if (_isCurrentUser) ...[
-                    const SizedBox(height: 24),
-                    Text(
-                      "Paramètres",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: context.outlineColor.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          SwitchListTile(
-                            title: const Text("Mode Voyage"),
-                            subtitle: const Text(
-                              "Permettre la localisation même quand l'application est fermée (Mise à jour toutes les 5 min)",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            value: _isBackgroundLocationEnabled,
-                            activeColor: context.adaptivePrimaryColor,
-                            onChanged: _toggleBackgroundLocation,
-                          ),
-                          Divider(
-                            height: 1,
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
                             color: context.outlineColor.withValues(alpha: 0.1),
                           ),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final visibilityAsync = ref.watch(
-                                currentUserOnlineStatusVisibilityProvider,
-                              );
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              title: const Text("Mode Voyage"),
+                              subtitle: const Text(
+                                "Permettre la localisation même quand l'application est fermée (Mise à jour toutes les 5 min)",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              value: _isBackgroundLocationEnabled,
+                              activeColor: context.adaptivePrimaryColor,
+                              onChanged: _toggleBackgroundLocation,
+                            ),
+                            Divider(
+                              height: 1,
+                              color: context.outlineColor.withValues(
+                                alpha: 0.1,
+                              ),
+                            ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final visibilityAsync = ref.watch(
+                                  currentUserOnlineStatusVisibilityProvider,
+                                );
 
-                              return visibilityAsync.when(
-                                data: (showStatus) {
-                                  return SwitchListTile(
-                                    title: const Text(
-                                      "Afficher mon statut en ligne",
-                                    ),
-                                    subtitle: const Text(
-                                      "Permet de voir et d'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    value: showStatus,
-                                    activeColor: context.adaptivePrimaryColor,
-                                    onChanged: (value) async {
-                                      try {
-                                        await ref
-                                            .read(
-                                              currentUserOnlineStatusVisibilityProvider
-                                                  .notifier,
-                                            )
-                                            .setValue(value);
-                                      } catch (e) {
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Erreur lors de la mise à jour: $e',
+                                return visibilityAsync.when(
+                                  data: (showStatus) {
+                                    return SwitchListTile(
+                                      title: const Text(
+                                        "Afficher mon statut en ligne",
+                                      ),
+                                      subtitle: const Text(
+                                        "Permet de voir et d'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.",
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                      value: showStatus,
+                                      activeColor: context.adaptivePrimaryColor,
+                                      onChanged: (value) async {
+                                        try {
+                                          await ref
+                                              .read(
+                                                currentUserOnlineStatusVisibilityProvider
+                                                    .notifier,
+                                              )
+                                              .setValue(value);
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Erreur lors de la mise à jour: $e',
+                                                ),
+                                                backgroundColor:
+                                                    AppColors.error,
                                               ),
-                                              backgroundColor: AppColors.error,
-                                            ),
-                                          );
+                                            );
+                                          }
                                         }
-                                      }
-                                    },
-                                  );
-                                },
-                                loading:
-                                    () => SwitchListTile(
-                                      title: const Text(
-                                        "Afficher mon statut en ligne",
+                                      },
+                                    );
+                                  },
+                                  loading:
+                                      () => SwitchListTile(
+                                        title: const Text(
+                                          "Afficher mon statut en ligne",
+                                        ),
+                                        subtitle: const Text(
+                                          "Chargement...",
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        value: true,
+                                        onChanged: null,
                                       ),
-                                      subtitle: const Text(
-                                        "Chargement...",
-                                        style: TextStyle(fontSize: 12),
+                                  error:
+                                      (_, __) => SwitchListTile(
+                                        title: const Text(
+                                          "Afficher mon statut en ligne",
+                                        ),
+                                        subtitle: const Text(
+                                          "Erreur de chargement",
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        value: true,
+                                        onChanged: null,
                                       ),
-                                      value: true,
-                                      onChanged: null,
-                                    ),
-                                error:
-                                    (_, __) => SwitchListTile(
-                                      title: const Text(
-                                        "Afficher mon statut en ligne",
-                                      ),
-                                      subtitle: const Text(
-                                        "Erreur de chargement",
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                      value: true,
-                                      onChanged: null,
-                                    ),
-                              );
-                            },
-                          ),
-                        ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
 
-                  const SizedBox(height: 100),
-                ],
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Consumer(
-        builder: (context, ref, child) {
-          final status = ref.watch(
-            friendshipStatusProvider(widget.userId),
-          );
+          ],
+        ),
+        bottomNavigationBar: Consumer(
+          builder: (context, ref, child) {
+            final status = ref.watch(friendshipStatusProvider(widget.userId));
 
-          // Determine button configuration based on friendship status
-          String buttonText = '';
-          IconData buttonIcon = Icons.help_outline;
-          VoidCallback? onPressed;
-          Color backgroundColor = context.adaptivePrimaryColor;
+            // Determine button configuration based on friendship status
+            String buttonText = '';
+            IconData buttonIcon = Icons.help_outline;
+            VoidCallback? onPressed;
+            Color backgroundColor = context.adaptivePrimaryColor;
 
-          switch (status) {
-            case FriendshipStatus.friends:
-                  buttonText = 'Envoyer un message';
-                  buttonIcon = Icons.chat;
-                  onPressed = _startConversation;
-                  backgroundColor = context.adaptivePrimaryColor;
-                  break;
+            switch (status) {
+              case FriendshipStatus.friends:
+                buttonText = 'Envoyer un message';
+                buttonIcon = Icons.chat;
+                onPressed = _startConversation;
+                backgroundColor = context.adaptivePrimaryColor;
+                break;
 
-                case FriendshipStatus.pendingSent:
-                  // Return a button to cancel the sent request
-                  return Container(
-                    padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      top: 16,
-                      bottom: MediaQuery.of(context).padding.bottom + 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        try {
-                          // Find the sent request and cancel it
-                          final requests = await ref.read(
-                            sentFriendRequestsProvider.future,
+              case FriendshipStatus.pendingSent:
+                // Return a button to cancel the sent request
+                return Container(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        // Find the sent request and cancel it
+                        final requests = await ref.read(
+                          sentFriendRequestsProvider.future,
+                        );
+
+                        final request = requests.firstWhere(
+                          (r) => r.receiverId == widget.userId,
+                        );
+
+                        // Cancel the request
+                        final success = await ref
+                            .read(friendRequestNotifierProvider.notifier)
+                            .cancelRequest(
+                              request.id,
+                              receiverId: widget.userId,
+                            );
+
+                        if (context.mounted && success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Demande d\'ami annulée'),
+                            ),
                           );
-
-                          final request = requests.firstWhere(
-                            (r) => r.receiverId == widget.userId,
+                        }
+                      } on StateError {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Cette demande n\'existe plus.'),
+                              backgroundColor: AppColors.error,
+                            ),
                           );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erreur: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text('Annuler la demande'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
+                );
 
-                          // Cancel the request
-                          final success = await ref
-                              .read(friendRequestNotifierProvider.notifier)
-                              .cancelRequest(
-                                request.id,
-                                receiverId: widget.userId,
+              case FriendshipStatus.pendingReceived:
+                // Return two buttons side-by-side for pendingReceived
+                return Container(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            try {
+                              // Find the request and decline it
+                              final requests = await ref.read(
+                                receivedFriendRequestsProvider.future,
                               );
 
-                          if (context.mounted && success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Demande d\'ami annulée'),
-                              ),
-                            );
-                          }
-                        } on StateError {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Cette demande n\'existe plus.',
-                                ),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erreur: $e'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      icon: const Icon(Icons.close),
-                      label: const Text('Annuler la demande'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: const Size(double.infinity, 50),
+                              final request = requests.firstWhere(
+                                (r) => r.senderId == widget.userId,
+                              );
+
+                              // Decline the request
+                              final success = await ref
+                                  .read(friendRequestNotifierProvider.notifier)
+                                  .declineRequest(
+                                    request.id,
+                                    senderId: widget.userId,
+                                  );
+
+                              if (context.mounted && success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Demande d\'ami refusée'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            } on StateError {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Cette demande n\'existe plus.',
+                                    ),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Erreur: $e'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.close),
+                          label: const Text('Refuser'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.error,
+                            side: BorderSide(color: AppColors.error),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
                       ),
-                    ),
-                  );
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              // Find the request and accept it
+                              final requests = await ref.read(
+                                receivedFriendRequestsProvider.future,
+                              );
 
-                case FriendshipStatus.pendingReceived:
-                  // Return two buttons side-by-side for pendingReceived
-                  return Container(
-                    padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      top: 16,
-                      bottom: MediaQuery.of(context).padding.bottom + 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () async {
-                              try {
-                                // Find the request and decline it
-                                final requests = await ref.read(
-                                  receivedFriendRequestsProvider.future,
+                              final request = requests.firstWhere(
+                                (r) => r.senderId == widget.userId,
+                              );
+
+                              // Accept the request
+                              final success = await ref
+                                  .read(friendRequestNotifierProvider.notifier)
+                                  .acceptRequest(
+                                    request.id,
+                                    senderId: widget.userId,
+                                  );
+
+                              if (context.mounted && success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Demande d\'ami acceptée'),
+                                    backgroundColor: AppColors.success,
+                                  ),
                                 );
-
-                                final request = requests.firstWhere(
-                                  (r) => r.senderId == widget.userId,
-                                );
-
-                                // Decline the request
-                                final success = await ref
-                                    .read(
-                                      friendRequestNotifierProvider.notifier,
-                                    )
-                                    .declineRequest(
-                                      request.id,
-                                      senderId: widget.userId,
-                                    );
-
-                                if (context.mounted && success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Demande d\'ami refusée'),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
-                              } on StateError {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Cette demande n\'existe plus.',
-                                      ),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Erreur: $e'),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
                               }
-                            },
-                            icon: const Icon(Icons.close),
-                            label: const Text('Refuser'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.error,
-                              side: BorderSide(color: AppColors.error),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
+                            } on StateError {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Cette demande n\'existe plus. '
+                                      'Elle a peut-être déjà été acceptée ou annulée.',
+                                    ),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Erreur lors de l\'acceptation: $e',
+                                    ),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.check),
+                          label: const Text('Accepter'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: context.successColor,
+                            foregroundColor: AppColors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              try {
-                                // Find the request and accept it
-                                final requests = await ref.read(
-                                  receivedFriendRequestsProvider.future,
-                                );
-
-                                final request = requests.firstWhere(
-                                  (r) => r.senderId == widget.userId,
-                                );
-
-                                // Accept the request
-                                final success = await ref
-                                    .read(
-                                      friendRequestNotifierProvider.notifier,
-                                    )
-                                    .acceptRequest(
-                                      request.id,
-                                      senderId: widget.userId,
-                                    );
-
-                                if (context.mounted && success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Demande d\'ami acceptée'),
-                                      backgroundColor: AppColors.success,
-                                    ),
-                                  );
-                                }
-                              } on StateError {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Cette demande n\'existe plus. '
-                                        'Elle a peut-être déjà été acceptée ou annulée.',
-                                      ),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Erreur lors de l\'acceptation: $e',
-                                      ),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                            icon: const Icon(Icons.check),
-                            label: const Text('Accepter'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.successColor,
-                              foregroundColor: AppColors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-
-                case FriendshipStatus.none:
-                  buttonText = 'Envoyer une demande d\'ami';
-                  buttonIcon = Icons.person_add;
-                  onPressed = _sendFriendRequest;
-                  backgroundColor = context.adaptivePrimaryColor;
-                  break;
-              }
-
-              return Container(
-                padding: EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  top: 16,
-                  bottom: MediaQuery.of(context).padding.bottom + 16,
-                ),
-                decoration: BoxDecoration(
-                  color: context.surfaceColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: onPressed,
-                  icon: Icon(buttonIcon),
-                  label: Text(buttonText),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: backgroundColor,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ],
                   ),
+                );
+
+              case FriendshipStatus.none:
+                buttonText = 'Envoyer une demande d\'ami';
+                buttonIcon = Icons.person_add;
+                onPressed = _sendFriendRequest;
+                backgroundColor = context.adaptivePrimaryColor;
+                break;
+            }
+
+            return Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+              ),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(buttonIcon),
+                label: Text(buttonText),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: backgroundColor,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-              );
-        },
-      ),
-    );
+              ),
+            );
+          },
+        ),
+      ), // Close PopScope child (Scaffold)
+    ); // Close PopScope
   }
 }

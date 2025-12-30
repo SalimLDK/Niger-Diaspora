@@ -66,7 +66,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       curve: Curves.easeOutBack,
     );
     _animationController.forward();
-    _shareUrl = 'https://diaspo-niger.web.app/g/${widget.groupId}';
+    _shareUrl = 'https://diasponiger.com/g/${widget.groupId}';
   }
 
   @override

@@ -1,7 +1,7 @@
 name: diaspo_niger
 description: "Diaspo Niger - Plateforme mobile de mise en relation de la diaspora nigerienne"
 publish_to: 'none'
-version: 1.1.0+6
+version: 1.1.0+9
 
 environment:
   sdk: ^3.7.0

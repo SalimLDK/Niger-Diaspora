@@ -72,27 +72,58 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final dateFormat = DateFormat('EEEE dd MMMM yyyy', 'fr_FR');
     final timeFormat = DateFormat('HH:mm', 'fr_FR');
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar avec image
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.surfaceColor.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Check if we can pop
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          // Deep linked - navigate to home instead
+          if (context.mounted) {
+            context.go('/home');
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: CustomScrollView(
+          slivers: [
+            // App Bar avec image
+            SliverAppBar(
+              expandedHeight: 250,
+              pinned: true,
+              leading: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: context.textPrimaryColor,
+                  ),
                 ),
-                child: Icon(Icons.arrow_back, color: context.textPrimaryColor),
+                onPressed: () => context.pop(),
               ),
-              onPressed: () => context.pop(),
-            ),
-            actions: [
-              if (isOrganizer)
+              actions: [
+                if (isOrganizer)
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.edit, color: context.textPrimaryColor),
+                    ),
+                    onPressed: () {
+                      context.push('/events/${event.id}/edit', extra: event);
+                    },
+                  ),
                 IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
@@ -100,510 +131,382 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       color: context.surfaceColor.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.edit, color: context.textPrimaryColor),
+                    child: Icon(Icons.share, color: context.textPrimaryColor),
                   ),
                   onPressed: () {
-                    context.push('/events/${event.id}/edit', extra: event);
+                    AnalyticsService.instance.logEvent(
+                      name: 'share_event',
+                      parameters: {'event_id': event.id},
+                    );
+                    _shareEvent(event);
                   },
                 ),
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.share, color: context.textPrimaryColor),
-                ),
-                onPressed: () {
-                  AnalyticsService.instance.logEvent(
-                    name: 'share_event',
-                    parameters: {'event_id': event.id},
-                  );
-                  _shareEvent(event);
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Poster Carousel or Single Image
-                  event.posterUrls.length > 1
-                      ? Stack(
-                        children: [
-                          CarouselSlider(
-                            options: CarouselOptions(
-                              height: double.infinity,
-                              viewportFraction: 1.0,
-                              enableInfiniteScroll: event.posterUrls.length > 2,
-                              onPageChanged: (index, reason) {
-                                setState(() => _currentPosterIndex = index);
-                              },
-                            ),
-                            items:
-                                event.posterUrls.map((url) {
-                                  return Builder(
-                                    builder: (BuildContext context) {
-                                      return Container(
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: NetworkImage(url),
-                                            fit: BoxFit.cover,
+                const SizedBox(width: 8),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Poster Carousel or Single Image
+                    event.posterUrls.length > 1
+                        ? Stack(
+                          children: [
+                            CarouselSlider(
+                              options: CarouselOptions(
+                                height: double.infinity,
+                                viewportFraction: 1.0,
+                                enableInfiniteScroll:
+                                    event.posterUrls.length > 2,
+                                onPageChanged: (index, reason) {
+                                  setState(() => _currentPosterIndex = index);
+                                },
+                              ),
+                              items:
+                                  event.posterUrls.map((url) {
+                                    return Builder(
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              image: NetworkImage(url),
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                }).toList(),
-                          ),
-                          // Page Indicator Dots
-                          Positioned(
-                            bottom: 16,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children:
-                                  event.posterUrls.asMap().entries.map((entry) {
-                                    return Container(
-                                      width: 8,
-                                      height: 8,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color:
-                                            _currentPosterIndex == entry.key
-                                                ? Colors.white
-                                                : Colors.white.withValues(
-                                                  alpha: 0.4,
-                                                ),
-                                      ),
+                                        );
+                                      },
                                     );
                                   }).toList(),
                             ),
+                            // Page Indicator Dots
+                            Positioned(
+                              bottom: 16,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children:
+                                    event.posterUrls.asMap().entries.map((
+                                      entry,
+                                    ) {
+                                      return Container(
+                                        width: 8,
+                                        height: 8,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color:
+                                              _currentPosterIndex == entry.key
+                                                  ? Colors.white
+                                                  : Colors.white.withValues(
+                                                    alpha: 0.4,
+                                                  ),
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                          ],
+                        )
+                        : Container(
+                          decoration: BoxDecoration(
+                            gradient:
+                                event.posterUrls.isEmpty
+                                    ? context.adaptivePrimaryGradient
+                                    : null,
+                            image:
+                                event.posterUrls.isNotEmpty
+                                    ? DecorationImage(
+                                      image: NetworkImage(
+                                        event.posterUrls.first,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                    : null,
                           ),
-                        ],
-                      )
-                      : Container(
-                        decoration: BoxDecoration(
-                          gradient:
+                          child:
                               event.posterUrls.isEmpty
-                                  ? context.adaptivePrimaryGradient
-                                  : null,
-                          image:
-                              event.posterUrls.isNotEmpty
-                                  ? DecorationImage(
-                                    image: NetworkImage(event.posterUrls.first),
-                                    fit: BoxFit.cover,
+                                  ? Center(
+                                    child: Icon(
+                                      Icons.event,
+                                      size: 80,
+                                      color: context.onPrimaryColor,
+                                    ),
                                   )
                                   : null,
                         ),
-                        child:
-                            event.posterUrls.isEmpty
-                                ? Center(
-                                  child: Icon(
-                                    Icons.event,
-                                    size: 80,
-                                    color: context.onPrimaryColor,
-                                  ),
-                                )
-                                : null,
-                      ),
-                  // Gradient overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
-                        ],
+                    // Gradient overlay
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.7),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  // Category and online badge
-                  Positioned(
-                    top: 100,
-                    left: 16,
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.surfaceColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            event.category.label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                          ),
-                        ),
-                        if (event.isOnline) ...[
-                          const SizedBox(width: 8),
+                    // Category and online badge
+                    Positioned(
+                      top: 100,
+                      left: 16,
+                      child: Row(
+                        children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: context.adaptiveSecondaryColor,
+                              color: context.surfaceColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.videocam,
-                                  size: 14,
-                                  color: context.onSecondaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  l10n.online,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                            child: Text(
+                              event.category.label,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                            ),
+                          ),
+                          if (event.isOnline) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.adaptiveSecondaryColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.videocam,
+                                    size: 14,
                                     color: context.onSecondaryColor,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l10n.online,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: context.onSecondaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Contenu
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Titre
-                  Text(
-                    event.title,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: context.textPrimaryColor,
+            // Contenu
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Titre
+                    Text(
+                      event.title,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: context.textPrimaryColor,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Date et heure
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.shadowColor,
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor.withValues(
-                              alpha: 0.1,
+                    // Date et heure
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: context.shadowColor,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: context.adaptivePrimaryColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.calendar_today,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dateFormat.format(event.startDate),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textPrimaryColor,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                event.endDate != null
-                                    ? '${timeFormat.format(event.startDate)} - ${timeFormat.format(event.endDate!)}'
-                                    : l10n.startingFrom(
-                                      timeFormat.format(event.startDate),
-                                    ),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: context.textTertiaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Lieu
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.shadowColor,
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: context.adaptiveSecondaryColor.withValues(
-                              alpha: 0.1,
+                            child: Icon(
+                              Icons.calendar_today,
+                              color: context.adaptivePrimaryColor,
                             ),
-                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            event.isOnline ? Icons.videocam : Icons.location_on,
-                            color: context.adaptiveSecondaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.location,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textPrimaryColor,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  dateFormat.format(event.startDate),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.textPrimaryColor,
+                                  ),
                                 ),
-                              ),
-                              if (event.address != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  event.address!,
+                                  event.endDate != null
+                                      ? '${timeFormat.format(event.startDate)} - ${timeFormat.format(event.endDate!)}'
+                                      : l10n.startingFrom(
+                                        timeFormat.format(event.startDate),
+                                      ),
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: context.textTertiaryColor,
                                   ),
                                 ),
                               ],
-                            ],
-                          ),
-                        ),
-                        if (event.isOnline && event.onlineLink != null)
-                          IconButton(
-                            icon: Icon(
-                              Icons.open_in_new,
-                              color: context.adaptivePrimaryColor,
                             ),
-                            onPressed: () async {
-                              final uri = Uri.parse(event.onlineLink!);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
-                              }
-                            },
                           ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Description
-                  Text(
-                    l10n.aboutEvent,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      event.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: context.textSecondaryColor,
-                        height: 1.6,
+                        ],
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-                  // Organisateur
-                  Text(
-                    l10n.organizer,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            gradient: context.adaptivePrimaryGradient,
-                            borderRadius: BorderRadius.circular(14),
+                    // Lieu
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: context.shadowColor,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          child:
-                              event.organizerPhotoUrl != null
-                                  ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Image.network(
-                                      event.organizerPhotoUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (_, __, ___) => Icon(
-                                            Icons.person,
-                                            color: context.onPrimaryColor,
-                                          ),
-                                    ),
-                                  )
-                                  : Icon(
-                                    Icons.person,
-                                    color: context.onPrimaryColor,
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: context.adaptiveSecondaryColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              event.isOnline
+                                  ? Icons.videocam
+                                  : Icons.location_on,
+                              color: context.adaptiveSecondaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.location,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.textPrimaryColor,
                                   ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.organizerName ?? l10n.organizer,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textPrimaryColor,
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.organizer,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: context.textTertiaryColor,
-                                ),
-                              ),
-                            ],
+                                if (event.address != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    event.address!,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: context.textTertiaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          if (event.isOnline && event.onlineLink != null)
+                            IconButton(
+                              icon: Icon(
+                                Icons.open_in_new,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                              onPressed: () async {
+                                final uri = Uri.parse(event.onlineLink!);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                }
+                              },
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Participants
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.participantsTitle,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                    // Description
+                    Text(
+                      l10n.aboutEvent,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.surfaceVariantColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          event.maxAttendees > 0
-                              ? '${event.attendeeIds.length}/${event.maxAttendees}'
-                              : l10n.participants(event.attendeeIds.length),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (event.attendeeIds.isEmpty)
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: context.surfaceColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.people_outline,
-                            size: 48,
-                            color: context.textTertiaryColor.withValues(
-                              alpha: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.noParticipantsYet,
-                            style: TextStyle(color: context.textTertiaryColor),
-                          ),
-                        ],
+                      child: Text(
+                        event.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.textSecondaryColor,
+                          height: 1.6,
+                        ),
                       ),
-                    )
-                  else
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Organisateur
+                    Text(
+                      l10n.organizer,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -612,264 +515,391 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Stack of participant avatars
-                          SizedBox(
-                            width: 80,
-                            height: 40,
-                            child: Stack(
-                              children: List.generate(
-                                event.attendeeIds.length.clamp(0, 3),
-                                (index) => Positioned(
-                                  left: index * 20.0,
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      gradient: context.adaptivePrimaryGradient,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: context.surfaceColor,
-                                        width: 2,
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              gradient: context.adaptivePrimaryGradient,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child:
+                                event.organizerPhotoUrl != null
+                                    ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: Image.network(
+                                        event.organizerPhotoUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) => Icon(
+                                              Icons.person,
+                                              color: context.onPrimaryColor,
+                                            ),
                                       ),
-                                    ),
-                                    child: Icon(
+                                    )
+                                    : Icon(
                                       Icons.person,
                                       color: context.onPrimaryColor,
-                                      size: 20,
+                                    ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.organizerName ?? l10n.organizer,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.textPrimaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.organizer,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: context.textTertiaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Participants
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.participantsTitle,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceVariantColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            event.maxAttendees > 0
+                                ? '${event.attendeeIds.length}/${event.maxAttendees}'
+                                : l10n.participants(event.attendeeIds.length),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (event.attendeeIds.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 48,
+                              color: context.textTertiaryColor.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.noParticipantsYet,
+                              style: TextStyle(
+                                color: context.textTertiaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            // Stack of participant avatars
+                            SizedBox(
+                              width: 80,
+                              height: 40,
+                              child: Stack(
+                                children: List.generate(
+                                  event.attendeeIds.length.clamp(0, 3),
+                                  (index) => Positioned(
+                                    left: index * 20.0,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        gradient:
+                                            context.adaptivePrimaryGradient,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: context.surfaceColor,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.person,
+                                        color: context.onPrimaryColor,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            if (event.attendeeIds.length > 3)
+                              Text(
+                                l10n.othersMore(event.attendeeIds.length - 3),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: context.textSecondaryColor,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                    // Recap Section (if exists)
+                    if (event.recapDescription != null &&
+                        event.recapPhotoUrls.isNotEmpty) ...[
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.photo_library,
+                            size: 20,
+                            color: context.adaptivePrimaryColor,
                           ),
                           const SizedBox(width: 8),
-                          if (event.attendeeIds.length > 3)
-                            Text(
-                              l10n.othersMore(event.attendeeIds.length - 3),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.textSecondaryColor,
-                              ),
+                          Text(
+                            'Récapitulatif',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: context.textPrimaryColor,
                             ),
-                        ],
-                      ),
-                    ),
-
-                  // Recap Section (if exists)
-                  if (event.recapDescription != null &&
-                      event.recapPhotoUrls.isNotEmpty) ...[
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.photo_library,
-                          size: 20,
-                          color: context.adaptivePrimaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Récapitulatif',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: context.textPrimaryColor,
                           ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          onPressed: () async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(
-                              context,
-                            );
-                            try {
-                              final shareText = '''
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () async {
+                              final scaffoldMessenger = ScaffoldMessenger.of(
+                                context,
+                              );
+                              try {
+                                final shareText = '''
 📸 ${event.title} - R\u00e9capitulatif
 
 ${event.recapDescription}
 
 Voir plus de d\u00e9tails sur DiaspoNiger
 ''';
-                              await Share.share(shareText);
-                            } catch (e) {
-                              scaffoldMessenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text('Erreur lors du partage'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                          icon: Icon(
-                            Icons.share,
-                            color: context.adaptivePrimaryColor,
+                                await Share.share(shareText);
+                              } catch (e) {
+                                scaffoldMessenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Erreur lors du partage'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            icon: Icon(
+                              Icons.share,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                            tooltip: 'Partager le récapitulatif',
                           ),
-                          tooltip: 'Partager le récapitulatif',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(12),
+                        ],
                       ),
-                      child: Text(
-                        event.recapDescription!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: context.textSecondaryColor,
-                          height: 1.5,
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          event.recapDescription!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.textSecondaryColor,
+                            height: 1.5,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1,
-                          ),
-                      itemCount: event.recapPhotoUrls.length,
-                      itemBuilder: (context, index) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            event.recapPhotoUrls[index],
-                            fit: BoxFit.cover,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                              childAspectRatio: 1,
+                            ),
+                        itemCount: event.recapPhotoUrls.length,
+                        itemBuilder: (context, index) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              event.recapPhotoUrls[index],
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
 
-                  const SizedBox(height: 100),
-                ],
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-        ),
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          boxShadow: [
-            BoxShadow(
-              color: context.shadowColor,
-              blurRadius: 10,
-              offset: const Offset(0, -4),
             ),
           ],
         ),
-        child:
-            _isLoading
-                ? Center(
-                  child: CircularProgressIndicator(
-                    color: context.adaptivePrimaryColor,
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            boxShadow: [
+              BoxShadow(
+                color: context.shadowColor,
+                blurRadius: 10,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child:
+              _isLoading
+                  ? Center(
+                    child: CircularProgressIndicator(
+                      color: context.adaptivePrimaryColor,
+                    ),
+                  )
+                  : isOrganizer
+                  ? Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _deleteEvent(event.id),
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          label: Text(
+                            l10n.delete,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            context.push(
+                              '/events/${event.id}/edit',
+                              extra: event,
+                            );
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: Text(l10n.edit),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: context.adaptivePrimaryColor,
+                            foregroundColor: context.onPrimaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                  : isAttending
+                  ? Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed:
+                              () =>
+                                  _cancelAttendance(event.id, currentUser!.id),
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          label: Text(
+                            l10n.cancel,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _addToCalendar(event),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(l10n.calendar),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: context.adaptivePrimaryColor,
+                            foregroundColor: context.onPrimaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                  : SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          _canAttend(event)
+                              ? () => _attendEvent(event.id, currentUser!.id)
+                              : null,
+                      icon: const Icon(Icons.check),
+                      label: Text(
+                        _canAttend(event) ? l10n.participate : l10n.full,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.adaptivePrimaryColor,
+                        foregroundColor: context.onPrimaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
                   ),
-                )
-                : isOrganizer
-                ? Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _deleteEvent(event.id),
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        label: Text(
-                          l10n.delete,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Colors.red),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          context.push(
-                            '/events/${event.id}/edit',
-                            extra: event,
-                          );
-                        },
-                        icon: const Icon(Icons.edit),
-                        label: Text(l10n.edit),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.adaptivePrimaryColor,
-                          foregroundColor: context.onPrimaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-                : isAttending
-                ? Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed:
-                            () => _cancelAttendance(event.id, currentUser!.id),
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        label: Text(
-                          l10n.cancel,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Colors.red),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _addToCalendar(event),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text(l10n.calendar),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.adaptivePrimaryColor,
-                          foregroundColor: context.onPrimaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-                : SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        _canAttend(event)
-                            ? () => _attendEvent(event.id, currentUser!.id)
-                            : null,
-                    icon: const Icon(Icons.check),
-                    label: Text(
-                      _canAttend(event) ? l10n.participate : l10n.full,
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.adaptivePrimaryColor,
-                      foregroundColor: context.onPrimaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                ),
-      ),
-    );
-  }
+        ), //Close bottomNavigationBar (Container)
+      ), // Close PopScope child (Scaffold)
+    ); // Close PopScope
+  } // Close build method
 
   bool _canAttend(EventEntity event) {
     if (event.maxAttendees == 0) return true;

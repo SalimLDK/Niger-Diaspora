@@ -6,6 +6,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/support_service.dart';
 
 class CodeOfConductScreen extends ConsumerWidget {
   const CodeOfConductScreen({super.key});
@@ -56,7 +57,12 @@ class CodeOfConductScreen extends ConsumerWidget {
                 color: context.adaptivePrimaryColor,
               ),
             ),
-        error: (error, _) => _buildFallbackContent(context, l10n, locale),
+        error: (error, _) => _buildFallbackContent(
+          context,
+          l10n,
+          locale,
+          ref.watch(supportServiceProvider),
+        ),
       ),
     );
   }
@@ -69,6 +75,7 @@ class CodeOfConductScreen extends ConsumerWidget {
     BuildContext context,
     AppLocalizations l10n,
     Locale locale,
+    SupportService supportService,
   ) {
     final isFrench = locale.languageCode == 'fr';
     final fallbackDate = DateTime(2025, 1, 1);
@@ -292,12 +299,12 @@ class CodeOfConductScreen extends ConsumerWidget {
           isFrench
               ? 'Pour toute question concernant ce code de conduite ou pour signaler '
                   'un probleme :\n\n'
-                  'Email : moderation@diasponiger.com\n'
-                  'Support : support@diasponiger.com\n\n'
+                  'Email : ${supportService.moderationEmail}\n'
+                  'Support : ${supportService.supportEmail}\n\n'
                   'Ensemble, construisons une communaute solidaire et respectueuse !'
               : 'For any questions about this code of conduct or to report an issue:\n\n'
-                  'Email: moderation@diasponiger.com\n'
-                  'Support: support@diasponiger.com\n\n'
+                  'Email: ${supportService.moderationEmail}\n'
+                  'Support: ${supportService.supportEmail}\n\n'
                   'Together, let\'s build a supportive and respectful community!',
         ),
         const SizedBox(height: 20),

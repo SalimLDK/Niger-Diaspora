@@ -251,7 +251,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.info_outline,
                 title: l10n.about,
-                subtitle: '${l10n.version} 1.1.0',
+                subtitle: '${l10n.version} 1.1.0+7',
                 onTap: () => _showAbout(),
               ),
               const _SettingsDivider(),
@@ -463,16 +463,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => _CurrencySelectorModal(
-        currentCurrency: currentCurrency,
-        onSelect: (currency) {
-          ref.read(selectedDisplayCurrencyProvider.notifier).select(currency);
-          Navigator.pop(ctx);
-        },
-      ),
+      builder:
+          (ctx) => _CurrencySelectorModal(
+            currentCurrency: currentCurrency,
+            onSelect: (currency) {
+              ref
+                  .read(selectedDisplayCurrencyProvider.notifier)
+                  .select(currency);
+              Navigator.pop(ctx);
+            },
+          ),
     );
   }
-
 
   String _getThemeLabel(AppThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
@@ -584,7 +586,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showHelpSupport() {
-    final supportService = SupportService();
+    final supportService = ref.read(supportServiceProvider);
 
     showModalBottomSheet(
       context: context,
@@ -629,7 +631,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     style: TextStyle(color: ctx.textPrimaryColor),
                   ),
                   subtitle: Text(
-                    'support@diasponiger.com',
+                    supportService.supportEmail,
                     style: TextStyle(color: ctx.textSecondaryColor),
                   ),
                   onTap: () async {
@@ -724,7 +726,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     Text(l10n.appTitle, style: const TextStyle(fontSize: 18)),
                     const Text(
-                      '1.0.0',
+                      '1.1.0+7',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.normal,
@@ -747,14 +749,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showTerms() async {
-    final url = Uri.parse('https://diaspo-niger.web.app/terms-of-service.html');
+    final url = Uri.parse('https://diasponiger.com/terms-of-service.html');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
   }
 
   void _showPrivacyPolicy() async {
-    final url = Uri.parse('https://diaspo-niger.web.app/privacy-policy.html');
+    final url = Uri.parse('https://diasponiger.com/privacy-policy.html');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
@@ -1540,15 +1542,16 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
                       decoration: InputDecoration(
                         hintText: 'Rechercher une devise...',
                         prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                              )
-                            : null,
+                        suffixIcon:
+                            _searchQuery.isNotEmpty
+                                ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                                : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1566,9 +1569,10 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
               ),
               // Currency list
               Expanded(
-                child: isSearching
-                    ? _buildSearchResults(scrollController)
-                    : _buildCategorizedList(scrollController),
+                child:
+                    isSearching
+                        ? _buildSearchResults(scrollController)
+                        : _buildCategorizedList(scrollController),
               ),
             ],
           ),
@@ -1585,11 +1589,7 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 48,
-              color: context.textTertiaryColor,
-            ),
+            Icon(Icons.search_off, size: 48, color: context.textTertiaryColor),
             const SizedBox(height: 16),
             Text(
               'Aucune devise trouvee',
@@ -1645,16 +1645,14 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: isSelected
-              ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
-              : context.borderColor.withValues(alpha: 0.3),
+          color:
+              isSelected
+                  ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
+                  : context.borderColor.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
-          child: Text(
-            currency.flag,
-            style: const TextStyle(fontSize: 22),
-          ),
+          child: Text(currency.flag, style: const TextStyle(fontSize: 22)),
         ),
       ),
       title: Row(
@@ -1663,31 +1661,27 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
             currency.code,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? context.adaptivePrimaryColor
-                  : context.textPrimaryColor,
+              color:
+                  isSelected
+                      ? context.adaptivePrimaryColor
+                      : context.textPrimaryColor,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             currency.symbol,
-            style: TextStyle(
-              fontSize: 14,
-              color: context.textSecondaryColor,
-            ),
+            style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
           ),
         ],
       ),
       subtitle: Text(
         currency.name,
-        style: TextStyle(
-          fontSize: 13,
-          color: context.textSecondaryColor,
-        ),
+        style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
       ),
-      trailing: isSelected
-          ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
-          : null,
+      trailing:
+          isSelected
+              ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
+              : null,
       onTap: () => widget.onSelect(currency),
     );
   }

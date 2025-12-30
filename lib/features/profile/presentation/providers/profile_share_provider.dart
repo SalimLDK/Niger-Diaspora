@@ -8,7 +8,7 @@ import '../../domain/entities/profile_share_link_entity.dart';
 
 part 'profile_share_provider.g.dart';
 
-const String _baseShareUrl = 'https://diaspo-niger.web.app/p/';
+const String _baseShareUrl = 'https://diasponiger.com/p/';
 
 @riverpod
 ProfileShareDataSource profileShareDataSource(Ref ref) {

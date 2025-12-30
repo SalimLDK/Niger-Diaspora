@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/entities/embassy_entity.dart';
 import 'embassy_message_screen.dart';
 import 'administrative_request_screen.dart';
@@ -41,109 +42,123 @@ class EmbassyDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: 3,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                expandedHeight: 200.0,
-                floating: false,
-                pinned: true,
-                backgroundColor: Theme.of(context).primaryColor,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Placeholder for cover image (could be map or flag)
-                      Container(
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.1),
-                        child: Center(
-                          child: Icon(
-                            Icons.account_balance,
-                            size: 80,
-                            color: Theme.of(
-                              context,
-                            ).primaryColor.withValues(alpha: 0.5),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          if (context.mounted) {
+            context.go('/home');
+          }
+        }
+      },
+      child: Scaffold(
+        body: DefaultTabController(
+          length: 3,
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  expandedHeight: 200.0,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Theme.of(context).primaryColor,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Placeholder for cover image (could be map or flag)
+                        Container(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withValues(alpha: 0.1),
+                          child: Center(
+                            child: Icon(
+                              Icons.account_balance,
+                              size: 80,
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.5),
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.6),
-                            ],
-                            stops: const [0.6, 1.0],
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.6),
+                              ],
+                              stops: const [0.6, 1.0],
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          embassy.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (embassy.isVerified) ...[
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.verified,
-                          color: Colors.blue,
-                          size: 20,
                         ),
                       ],
-                    ],
-                  ),
-                  titlePadding: const EdgeInsets.only(
-                    left: 16,
-                    bottom: 16,
-                    right: 16,
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            embassy.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (embassy.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.verified,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
+                        ],
+                      ],
+                    ),
+                    titlePadding: const EdgeInsets.only(
+                      left: 16,
+                      bottom: 16,
+                      right: 16,
+                    ),
                   ),
                 ),
-              ),
-              SliverPersistentHeader(
-                delegate: _SliverAppBarDelegate(
-                  const TabBar(
-                    labelColor: Colors.black87,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.orange, // Keep original theme color
-                    tabs: [
-                      Tab(text: 'Infos'),
-                      Tab(text: 'Activités'),
-                      Tab(text: 'Actualités'),
-                    ],
+                SliverPersistentHeader(
+                  delegate: _SliverAppBarDelegate(
+                    const TabBar(
+                      labelColor: Colors.black87,
+                      unselectedLabelColor: Colors.grey,
+                      indicatorColor:
+                          Colors.orange, // Keep original theme color
+                      tabs: [
+                        Tab(text: 'Infos'),
+                        Tab(text: 'Activités'),
+                        Tab(text: 'Actualités'),
+                      ],
+                    ),
                   ),
+                  pinned: true,
                 ),
-                pinned: true,
-              ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              _buildInfoTab(context),
-              _buildActivitiesTab(context),
-              _buildNewsTab(context),
-            ],
+              ];
+            },
+            body: TabBarView(
+              children: [
+                _buildInfoTab(context),
+                _buildActivitiesTab(context),
+                _buildNewsTab(context),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      ), // Close PopScope child (Scaffold)
+    ); // Close PopScope
   }
 
   Widget _buildInfoTab(BuildContext context) {

@@ -120,8 +120,10 @@ class ExchangeRatesEntity with _$ExchangeRatesEntity {
     @Default(455.0) double cadToXof,
     @Default(690.0) double chfToXof,
     DateTime? lastUpdated,
+
     /// API key for exchangerate-api.com (stored in Firestore admin settings)
     String? exchangeRateApiKey,
+
     /// Refresh interval in minutes for fetching new rates (default: 60)
     @Default(60) int refreshIntervalMinutes,
   }) = _ExchangeRatesEntity;
@@ -196,11 +198,15 @@ class SystemIntervalsEntity with _$SystemIntervalsEntity {
 @freezed
 class SystemUrlsEntity with _$SystemUrlsEntity {
   const factory SystemUrlsEntity({
-    @Default('https://diaspo-niger.web.app/p/') String shareBaseUrl,
+    @Default('https://diasponiger.com/p/') String shareBaseUrl,
     @Default('support@diasponiger.com') String supportEmail,
+    @Default('privacy@diasponiger.com') String privacyEmail,
+    @Default('bugs@diasponiger.com') String bugsEmail,
+    @Default('feedback@diasponiger.com') String feedbackEmail,
+    @Default('moderation@diasponiger.com') String moderationEmail,
     @Default('merchant.com.diasponiger') String stripeMerchantId,
-    @Default('https://diaspo-niger.web.app/terms') String termsUrl,
-    @Default('https://diaspo-niger.web.app/privacy') String privacyUrl,
+    @Default('https://diasponiger.com/terms') String termsUrl,
+    @Default('https://diasponiger.com/privacy') String privacyUrl,
   }) = _SystemUrlsEntity;
 }
 

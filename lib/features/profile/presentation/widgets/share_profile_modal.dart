@@ -77,7 +77,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     // Si on a un userId, générer directement l'URL sans Firebase
     if (widget.userId != null) {
       setState(() {
-        _shareUrl = 'https://diaspo-niger.web.app/p/u/${widget.userId}';
+        _shareUrl = 'https://diasponiger.com/p/u/${widget.userId}';
         _isLoading = false;
       });
       return;

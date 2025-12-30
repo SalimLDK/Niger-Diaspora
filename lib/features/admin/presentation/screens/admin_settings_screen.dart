@@ -1674,6 +1674,10 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _shareBaseUrlController;
   late TextEditingController _supportEmailController;
+  late TextEditingController _privacyEmailController;
+  late TextEditingController _bugsEmailController;
+  late TextEditingController _feedbackEmailController;
+  late TextEditingController _moderationEmailController;
   late TextEditingController _locationIntervalController;
   late TextEditingController _heartbeatIntervalController;
   late TextEditingController _cacheMinutesController;
@@ -1685,6 +1689,10 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
     final intervals = widget.settings.intervals;
     _shareBaseUrlController = TextEditingController(text: urls.shareBaseUrl);
     _supportEmailController = TextEditingController(text: urls.supportEmail);
+    _privacyEmailController = TextEditingController(text: urls.privacyEmail);
+    _bugsEmailController = TextEditingController(text: urls.bugsEmail);
+    _feedbackEmailController = TextEditingController(text: urls.feedbackEmail);
+    _moderationEmailController = TextEditingController(text: urls.moderationEmail);
     _locationIntervalController =
         TextEditingController(text: intervals.locationUpdateMinutes.toString());
     _heartbeatIntervalController =
@@ -1697,6 +1705,10 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
   void dispose() {
     _shareBaseUrlController.dispose();
     _supportEmailController.dispose();
+    _privacyEmailController.dispose();
+    _bugsEmailController.dispose();
+    _feedbackEmailController.dispose();
+    _moderationEmailController.dispose();
     _locationIntervalController.dispose();
     _heartbeatIntervalController.dispose();
     _cacheMinutesController.dispose();
@@ -1711,6 +1723,10 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
     final newUrls = SystemUrlsEntity(
       shareBaseUrl: _shareBaseUrlController.text,
       supportEmail: _supportEmailController.text,
+      privacyEmail: _privacyEmailController.text,
+      bugsEmail: _bugsEmailController.text,
+      feedbackEmail: _feedbackEmailController.text,
+      moderationEmail: _moderationEmailController.text,
       stripeMerchantId: current.stripeMerchantId,
       termsUrl: current.termsUrl,
       privacyUrl: current.privacyUrl,
@@ -1800,7 +1816,31 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 _buildTextField(
                   controller: _supportEmailController,
                   label: 'Email support',
-                  icon: Icons.email_rounded,
+                  icon: Icons.support_agent_rounded,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _privacyEmailController,
+                  label: 'Email confidentialite (RGPD)',
+                  icon: Icons.privacy_tip_rounded,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _bugsEmailController,
+                  label: 'Email rapport de bugs',
+                  icon: Icons.bug_report_rounded,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _feedbackEmailController,
+                  label: 'Email feedback',
+                  icon: Icons.feedback_rounded,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _moderationEmailController,
+                  label: 'Email moderation',
+                  icon: Icons.admin_panel_settings_rounded,
                 ),
               ],
             ),

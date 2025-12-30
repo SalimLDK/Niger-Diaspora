@@ -20,7 +20,8 @@ class BusinessDetailScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<BusinessDetailScreen> createState() => _BusinessDetailScreenState();
+  ConsumerState<BusinessDetailScreen> createState() =>
+      _BusinessDetailScreenState();
 }
 
 class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
@@ -28,7 +29,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(businessDetailNotifierProvider.notifier).loadBusiness(widget.businessId);
+      ref
+          .read(businessDetailNotifierProvider.notifier)
+          .loadBusiness(widget.businessId);
     });
   }
 
@@ -62,34 +65,69 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
     // Use initial business if available while loading
     final business = businessAsync.valueOrNull ?? widget.initialBusiness;
 
-    return Scaffold(
-      body: businessAsync.when(
-        data: (loadedBusiness) => _buildContent(context, loadedBusiness ?? widget.initialBusiness!, currentUser?.id),
-        loading: () => business != null
-            ? _buildContent(context, business, currentUser?.id)
-            : const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
-              const SizedBox(height: 16),
-              Text(error.toString(), style: TextStyle(color: theme.colorScheme.error)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(businessDetailNotifierProvider.notifier).loadBusiness(widget.businessId);
-                },
-                child: const Text('Reessayer'),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        if (context.mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          if (context.mounted) {
+            context.go('/home');
+          }
+        }
+      },
+      child: Scaffold(
+        body: businessAsync.when(
+          data:
+              (loadedBusiness) => _buildContent(
+                context,
+                loadedBusiness ?? widget.initialBusiness!,
+                currentUser?.id,
               ),
-            ],
-          ),
+          loading:
+              () =>
+                  business != null
+                      ? _buildContent(context, business, currentUser?.id)
+                      : const Center(child: CircularProgressIndicator()),
+          error:
+              (error, _) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      error.toString(),
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref
+                            .read(businessDetailNotifierProvider.notifier)
+                            .loadBusiness(widget.businessId);
+                      },
+                      child: const Text('Reessayer'),
+                    ),
+                  ],
+                ),
+              ),
         ),
-      ),
-    );
+      ), // Close PopScope child (Scaffold)
+    ); // Close PopScope
   }
 
-  Widget _buildContent(BuildContext context, BusinessEntity business, String? currentUserId) {
+  Widget _buildContent(
+    BuildContext context,
+    BusinessEntity business,
+    String? currentUserId,
+  ) {
     final theme = Theme.of(context);
     final isOwner = currentUserId == business.ownerId;
     final hasImages = business.photoUrls.isNotEmpty;
@@ -101,22 +139,29 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
           expandedHeight: 200,
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(
-            background: hasImages
-                ? CachedNetworkImage(
-                    imageUrl: business.photoUrls.first,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
+            background:
+                hasImages
+                    ? CachedNetworkImage(
+                      imageUrl: business.photoUrls.first,
+                      fit: BoxFit.cover,
+                      placeholder:
+                          (_, __) => Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                          ),
+                      errorWidget:
+                          (_, __, ___) => Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: Icon(business.category.icon, size: 64),
+                          ),
+                    )
+                    : Container(
                       color: theme.colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        business.category.icon,
+                        size: 64,
+                        color: theme.colorScheme.outline,
+                      ),
                     ),
-                    errorWidget: (_, __, ___) => Container(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      child: Icon(business.category.icon, size: 64),
-                    ),
-                  )
-                : Container(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    child: Icon(business.category.icon, size: 64, color: theme.colorScheme.outline),
-                  ),
           ),
           actions: [
             if (isOwner)
@@ -124,17 +169,30 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 onSelected: (value) {
                   switch (value) {
                     case 'edit':
-                      context.push('/businesses/${business.id}/edit', extra: business);
+                      context.push(
+                        '/businesses/${business.id}/edit',
+                        extra: business,
+                      );
                       break;
                     case 'boost':
-                      context.push('/businesses/${business.id}/boost', extra: business);
+                      context.push(
+                        '/businesses/${business.id}/boost',
+                        extra: business,
+                      );
                       break;
                   }
                 },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Modifier')),
-                  const PopupMenuItem(value: 'boost', child: Text('Booster')),
-                ],
+                itemBuilder:
+                    (_) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Text('Modifier'),
+                      ),
+                      const PopupMenuItem(
+                        value: 'boost',
+                        child: Text('Booster'),
+                      ),
+                    ],
               ),
           ],
         ),
@@ -149,7 +207,10 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(16),
@@ -166,7 +227,10 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     const SizedBox(width: 8),
                     if (business.isVerified)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(16),
@@ -176,13 +240,19 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                           children: [
                             Icon(Icons.verified, size: 16, color: Colors.white),
                             SizedBox(width: 4),
-                            Text('Verifie', style: TextStyle(color: Colors.white)),
+                            Text(
+                              'Verifie',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ],
                         ),
                       ),
                     if (business.isBoosted)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         margin: const EdgeInsets.only(left: 8),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary,
@@ -191,9 +261,18 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, size: 16, color: theme.colorScheme.onPrimary),
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            ),
                             const SizedBox(width: 4),
-                            Text('Premium', style: TextStyle(color: theme.colorScheme.onPrimary)),
+                            Text(
+                              'Premium',
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -203,7 +282,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 // Name
                 Text(
                   business.name,
-                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 // Rating
@@ -212,7 +293,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     children: [
                       ...List.generate(5, (index) {
                         return Icon(
-                          index < business.averageRating.round() ? Icons.star : Icons.star_border,
+                          index < business.averageRating.round()
+                              ? Icons.star
+                              : Icons.star_border,
                           color: Colors.amber,
                           size: 20,
                         );
@@ -226,15 +309,14 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ),
                 const SizedBox(height: 16),
                 // Description
-                Text(
-                  business.description,
-                  style: theme.textTheme.bodyLarge,
-                ),
+                Text(business.description, style: theme.textTheme.bodyLarge),
                 const SizedBox(height: 24),
                 // Contact section
                 Text(
                   'Contact',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 if (business.phone != null)
@@ -259,22 +341,26 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ListTile(
                     leading: const Icon(Icons.location_on),
                     title: Text(business.address!),
-                    subtitle: business.city != null ? Text(business.city!) : null,
+                    subtitle:
+                        business.city != null ? Text(business.city!) : null,
                   ),
                 const SizedBox(height: 24),
                 // Services
                 if (business.services.isNotEmpty) ...[
                   Text(
                     'Services',
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: business.services.map((service) {
-                      return Chip(label: Text(service));
-                    }).toList(),
+                    children:
+                        business.services.map((service) {
+                          return Chip(label: Text(service));
+                        }).toList(),
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -312,10 +398,14 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: () {
-                        context.push('/messages/new', extra: {
-                          'recipientId': business.ownerId,
-                          'recipientName': business.ownerName ?? business.name,
-                        });
+                        context.push(
+                          '/messages/new',
+                          extra: {
+                            'recipientId': business.ownerId,
+                            'recipientName':
+                                business.ownerName ?? business.name,
+                          },
+                        );
                       },
                       icon: const Icon(Icons.message),
                       label: const Text('Contacter'),
@@ -338,7 +428,15 @@ class _OpeningHoursSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    final days = [
+      'lundi',
+      'mardi',
+      'mercredi',
+      'jeudi',
+      'vendredi',
+      'samedi',
+      'dimanche',
+    ];
     final dayLabels = {
       'lundi': 'Lundi',
       'mardi': 'Mardi',
@@ -354,7 +452,9 @@ class _OpeningHoursSection extends StatelessWidget {
       children: [
         Text(
           'Horaires d\'ouverture',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 12),
         ...days.where((day) => openingHours.containsKey(day)).map((day) {
@@ -400,7 +500,9 @@ class _OffersSection extends ConsumerWidget {
             const SizedBox(width: 8),
             Text(
               'Offres en cours',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -411,7 +513,9 @@ class _OffersSection extends ConsumerWidget {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -427,7 +531,8 @@ class _OffersSection extends ConsumerWidget {
               );
             }
             return Column(
-              children: offers.map((offer) => _OfferCard(offer: offer)).toList(),
+              children:
+                  offers.map((offer) => _OfferCard(offer: offer)).toList(),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -446,7 +551,8 @@ class _OfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasDiscount = offer.discountPercent != null && offer.discountPercent! > 0;
+    final hasDiscount =
+        offer.discountPercent != null && offer.discountPercent! > 0;
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Card(
@@ -461,7 +567,10 @@ class _OfferCard extends StatelessWidget {
               children: [
                 if (hasDiscount)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(8),
@@ -490,7 +599,10 @@ class _OfferCard extends StatelessWidget {
             if (offer.promoCode != null) ...[
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.orange),
                   borderRadius: BorderRadius.circular(8),
@@ -498,7 +610,11 @@ class _OfferCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.confirmation_number, size: 16, color: Colors.orange),
+                    const Icon(
+                      Icons.confirmation_number,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Code: ${offer.promoCode}',
@@ -548,7 +664,9 @@ class _PostsSection extends ConsumerWidget {
             Expanded(
               child: Text(
                 'Actualites',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             if (isOwner)
@@ -565,12 +683,15 @@ class _PostsSection extends ConsumerWidget {
         postsAsync.when(
           data: (posts) {
             // Filter out offers (they're shown in the offers section)
-            final filteredPosts = posts.where((p) => p.type != BusinessPostType.offer).toList();
+            final filteredPosts =
+                posts.where((p) => p.type != BusinessPostType.offer).toList();
             if (filteredPosts.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -586,11 +707,16 @@ class _PostsSection extends ConsumerWidget {
               );
             }
             return Column(
-              children: filteredPosts.map((post) => _PostCard(
-                post: post,
-                isOwner: isOwner,
-                onDelete: () => _deletePost(context, ref, post),
-              )).toList(),
+              children:
+                  filteredPosts
+                      .map(
+                        (post) => _PostCard(
+                          post: post,
+                          isOwner: isOwner,
+                          onDelete: () => _deletePost(context, ref, post),
+                        ),
+                      )
+                      .toList(),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -607,103 +733,122 @@ class _PostsSection extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Nouvelle publication'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<BusinessPostType>(
-                  value: selectedType,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: BusinessPostType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Row(
-                        children: [
-                          Icon(type.icon, size: 18, color: type.color),
-                          const SizedBox(width: 8),
-                          Text(type.label),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => selectedType = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Titre',
-                    hintText: 'Ex: Nouvelle collection disponible',
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text('Nouvelle publication'),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DropdownButtonFormField<BusinessPostType>(
+                          value: selectedType,
+                          decoration: const InputDecoration(labelText: 'Type'),
+                          items:
+                              BusinessPostType.values.map((type) {
+                                return DropdownMenuItem(
+                                  value: type,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        type.icon,
+                                        size: 18,
+                                        color: type.color,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(type.label),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => selectedType = value);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Titre',
+                            hintText: 'Ex: Nouvelle collection disponible',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: contentController,
+                          decoration: const InputDecoration(
+                            labelText: 'Contenu',
+                            hintText: 'Decrivez votre actualite...',
+                          ),
+                          maxLines: 4,
+                        ),
+                      ],
+                    ),
                   ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Annuler'),
+                    ),
+                    FilledButton(
+                      onPressed: () async {
+                        if (titleController.text.isEmpty ||
+                            contentController.text.isEmpty) {
+                          return;
+                        }
+                        final post = BusinessPostEntity(
+                          id: '',
+                          businessId: businessId,
+                          title: titleController.text,
+                          content: contentController.text,
+                          type: selectedType,
+                        );
+                        await ref
+                            .read(businessPostActionsProvider.notifier)
+                            .createPost(post);
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                      child: const Text('Publier'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: contentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Contenu',
-                    hintText: 'Decrivez votre actualite...',
-                  ),
-                  maxLines: 4,
-                ),
-              ],
-            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (titleController.text.isEmpty || contentController.text.isEmpty) {
-                  return;
-                }
-                final post = BusinessPostEntity(
-                  id: '',
-                  businessId: businessId,
-                  title: titleController.text,
-                  content: contentController.text,
-                  type: selectedType,
-                );
-                await ref.read(businessPostActionsProvider.notifier).createPost(post);
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: const Text('Publier'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  void _deletePost(BuildContext context, WidgetRef ref, BusinessPostEntity post) {
+  void _deletePost(
+    BuildContext context,
+    WidgetRef ref,
+    BusinessPostEntity post,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer'),
-        content: const Text('Voulez-vous vraiment supprimer cette publication ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Supprimer'),
+            content: const Text(
+              'Voulez-vous vraiment supprimer cette publication ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  await ref
+                      .read(businessPostActionsProvider.notifier)
+                      .deletePost(post.id, businessId);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Supprimer'),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () async {
-              await ref.read(businessPostActionsProvider.notifier).deletePost(post.id, businessId);
-              if (context.mounted) Navigator.pop(context);
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -743,7 +888,9 @@ class _PostCard extends StatelessWidget {
                       right: index == post.imageUrls.length - 1 ? 0 : 4,
                     ),
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
                       child: CachedNetworkImage(
                         imageUrl: post.imageUrls[index],
                         fit: BoxFit.cover,
@@ -762,7 +909,10 @@ class _PostCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: post.type.color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
@@ -770,7 +920,11 @@ class _PostCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(post.type.icon, size: 14, color: post.type.color),
+                          Icon(
+                            post.type.icon,
+                            size: 14,
+                            color: post.type.color,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             post.type.label,
@@ -836,8 +990,18 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(icon, size: 32, color: theme.colorScheme.primary),
         const SizedBox(height: 4),
-        Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+        Text(
+          value,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
+        ),
       ],
     );
   }
