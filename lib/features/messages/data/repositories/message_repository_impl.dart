@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -439,24 +439,24 @@ class MessageRepositoryImpl implements MessageRepository {
     required int limit,
     String? beforeMessageId,
   }) async {
-    debugPrint(
-      '📥 Repository: getMessagesPaginated called for $conversationId',
-    );
+    // debugPrint(
+    //   '📥 Repository: getMessagesPaginated called for $conversationId',
+    // );
     final isConnected = await networkInfo.isConnected;
-    debugPrint('📡 Repository: isConnected = $isConnected');
+    // debugPrint('📡 Repository: isConnected = $isConnected');
 
     if (isConnected) {
       try {
-        debugPrint('🌐 Repository: Fetching from remote data source...');
+        // debugPrint('🌐 Repository: Fetching from remote data source...');
         final (messages, _) = await remoteDataSource.getMessagesPaginated(
           conversationId: conversationId,
           limit: limit,
           lastMessageKey: beforeMessageId,
         );
 
-        debugPrint(
-          '📦 Repository: Received ${messages.length} messages from remote',
-        );
+        // debugPrint(
+        //   '📦 Repository: Received ${messages.length} messages from remote',
+        // );
 
         // _lastDocument = lastDoc; // Not needed anymore
 
@@ -468,7 +468,7 @@ class MessageRepositoryImpl implements MessageRepository {
         final messageMaps = messages.map((m) => m.toJson()).toList();
         await cacheService.cacheMessages(conversationId, messageMaps);
 
-        debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
+        // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
 
         return Right(
           PaginatedMessages(
@@ -480,10 +480,10 @@ class MessageRepositoryImpl implements MessageRepository {
           ),
         );
       } on ServerException catch (e) {
-        debugPrint('❌ Repository: ServerException - ${e.message}');
+        // debugPrint('❌ Repository: ServerException - ${e.message}');
         return Left(ServerFailure(e.message));
       } catch (e) {
-        debugPrint('❌ Repository: Unexpected error - ${e.toString()}');
+        // debugPrint('❌ Repository: Unexpected error - ${e.toString()}');
         return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
       }
     } else {
@@ -558,9 +558,7 @@ class MessageRepositoryImpl implements MessageRepository {
           return Right<Failure, MessageEntity>(message.toEntity());
         })
         .handleError((error) {
-          return Left<Failure, MessageEntity>(
-            ServerFailure(error.toString()),
-          );
+          return Left<Failure, MessageEntity>(ServerFailure(error.toString()));
         });
   }
 

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 // import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
@@ -578,9 +578,10 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     // Try to update conversation metadata (non-critical)
     await _updateConversationLastMessage(
       conversationId: conversationId,
-      lastMessage: productData != null
-          ? '🛒 ${productData['title'] ?? 'Produit'}'
-          : content,
+      lastMessage:
+          productData != null
+              ? '🛒 ${productData['title'] ?? 'Produit'}'
+              : content,
       senderId: senderId,
     );
 
@@ -1372,7 +1373,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
             data['content'] = _encryptionService.decryptText(data['content']);
           } catch (e) {
             // Ignore decryption error, keep original or empty
-            debugPrint('⚠️ Decryption failed for media caption: $e');
+            // debugPrint('⚠️ Decryption failed for media caption: $e');
           }
         }
 
@@ -1400,7 +1401,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
       return messages;
     } catch (e) {
-      debugPrint('❌ MessageRemoteDataSource: Error getting media messages: $e');
+      // debugPrint('❌ MessageRemoteDataSource: Error getting media messages: $e');
       throw ServerException(
         'Erreur lors de la récupération des médias: ${e.toString()}',
       );
@@ -1526,9 +1527,9 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         try {
           final ref = _storage.refFromURL(fileUrl);
           await ref.delete();
-          debugPrint('🗑️ Deleted media file: $fileUrl');
+          // debugPrint('🗑️ Deleted media file: $fileUrl');
         } catch (e) {
-          debugPrint('⚠️ Failed to delete media file: $e');
+          // debugPrint('⚠️ Failed to delete media file: $e');
         }
       }
 
@@ -1598,7 +1599,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
           }
         }
       } catch (e) {
-        debugPrint('⚠️ Failed to update conversation preview: $e');
+        // debugPrint('⚠️ Failed to update conversation preview: $e');
       }
 
       // 3. Update message to mark as deleted for everyone
@@ -1778,7 +1779,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         data['id'] = snapshot.key;
         return MessageModel.fromJson(data);
       } catch (e) {
-        debugPrint('⚠️ Could not retrieve created system message');
+        // debugPrint('⚠️ Could not retrieve created system message');
         return MessageModel(
           id: newMessageRef.key!,
           senderId: 'system',

@@ -120,20 +120,20 @@ class StripeService {
       // 3. Present payment sheet
       await Stripe.instance.presentPaymentSheet();
 
-      debugPrint('✅ Payment completed successfully');
+      // debugPrint('✅ Payment completed successfully');
       return paymentIntentId;
     } on StripeException catch (e) {
-      debugPrint('❌ Stripe error: ${e.error.localizedMessage}');
+      // debugPrint('❌ Stripe error: ${e.error.localizedMessage}');
 
       // User cancelled the payment
       if (e.error.code == FailureCode.Canceled) {
-        debugPrint('Payment cancelled by user');
+        // debugPrint('Payment cancelled by user');
         return null;
       }
 
       rethrow;
     } catch (e) {
-      debugPrint('❌ Payment error: $e');
+      // debugPrint('❌ Payment error: $e');
       rethrow;
     }
   }
@@ -213,7 +213,7 @@ class StripeService {
 
       return await completer.future;
     } catch (e) {
-      debugPrint('Error creating payment intent: $e');
+      // debugPrint('Error creating payment intent: $e');
       rethrow;
     } finally {
       // Clean up resources
@@ -240,7 +240,7 @@ class StripeService {
       final data = querySnapshot.docs.first.data();
       return data['status'] == 'succeeded';
     } catch (e) {
-      debugPrint('Error checking payment status: $e');
+      // debugPrint('Error checking payment status: $e');
       return false;
     }
   }
