@@ -6,6 +6,8 @@ import '../../../../shared/widgets/price_text.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../reports/domain/entities/report_entity.dart';
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 
@@ -79,6 +81,19 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         // Share functionality
                       },
                     ),
+                    if (!isOwner)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.flag_outlined,
+                          color: Colors.orange,
+                        ),
+                        onPressed: () => ReportContentModal.show(
+                          context,
+                          targetType: ReportTargetType.product,
+                          targetId: product.id,
+                          targetName: product.title,
+                        ),
+                      ),
                   ],
                   flexibleSpace: FlexibleSpaceBar(
                     background:

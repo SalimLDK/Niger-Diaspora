@@ -12,6 +12,7 @@ class NotificationEntity with _$NotificationEntity {
     @Default(NotificationType.general) NotificationType type,
     @Default(NotificationPriority.normal) NotificationPriority priority,
     String? targetId,
+    String? senderId, // ID of the user who triggered this notification
     String? groupKey,
     @Default(false) bool isRead,
     DateTime? createdAt,

@@ -356,9 +356,9 @@ class _MessagesProviderElement
   String get conversationId => (origin as MessagesProvider).conversationId;
 }
 
-String _$totalUnreadCountHash() => r'7f5baf1312ba8179ffea5593a3f4f32e9d3a0833';
+String _$totalUnreadCountHash() => r'807f22d7aed284aab13117724e3a97d605b334c2';
 
-/// Nombre total de messages non lus
+/// Nombre total de messages non lus (filtre les utilisateurs bloqués)
 ///
 /// Copied from [totalUnreadCount].
 @ProviderFor(totalUnreadCount)
@@ -376,7 +376,7 @@ final totalUnreadCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TotalUnreadCountRef = AutoDisposeProviderRef<int>;
-String _$paginatedMessagesHash() => r'19123d994d2bb51dfb0cad43faa8c34d268866d7';
+String _$paginatedMessagesHash() => r'e267117bda25191a92424f3e88e6ad2a7e045c26';
 
 abstract class _$PaginatedMessages
     extends BuildlessNotifier<MessagePaginationState> {
@@ -525,7 +525,7 @@ class _PaginatedMessagesProviderElement
       (origin as PaginatedMessagesProvider).conversationId;
 }
 
-String _$sendMessageHash() => r'3ad4771bb025cc9e625b6d02c888ca9137c7b513';
+String _$sendMessageHash() => r'caab69d97eb866324afcc357fd661bd2c17272b6';
 
 /// Notifier pour envoyer des messages
 ///

@@ -8,6 +8,9 @@ import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/user_color_utils.dart';
+import '../../../reports/domain/entities/report_entity.dart'
+    show ReportTargetType, ContentSnapshot;
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 import 'audio_message_bubble.dart';
 import 'delete_message_modal.dart';
 import 'full_screen_image_viewer.dart';
@@ -727,6 +730,36 @@ class _MessageBubbleState extends State<MessageBubble>
                     },
                   ),
 
+                // Report option (for messages from other users)
+                if (!widget.isMe && !widget.message.deletedForEveryone)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.flag_outlined,
+                      color: Colors.orange,
+                    ),
+                    title: const Text(
+                      'Signaler',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      // Créer le snapshot du contenu
+                      final snapshot = _createMessageSnapshot();
+                      ReportContentModal.show(
+                        context,
+                        targetType: ReportTargetType.message,
+                        targetId: widget.message.id,
+                        targetName: widget.message.senderName,
+                        targetPreview: widget.message.type == MessageType.text
+                            ? widget.message.content
+                            : null,
+                        conversationId: widget.conversationId,
+                        contentSnapshot: snapshot,
+                        reportedUserId: widget.message.senderId,
+                      );
+                    },
+                  ),
+
                 SizedBox(height: MediaQuery.of(ctx).padding.bottom),
               ],
             ),
@@ -744,6 +777,40 @@ class _MessageBubbleState extends State<MessageBubble>
       currentUserId: widget.currentUserId!,
       isAdmin: widget.isAdmin,
     );
+  }
+
+  /// Crée un snapshot du message pour préserver le contenu signalé
+  ContentSnapshot _createMessageSnapshot() {
+    final message = widget.message;
+
+    switch (message.type) {
+      case MessageType.text:
+        return ReportContentModal.textMessageSnapshot(message.content);
+
+      case MessageType.image:
+        return ReportContentModal.imageSnapshot(
+          message.fileUrl ?? '',
+          caption: message.content.isNotEmpty && message.content != message.fileName
+              ? message.content
+              : null,
+        );
+
+      case MessageType.video:
+        return ReportContentModal.videoSnapshot(
+          message.fileUrl ?? '',
+          caption: message.content.isNotEmpty ? message.content : null,
+        );
+
+      case MessageType.audio:
+      case MessageType.file:
+        return ReportContentModal.fileSnapshot(
+          message.fileUrl ?? '',
+          message.fileName ?? 'Fichier',
+        );
+
+      case MessageType.system:
+        return ReportContentModal.textMessageSnapshot(message.content);
+    }
   }
 
   Widget _buildDeletedContent(BuildContext context) {
@@ -1081,26 +1148,22 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   Widget _buildSystemMessageContent(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.info_outline, size: 14, color: context.textTertiaryColor),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              widget.message.content,
-              style: TextStyle(
-                fontSize: 13,
-                color: context.textTertiaryColor,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.isDarkMode
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        widget.message.content,
+        style: TextStyle(
+          fontSize: 12,
+          color: context.textSecondaryColor,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

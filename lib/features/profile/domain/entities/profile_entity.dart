@@ -37,5 +37,6 @@ class ProfileEntity with _$ProfileEntity {
     DateTime? lastSeen,
     @Default(true) bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    @Default([]) List<String> blockedByUserIds,
   }) = _ProfileEntity;
 }

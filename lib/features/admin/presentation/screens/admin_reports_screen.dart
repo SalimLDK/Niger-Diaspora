@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
@@ -12,12 +13,25 @@ class AdminReportsScreen extends ConsumerStatefulWidget {
 class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedTypeFilter;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = Color(0xFF6366F1);
   static const Color _cardColor = Colors.white;
   static const Color _textPrimary = Color(0xFF1E293B);
   static const Color _textSecondary = Color(0xFF64748B);
+
+  static const List<String> _targetTypes = [
+    'user',
+    'message',
+    'conversation',
+    'group',
+    'event',
+    'business',
+    'product',
+  ];
 
   @override
   void initState() {
@@ -31,18 +45,78 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  List<ReportEntity> _filterReports(List<ReportEntity> reports) {
+    return reports.where((report) {
+      // Apply search filter
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final matchesSearch = (report.targetName?.toLowerCase().contains(query) ?? false) ||
+            (report.reporterName?.toLowerCase().contains(query) ?? false) ||
+            report.reason.toLowerCase().contains(query) ||
+            report.targetId.toLowerCase().contains(query) ||
+            (report.description?.toLowerCase().contains(query) ?? false);
+        if (!matchesSearch) return false;
+      }
+
+      // Apply type filter
+      if (_selectedTypeFilter != null && report.targetType != _selectedTypeFilter) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  Map<String, int> _calculateStatistics(List<ReportEntity> reports) {
+    final stats = <String, int>{
+      'total': reports.length,
+      'pending': 0,
+      'resolved': 0,
+      'dismissed': 0,
+    };
+
+    // Count by target type
+    for (final type in _targetTypes) {
+      stats[type] = 0;
+    }
+
+    for (final report in reports) {
+      // Count by status
+      if (report.status == 'pending') {
+        stats['pending'] = (stats['pending'] ?? 0) + 1;
+      } else if (report.status == 'resolved') {
+        stats['resolved'] = (stats['resolved'] ?? 0) + 1;
+      } else if (report.status == 'dismissed') {
+        stats['dismissed'] = (stats['dismissed'] ?? 0) + 1;
+      }
+
+      // Count by type
+      stats[report.targetType] = (stats[report.targetType] ?? 0) + 1;
+    }
+
+    return stats;
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminReportsNotifierProvider);
+    final stats = _calculateStatistics(state.reports);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPageHeader(state),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        // Statistics Row
+        _buildStatisticsRow(stats),
+        const SizedBox(height: 16),
+        // Search and Filters
+        _buildSearchAndFilters(),
+        const SizedBox(height: 16),
         // Tabs
         Container(
           decoration: BoxDecoration(
@@ -64,11 +138,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'En attente (${state.pendingReports.length})'),
+              Tab(text: 'En attente (${_filterReports(state.pendingReports).length})'),
               Tab(
-                text: 'Traités (${state.reports.where((r) => r.status != 'pending').length})',
+                text: 'Traités (${_filterReports(state.reports.where((r) => r.status != 'pending').toList()).length})',
               ),
-              Tab(text: 'Tous (${state.reports.length})'),
+              Tab(text: 'Tous (${_filterReports(state.reports).length})'),
             ],
           ),
         ),
@@ -81,15 +155,213 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                   : TabBarView(
                       controller: _tabController,
                       children: [
-                        _buildReportsList(state.pendingReports),
+                        _buildReportsList(_filterReports(state.pendingReports)),
                         _buildReportsList(
-                          state.reports.where((r) => r.status != 'pending').toList(),
+                          _filterReports(state.reports.where((r) => r.status != 'pending').toList()),
                         ),
-                        _buildReportsList(state.reports),
+                        _buildReportsList(_filterReports(state.reports)),
                       ],
                     ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatisticsRow(Map<String, int> stats) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildStatCard(
+            'En attente',
+            stats['pending'] ?? 0,
+            Icons.hourglass_empty_rounded,
+            const Color(0xFFF59E0B),
+          ),
+          const SizedBox(width: 12),
+          _buildStatCard(
+            'Résolus',
+            stats['resolved'] ?? 0,
+            Icons.check_circle_outline_rounded,
+            const Color(0xFF10B981),
+          ),
+          const SizedBox(width: 12),
+          _buildStatCard(
+            'Rejetés',
+            stats['dismissed'] ?? 0,
+            Icons.cancel_outlined,
+            const Color(0xFF6B7280),
+          ),
+          const SizedBox(width: 12),
+          _buildStatCard(
+            'Total',
+            stats['total'] ?? 0,
+            Icons.flag_outlined,
+            _primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String label, int count, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(50)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: _textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilters() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Search bar
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Rechercher par nom, raison, ID...',
+              hintStyle: const TextStyle(color: _textSecondary),
+              prefixIcon: const Icon(Icons.search, color: _textSecondary),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: _textSecondary),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          // Type filters
+          Row(
+            children: [
+              const Text(
+                'Type:',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip(null, 'Tous'),
+                      const SizedBox(width: 8),
+                      ..._targetTypes.map((type) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildFilterChip(type, _getTypeLabel(type)),
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String? type, String label) {
+    final isSelected = _selectedTypeFilter == type;
+
+    return FilterChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          color: isSelected ? Colors.white : _textSecondary,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() => _selectedTypeFilter = type);
+      },
+      selectedColor: _primaryColor,
+      backgroundColor: const Color(0xFFF1F5F9),
+      checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? _primaryColor : Colors.transparent,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -247,7 +519,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           children: [
             const SizedBox(height: 4),
             Text(
-              'Type: ${_getTypeLabel(report.targetType)}',
+              'Type: ${_getTypeLabel(report.targetType)}${report.targetName != null ? ' • ${report.targetName}' : ''}',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
@@ -276,6 +548,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       children: [
         const Divider(),
         const SizedBox(height: 8),
+
+        // Snapshot du contenu signalé
+        if (report.contentSnapshot != null && report.contentSnapshot!.hasContent) ...[
+          _buildContentSnapshotPreview(report.contentSnapshot!),
+          const SizedBox(height: 16),
+        ],
+
+        // View content button
+        _buildViewContentButton(report),
+        const SizedBox(height: 16),
         if (report.description != null) ...[
           _buildSectionLabel('Description'),
           const SizedBox(height: 4),
@@ -300,6 +582,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         if (report.targetName != null)
           _buildDetailRow('Nom', report.targetName!),
         _buildDetailRow('Signalé par', report.reporterName ?? report.reporterId),
+        if (report.reportedUserId != null)
+          _buildDetailRow('Utilisateur signalé', report.reportedUserId!),
         if (report.adminNote != null) ...[
           const SizedBox(height: 16),
           _buildSectionLabel('Note admin'),
@@ -327,6 +611,185 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ],
       ],
     );
+  }
+
+  Widget _buildContentSnapshotPreview(ContentSnapshotData snapshot) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF3C7),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFF59E0B).withAlpha(50)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _getSnapshotIcon(snapshot.contentType),
+                size: 16,
+                color: const Color(0xFFF59E0B),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Contenu capturé (préservé)',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB45309),
+                ),
+              ),
+              const Spacer(),
+              if (snapshot.capturedAt != null)
+                Text(
+                  _formatDate(snapshot.capturedAt!),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: const Color(0xFFB45309).withAlpha(180),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Image preview
+          if (snapshot.imageUrl != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                snapshot.imageUrl!,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 80,
+                  color: Colors.grey.shade200,
+                  child: const Center(child: Icon(Icons.broken_image)),
+                ),
+              ),
+            ),
+
+          // Video placeholder
+          if (snapshot.videoUrl != null && snapshot.imageUrl == null)
+            Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.black.withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Icon(Icons.play_circle_outline, size: 40, color: _textSecondary),
+              ),
+            ),
+
+          // Text content
+          if (snapshot.text != null && snapshot.text!.isNotEmpty) ...[
+            if (snapshot.imageUrl != null || snapshot.videoUrl != null)
+              const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                snapshot.text!,
+                style: const TextStyle(fontSize: 13, color: _textPrimary),
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+
+          // File name
+          if (snapshot.fileName != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.attach_file, size: 14, color: _textSecondary),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    snapshot.fileName!,
+                    style: const TextStyle(fontSize: 12, color: _textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  IconData _getSnapshotIcon(String? contentType) {
+    switch (contentType) {
+      case 'text':
+        return Icons.chat_bubble_outline;
+      case 'image':
+        return Icons.image_outlined;
+      case 'video':
+        return Icons.videocam_outlined;
+      case 'file':
+        return Icons.attach_file;
+      case 'product':
+        return Icons.shopping_bag_outlined;
+      case 'user':
+        return Icons.person_outline;
+      case 'group':
+        return Icons.group_outlined;
+      default:
+        return Icons.description_outlined;
+    }
+  }
+
+  Widget _buildViewContentButton(ReportEntity report) {
+    final route = _getContentRoute(report);
+
+    if (route == null) {
+      return const SizedBox.shrink();
+    }
+
+    return OutlinedButton.icon(
+      onPressed: () => context.push(route),
+      icon: const Icon(Icons.visibility_outlined, size: 16),
+      label: Text('Voir le ${_getTypeLabel(report.targetType).toLowerCase()}'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _primaryColor,
+        side: const BorderSide(color: _primaryColor),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  String? _getContentRoute(ReportEntity report) {
+    switch (report.targetType) {
+      case 'user':
+        return '/profile/${report.targetId}';
+      case 'group':
+        return '/groups/${report.targetId}';
+      case 'event':
+        return '/events/${report.targetId}';
+      case 'business':
+        return '/businesses/${report.targetId}';
+      case 'product':
+        return '/marketplace/${report.targetId}';
+      case 'message':
+      case 'conversation':
+        if (report.conversationId != null) {
+          return '/messages/${report.conversationId}';
+        }
+        return null;
+      default:
+        return null;
+    }
   }
 
   Widget _buildSectionLabel(String label) {
@@ -372,8 +835,10 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildActionButtons(ReportEntity report) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.end,
       children: [
         _buildActionButton(
           label: 'Rejeter',
@@ -382,14 +847,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           isOutlined: true,
           onPressed: () => _dismissReport(report),
         ),
-        const SizedBox(width: 8),
         _buildActionButton(
           label: 'Traiter',
           icon: Icons.check_rounded,
           color: const Color(0xFF10B981),
           onPressed: () => _resolveReport(report),
         ),
-        const SizedBox(width: 8),
         _buildActionButton(
           label: 'Supprimer contenu',
           icon: Icons.delete_rounded,
@@ -491,6 +954,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         return Icons.person_rounded;
       case 'message':
         return Icons.message_rounded;
+      case 'conversation':
+        return Icons.chat_bubble_rounded;
       case 'event':
         return Icons.event_rounded;
       case 'group':
@@ -510,6 +975,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         return 'Utilisateur';
       case 'message':
         return 'Message';
+      case 'conversation':
+        return 'Conversation';
       case 'event':
         return 'Événement';
       case 'group':
@@ -606,6 +1073,18 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 fontSize: 14,
               ),
             ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(adminReportsNotifierProvider.notifier).fetchAllReports();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -613,23 +1092,39 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildEmptyState() {
+    final hasFilters = _searchQuery.isNotEmpty || _selectedTypeFilter != null;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.report_off_rounded,
+            hasFilters ? Icons.search_off_rounded : Icons.report_off_rounded,
             size: 64,
             color: _textSecondary.withAlpha(100),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Aucun signalement',
-            style: TextStyle(
+          Text(
+            hasFilters ? 'Aucun résultat pour cette recherche' : 'Aucun signalement',
+            style: const TextStyle(
               color: _textSecondary,
               fontSize: 16,
             ),
           ),
+          if (hasFilters) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _selectedTypeFilter = null;
+                });
+              },
+              icon: const Icon(Icons.clear),
+              label: const Text('Effacer les filtres'),
+            ),
+          ],
         ],
       ),
     );
@@ -642,13 +1137,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   Future<void> _dismissReport(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar('Erreur: Admin non connecté', isError: true);
       return;
     }
 
     final reason = await _showTextDialog(
       'Rejeter le signalement',
       'Raison du rejet:',
+      hintText: 'Ex: Signalement non fondé, contenu conforme aux règles...',
     );
     if (reason != null && reason.isNotEmpty) {
       await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
@@ -664,13 +1160,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   Future<void> _resolveReport(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar('Erreur: Admin non connecté', isError: true);
       return;
     }
 
     final note = await _showTextDialog(
       'Traiter le signalement',
       'Note de résolution:',
+      hintText: 'Ex: Avertissement envoyé, contenu modifié...',
     );
     if (note != null) {
       await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
@@ -679,15 +1176,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         'resolved',
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
+        reportedUserId: report.reportedUserId,
       );
-      _showSnackBar('Signalement traité');
+      _showSnackBar('Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
   Future<void> _deleteContent(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar('Erreur: Admin non connecté', isError: true);
       return;
     }
 
@@ -695,22 +1193,83 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Supprimer le contenu'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer ce contenu ? Cette action est irréversible.',
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Color(0xFFEF4444),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Supprimer le contenu'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Êtes-vous sûr de vouloir supprimer ce contenu ?',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Cette action est irréversible et supprimera définitivement le ${_getTypeLabel(report.targetType).toLowerCase()}.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: _textSecondary,
+              ),
+            ),
+            if (report.targetName != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getTypeIcon(report.targetType),
+                      size: 18,
+                      color: _textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        report.targetName!,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Annuler'),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.delete_rounded, size: 18),
+            label: const Text('Supprimer'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Supprimer'),
           ),
         ],
       ),
@@ -722,6 +1281,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         report.targetId,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
+        reportId: report.id,
+        reportedUserId: report.reportedUserId,
       );
       await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
         report.id,
@@ -729,12 +1290,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         'content_deleted',
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
+        reportedUserId: null, // Déjà notifié par deleteReportedContent
+        notifyUser: false,
       );
-      _showSnackBar('Contenu supprimé et signalement résolu');
+      _showSnackBar('Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  Future<String?> _showTextDialog(String title, String label, {String? hintText}) {
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
@@ -745,11 +1308,18 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
+            hintText: hintText,
+            hintStyle: const TextStyle(fontSize: 13, color: _textSecondary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _primaryColor, width: 2),
+            ),
           ),
           maxLines: 3,
+          autofocus: true,
         ),
         actions: [
           TextButton(
@@ -760,6 +1330,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             onPressed: () => Navigator.pop(context, controller.text),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Confirmer'),
@@ -769,11 +1340,22 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
         behavior: SnackBarBehavior.floating,
+        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );

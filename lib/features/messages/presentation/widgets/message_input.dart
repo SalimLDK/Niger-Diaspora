@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_recording_service.dart';
+import '../../../../core/services/permission_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'audio_recorder_overlay.dart';
 import '../screens/media_preview_screen.dart';
@@ -145,14 +146,52 @@ class _MessageInputState extends State<MessageInput>
   }
 
   Future<void> _takePhoto() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 70,
-    );
+    // Request camera permission first
+    final permissionResult =
+        await PermissionService().requestCameraPermission();
 
-    if (image != null) {
-      widget.onSendFile(File(image.path), true);
+    if (permissionResult != PermissionResult.granted) {
+      if (mounted) {
+        _showCameraPermissionError(permissionResult);
+      }
+      return;
+    }
+
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+
+      if (image != null) {
+        widget.onSendFile(File(image.path), true);
+      }
+    } on PlatformException catch (e) {
+      if (e.code == 'camera_access_denied' && mounted) {
+        _showCameraPermissionError(PermissionResult.permanentlyDenied);
+      }
+    }
+  }
+
+  void _showCameraPermissionError(PermissionResult result) {
+    final isPermanent = result == PermissionResult.permanentlyDenied;
+    final message = PermissionService.getCameraPermissionDeniedMessage(result);
+
+    if (isPermanent) {
+      PermissionService.showPermissionDeniedDialog(
+        context: context,
+        title: 'Permission caméra requise',
+        message: message,
+        showSettingsButton: true,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

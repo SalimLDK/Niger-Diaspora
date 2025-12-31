@@ -157,6 +157,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy = const [],
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -172,6 +173,7 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
         productData: productData,
+        sentWhileBlockedBy: sentWhileBlockedBy,
       );
       return Right(message.toEntity());
     } on ServerException catch (e) {
@@ -438,6 +440,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required int limit,
     String? beforeMessageId,
+    DateTime? filterAfterDate,
   }) async {
     // debugPrint(
     //   '📥 Repository: getMessagesPaginated called for $conversationId',
@@ -452,6 +455,7 @@ class MessageRepositoryImpl implements MessageRepository {
           conversationId: conversationId,
           limit: limit,
           lastMessageKey: beforeMessageId,
+          filterAfterDate: filterAfterDate,
         );
 
         // debugPrint(

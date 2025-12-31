@@ -59,6 +59,11 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
       json['locationUpdatedAt'] == null
           ? null
           : DateTime.parse(json['locationUpdatedAt'] as String),
+  blockedByUserIds:
+      (json['blockedByUserIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
@@ -95,4 +100,5 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'lastSeen': instance.lastSeen?.toIso8601String(),
       'showOnlineStatus': instance.showOnlineStatus,
       'locationUpdatedAt': instance.locationUpdatedAt?.toIso8601String(),
+      'blockedByUserIds': instance.blockedByUserIds,
     };

@@ -16,7 +16,7 @@ Implemented **Android App Links** verification using Digital Asset Links to prov
 
 Navigated Google Play Console to retrieve the app signing certificate:
 - **App**: Niger Diaspora
-- **Package**: `com.diasponiger.diaspo_niger`
+- **Package**: `com.diasponiger.diasponiger`
 - **SHA-256**: `35:67:B0:E9:C9:01:C2:0E:B8:76:E3:CB:0B:2A:69:28:5D:5D:BB:DC:FB:89:07:0D:9C:26:91:3E:91:3F:D1:F4`
 
 ### 2. Created Digital Asset Links File
@@ -29,14 +29,14 @@ Navigated Google Play Console to retrieve the app signing certificate:
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.diasponiger.diaspo_niger",
+      "package_name": "com.diasponiger.diasponiger",
       "sha256_cert_fingerprints": ["35:67:B0:E9:C9:01:C2:0E:B8:76:E3:CB:0B:2A:69:28:5D:5D:BB:DC:FB:89:07:0D:9C:26:91:3E:91:3F:D1:F4"]
     }
   }
 ]
 ```
 
-This file tells Android that the app with package `com.diasponiger.diaspo_niger` is authorized to handle all HTTPS links from `diaspo-niger.web.app`.
+This file tells Android that the app with package `com.diasponiger.diasponiger` is authorized to handle all HTTPS links from `diaspo-niger.web.app`.
 
 ### 3. Updated Firebase Hosting Configuration
 
@@ -73,7 +73,7 @@ Deployed 10 files including the new `assetlinks.json` to `https://diaspo-niger.w
 Verified that https://diaspo-niger.web.app/.well-known/assetlinks.json is:
 - ✅ Accessible (returns HTTP 200)
 - ✅ Properly formatted JSON
-- ✅ Contains correct package name: `com.diasponiger.diaspo_niger`
+- ✅ Contains correct package name: `com.diasponiger.diasponiger`
 - ✅ Contains correct SHA-256 fingerprint
 
 ## Manual Testing Required

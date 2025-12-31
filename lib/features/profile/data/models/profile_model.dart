@@ -41,6 +41,7 @@ class ProfileModel with _$ProfileModel {
     DateTime? lastSeen,
     @Default(true) bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    @Default([]) List<String> blockedByUserIds,
   }) = _ProfileModel;
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) =>
@@ -79,6 +80,7 @@ class ProfileModel with _$ProfileModel {
     lastSeen: lastSeen,
     showOnlineStatus: showOnlineStatus,
     locationUpdatedAt: locationUpdatedAt,
+    blockedByUserIds: blockedByUserIds,
   );
 
   factory ProfileModel.fromEntity(ProfileEntity entity) => ProfileModel(
@@ -114,5 +116,6 @@ class ProfileModel with _$ProfileModel {
     lastSeen: entity.lastSeen,
     showOnlineStatus: entity.showOnlineStatus,
     locationUpdatedAt: entity.locationUpdatedAt,
+    blockedByUserIds: entity.blockedByUserIds,
   );
 }

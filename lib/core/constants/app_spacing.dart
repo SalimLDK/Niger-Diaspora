@@ -188,4 +188,52 @@ class AppSpacing {
   static const SizedBox gapV24 = SizedBox(height: spacing24);
   static const SizedBox gapV32 = SizedBox(height: spacing32);
   static const SizedBox gapV48 = SizedBox(height: spacing48);
+
+  // ============================================
+  // TABLET SPECIFIC SIZES
+  // ============================================
+
+  /// Largeur du panneau latéral sur tablette
+  static const double tabletSidePanelWidth = 320;
+
+  /// Largeur du panneau master (master-detail)
+  static const double tabletMasterWidth = 350;
+
+  /// Largeur maximale du contenu sur tablette
+  static const double tabletMaxContentWidth = 600;
+
+  /// Padding écran tablette
+  static const EdgeInsets tabletScreenPadding = EdgeInsets.all(spacing32);
+
+  /// Padding horizontal écran tablette
+  static const EdgeInsets tabletScreenHorizontal = EdgeInsets.symmetric(
+    horizontal: spacing32,
+  );
+
+  /// Padding pour les cards sur tablette
+  static const EdgeInsets tabletCardPadding = EdgeInsets.all(spacing24);
+
+  // ============================================
+  // RESPONSIVE HELPERS
+  // ============================================
+
+  /// Retourne le padding écran adapté selon la largeur
+  static EdgeInsets getScreenPadding(double screenWidth) {
+    if (screenWidth >= 600) return tabletScreenPadding;
+    return screenPadding;
+  }
+
+  /// Retourne le padding carte adapté selon la largeur
+  static EdgeInsets getCardPadding(double screenWidth) {
+    if (screenWidth >= 600) return tabletCardPadding;
+    return cardPadding;
+  }
+
+  /// Retourne le nombre de colonnes de grille adapté
+  static int getGridColumns(double screenWidth) {
+    if (screenWidth < 600) return 2;
+    if (screenWidth < 900) return 3;
+    if (screenWidth < 1200) return 4;
+    return 6;
+  }
 }

@@ -360,6 +360,12 @@
   "deleteAllNotifications": "Delete all notifications",
   "deleteAllNotificationsConfirm": "Do you really want to delete all your notifications?",
   "justNow": "Just now",
+  "secondsAgo": "{count} s ago",
+  "@secondsAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "minutesAgo": "{count} min ago",
   "@minutesAgo": {
     "placeholders": {
@@ -523,5 +529,42 @@
   "cameraPermissionDenied": "Camera permission denied",
   "enableFlash": "Enable flash",
   "disableFlash": "Disable flash",
-  "switchCamera": "Switch camera"
+  "switchCamera": "Switch camera",
+
+  "systemMessageUserJoined": "{userName} joined the group",
+  "@systemMessageUserJoined": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "systemMessageUserLeft": "{userName} left the group",
+  "@systemMessageUserLeft": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "systemMessageUserRemoved": "{userName} was removed from the group",
+  "@systemMessageUserRemoved": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "systemMessageUserPromoted": "{userName} is now an administrator",
+  "@systemMessageUserPromoted": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "systemMessageUserDemoted": "{userName} is no longer an administrator",
+  "@systemMessageUserDemoted": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "systemMessageGroupRenamed": "The group has been renamed to {newName}",
+  "@systemMessageGroupRenamed": {
+    "placeholders": {
+      "newName": {"type": "String"}
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 import '../../data/datasources/friend_remote_datasource.dart';
 import '../../data/repositories/friend_repository_impl.dart';
 import '../../domain/entities/friend_entity.dart';
@@ -11,7 +12,9 @@ part 'friend_provider.g.dart';
 
 @riverpod
 FriendRemoteDataSource friendRemoteDataSource(Ref ref) {
-  return FriendRemoteDataSourceImpl();
+  return FriendRemoteDataSourceImpl(
+    messageDataSource: ref.watch(messageRemoteDataSourceProvider),
+  );
 }
 
 @riverpod
@@ -139,7 +142,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(friendshipStatusProvider(receiverId));
+        // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
     );
@@ -158,13 +161,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(receivedFriendRequestsProvider);
-        ref.invalidate(sentFriendRequestsProvider);
-        ref.invalidate(friendsProvider);
-        // Invalidate friendship status for the other user if provided
-        if (senderId != null) {
-          ref.invalidate(friendshipStatusProvider(senderId));
-        }
+        // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
     );
@@ -183,11 +180,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(receivedFriendRequestsProvider);
-        // Invalidate friendship status for the other user if provided
-        if (senderId != null) {
-          ref.invalidate(friendshipStatusProvider(senderId));
-        }
+        // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
     );
@@ -206,11 +199,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(sentFriendRequestsProvider);
-        // Invalidate friendship status for the other user if provided
-        if (receiverId != null) {
-          ref.invalidate(friendshipStatusProvider(receiverId));
-        }
+        // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
     );
@@ -232,8 +221,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(friendsProvider);
-        ref.invalidate(friendshipStatusProvider(friendId));
+        // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
     );

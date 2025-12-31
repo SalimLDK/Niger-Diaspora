@@ -99,7 +99,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
       _loadChatBackground();
+      _setupPrivateGroupFilter();
     });
+  }
+
+  /// Configure le filtre de messages pour les groupes privés
+  /// Les nouveaux membres ne voient pas les messages envoyés avant leur adhésion
+  Future<void> _setupPrivateGroupFilter() async {
+    if (!widget.isGroup || widget.groupId == null) return;
+
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    try {
+      // Récupérer les informations du groupe via le repository
+      final repository = ref.read(groupRepositoryProvider);
+      final result = await repository.getGroupById(widget.groupId!);
+
+      final group = result.fold((failure) => null, (group) => group);
+      if (group == null) return;
+
+      // Vérifier si c'est un groupe privé
+      if (!group.isPrivate) return;
+
+      // Récupérer la date d'adhésion de l'utilisateur
+      final joinedAt = group.memberJoinedAt[currentUser.id];
+
+      if (joinedAt != null) {
+        // Appliquer le filtre pour ne montrer que les messages après l'adhésion
+        ref
+            .read(paginatedMessagesProvider(widget.conversationId).notifier)
+            .setFilterDate(joinedAt);
+      }
+    } catch (e) {
+      // En cas d'erreur, ne pas appliquer de filtre (fail-safe)
+      // debugPrint('⚠️ Error setting up private group filter: $e');
+    }
   }
 
   @override
@@ -322,6 +357,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       builder:
           (context) => ConversationOptionsModal(
             conversationId: widget.conversationId,
+            otherUserId: widget.otherUserId,
             otherUserName: widget.conversationName,
             otherUserPhotoUrl: widget.conversationImageUrl,
             isGroup: widget.isGroup,
@@ -449,13 +485,27 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Check if conversation exists
     final isDeleted = !conversationAsync.isLoading && conversation == null;
 
-    // Check if other user is blocked
+    // Check if other user is blocked (I blocked them)
     bool isBlocked = false;
     if (!widget.isGroup && conversation != null) {
       final otherUserId = conversation.getOtherParticipantId(
         currentUser?.id ?? '',
       );
       isBlocked = blockedUsers.any((user) => user.id == otherUserId);
+    }
+
+    // Check if I am blocked by the other user
+    bool isBlockedByOther = false;
+    if (!widget.isGroup && currentUser != null && widget.otherUserId != null) {
+      final currentUserProfileAsync = ref.watch(
+        userStreamProvider(currentUser.id),
+      );
+      final currentUserProfile = currentUserProfileAsync.valueOrNull;
+      if (currentUserProfile != null) {
+        isBlockedByOther = currentUserProfile.blockedByUserIds.contains(
+          widget.otherUserId,
+        );
+      }
     }
 
     // Stream other user's profile if it's an individual chat
@@ -563,6 +613,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     paginationState,
                     currentUser?.id,
                     l10n,
+                    blockedUsers.map((u) => u.id).toSet(),
                   ),
                 ),
 
@@ -646,6 +697,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                           'temp_${DateTime.now().millisecondsSinceEpoch}';
 
                       // Send with retry logic
+                      // If blocked by other user, include their ID in sentWhileBlockedBy
+                      final blockedByList = isBlockedByOther && widget.otherUserId != null
+                          ? [widget.otherUserId!]
+                          : <String>[];
+
                       final success = await ref
                           .read(sendMessageProvider.notifier)
                           .sendText(
@@ -653,6 +709,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             content: text,
                             optimisticMessageId: messageId,
                             replyToMessage: replyTo,
+                            sentWhileBlockedBy: blockedByList,
                           );
 
                       if (!mounted) return;
@@ -689,6 +746,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       bool isImage, {
                       String? caption,
                     }) async {
+                      // If blocked, don't send file (file messages don't support sentWhileBlockedBy yet)
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
                       final success = await ref
                           .read(sendMessageProvider.notifier)
                           .sendFile(
@@ -720,6 +784,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       int duration,
                       List<double> waveform,
                     ) async {
+                      // If blocked, don't send audio (audio messages don't support sentWhileBlockedBy yet)
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
                       final success = await ref
                           .read(sendMessageProvider.notifier)
                           .sendAudio(
@@ -783,6 +854,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     dynamic paginationState,
     String? currentUserId,
     AppLocalizations l10n,
+    Set<String> blockedUserIds,
   ) {
     if (paginationState.isLoadingInitial) {
       return Center(
@@ -827,11 +899,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final allMessages = paginationState.messages as List<MessageEntity>;
-    // Filter out deleted messages for proper date separator calculation
+    // Filter out deleted messages, messages from blocked users, and messages sent while blocked
     final messages =
         currentUserId != null
-            ? allMessages.where((m) => !m.isDeletedFor(currentUserId)).toList()
-            : allMessages;
+            ? allMessages
+                .where(
+                  (m) =>
+                      !m.isDeletedFor(currentUserId) &&
+                      !blockedUserIds.contains(m.senderId) &&
+                      !m.sentWhileBlockedBy.contains(currentUserId),
+                )
+                .toList()
+            : allMessages
+                .where((m) => !blockedUserIds.contains(m.senderId))
+                .toList();
 
     if (messages.isEmpty) {
       return _buildEmptyState();
@@ -946,6 +1027,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   isAdmin: isAdmin,
                   onReply: _handleReply,
                   onReact: _handleReact,
+                  onRetry:
+                      message.status == MessageStatus.failed
+                          ? () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final success = await ref
+                                .read(sendMessageProvider.notifier)
+                                .retryFailedMessage(
+                                  conversationId: widget.conversationId,
+                                  failedMessage: message,
+                                );
+                            if (!success && mounted) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Échec du renvoi du message'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                          : null,
                   onSenderTap: (userId) {
                     if (widget.isGroup) {
                       context.push('/profile/$userId');
@@ -1031,6 +1132,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
+  /// Obtenir les initiales du nom
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
   PreferredSizeWidget _buildAppBar(dynamic otherUser) {
     final displayName =
         widget.isGroup
@@ -1041,6 +1152,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         widget.isGroup
             ? widget.conversationImageUrl
             : otherUser?.photoUrl ?? widget.conversationImageUrl;
+
+    final initials = _getInitials(displayName);
 
     // Check if user is deleted
     final isDeletedUser =
@@ -1077,7 +1190,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               // debugPrint('   📍 Found groupId: $groupIdToUse');
             }
 
-            if (groupIdToUse != null && mounted) {
+            if (mounted) {
               // debugPrint('   ➡️ Navigating to /groups/$groupIdToUse');
               context.push('/groups/$groupIdToUse');
             } else {
@@ -1118,21 +1231,60 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                               child: CachedNetworkImage(
                                 imageUrl: displayImage,
                                 fit: BoxFit.cover,
-                                placeholder: (_, __) => const SizedBox(),
+                                placeholder:
+                                    (_, __) => Center(
+                                      child:
+                                          widget.isGroup
+                                              ? const Icon(
+                                                Icons.groups,
+                                                color: AppColors.white,
+                                                size: 20,
+                                              )
+                                              : Text(
+                                                initials,
+                                                style: const TextStyle(
+                                                  color: AppColors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                    ),
                                 errorWidget:
-                                    (_, __, ___) => Icon(
-                                      widget.isGroup
-                                          ? Icons.groups
-                                          : Icons.person,
-                                      color: AppColors.white,
-                                      size: 20,
+                                    (_, __, ___) => Center(
+                                      child:
+                                          widget.isGroup
+                                              ? const Icon(
+                                                Icons.groups,
+                                                color: AppColors.white,
+                                                size: 20,
+                                              )
+                                              : Text(
+                                                initials,
+                                                style: const TextStyle(
+                                                  color: AppColors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                     ),
                               ),
                             )
-                            : Icon(
-                              widget.isGroup ? Icons.groups : Icons.person,
-                              color: AppColors.white,
-                              size: 20,
+                            : Center(
+                              child:
+                                  widget.isGroup
+                                      ? const Icon(
+                                        Icons.groups,
+                                        color: AppColors.white,
+                                        size: 20,
+                                      )
+                                      : Text(
+                                        initials,
+                                        style: const TextStyle(
+                                          color: AppColors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                             ),
                   ),
                   // Online indicator dot on avatar (only for individual chats)
@@ -1193,8 +1345,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                           key: ValueKey(widget.otherUserId),
                           userId: widget.otherUserId!,
                           showText: true,
-                          showDot: true, // Show dot on the left of text
-                          dotSize: 8,
+                          showDot: false,
                         ),
                       ),
                   ],

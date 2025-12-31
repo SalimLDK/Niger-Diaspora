@@ -15,7 +15,12 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       phoneNumber: json['phoneNumber'] as String?,
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       lastLoginAt: const TimestampConverter().fromJson(json['lastLoginAt']),
-      isAdmin: json['isAdmin'] as bool? ?? false,
+      adminRole:
+          json['adminRole'] == null
+              ? AdminRole.none
+              : const AdminRoleConverter().fromJson(
+                json['adminRole'] as String?,
+              ),
       isBanned: json['isBanned'] as bool? ?? false,
       banReason: json['banReason'] as String?,
       bannedAt: const TimestampConverter().fromJson(json['bannedAt']),
@@ -30,7 +35,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'phoneNumber': instance.phoneNumber,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'lastLoginAt': const TimestampConverter().toJson(instance.lastLoginAt),
-      'isAdmin': instance.isAdmin,
+      'adminRole': const AdminRoleConverter().toJson(instance.adminRole),
       'isBanned': instance.isBanned,
       'banReason': instance.banReason,
       'bannedAt': const TimestampConverter().toJson(instance.bannedAt),

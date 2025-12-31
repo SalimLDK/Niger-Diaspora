@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
@@ -22,7 +24,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _groupNameController = TextEditingController();
 
-  List<ProfileModel> _searchResults = [];
+  List<ProfileModel> _friendResults = [];
+  List<ProfileModel> _otherResults = [];
   final List<ProfileModel> _selectedUsers = [];
   bool _isSearching = false;
   bool _isLoading = false;
@@ -34,10 +37,21 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     super.dispose();
   }
 
+  /// Obtenir les initiales du nom
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
   Future<void> _searchUsers(String query) async {
-    if (query.length < 2) {
+    if (query.isEmpty) {
       setState(() {
-        _searchResults = [];
+        _friendResults = [];
+        _otherResults = [];
         _isSearching = false;
       });
       return;
@@ -46,22 +60,52 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     setState(() => _isSearching = true);
 
     try {
-      final dataSource = ProfileRemoteDataSourceImpl();
-      final results = await dataSource.searchProfiles(query);
+      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final currentUserId = currentUser?.id;
 
       // Filter out blocked users
       final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
       final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-      final filteredResults =
-          results.where((user) => !blockedUserIds.contains(user.id)).toList();
+
+      // Search friends first
+      List<ProfileModel> friendProfiles = [];
+      if (currentUserId != null) {
+        final friendDataSource = FriendRemoteDataSourceImpl();
+        final friends = await friendDataSource.searchFriends(currentUserId, query);
+
+        // Convert FriendModel to ProfileModel for consistent display
+        friendProfiles = friends
+            .where((f) => !blockedUserIds.contains(f.id))
+            .map((f) => ProfileModel(
+                  id: f.id,
+                  displayName: f.displayName,
+                  photoUrl: f.photoUrl,
+                ))
+            .toList();
+      }
+
+      // Search all profiles
+      final profileDataSource = ProfileRemoteDataSourceImpl();
+      final allProfiles = await profileDataSource.searchProfiles(query);
+
+      // Filter out blocked users and friends (to avoid duplicates)
+      final friendIds = friendProfiles.map((f) => f.id).toSet();
+      final otherProfiles = allProfiles
+          .where((user) =>
+              !blockedUserIds.contains(user.id) &&
+              !friendIds.contains(user.id) &&
+              user.id != currentUserId)
+          .toList();
 
       setState(() {
-        _searchResults = filteredResults;
+        _friendResults = friendProfiles;
+        _otherResults = otherProfiles;
         _isSearching = false;
       });
     } catch (e) {
       setState(() {
-        _searchResults = [];
+        _friendResults = [];
+        _otherResults = [];
         _isSearching = false;
       });
     }
@@ -265,11 +309,27 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                                         child: Image.network(
                                           user.photoUrl!,
                                           fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Center(
+                                            child: Text(
+                                              _getInitials(user.displayName),
+                                              style: const TextStyle(
+                                                color: AppColors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                       )
-                                      : const Icon(
-                                        Icons.person,
-                                        color: AppColors.white,
+                                      : Center(
+                                        child: Text(
+                                          _getInitials(user.displayName),
+                                          style: const TextStyle(
+                                            color: AppColors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
                             ),
                             Positioned(
@@ -348,23 +408,82 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                         color: context.adaptivePrimaryColor,
                       ),
                     )
-                    : _searchResults.isEmpty
+                    : (_friendResults.isEmpty && _otherResults.isEmpty)
                     ? _buildEmptyState()
-                    : ListView.builder(
+                    : ListView(
                       padding: const EdgeInsets.all(16),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final user = _searchResults[index];
-                        final isSelected = _selectedUsers.any(
-                          (u) => u.id == user.id,
-                        );
-
-                        return _UserListItem(
-                          user: user,
-                          isSelected: isSelected,
-                          onTap: () => _toggleUserSelection(user),
-                        );
-                      },
+                      children: [
+                        // Friends section
+                        if (_friendResults.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.people,
+                                  size: 18,
+                                  color: context.adaptivePrimaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.friends,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.adaptivePrimaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ..._friendResults.map((user) {
+                            final isSelected = _selectedUsers.any(
+                              (u) => u.id == user.id,
+                            );
+                            return _UserListItem(
+                              user: user,
+                              isSelected: isSelected,
+                              onTap: () => _toggleUserSelection(user),
+                            );
+                          }),
+                        ],
+                        // Other members section
+                        if (_otherResults.isNotEmpty) ...[
+                          if (_friendResults.isNotEmpty)
+                            const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person_search,
+                                  size: 18,
+                                  color: context.textSecondaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Autres membres',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.textSecondaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ..._otherResults.map((user) {
+                            final isSelected = _selectedUsers.any(
+                              (u) => u.id == user.id,
+                            );
+                            return _UserListItem(
+                              user: user,
+                              isSelected: isSelected,
+                              onTap: () => _toggleUserSelection(user),
+                            );
+                          }),
+                        ],
+                      ],
                     ),
           ),
         ],
@@ -388,11 +507,6 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
             l10n.searchAMember,
             style: TextStyle(fontSize: 16, color: context.textSecondaryColor),
           ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.enterAtLeast2Chars,
-            style: TextStyle(fontSize: 14, color: context.textTertiaryColor),
-          ),
         ],
       ),
     );
@@ -409,6 +523,16 @@ class _UserListItem extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
   });
+
+  /// Obtenir les initiales du nom
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -452,13 +576,28 @@ class _UserListItem extends StatelessWidget {
                           user.photoUrl!,
                           fit: BoxFit.cover,
                           errorBuilder:
-                              (_, __, ___) => const Icon(
-                                Icons.person,
-                                color: AppColors.white,
+                              (_, __, ___) => Center(
+                                child: Text(
+                                  _getInitials(user.displayName),
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                         ),
                       )
-                      : const Icon(Icons.person, color: AppColors.white),
+                      : Center(
+                        child: Text(
+                          _getInitials(user.displayName),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
             ),
             const SizedBox(width: 14),
             Expanded(

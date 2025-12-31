@@ -11,6 +11,8 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/utils/rtdb_sync_script.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/services/encryption_service.dart';
 import '../../data/datasources/message_remote_datasource.dart';
 import '../../data/repositories/message_repository_impl.dart';
@@ -107,6 +109,9 @@ class PaginatedMessages extends _$PaginatedMessages {
   StreamSubscription<dynamic>? _newMessagesSubscription;
   StreamSubscription<dynamic>? _messageUpdatesSubscription;
 
+  /// Date de filtrage pour les groupes privés (les nouveaux membres ne voient pas les anciens messages)
+  DateTime? _filterAfterDate;
+
   @override
   MessagePaginationState build(String conversationId) {
     ref.onDispose(() {
@@ -118,6 +123,16 @@ class PaginatedMessages extends _$PaginatedMessages {
     Future.microtask(() => loadInitial());
 
     return const MessagePaginationState(isLoadingInitial: true);
+  }
+
+  /// Définir la date de filtrage pour les groupes privés
+  /// Les messages créés avant cette date ne seront pas affichés
+  void setFilterDate(DateTime? date) {
+    if (_filterAfterDate != date) {
+      _filterAfterDate = date;
+      // Recharger les messages avec le nouveau filtre
+      loadInitial();
+    }
   }
 
   Future<void> loadInitial() async {
@@ -183,6 +198,7 @@ class PaginatedMessages extends _$PaginatedMessages {
             .getMessagesPaginated(
               conversationId: conversationId,
               limit: _pageSize,
+              filterAfterDate: _filterAfterDate,
             );
 
         result.fold(
@@ -248,6 +264,7 @@ class PaginatedMessages extends _$PaginatedMessages {
           conversationId: conversationId,
           limit: _pageSize,
           beforeMessageId: state.lastMessageId,
+          filterAfterDate: _filterAfterDate,
         );
 
     result.fold(
@@ -606,6 +623,7 @@ class SendMessage extends _$SendMessage {
     int maxAttempts = 3,
     MessageEntity? replyToMessage,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy = const [],
   }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
@@ -643,6 +661,7 @@ class SendMessage extends _$SendMessage {
       replyToId: replyToMessage?.id,
       replyToMessageData: replyToMessageData,
       productData: productData,
+      sentWhileBlockedBy: sentWhileBlockedBy,
     );
 
     // Add to UI immediately (only on first attempt)
@@ -666,6 +685,7 @@ class SendMessage extends _$SendMessage {
           replyToId: replyToMessage?.id,
           replyToMessageData: replyToMessageData,
           productData: productData,
+          sentWhileBlockedBy: sentWhileBlockedBy,
         );
 
     return result.fold(
@@ -688,6 +708,7 @@ class SendMessage extends _$SendMessage {
             maxAttempts: maxAttempts,
             replyToMessage: replyToMessage,
             productData: productData,
+            sentWhileBlockedBy: sentWhileBlockedBy,
           );
         }
 
@@ -709,6 +730,63 @@ class SendMessage extends _$SendMessage {
         return true;
       },
     );
+  }
+
+  /// Retry sending a failed message
+  Future<bool> retryFailedMessage({
+    required String conversationId,
+    required MessageEntity failedMessage,
+  }) async {
+    // Remove the failed message from UI
+    ref
+        .read(paginatedMessagesProvider(conversationId).notifier)
+        .removeMessageOptimistically(failedMessage.id);
+
+    // Rebuild reply data if exists
+    MessageEntity? replyToMessage;
+    if (failedMessage.replyToId != null &&
+        failedMessage.replyToMessageData != null) {
+      final replyData = failedMessage.replyToMessageData!;
+      replyToMessage = MessageEntity(
+        id: replyData['id'] as String? ?? '',
+        senderId: replyData['senderId'] as String? ?? '',
+        senderName: replyData['senderName'] as String? ?? '',
+        content: replyData['content'] as String? ?? '',
+        type: MessageType.values.firstWhere(
+          (t) => t.name == (replyData['type'] as String? ?? 'text'),
+          orElse: () => MessageType.text,
+        ),
+        createdAt: DateTime.now(),
+        readBy: [],
+        readAt: {},
+        fileUrl: replyData['fileUrl'] as String?,
+        fileName: replyData['fileName'] as String?,
+      );
+    }
+
+    // Resend based on message type
+    switch (failedMessage.type) {
+      case MessageType.text:
+        return sendText(
+          conversationId: conversationId,
+          content: failedMessage.content,
+          replyToMessage: replyToMessage,
+          productData: failedMessage.productData,
+        );
+      case MessageType.image:
+      case MessageType.file:
+      case MessageType.video:
+      case MessageType.audio:
+        // For media messages, we can't retry as we don't have the original file
+        // Show error to user
+        state = AsyncValue.error(
+          'Impossible de renvoyer ce type de message. Veuillez le renvoyer manuellement.',
+          StackTrace.current,
+        );
+        return false;
+      case MessageType.system:
+        return false;
+    }
   }
 
   Future<bool> sendFile({
@@ -927,17 +1005,38 @@ class MarkAsRead extends _$MarkAsRead {
   }
 }
 
-/// Nombre total de messages non lus
+/// Nombre total de messages non lus (filtre les utilisateurs bloqués)
 @riverpod
 int totalUnreadCount(Ref ref) {
   final conversations = ref.watch(conversationsProvider).valueOrNull ?? [];
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+  final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
 
   if (currentUser == null) return 0;
 
   return conversations.fold<int>(
     0,
-    (total, conv) => total + conv.getUnreadCountFor(currentUser.id),
+    (total, conv) {
+      // For individual conversations, check if other user is blocked
+      if (conv.isIndividual) {
+        final otherUserId = conv.getOtherParticipantId(currentUser.id);
+
+        // If I blocked them, don't count their messages
+        if (blockedUserIds.contains(otherUserId)) {
+          return total;
+        }
+
+        // Check if they blocked me
+        final otherProfileAsync = ref.watch(userStreamProvider(otherUserId));
+        final otherProfile = otherProfileAsync.valueOrNull;
+        if (otherProfile != null && otherProfile.blockedByUserIds.contains(currentUser.id)) {
+          return total;
+        }
+      }
+
+      return total + conv.getUnreadCountFor(currentUser.id);
+    },
   );
 }
 

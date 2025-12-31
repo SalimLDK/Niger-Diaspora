@@ -30,7 +30,8 @@ mixin _$UserModel {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @TimestampConverter()
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
-  bool get isAdmin => throw _privateConstructorUsedError;
+  @AdminRoleConverter()
+  AdminRole get adminRole => throw _privateConstructorUsedError;
   bool get isBanned => throw _privateConstructorUsedError;
   String? get banReason => throw _privateConstructorUsedError;
   @TimestampConverter()
@@ -59,7 +60,7 @@ abstract class $UserModelCopyWith<$Res> {
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
-    bool isAdmin,
+    @AdminRoleConverter() AdminRole adminRole,
     bool isBanned,
     String? banReason,
     @TimestampConverter() DateTime? bannedAt,
@@ -88,7 +89,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
-    Object? isAdmin = null,
+    Object? adminRole = null,
     Object? isBanned = null,
     Object? banReason = freezed,
     Object? bannedAt = freezed,
@@ -130,11 +131,11 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
                     ? _value.lastLoginAt
                     : lastLoginAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
-            isAdmin:
-                null == isAdmin
-                    ? _value.isAdmin
-                    : isAdmin // ignore: cast_nullable_to_non_nullable
-                        as bool,
+            adminRole:
+                null == adminRole
+                    ? _value.adminRole
+                    : adminRole // ignore: cast_nullable_to_non_nullable
+                        as AdminRole,
             isBanned:
                 null == isBanned
                     ? _value.isBanned
@@ -173,7 +174,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
-    bool isAdmin,
+    @AdminRoleConverter() AdminRole adminRole,
     bool isBanned,
     String? banReason,
     @TimestampConverter() DateTime? bannedAt,
@@ -201,7 +202,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
-    Object? isAdmin = null,
+    Object? adminRole = null,
     Object? isBanned = null,
     Object? banReason = freezed,
     Object? bannedAt = freezed,
@@ -243,11 +244,11 @@ class __$$UserModelImplCopyWithImpl<$Res>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
-        isAdmin:
-            null == isAdmin
-                ? _value.isAdmin
-                : isAdmin // ignore: cast_nullable_to_non_nullable
-                    as bool,
+        adminRole:
+            null == adminRole
+                ? _value.adminRole
+                : adminRole // ignore: cast_nullable_to_non_nullable
+                    as AdminRole,
         isBanned:
             null == isBanned
                 ? _value.isBanned
@@ -279,7 +280,7 @@ class _$UserModelImpl extends _UserModel {
     this.phoneNumber,
     @TimestampConverter() this.createdAt,
     @TimestampConverter() this.lastLoginAt,
-    this.isAdmin = false,
+    @AdminRoleConverter() this.adminRole = AdminRole.none,
     this.isBanned = false,
     this.banReason,
     @TimestampConverter() this.bannedAt,
@@ -306,7 +307,8 @@ class _$UserModelImpl extends _UserModel {
   final DateTime? lastLoginAt;
   @override
   @JsonKey()
-  final bool isAdmin;
+  @AdminRoleConverter()
+  final AdminRole adminRole;
   @override
   @JsonKey()
   final bool isBanned;
@@ -318,7 +320,7 @@ class _$UserModelImpl extends _UserModel {
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
+    return 'UserModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, adminRole: $adminRole, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
   }
 
   @override
@@ -338,7 +340,8 @@ class _$UserModelImpl extends _UserModel {
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
                 other.lastLoginAt == lastLoginAt) &&
-            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin) &&
+            (identical(other.adminRole, adminRole) ||
+                other.adminRole == adminRole) &&
             (identical(other.isBanned, isBanned) ||
                 other.isBanned == isBanned) &&
             (identical(other.banReason, banReason) ||
@@ -358,7 +361,7 @@ class _$UserModelImpl extends _UserModel {
     phoneNumber,
     createdAt,
     lastLoginAt,
-    isAdmin,
+    adminRole,
     isBanned,
     banReason,
     bannedAt,
@@ -387,7 +390,7 @@ abstract class _UserModel extends UserModel {
     final String? phoneNumber,
     @TimestampConverter() final DateTime? createdAt,
     @TimestampConverter() final DateTime? lastLoginAt,
-    final bool isAdmin,
+    @AdminRoleConverter() final AdminRole adminRole,
     final bool isBanned,
     final String? banReason,
     @TimestampConverter() final DateTime? bannedAt,
@@ -414,7 +417,8 @@ abstract class _UserModel extends UserModel {
   @TimestampConverter()
   DateTime? get lastLoginAt;
   @override
-  bool get isAdmin;
+  @AdminRoleConverter()
+  AdminRole get adminRole;
   @override
   bool get isBanned;
   @override

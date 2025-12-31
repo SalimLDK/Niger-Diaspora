@@ -20,6 +20,11 @@ abstract class GroupRemoteDataSource {
   Future<void> removeMember(String groupId, String userId);
   Future<List<GroupModel>> getMyGroups(String userId);
   Future<List<GroupModel>> searchGroups(String query);
+
+  /// System message methods for group events
+  Future<void> sendPromotedSystemMessage(String groupId, String userId);
+  Future<void> sendDemotedSystemMessage(String groupId, String userId);
+  Future<void> sendGroupRenamedSystemMessage(String groupId, String newName);
 }
 
 class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
@@ -243,18 +248,15 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
     }
   }
 
-  /// Sends a system message when a user joins a group.
-  /// This is a non-critical operation that shouldn't block the join.
-  Future<void> _sendJoinSystemMessage(String groupId, String userId) async {
+  /// Sends a system message to a group conversation.
+  /// This is a non-critical operation that shouldn't block the main action.
+  Future<void> _sendGroupSystemMessage({
+    required String groupId,
+    required String content,
+    String? userId,
+    bool addUserToParticipants = false,
+  }) async {
     try {
-      // Get user's profile to display their name
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-
-      if (!userDoc.exists) return;
-
-      final userName =
-          userDoc.data()?['displayName'] as String? ?? 'Un utilisateur';
-
       // Find the group's conversation
       final conversationsQuery =
           await _firestore
@@ -269,28 +271,30 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       final conversationDoc = conversationsQuery.docs.first;
       final conversationId = conversationDoc.id;
 
-      // Add user to conversation participants if not already
-      final conversationData = conversationDoc.data();
-      final participants = List<String>.from(
-        conversationData['participantIds'] ?? [],
-      );
-
-      if (!participants.contains(userId)) {
-        await _firestore.collection('conversations').doc(conversationId).update(
-          {
-            'participantIds': FieldValue.arrayUnion([userId]),
-          },
+      // Handle adding user to participants if needed
+      if (userId != null && addUserToParticipants) {
+        final conversationData = conversationDoc.data();
+        final participants = List<String>.from(
+          conversationData['participantIds'] ?? [],
         );
+
+        if (!participants.contains(userId)) {
+          await _firestore.collection('conversations').doc(conversationId).update({
+            'participantIds': FieldValue.arrayUnion([userId]),
+          });
+          // Sync to RTDB for security rules
+          await _syncParticipantsToRTDB(conversationId, [...participants, userId]);
+        }
       }
 
       // Send system message to Firebase RTDB
       final messageData = {
         'senderId': 'system',
         'senderName': 'Système',
-        'content': '$userName a rejoint le groupe',
+        'content': content,
         'type': 'system',
-        'readBy': [],
-        'readAt': {},
+        'readBy': <String>[],
+        'readAt': <String, dynamic>{},
         'createdAt': DateTime.now().toIso8601String(),
       };
 
@@ -303,22 +307,164 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
 
       // Update conversation last message
       await _firestore.collection('conversations').doc(conversationId).update({
-        'lastMessage': '$userName a rejoint le groupe',
+        'lastMessage': content,
         'lastMessageSenderId': 'system',
         'lastMessageAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       // Log but don't fail - this is a non-critical operation
-      // debugPrint('⚠️ Failed to send system message for group join: $e');
+      // debugPrint('⚠️ Failed to send system message: $e');
     }
+  }
+
+  /// Helper to sync participants to RTDB for security rules
+  Future<void> _syncParticipantsToRTDB(String conversationId, List<String> participantIds) async {
+    try {
+      final participantsMap = <String, bool>{};
+      for (final id in participantIds) {
+        participantsMap[id] = true;
+      }
+      await FirebaseDatabase.instance
+          .ref()
+          .child('conversations')
+          .child(conversationId)
+          .child('participants')
+          .set(participantsMap);
+    } catch (e) {
+      // Non-critical
+    }
+  }
+
+  /// Gets user display name from Firestore
+  Future<String> _getUserDisplayName(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) return 'Un utilisateur';
+      return userDoc.data()?['displayName'] as String? ?? 'Un utilisateur';
+    } catch (e) {
+      return 'Un utilisateur';
+    }
+  }
+
+  /// Sends a system message when a user joins a group.
+  Future<void> _sendJoinSystemMessage(String groupId, String userId) async {
+    final userName = await _getUserDisplayName(userId);
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: '$userName a rejoint le groupe',
+      userId: userId,
+      addUserToParticipants: true,
+    );
+  }
+
+  /// Sends a system message when a user leaves a group.
+  Future<void> _sendLeaveSystemMessage(String groupId, String userId) async {
+    final userName = await _getUserDisplayName(userId);
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: '$userName a quitté le groupe',
+    );
+  }
+
+  /// Sends a system message when a user is removed from a group.
+  Future<void> _sendRemovedSystemMessage(String groupId, String userId) async {
+    final userName = await _getUserDisplayName(userId);
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: '$userName a été retiré du groupe',
+    );
+  }
+
+  /// Sends a system message when a user is promoted to admin.
+  /// Public method to be called from message provider.
+  @override
+  Future<void> sendPromotedSystemMessage(String groupId, String userId) async {
+    final userName = await _getUserDisplayName(userId);
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: '$userName est maintenant administrateur',
+    );
+  }
+
+  /// Sends a system message when a user is demoted from admin.
+  /// Public method to be called from message provider.
+  @override
+  Future<void> sendDemotedSystemMessage(String groupId, String userId) async {
+    final userName = await _getUserDisplayName(userId);
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: '$userName n\'est plus administrateur',
+    );
+  }
+
+  /// Sends a system message when group name is changed.
+  /// Public method to be called from group provider.
+  @override
+  Future<void> sendGroupRenamedSystemMessage(String groupId, String newName) async {
+    await _sendGroupSystemMessage(
+      groupId: groupId,
+      content: 'Le groupe a été renommé en $newName',
+    );
   }
 
   @override
   Future<void> leaveGroup(String groupId, String userId) async {
     try {
+      // Vérifier si l'utilisateur est le créateur
+      final groupDoc = await _groupsCollection.doc(groupId).get();
+      if (!groupDoc.exists) {
+        throw ServerException('Groupe non trouvé');
+      }
+
+      final groupData = groupDoc.data() as Map<String, dynamic>;
+      final creatorId = groupData['creatorId'] as String?;
+      final adminIds = List<String>.from(groupData['adminIds'] ?? []);
+
+      // Vérifier s'il y a d'autres admins
+      final otherAdmins = adminIds.where((id) => id != userId).toList();
+
+      // Le créateur peut quitter seulement s'il y a au moins un autre admin
+      if (creatorId == userId) {
+        if (otherAdmins.isEmpty) {
+          throw ServerException(
+            'Vous êtes le créateur et le seul administrateur. Nommez un autre administrateur avant de quitter.',
+          );
+        }
+        // Transférer la propriété au premier admin disponible
+        final newCreatorId = otherAdmins.first;
+        await _groupsCollection.doc(groupId).update({
+          'creatorId': newCreatorId,
+        });
+        // Envoyer un message système pour le transfert
+        final newCreatorName = await _getUserDisplayName(newCreatorId);
+        await _sendGroupSystemMessage(
+          groupId: groupId,
+          content: '$newCreatorName est maintenant le propriétaire du groupe',
+        );
+      } else if (adminIds.contains(userId)) {
+        // Si c'est un admin (pas le créateur), vérifier qu'il reste au moins un admin ou le créateur
+        final creatorIsAdmin = creatorId != null && adminIds.contains(creatorId);
+        if (otherAdmins.isEmpty && !creatorIsAdmin) {
+          throw ServerException(
+            'Vous êtes le seul administrateur. Nommez un autre administrateur avant de quitter.',
+          );
+        }
+      }
+
+      // Send system message before removing (so user is still in conversation)
+      _sendLeaveSystemMessage(groupId, userId);
+
+      // Retirer l'utilisateur du groupe
       await _groupsCollection.doc(groupId).update({
         'memberIds': FieldValue.arrayRemove([userId]),
+        'adminIds': FieldValue.arrayRemove([userId]),
+        'memberJoinedAt.$userId': FieldValue.delete(),
       });
+
+      // Retirer l'utilisateur de la conversation du groupe
+      await _removeUserFromGroupConversation(groupId, userId);
+    } on ServerException {
+      rethrow;
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du depart');
     }
@@ -327,14 +473,80 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
   @override
   Future<void> removeMember(String groupId, String userId) async {
     try {
+      // Vérifier si l'utilisateur est le créateur
+      final groupDoc = await _groupsCollection.doc(groupId).get();
+      if (!groupDoc.exists) {
+        throw ServerException('Groupe non trouvé');
+      }
+
+      final groupData = groupDoc.data() as Map<String, dynamic>;
+      final creatorId = groupData['creatorId'] as String?;
+
+      // On ne peut pas retirer le créateur du groupe
+      if (creatorId == userId) {
+        throw ServerException(
+          'Le créateur ne peut pas être retiré du groupe.',
+        );
+      }
+
+      // Send system message before removing (so user is still in conversation)
+      _sendRemovedSystemMessage(groupId, userId);
+
+      // Retirer l'utilisateur du groupe
       await _groupsCollection.doc(groupId).update({
         'memberIds': FieldValue.arrayRemove([userId]),
         'adminIds': FieldValue.arrayRemove([userId]),
+        'memberJoinedAt.$userId': FieldValue.delete(),
       });
+
+      // Retirer l'utilisateur de la conversation du groupe
+      await _removeUserFromGroupConversation(groupId, userId);
+    } on ServerException {
+      rethrow;
     } on FirebaseException catch (e) {
       throw ServerException(
         e.message ?? 'Erreur lors de la suppression du membre',
       );
+    }
+  }
+
+  /// Retire un utilisateur de la conversation associée au groupe
+  Future<void> _removeUserFromGroupConversation(
+    String groupId,
+    String userId,
+  ) async {
+    try {
+      // Trouver la conversation du groupe
+      final conversationsQuery =
+          await _firestore
+              .collection('conversations')
+              .where('type', isEqualTo: 'group')
+              .where('groupId', isEqualTo: groupId)
+              .limit(1)
+              .get();
+
+      if (conversationsQuery.docs.isEmpty) return;
+
+      final conversationDoc = conversationsQuery.docs.first;
+      final conversationId = conversationDoc.id;
+
+      // Retirer l'utilisateur des participants
+      await _firestore.collection('conversations').doc(conversationId).update({
+        'participantIds': FieldValue.arrayRemove([userId]),
+        'unreadCount.$userId': FieldValue.delete(),
+      });
+
+      // Retirer des participants RTDB (pour les règles de sécurité)
+      await FirebaseDatabase.instance
+          .ref()
+          .child('conversations')
+          .child(conversationId)
+          .child('participants')
+          .child(userId)
+          .remove();
+    } catch (e) {
+      // Non-critique, ne pas bloquer le départ du groupe
+      // debugPrint('⚠️ Failed to remove user from group conversation: $e');
     }
   }
 
@@ -379,25 +591,29 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
   Future<List<GroupModel>> searchGroups(String query) async {
     try {
       final isConnected = await _connectivity.isConnected();
+      final lowerQuery = query.toLowerCase();
 
       if (isConnected) {
-        final lowerQuery = query.toLowerCase();
-
+        // Fetch all public groups and filter locally for case-insensitive search
         final snapshot =
             await _groupsCollection
                 .where('isPrivate', isEqualTo: false)
-                .orderBy('name')
-                .startAt([lowerQuery])
-                .endAt(['$lowerQuery\uf8ff'])
-                .limit(20)
+                .orderBy('createdAt', descending: true)
+                .limit(100)
                 .get();
 
-        final groups =
+        final allGroups =
             snapshot.docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
               data['id'] = doc.id;
               return GroupModel.fromJson(_convertTimestamps(data));
             }).toList();
+
+        // Filter locally for case-insensitive matching
+        final groups = allGroups
+            .where((g) => g.name.toLowerCase().contains(lowerQuery))
+            .take(20)
+            .toList();
 
         for (final group in groups) {
           await _cache.cacheGroup(group.id, group.toJson());
@@ -407,7 +623,6 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       } else {
         // Recherche locale dans le cache
         final cached = _getGroupsFromCache();
-        final lowerQuery = query.toLowerCase();
         return cached
             .where((g) => g.name.toLowerCase().contains(lowerQuery))
             .take(20)

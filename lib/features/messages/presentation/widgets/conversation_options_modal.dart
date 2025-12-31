@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../reports/domain/entities/report_entity.dart';
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../providers/conversation_actions_provider.dart';
 
 class ConversationOptionsModal extends ConsumerStatefulWidget {
@@ -240,30 +242,40 @@ class _ConversationOptionsModalState
     }
   }
 
-  Future<void> _reportConversation() async {
-    final reason = await showDialog<String>(
+  Future<void> _unblockUser() async {
+    if (widget.otherUserId == null) return;
+
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => _ReportDialog(),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Débloquer l\'utilisateur'),
+            content: Text(
+              'Voulez-vous vraiment débloquer ${widget.otherUserName ?? 'cet utilisateur'} ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.adaptivePrimaryColor,
+                ),
+                child: const Text('Débloquer'),
+              ),
+            ],
+          ),
     );
 
-    if (reason == null || !mounted) return;
+    if (confirmed != true || !mounted) return;
 
     setState(() => _isLoading = true);
 
-    final success =
-        widget.isGroup
-            ? await ref
-                .read(conversationActionsNotifierProvider.notifier)
-                .reportGroup(
-                  conversationId: widget.conversationId,
-                  reason: reason,
-                )
-            : await ref
-                .read(conversationActionsNotifierProvider.notifier)
-                .reportConversation(
-                  conversationId: widget.conversationId,
-                  reason: reason,
-                );
+    final success = await ref
+        .read(blockUserNotifierProvider.notifier)
+        .unblockUser(widget.otherUserId!);
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -272,12 +284,26 @@ class _ConversationOptionsModalState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Signalement envoyé' : 'Erreur lors du signalement',
+            success ? 'Utilisateur débloqué' : 'Erreur lors du déblocage',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
       );
     }
+  }
+
+  Future<void> _reportConversation() async {
+    Navigator.pop(context);
+
+    await ReportContentModal.show(
+      context,
+      targetType: widget.isGroup
+          ? ReportTargetType.group
+          : ReportTargetType.conversation,
+      targetId: widget.conversationId,
+      targetName: widget.otherUserName,
+      conversationId: widget.conversationId,
+    );
   }
 
   @override
@@ -352,11 +378,18 @@ class _ConversationOptionsModalState
             ),
             if (!widget.isGroup && widget.otherUserId != null) ...[
               const Divider(),
-              _buildOption(
-                icon: Icons.block,
-                title: 'Bloquer l\'utilisateur',
-                onTap: _blockUser,
-                isDestructive: true,
+              Consumer(
+                builder: (context, ref, _) {
+                  final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+                  final isBlocked = blockedUsers.any((u) => u.id == widget.otherUserId);
+
+                  return _buildOption(
+                    icon: isBlocked ? Icons.check_circle_outline : Icons.block,
+                    title: isBlocked ? 'Débloquer l\'utilisateur' : 'Bloquer l\'utilisateur',
+                    onTap: isBlocked ? _unblockUser : _blockUser,
+                    isDestructive: !isBlocked,
+                  );
+                },
               ),
             ],
             const Divider(),

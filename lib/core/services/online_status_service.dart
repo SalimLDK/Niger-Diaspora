@@ -28,11 +28,16 @@ class OnlineStatusService {
   bool _initialized = false;
   String? _currentUserId;
 
-  /// Check if user is currently authenticated
-  bool _isUserAuthenticated() {
+  /// Check if user is currently authenticated and matches the expected userId
+  bool _isUserAuthenticated([String? expectedUserId]) {
     final user = _auth.currentUser;
     if (user == null) {
       // debugPrint('⚠️ OnlineStatusService: User is not authenticated');
+      return false;
+    }
+    // If expectedUserId is provided, verify it matches the current user
+    if (expectedUserId != null && user.uid != expectedUserId) {
+      // debugPrint('⚠️ OnlineStatusService: User ID mismatch - expected $expectedUserId but got ${user.uid}');
       return false;
     }
     return true;
@@ -149,11 +154,11 @@ class OnlineStatusService {
   void _handleLifecycleStateChange(AppLifecycleState state) {
     if (_currentUserId == null) return;
 
-    // Validate authentication before any lifecycle operations
-    if (!_isUserAuthenticated()) {
+    // Validate authentication and user ID match before any lifecycle operations
+    if (!_isUserAuthenticated(_currentUserId)) {
       // debugPrint(
       //   '⚠️ OnlineStatusService: Skipping lifecycle state change - '
-      //   'user not authenticated',
+      //   'user not authenticated or ID mismatch',
       // );
       return;
     }
@@ -179,10 +184,10 @@ class OnlineStatusService {
 
   /// Set user status to online
   Future<void> _setOnline(String userId) async {
-    // Validate authentication before any operations
-    if (!_isUserAuthenticated()) {
+    // Validate authentication and user ID match before any operations
+    if (!_isUserAuthenticated(userId)) {
       // debugPrint(
-      //   '❌ OnlineStatusService: Cannot set online - user not authenticated',
+      //   '❌ OnlineStatusService: Cannot set online - user not authenticated or ID mismatch',
       // );
       return;
     }
@@ -261,13 +266,23 @@ class OnlineStatusService {
   Future<void> _setOffline(String userId) async {
     _heartbeatTimer?.cancel();
 
-    // Validate authentication before operations
-    if (!_isUserAuthenticated()) {
+    // Validate authentication and user ID match before operations
+    // During sign-out, we can't update Firestore anyway, so skip gracefully
+    if (!_isUserAuthenticated(userId)) {
       // debugPrint(
-      //   '⚠️ OnlineStatusService: Cannot set offline - user not authenticated. '
+      //   '⚠️ OnlineStatusService: Cannot set offline - user not authenticated or ID mismatch. '
       //   'This may be expected during sign-out.',
       // );
-      // Continue anyway for sign-out scenarios
+      // Only update RTDB if we have the ref (doesn't require auth in same way)
+      try {
+        await _database.ref('presence/$userId').set({
+          'isOnline': false,
+          'lastSeen': ServerValue.timestamp,
+        });
+      } catch (_) {
+        // Ignore RTDB errors during sign-out
+      }
+      return;
     }
 
     try {

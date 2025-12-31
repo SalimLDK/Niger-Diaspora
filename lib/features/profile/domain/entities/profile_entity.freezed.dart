@@ -49,6 +49,7 @@ mixin _$ProfileEntity {
   DateTime? get lastSeen => throw _privateConstructorUsedError;
   bool get showOnlineStatus => throw _privateConstructorUsedError;
   DateTime? get locationUpdatedAt => throw _privateConstructorUsedError;
+  List<String> get blockedByUserIds => throw _privateConstructorUsedError;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -97,6 +98,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
     DateTime? lastSeen,
     bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    List<String> blockedByUserIds,
   });
 }
 
@@ -147,6 +149,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
     Object? locationUpdatedAt = freezed,
+    Object? blockedByUserIds = null,
   }) {
     return _then(
       _value.copyWith(
@@ -310,6 +313,11 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     ? _value.locationUpdatedAt
                     : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            blockedByUserIds:
+                null == blockedByUserIds
+                    ? _value.blockedByUserIds
+                    : blockedByUserIds // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -358,6 +366,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     DateTime? lastSeen,
     bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    List<String> blockedByUserIds,
   });
 }
 
@@ -407,6 +416,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
     Object? locationUpdatedAt = freezed,
+    Object? blockedByUserIds = null,
   }) {
     return _then(
       _$ProfileEntityImpl(
@@ -570,6 +580,11 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 ? _value.locationUpdatedAt
                 : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        blockedByUserIds:
+            null == blockedByUserIds
+                ? _value._blockedByUserIds
+                : blockedByUserIds // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -611,9 +626,11 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     this.lastSeen,
     this.showOnlineStatus = true,
     this.locationUpdatedAt,
+    final List<String> blockedByUserIds = const [],
   }) : _interests = interests,
        _skills = skills,
-       _languages = languages;
+       _languages = languages,
+       _blockedByUserIds = blockedByUserIds;
 
   @override
   final String id;
@@ -710,10 +727,19 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   final bool showOnlineStatus;
   @override
   final DateTime? locationUpdatedAt;
+  final List<String> _blockedByUserIds;
+  @override
+  @JsonKey()
+  List<String> get blockedByUserIds {
+    if (_blockedByUserIds is EqualUnmodifiableListView)
+      return _blockedByUserIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_blockedByUserIds);
+  }
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -784,7 +810,11 @@ class _$ProfileEntityImpl implements _ProfileEntity {
             (identical(other.showOnlineStatus, showOnlineStatus) ||
                 other.showOnlineStatus == showOnlineStatus) &&
             (identical(other.locationUpdatedAt, locationUpdatedAt) ||
-                other.locationUpdatedAt == locationUpdatedAt));
+                other.locationUpdatedAt == locationUpdatedAt) &&
+            const DeepCollectionEquality().equals(
+              other._blockedByUserIds,
+              _blockedByUserIds,
+            ));
   }
 
   @override
@@ -822,6 +852,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     lastSeen,
     showOnlineStatus,
     locationUpdatedAt,
+    const DeepCollectionEquality().hash(_blockedByUserIds),
   ]);
 
   /// Create a copy of ProfileEntity
@@ -867,6 +898,7 @@ abstract class _ProfileEntity implements ProfileEntity {
     final DateTime? lastSeen,
     final bool showOnlineStatus,
     final DateTime? locationUpdatedAt,
+    final List<String> blockedByUserIds,
   }) = _$ProfileEntityImpl;
 
   @override
@@ -933,6 +965,8 @@ abstract class _ProfileEntity implements ProfileEntity {
   bool get showOnlineStatus;
   @override
   DateTime? get locationUpdatedAt;
+  @override
+  List<String> get blockedByUserIds;
 
   /// Create a copy of ProfileEntity
   /// with the given fields replaced by the non-null parameter values.

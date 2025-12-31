@@ -137,6 +137,15 @@ Future<GroupEntity?> groupByName(Ref ref, String groupName) async {
   });
 }
 
+/// Récupérer un groupe par son ID
+@riverpod
+Future<GroupEntity?> groupById(Ref ref, String groupId) async {
+  final repository = ref.watch(groupRepositoryProvider);
+  final result = await repository.getGroupById(groupId);
+
+  return result.fold((failure) => null, (group) => group);
+}
+
 @Riverpod(keepAlive: true)
 class MyGroupsNotifier extends _$MyGroupsNotifier {
   @override

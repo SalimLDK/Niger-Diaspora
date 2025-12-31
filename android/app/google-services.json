@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "539228418594-11vg6p693rblafrqtaujsg9qpi3rmfq8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diasponiger.diaspo_niger",
+            "certificate_hash": "6cd44a2d136056e7fee079d285c08935c3de10d1"
+          }
+        },
+        {
+          "client_id": "539228418594-8os4rs25lfdoj0s4jlf5vv91k74atmp6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diasponiger.diaspo_niger",
+            "certificate_hash": "5b2fda410a461495cac054279c95bd0f3eba1cdc"
+          }
+        },
+        {
           "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -30,6 +46,65 @@
             {
               "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "539228418594-t57j3s9ncgldbgk49a1td9f1hdrld7ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.diasponiger.diaspoNiger"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:539228418594:android:7a90385192df25a98e507b",
+        "android_client_info": {
+          "package_name": "com.diasponiger.diasponiger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "539228418594-11vg6p693rblafrqtaujsg9qpi3rmfq8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diasponiger.diasponiger",
+            "certificate_hash": "6cd44a2d136056e7fee079d285c08935c3de10d1"
+          }
+        },
+        {
+          "client_id": "539228418594-8os4rs25lfdoj0s4jlf5vv91k74atmp6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diasponiger.diasponiger",
+            "certificate_hash": "5b2fda410a461495cac054279c95bd0f3eba1cdc"
+          }
+        },
+        {
+          "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJsOIAjUkFJ1LJybkfwknw5xaNSdZbh0E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "539228418594-t57j3s9ncgldbgk49a1td9f1hdrld7ic.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.diasponiger.diaspoNiger"
+              }
             }
           ]
         }

@@ -20,6 +20,28 @@ class HomeMemberCard extends StatelessWidget {
     this.photoUrl,
   });
 
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  Widget _buildInitials(String? name) {
+    return Center(
+      child: Text(
+        _getInitials(name),
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -72,24 +94,12 @@ class HomeMemberCard extends StatelessWidget {
                             width: 72,
                             height: 72,
                             placeholder:
-                                (_, __) => const Icon(
-                                  Icons.person,
-                                  color: AppColors.white,
-                                  size: 36,
-                                ),
+                                (_, __) => _buildInitials(name),
                             errorWidget:
-                                (_, __, ___) => const Icon(
-                                  Icons.person,
-                                  color: AppColors.white,
-                                  size: 36,
-                                ),
+                                (_, __, ___) => _buildInitials(name),
                           ),
                         )
-                        : const Icon(
-                          Icons.person,
-                          color: AppColors.white,
-                          size: 36,
-                        ),
+                        : _buildInitials(name),
               ),
               Positioned(
                 right: 0,

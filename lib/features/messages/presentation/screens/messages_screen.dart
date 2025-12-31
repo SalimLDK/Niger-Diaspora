@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/conversation_actions_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
@@ -19,23 +20,15 @@ class MessagesScreen extends ConsumerStatefulWidget {
   ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesScreenState extends ConsumerState<MessagesScreen>
-    with SingleTickerProviderStateMixin {
+class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  bool _showArchived = false;
 
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -44,20 +37,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
     required String currentUserId,
     required bool showArchived,
     required Set<String> blockedUserIds,
+    required Map<String, String> participantNames,
   }) {
-    // Filter out conversations with blocked users (for individual chats)
-    var filtered =
-        conversations.where((conv) {
-          if (conv.isIndividual) {
-            final otherUserId = conv.getOtherParticipantId(currentUserId);
-            if (blockedUserIds.contains(otherUserId)) {
-              return false;
-            }
-          }
-          return true;
-        }).toList();
-
     // Filter by archived status
+    var filtered = conversations;
     filtered =
         filtered.where((conv) {
           final isArchived = conv.isArchivedBy(currentUserId);
@@ -69,9 +52,30 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
       final query = _searchQuery.toLowerCase();
       filtered =
           filtered.where((conv) {
+            // Search by conversation name (for groups)
             final name = (conv.name ?? '').toLowerCase();
+            if (name.contains(query)) {
+              return true;
+            }
+
+            // Search by last message
             final lastMessage = (conv.lastMessage ?? '').toLowerCase();
-            return name.contains(query) || lastMessage.contains(query);
+            if (lastMessage.contains(query)) {
+              return true;
+            }
+
+            // For individual conversations, search by other participant's name
+            if (conv.isIndividual) {
+              final otherUserId = conv.getOtherParticipantId(currentUserId);
+              if (otherUserId.isNotEmpty) {
+                final displayName = (participantNames[otherUserId] ?? '').toLowerCase();
+                if (displayName.contains(query)) {
+                  return true;
+                }
+              }
+            }
+
+            return false;
           }).toList();
     }
 
@@ -224,7 +228,15 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
                     setState(() => _searchQuery = value);
                   },
                 )
-                : Text(l10n.messagesTitle),
+                : Text(_showArchived ? l10n.archives : l10n.messagesTitle),
+        leading: _showArchived
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  setState(() => _showArchived = false);
+                },
+              )
+            : null,
         actions: [
           if (_isSearching)
             IconButton(
@@ -251,33 +263,47 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
                 setState(() => _isSearching = true);
               },
             ),
-            IconButton(
+            PopupMenuButton<String>(
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: context.surfaceVariantColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.edit, color: context.textPrimaryColor),
+                child: Icon(Icons.more_vert, color: context.textPrimaryColor),
               ),
-              onPressed: () => context.push('/messages/new'),
+              onSelected: (value) {
+                if (value == 'archives') {
+                  setState(() => _showArchived = !_showArchived);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'archives',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showArchived ? Icons.chat_bubble_outline : Icons.archive_outlined,
+                        color: context.textPrimaryColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(_showArchived ? l10n.messagesTitle : l10n.archives),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
           const SizedBox(width: 8),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: context.adaptivePrimaryColor,
-          unselectedLabelColor: context.textSecondaryColor,
-          indicatorColor: context.adaptivePrimaryColor,
-          tabs: [Tab(text: l10n.messagesTitle), Tab(text: l10n.archives)],
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/messages/new'),
-        backgroundColor: context.adaptivePrimaryColor,
-        child: const Icon(Icons.message, color: AppColors.white),
-      ),
+      floatingActionButton: _showArchived
+          ? null
+          : FloatingActionButton(
+              onPressed: () => context.push('/messages/new'),
+              backgroundColor: context.adaptivePrimaryColor,
+              child: const Icon(Icons.message, color: AppColors.white),
+            ),
       body: conversationsAsync.when(
         skipLoadingOnRefresh: true,
         skipLoadingOnReload: true,
@@ -288,24 +314,27 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
             return _buildEmptyState(context);
           }
 
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              // Messages tab (non-archived)
-              _buildConversationList(
-                conversations: conversations,
-                currentUserId: currentUserId,
-                showArchived: false,
-                blockedUserIds: blockedUserIds,
-              ),
-              // Archives tab
-              _buildConversationList(
-                conversations: conversations,
-                currentUserId: currentUserId,
-                showArchived: true,
-                blockedUserIds: blockedUserIds,
-              ),
-            ],
+          // Build participant names map for individual conversations
+          final participantNames = <String, String>{};
+          for (final conv in conversations) {
+            if (conv.isIndividual) {
+              final otherUserId = conv.getOtherParticipantId(currentUserId);
+              if (otherUserId.isNotEmpty && !participantNames.containsKey(otherUserId)) {
+                final profileAsync = ref.watch(userStreamProvider(otherUserId));
+                final profile = profileAsync.valueOrNull;
+                if (profile != null) {
+                  participantNames[otherUserId] = profile.displayName ?? '';
+                }
+              }
+            }
+          }
+
+          return _buildConversationList(
+            conversations: conversations,
+            currentUserId: currentUserId,
+            showArchived: _showArchived,
+            blockedUserIds: blockedUserIds,
+            participantNames: participantNames,
           );
         },
         loading:
@@ -404,6 +433,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
     required String currentUserId,
     required bool showArchived,
     required Set<String> blockedUserIds,
+    required Map<String, String> participantNames,
   }) {
     final l10n = AppLocalizations.of(context)!;
     final filtered = _filterConversations(
@@ -411,6 +441,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
       currentUserId: currentUserId,
       showArchived: showArchived,
       blockedUserIds: blockedUserIds,
+      participantNames: participantNames,
     );
 
     if (filtered.isEmpty) {
@@ -465,38 +496,44 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
       return _buildEmptyState(context);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final conversation = filtered[index];
-
-        return ConversationItem(
-          conversation: conversation,
-          currentUserId: currentUserId,
-          onTap: () {
-            context.push(
-              '/messages/${conversation.id}',
-              extra: {
-                'name': conversation.name ?? 'Conversation',
-                'imageUrl': conversation.imageUrl,
-                'isGroup': conversation.isGroup,
-                'groupId': conversation.groupId,
-                'otherUserId':
-                    conversation.isGroup
-                        ? null
-                        : conversation.getOtherParticipantId(currentUserId),
-              },
-            );
-          },
-          onLongPress:
-              () => _showConversationOptions(
-                context,
-                conversation,
-                currentUserId,
-              ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(conversationsProvider);
       },
+      color: context.adaptivePrimaryColor,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final conversation = filtered[index];
+
+          return ConversationItem(
+            conversation: conversation,
+            currentUserId: currentUserId,
+            onTap: () {
+              context.push(
+                '/messages/${conversation.id}',
+                extra: {
+                  'name': conversation.name ?? 'Conversation',
+                  'imageUrl': conversation.imageUrl,
+                  'isGroup': conversation.isGroup,
+                  'groupId': conversation.groupId,
+                  'otherUserId':
+                      conversation.isGroup
+                          ? null
+                          : conversation.getOtherParticipantId(currentUserId),
+                },
+              );
+            },
+            onLongPress:
+                () => _showConversationOptions(
+                  context,
+                  conversation,
+                  currentUserId,
+                ),
+          );
+        },
+      ),
     );
   }
 }

@@ -24,6 +24,8 @@ mixin _$NotificationEntity {
   NotificationType get type => throw _privateConstructorUsedError;
   NotificationPriority get priority => throw _privateConstructorUsedError;
   String? get targetId => throw _privateConstructorUsedError;
+  String? get senderId =>
+      throw _privateConstructorUsedError; // ID of the user who triggered this notification
   String? get groupKey => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -50,6 +52,7 @@ abstract class $NotificationEntityCopyWith<$Res> {
     NotificationType type,
     NotificationPriority priority,
     String? targetId,
+    String? senderId,
     String? groupKey,
     bool isRead,
     DateTime? createdAt,
@@ -78,6 +81,7 @@ class _$NotificationEntityCopyWithImpl<$Res, $Val extends NotificationEntity>
     Object? type = null,
     Object? priority = null,
     Object? targetId = freezed,
+    Object? senderId = freezed,
     Object? groupKey = freezed,
     Object? isRead = null,
     Object? createdAt = freezed,
@@ -119,6 +123,11 @@ class _$NotificationEntityCopyWithImpl<$Res, $Val extends NotificationEntity>
                     ? _value.targetId
                     : targetId // ignore: cast_nullable_to_non_nullable
                         as String?,
+            senderId:
+                freezed == senderId
+                    ? _value.senderId
+                    : senderId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             groupKey:
                 freezed == groupKey
                     ? _value.groupKey
@@ -157,6 +166,7 @@ abstract class _$$NotificationEntityImplCopyWith<$Res>
     NotificationType type,
     NotificationPriority priority,
     String? targetId,
+    String? senderId,
     String? groupKey,
     bool isRead,
     DateTime? createdAt,
@@ -184,6 +194,7 @@ class __$$NotificationEntityImplCopyWithImpl<$Res>
     Object? type = null,
     Object? priority = null,
     Object? targetId = freezed,
+    Object? senderId = freezed,
     Object? groupKey = freezed,
     Object? isRead = null,
     Object? createdAt = freezed,
@@ -225,6 +236,11 @@ class __$$NotificationEntityImplCopyWithImpl<$Res>
                 ? _value.targetId
                 : targetId // ignore: cast_nullable_to_non_nullable
                     as String?,
+        senderId:
+            freezed == senderId
+                ? _value.senderId
+                : senderId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         groupKey:
             freezed == groupKey
                 ? _value.groupKey
@@ -256,6 +272,7 @@ class _$NotificationEntityImpl implements _NotificationEntity {
     this.type = NotificationType.general,
     this.priority = NotificationPriority.normal,
     this.targetId,
+    this.senderId,
     this.groupKey,
     this.isRead = false,
     this.createdAt,
@@ -278,6 +295,9 @@ class _$NotificationEntityImpl implements _NotificationEntity {
   @override
   final String? targetId;
   @override
+  final String? senderId;
+  // ID of the user who triggered this notification
+  @override
   final String? groupKey;
   @override
   @JsonKey()
@@ -287,7 +307,7 @@ class _$NotificationEntityImpl implements _NotificationEntity {
 
   @override
   String toString() {
-    return 'NotificationEntity(id: $id, userId: $userId, title: $title, body: $body, type: $type, priority: $priority, targetId: $targetId, groupKey: $groupKey, isRead: $isRead, createdAt: $createdAt)';
+    return 'NotificationEntity(id: $id, userId: $userId, title: $title, body: $body, type: $type, priority: $priority, targetId: $targetId, senderId: $senderId, groupKey: $groupKey, isRead: $isRead, createdAt: $createdAt)';
   }
 
   @override
@@ -304,6 +324,8 @@ class _$NotificationEntityImpl implements _NotificationEntity {
                 other.priority == priority) &&
             (identical(other.targetId, targetId) ||
                 other.targetId == targetId) &&
+            (identical(other.senderId, senderId) ||
+                other.senderId == senderId) &&
             (identical(other.groupKey, groupKey) ||
                 other.groupKey == groupKey) &&
             (identical(other.isRead, isRead) || other.isRead == isRead) &&
@@ -321,6 +343,7 @@ class _$NotificationEntityImpl implements _NotificationEntity {
     type,
     priority,
     targetId,
+    senderId,
     groupKey,
     isRead,
     createdAt,
@@ -347,6 +370,7 @@ abstract class _NotificationEntity implements NotificationEntity {
     final NotificationType type,
     final NotificationPriority priority,
     final String? targetId,
+    final String? senderId,
     final String? groupKey,
     final bool isRead,
     final DateTime? createdAt,
@@ -366,6 +390,8 @@ abstract class _NotificationEntity implements NotificationEntity {
   NotificationPriority get priority;
   @override
   String? get targetId;
+  @override
+  String? get senderId; // ID of the user who triggered this notification
   @override
   String? get groupKey;
   @override

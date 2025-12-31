@@ -183,6 +183,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: l10n.blockedUsers,
                 onTap: () => _showBlockedUsers(),
               ),
+              const _SettingsDivider(),
+              _SettingsTile(
+                icon: Icons.flag_outlined,
+                title: 'Mes signalements',
+                subtitle: 'Voir l\'historique de vos signalements',
+                onTap: () => context.push('/settings/my-reports'),
+              ),
             ],
           ),
 
@@ -251,7 +258,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.info_outline,
                 title: l10n.about,
-                subtitle: '${l10n.version} 1.1.0+7',
+                subtitle: '${l10n.version} 1.1.0+8',
                 onTap: () => _showAbout(),
               ),
               const _SettingsDivider(),
@@ -726,7 +733,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     Text(l10n.appTitle, style: const TextStyle(fontSize: 18)),
                     const Text(
-                      '1.1.0+7',
+                      '1.1.0+8',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.normal,

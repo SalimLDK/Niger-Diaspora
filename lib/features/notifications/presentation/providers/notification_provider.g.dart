@@ -107,7 +107,7 @@ final notificationsNotifierProvider = AutoDisposeNotifierProvider<
 typedef _$NotificationsNotifier =
     AutoDisposeNotifier<AsyncValue<List<NotificationEntity>>>;
 String _$unreadNotificationsCountHash() =>
-    r'0528436681602a75643a9b4d967b88de80798455';
+    r'49cb12dc00f0539ab2d10c692248704cf70bfda3';
 
 /// See also [UnreadNotificationsCount].
 @ProviderFor(UnreadNotificationsCount)

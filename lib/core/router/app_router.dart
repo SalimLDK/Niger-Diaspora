@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router_codec.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -44,6 +45,7 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/terms_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/code_of_conduct_screen.dart';
+import '../../features/reports/presentation/screens/my_reports_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../shell/main_shell.dart';
 // Business Directory
@@ -81,10 +83,27 @@ import '../../features/embassies/presentation/screens/employee_search_screen.dar
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+// Cache the router and notifier to prevent duplicate GlobalKey issues
+GoRouter? _cachedRouter;
+_SimpleNotifier? _cachedAuthNotifier;
+
 final routerProvider = Provider<GoRouter>((ref) {
+  // Return cached router if it exists to prevent duplicate GlobalKey errors
+  if (_cachedRouter != null && _cachedAuthNotifier != null) {
+    // Re-attach listeners for the cached router
+    ref.listen(authNotifierProvider, (_, __) {
+      _cachedAuthNotifier!.notify();
+    });
+    ref.listen(onboardingNotifierProvider, (_, __) {
+      _cachedAuthNotifier!.notify();
+    });
+    return _cachedRouter!;
+  }
+
   // Validates that the provider exists but doesn't rebuild the router when it changes
   // We use a ChangeNotifier to notify GoRouter when to refresh
   final authNotifier = _SimpleNotifier();
+  _cachedAuthNotifier = authNotifier;
 
   ref.listen(authNotifierProvider, (_, __) {
     authNotifier.notify();
@@ -94,7 +113,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     authNotifier.notify();
   });
 
-  return GoRouter(
+  _cachedRouter = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     debugLogDiagnostics: true,
@@ -212,6 +231,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/profile/:userId',
+        redirect: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+          // Redirect to profile tab if viewing own profile
+          if (currentUserId != null && currentUserId == userId) {
+            return '/profile';
+          }
+          return null;
+        },
         builder: (context, state) {
           final userId = state.pathParameters['userId']!;
           final profile = state.extra as ProfileEntity?;
@@ -223,6 +251,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/p/u/:userId',
         redirect: (context, state) {
           final userId = state.pathParameters['userId']!;
+          final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+          // Redirect to profile tab if viewing own profile
+          if (currentUserId != null && currentUserId == userId) {
+            return '/profile';
+          }
           return '/profile/$userId';
         },
       ),
@@ -273,8 +306,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/groups/search',
         builder:
-            (context, state) =>
-                const SearchScreen(initialFilter: SearchFilter.groups),
+            (context, state) => const SearchScreen(
+              initialFilter: SearchFilter.groups,
+              restrictToFilter: true,
+            ),
       ),
       GoRoute(
         path: '/groups/:groupId',
@@ -336,6 +371,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/code-of-conduct',
         builder: (context, state) => const CodeOfConductScreen(),
+      ),
+      GoRoute(
+        path: '/settings/my-reports',
+        builder: (context, state) => const MyReportsScreen(),
       ),
       // Embassies routes
       GoRoute(
@@ -532,8 +571,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/home',
                 pageBuilder:
-                    (context, state) =>
-                        const NoTransitionPage(child: HomeScreen()),
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const HomeScreen(),
+                    ),
               ),
             ],
           ),
@@ -543,8 +584,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/map',
                 pageBuilder:
-                    (context, state) =>
-                        const NoTransitionPage(child: MapScreen()),
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const MapScreen(),
+                    ),
               ),
             ],
           ),
@@ -554,8 +597,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/groups',
                 pageBuilder:
-                    (context, state) =>
-                        const NoTransitionPage(child: GroupsScreen()),
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const GroupsScreen(),
+                    ),
               ),
             ],
           ),
@@ -565,8 +610,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/messages',
                 pageBuilder:
-                    (context, state) =>
-                        const NoTransitionPage(child: MessagesScreen()),
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const MessagesScreen(),
+                    ),
               ),
             ],
           ),
@@ -576,8 +623,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 pageBuilder:
-                    (context, state) =>
-                        const NoTransitionPage(child: ProfileScreen()),
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const ProfileScreen(),
+                    ),
               ),
             ],
           ),
@@ -585,6 +634,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  return _cachedRouter!;
 });
 
 class _SimpleNotifier extends ChangeNotifier {

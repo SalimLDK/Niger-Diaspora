@@ -292,6 +292,48 @@ final moderationEmailProvider = AutoDisposeProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ModerationEmailRef = AutoDisposeProviderRef<String>;
+String _$systemIntervalsHash() => r'792b6abb1e7795a720eacd80f103f0dfb709a4af';
+
+/// Provider for system intervals
+///
+/// Copied from [systemIntervals].
+@ProviderFor(systemIntervals)
+final systemIntervalsProvider =
+    AutoDisposeProvider<SystemIntervalsEntity>.internal(
+      systemIntervals,
+      name: r'systemIntervalsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$systemIntervalsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SystemIntervalsRef = AutoDisposeProviderRef<SystemIntervalsEntity>;
+String _$locationUpdateIntervalHash() =>
+    r'db2400b25958a1c0ea7312624b10ae8c539d57a3';
+
+/// Provider for location update interval in minutes
+///
+/// Copied from [locationUpdateInterval].
+@ProviderFor(locationUpdateInterval)
+final locationUpdateIntervalProvider = AutoDisposeProvider<int>.internal(
+  locationUpdateInterval,
+  name: r'locationUpdateIntervalProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$locationUpdateIntervalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef LocationUpdateIntervalRef = AutoDisposeProviderRef<int>;
 String _$appSettingsNotifierHash() =>
     r'7d18c40bd02bc2badc3f4bf88a11c367bc5a1237';
 
@@ -333,5 +375,26 @@ final featureCheckerProvider =
     );
 
 typedef _$FeatureChecker = AutoDisposeNotifier<FeatureFlagsEntity>;
+String _$locationIntervalSyncHash() =>
+    r'f94046eb60f609fb17a33512927e385882a836fb';
+
+/// Provider that syncs location interval to SharedPreferences for background service
+/// This should be watched in the main app to keep the background service in sync
+///
+/// Copied from [LocationIntervalSync].
+@ProviderFor(LocationIntervalSync)
+final locationIntervalSyncProvider =
+    AutoDisposeAsyncNotifierProvider<LocationIntervalSync, void>.internal(
+      LocationIntervalSync.new,
+      name: r'locationIntervalSyncProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$locationIntervalSyncHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$LocationIntervalSync = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

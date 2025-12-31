@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +17,7 @@ import '../../../events/presentation/providers/event_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../../../onboarding/presentation/widgets/coach_mark_content.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/home_provider.dart';
 
 import '../widgets/quick_action_card.dart';
@@ -45,6 +48,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   late TutorialCoachMark _tutorialCoachMark;
   bool _coachMarksShown = false;
   String? _locationError;
+  DateTime? _lastNearbyUpdate;
+
+  // Timers pour mise à jour automatique
+  Timer? _nearbyRefreshTimer;
+  Timer? _uiRefreshTimer;
+  static const int _nearbyRefreshIntervalSeconds = 60; // Rafraîchir les membres toutes les 60s
+  static const int _uiRefreshIntervalSeconds = 10; // Rafraîchir l'affichage du temps toutes les 10s
+
+  // Position actuelle pour le rafraîchissement
+  double? _currentLat;
+  double? _currentLng;
 
   @override
   void initState() {
@@ -53,6 +67,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _loadData();
       _checkAndShowCoachMarks();
     });
+  }
+
+  @override
+  void dispose() {
+    _nearbyRefreshTimer?.cancel();
+    _uiRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Démarre les timers de rafraîchissement automatique
+  void _startRefreshTimers() {
+    // Timer pour rafraîchir les membres à proximité
+    _nearbyRefreshTimer?.cancel();
+    _nearbyRefreshTimer = Timer.periodic(
+      Duration(seconds: _nearbyRefreshIntervalSeconds),
+      (_) => _refreshNearbyMembers(),
+    );
+
+    // Timer pour rafraîchir l'affichage du temps relatif
+    _uiRefreshTimer?.cancel();
+    _uiRefreshTimer = Timer.periodic(
+      Duration(seconds: _uiRefreshIntervalSeconds),
+      (_) {
+        if (mounted && _lastNearbyUpdate != null) {
+          setState(() {}); // Rebuild pour mettre à jour l'affichage du temps
+        }
+      },
+    );
+  }
+
+  /// Rafraîchit les membres à proximité (appelé par le timer)
+  Future<void> _refreshNearbyMembers() async {
+    if (!mounted || _currentLat == null || _currentLng == null) return;
+
+    try {
+      await ref
+          .read(nearbyProfilesNotifierProvider.notifier)
+          .loadNearbyProfiles(_currentLat!, _currentLng!, radiusKm: 50);
+
+      if (mounted) {
+        setState(() {
+          _lastNearbyUpdate = DateTime.now();
+        });
+      }
+    } catch (e) {
+      // Ignorer les erreurs silencieusement pour le rafraîchissement automatique
+    }
   }
 
   void _checkAndShowCoachMarks() {
@@ -285,9 +346,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               .updateLocation(lat, lng);
 
           // Charger les profils à proximité UNIQUEMENT si la localisation est active
-          ref
+          await ref
               .read(nearbyProfilesNotifierProvider.notifier)
               .loadNearbyProfiles(lat, lng, radiusKm: radius);
+
+          // Mettre à jour le timestamp et sauvegarder la position
+          if (mounted) {
+            setState(() {
+              _lastNearbyUpdate = DateTime.now();
+              _currentLat = lat;
+              _currentLng = lng;
+            });
+
+            // Démarrer les timers de rafraîchissement automatique
+            _startRefreshTimers();
+          }
         }
       } catch (e) {
         // debugPrint('Erreur de localisation HomeScreen: $e');
@@ -302,6 +375,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // On ne fait PAS de fallback sur la localisation du profil pour le chargement des autres
       }
     }
+  }
+
+  /// Formate un DateTime en temps relatif (ex: "il y a 2 min")
+  String _formatRelativeTime(DateTime? dateTime, AppLocalizations l10n) {
+    if (dateTime == null) return l10n.loading;
+
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 10) {
+      return l10n.justNow;
+    } else if (difference.inSeconds < 60) {
+      return l10n.secondsAgo(difference.inSeconds);
+    } else if (difference.inMinutes < 60) {
+      return l10n.minutesAgo(difference.inMinutes);
+    } else {
+      return l10n.hoursAgo(difference.inHours);
+    }
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  Widget _buildAvatarPlaceholder(BuildContext context, String? name) {
+    return Container(
+      color: context.adaptivePrimaryColor,
+      child: Center(
+        child: Text(
+          _getInitials(name),
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildReciprocityCard() {
@@ -437,31 +553,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             imageUrl: userPhotoUrl,
                                             fit: BoxFit.cover,
                                             placeholder:
-                                                (_, __) => Container(
-                                                  color: AppColors.primaryLight,
-                                                  child: const Icon(
-                                                    Icons.person,
-                                                    color: AppColors.white,
-                                                    size: 28,
-                                                  ),
+                                                (_, __) => _buildAvatarPlaceholder(
+                                                  context,
+                                                  userName,
                                                 ),
                                             errorWidget:
-                                                (_, __, ___) => Container(
-                                                  color: AppColors.primaryLight,
-                                                  child: const Icon(
-                                                    Icons.person,
-                                                    color: AppColors.white,
-                                                    size: 28,
-                                                  ),
+                                                (_, __, ___) => _buildAvatarPlaceholder(
+                                                  context,
+                                                  userName,
                                                 ),
                                           )
-                                          : Container(
-                                            color: context.surfaceVariantColor,
-                                            child: Icon(
-                                              Icons.person,
-                                              color: context.onSurfaceColor,
-                                              size: 28,
-                                            ),
+                                          : _buildAvatarPlaceholder(
+                                            context,
+                                            userName,
                                           ),
                                 ),
                               ),
@@ -832,14 +936,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onSeeAll: () => context.go('/map'),
                         seeAllText: l10n.seeAll,
                       ),
-                      const SizedBox(height: 16),
+                      // Indicateur de dernière mise à jour
+                      if (_lastNearbyUpdate != null && _locationError == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.update,
+                                size: 12,
+                                color: context.textTertiaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatRelativeTime(_lastNearbyUpdate, l10n),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.textTertiaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        const SizedBox(height: 16),
                       if (_locationError != null)
                         _buildReciprocityCard()
                       else
                         nearbyProfiles.when(
                           skipLoadingOnRefresh: true,
                           data: (profiles) {
-                            if (profiles.isEmpty) {
+                            // Filter out blocked users (both ways)
+                            final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+                            final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+                            final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+
+                            final filteredProfiles = profiles.where((p) {
+                              // Skip if I blocked them
+                              if (blockedUserIds.contains(p.id)) return false;
+                              // Skip if they blocked me
+                              if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) return false;
+                              return true;
+                            }).toList();
+
+                            if (filteredProfiles.isEmpty) {
                               return HomeEmptyStateCard(
                                 icon: Icons.people_outline,
                                 message: l10n.noMembersNearby,
@@ -851,17 +991,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount:
-                                    profiles.length > 10 ? 10 : profiles.length,
+                                    filteredProfiles.length > 10 ? 10 : filteredProfiles.length,
                                 itemBuilder: (context, index) {
-                                  final profile = profiles[index];
+                                  final profile = filteredProfiles[index];
                                   return Padding(
                                     padding: EdgeInsets.only(
                                       left: index == 0 ? 0 : 12,
                                       right:
                                           index ==
-                                                  (profiles.length > 10
+                                                  (filteredProfiles.length > 10
                                                       ? 9
-                                                      : profiles.length - 1)
+                                                      : filteredProfiles.length - 1)
                                               ? 0
                                               : 0,
                                     ),

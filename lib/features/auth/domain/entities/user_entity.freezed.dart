@@ -24,7 +24,7 @@ mixin _$UserEntity {
   String? get phoneNumber => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
-  bool get isAdmin => throw _privateConstructorUsedError;
+  AdminRole get adminRole => throw _privateConstructorUsedError;
   bool get isBanned => throw _privateConstructorUsedError;
   String? get banReason => throw _privateConstructorUsedError;
   DateTime? get bannedAt => throw _privateConstructorUsedError;
@@ -51,7 +51,7 @@ abstract class $UserEntityCopyWith<$Res> {
     String? phoneNumber,
     DateTime? createdAt,
     DateTime? lastLoginAt,
-    bool isAdmin,
+    AdminRole adminRole,
     bool isBanned,
     String? banReason,
     DateTime? bannedAt,
@@ -80,7 +80,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
-    Object? isAdmin = null,
+    Object? adminRole = null,
     Object? isBanned = null,
     Object? banReason = freezed,
     Object? bannedAt = freezed,
@@ -122,11 +122,11 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                     ? _value.lastLoginAt
                     : lastLoginAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
-            isAdmin:
-                null == isAdmin
-                    ? _value.isAdmin
-                    : isAdmin // ignore: cast_nullable_to_non_nullable
-                        as bool,
+            adminRole:
+                null == adminRole
+                    ? _value.adminRole
+                    : adminRole // ignore: cast_nullable_to_non_nullable
+                        as AdminRole,
             isBanned:
                 null == isBanned
                     ? _value.isBanned
@@ -165,7 +165,7 @@ abstract class _$$UserEntityImplCopyWith<$Res>
     String? phoneNumber,
     DateTime? createdAt,
     DateTime? lastLoginAt,
-    bool isAdmin,
+    AdminRole adminRole,
     bool isBanned,
     String? banReason,
     DateTime? bannedAt,
@@ -193,7 +193,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
     Object? phoneNumber = freezed,
     Object? createdAt = freezed,
     Object? lastLoginAt = freezed,
-    Object? isAdmin = null,
+    Object? adminRole = null,
     Object? isBanned = null,
     Object? banReason = freezed,
     Object? bannedAt = freezed,
@@ -235,11 +235,11 @@ class __$$UserEntityImplCopyWithImpl<$Res>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
-        isAdmin:
-            null == isAdmin
-                ? _value.isAdmin
-                : isAdmin // ignore: cast_nullable_to_non_nullable
-                    as bool,
+        adminRole:
+            null == adminRole
+                ? _value.adminRole
+                : adminRole // ignore: cast_nullable_to_non_nullable
+                    as AdminRole,
         isBanned:
             null == isBanned
                 ? _value.isBanned
@@ -262,7 +262,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$UserEntityImpl implements _UserEntity {
+class _$UserEntityImpl extends _UserEntity {
   const _$UserEntityImpl({
     required this.id,
     this.email,
@@ -271,11 +271,11 @@ class _$UserEntityImpl implements _UserEntity {
     this.phoneNumber,
     this.createdAt,
     this.lastLoginAt,
-    this.isAdmin = false,
+    this.adminRole = AdminRole.none,
     this.isBanned = false,
     this.banReason,
     this.bannedAt,
-  });
+  }) : super._();
 
   @override
   final String id;
@@ -293,7 +293,7 @@ class _$UserEntityImpl implements _UserEntity {
   final DateTime? lastLoginAt;
   @override
   @JsonKey()
-  final bool isAdmin;
+  final AdminRole adminRole;
   @override
   @JsonKey()
   final bool isBanned;
@@ -304,7 +304,7 @@ class _$UserEntityImpl implements _UserEntity {
 
   @override
   String toString() {
-    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isAdmin: $isAdmin, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
+    return 'UserEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, createdAt: $createdAt, lastLoginAt: $lastLoginAt, adminRole: $adminRole, isBanned: $isBanned, banReason: $banReason, bannedAt: $bannedAt)';
   }
 
   @override
@@ -324,7 +324,8 @@ class _$UserEntityImpl implements _UserEntity {
                 other.createdAt == createdAt) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
                 other.lastLoginAt == lastLoginAt) &&
-            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin) &&
+            (identical(other.adminRole, adminRole) ||
+                other.adminRole == adminRole) &&
             (identical(other.isBanned, isBanned) ||
                 other.isBanned == isBanned) &&
             (identical(other.banReason, banReason) ||
@@ -343,7 +344,7 @@ class _$UserEntityImpl implements _UserEntity {
     phoneNumber,
     createdAt,
     lastLoginAt,
-    isAdmin,
+    adminRole,
     isBanned,
     banReason,
     bannedAt,
@@ -358,7 +359,7 @@ class _$UserEntityImpl implements _UserEntity {
       __$$UserEntityImplCopyWithImpl<_$UserEntityImpl>(this, _$identity);
 }
 
-abstract class _UserEntity implements UserEntity {
+abstract class _UserEntity extends UserEntity {
   const factory _UserEntity({
     required final String id,
     final String? email,
@@ -367,11 +368,12 @@ abstract class _UserEntity implements UserEntity {
     final String? phoneNumber,
     final DateTime? createdAt,
     final DateTime? lastLoginAt,
-    final bool isAdmin,
+    final AdminRole adminRole,
     final bool isBanned,
     final String? banReason,
     final DateTime? bannedAt,
   }) = _$UserEntityImpl;
+  const _UserEntity._() : super._();
 
   @override
   String get id;
@@ -388,7 +390,7 @@ abstract class _UserEntity implements UserEntity {
   @override
   DateTime? get lastLoginAt;
   @override
-  bool get isAdmin;
+  AdminRole get adminRole;
   @override
   bool get isBanned;
   @override

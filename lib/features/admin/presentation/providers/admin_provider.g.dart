@@ -83,7 +83,7 @@ final adminContentNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$AdminContentNotifier = AutoDisposeNotifier<AdminContentState>;
 String _$adminReportsNotifierHash() =>
-    r'3efc6360eb503ce952d669500615848d6c70a3ae';
+    r'61074bb756bcd8e4bd7561b2d167f9cb9a589592';
 
 /// See also [AdminReportsNotifier].
 @ProviderFor(AdminReportsNotifier)

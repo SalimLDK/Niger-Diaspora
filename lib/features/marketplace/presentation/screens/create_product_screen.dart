@@ -99,7 +99,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         children: [
           Text(currency.flag, style: const TextStyle(fontSize: 18)),
           const SizedBox(width: 8),
-          Text(currency.code, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            currency.code,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -231,7 +234,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       final extendedUser = currentUserAsync.valueOrNull;
 
       final userId = extendedUser?.id ?? firebaseUser.uid;
-      final displayName = extendedUser?.displayName ?? firebaseUser.displayName ?? 'Vendeur';
+      final displayName =
+          extendedUser?.displayName ?? firebaseUser.displayName ?? 'Vendeur';
       final photoUrl = extendedUser?.photoUrl ?? firebaseUser.photoURL;
 
       // Upload new images
@@ -292,15 +296,14 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       );
 
       final notifier = ref.read(productNotifierProvider.notifier);
-      ProductEntity? result;
 
       if (_isEditing) {
-        result = await notifier.updateProduct(product);
+        await notifier.updateProduct(product);
       } else {
-        result = await notifier.createProduct(product);
+        await notifier.createProduct(product);
       }
 
-      if (result != null && mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_isEditing ? 'Produit modifie' : 'Produit publie'),
@@ -755,16 +758,21 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               isExpanded: true,
               items: [
                 // Priority countries first
-                ...priorityCountries.map((country) => DropdownMenuItem(
-                  value: country,
-                  child: Row(
-                    children: [
-                      Text(country.flag, style: const TextStyle(fontSize: 20)),
-                      const SizedBox(width: 12),
-                      Text(country.label),
-                    ],
+                ...priorityCountries.map(
+                  (country) => DropdownMenuItem(
+                    value: country,
+                    child: Row(
+                      children: [
+                        Text(
+                          country.flag,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(country.label),
+                      ],
+                    ),
                   ),
-                )),
+                ),
                 // Divider
                 const DropdownMenuItem<Country>(
                   enabled: false,
@@ -773,16 +781,21 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                 // Other countries
                 ...Country.values
                     .where((c) => !priorityCountries.contains(c))
-                    .map((country) => DropdownMenuItem(
-                  value: country,
-                  child: Row(
-                    children: [
-                      Text(country.flag, style: const TextStyle(fontSize: 20)),
-                      const SizedBox(width: 12),
-                      Text(country.label),
-                    ],
-                  ),
-                )),
+                    .map(
+                      (country) => DropdownMenuItem(
+                        value: country,
+                        child: Row(
+                          children: [
+                            Text(
+                              country.flag,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(country.label),
+                          ],
+                        ),
+                      ),
+                    ),
               ],
               onChanged: (value) {
                 setState(() => _selectedCountry = value);

@@ -9,6 +9,8 @@ import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../reports/domain/entities/report_entity.dart';
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import '../providers/group_provider.dart';
@@ -178,6 +180,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                   onPressed: () => _shareGroup(group),
                 ),
+                // Report button (only for non-admin/non-creator members)
+                if (!isCreator && !isAdmin)
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.flag_outlined,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    onPressed: () => ReportContentModal.show(
+                      context,
+                      targetType: ReportTargetType.group,
+                      targetId: group.id,
+                      targetName: group.name,
+                    ),
+                  ),
                 const SizedBox(width: 8),
               ],
               flexibleSpace: FlexibleSpaceBar(
@@ -449,34 +472,35 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ? Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed:
-                              isCreator ? null : () => _leaveGroup(group.id),
-                          icon: Icon(
-                            isCreator ? Icons.star : Icons.exit_to_app,
-                            color:
-                                isCreator
-                                    ? context.adaptivePrimaryColor
-                                    : Colors.red,
-                          ),
-                          label: Text(
-                            isCreator ? l10n.creator : l10n.leaveGroup,
-                            style: TextStyle(
-                              color:
-                                  isCreator
-                                      ? context.adaptivePrimaryColor
-                                      : Colors.red,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(
-                              color:
-                                  isCreator
-                                      ? context.adaptivePrimaryColor
-                                      : Colors.red,
-                            ),
-                          ),
+                        child: Builder(
+                          builder: (context) {
+                            // Le créateur peut quitter s'il y a d'autres admins
+                            final otherAdmins = group.adminIds
+                                .where((id) => id != currentUser?.id)
+                                .toList();
+                            final canCreatorLeave = isCreator && otherAdmins.isNotEmpty;
+                            final canLeave = !isCreator || canCreatorLeave;
+
+                            return OutlinedButton.icon(
+                              onPressed: canLeave ? () => _leaveGroup(group.id) : null,
+                              icon: Icon(
+                                canLeave ? Icons.exit_to_app : Icons.star,
+                                color: canLeave ? Colors.red : context.adaptivePrimaryColor,
+                              ),
+                              label: Text(
+                                canLeave ? l10n.leaveGroup : l10n.creator,
+                                style: TextStyle(
+                                  color: canLeave ? Colors.red : context.adaptivePrimaryColor,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: BorderSide(
+                                  color: canLeave ? Colors.red : context.adaptivePrimaryColor,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),

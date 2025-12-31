@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/services/location_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,7 @@ import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../friends/domain/repositories/friend_repository.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../utils/marker_painter.dart';
 import '../utils/cluster_marker_generator.dart';
 import '../widgets/map_legend.dart';
@@ -89,9 +91,42 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   bool _hasInitialized = false;
 
+  // Stream et timer pour mise à jour automatique
+  StreamSubscription<Position>? _positionStreamSubscription;
+  Timer? _membersRefreshTimer;
+  Timer? _uiRefreshTimer;
+  static const int _membersRefreshIntervalSeconds = 45; // Rafraîchir les membres toutes les 45s
+  static const int _distanceFilterMeters = 50; // Mise à jour position tous les 50m
+  static const int _uiRefreshIntervalSeconds = 10; // Rafraîchir l'affichage du temps toutes les 10s
+
+  // Indicateur de dernière mise à jour
+  DateTime? _lastMembersUpdate;
+  DateTime? _lastPositionUpdate;
+
+  /// Formate un DateTime en temps relatif (ex: "il y a 2 min")
+  String _formatRelativeTime(DateTime? dateTime, AppLocalizations l10n) {
+    if (dateTime == null) return l10n.loading;
+
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 10) {
+      return l10n.justNow;
+    } else if (difference.inSeconds < 60) {
+      return l10n.secondsAgo(difference.inSeconds);
+    } else if (difference.inMinutes < 60) {
+      return l10n.minutesAgo(difference.inMinutes);
+    } else {
+      return l10n.hoursAgo(difference.inHours);
+    }
+  }
+
   @override
   void dispose() {
     // debugPrint('🗺️ MapScreen: dispose');
+    _positionStreamSubscription?.cancel();
+    _membersRefreshTimer?.cancel();
+    _uiRefreshTimer?.cancel();
     _controller.future.then((c) => c.dispose());
     super.dispose();
   }
@@ -190,6 +225,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
       setState(() {
         _currentPosition = LatLng(position.latitude, position.longitude);
+        _lastPositionUpdate = DateTime.now();
       });
 
       // debugPrint(
@@ -223,6 +259,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
       // Charger les membres à proximité
       await _loadNearbyMembers(position.latitude, position.longitude);
+
+      // Démarrer le stream de position et le timer de rafraîchissement
+      _startPositionStream();
+      _startMembersRefreshTimer();
     } catch (e) {
       // debugPrint('Erreur de localisation: $e');
       if (!mounted) return;
@@ -247,6 +287,84 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  /// Démarre l'écoute du stream de position pour suivre les déplacements de l'utilisateur
+  void _startPositionStream() {
+    // Annuler l'ancien stream s'il existe
+    _positionStreamSubscription?.cancel();
+
+    _positionStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: _distanceFilterMeters, // Mise à jour tous les 50m
+      ),
+    ).listen(
+      (Position position) async {
+        if (!mounted) return;
+
+        final newPosition = LatLng(position.latitude, position.longitude);
+
+        // Mettre à jour la position actuelle
+        setState(() {
+          _currentPosition = newPosition;
+          _lastPositionUpdate = DateTime.now();
+        });
+
+        // Mettre à jour la localisation dans Firebase
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          try {
+            final dataSource = ProfileRemoteDataSourceImpl();
+            await dataSource.updateLocation(
+              currentUser.uid,
+              position.latitude,
+              position.longitude,
+            );
+          } catch (e) {
+            // Ignorer les erreurs de mise à jour silencieusement
+          }
+        }
+
+        // Mettre à jour les marqueurs pour refléter la nouvelle position
+        _updateMarkers();
+      },
+      onError: (error) {
+        // En cas d'erreur du stream, on continue avec la dernière position connue
+        debugPrint('Position stream error: $error');
+      },
+    );
+  }
+
+  /// Démarre un timer pour rafraîchir périodiquement la liste des membres à proximité
+  void _startMembersRefreshTimer() {
+    // Annuler les anciens timers s'ils existent
+    _membersRefreshTimer?.cancel();
+    _uiRefreshTimer?.cancel();
+
+    // Timer pour rafraîchir les membres
+    _membersRefreshTimer = Timer.periodic(
+      Duration(seconds: _membersRefreshIntervalSeconds),
+      (_) {
+        if (!mounted || _currentPosition == null) return;
+
+        // Rafraîchir les membres à proximité sans bloquer l'UI
+        _loadNearbyMembers(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+        );
+      },
+    );
+
+    // Timer pour rafraîchir l'affichage du temps relatif
+    _uiRefreshTimer = Timer.periodic(
+      Duration(seconds: _uiRefreshIntervalSeconds),
+      (_) {
+        if (mounted && (_lastMembersUpdate != null || _lastPositionUpdate != null)) {
+          setState(() {}); // Rebuild pour mettre à jour l'affichage du temps
+        }
+      },
+    );
   }
 
   Future<void> _loadNearbyMembers(double latitude, double longitude) async {
@@ -274,13 +392,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
       if (!mounted) return;
 
+      // Get blocked users (users I blocked + users who blocked me)
+      final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
+      final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
       // Filter by presence - STRICT: only show truly active users
       // 1. Online within last 1 hour
       // 2. OR Location updated within last 5 minutes
-      // debugPrint('  🔍 Applying presence filter...');
+      // Also filter out blocked users (both ways)
       final now = DateTime.now();
       final filteredMembers =
           members.where((p) {
+            // Skip blocked users (I blocked them)
+            if (blockedUserIds.contains(p.id)) return false;
+            // Skip users who blocked me
+            if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) return false;
             // debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
             // debugPrint('      - isOnline: ${p.isOnline}');
             // debugPrint('      - lastSeen: ${p.lastSeen}');
@@ -321,13 +448,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       // );
 
       setState(() {
-        // debugPrint(
-        //   '  🔄 Setting _nearbyMembers to ${filteredMembers.length} members',
-        // );
         _nearbyMembers = filteredMembers;
-        // debugPrint('  🔄 Calling _updateMarkers...');
+        _lastMembersUpdate = DateTime.now();
         _updateMarkers();
-        // debugPrint('  ✅ _updateMarkers completed');
       });
 
       // debugPrint(
@@ -1818,10 +1941,50 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  l10n.membersNearby,
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.membersNearby,
+                                        style:
+                                            Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      // Indicateur de dernière mise à jour
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.groups_outlined,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatRelativeTime(_lastMembersUpdate, l10n),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.textTertiaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Icon(
+                                            Icons.my_location,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatRelativeTime(_lastPositionUpdate, l10n),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.textTertiaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -1843,7 +2006,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             if (_getFilteredMembers().isEmpty)
                               Padding(
                                 padding: const EdgeInsets.symmetric(

@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/datasources/app_settings_datasource.dart';
 import '../../data/models/app_settings_model.dart';
 import '../../domain/entities/app_settings_entity.dart';
+import '../../../../core/services/background_location_service.dart';
 
 part 'app_settings_provider.g.dart';
 
@@ -326,4 +327,29 @@ String feedbackEmail(Ref ref) {
 @riverpod
 String moderationEmail(Ref ref) {
   return ref.watch(systemUrlsProvider).moderationEmail;
+}
+
+/// Provider for system intervals
+@riverpod
+SystemIntervalsEntity systemIntervals(Ref ref) {
+  return ref.watch(appSettingsNotifierProvider).valueOrNull?.intervals ??
+      const SystemIntervalsEntity();
+}
+
+/// Provider for location update interval in minutes
+@riverpod
+int locationUpdateInterval(Ref ref) {
+  return ref.watch(systemIntervalsProvider).locationUpdateMinutes;
+}
+
+/// Provider that syncs location interval to SharedPreferences for background service
+/// This should be watched in the main app to keep the background service in sync
+@riverpod
+class LocationIntervalSync extends _$LocationIntervalSync {
+  @override
+  Future<void> build() async {
+    // Watch the location interval and sync to SharedPreferences
+    final interval = ref.watch(locationUpdateIntervalProvider);
+    await BackgroundLocationService.setLocationInterval(interval);
+  }
 }

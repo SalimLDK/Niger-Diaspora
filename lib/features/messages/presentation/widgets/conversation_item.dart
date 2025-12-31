@@ -9,6 +9,7 @@ import '../../domain/entities/message_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
 
 class ConversationItem extends ConsumerWidget {
   final ConversationEntity conversation;
@@ -26,8 +27,30 @@ class ConversationItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasUnread = conversation.hasUnreadFor(currentUserId);
-    final unreadCount = conversation.getUnreadCountFor(currentUserId);
+    // Check for blocked users
+    final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+    final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+
+    // For individual conversations, check if blocked
+    bool isBlocked = false;
+    String? otherUserId;
+    if (conversation.isIndividual) {
+      otherUserId = conversation.getOtherParticipantId(currentUserId);
+      // I blocked them
+      if (blockedUserIds.contains(otherUserId)) {
+        isBlocked = true;
+      }
+      // They blocked me
+      final otherProfileAsync = ref.watch(userStreamProvider(otherUserId));
+      final otherProfile = otherProfileAsync.valueOrNull;
+      if (otherProfile != null && otherProfile.blockedByUserIds.contains(currentUserId)) {
+        isBlocked = true;
+      }
+    }
+
+    // Hide unread count if blocked
+    final hasUnread = isBlocked ? false : conversation.hasUnreadFor(currentUserId);
+    final unreadCount = isBlocked ? 0 : conversation.getUnreadCountFor(currentUserId);
 
     // Pour les conversations individuelles, récupérer le profil de l'autre utilisateur
     String displayName;
@@ -37,8 +60,7 @@ class ConversationItem extends ConsumerWidget {
       displayName = conversation.name ?? 'Groupe';
       photoUrl = conversation.imageUrl;
     } else {
-      final otherUserId = conversation.getOtherParticipantId(currentUserId);
-      if (otherUserId.isNotEmpty) {
+      if (otherUserId != null && otherUserId.isNotEmpty) {
         // Utiliser userStreamProvider pour les données en temps réel depuis Firestore
         final profileAsync = ref.watch(userStreamProvider(otherUserId));
         final profile = profileAsync.valueOrNull;

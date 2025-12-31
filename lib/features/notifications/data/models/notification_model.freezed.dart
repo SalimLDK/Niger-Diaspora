@@ -27,6 +27,8 @@ mixin _$NotificationModel {
   String get body => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
   String? get targetId => throw _privateConstructorUsedError;
+  String? get senderId =>
+      throw _privateConstructorUsedError; // ID of the user who triggered this notification
   bool get isRead => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
@@ -54,6 +56,7 @@ abstract class $NotificationModelCopyWith<$Res> {
     String body,
     String type,
     String? targetId,
+    String? senderId,
     bool isRead,
     DateTime? createdAt,
   });
@@ -80,6 +83,7 @@ class _$NotificationModelCopyWithImpl<$Res, $Val extends NotificationModel>
     Object? body = null,
     Object? type = null,
     Object? targetId = freezed,
+    Object? senderId = freezed,
     Object? isRead = null,
     Object? createdAt = freezed,
   }) {
@@ -115,6 +119,11 @@ class _$NotificationModelCopyWithImpl<$Res, $Val extends NotificationModel>
                     ? _value.targetId
                     : targetId // ignore: cast_nullable_to_non_nullable
                         as String?,
+            senderId:
+                freezed == senderId
+                    ? _value.senderId
+                    : senderId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             isRead:
                 null == isRead
                     ? _value.isRead
@@ -147,6 +156,7 @@ abstract class _$$NotificationModelImplCopyWith<$Res>
     String body,
     String type,
     String? targetId,
+    String? senderId,
     bool isRead,
     DateTime? createdAt,
   });
@@ -172,6 +182,7 @@ class __$$NotificationModelImplCopyWithImpl<$Res>
     Object? body = null,
     Object? type = null,
     Object? targetId = freezed,
+    Object? senderId = freezed,
     Object? isRead = null,
     Object? createdAt = freezed,
   }) {
@@ -207,6 +218,11 @@ class __$$NotificationModelImplCopyWithImpl<$Res>
                 ? _value.targetId
                 : targetId // ignore: cast_nullable_to_non_nullable
                     as String?,
+        senderId:
+            freezed == senderId
+                ? _value.senderId
+                : senderId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         isRead:
             null == isRead
                 ? _value.isRead
@@ -232,6 +248,7 @@ class _$NotificationModelImpl extends _NotificationModel {
     required this.body,
     this.type = 'general',
     this.targetId,
+    this.senderId,
     this.isRead = false,
     this.createdAt,
   }) : super._();
@@ -253,6 +270,9 @@ class _$NotificationModelImpl extends _NotificationModel {
   @override
   final String? targetId;
   @override
+  final String? senderId;
+  // ID of the user who triggered this notification
+  @override
   @JsonKey()
   final bool isRead;
   @override
@@ -260,7 +280,7 @@ class _$NotificationModelImpl extends _NotificationModel {
 
   @override
   String toString() {
-    return 'NotificationModel(id: $id, userId: $userId, title: $title, body: $body, type: $type, targetId: $targetId, isRead: $isRead, createdAt: $createdAt)';
+    return 'NotificationModel(id: $id, userId: $userId, title: $title, body: $body, type: $type, targetId: $targetId, senderId: $senderId, isRead: $isRead, createdAt: $createdAt)';
   }
 
   @override
@@ -275,6 +295,8 @@ class _$NotificationModelImpl extends _NotificationModel {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.targetId, targetId) ||
                 other.targetId == targetId) &&
+            (identical(other.senderId, senderId) ||
+                other.senderId == senderId) &&
             (identical(other.isRead, isRead) || other.isRead == isRead) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
@@ -290,6 +312,7 @@ class _$NotificationModelImpl extends _NotificationModel {
     body,
     type,
     targetId,
+    senderId,
     isRead,
     createdAt,
   );
@@ -319,6 +342,7 @@ abstract class _NotificationModel extends NotificationModel {
     required final String body,
     final String type,
     final String? targetId,
+    final String? senderId,
     final bool isRead,
     final DateTime? createdAt,
   }) = _$NotificationModelImpl;
@@ -339,6 +363,8 @@ abstract class _NotificationModel extends NotificationModel {
   String get type;
   @override
   String? get targetId;
+  @override
+  String? get senderId; // ID of the user who triggered this notification
   @override
   bool get isRead;
   @override

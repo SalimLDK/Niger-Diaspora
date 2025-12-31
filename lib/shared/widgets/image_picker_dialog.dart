@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/services/image_upload_service.dart';
+import '../../core/services/permission_service.dart';
 import '../../core/theme/adaptive_colors.dart';
 
 class ImagePickerDialog extends StatelessWidget {
@@ -50,6 +51,57 @@ class _ImagePickerSheet extends StatelessWidget {
 
   const _ImagePickerSheet({required this.onImageSelected});
 
+  Future<void> _handleCameraResult(
+    BuildContext context,
+    ImagePickResult result,
+  ) async {
+    if (result.isSuccess && result.file != null) {
+      onImageSelected(result.file!);
+    } else if (result.permissionDenied) {
+      Navigator.pop(context);
+      _showPermissionError(context, result);
+    } else if (result.errorMessage != null) {
+      Navigator.pop(context);
+      _showError(context, result.errorMessage!);
+    }
+  }
+
+  Future<void> _handleGalleryResult(
+    BuildContext context,
+    ImagePickResult result,
+  ) async {
+    if (result.isSuccess && result.file != null) {
+      onImageSelected(result.file!);
+    } else if (result.permissionDenied) {
+      Navigator.pop(context);
+      _showPermissionError(context, result);
+    } else if (result.errorMessage != null) {
+      Navigator.pop(context);
+      _showError(context, result.errorMessage!);
+    }
+  }
+
+  void _showPermissionError(BuildContext context, ImagePickResult result) {
+    final isPermanent =
+        result.permissionResult == PermissionResult.permanentlyDenied;
+
+    PermissionService.showPermissionDeniedDialog(
+      context: context,
+      title: 'Permission requise',
+      message: result.errorMessage ?? 'Permission refusée',
+      showSettingsButton: isPermanent,
+    );
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -86,9 +138,10 @@ class _ImagePickerSheet extends StatelessWidget {
                 icon: Icons.camera_alt,
                 label: 'Caméra',
                 onTap: () async {
-                  final file = await ImageUploadService().pickImageFromCamera();
-                  if (file != null) {
-                    onImageSelected(file);
+                  final result =
+                      await ImageUploadService().pickImageFromCameraWithResult();
+                  if (context.mounted) {
+                    _handleCameraResult(context, result);
                   }
                 },
               ),
@@ -96,9 +149,10 @@ class _ImagePickerSheet extends StatelessWidget {
                 icon: Icons.photo_library,
                 label: 'Galerie',
                 onTap: () async {
-                  final file = await ImageUploadService().pickImageFromGallery();
-                  if (file != null) {
-                    onImageSelected(file);
+                  final result =
+                      await ImageUploadService().pickImageFromGalleryWithResult();
+                  if (context.mounted) {
+                    _handleGalleryResult(context, result);
                   }
                 },
               ),
@@ -124,6 +178,57 @@ class _MultiImagePickerSheet extends StatelessWidget {
     required this.maxImages,
     required this.onImagesSelected,
   });
+
+  Future<void> _handleCameraResult(
+    BuildContext context,
+    ImagePickResult result,
+  ) async {
+    if (result.isSuccess && result.file != null) {
+      onImagesSelected([result.file!]);
+    } else if (result.permissionDenied) {
+      Navigator.pop(context);
+      _showPermissionError(context, result);
+    } else if (result.errorMessage != null) {
+      Navigator.pop(context);
+      _showError(context, result.errorMessage!);
+    }
+  }
+
+  Future<void> _handleGalleryResult(
+    BuildContext context,
+    ImagePickResult result,
+  ) async {
+    if (result.isSuccess && result.files.isNotEmpty) {
+      onImagesSelected(result.files);
+    } else if (result.permissionDenied) {
+      Navigator.pop(context);
+      _showPermissionError(context, result);
+    } else if (result.errorMessage != null) {
+      Navigator.pop(context);
+      _showError(context, result.errorMessage!);
+    }
+  }
+
+  void _showPermissionError(BuildContext context, ImagePickResult result) {
+    final isPermanent =
+        result.permissionResult == PermissionResult.permanentlyDenied;
+
+    PermissionService.showPermissionDeniedDialog(
+      context: context,
+      title: 'Permission requise',
+      message: result.errorMessage ?? 'Permission refusée',
+      showSettingsButton: isPermanent,
+    );
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,9 +274,10 @@ class _MultiImagePickerSheet extends StatelessWidget {
                 icon: Icons.camera_alt,
                 label: 'Caméra',
                 onTap: () async {
-                  final file = await ImageUploadService().pickImageFromCamera();
-                  if (file != null) {
-                    onImagesSelected([file]);
+                  final result =
+                      await ImageUploadService().pickImageFromCameraWithResult();
+                  if (context.mounted) {
+                    _handleCameraResult(context, result);
                   }
                 },
               ),
@@ -179,11 +285,12 @@ class _MultiImagePickerSheet extends StatelessWidget {
                 icon: Icons.photo_library,
                 label: 'Galerie',
                 onTap: () async {
-                  final files = await ImageUploadService().pickMultipleImages(
+                  final result =
+                      await ImageUploadService().pickMultipleImagesWithResult(
                     maxImages: maxImages,
                   );
-                  if (files.isNotEmpty) {
-                    onImagesSelected(files);
+                  if (context.mounted) {
+                    _handleGalleryResult(context, result);
                   }
                 },
               ),

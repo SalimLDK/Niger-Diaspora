@@ -45,6 +45,10 @@ class MessageEntity extends Equatable {
   final Map<String, dynamic>?
   productData; // Product info: {id, title, price, currency, imageUrl, sellerId, sellerName}
 
+  // Blocked message tracking - list of user IDs who had blocked the sender when this message was sent
+  // Messages with this field set should be hidden from those users even after unblocking
+  final List<String> sentWhileBlockedBy;
+
   const MessageEntity({
     required this.id,
     required this.senderId,
@@ -72,6 +76,7 @@ class MessageEntity extends Equatable {
     this.replyToId,
     this.replyToMessageData,
     this.productData,
+    this.sentWhileBlockedBy = const [],
   });
 
   bool get isText => type == MessageType.text;
@@ -144,5 +149,6 @@ class MessageEntity extends Equatable {
     replyToId,
     replyToMessageData,
     productData,
+    sentWhileBlockedBy,
   ];
 }

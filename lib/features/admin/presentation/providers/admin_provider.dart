@@ -552,6 +552,51 @@ class AdminContentNotifier extends _$AdminContentNotifier {
 // REPORTS MANAGEMENT
 // ============================================================================
 
+/// Snapshot du contenu signalé (préservé même après suppression)
+class ContentSnapshotData {
+  final String? text;
+  final String? imageUrl;
+  final String? videoUrl;
+  final String? fileUrl;
+  final String? fileName;
+  final String? contentType;
+  final Map<String, dynamic>? metadata;
+  final DateTime? capturedAt;
+
+  const ContentSnapshotData({
+    this.text,
+    this.imageUrl,
+    this.videoUrl,
+    this.fileUrl,
+    this.fileName,
+    this.contentType,
+    this.metadata,
+    this.capturedAt,
+  });
+
+  factory ContentSnapshotData.fromMap(Map<String, dynamic>? data) {
+    if (data == null) return const ContentSnapshotData();
+    return ContentSnapshotData(
+      text: data['text'] as String?,
+      imageUrl: data['imageUrl'] as String?,
+      videoUrl: data['videoUrl'] as String?,
+      fileUrl: data['fileUrl'] as String?,
+      fileName: data['fileName'] as String?,
+      contentType: data['contentType'] as String?,
+      metadata: data['metadata'] as Map<String, dynamic>?,
+      capturedAt: data['capturedAt'] is Timestamp
+          ? (data['capturedAt'] as Timestamp).toDate()
+          : null,
+    );
+  }
+
+  bool get hasContent =>
+      text != null ||
+      imageUrl != null ||
+      videoUrl != null ||
+      fileUrl != null;
+}
+
 @freezed
 class ReportEntity with _$ReportEntity {
   const factory ReportEntity({
@@ -562,14 +607,21 @@ class ReportEntity with _$ReportEntity {
     targetType, // 'user', 'message', 'event', 'group', 'business', 'product'
     required String targetId,
     String? targetName,
+    String? conversationId, // For message/conversation reports
     required String reason,
     String? description,
+    /// Snapshot du contenu signalé
+    ContentSnapshotData? contentSnapshot,
+    /// ID de l'utilisateur signalé (pour notification)
+    String? reportedUserId,
     @Default('pending')
     String status, // 'pending', 'reviewed', 'resolved', 'dismissed'
     String? adminNote,
     String? reviewedBy,
     DateTime? createdAt,
     DateTime? reviewedAt,
+    /// Indique si la personne signalée a été notifiée
+    @Default(false) bool reportedUserNotified,
   }) = _ReportEntity;
 }
 
@@ -610,13 +662,20 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
               targetType: data['targetType'] ?? 'unknown',
               targetId: data['targetId'] ?? '',
               targetName: data['targetName'],
+              conversationId: data['conversationId'],
               reason: data['reason'] ?? '',
               description: data['description'],
+              contentSnapshot: data['contentSnapshot'] != null
+                  ? ContentSnapshotData.fromMap(
+                      data['contentSnapshot'] as Map<String, dynamic>)
+                  : null,
+              reportedUserId: data['reportedUserId'] as String?,
               status: data['status'] ?? 'pending',
               adminNote: data['adminNote'],
               reviewedBy: data['reviewedBy'],
               createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
               reviewedAt: (data['reviewedAt'] as Timestamp?)?.toDate(),
+              reportedUserNotified: data['reportedUserNotified'] as bool? ?? false,
             );
           }).toList();
 
@@ -638,6 +697,8 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     String action, {
     required String adminId,
     String? adminName,
+    String? reportedUserId,
+    bool notifyUser = true,
   }) async {
     try {
       await FirebaseFirestore.instance
@@ -660,11 +721,55 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
         details: {'actionTaken': action, 'note': adminNote},
       );
 
+      // Notifier l'utilisateur signalé
+      if (notifyUser && reportedUserId != null) {
+        await _notifyReportedUser(
+          reportId: reportId,
+          reportedUserId: reportedUserId,
+          resolution: adminNote,
+          contentRemoved: false,
+        );
+      }
+
       await fetchAllReports();
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
+    }
+  }
+
+  /// Notifie l'utilisateur dont le contenu a été signalé
+  Future<void> _notifyReportedUser({
+    required String reportId,
+    required String reportedUserId,
+    required String resolution,
+    required bool contentRemoved,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': reportedUserId,
+        'type': 'report_resolved',
+        'title': contentRemoved ? 'Contenu supprimé' : 'Signalement traité',
+        'body': contentRemoved
+            ? 'Un contenu que vous avez publié a été signalé et supprimé pour violation de nos règles communautaires.'
+            : 'Un signalement concernant votre contenu a été examiné. Aucune action n\'a été prise.',
+        'data': {
+          'reportId': reportId,
+          'resolution': resolution,
+          'contentRemoved': contentRemoved,
+        },
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Marquer le report comme notifié
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(reportId)
+          .update({'reportedUserNotified': true});
+    } catch (e) {
+      debugPrint('Failed to notify reported user: $e');
     }
   }
 
@@ -697,7 +802,15 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     }
   }
 
-  Future<bool> deleteReportedContent(String targetType, String targetId, {required String adminId, String? adminName}) async {
+  Future<bool> deleteReportedContent(
+    String targetType,
+    String targetId, {
+    required String adminId,
+    String? adminName,
+    String? reportId,
+    String? reportedUserId,
+    bool notifyUser = true,
+  }) async {
     try {
       final collection = _getCollectionForType(targetType);
       if (collection != null) {
@@ -714,6 +827,17 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
           targetId: targetId,
         );
       }
+
+      // Notifier l'utilisateur signalé que son contenu a été supprimé
+      if (notifyUser && reportedUserId != null && reportId != null) {
+        await _notifyReportedUser(
+          reportId: reportId,
+          reportedUserId: reportedUserId,
+          resolution: 'Contenu supprimé pour violation des règles',
+          contentRemoved: true,
+        );
+      }
+
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());

@@ -1841,6 +1841,12 @@ abstract class AppLocalizations {
   /// **'À l\'instant'**
   String get justNow;
 
+  /// No description provided for @secondsAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count} s'**
+  String secondsAgo(int count);
+
   /// No description provided for @minutesAgo.
   ///
   /// In fr, this message translates to:
@@ -2566,6 +2572,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Changer de caméra'**
   String get switchCamera;
+
+  /// No description provided for @systemMessageUserJoined.
+  ///
+  /// In fr, this message translates to:
+  /// **'{userName} a rejoint le groupe'**
+  String systemMessageUserJoined(String userName);
+
+  /// No description provided for @systemMessageUserLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'{userName} a quitté le groupe'**
+  String systemMessageUserLeft(String userName);
+
+  /// No description provided for @systemMessageUserRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'{userName} a été retiré du groupe'**
+  String systemMessageUserRemoved(String userName);
+
+  /// No description provided for @systemMessageUserPromoted.
+  ///
+  /// In fr, this message translates to:
+  /// **'{userName} est maintenant administrateur'**
+  String systemMessageUserPromoted(String userName);
+
+  /// No description provided for @systemMessageUserDemoted.
+  ///
+  /// In fr, this message translates to:
+  /// **'{userName} n\'est plus administrateur'**
+  String systemMessageUserDemoted(String userName);
+
+  /// No description provided for @systemMessageGroupRenamed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe a été renommé en {newName}'**
+  String systemMessageGroupRenamed(String newName);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

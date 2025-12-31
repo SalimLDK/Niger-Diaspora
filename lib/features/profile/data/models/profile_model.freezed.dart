@@ -53,6 +53,7 @@ mixin _$ProfileModel {
   DateTime? get lastSeen => throw _privateConstructorUsedError;
   bool get showOnlineStatus => throw _privateConstructorUsedError;
   DateTime? get locationUpdatedAt => throw _privateConstructorUsedError;
+  List<String> get blockedByUserIds => throw _privateConstructorUsedError;
 
   /// Serializes this ProfileModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -104,6 +105,7 @@ abstract class $ProfileModelCopyWith<$Res> {
     DateTime? lastSeen,
     bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    List<String> blockedByUserIds,
   });
 }
 
@@ -154,6 +156,7 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
     Object? locationUpdatedAt = freezed,
+    Object? blockedByUserIds = null,
   }) {
     return _then(
       _value.copyWith(
@@ -317,6 +320,11 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                     ? _value.locationUpdatedAt
                     : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            blockedByUserIds:
+                null == blockedByUserIds
+                    ? _value.blockedByUserIds
+                    : blockedByUserIds // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -365,6 +373,7 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     DateTime? lastSeen,
     bool showOnlineStatus,
     DateTime? locationUpdatedAt,
+    List<String> blockedByUserIds,
   });
 }
 
@@ -414,6 +423,7 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? lastSeen = freezed,
     Object? showOnlineStatus = null,
     Object? locationUpdatedAt = freezed,
+    Object? blockedByUserIds = null,
   }) {
     return _then(
       _$ProfileModelImpl(
@@ -577,6 +587,11 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
                 ? _value.locationUpdatedAt
                 : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        blockedByUserIds:
+            null == blockedByUserIds
+                ? _value._blockedByUserIds
+                : blockedByUserIds // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -618,9 +633,11 @@ class _$ProfileModelImpl extends _ProfileModel {
     this.lastSeen,
     this.showOnlineStatus = true,
     this.locationUpdatedAt,
+    final List<String> blockedByUserIds = const [],
   }) : _interests = interests,
        _skills = skills,
        _languages = languages,
+       _blockedByUserIds = blockedByUserIds,
        super._();
 
   factory _$ProfileModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -721,10 +738,19 @@ class _$ProfileModelImpl extends _ProfileModel {
   final bool showOnlineStatus;
   @override
   final DateTime? locationUpdatedAt;
+  final List<String> _blockedByUserIds;
+  @override
+  @JsonKey()
+  List<String> get blockedByUserIds {
+    if (_blockedByUserIds is EqualUnmodifiableListView)
+      return _blockedByUserIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_blockedByUserIds);
+  }
 
   @override
   String toString() {
-    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt)';
+    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -795,7 +821,11 @@ class _$ProfileModelImpl extends _ProfileModel {
             (identical(other.showOnlineStatus, showOnlineStatus) ||
                 other.showOnlineStatus == showOnlineStatus) &&
             (identical(other.locationUpdatedAt, locationUpdatedAt) ||
-                other.locationUpdatedAt == locationUpdatedAt));
+                other.locationUpdatedAt == locationUpdatedAt) &&
+            const DeepCollectionEquality().equals(
+              other._blockedByUserIds,
+              _blockedByUserIds,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -834,6 +864,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     lastSeen,
     showOnlineStatus,
     locationUpdatedAt,
+    const DeepCollectionEquality().hash(_blockedByUserIds),
   ]);
 
   /// Create a copy of ProfileModel
@@ -884,6 +915,7 @@ abstract class _ProfileModel extends ProfileModel {
     final DateTime? lastSeen,
     final bool showOnlineStatus,
     final DateTime? locationUpdatedAt,
+    final List<String> blockedByUserIds,
   }) = _$ProfileModelImpl;
   const _ProfileModel._() : super._();
 
@@ -954,6 +986,8 @@ abstract class _ProfileModel extends ProfileModel {
   bool get showOnlineStatus;
   @override
   DateTime? get locationUpdatedAt;
+  @override
+  List<String> get blockedByUserIds;
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.

@@ -7,7 +7,7 @@ part of 'friend_provider.dart';
 // **************************************************************************
 
 String _$friendRemoteDataSourceHash() =>
-    r'3bbcc5b3b28a4b14398adf47bed84a5deb55a32d';
+    r'a919d13a96920bd0303d31b27fda4771e2e4c505';
 
 /// See also [friendRemoteDataSource].
 @ProviderFor(friendRemoteDataSource)
@@ -263,7 +263,7 @@ class _FriendshipStatusProviderElement extends ProviderElement<FriendshipStatus>
 }
 
 String _$friendRequestNotifierHash() =>
-    r'0d8733cac0dc3691a7344f825c76bdcb67616361';
+    r'6fe766e16213d47067f4e4d4e732183226737f47';
 
 /// See also [FriendRequestNotifier].
 @ProviderFor(FriendRequestNotifier)

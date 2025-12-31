@@ -47,6 +47,7 @@ mixin _$MessageModel {
   Map<String, dynamic>? get replyToMessageData =>
       throw _privateConstructorUsedError;
   Map<String, dynamic>? get productData => throw _privateConstructorUsedError;
+  List<String> get sentWhileBlockedBy => throw _privateConstructorUsedError;
 
   /// Serializes this MessageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -91,6 +92,7 @@ abstract class $MessageModelCopyWith<$Res> {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy,
   });
 }
 
@@ -134,6 +136,7 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? replyToId = freezed,
     Object? replyToMessageData = freezed,
     Object? productData = freezed,
+    Object? sentWhileBlockedBy = null,
   }) {
     return _then(
       _value.copyWith(
@@ -262,6 +265,11 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
                     ? _value.productData
                     : productData // ignore: cast_nullable_to_non_nullable
                         as Map<String, dynamic>?,
+            sentWhileBlockedBy:
+                null == sentWhileBlockedBy
+                    ? _value.sentWhileBlockedBy
+                    : sentWhileBlockedBy // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -303,6 +311,7 @@ abstract class _$$MessageModelImplCopyWith<$Res>
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy,
   });
 }
 
@@ -345,6 +354,7 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? replyToId = freezed,
     Object? replyToMessageData = freezed,
     Object? productData = freezed,
+    Object? sentWhileBlockedBy = null,
   }) {
     return _then(
       _$MessageModelImpl(
@@ -473,6 +483,11 @@ class __$$MessageModelImplCopyWithImpl<$Res>
                 ? _value._productData
                 : productData // ignore: cast_nullable_to_non_nullable
                     as Map<String, dynamic>?,
+        sentWhileBlockedBy:
+            null == sentWhileBlockedBy
+                ? _value._sentWhileBlockedBy
+                : sentWhileBlockedBy // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -507,6 +522,7 @@ class _$MessageModelImpl extends _MessageModel {
     this.replyToId,
     final Map<String, dynamic>? replyToMessageData,
     final Map<String, dynamic>? productData,
+    final List<String> sentWhileBlockedBy = const [],
   }) : _audioWaveform = audioWaveform,
        _readBy = readBy,
        _readAt = readAt,
@@ -515,6 +531,7 @@ class _$MessageModelImpl extends _MessageModel {
        _reactions = reactions,
        _replyToMessageData = replyToMessageData,
        _productData = productData,
+       _sentWhileBlockedBy = sentWhileBlockedBy,
        super._();
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -631,9 +648,19 @@ class _$MessageModelImpl extends _MessageModel {
     return EqualUnmodifiableMapView(value);
   }
 
+  final List<String> _sentWhileBlockedBy;
+  @override
+  @JsonKey()
+  List<String> get sentWhileBlockedBy {
+    if (_sentWhileBlockedBy is EqualUnmodifiableListView)
+      return _sentWhileBlockedBy;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sentWhileBlockedBy);
+  }
+
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy, reactions: $reactions, replyToId: $replyToId, replyToMessageData: $replyToMessageData, productData: $productData)';
+    return 'MessageModel(id: $id, senderId: $senderId, senderName: $senderName, senderPhotoUrl: $senderPhotoUrl, content: $content, type: $type, fileUrl: $fileUrl, fileName: $fileName, fileSize: $fileSize, mimeType: $mimeType, audioDuration: $audioDuration, audioWaveform: $audioWaveform, thumbnailUrl: $thumbnailUrl, videoDuration: $videoDuration, readBy: $readBy, readAt: $readAt, createdAt: $createdAt, deletedFor: $deletedFor, deletedForEveryone: $deletedForEveryone, deletedAt: $deletedAt, reportedBy: $reportedBy, reactions: $reactions, replyToId: $replyToId, replyToMessageData: $replyToMessageData, productData: $productData, sentWhileBlockedBy: $sentWhileBlockedBy)';
   }
 
   @override
@@ -696,6 +723,10 @@ class _$MessageModelImpl extends _MessageModel {
             const DeepCollectionEquality().equals(
               other._productData,
               _productData,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._sentWhileBlockedBy,
+              _sentWhileBlockedBy,
             ));
   }
 
@@ -728,6 +759,7 @@ class _$MessageModelImpl extends _MessageModel {
     replyToId,
     const DeepCollectionEquality().hash(_replyToMessageData),
     const DeepCollectionEquality().hash(_productData),
+    const DeepCollectionEquality().hash(_sentWhileBlockedBy),
   ]);
 
   /// Create a copy of MessageModel
@@ -771,6 +803,7 @@ abstract class _MessageModel extends MessageModel {
     final String? replyToId,
     final Map<String, dynamic>? replyToMessageData,
     final Map<String, dynamic>? productData,
+    final List<String> sentWhileBlockedBy,
   }) = _$MessageModelImpl;
   const _MessageModel._() : super._();
 
@@ -827,6 +860,8 @@ abstract class _MessageModel extends MessageModel {
   Map<String, dynamic>? get replyToMessageData;
   @override
   Map<String, dynamic>? get productData;
+  @override
+  List<String> get sentWhileBlockedBy;
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.

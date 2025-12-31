@@ -56,6 +56,11 @@ _$MessageModelImpl _$$MessageModelImplFromJson(
   replyToId: json['replyToId'] as String?,
   replyToMessageData: json['replyToMessageData'] as Map<String, dynamic>?,
   productData: json['productData'] as Map<String, dynamic>?,
+  sentWhileBlockedBy:
+      (json['sentWhileBlockedBy'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
@@ -85,4 +90,5 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'replyToId': instance.replyToId,
       'replyToMessageData': instance.replyToMessageData,
       'productData': instance.productData,
+      'sentWhileBlockedBy': instance.sentWhileBlockedBy,
     };

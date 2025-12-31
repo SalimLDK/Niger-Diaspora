@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../messages/data/datasources/message_remote_datasource.dart';
 import '../../domain/repositories/friend_repository.dart';
 import '../models/friend_model.dart';
 import '../models/friend_request_model.dart';
@@ -35,9 +36,13 @@ abstract class FriendRemoteDataSource {
 
 class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
   final FirebaseFirestore _firestore;
+  final MessageRemoteDataSource? _messageDataSource;
 
-  FriendRemoteDataSourceImpl({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FriendRemoteDataSourceImpl({
+    FirebaseFirestore? firestore,
+    MessageRemoteDataSource? messageDataSource,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _messageDataSource = messageDataSource;
 
   @override
   Future<void> sendFriendRequest({
@@ -175,6 +180,19 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
       }, SetOptions(merge: true));
 
       await batch.commit();
+
+      // Create a conversation between the new friends
+      if (_messageDataSource != null) {
+        try {
+          await _messageDataSource.createIndividualConversation(
+            currentUserId: receiverId,
+            otherUserId: senderId,
+          );
+        } catch (_) {
+          // Don't fail the friend request if conversation creation fails
+          // The conversation can be created later when they start chatting
+        }
+      }
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de l\'acceptation');
     }
@@ -423,27 +441,54 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
   @override
   Future<List<FriendModel>> searchFriends(String userId, String query) async {
     try {
-      final snapshot =
-          await _firestore
-              .collection(FirebaseCollections.users)
-              .doc(userId)
-              .collection(FirebaseCollections.friends)
-              .orderBy('displayName')
-              .startAt([query.toLowerCase()])
-              .endAt(['${query.toLowerCase()}\uf8ff'])
-              .get();
+      if (query.trim().isEmpty) {
+        return [];
+      }
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        if (data['addedAt'] is Timestamp) {
-          data['addedAt'] =
-              (data['addedAt'] as Timestamp).toDate().toIso8601String();
+      final lowerQuery = query.toLowerCase();
+
+      // Récupérer tous les amis et filtrer localement (insensible à la casse)
+      final snapshot = await _firestore
+          .collection(FirebaseCollections.users)
+          .doc(userId)
+          .collection(FirebaseCollections.friends)
+          .get();
+
+      final friends = <FriendModel>[];
+
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          data['id'] = doc.id;
+          if (data['addedAt'] is Timestamp) {
+            data['addedAt'] =
+                (data['addedAt'] as Timestamp).toDate().toIso8601String();
+          } else if (data['addedAt'] == null) {
+            // Si addedAt n'existe pas, utiliser la date actuelle
+            data['addedAt'] = DateTime.now().toIso8601String();
+          }
+
+          final displayName = (data['displayName'] as String? ?? '').toLowerCase();
+
+          if (displayName.contains(lowerQuery)) {
+            friends.add(FriendModel.fromJson(data));
+          }
+        } catch (_) {
+          // Ignorer les documents malformés
+          continue;
         }
-        return FriendModel.fromJson(data);
-      }).toList();
+      }
+
+      // Limiter les résultats
+      if (friends.length > 20) {
+        return friends.sublist(0, 20);
+      }
+
+      return friends;
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la recherche');
+    } catch (e) {
+      throw ServerException('Erreur lors de la recherche: $e');
     }
   }
 }

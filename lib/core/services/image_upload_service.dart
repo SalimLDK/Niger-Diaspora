@@ -3,13 +3,57 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import 'permission_service.dart';
+
 enum ImageUploadType { profile, event, group, message, product, business }
+
+/// Result of an image pick operation
+class ImagePickResult {
+  final File? file;
+  final List<File> files;
+  final bool permissionDenied;
+  final PermissionResult? permissionResult;
+  final String? errorMessage;
+
+  const ImagePickResult({
+    this.file,
+    this.files = const [],
+    this.permissionDenied = false,
+    this.permissionResult,
+    this.errorMessage,
+  });
+
+  /// Success result with a single file
+  factory ImagePickResult.success(File file) => ImagePickResult(file: file);
+
+  /// Success result with multiple files
+  factory ImagePickResult.successMultiple(List<File> files) =>
+      ImagePickResult(files: files);
+
+  /// Permission denied result
+  factory ImagePickResult.permissionDenied(PermissionResult result) =>
+      ImagePickResult(
+        permissionDenied: true,
+        permissionResult: result,
+        errorMessage: PermissionService.getCameraPermissionDeniedMessage(result),
+      );
+
+  /// Cancelled by user
+  factory ImagePickResult.cancelled() => const ImagePickResult();
+
+  /// Error result
+  factory ImagePickResult.error(String message) =>
+      ImagePickResult(errorMessage: message);
+
+  bool get isSuccess => file != null || files.isNotEmpty;
+  bool get isCancelled => !isSuccess && !permissionDenied && errorMessage == null;
+}
 
 /// Configuration for image uploads - can be set from admin settings
 class ImageUploadConfig {
@@ -48,7 +92,11 @@ class ImageUploadService {
   ImageUploadConfig get config => _config;
 
   /// Pick an image from gallery
-  Future<File?> pickImageFromGallery({int? maxWidth, int? maxHeight}) async {
+  /// Returns [ImagePickResult] with detailed status information
+  Future<ImagePickResult> pickImageFromGalleryWithResult({
+    int? maxWidth,
+    int? maxHeight,
+  }) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -57,18 +105,51 @@ class ImageUploadService {
         imageQuality: _config.quality,
       );
 
-      if (pickedFile == null) return null;
+      if (pickedFile == null) return ImagePickResult.cancelled();
 
-      return File(pickedFile.path);
+      return ImagePickResult.success(File(pickedFile.path));
+    } on PlatformException catch (e) {
+      if (e.code == 'photo_access_denied') {
+        return ImagePickResult(
+          permissionDenied: true,
+          permissionResult: PermissionResult.permanentlyDenied,
+          errorMessage: PermissionService.getPhotoLibraryPermissionDeniedMessage(
+            PermissionResult.permanentlyDenied,
+          ),
+        );
+      }
+      return ImagePickResult.error(
+        e.message ?? 'Erreur lors de la sélection de l\'image',
+      );
     } catch (e) {
-      // debugPrint('Error picking image from gallery: $e');
-      return null;
+      return ImagePickResult.error('Erreur lors de la sélection de l\'image');
     }
   }
 
+  /// Pick an image from gallery (legacy method for backward compatibility)
+  Future<File?> pickImageFromGallery({int? maxWidth, int? maxHeight}) async {
+    final result = await pickImageFromGalleryWithResult(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+    );
+    return result.file;
+  }
+
   /// Pick an image from camera
-  Future<File?> pickImageFromCamera({int? maxWidth, int? maxHeight}) async {
+  /// Returns [ImagePickResult] with detailed status information
+  Future<ImagePickResult> pickImageFromCameraWithResult({
+    int? maxWidth,
+    int? maxHeight,
+  }) async {
     try {
+      // Request camera permission first
+      final permissionResult =
+          await PermissionService().requestCameraPermission();
+
+      if (permissionResult != PermissionResult.granted) {
+        return ImagePickResult.permissionDenied(permissionResult);
+      }
+
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
         maxWidth: (maxWidth ?? _config.maxWidth).toDouble(),
@@ -76,17 +157,34 @@ class ImageUploadService {
         imageQuality: _config.quality,
       );
 
-      if (pickedFile == null) return null;
+      if (pickedFile == null) return ImagePickResult.cancelled();
 
-      return File(pickedFile.path);
+      return ImagePickResult.success(File(pickedFile.path));
+    } on PlatformException catch (e) {
+      if (e.code == 'camera_access_denied') {
+        return ImagePickResult.permissionDenied(
+          PermissionResult.permanentlyDenied,
+        );
+      }
+      return ImagePickResult.error(e.message ?? 'Erreur lors de la prise de photo');
     } catch (e) {
-      // debugPrint('Error picking image from camera: $e');
-      return null;
+      return ImagePickResult.error('Erreur lors de la prise de photo');
     }
   }
 
+  /// Pick an image from camera (legacy method for backward compatibility)
+  /// Prefer using [pickImageFromCameraWithResult] for better error handling
+  Future<File?> pickImageFromCamera({int? maxWidth, int? maxHeight}) async {
+    final result = await pickImageFromCameraWithResult(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+    );
+    return result.file;
+  }
+
   /// Pick multiple images from gallery
-  Future<List<File>> pickMultipleImages({int? maxImages}) async {
+  /// Returns [ImagePickResult] with detailed status information
+  Future<ImagePickResult> pickMultipleImagesWithResult({int? maxImages}) async {
     try {
       final List<XFile> pickedFiles = await _picker.pickMultiImage(
         maxWidth: _config.maxWidth.toDouble(),
@@ -94,16 +192,34 @@ class ImageUploadService {
         imageQuality: _config.quality,
       );
 
-      if (pickedFiles.isEmpty) return [];
+      if (pickedFiles.isEmpty) return ImagePickResult.cancelled();
 
       final limit = maxImages ?? _config.maxImagesPerUpload;
       final files =
           pickedFiles.take(limit).map((xFile) => File(xFile.path)).toList();
-      return files;
+      return ImagePickResult.successMultiple(files);
+    } on PlatformException catch (e) {
+      if (e.code == 'photo_access_denied') {
+        return ImagePickResult(
+          permissionDenied: true,
+          permissionResult: PermissionResult.permanentlyDenied,
+          errorMessage: PermissionService.getPhotoLibraryPermissionDeniedMessage(
+            PermissionResult.permanentlyDenied,
+          ),
+        );
+      }
+      return ImagePickResult.error(
+        e.message ?? 'Erreur lors de la sélection des images',
+      );
     } catch (e) {
-      // debugPrint('Error picking multiple images: $e');
-      return [];
+      return ImagePickResult.error('Erreur lors de la sélection des images');
     }
+  }
+
+  /// Pick multiple images from gallery (legacy method for backward compatibility)
+  Future<List<File>> pickMultipleImages({int? maxImages}) async {
+    final result = await pickMultipleImagesWithResult(maxImages: maxImages);
+    return result.files;
   }
 
   /// Compress an image file

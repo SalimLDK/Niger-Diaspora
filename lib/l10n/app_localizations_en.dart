@@ -900,6 +900,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get justNow => 'Just now';
 
   @override
+  String secondsAgo(int count) {
+    return '$count s ago';
+  }
+
+  @override
   String minutesAgo(int count) {
     return '$count min ago';
   }
@@ -1275,4 +1280,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchCamera => 'Switch camera';
+
+  @override
+  String systemMessageUserJoined(String userName) {
+    return '$userName joined the group';
+  }
+
+  @override
+  String systemMessageUserLeft(String userName) {
+    return '$userName left the group';
+  }
+
+  @override
+  String systemMessageUserRemoved(String userName) {
+    return '$userName was removed from the group';
+  }
+
+  @override
+  String systemMessageUserPromoted(String userName) {
+    return '$userName is now an administrator';
+  }
+
+  @override
+  String systemMessageUserDemoted(String userName) {
+    return '$userName is no longer an administrator';
+  }
+
+  @override
+  String systemMessageGroupRenamed(String newName) {
+    return 'The group has been renamed to $newName';
+  }
 }

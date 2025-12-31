@@ -7,6 +7,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../domain/entities/friend_entity.dart';
 import '../providers/friend_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 
 class FriendListItem extends ConsumerWidget {
   final FriendEntity friend;
@@ -47,16 +48,22 @@ class FriendListItem extends ConsumerWidget {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) async {
                   if (value == 'message') {
-                    // Use friend.id as conversationId for 1-on-1 chats
-                    context.push(
-                      '/messages/${friend.id}',
-                      extra: {
-                        'name': friend.displayName,
-                        'imageUrl': friend.photoUrl,
-                        'isGroup': false,
-                        'otherUserId': friend.id,
-                      },
-                    );
+                    // Create or get existing conversation with friend
+                    final conversation = await ref
+                        .read(createConversationProvider.notifier)
+                        .createIndividual(friend.id);
+
+                    if (conversation != null && context.mounted) {
+                      context.push(
+                        '/messages/${conversation.id}',
+                        extra: {
+                          'name': friend.displayName,
+                          'imageUrl': friend.photoUrl,
+                          'isGroup': false,
+                          'otherUserId': friend.id,
+                        },
+                      );
+                    }
                   } else if (value == 'remove') {
                     _showRemoveFriendDialog(context, ref);
                   }

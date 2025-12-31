@@ -66,6 +66,12 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
         'blockedUserIds': FieldValue.arrayUnion([targetUserId]),
       });
 
+      // Add currentUserId to target's blockedByUserIds for reverse lookup
+      final targetRef = _firestore.collection(FirebaseCollections.users).doc(targetUserId);
+      batch.set(targetRef, {
+        'blockedByUserIds': FieldValue.arrayUnion([currentUserId]),
+      }, SetOptions(merge: true));
+
       await batch.commit();
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du blocage');
@@ -91,6 +97,12 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
       batch.update(userRef, {
         'blockedUserIds': FieldValue.arrayRemove([targetUserId]),
       });
+
+      // Remove currentUserId from target's blockedByUserIds
+      final targetRef = _firestore.collection(FirebaseCollections.users).doc(targetUserId);
+      batch.set(targetRef, {
+        'blockedByUserIds': FieldValue.arrayRemove([currentUserId]),
+      }, SetOptions(merge: true));
 
       await batch.commit();
     } on FirebaseException catch (e) {

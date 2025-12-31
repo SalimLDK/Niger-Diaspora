@@ -59,6 +59,7 @@ abstract class MessageRemoteDataSource {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy = const [],
   });
 
   /// Envoyer un message avec fichier (Legacy - prefer split methods)
@@ -262,6 +263,12 @@ abstract class MessageRemoteDataSource {
     required String conversationId,
     required String content,
   });
+
+  /// Rechercher des conversations par nom ou dernier message
+  Future<List<ConversationModel>> searchConversations(
+    String userId,
+    String query,
+  );
 }
 
 class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
@@ -554,6 +561,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    List<String> sentWhileBlockedBy = const [],
   }) async {
     final now = DateTime.now().toIso8601String();
     final encryptedContent = _encryptionService.encryptText(content);
@@ -569,6 +577,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       'replyToId': replyToId,
       'replyToMessageData': replyToMessageData,
       if (productData != null) 'productData': productData,
+      if (sentWhileBlockedBy.isNotEmpty) 'sentWhileBlockedBy': sentWhileBlockedBy,
     };
 
     // Create message in RTDB - this is the critical operation
@@ -860,7 +869,44 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       final allParticipants = {...participantIds, creatorId}.toList();
       allParticipants.sort(); // Trier pour comparaison consistante
 
-      // Vérifier si un groupe avec le même nom existe déjà pour cet utilisateur
+      // PRIORITÉ 1: Chercher par groupId si fourni (ne change jamais)
+      if (groupId != null) {
+        final groupIdSnapshot =
+            await _conversationsCollection
+                .where('type', isEqualTo: 'group')
+                .where('groupId', isEqualTo: groupId)
+                .limit(1)
+                .get();
+
+        if (groupIdSnapshot.docs.isNotEmpty) {
+          final existingDoc = groupIdSnapshot.docs.first;
+          final existingData = existingDoc.data() as Map<String, dynamic>;
+          final existingParticipants = List<String>.from(
+            existingData['participantIds'] ?? [],
+          );
+
+          // Mettre à jour les participants si nécessaire
+          final missingParticipants = allParticipants
+              .where((p) => !existingParticipants.contains(p))
+              .toList();
+
+          if (missingParticipants.isNotEmpty) {
+            await _conversationsCollection.doc(existingDoc.id).update({
+              'participantIds': firestore.FieldValue.arrayUnion(missingParticipants),
+            });
+
+            // Sync updated participants to RTDB for security rules
+            final updatedParticipants = [...existingParticipants, ...missingParticipants];
+            await _syncParticipantsToRTDB(existingDoc.id, updatedParticipants);
+          }
+
+          // Retourner la conversation existante (avec ou sans mise à jour)
+          final updatedDoc = await _conversationsCollection.doc(existingDoc.id).get();
+          return ConversationModel.fromFirestore(updatedDoc);
+        }
+      }
+
+      // PRIORITÉ 2: Chercher par nom (fallback pour les anciennes conversations sans groupId)
       // Note: Security rules require participantIds filter for read access
       final existingSnapshot =
           await _conversationsCollection
@@ -869,17 +915,57 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
               .where('participantIds', arrayContains: creatorId)
               .get();
 
-      // Vérifier si les participants correspondent exactement
+      // Vérifier si une conversation existe avec ce nom
       for (final doc in existingSnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        final existingParticipants = List<String>.from(
-          data['participantIds'] ?? [],
-        );
-        existingParticipants.sort();
+        final existingGroupId = data['groupId'] as String?;
 
-        // Si même nom ET mêmes participants, retourner la conversation existante
-        if (_listsEqual(allParticipants, existingParticipants)) {
-          return ConversationModel.fromFirestore(doc);
+        // Si cette conversation a le même groupId, l'utiliser
+        if (groupId != null && existingGroupId == groupId) {
+          // Mettre à jour les participants si nécessaire
+          final existingParticipants = List<String>.from(
+            data['participantIds'] ?? [],
+          );
+          final missingParticipants = allParticipants
+              .where((p) => !existingParticipants.contains(p))
+              .toList();
+
+          if (missingParticipants.isNotEmpty) {
+            await _conversationsCollection.doc(doc.id).update({
+              'participantIds': firestore.FieldValue.arrayUnion(missingParticipants),
+            });
+            await _syncParticipantsToRTDB(doc.id, [...existingParticipants, ...missingParticipants]);
+          }
+
+          final updatedDoc = await _conversationsCollection.doc(doc.id).get();
+          return ConversationModel.fromFirestore(updatedDoc);
+        }
+
+        // Fallback: Si pas de groupId stocké mais même nom, on assume que c'est la même conversation
+        // (pour compatibilité avec les anciennes données)
+        if (existingGroupId == null && groupId != null) {
+          // Mettre à jour le groupId et les participants
+          final existingParticipants = List<String>.from(
+            data['participantIds'] ?? [],
+          );
+          final missingParticipants = allParticipants
+              .where((p) => !existingParticipants.contains(p))
+              .toList();
+
+          final updates = <String, dynamic>{
+            'groupId': groupId,
+          };
+          if (missingParticipants.isNotEmpty) {
+            updates['participantIds'] = firestore.FieldValue.arrayUnion(missingParticipants);
+          }
+
+          await _conversationsCollection.doc(doc.id).update(updates);
+          if (missingParticipants.isNotEmpty) {
+            await _syncParticipantsToRTDB(doc.id, [...existingParticipants, ...missingParticipants]);
+          }
+
+          final updatedDoc = await _conversationsCollection.doc(doc.id).get();
+          return ConversationModel.fromFirestore(updatedDoc);
         }
       }
 
@@ -916,32 +1002,50 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     }
   }
 
-  // Helper pour comparer deux listes
-  bool _listsEqual(List<String> list1, List<String> list2) {
-    if (list1.length != list2.length) return false;
-    for (int i = 0; i < list1.length; i++) {
-      if (list1[i] != list2[i]) return false;
-    }
-    return true;
-  }
-
   @override
   Future<void> markAsRead({
     required String conversationId,
     required String userId,
   }) async {
     try {
-      // Note: Updating RTDB message read status one by one or in batch.
-      // RTDB batch update is just update() with map.
-      // Fetch unread from RTDB is hard without index 'readBy'.
-      // For now, let's just reset Firestore unreadCount.
-      // Real "read" status on individual messages in RTDB might be expensive to query/update without proper indexing.
-      // We'll skip updating each message's 'readBy' for now to keep it simple, or iterate if needed.
-      // To strictly follow clean architecture, we should update unreadCount in Firestore.
-
+      // Update unreadCount in Firestore
       await _conversationsCollection.doc(conversationId).update({
         'unreadCount.$userId': 0,
       });
+
+      // Update readBy on recent messages in RTDB
+      final messagesRef = _messagesRef(conversationId);
+      final snapshot = await messagesRef
+          .orderByChild('createdAt')
+          .limitToLast(50) // Limit to recent messages for performance
+          .get();
+
+      if (snapshot.exists && snapshot.value != null) {
+        final now = DateTime.now().toUtc().toIso8601String();
+        final updates = <String, dynamic>{};
+
+        final messagesMap = snapshot.value as Map<dynamic, dynamic>;
+        for (final entry in messagesMap.entries) {
+          final messageId = entry.key as String;
+          final messageData = entry.value as Map<dynamic, dynamic>;
+
+          // Skip if user already read this message
+          final readBy = List<String>.from(messageData['readBy'] ?? []);
+          if (readBy.contains(userId)) continue;
+
+          // Skip if user is the sender (already in readBy)
+          if (messageData['senderId'] == userId) continue;
+
+          // Add user to readBy and readAt
+          updates['$messageId/readBy'] = [...readBy, userId];
+          updates['$messageId/readAt/$userId'] = now;
+        }
+
+        // Batch update if there are messages to mark as read
+        if (updates.isNotEmpty) {
+          await messagesRef.update(updates);
+        }
+      }
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du marquage comme lu');
     }
@@ -1132,6 +1236,13 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       await _conversationsCollection.doc(conversationId).update({
         'adminIds': firestore.FieldValue.arrayUnion([userId]),
       });
+
+      // Send system message
+      final userName = await _getUserDisplayName(userId);
+      await sendSystemMessage(
+        conversationId: conversationId,
+        content: '$userName est maintenant administrateur',
+      );
     } on firestore.FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la promotion admin');
     }
@@ -1146,8 +1257,26 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       await _conversationsCollection.doc(conversationId).update({
         'adminIds': firestore.FieldValue.arrayRemove([userId]),
       });
+
+      // Send system message
+      final userName = await _getUserDisplayName(userId);
+      await sendSystemMessage(
+        conversationId: conversationId,
+        content: '$userName n\'est plus administrateur',
+      );
     } on firestore.FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la destitution admin');
+    }
+  }
+
+  /// Gets user display name from Firestore
+  Future<String> _getUserDisplayName(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) return 'Un utilisateur';
+      return userDoc.data()?['displayName'] as String? ?? 'Un utilisateur';
+    } catch (e) {
+      return 'Un utilisateur';
     }
   }
 
@@ -1157,6 +1286,13 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
+      // Send system message before removing (so user can still see it)
+      final userName = await _getUserDisplayName(userId);
+      await sendSystemMessage(
+        conversationId: conversationId,
+        content: '$userName a été retiré du groupe',
+      );
+
       // Fetch conversation to check for groupId
       final doc = await _conversationsCollection.doc(conversationId).get();
       if (doc.exists) {
@@ -1794,6 +1930,52 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     } catch (e) {
       throw ServerException(
         'Erreur lors de l\'envoi du message système: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<ConversationModel>> searchConversations(
+    String userId,
+    String query,
+  ) async {
+    try {
+      if (query.trim().isEmpty) {
+        return [];
+      }
+
+      final lowerQuery = query.toLowerCase();
+
+      // Récupérer toutes les conversations de l'utilisateur
+      final snapshot = await _conversationsCollection
+          .where('participantIds', arrayContains: userId)
+          .orderBy('lastMessageAt', descending: true)
+          .limit(50) // Limiter pour les performances
+          .get();
+
+      final conversations = <ConversationModel>[];
+
+      for (final doc in snapshot.docs) {
+        final conversation = _fromFirestoreEncrypted(doc);
+
+        // Filtrer par nom de conversation ou dernier message
+        final name = (conversation.name ?? '').toLowerCase();
+        final lastMessage = (conversation.lastMessage ?? '').toLowerCase();
+
+        if (name.contains(lowerQuery) || lastMessage.contains(lowerQuery)) {
+          conversations.add(conversation);
+        }
+      }
+
+      // Limiter les résultats
+      if (conversations.length > 20) {
+        return conversations.sublist(0, 20);
+      }
+
+      return conversations;
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la recherche des conversations',
       );
     }
   }

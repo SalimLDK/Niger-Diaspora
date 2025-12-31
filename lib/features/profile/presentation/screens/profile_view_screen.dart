@@ -22,6 +22,9 @@ import '../../../../core/services/location_service.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../reports/domain/entities/report_entity.dart';
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -41,6 +44,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     with AutomaticKeepAliveClientMixin {
   bool _isBackgroundLocationEnabled = false;
   bool _isCurrentUser = false;
+  bool _isSendingRequest = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -130,8 +134,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _startConversation() async {
-    final profile =
-        ref.read(profileNotifierProvider(widget.userId)).valueOrNull;
+    // Use the same provider as the screen display (userStreamProvider)
+    // instead of profileNotifierProvider to avoid desync issues
+    final profileAsync = ref.read(userStreamProvider(widget.userId));
+    final profile = profileAsync.valueOrNull;
 
     if (profile == null || profile.displayName == 'Utilisateur supprimé') {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -162,11 +168,18 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _sendFriendRequest() async {
-    final profile =
-        ref.read(profileNotifierProvider(widget.userId)).valueOrNull;
+    if (_isSendingRequest) return;
+
+    // Use the same provider as the screen display (userStreamProvider)
+    final profileAsync = ref.read(userStreamProvider(widget.userId));
+    final profile = profileAsync.valueOrNull;
     if (profile == null || profile.displayName == 'Utilisateur supprimé') {
       return;
     }
+
+    setState(() {
+      _isSendingRequest = true;
+    });
 
     final l10n = AppLocalizations.of(context)!;
     final success = await ref
@@ -178,6 +191,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         );
 
     if (mounted) {
+      setState(() {
+        _isSendingRequest = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -186,6 +202,58 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
           backgroundColor: success ? AppColors.success : AppColors.error,
         ),
       );
+    }
+  }
+
+  Future<void> _blockUser(ProfileEntity profile) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bloquer l\'utilisateur'),
+        content: Text(
+          'Voulez-vous vraiment bloquer ${profile.displayName ?? 'cet utilisateur'} ? '
+          'Vous ne recevrez plus de messages de sa part.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Bloquer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final success = await ref
+        .read(blockUserNotifierProvider.notifier)
+        .blockUser(
+          targetUserId: profile.id,
+          targetDisplayName: profile.displayName ?? 'Utilisateur',
+          targetPhotoUrl: profile.photoUrl,
+        );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Utilisateur bloqué' : 'Erreur lors du blocage',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+
+      if (success) {
+        // Retourner à l'écran précédent après le blocage
+        if (context.canPop()) {
+          context.pop();
+        }
+      }
     }
   }
 
@@ -228,6 +296,36 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       return l10n.fromCity(city);
     }
     return '';
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  Widget _buildProfileInitials(BuildContext context, String? name) {
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        color: context.adaptivePrimaryColor,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(name),
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildMediaSection(BuildContext context, WidgetRef ref) {
@@ -286,7 +384,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             appBar: AppBar(
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
               ),
             ),
             body: Center(
@@ -301,7 +405,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             appBar: AppBar(
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
               ),
             ),
             body: Center(child: Text('Erreur: $err')),
@@ -321,7 +431,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
         title: Text(l10n.profileTitle),
       ),
@@ -373,7 +489,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     ProfileEntity profile,
     AppLocalizations l10n,
   ) {
-    final locationString = _buildLocationString(l10n, profile);
+    // Check if user is blocked (both ways)
+    final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+    final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final isBlockedByMe = blockedUserIds.contains(profile.id);
+    final isBlockedByThem = currentUserId != null && profile.blockedByUserIds.contains(currentUserId);
+    final isBlocked = isBlockedByMe || isBlockedByThem;
+
+    // Hide location if blocked
+    final locationString = isBlocked ? '' : _buildLocationString(l10n, profile);
     final originString = _buildOriginString(l10n, profile);
 
     return PopScope(
@@ -410,7 +535,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                     color: context.textPrimaryColor,
                   ),
                 ),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
               ),
               actions: [
                 if (profile.displayName != 'Utilisateur supprimé')
@@ -435,6 +566,60 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         userId: profile.id,
                       );
                     },
+                  ),
+                if (!_isCurrentUser && profile.displayName != 'Utilisateur supprimé')
+                  PopupMenuButton<String>(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.more_vert,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'block') {
+                        _blockUser(profile);
+                      } else if (value == 'report') {
+                        ReportContentModal.show(
+                          context,
+                          targetType: ReportTargetType.user,
+                          targetId: profile.id,
+                          targetName: profile.displayName,
+                        );
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem<String>(
+                        value: 'report',
+                        child: Row(
+                          children: [
+                            Icon(Icons.flag_outlined, color: Colors.orange),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Signaler',
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'block',
+                        child: Row(
+                          children: [
+                            Icon(Icons.block, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Bloquer l\'utilisateur',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 const SizedBox(width: 8),
               ],
@@ -485,19 +670,15 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                           profile.photoUrl!,
                                           fit: BoxFit.cover,
                                           errorBuilder:
-                                              (_, __, ___) => Icon(
-                                                Icons.person,
-                                                size: 50,
-                                                color:
-                                                    context
-                                                        .adaptivePrimaryColor,
+                                              (_, __, ___) => _buildProfileInitials(
+                                                context,
+                                                profile.displayName,
                                               ),
                                         ),
                                       )
-                                      : Icon(
-                                        Icons.person,
-                                        size: 50,
-                                        color: context.adaptivePrimaryColor,
+                                      : _buildProfileInitials(
+                                        context,
+                                        profile.displayName,
                                       ),
                             ),
                           ),
@@ -528,15 +709,17 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       ),
                     ),
 
-                    // Online Status Indicator
-                    const SizedBox(height: 8),
-                    Center(
-                      child: OnlineStatusIndicator(
-                        userId: profile.id,
-                        showText: true,
-                        dotSize: 10,
+                    // Online Status Indicator (hidden if blocked)
+                    if (!isBlocked) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: OnlineStatusIndicator(
+                          userId: profile.id,
+                          showText: true,
+                          dotSize: 10,
+                        ),
                       ),
-                    ),
+                    ],
 
                     if (profile.profession != null &&
                         profile.profession!.isNotEmpty) ...[
@@ -912,7 +1095,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             ),
           ],
         ),
-        bottomNavigationBar: Consumer(
+        bottomNavigationBar: _isCurrentUser
+            ? null
+            : Consumer(
           builder: (context, ref, child) {
             final status = ref.watch(friendshipStatusProvider(widget.userId));
 
@@ -1159,7 +1344,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
               case FriendshipStatus.none:
                 buttonText = 'Envoyer une demande d\'ami';
                 buttonIcon = Icons.person_add;
-                onPressed = _sendFriendRequest;
+                onPressed = _isSendingRequest ? null : _sendFriendRequest;
                 backgroundColor = context.adaptivePrimaryColor;
                 break;
             }
@@ -1183,8 +1368,17 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
               ),
               child: ElevatedButton.icon(
                 onPressed: onPressed,
-                icon: Icon(buttonIcon),
-                label: Text(buttonText),
+                icon: _isSendingRequest
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : Icon(buttonIcon),
+                label: Text(_isSendingRequest ? 'Envoi en cours...' : buttonText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: backgroundColor,
                   foregroundColor: AppColors.white,

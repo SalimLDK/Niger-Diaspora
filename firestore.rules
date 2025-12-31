@@ -13,10 +13,55 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Helper function to check if user is admin
+    // Helper function to get the admin role of the current user
+    function getAdminRole() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userData.adminRole;
+    }
+
+    // Helper function to check if user has any admin role
+    // Supports both new adminRole field and legacy isAdmin boolean
     function isAdmin() {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && (
+        userData.adminRole != null ||
+        userData.isAdmin == true
+      );
+    }
+
+    // Helper function to check if user is SuperAdmin
+    function isSuperAdmin() {
+      return isAuthenticated() && getAdminRole() == 'superAdmin';
+    }
+
+    // Helper function to check if user can moderate content (SuperAdmin or ContentMod)
+    // Falls back to isAdmin for backward compatibility with admins without specific roles
+    function canModerateContent() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && (
+        getAdminRole() in ['superAdmin', 'contentMod'] ||
+        userData.isAdmin == true
+      );
+    }
+
+    // Helper function to check if user can moderate businesses (SuperAdmin or BusinessMod)
+    // Falls back to isAdmin for backward compatibility with admins without specific roles
+    function canModerateBusiness() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && (
+        getAdminRole() in ['superAdmin', 'businessMod'] ||
+        userData.isAdmin == true
+      );
+    }
+
+    // Helper function to check if user can moderate finances (SuperAdmin or FinanceMod)
+    // Falls back to isAdmin for backward compatibility with admins without specific roles
+    function canModerateFinance() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && (
+        getAdminRole() in ['superAdmin', 'financeMod'] ||
+        userData.isAdmin == true
+      );
     }
     
     // Users collection - users can read any profile but only write their own
@@ -29,16 +74,30 @@ service cloud.firestore {
 
       // Allow write only if accessing own document (includes create, update, delete)
       // Exception: allow updating friendIds array when accepting/removing a friend request
+      // Exception: allow updating blockedByUserIds when being blocked/unblocked
       allow write: if isOwner(userId) || (
         isAuthenticated() &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendIds']) &&
         (
-          // Allow adding current user to friendIds (accepting friend request)
-          (request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
-           resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).size() == 0) ||
-          // Allow removing current user from friendIds (unfriending)
-          (resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
-           request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).size() == 0)
+          // Friend request handling
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendIds']) &&
+          (
+            // Allow adding current user to friendIds (accepting friend request)
+            (request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
+             resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).size() == 0) ||
+            // Allow removing current user from friendIds (unfriending)
+            (resource.data.friendIds.toSet().difference(request.resource.data.friendIds.toSet()).hasOnly([request.auth.uid]) &&
+             request.resource.data.friendIds.toSet().difference(resource.data.friendIds.toSet()).size() == 0)
+          )) ||
+          // Block/unblock handling - allow adding/removing current user ID to/from blockedByUserIds
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blockedByUserIds']) &&
+          (
+            // Allow adding current user to blockedByUserIds (being blocked)
+            (request.resource.data.blockedByUserIds.toSet().difference(resource.data.get('blockedByUserIds', []).toSet()).hasOnly([request.auth.uid]) &&
+             resource.data.get('blockedByUserIds', []).toSet().difference(request.resource.data.blockedByUserIds.toSet()).size() == 0) ||
+            // Allow removing current user from blockedByUserIds (being unblocked)
+            (resource.data.get('blockedByUserIds', []).toSet().difference(request.resource.data.blockedByUserIds.toSet()).hasOnly([request.auth.uid]) &&
+             request.resource.data.blockedByUserIds.toSet().difference(resource.data.get('blockedByUserIds', []).toSet()).size() == 0)
+          ))
         )
       );
 
@@ -108,9 +167,13 @@ service cloud.firestore {
     // Conversations
     match /conversations/{conversationId} {
       allow read: if isAuthenticated() && request.auth.uid in resource.data.participantIds;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participantIds;
       // Allow update if participant (e.g. reading receipt, last message update)
-      allow update: if isAuthenticated() && request.auth.uid in resource.data.participantIds;
+      // Also allow creator to update (handles edge cases where participantIds might be malformed)
+      allow update: if isAuthenticated() && (
+        request.auth.uid in resource.data.participantIds ||
+        resource.data.createdBy == request.auth.uid
+      );
       allow delete: if isAuthenticated() && request.auth.uid in resource.data.participantIds; // Allow delete for cleanup
       
       // Match messages subcollection (Legacy/Backup support for deleteAccount)
@@ -158,11 +221,11 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
     }
     
-    // Reports
+    // Reports - Content moderators can manage reports
     match /reports/{reportId} {
       allow create: if isAuthenticated();
-      // Admins can read and manage all reports
-      allow read, update, delete: if isAdmin();
+      // Content moderators (ContentMod, SuperAdmin) can read and manage all reports
+      allow read, update, delete: if canModerateContent();
     }
 
     // Payment Intents (Stripe)
@@ -426,10 +489,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // App Configuration - readable by authenticated users, writable by admins only
+    // App Configuration - readable by authenticated users, writable by SuperAdmin only
     match /app_config/{documentId} {
       allow read: if isAuthenticated(); // All authenticated users can read settings
-      allow write: if isAdmin(); // Only admins can modify settings
+      allow write: if isSuperAdmin(); // Only SuperAdmin can modify settings
     }
 
     // Embassies - admins can create and manage embassies
@@ -471,44 +534,51 @@ service cloud.firestore {
       allow read, update: if isAdmin();
     }
 
-    // Admin: Full access to products for moderation
+    // Admin: Business moderators can access products
     match /products/{productId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateBusiness();
     }
 
-    // Admin: Full access to businesses for moderation
+    // Admin: Business moderators can access businesses
     match /businesses/{businessId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateBusiness();
     }
 
-    // Admin: Full access to business posts for moderation
+    // Admin: Business moderators can access business posts
     match /business_posts/{postId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateBusiness();
     }
 
-    // Admin: Full access to business reviews for moderation
+    // Admin: Business moderators can access business reviews
     match /business_reviews/{reviewId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateBusiness();
     }
 
-    // Admin: Full access to events for moderation
+    // Admin: Content moderators can access events
     match /events/{eventId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateContent();
     }
 
-    // Admin: Full access to groups for moderation
+    // Admin: Content moderators can access groups
     match /groups/{groupId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canModerateContent();
     }
 
-    // Admin: Full access to transactions for monitoring
+    // Admin: Finance moderators can access transactions
     match /transactions/{transactionId} {
-      allow read, update: if isAdmin();
+      allow read, update: if canModerateFinance();
     }
 
     // Admin: Full access to users for management
+    // Note: Only SuperAdmin can modify adminRole field
     match /users/{userId} {
-      allow read, update: if isAdmin();
+      allow read: if isAdmin();
+      allow update: if isAdmin() && (
+        // SuperAdmin can update anything including adminRole
+        isSuperAdmin() ||
+        // Other admins can update but NOT the adminRole field
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminRole'])
+      );
     }
 
     // Admin: Read notifications for all users (for support)

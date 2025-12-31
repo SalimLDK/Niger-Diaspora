@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
+import '../providers/permission_provider.dart';
+import '../../domain/enums/admin_enums.dart';
+import '../../domain/constants/role_permissions.dart';
 import 'admin_embassy_verification_screen.dart';
 import 'admin_create_embassy_screen.dart';
 import 'admin_businesses_screen.dart';
@@ -14,6 +17,30 @@ import 'admin_notifications_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
+import 'admin_role_management_screen.dart';
+
+/// Définition d'une destination de navigation avec sa permission requise
+class _NavDestination {
+  final String id;
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+  final AdminPermission? requiredPermission;
+  final bool superAdminOnly;
+  final Widget Function(BuildContext, WidgetRef) contentBuilder;
+  final int Function(AdminDashboardState)? badgeCount;
+
+  const _NavDestination({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+    required this.contentBuilder,
+    this.requiredPermission,
+    this.superAdminOnly = false,
+    this.badgeCount,
+  });
+}
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -34,30 +61,182 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   static const Color _textPrimary = Color(0xFF1E293B);
   static const Color _textSecondary = Color(0xFF64748B);
 
+  /// Toutes les destinations de navigation avec leurs permissions
+  late final List<_NavDestination> _allDestinations;
+
   @override
   void initState() {
     super.initState();
+    _initDestinations();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
     });
   }
 
+  void _initDestinations() {
+    _allDestinations = [
+      _NavDestination(
+        id: 'overview',
+        label: 'Aperçu',
+        icon: Icons.dashboard_outlined,
+        selectedIcon: Icons.dashboard,
+        requiredPermission: AdminPermission.viewDashboard,
+        contentBuilder: (_, __) => _buildOverviewWidget(),
+      ),
+      _NavDestination(
+        id: 'users',
+        label: 'Utilisateurs',
+        icon: Icons.people_outline,
+        selectedIcon: Icons.people,
+        requiredPermission: AdminPermission.viewUsers,
+        contentBuilder: (_, __) => const AdminUsersManagementScreen(),
+        badgeCount: (state) => state.pendingReports,
+      ),
+      _NavDestination(
+        id: 'businesses',
+        label: 'Commerces',
+        icon: Icons.store_outlined,
+        selectedIcon: Icons.store,
+        requiredPermission: AdminPermission.viewBusinesses,
+        contentBuilder: (_, __) => const AdminBusinessesScreen(),
+      ),
+      _NavDestination(
+        id: 'content',
+        label: 'Contenu',
+        icon: Icons.event_outlined,
+        selectedIcon: Icons.event,
+        requiredPermission: AdminPermission.viewContent,
+        contentBuilder: (_, __) => const AdminModerationScreen(),
+      ),
+      _NavDestination(
+        id: 'reports',
+        label: 'Signalements',
+        icon: Icons.report_outlined,
+        selectedIcon: Icons.report,
+        requiredPermission: AdminPermission.viewReports,
+        contentBuilder: (_, __) => const AdminReportsScreen(),
+      ),
+      _NavDestination(
+        id: 'marketplace',
+        label: 'Marketplace',
+        icon: Icons.shopping_bag_outlined,
+        selectedIcon: Icons.shopping_bag,
+        requiredPermission: AdminPermission.viewMarketplace,
+        contentBuilder: (_, __) => const AdminMarketplaceScreen(),
+      ),
+      _NavDestination(
+        id: 'transactions',
+        label: 'Transferts',
+        icon: Icons.payments_outlined,
+        selectedIcon: Icons.payments,
+        requiredPermission: AdminPermission.viewTransactions,
+        contentBuilder: (_, __) => const AdminTransactionsScreen(),
+      ),
+      _NavDestination(
+        id: 'embassies',
+        label: 'Ambassades',
+        icon: Icons.account_balance_outlined,
+        selectedIcon: Icons.account_balance,
+        superAdminOnly: true,
+        contentBuilder: (context, ref) => _buildEmbassiesPanel(),
+      ),
+      _NavDestination(
+        id: 'analytics',
+        label: 'Analytics',
+        icon: Icons.analytics_outlined,
+        selectedIcon: Icons.analytics,
+        requiredPermission: AdminPermission.viewAnalytics,
+        contentBuilder: (_, __) => const AdminAnalyticsScreen(),
+      ),
+      _NavDestination(
+        id: 'notifications',
+        label: 'Notifications',
+        icon: Icons.notifications_outlined,
+        selectedIcon: Icons.notifications,
+        requiredPermission: AdminPermission.sendNotifications,
+        contentBuilder: (_, __) => const AdminNotificationsScreen(),
+      ),
+      _NavDestination(
+        id: 'settings',
+        label: 'Configuration',
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings,
+        requiredPermission: AdminPermission.viewSettings,
+        contentBuilder: (_, __) => const AdminSettingsScreen(),
+      ),
+      _NavDestination(
+        id: 'features',
+        label: 'Features',
+        icon: Icons.toggle_on_outlined,
+        selectedIcon: Icons.toggle_on,
+        requiredPermission: AdminPermission.viewFeatureFlags,
+        contentBuilder: (_, __) => const AdminFeatureFlagsScreen(),
+      ),
+      _NavDestination(
+        id: 'audit',
+        label: 'Audit',
+        icon: Icons.history_outlined,
+        selectedIcon: Icons.history,
+        requiredPermission: AdminPermission.viewAuditLogs,
+        contentBuilder: (_, __) => const AdminAuditScreen(),
+      ),
+      _NavDestination(
+        id: 'roles',
+        label: 'Rôles Admin',
+        icon: Icons.admin_panel_settings_outlined,
+        selectedIcon: Icons.admin_panel_settings,
+        superAdminOnly: true,
+        contentBuilder: (_, __) => const AdminRoleManagementScreen(),
+      ),
+    ];
+  }
+
+  /// Filtre les destinations selon les permissions de l'utilisateur
+  List<_NavDestination> _getFilteredDestinations(AdminRole role) {
+    return _allDestinations.where((dest) {
+      // SuperAdmin only destinations
+      if (dest.superAdminOnly) {
+        return role == AdminRole.superAdmin;
+      }
+      // Check specific permission
+      if (dest.requiredPermission != null) {
+        return role.hasPermission(dest.requiredPermission!);
+      }
+      // No permission required
+      return true;
+    }).toList();
+  }
+
+  Widget _buildOverviewWidget() {
+    final state = ref.watch(adminDashboardNotifierProvider);
+    return _buildOverview(state);
+  }
+
   @override
   Widget build(BuildContext context) {
     final adminState = ref.watch(adminDashboardNotifierProvider);
+    final adminRole = ref.watch(adminRoleProvider);
     final isWideScreen = MediaQuery.of(context).size.width > 1200;
+
+    // Filtrer les destinations selon les permissions
+    final filteredDestinations = _getFilteredDestinations(adminRole);
+
+    // S'assurer que l'index sélectionné est valide
+    if (_selectedIndex >= filteredDestinations.length) {
+      _selectedIndex = 0;
+    }
 
     return Scaffold(
       backgroundColor: _backgroundColor,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(adminRole),
       body: Row(
         children: [
-          _buildNavigationRail(adminState, isWideScreen),
+          _buildNavigationRail(adminState, isWideScreen, filteredDestinations),
           const VerticalDivider(thickness: 1, width: 1, color: Color(0xFFE2E8F0)),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(24),
-              child: _buildContent(adminState),
+              child: _buildContent(filteredDestinations),
             ),
           ),
         ],
@@ -65,7 +244,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(AdminRole role) {
     return AppBar(
       elevation: 0,
       backgroundColor: _cardColor,
@@ -83,10 +262,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'DiaspoNiger',
                 style: TextStyle(
                   color: _textPrimary,
@@ -94,12 +273,32 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                   fontSize: 18,
                 ),
               ),
-              Text(
-                'Administration',
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 12,
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Administration',
+                    style: TextStyle(
+                      color: _textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: role.color.withAlpha(30),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      role.shortName,
+                      style: TextStyle(
+                        color: role.color,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -159,149 +358,82 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildNavigationRail(AdminDashboardState adminState, bool isWideScreen) {
+  Widget _buildNavigationRail(
+    AdminDashboardState adminState,
+    bool isWideScreen,
+    List<_NavDestination> destinations,
+  ) {
     return Container(
       color: _cardColor,
-      child: NavigationRail(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (int index) {
-          setState(() => _selectedIndex = index);
-        },
-        labelType: isWideScreen ? NavigationRailLabelType.all : NavigationRailLabelType.selected,
-        extended: isWideScreen,
-        minExtendedWidth: 220,
-        backgroundColor: _cardColor,
-        indicatorColor: _primaryColor.withAlpha(30),
-        selectedIconTheme: const IconThemeData(color: _primaryColor),
-        selectedLabelTextStyle: const TextStyle(
-          color: _primaryColor,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedIconTheme: const IconThemeData(color: _textSecondary),
-        unselectedLabelTextStyle: const TextStyle(color: _textSecondary),
-        leading: isWideScreen
-            ? null
-            : Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [_primaryColor, _secondaryColor],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.dashboard, color: Colors.white, size: 24),
-                ),
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height - kToolbarHeight,
+          ),
+          child: IntrinsicHeight(
+            child: NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (int index) {
+                setState(() => _selectedIndex = index);
+              },
+              labelType: isWideScreen ? NavigationRailLabelType.all : NavigationRailLabelType.selected,
+              extended: isWideScreen,
+              minExtendedWidth: 220,
+              backgroundColor: _cardColor,
+              indicatorColor: _primaryColor.withAlpha(30),
+              selectedIconTheme: const IconThemeData(color: _primaryColor),
+              selectedLabelTextStyle: const TextStyle(
+                color: _primaryColor,
+                fontWeight: FontWeight.w600,
               ),
-        destinations: [
-          const NavigationRailDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: Text('Aperçu'),
-          ),
-          NavigationRailDestination(
-            icon: Badge(
-              isLabelVisible: adminState.pendingReports > 0,
-              backgroundColor: Colors.red,
-              label: Text('${adminState.pendingReports}',
-                  style: const TextStyle(color: Colors.white, fontSize: 10)),
-              child: const Icon(Icons.people_outline),
+              unselectedIconTheme: const IconThemeData(color: _textSecondary),
+              unselectedLabelTextStyle: const TextStyle(color: _textSecondary),
+              leading: isWideScreen
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [_primaryColor, _secondaryColor],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.dashboard, color: Colors.white, size: 24),
+                      ),
+                    ),
+              destinations: destinations.map((dest) {
+                final badgeCount = dest.badgeCount?.call(adminState) ?? 0;
+                Widget iconWidget = Icon(dest.icon);
+
+                if (badgeCount > 0) {
+                  iconWidget = Badge(
+                    backgroundColor: Colors.red,
+                    label: Text('$badgeCount',
+                        style: const TextStyle(color: Colors.white, fontSize: 10)),
+                    child: iconWidget,
+                  );
+                }
+
+                return NavigationRailDestination(
+                  icon: iconWidget,
+                  selectedIcon: Icon(dest.selectedIcon),
+                  label: Text(dest.label),
+                );
+              }).toList(),
             ),
-            selectedIcon: const Icon(Icons.people),
-            label: const Text('Utilisateurs'),
           ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.store_outlined),
-            selectedIcon: Icon(Icons.store),
-            label: Text('Commerces'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.event_outlined),
-            selectedIcon: Icon(Icons.event),
-            label: Text('Contenu'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.report_outlined),
-            selectedIcon: Icon(Icons.report),
-            label: Text('Signalements'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: Text('Marketplace'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
-            label: Text('Transferts'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.account_balance_outlined),
-            selectedIcon: Icon(Icons.account_balance),
-            label: Text('Ambassades'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.analytics_outlined),
-            selectedIcon: Icon(Icons.analytics),
-            label: Text('Analytics'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: Text('Notifications'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: Text('Configuration'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.toggle_on_outlined),
-            selectedIcon: Icon(Icons.toggle_on),
-            label: Text('Features'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: Text('Audit'),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildContent(AdminDashboardState state) {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildOverview(state);
-      case 1:
-        return const AdminUsersManagementScreen();
-      case 2:
-        return const AdminBusinessesScreen();
-      case 3:
-        return const AdminModerationScreen();
-      case 4:
-        return const AdminReportsScreen();
-      case 5:
-        return const AdminMarketplaceScreen();
-      case 6:
-        return const AdminTransactionsScreen();
-      case 7:
-        return _buildEmbassiesPanel();
-      case 8:
-        return const AdminAnalyticsScreen();
-      case 9:
-        return const AdminNotificationsScreen();
-      case 10:
-        return const AdminSettingsScreen();
-      case 11:
-        return const AdminFeatureFlagsScreen();
-      case 12:
-        return const AdminAuditScreen();
-      default:
-        return const SizedBox();
+  Widget _buildContent(List<_NavDestination> destinations) {
+    if (_selectedIndex >= destinations.length) {
+      return const SizedBox();
     }
+    return destinations[_selectedIndex].contentBuilder(context, ref);
   }
 
   Widget _buildEmbassiesPanel() {

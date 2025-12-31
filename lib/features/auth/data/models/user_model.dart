@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../../admin/domain/enums/admin_enums.dart';
 
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';
@@ -17,7 +18,7 @@ class UserModel with _$UserModel {
     String? phoneNumber,
     @TimestampConverter() DateTime? createdAt,
     @TimestampConverter() DateTime? lastLoginAt,
-    @Default(false) bool isAdmin,
+    @AdminRoleConverter() @Default(AdminRole.none) AdminRole adminRole,
     @Default(false) bool isBanned,
     String? banReason,
     @TimestampConverter() DateTime? bannedAt,
@@ -29,8 +30,9 @@ class UserModel with _$UserModel {
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    // Convert Timestamps to DateTime
+    // Process data with migration support
     final processedData = <String, dynamic>{'id': doc.id};
+
     data.forEach((key, value) {
       if (value is Timestamp) {
         processedData[key] = value.toDate();
@@ -38,6 +40,11 @@ class UserModel with _$UserModel {
         processedData[key] = value;
       }
     });
+
+    // Migration: convert old isAdmin boolean to adminRole
+    if (processedData['adminRole'] == null && data['isAdmin'] == true) {
+      processedData['adminRole'] = AdminRole.superAdmin.name;
+    }
 
     return UserModel.fromJson(processedData);
   }
@@ -57,7 +64,7 @@ class UserModel with _$UserModel {
       phoneNumber: phoneNumber,
       createdAt: createdAt,
       lastLoginAt: lastLoginAt,
-      isAdmin: isAdmin,
+      adminRole: adminRole,
       isBanned: isBanned,
       banReason: banReason,
       bannedAt: bannedAt,
@@ -80,5 +87,20 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   @override
   dynamic toJson(DateTime? date) {
     return date != null ? Timestamp.fromDate(date) : null;
+  }
+}
+
+class AdminRoleConverter implements JsonConverter<AdminRole, String?> {
+  const AdminRoleConverter();
+
+  @override
+  AdminRole fromJson(String? json) {
+    if (json == null) return AdminRole.none;
+    return AdminRole.fromString(json);
+  }
+
+  @override
+  String? toJson(AdminRole role) {
+    return role == AdminRole.none ? null : role.name;
   }
 }

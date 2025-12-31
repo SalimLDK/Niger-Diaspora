@@ -18,12 +18,31 @@ class BackgroundLocationService {
       'Service de localisation en arrière-plan';
   static const int notificationId = 888;
   static const String prefKeyEnabled = 'background_location_enabled';
+  static const String prefKeyLocationInterval = 'location_update_interval_minutes';
+  static const int defaultLocationIntervalMinutes = 5;
+
+  /// Save the location update interval to SharedPreferences
+  /// Called from main app when settings change
+  static Future<void> setLocationInterval(int minutes) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(prefKeyLocationInterval, minutes);
+  }
+
+  /// Get the location update interval from SharedPreferences
+  static Future<int> getLocationInterval() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(prefKeyLocationInterval) ?? defaultLocationIntervalMinutes;
+  }
 
   Future<void> initialize() async {
     final service = FlutterBackgroundService();
 
     // Ensure permissions are handled in the UI before starting the service.
     // This initializer configures the service.
+
+    // Pre-create the notification channel to prevent Samsung device crashes
+    // This ensures the channel exists before any service start attempts
+    await _ensureNotificationChannelExists();
 
     await service.configure(
       androidConfiguration: AndroidConfiguration(
@@ -50,6 +69,34 @@ class BackgroundLocationService {
     );
   }
 
+  /// Ensure the notification channel exists before starting the foreground service.
+  /// This is critical for Samsung devices which require the channel to exist
+  /// before startForeground() is called.
+  static Future<void> _ensureNotificationChannelExists() async {
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    final androidPlugin = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          notificationChannelId,
+          notificationChannelName,
+          description: notificationChannelDescription,
+          importance: Importance.low,
+          playSound: false,
+          enableVibration: false,
+          showBadge: false,
+        ),
+      );
+      debugPrint('Background location notification channel ensured before service start');
+    }
+  }
+
   // Key to toggle specific logic if needed
   static Future<void> setEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
@@ -57,6 +104,10 @@ class BackgroundLocationService {
 
     final service = FlutterBackgroundService();
     if (enabled) {
+      // CRITICAL: Ensure notification channel exists BEFORE starting service
+      // This prevents "Bad notification for startForeground" crash on Samsung devices
+      await _ensureNotificationChannelExists();
+
       if (!await service.isRunning()) {
         await service.startService();
       }
@@ -89,6 +140,31 @@ class BackgroundLocationService {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
+    // CRITICAL: Create notification channel FIRST before any foreground service operations
+    // This is especially important for Samsung devices which have stricter requirements
+    if (service is AndroidServiceInstance) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      if (androidPlugin != null) {
+        // Create the notification channel with all required properties
+        await androidPlugin.createNotificationChannel(
+          const AndroidNotificationChannel(
+            notificationChannelId,
+            notificationChannelName,
+            description: notificationChannelDescription,
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+            showBadge: false,
+          ),
+        );
+        debugPrint('Background location notification channel created');
+      }
+    }
+
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
         service.setAsForegroundService();
@@ -103,33 +179,37 @@ class BackgroundLocationService {
       service.stopSelf();
     });
 
-    // Bring up the notification channel
+    // Set foreground notification info after channel is created
     if (service is AndroidServiceInstance) {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(
-            const AndroidNotificationChannel(
-              notificationChannelId,
-              'Diaspo Niger Location Service',
-              description: 'Service de localisation en arrière-plan',
-              importance:
-                  Importance.low, // Low importance to minimize intrusion
-            ),
-          );
+      // Get initial interval for notification message
+      final prefs = await SharedPreferences.getInstance();
+      final initialInterval = prefs.getInt(prefKeyLocationInterval) ?? defaultLocationIntervalMinutes;
 
       await service.setForegroundNotificationInfo(
         title: "Diaspo Niger",
-        content: "Localisation active (Mise à jour toutes les 5 min)",
+        content: "Localisation active (Mise à jour toutes les $initialInterval min)",
       );
     }
 
-    // Periodic timer for 5 minutes
-    Timer.periodic(const Duration(minutes: 5), (timer) async {
+    // Start recursive location update timer
+    _scheduleNextLocationUpdate(service, flutterLocalNotificationsPlugin);
+  }
+
+  /// Recursive timer that reads interval from SharedPreferences each time
+  /// This allows the interval to be changed dynamically by admin settings
+  static void _scheduleNextLocationUpdate(
+    ServiceInstance service,
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+  ) async {
+    // Read current interval from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final intervalMinutes = prefs.getInt(prefKeyLocationInterval) ?? defaultLocationIntervalMinutes;
+
+    // Schedule next update
+    Timer(Duration(minutes: intervalMinutes), () async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
-          // Check if user still wants tracking (double check via prefs inside isolate)
+          // Check if user still wants tracking
           final prefs = await SharedPreferences.getInstance();
           final isEnabled = prefs.getBool(prefKeyEnabled) ?? false;
 
@@ -147,13 +227,7 @@ class BackgroundLocationService {
               ),
             );
 
-            // 2. Get current user ID (needs auth to be persisted or passed)
-            // Firebase Auth in background isolate might need re-auth or use local storage for UID
-            // Safest is to rely on current currentUser if persisted,
-            // BUT `FirebaseAuth.instance.currentUser` might be null in a fresh isolate.
-            // Strategy: We will assume the main app has signed in.
-            // If currentUser is null, we can try to reload or just skip.
-
+            // 2. Get current user ID
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
               await FirebaseFirestore.instance
@@ -161,32 +235,33 @@ class BackgroundLocationService {
                   .doc(user.uid)
                   .update({
                     'location': GeoPoint(position.latitude, position.longitude),
-                    'latitude':
-                        position
-                            .latitude, // Ensure these flat fields are also updated for queries
+                    'latitude': position.latitude,
                     'longitude': position.longitude,
                     'lastSeen': FieldValue.serverTimestamp(),
-                    'locationUpdatedAt':
-                        FieldValue.serverTimestamp(), // Link to presence filter
+                    'locationUpdatedAt': FieldValue.serverTimestamp(),
                   });
 
               debugPrint(
                 'Background Location Updated: ${position.latitude}, ${position.longitude}',
               );
 
+              // Update notification with current interval
+              final currentInterval = prefs.getInt(prefKeyLocationInterval) ?? defaultLocationIntervalMinutes;
               flutterLocalNotificationsPlugin.show(
                 notificationId,
                 'Diaspo Niger',
-                'Position mise à jour: ${DateTime.now().hour}:${DateTime.now().minute}',
-                const NotificationDetails(
+                'Position mise à jour: ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} (toutes les $currentInterval min)',
+                NotificationDetails(
                   android: AndroidNotificationDetails(
                     notificationChannelId,
-                    'Diaspo Niger Location Service',
-                    icon: 'ic_bg_service_small',
+                    notificationChannelName,
+                    channelDescription: notificationChannelDescription,
+                    icon: '@mipmap/ic_launcher',
                     ongoing: true,
                     importance: Importance.low,
                     priority: Priority.low,
                     showWhen: true,
+                    onlyAlertOnce: true,
                   ),
                 ),
               );
@@ -196,6 +271,9 @@ class BackgroundLocationService {
           } catch (e) {
             debugPrint('Background Location Error: $e');
           }
+
+          // Schedule next update recursively
+          _scheduleNextLocationUpdate(service, flutterLocalNotificationsPlugin);
         }
       }
     });

@@ -17,6 +17,7 @@ class NotificationModel with _$NotificationModel {
     required String body,
     @Default('general') String type,
     String? targetId,
+    String? senderId, // ID of the user who triggered this notification
     @Default(false) bool isRead,
     DateTime? createdAt,
   }) = _NotificationModel;
@@ -30,6 +31,7 @@ class NotificationModel with _$NotificationModel {
       ...data,
       'id': doc.id,
       'createdAt': _timestampToIso(data['createdAt']),
+      'senderId': data['senderId'] ?? data['fromUserId'], // Support both field names
     });
   }
 
@@ -47,6 +49,7 @@ class NotificationModel with _$NotificationModel {
         body: body,
         type: _parseNotificationType(type),
         targetId: targetId,
+        senderId: senderId,
         isRead: isRead,
         createdAt: createdAt,
       );
@@ -59,6 +62,7 @@ class NotificationModel with _$NotificationModel {
         body: entity.body,
         type: entity.type.name,
         targetId: entity.targetId,
+        senderId: entity.senderId,
         isRead: entity.isRead,
         createdAt: entity.createdAt,
       );

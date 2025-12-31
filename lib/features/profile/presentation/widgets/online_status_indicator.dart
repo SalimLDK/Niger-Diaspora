@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/online_status_provider.dart';
+import '../providers/profile_provider.dart';
 
 /// A widget that displays a user's online status and last seen information
 ///
@@ -36,6 +38,22 @@ class OnlineStatusIndicator extends ConsumerWidget {
     final currentUser = currentUserAsync.valueOrNull;
 
     if (currentUser == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Check if user is blocked (both ways) - hide online status if blocked
+    final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+    final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+    final targetProfileAsync = ref.watch(userStreamProvider(userId));
+    final targetProfile = targetProfileAsync.valueOrNull;
+
+    // If I blocked them, hide their status
+    if (blockedUserIds.contains(userId)) {
+      return const SizedBox.shrink();
+    }
+
+    // If they blocked me, hide their status
+    if (targetProfile != null && targetProfile.blockedByUserIds.contains(currentUser.id)) {
       return const SizedBox.shrink();
     }
 

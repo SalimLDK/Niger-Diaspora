@@ -36,6 +36,7 @@ class MessageModel with _$MessageModel {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    @Default([]) List<String> sentWhileBlockedBy,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>
@@ -58,6 +59,8 @@ class MessageModel with _$MessageModel {
       'replyToId': data['replyToId'],
       'replyToMessageData': data['replyToMessageData'],
       'productData': data['productData'],
+      'sentWhileBlockedBy':
+          (data['sentWhileBlockedBy'] as List<dynamic>?)?.cast<String>() ?? [],
     });
   }
 
@@ -108,6 +111,7 @@ class MessageModel with _$MessageModel {
     replyToId: replyToId,
     replyToMessageData: replyToMessageData,
     productData: productData,
+    sentWhileBlockedBy: sentWhileBlockedBy,
   );
 
   factory MessageModel.fromEntity(MessageEntity entity) => MessageModel(
@@ -136,6 +140,7 @@ class MessageModel with _$MessageModel {
     replyToId: entity.replyToId,
     replyToMessageData: entity.replyToMessageData,
     productData: entity.productData,
+    sentWhileBlockedBy: entity.sentWhileBlockedBy,
   );
 
   static MessageType _parseMessageType(String value) {

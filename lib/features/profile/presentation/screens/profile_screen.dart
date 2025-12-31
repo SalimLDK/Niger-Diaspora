@@ -5,6 +5,8 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/support_service.dart';
@@ -106,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           slivers: [
             // Header avec design moderne
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: context.responsive(mobile: 180.0, tablet: 220.0),
               pinned: true,
               stretch: true,
               backgroundColor: context.adaptivePrimaryColor,
@@ -125,247 +127,272 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 opacity: _fadeAnimation,
                 child: ScaleTransition(
                   scale: _scaleAnimation,
-                  child: _buildStatsCard(l10n),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: context.isTablet ? AppSpacing.tabletMaxContentWidth + 100 : double.infinity,
+                      ),
+                      child: _buildStatsCard(l10n),
+                    ),
+                  ),
                 ),
               ),
             ),
 
-            // Contenu avec animations
+            // Contenu avec animations - centré sur tablette
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // Section Compte
-                  _buildAnimatedSection(
-                    delay: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader(l10n.account, Icons.person_outline),
-                        _SettingsCard(
-                          children: [
-                            _SettingsTile(
-                              icon: Icons.edit_outlined,
-                              title: l10n.editProfile,
-                              subtitle: l10n.modifyYourInfo,
-                              onTap: () => context.push('/profile/edit'),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.people_outline,
-                              title: l10n.myFriends,
-                              subtitle: l10n.manageConnections,
-                              onTap: () => context.push('/friends'),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.share_outlined,
-                              title: l10n.shareMyProfile,
-                              subtitle: l10n.qrCodeAndShareLink,
-                              onTap: () => _showShareProfileModal(),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.notifications_outlined,
-                              title: l10n.notifications,
-                              subtitle: l10n.manageAlerts,
-                              onTap: () => context.push('/notifications'),
-                            ),
-                          ],
-                        ),
-                      ],
+              padding: EdgeInsets.fromLTRB(
+                context.responsive(mobile: 20.0, tablet: 32.0),
+                0,
+                context.responsive(mobile: 20.0, tablet: 32.0),
+                20,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: context.isTablet ? AppSpacing.tabletMaxContentWidth : double.infinity,
                     ),
+                    child: _buildProfileContent(l10n),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // Section Confidentialité
-                  _buildAnimatedSection(
-                    delay: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader(
-                          l10n.privacy,
-                          Icons.shield_outlined,
-                        ),
-                        _SettingsCard(
-                          children: [
-                            _SettingsSwitchTile(
-                              icon: Icons.visibility_outlined,
-                              title: l10n.visibleProfile,
-                              subtitle: l10n.appearInSearchesDesc,
-                              value: _profileVisible,
-                              onChanged: (value) {
-                                HapticFeedback.lightImpact();
-                                setState(() => _profileVisible = value);
-                                _saveSettingsToProfile();
-                              },
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsSwitchTile(
-                              icon: Icons.location_on_outlined,
-                              title: l10n.myLocation,
-                              subtitle: l10n.appearOnMapDesc,
-                              value: _locationEnabled,
-                              onChanged: (value) {
-                                HapticFeedback.lightImpact();
-                                setState(() => _locationEnabled = value);
-                                _saveSettingsToProfile();
-                              },
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsSwitchTile(
-                              icon: Icons.notifications_active_outlined,
-                              title: l10n.pushNotifications,
-                              subtitle: l10n.receiveNotificationsDesc,
-                              value: _notificationsEnabled,
-                              onChanged: (value) {
-                                HapticFeedback.lightImpact();
-                                setState(() => _notificationsEnabled = value);
-                                _updateNotificationSettings(value);
-                              },
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.block_outlined,
-                              title: l10n.blockedUsers,
-                              onTap: () => _showBlockedUsers(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Section Préférences
-                  _buildAnimatedSection(
-                    delay: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader(
-                          l10n.preferences,
-                          Icons.tune_outlined,
-                        ),
-                        _SettingsCard(
-                          children: [
-                            _SettingsTile(
-                              icon: Icons.palette_outlined,
-                              title: l10n.theme,
-                              subtitle: _getThemeLabel(
-                                ref.watch(themeModeNotifierProvider),
-                                l10n,
-                              ),
-                              onTap: () => _showThemeSelector(l10n),
-                            ),
-
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.translate_outlined,
-                              title: l10n.language,
-                              subtitle:
-                                  ref
-                                      .watch(localeNotifierProvider.notifier)
-                                      .currentLocaleName,
-                              onTap: () => _showLanguageSelector(l10n),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Section Aide
-                  _buildAnimatedSection(
-                    delay: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader(
-                          l10n.helpAndSupport,
-                          Icons.help_outline,
-                        ),
-                        _SettingsCard(
-                          children: [
-                            _SettingsTile(
-                              icon: Icons.support_agent_outlined,
-                              title: l10n.helpFaq,
-                              onTap: () => _showHelpSupport(l10n),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.article_outlined,
-                              title: l10n.termsOfService,
-                              onTap: () => context.push('/settings/terms'),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.privacy_tip_outlined,
-                              title: l10n.privacyPolicy,
-                              onTap: () => context.push('/settings/privacy'),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.info_outline,
-                              title: l10n.about,
-                              subtitle: '${l10n.version} 1.1.0+7',
-                              onTap: () => _showAbout(l10n),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Zone de danger
-                  _buildAnimatedSection(
-                    delay: 4,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader(
-                          l10n.dangerZone,
-                          Icons.warning_amber_outlined,
-                          isWarning: true,
-                        ),
-                        _SettingsCard(
-                          isDanger: true,
-                          children: [
-                            _SettingsTile(
-                              icon: Icons.logout_outlined,
-                              title: l10n.logout,
-                              iconColor: AppColors.warning,
-                              titleColor: AppColors.warning,
-                              onTap: () => _confirmLogout(l10n),
-                            ),
-                            const _SettingsDivider(),
-                            _SettingsTile(
-                              icon: Icons.delete_outline,
-                              title: l10n.deleteAccount,
-                              iconColor: AppColors.error,
-                              titleColor: AppColors.error,
-                              onTap: () => _confirmDeleteAccount(l10n),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                ]),
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileContent(AppLocalizations l10n) {
+    return Column(
+      children: [
+        // Section Compte
+        _buildAnimatedSection(
+          delay: 0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(l10n.account, Icons.person_outline),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.edit_outlined,
+                    title: l10n.editProfile,
+                    subtitle: l10n.modifyYourInfo,
+                    onTap: () => context.push('/profile/edit'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.people_outline,
+                    title: l10n.myFriends,
+                    subtitle: l10n.manageConnections,
+                    onTap: () => context.push('/friends'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.share_outlined,
+                    title: l10n.shareMyProfile,
+                    subtitle: l10n.qrCodeAndShareLink,
+                    onTap: () => _showShareProfileModal(),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.notifications_outlined,
+                    title: l10n.notifications,
+                    subtitle: l10n.manageAlerts,
+                    onTap: () => context.push('/notifications'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Section Confidentialité
+        _buildAnimatedSection(
+          delay: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(
+                l10n.privacy,
+                Icons.shield_outlined,
+              ),
+              _SettingsCard(
+                children: [
+                  _SettingsSwitchTile(
+                    icon: Icons.visibility_outlined,
+                    title: l10n.visibleProfile,
+                    subtitle: l10n.appearInSearchesDesc,
+                    value: _profileVisible,
+                    onChanged: (value) {
+                      HapticFeedback.lightImpact();
+                      setState(() => _profileVisible = value);
+                      _saveSettingsToProfile();
+                    },
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsSwitchTile(
+                    icon: Icons.location_on_outlined,
+                    title: l10n.myLocation,
+                    subtitle: l10n.appearOnMapDesc,
+                    value: _locationEnabled,
+                    onChanged: (value) {
+                      HapticFeedback.lightImpact();
+                      setState(() => _locationEnabled = value);
+                      _saveSettingsToProfile();
+                    },
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsSwitchTile(
+                    icon: Icons.notifications_active_outlined,
+                    title: l10n.pushNotifications,
+                    subtitle: l10n.receiveNotificationsDesc,
+                    value: _notificationsEnabled,
+                    onChanged: (value) {
+                      HapticFeedback.lightImpact();
+                      setState(() => _notificationsEnabled = value);
+                      _updateNotificationSettings(value);
+                    },
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.block_outlined,
+                    title: l10n.blockedUsers,
+                    onTap: () => _showBlockedUsers(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Section Préférences
+        _buildAnimatedSection(
+          delay: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(
+                l10n.preferences,
+                Icons.tune_outlined,
+              ),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.palette_outlined,
+                    title: l10n.theme,
+                    subtitle: _getThemeLabel(
+                      ref.watch(themeModeNotifierProvider),
+                      l10n,
+                    ),
+                    onTap: () => _showThemeSelector(l10n),
+                  ),
+
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.translate_outlined,
+                    title: l10n.language,
+                    subtitle:
+                        ref
+                            .watch(localeNotifierProvider.notifier)
+                            .currentLocaleName,
+                    onTap: () => _showLanguageSelector(l10n),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Section Aide
+        _buildAnimatedSection(
+          delay: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(
+                l10n.helpAndSupport,
+                Icons.help_outline,
+              ),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.support_agent_outlined,
+                    title: l10n.helpFaq,
+                    onTap: () => _showHelpSupport(l10n),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.article_outlined,
+                    title: l10n.termsOfService,
+                    onTap: () => context.push('/settings/terms'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: l10n.privacyPolicy,
+                    onTap: () => context.push('/settings/privacy'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.info_outline,
+                    title: l10n.about,
+                    subtitle: '${l10n.version} 1.1.0+8',
+                    onTap: () => _showAbout(l10n),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Zone de danger
+        _buildAnimatedSection(
+          delay: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(
+                l10n.dangerZone,
+                Icons.warning_amber_outlined,
+                isWarning: true,
+              ),
+              _SettingsCard(
+                isDanger: true,
+                children: [
+                  _SettingsTile(
+                    icon: Icons.logout_outlined,
+                    title: l10n.logout,
+                    iconColor: AppColors.warning,
+                    titleColor: AppColors.warning,
+                    onTap: () => _confirmLogout(l10n),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.delete_outline,
+                    title: l10n.deleteAccount,
+                    iconColor: AppColors.error,
+                    titleColor: AppColors.error,
+                    onTap: () => _confirmDeleteAccount(l10n),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 40),
+      ],
     );
   }
 
@@ -1241,76 +1268,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     HapticFeedback.lightImpact();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                gradient: context.adaptivePrimaryGradient,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: context.adaptivePrimaryGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.adaptivePrimaryColor.withValues(
+                          alpha: 0.3,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: const Icon(Icons.people, color: AppColors.white, size: 32),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.appTitle,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  child: const Icon(
+                    Icons.people,
+                    color: AppColors.white,
+                    size: 32,
                   ),
-                  Text(
-                    '${l10n.version} 1.1.0+7',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: context.textSecondaryColor,
-                    ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.appTitle,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${l10n.version} 1.1.0+8',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.mobileAppDescription,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: context.textSecondaryColor),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.allRightsReserved,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.textTertiaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.mobileAppDescription,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.textSecondaryColor),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.allRightsReserved,
-              style: TextStyle(
-                fontSize: 12,
-                color: context.textTertiaryColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            ],
           ),
-        ],
-      ),
     );
   }
 

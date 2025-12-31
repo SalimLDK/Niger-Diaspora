@@ -219,6 +219,136 @@ class _GroupByNameProviderElement
   String get groupName => (origin as GroupByNameProvider).groupName;
 }
 
+String _$groupByIdHash() => r'1589025845c43331e65246b6ed08fceaaf5ad40a';
+
+/// Récupérer un groupe par son ID
+///
+/// Copied from [groupById].
+@ProviderFor(groupById)
+const groupByIdProvider = GroupByIdFamily();
+
+/// Récupérer un groupe par son ID
+///
+/// Copied from [groupById].
+class GroupByIdFamily extends Family<AsyncValue<GroupEntity?>> {
+  /// Récupérer un groupe par son ID
+  ///
+  /// Copied from [groupById].
+  const GroupByIdFamily();
+
+  /// Récupérer un groupe par son ID
+  ///
+  /// Copied from [groupById].
+  GroupByIdProvider call(String groupId) {
+    return GroupByIdProvider(groupId);
+  }
+
+  @override
+  GroupByIdProvider getProviderOverride(covariant GroupByIdProvider provider) {
+    return call(provider.groupId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'groupByIdProvider';
+}
+
+/// Récupérer un groupe par son ID
+///
+/// Copied from [groupById].
+class GroupByIdProvider extends AutoDisposeFutureProvider<GroupEntity?> {
+  /// Récupérer un groupe par son ID
+  ///
+  /// Copied from [groupById].
+  GroupByIdProvider(String groupId)
+    : this._internal(
+        (ref) => groupById(ref as GroupByIdRef, groupId),
+        from: groupByIdProvider,
+        name: r'groupByIdProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$groupByIdHash,
+        dependencies: GroupByIdFamily._dependencies,
+        allTransitiveDependencies: GroupByIdFamily._allTransitiveDependencies,
+        groupId: groupId,
+      );
+
+  GroupByIdProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.groupId,
+  }) : super.internal();
+
+  final String groupId;
+
+  @override
+  Override overrideWith(
+    FutureOr<GroupEntity?> Function(GroupByIdRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GroupByIdProvider._internal(
+        (ref) => create(ref as GroupByIdRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        groupId: groupId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<GroupEntity?> createElement() {
+    return _GroupByIdProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupByIdProvider && other.groupId == groupId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, groupId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GroupByIdRef on AutoDisposeFutureProviderRef<GroupEntity?> {
+  /// The parameter `groupId` of this provider.
+  String get groupId;
+}
+
+class _GroupByIdProviderElement
+    extends AutoDisposeFutureProviderElement<GroupEntity?>
+    with GroupByIdRef {
+  _GroupByIdProviderElement(super.provider);
+
+  @override
+  String get groupId => (origin as GroupByIdProvider).groupId;
+}
+
 String _$groupStreamHash() => r'e11dcbe825673146bb3636f646084b568ce3ab4d';
 
 /// Stream provider for real-time group updates

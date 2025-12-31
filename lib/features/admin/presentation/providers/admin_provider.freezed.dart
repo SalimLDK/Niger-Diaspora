@@ -1187,14 +1187,26 @@ mixin _$ReportEntity {
       throw _privateConstructorUsedError; // 'user', 'message', 'event', 'group', 'business', 'product'
   String get targetId => throw _privateConstructorUsedError;
   String? get targetName => throw _privateConstructorUsedError;
+  String? get conversationId =>
+      throw _privateConstructorUsedError; // For message/conversation reports
   String get reason => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+
+  /// Snapshot du contenu signalé
+  ContentSnapshotData? get contentSnapshot =>
+      throw _privateConstructorUsedError;
+
+  /// ID de l'utilisateur signalé (pour notification)
+  String? get reportedUserId => throw _privateConstructorUsedError;
   String get status =>
       throw _privateConstructorUsedError; // 'pending', 'reviewed', 'resolved', 'dismissed'
   String? get adminNote => throw _privateConstructorUsedError;
   String? get reviewedBy => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get reviewedAt => throw _privateConstructorUsedError;
+
+  /// Indique si la personne signalée a été notifiée
+  bool get reportedUserNotified => throw _privateConstructorUsedError;
 
   /// Create a copy of ReportEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -1217,13 +1229,17 @@ abstract class $ReportEntityCopyWith<$Res> {
     String targetType,
     String targetId,
     String? targetName,
+    String? conversationId,
     String reason,
     String? description,
+    ContentSnapshotData? contentSnapshot,
+    String? reportedUserId,
     String status,
     String? adminNote,
     String? reviewedBy,
     DateTime? createdAt,
     DateTime? reviewedAt,
+    bool reportedUserNotified,
   });
 }
 
@@ -1248,13 +1264,17 @@ class _$ReportEntityCopyWithImpl<$Res, $Val extends ReportEntity>
     Object? targetType = null,
     Object? targetId = null,
     Object? targetName = freezed,
+    Object? conversationId = freezed,
     Object? reason = null,
     Object? description = freezed,
+    Object? contentSnapshot = freezed,
+    Object? reportedUserId = freezed,
     Object? status = null,
     Object? adminNote = freezed,
     Object? reviewedBy = freezed,
     Object? createdAt = freezed,
     Object? reviewedAt = freezed,
+    Object? reportedUserNotified = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1288,6 +1308,11 @@ class _$ReportEntityCopyWithImpl<$Res, $Val extends ReportEntity>
                     ? _value.targetName
                     : targetName // ignore: cast_nullable_to_non_nullable
                         as String?,
+            conversationId:
+                freezed == conversationId
+                    ? _value.conversationId
+                    : conversationId // ignore: cast_nullable_to_non_nullable
+                        as String?,
             reason:
                 null == reason
                     ? _value.reason
@@ -1297,6 +1322,16 @@ class _$ReportEntityCopyWithImpl<$Res, $Val extends ReportEntity>
                 freezed == description
                     ? _value.description
                     : description // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            contentSnapshot:
+                freezed == contentSnapshot
+                    ? _value.contentSnapshot
+                    : contentSnapshot // ignore: cast_nullable_to_non_nullable
+                        as ContentSnapshotData?,
+            reportedUserId:
+                freezed == reportedUserId
+                    ? _value.reportedUserId
+                    : reportedUserId // ignore: cast_nullable_to_non_nullable
                         as String?,
             status:
                 null == status
@@ -1323,6 +1358,11 @@ class _$ReportEntityCopyWithImpl<$Res, $Val extends ReportEntity>
                     ? _value.reviewedAt
                     : reviewedAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            reportedUserNotified:
+                null == reportedUserNotified
+                    ? _value.reportedUserNotified
+                    : reportedUserNotified // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -1345,13 +1385,17 @@ abstract class _$$ReportEntityImplCopyWith<$Res>
     String targetType,
     String targetId,
     String? targetName,
+    String? conversationId,
     String reason,
     String? description,
+    ContentSnapshotData? contentSnapshot,
+    String? reportedUserId,
     String status,
     String? adminNote,
     String? reviewedBy,
     DateTime? createdAt,
     DateTime? reviewedAt,
+    bool reportedUserNotified,
   });
 }
 
@@ -1375,13 +1419,17 @@ class __$$ReportEntityImplCopyWithImpl<$Res>
     Object? targetType = null,
     Object? targetId = null,
     Object? targetName = freezed,
+    Object? conversationId = freezed,
     Object? reason = null,
     Object? description = freezed,
+    Object? contentSnapshot = freezed,
+    Object? reportedUserId = freezed,
     Object? status = null,
     Object? adminNote = freezed,
     Object? reviewedBy = freezed,
     Object? createdAt = freezed,
     Object? reviewedAt = freezed,
+    Object? reportedUserNotified = null,
   }) {
     return _then(
       _$ReportEntityImpl(
@@ -1415,6 +1463,11 @@ class __$$ReportEntityImplCopyWithImpl<$Res>
                 ? _value.targetName
                 : targetName // ignore: cast_nullable_to_non_nullable
                     as String?,
+        conversationId:
+            freezed == conversationId
+                ? _value.conversationId
+                : conversationId // ignore: cast_nullable_to_non_nullable
+                    as String?,
         reason:
             null == reason
                 ? _value.reason
@@ -1424,6 +1477,16 @@ class __$$ReportEntityImplCopyWithImpl<$Res>
             freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        contentSnapshot:
+            freezed == contentSnapshot
+                ? _value.contentSnapshot
+                : contentSnapshot // ignore: cast_nullable_to_non_nullable
+                    as ContentSnapshotData?,
+        reportedUserId:
+            freezed == reportedUserId
+                ? _value.reportedUserId
+                : reportedUserId // ignore: cast_nullable_to_non_nullable
                     as String?,
         status:
             null == status
@@ -1450,6 +1513,11 @@ class __$$ReportEntityImplCopyWithImpl<$Res>
                 ? _value.reviewedAt
                 : reviewedAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        reportedUserNotified:
+            null == reportedUserNotified
+                ? _value.reportedUserNotified
+                : reportedUserNotified // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -1465,13 +1533,17 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
     required this.targetType,
     required this.targetId,
     this.targetName,
+    this.conversationId,
     required this.reason,
     this.description,
+    this.contentSnapshot,
+    this.reportedUserId,
     this.status = 'pending',
     this.adminNote,
     this.reviewedBy,
     this.createdAt,
     this.reviewedAt,
+    this.reportedUserNotified = false,
   });
 
   @override
@@ -1488,9 +1560,20 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
   @override
   final String? targetName;
   @override
+  final String? conversationId;
+  // For message/conversation reports
+  @override
   final String reason;
   @override
   final String? description;
+
+  /// Snapshot du contenu signalé
+  @override
+  final ContentSnapshotData? contentSnapshot;
+
+  /// ID de l'utilisateur signalé (pour notification)
+  @override
+  final String? reportedUserId;
   @override
   @JsonKey()
   final String status;
@@ -1504,9 +1587,14 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
   @override
   final DateTime? reviewedAt;
 
+  /// Indique si la personne signalée a été notifiée
+  @override
+  @JsonKey()
+  final bool reportedUserNotified;
+
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ReportEntity(id: $id, reporterId: $reporterId, reporterName: $reporterName, targetType: $targetType, targetId: $targetId, targetName: $targetName, reason: $reason, description: $description, status: $status, adminNote: $adminNote, reviewedBy: $reviewedBy, createdAt: $createdAt, reviewedAt: $reviewedAt)';
+    return 'ReportEntity(id: $id, reporterId: $reporterId, reporterName: $reporterName, targetType: $targetType, targetId: $targetId, targetName: $targetName, conversationId: $conversationId, reason: $reason, description: $description, contentSnapshot: $contentSnapshot, reportedUserId: $reportedUserId, status: $status, adminNote: $adminNote, reviewedBy: $reviewedBy, createdAt: $createdAt, reviewedAt: $reviewedAt, reportedUserNotified: $reportedUserNotified)';
   }
 
   @override
@@ -1520,13 +1608,17 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
       ..add(DiagnosticsProperty('targetType', targetType))
       ..add(DiagnosticsProperty('targetId', targetId))
       ..add(DiagnosticsProperty('targetName', targetName))
+      ..add(DiagnosticsProperty('conversationId', conversationId))
       ..add(DiagnosticsProperty('reason', reason))
       ..add(DiagnosticsProperty('description', description))
+      ..add(DiagnosticsProperty('contentSnapshot', contentSnapshot))
+      ..add(DiagnosticsProperty('reportedUserId', reportedUserId))
       ..add(DiagnosticsProperty('status', status))
       ..add(DiagnosticsProperty('adminNote', adminNote))
       ..add(DiagnosticsProperty('reviewedBy', reviewedBy))
       ..add(DiagnosticsProperty('createdAt', createdAt))
-      ..add(DiagnosticsProperty('reviewedAt', reviewedAt));
+      ..add(DiagnosticsProperty('reviewedAt', reviewedAt))
+      ..add(DiagnosticsProperty('reportedUserNotified', reportedUserNotified));
   }
 
   @override
@@ -1545,9 +1637,15 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
                 other.targetId == targetId) &&
             (identical(other.targetName, targetName) ||
                 other.targetName == targetName) &&
+            (identical(other.conversationId, conversationId) ||
+                other.conversationId == conversationId) &&
             (identical(other.reason, reason) || other.reason == reason) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.contentSnapshot, contentSnapshot) ||
+                other.contentSnapshot == contentSnapshot) &&
+            (identical(other.reportedUserId, reportedUserId) ||
+                other.reportedUserId == reportedUserId) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.adminNote, adminNote) ||
                 other.adminNote == adminNote) &&
@@ -1556,7 +1654,9 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.reviewedAt, reviewedAt) ||
-                other.reviewedAt == reviewedAt));
+                other.reviewedAt == reviewedAt) &&
+            (identical(other.reportedUserNotified, reportedUserNotified) ||
+                other.reportedUserNotified == reportedUserNotified));
   }
 
   @override
@@ -1568,13 +1668,17 @@ class _$ReportEntityImpl with DiagnosticableTreeMixin implements _ReportEntity {
     targetType,
     targetId,
     targetName,
+    conversationId,
     reason,
     description,
+    contentSnapshot,
+    reportedUserId,
     status,
     adminNote,
     reviewedBy,
     createdAt,
     reviewedAt,
+    reportedUserNotified,
   );
 
   /// Create a copy of ReportEntity
@@ -1594,13 +1698,17 @@ abstract class _ReportEntity implements ReportEntity {
     required final String targetType,
     required final String targetId,
     final String? targetName,
+    final String? conversationId,
     required final String reason,
     final String? description,
+    final ContentSnapshotData? contentSnapshot,
+    final String? reportedUserId,
     final String status,
     final String? adminNote,
     final String? reviewedBy,
     final DateTime? createdAt,
     final DateTime? reviewedAt,
+    final bool reportedUserNotified,
   }) = _$ReportEntityImpl;
 
   @override
@@ -1616,9 +1724,19 @@ abstract class _ReportEntity implements ReportEntity {
   @override
   String? get targetName;
   @override
+  String? get conversationId; // For message/conversation reports
+  @override
   String get reason;
   @override
   String? get description;
+
+  /// Snapshot du contenu signalé
+  @override
+  ContentSnapshotData? get contentSnapshot;
+
+  /// ID de l'utilisateur signalé (pour notification)
+  @override
+  String? get reportedUserId;
   @override
   String get status; // 'pending', 'reviewed', 'resolved', 'dismissed'
   @override
@@ -1629,6 +1747,10 @@ abstract class _ReportEntity implements ReportEntity {
   DateTime? get createdAt;
   @override
   DateTime? get reviewedAt;
+
+  /// Indique si la personne signalée a été notifiée
+  @override
+  bool get reportedUserNotified;
 
   /// Create a copy of ReportEntity
   /// with the given fields replaced by the non-null parameter values.

@@ -1,4 +1,4 @@
-package com.diasponiger.diaspo_niger;
+package com.diasponiger.diasponiger;
 
 import io.flutter.embedding.android.FlutterFragmentActivity;
 

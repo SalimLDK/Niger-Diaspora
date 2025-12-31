@@ -8,6 +8,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
+import 'core/providers/app_settings_provider.dart';
 
 class NigerDiasporaApp extends ConsumerStatefulWidget {
   const NigerDiasporaApp({super.key});
@@ -120,6 +121,10 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     final themeMode = ref.watch(themeModeNotifierProvider);
     final themeColor = ref.watch(themeColorNotifierProvider);
     final locale = ref.watch(localeNotifierProvider);
+
+    // Sync admin settings (like location interval) to SharedPreferences
+    // for background services that don't have access to Riverpod
+    ref.watch(locationIntervalSyncProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',

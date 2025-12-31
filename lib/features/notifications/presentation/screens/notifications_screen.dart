@@ -8,6 +8,9 @@ import '../../../../shared/widgets/loading_indicator.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../providers/notification_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 enum NotificationFilter { all, unread, messages, events, friends, groups }
 
@@ -176,7 +179,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
           ],
         ),
       ),
-      body: notificationsAsync.when(
+      body: _buildNotificationsList(context, ref, notificationsAsync, l10n),
+    );
+  }
+
+  Widget _buildNotificationsList(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<NotificationEntity>> notificationsAsync,
+    AppLocalizations l10n,
+  ) {
+    // Get blocked users data outside the when callback
+    final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+    final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+    final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+
+    return notificationsAsync.when(
         skipLoadingOnRefresh: true,
         skipLoadingOnReload: true,
         loading: () => const Center(child: LoadingIndicator()),
@@ -199,7 +217,53 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
               ),
             ),
         data: (notifications) {
-          final filteredNotifications = _filterNotifications(notifications);
+          // Notification types that have targetId as a user ID
+          const userRelatedTypes = {
+            NotificationType.friendRequest,
+            NotificationType.friendRequestAccepted,
+            NotificationType.friendAccepted,
+            NotificationType.newFollower,
+            NotificationType.nearbyMember,
+            NotificationType.proximityAlert,
+          };
+
+          final notificationsWithoutBlocked = notifications.where((n) {
+            // Filter message notifications by senderId
+            if (n.type == NotificationType.message && n.senderId != null) {
+              // If I blocked this user, hide their notifications
+              if (blockedUserIds.contains(n.senderId)) return false;
+
+              // Check if sender blocked me
+              final senderProfileAsync = ref.watch(userStreamProvider(n.senderId!));
+              final senderProfile = senderProfileAsync.valueOrNull;
+              if (senderProfile != null && currentUserId != null) {
+                if (senderProfile.blockedByUserIds.contains(currentUserId)) {
+                  return false;
+                }
+              }
+              return true;
+            }
+
+            // Only filter user-related notifications
+            if (!userRelatedTypes.contains(n.type)) return true;
+            if (n.targetId == null) return true;
+
+            // If I blocked this user, hide their notifications
+            if (blockedUserIds.contains(n.targetId)) return false;
+
+            // Check if target user blocked me
+            final targetProfileAsync = ref.watch(userStreamProvider(n.targetId!));
+            final targetProfile = targetProfileAsync.valueOrNull;
+            if (targetProfile != null && currentUserId != null) {
+              if (targetProfile.blockedByUserIds.contains(currentUserId)) {
+                return false;
+              }
+            }
+
+            return true;
+          }).toList();
+
+          final filteredNotifications = _filterNotifications(notificationsWithoutBlocked);
 
           if (filteredNotifications.isEmpty) {
             return Center(
@@ -279,8 +343,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             },
           );
         },
-      ),
-    );
+      );
   }
 
   List<NotificationEntity> _filterNotifications(
