@@ -61,15 +61,43 @@ void main() async {
   // Initialize Performance Monitoring
   await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
 
-  // Activate Firebase App Check (skip on web)
-  // Debug mode: uses DebugProvider (requires adding token to console)
-  // Release mode: uses PlayIntegrity (requires SHA-256 in console)
-  if (!kIsWeb) {
-    await FirebaseAppCheck.instance.activate(
-      androidProvider:
-          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
-    );
+  // Activate Firebase App Check
+  // Android: Debug mode uses DebugProvider, Release uses PlayIntegrity
+  // iOS: Debug mode uses DebugProvider, Release uses AppAttest
+  // Web: Uses ReCaptchaV3Provider
+  await FirebaseAppCheck.instance.activate(
+    // Web Provider - ReCAPTCHA v3
+    webProvider: ReCaptchaV3Provider(
+      '6Ldy7TwsAAAAAI6jQWNmV-I2lkEn31yGG8iRNxTi',
+    ),
+    // Android Provider
+    androidProvider:
+        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    // iOS/macOS Provider
+    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+  );
+
+  // In debug mode on mobile platforms, get and print the debug token for easy registration
+  if (!kIsWeb && kDebugMode) {
+    try {
+      final token = await FirebaseAppCheck.instance.getToken();
+      if (token != null) {
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        debugPrint('🔐 FIREBASE APP CHECK DEBUG TOKEN');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        debugPrint('Token: $token');
+        debugPrint('');
+        debugPrint('📋 Pour enregistrer ce token:');
+        debugPrint('1. Firebase Console → App Check → Applications');
+        debugPrint('2. Cliquez sur com.diasponiger.diasponiger');
+        debugPrint('3. Onglet "Debug tokens"');
+        debugPrint('4. Cliquez "Add debug token"');
+        debugPrint('5. Collez le token ci-dessus');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Erreur lors de la récupération du debug token: $e');
+    }
   }
 
   // Set up background message handler (skip on web)

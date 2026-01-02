@@ -7,7 +7,12 @@ import 'package:intl/intl.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_post_entity.dart';
+import '../../domain/entities/review_entity.dart';
 import '../providers/business_provider.dart';
+import '../providers/review_provider.dart';
+import '../widgets/review_card.dart';
+import '../widgets/review_form_modal.dart';
+import '../widgets/star_rating_input.dart';
 
 class BusinessDetailScreen extends ConsumerStatefulWidget {
   final String businessId;
@@ -388,6 +393,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 ],
                 // Active Offers
                 _OffersSection(businessId: business.id),
+                const SizedBox(height: 24),
+                // Reviews Section
+                _ReviewsPreviewSection(
+                  businessId: business.id,
+                  business: business,
+                  isOwner: isOwner,
+                ),
                 const SizedBox(height: 24),
                 // Posts/Announcements
                 _PostsSection(businessId: business.id, isOwner: isOwner),
@@ -1001,6 +1013,201 @@ class _StatItem extends StatelessWidget {
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReviewsPreviewSection extends ConsumerWidget {
+  final String businessId;
+  final BusinessEntity business;
+  final bool isOwner;
+
+  const _ReviewsPreviewSection({
+    required this.businessId,
+    required this.business,
+    required this.isOwner,
+  });
+
+  void _showReviewForm(BuildContext context, WidgetRef ref, {ReviewEntity? existingReview}) {
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous devez etre connecte pour laisser un avis')),
+      );
+      return;
+    }
+
+    ReviewFormModal.show(
+      context,
+      businessId: businessId,
+      userId: currentUser.id,
+      userDisplayName: currentUser.displayName ?? 'Utilisateur',
+      userPhotoUrl: currentUser.photoUrl,
+      existingReview: existingReview,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final reviewsAsync = ref.watch(businessReviewsNotifierProvider(businessId));
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final userReviewAsync = ref.watch(userBusinessReviewNotifierProvider(businessId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.rate_review, color: Colors.amber, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Avis clients',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                context.push('/businesses/$businessId/reviews', extra: business);
+              },
+              child: const Text('Voir tout'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Rating summary
+        if (business.averageRating > 0)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  business.averageRating.toStringAsFixed(1),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StarRatingDisplay(
+                      rating: business.averageRating,
+                      size: 16,
+                      showValue: false,
+                    ),
+                    Text(
+                      '${business.reviewCount} avis',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 12),
+
+        // Reviews preview
+        reviewsAsync.when(
+          data: (reviews) {
+            if (reviews.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.rate_review_outlined,
+                      color: theme.colorScheme.outline,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Aucun avis pour le moment',
+                      style: TextStyle(color: theme.colorScheme.outline),
+                    ),
+                    if (!isOwner && userReviewAsync.valueOrNull == null) ...[
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: () => _showReviewForm(context, ref),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Ecrire le premier avis'),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }
+
+            // Show first 2 reviews as preview
+            final previewReviews = reviews.take(2).toList();
+            return Column(
+              children: [
+                ...previewReviews.map((review) {
+                  final reviewIsOwner = currentUser?.id == review.userId;
+                  final hasMarkedHelpful = review.helpfulByUserIds.contains(currentUser?.id);
+
+                  return ReviewCard(
+                    review: review,
+                    isOwner: reviewIsOwner,
+                    hasMarkedHelpful: hasMarkedHelpful,
+                    onEdit: reviewIsOwner
+                        ? () => _showReviewForm(context, ref, existingReview: review)
+                        : null,
+                    onMarkHelpful: currentUser != null && !reviewIsOwner
+                        ? () => ref
+                            .read(reviewActionsNotifierProvider.notifier)
+                            .toggleHelpful(review.id, businessId, hasMarkedHelpful)
+                        : null,
+                  );
+                }),
+                if (!isOwner && userReviewAsync.valueOrNull == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showReviewForm(context, ref),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Ecrire un avis'),
+                      ),
+                    ),
+                  ),
+                if (reviews.length > 2)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: TextButton(
+                      onPressed: () {
+                        context.push('/businesses/$businessId/reviews', extra: business);
+                      },
+                      child: Text('Voir les ${reviews.length - 2} autres avis'),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
         ),
       ],
     );

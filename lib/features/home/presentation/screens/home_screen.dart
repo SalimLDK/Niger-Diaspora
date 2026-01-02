@@ -37,7 +37,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   // GlobalKeys for coach marks
   final GlobalKey _profilePictureKey = GlobalKey();
-  final GlobalKey _qrScannerKey = GlobalKey();
   final GlobalKey _notificationBellKey = GlobalKey();
   final GlobalKey _searchBarKey = GlobalKey();
   final GlobalKey _statsRowKey = GlobalKey();
@@ -151,10 +150,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   List<TargetFocus> _createTargets() {
+    // Check feature flags
+    final hasMoneyTransfer = ref.read(isMoneyTransferEnabledProvider);
+    final hasMarketplace = ref.read(isMarketplaceEnabledProvider);
+    final hasBusinessDirectory = ref.read(isBusinessDirectoryEnabledProvider);
+    final hasEmbassies = ref.read(isEmbassiesEnabledProvider);
+    final hasEvents = ref.read(isEventsEnabledProvider);
+    final hasGroups = ref.read(isGroupsEnabledProvider);
+
     final hasServices =
-        ref.read(isMoneyTransferEnabledProvider) ||
-        ref.read(isMarketplaceEnabledProvider) ||
-        ref.read(isBusinessDirectoryEnabledProvider);
+        hasMoneyTransfer || hasMarketplace || hasBusinessDirectory || hasEmbassies;
+
+    // Build dynamic services description based on enabled features
+    String buildServicesDescription() {
+      final services = <String>[];
+      if (hasMoneyTransfer) services.add('transferts d\'argent');
+      if (hasMarketplace) services.add('boutique');
+      if (hasBusinessDirectory) services.add('annuaire des entreprises');
+      if (hasEmbassies) services.add('ambassades');
+
+      if (services.isEmpty) return '';
+      if (services.length == 1) return 'Acces rapide au service: ${services.first}.';
+
+      final lastService = services.removeLast();
+      return 'Acces rapide aux services: ${services.join(', ')} et $lastService.';
+    }
+
+    // Build dynamic search description based on enabled features
+    String buildSearchDescription() {
+      final searchables = <String>['membres'];
+      if (hasGroups) searchables.add('groupes');
+      if (hasEvents) searchables.add('evenements');
+
+      if (searchables.length == 1) return 'Trouvez des ${searchables.first} facilement.';
+
+      final last = searchables.removeLast();
+      return 'Trouvez des ${searchables.join(', ')} et des $last facilement.';
+    }
+
+    // Build dynamic stats description
+    String buildStatsDescription() {
+      final stats = <String>['membres'];
+      if (hasGroups) stats.add('groupes');
+      if (hasEvents) stats.add('evenements');
+
+      return 'Decouvrez la communaute: nombre de ${stats.join(', ')}. Appuyez pour explorer.';
+    }
+
+    // Determine which is the last coach mark for isLast flag
+    final hasEventsCoachMark = hasEvents;
 
     return [
       TargetFocus(
@@ -177,25 +221,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       TargetFocus(
-        identify: "qrScanner",
-        keyTarget: _qrScannerKey,
-        alignSkip: Alignment.topRight,
-        shape: ShapeLightFocus.RRect,
-        radius: 14,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) {
-              return const CoachMarkContent(
-                title: "Scanner QR",
-                description:
-                    "Scannez les codes QR des profils pour ajouter rapidement de nouveaux contacts.",
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
         identify: "notifications",
         keyTarget: _notificationBellKey,
         alignSkip: Alignment.topRight,
@@ -208,7 +233,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               return const CoachMarkContent(
                 title: "Notifications",
                 description:
-                    "Restez informe des nouveaux messages, evenements et activites de la communaute.",
+                    "Restez informe des nouveaux messages et activites de la communaute.",
               );
             },
           ),
@@ -224,10 +249,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) {
-              return const CoachMarkContent(
+              return CoachMarkContent(
                 title: "Recherche",
-                description:
-                    "Trouvez des membres, des groupes et des evenements facilement.",
+                description: buildSearchDescription(),
               );
             },
           ),
@@ -243,10 +267,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) {
-              return const CoachMarkContent(
+              return CoachMarkContent(
                 title: "Statistiques",
-                description:
-                    "Decouvrez la communaute: nombre de membres, groupes et evenements. Appuyez pour explorer.",
+                description: buildStatsDescription(),
               );
             },
           ),
@@ -264,10 +287,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             TargetContent(
               align: ContentAlign.bottom,
               builder: (context, controller) {
-                return const CoachMarkContent(
+                return CoachMarkContent(
                   title: "Services",
-                  description:
-                      "Acces rapide aux services: transferts d'argent, boutique et annuaire des entreprises.",
+                  description: buildServicesDescription(),
                 );
               },
             ),
@@ -283,35 +305,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) {
-              return const CoachMarkContent(
+              return CoachMarkContent(
                 title: "Membres proches",
                 description:
                     "Decouvrez les Nigeriens dans votre region. Faites glisser pour voir plus de profils.",
+                // Last if events feature is disabled
+                isLast: !hasEventsCoachMark,
               );
             },
           ),
         ],
       ),
-      TargetFocus(
-        identify: "events",
-        keyTarget: _upcomingEventsKey,
-        alignSkip: Alignment.topRight,
-        shape: ShapeLightFocus.RRect,
-        radius: 20,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return const CoachMarkContent(
-                title: "Evenements a venir",
-                description:
-                    "Participez aux rencontres et activites de la diaspora. Appuyez pour voir les details.",
-                isLast: true,
-              );
-            },
-          ),
-        ],
-      ),
+      // Events section (only if events feature is enabled)
+      if (hasEventsCoachMark)
+        TargetFocus(
+          identify: "events",
+          keyTarget: _upcomingEventsKey,
+          alignSkip: Alignment.topRight,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return const CoachMarkContent(
+                  title: "Evenements a venir",
+                  description:
+                      "Participez aux rencontres et activites de la diaspora. Appuyez pour voir les details.",
+                  isLast: true,
+                );
+              },
+            ),
+          ],
+        ),
     ];
   }
 
@@ -856,7 +882,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Quick Actions - Services (only show if at least one feature is enabled)
                   if (ref.watch(isMoneyTransferEnabledProvider) ||
                       ref.watch(isMarketplaceEnabledProvider) ||
-                      ref.watch(isBusinessDirectoryEnabledProvider))
+                      ref.watch(isBusinessDirectoryEnabledProvider) ||
+                      ref.watch(isEmbassiesEnabledProvider))
                     Column(
                       key: _servicesKey,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,14 +937,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     onTap: () => context.push('/businesses'),
                                   ),
                                 ),
-                              // Embassies (Always visible)
-                              QuickActionCard(
-                                width: 110,
-                                icon: Icons.account_balance,
-                                label: 'Ambassades',
-                                color: Colors.indigo,
-                                onTap: () => context.push('/embassies'),
-                              ),
+                              // Embassies
+                              if (ref.watch(isEmbassiesEnabledProvider))
+                                QuickActionCard(
+                                  width: 110,
+                                  icon: Icons.account_balance,
+                                  label: 'Ambassades',
+                                  color: Colors.indigo,
+                                  onTap: () => context.push('/embassies'),
+                                ),
                             ],
                           ),
                         ),

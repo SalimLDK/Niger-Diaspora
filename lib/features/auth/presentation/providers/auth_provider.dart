@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,8 @@ import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import 'auth_state.dart';
 
 part 'auth_provider.g.dart';
+
+const String _tag = 'AuthProvider';
 
 @riverpod
 AuthRepository authRepository(Ref ref) {
@@ -60,11 +63,25 @@ SendPasswordResetEmail sendPasswordResetEmailUseCase(Ref ref) {
 class AuthNotifier extends _$AuthNotifier {
   @override
   AuthState build() {
-    _checkCurrentUser();
+    _initAuthState();
     return const AuthState.initial();
   }
 
-  Future<void> _checkCurrentUser() async {
+  Future<void> _initAuthState() async {
+    // Attendre que Firebase Auth restaure la session depuis le stockage local
+    // authStateChanges émet immédiatement l'état actuel une fois Firebase prêt
+    final firebaseUser = await FirebaseAuth.instance.authStateChanges().first;
+
+    if (firebaseUser == null) {
+      state = const AuthState.unauthenticated();
+      return;
+    }
+
+    // Utilisateur Firebase trouvé, récupérer les données complètes depuis Firestore
+    await _loadUserData(firebaseUser.uid);
+  }
+
+  Future<void> _loadUserData(String userId) async {
     final repository = ref.read(authRepositoryProvider);
     final result = await repository.getCurrentUser();
 
@@ -83,6 +100,10 @@ class AuthNotifier extends _$AuthNotifier {
         state = const AuthState.unauthenticated();
       }
     });
+  }
+
+  Future<void> _checkCurrentUser() async {
+    await _loadUserData(FirebaseAuth.instance.currentUser!.uid);
   }
 
   /// Refresh user data from Firebase Auth without invalidating the provider
@@ -108,17 +129,37 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> signInWithGoogle() async {
+    dev.log('=== AuthNotifier.signInWithGoogle: DEBUT ===', name: _tag);
     state = const AuthState.loading();
+    dev.log('AuthNotifier.signInWithGoogle: state = loading', name: _tag);
 
-    final result = await ref.read(signInWithGoogleUseCaseProvider).call();
+    try {
+      dev.log('AuthNotifier.signInWithGoogle: appel du use case...', name: _tag);
+      final result = await ref.read(signInWithGoogleUseCaseProvider).call();
+      dev.log('AuthNotifier.signInWithGoogle: use case termine', name: _tag);
 
-    result.fold((failure) => state = AuthState.error(failure.message), (user) {
-      state = AuthState.authenticated(user);
-      SessionService.instance.initialize(user.id, isNewLogin: true);
-      ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
-      // Refresh onboarding status now that user is authenticated
-      ref.read(onboardingNotifierProvider.notifier).refresh();
-    });
+      result.fold(
+        (failure) {
+          dev.log('AuthNotifier.signInWithGoogle: ECHEC - ${failure.message}', name: _tag);
+          state = AuthState.error(failure.message);
+        },
+        (user) {
+          dev.log('AuthNotifier.signInWithGoogle: SUCCES - user.id=${user.id}, email=${user.email}', name: _tag);
+          state = AuthState.authenticated(user);
+          dev.log('AuthNotifier.signInWithGoogle: state = authenticated', name: _tag);
+          SessionService.instance.initialize(user.id, isNewLogin: true);
+          dev.log('AuthNotifier.signInWithGoogle: SessionService initialise', name: _tag);
+          ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+          dev.log('AuthNotifier.signInWithGoogle: lastLogin mis a jour', name: _tag);
+          // Refresh onboarding status now that user is authenticated
+          ref.read(onboardingNotifierProvider.notifier).refresh();
+          dev.log('=== AuthNotifier.signInWithGoogle: FIN SUCCES ===', name: _tag);
+        },
+      );
+    } catch (e, stackTrace) {
+      dev.log('AuthNotifier.signInWithGoogle: EXCEPTION - ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
+      state = AuthState.error('Erreur inattendue: ${e.toString()}');
+    }
   }
 
   Future<void> signUp(String email, String password, String displayName) async {

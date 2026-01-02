@@ -560,15 +560,15 @@ function formatTime(timestamp) {
 
 /**
  * Stripe Payment Intent Handler
- * 
+ *
  * This function watches for new documents in the 'payment_intents' collection
  * and creates a Stripe payment intent on the server side.
- * 
- * IMPORTANT: Before deploying, set your Stripe secret key:
- * firebase functions:config:set stripe.secret_key="sk_test_YOUR_SECRET_KEY"
- * 
+ *
+ * IMPORTANT: Configure Stripe in functions/.env file:
+ * STRIPE_SECRET_KEY=sk_test_YOUR_SECRET_KEY
+ *
  * For production, use your live secret key:
- * firebase functions:config:set stripe.secret_key="sk_live_YOUR_SECRET_KEY"
+ * STRIPE_SECRET_KEY=sk_live_YOUR_SECRET_KEY
  */
 
 // Lazy load Stripe to avoid initialization errors if config is not set
@@ -576,17 +576,16 @@ let stripe = null;
 
 function getStripe() {
     if (!stripe) {
-        const stripeSecretKey = functions.config().stripe?.secret_key;
+        // Use environment variables (from .env file)
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
         if (!stripeSecretKey) {
             throw new Error(
                 "Stripe secret key not configured. " +
-                "Run: firebase functions:config:set stripe.secret_key=\"sk_test_...\""
+                "Add STRIPE_SECRET_KEY to your functions/.env file"
             );
         }
 
-        // NOTE: You need to install stripe package first:
-        // cd functions && npm install stripe
         const Stripe = require("stripe");
         stripe = new Stripe(stripeSecretKey, {
             apiVersion: "2023-10-16",
@@ -659,20 +658,20 @@ exports.createStripePaymentIntent = functions.firestore
 
 /**
  * Stripe Webhook Handler
- * 
+ *
  * Handles Stripe webhook events for payment status updates.
  * This ensures your database stays in sync with Stripe's payment state.
- * 
+ *
  * To configure the webhook:
  * 1. Go to https://dashboard.stripe.com/webhooks
  * 2. Add endpoint: https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net/stripeWebhook
  * 3. Select events: payment_intent.succeeded, payment_intent.payment_failed
- * 4. Copy the webhook secret and set it:
- *    firebase functions:config:set stripe.webhook_secret="whsec_..."
+ * 4. Copy the webhook secret and add it to functions/.env:
+ *    STRIPE_WEBHOOK_SECRET=whsec_...
  */
 exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const sig = req.headers["stripe-signature"];
-    const webhookSecret = functions.config().stripe?.webhook_secret;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
         // console.error("Webhook secret not configured");
@@ -1066,5 +1065,506 @@ exports.notifyLocalEventCreated = functions.firestore
         } catch (error) {
             // console.error("Error sending local event notifications:", error);
             return null;
+        }
+    });
+
+// ============================================================================
+// USER DATA CLEANUP ON ACCOUNT DELETION
+// ============================================================================
+
+/**
+ * Triggered when a user account is deleted from Firebase Auth.
+ * Cleans up ALL user data across Firestore, Realtime Database, and Storage.
+ *
+ * This ensures GDPR compliance (right to be forgotten) and prevents orphaned data.
+ */
+exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
+    const userId = user.uid;
+    const userEmail = user.email || "unknown";
+
+    console.log(`Starting cleanup for deleted user: ${userId} (${userEmail})`);
+
+    const db = admin.firestore();
+    const rtdb = admin.database();
+    const storage = admin.storage().bucket();
+
+    const results = {
+        firestore: { deleted: 0, updated: 0, errors: [] },
+        realtimeDb: { deleted: 0, errors: [] },
+        storage: { deleted: 0, errors: [] },
+    };
+
+    try {
+        // ================================================================
+        // 0. AUDIT LOG - Conserver les statistiques pour l'admin
+        // ================================================================
+
+        const userDocRef = db.collection("users").doc(userId);
+        const userDoc = await userDocRef.get();
+        const profileDocRef = db.collection("profiles").doc(userId);
+        const profileDoc = await profileDocRef.get();
+
+        // Collecter les statistiques avant suppression
+        const [
+            userOrders,
+            userProducts,
+            userBusinesses,
+            userTransactions,
+            userEvents,
+        ] = await Promise.all([
+            db.collection("orders").where("sellerId", "==", userId).get(),
+            db.collection("products").where("sellerId", "==", userId).get(),
+            db.collection("businesses").where("ownerId", "==", userId).get(),
+            db.collection("transactions").where("senderId", "==", userId).get(),
+            db.collection("events").where("organizerId", "==", userId).get(),
+        ]);
+
+        // Calculer le total des ventes
+        let totalSales = 0;
+        userOrders.docs.forEach((doc) => {
+            const order = doc.data();
+            if (order.status === "completed") {
+                totalSales += order.totalPrice || 0;
+            }
+        });
+
+        // Créer le log d'audit pour l'admin
+        const auditData = {
+            eventType: "user_deleted",
+            userId: userId,
+            userEmail: userEmail,
+            deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // Données anonymisées pour statistiques
+            userStats: {
+                displayName: userDoc.exists ? (userDoc.data().displayName || "N/A") : "N/A",
+                createdAt: userDoc.exists ? userDoc.data().createdAt : null,
+                lastLoginAt: userDoc.exists ? userDoc.data().lastLoginAt : null,
+                // Localisation (pour stats géographiques)
+                country: profileDoc.exists ? (profileDoc.data().currentCountry || "N/A") : "N/A",
+                region: profileDoc.exists ? (profileDoc.data().originRegion || "N/A") : "N/A",
+            },
+            activityStats: {
+                totalOrders: userOrders.size,
+                totalSales: totalSales,
+                totalProducts: userProducts.size,
+                totalBusinesses: userBusinesses.size,
+                totalTransactionsSent: userTransactions.size,
+                totalEventsOrganized: userEvents.size,
+            },
+            // Ces données permettent de garder les KPIs corrects
+            wasAdmin: userDoc.exists ? (userDoc.data().adminRole !== "none") : false,
+            wasBanned: userDoc.exists ? (userDoc.data().isBanned || false) : false,
+        };
+
+        await db.collection("admin_audit_logs").add(auditData);
+        console.log(`Audit log created for deleted user: ${userId}`);
+
+        // ================================================================
+        // 1. FIRESTORE CLEANUP
+        // ================================================================
+
+        if (userDoc.exists) {
+            // Delete subcollections: friends, blocked_users, cart, sessions
+            const subcollections = ["friends", "blocked_users", "cart", "sessions"];
+            for (const subcol of subcollections) {
+                const subcolDocs = await userDocRef.collection(subcol).get();
+                const batch = db.batch();
+                subcolDocs.docs.forEach((doc) => batch.delete(doc.ref));
+                if (!subcolDocs.empty) {
+                    await batch.commit();
+                    results.firestore.deleted += subcolDocs.size;
+                }
+            }
+            await userDocRef.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.2 Delete profile document
+        if (profileDoc.exists) {
+            await profileDocRef.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.3 Delete friend requests (sent and received)
+        const sentRequests = await db.collection("friend_requests")
+            .where("senderId", "==", userId).get();
+        const receivedRequests = await db.collection("friend_requests")
+            .where("receiverId", "==", userId).get();
+
+        for (const doc of [...sentRequests.docs, ...receivedRequests.docs]) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.4 Remove user from other users' friend lists (blockedByUserIds, friendIds)
+        const usersWithFriend = await db.collection("users")
+            .where("friendIds", "array-contains", userId).get();
+        for (const doc of usersWithFriend.docs) {
+            await doc.ref.update({
+                friendIds: admin.firestore.FieldValue.arrayRemove(userId),
+            });
+            results.firestore.updated++;
+        }
+
+        // 1.5 Delete notifications
+        const notifications = await db.collection("notifications")
+            .where("userId", "==", userId).get();
+        for (const doc of notifications.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.6 Handle conversations
+        const conversations = await db.collection("conversations")
+            .where("participantIds", "array-contains", userId).get();
+
+        for (const convDoc of conversations.docs) {
+            const convData = convDoc.data();
+            const participantIds = convData.participantIds || [];
+
+            if (participantIds.length <= 2) {
+                // Individual conversation - delete entirely
+                // First delete messages subcollection
+                const messages = await convDoc.ref.collection("messages").get();
+                for (const msgDoc of messages.docs) {
+                    await msgDoc.ref.delete();
+                    results.firestore.deleted++;
+                }
+                await convDoc.ref.delete();
+                results.firestore.deleted++;
+            } else {
+                // Group conversation - just remove user
+                await convDoc.ref.update({
+                    participantIds: admin.firestore.FieldValue.arrayRemove(userId),
+                    adminIds: admin.firestore.FieldValue.arrayRemove(userId),
+                });
+                results.firestore.updated++;
+            }
+        }
+
+        // 1.7 Handle groups
+        const memberGroups = await db.collection("groups")
+            .where("memberIds", "array-contains", userId).get();
+
+        for (const groupDoc of memberGroups.docs) {
+            const groupData = groupDoc.data();
+            const isCreator = groupData.creatorId === userId;
+            const memberCount = (groupData.memberIds || []).length;
+
+            if (isCreator && memberCount <= 1) {
+                // Creator is leaving and no other members - delete group
+                await groupDoc.ref.delete();
+                results.firestore.deleted++;
+            } else {
+                // Just remove user from group
+                await groupDoc.ref.update({
+                    memberIds: admin.firestore.FieldValue.arrayRemove(userId),
+                    adminIds: admin.firestore.FieldValue.arrayRemove(userId),
+                });
+                results.firestore.updated++;
+            }
+        }
+
+        // 1.8 Delete group requests and invites
+        const groupRequests = await db.collection("group_requests")
+            .where("requesterId", "==", userId).get();
+        const groupInvites = await db.collection("group_invites")
+            .where("inviteeId", "==", userId).get();
+
+        for (const doc of [...groupRequests.docs, ...groupInvites.docs]) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.9 Handle events
+        const organizedEvents = await db.collection("events")
+            .where("organizerId", "==", userId).get();
+        const attendingEvents = await db.collection("events")
+            .where("attendeeIds", "array-contains", userId).get();
+
+        for (const eventDoc of organizedEvents.docs) {
+            await eventDoc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        for (const eventDoc of attendingEvents.docs) {
+            if (eventDoc.data().organizerId !== userId) {
+                await eventDoc.ref.update({
+                    attendeeIds: admin.firestore.FieldValue.arrayRemove(userId),
+                });
+                results.firestore.updated++;
+            }
+        }
+
+        // 1.10 Delete products (marketplace)
+        const products = await db.collection("products")
+            .where("sellerId", "==", userId).get();
+        for (const doc of products.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.11 Handle orders (keep for record but anonymize)
+        const buyerOrders = await db.collection("orders")
+            .where("buyerId", "==", userId).get();
+        const sellerOrders = await db.collection("orders")
+            .where("sellerId", "==", userId).get();
+
+        for (const doc of buyerOrders.docs) {
+            await doc.ref.update({ buyerId: "deleted_user", buyerName: "Utilisateur supprimé" });
+            results.firestore.updated++;
+        }
+        for (const doc of sellerOrders.docs) {
+            await doc.ref.update({ sellerId: "deleted_user", sellerName: "Utilisateur supprimé" });
+            results.firestore.updated++;
+        }
+
+        // 1.12 Delete businesses and related data
+        const businesses = await db.collection("businesses")
+            .where("ownerId", "==", userId).get();
+
+        for (const bizDoc of businesses.docs) {
+            const bizId = bizDoc.id;
+
+            // Delete business posts
+            const posts = await db.collection("business_posts")
+                .where("businessId", "==", bizId).get();
+            for (const postDoc of posts.docs) {
+                await postDoc.ref.delete();
+                results.firestore.deleted++;
+            }
+
+            // Delete business boosts
+            const boosts = await db.collection("business_boosts")
+                .where("businessId", "==", bizId).get();
+            for (const boostDoc of boosts.docs) {
+                await boostDoc.ref.delete();
+                results.firestore.deleted++;
+            }
+
+            await bizDoc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.13 Delete business reviews written by user
+        const reviews = await db.collection("business_reviews")
+            .where("reviewerId", "==", userId).get();
+        for (const doc of reviews.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.14 Handle transactions (anonymize for financial records)
+        const sentTransactions = await db.collection("transactions")
+            .where("senderId", "==", userId).get();
+        const receivedTransactions = await db.collection("transactions")
+            .where("receiverId", "==", userId).get();
+
+        for (const doc of sentTransactions.docs) {
+            await doc.ref.update({ senderId: "deleted_user", senderName: "Utilisateur supprimé" });
+            results.firestore.updated++;
+        }
+        for (const doc of receivedTransactions.docs) {
+            await doc.ref.update({ receiverId: "deleted_user", receiverName: "Utilisateur supprimé" });
+            results.firestore.updated++;
+        }
+
+        // 1.15 Delete saved recipients
+        const recipients = await db.collection("recipients")
+            .where("userId", "==", userId).get();
+        for (const doc of recipients.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.16 Delete payment intents
+        const paymentIntents = await db.collection("payment_intents")
+            .where("userId", "==", userId).get();
+        for (const doc of paymentIntents.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // 1.17 Delete reports created by user
+        const reports = await db.collection("reports")
+            .where("reporterId", "==", userId).get();
+        for (const doc of reports.docs) {
+            await doc.ref.delete();
+            results.firestore.deleted++;
+        }
+
+        // ================================================================
+        // 2. REALTIME DATABASE CLEANUP
+        // ================================================================
+
+        try {
+            // 2.1 Delete presence data
+            await rtdb.ref(`presence/${userId}`).remove();
+            results.realtimeDb.deleted++;
+
+            // 2.2 Delete typing indicators (in all conversations)
+            // Note: These are transient and will be cleaned up naturally
+        } catch (rtdbError) {
+            results.realtimeDb.errors.push(rtdbError.message);
+        }
+
+        // ================================================================
+        // 3. FIREBASE STORAGE CLEANUP
+        // ================================================================
+
+        try {
+            // 3.1 Delete profile photos
+            const [profileFiles] = await storage.getFiles({ prefix: `profiles/${userId}/` });
+            for (const file of profileFiles) {
+                await file.delete();
+                results.storage.deleted++;
+            }
+        } catch (storageError) {
+            // Storage might not have files for this user
+            if (!storageError.message.includes("No such object")) {
+                results.storage.errors.push(storageError.message);
+            }
+        }
+
+        // ================================================================
+        // 4. LOG CLEANUP RESULTS
+        // ================================================================
+
+        console.log(`Cleanup completed for user ${userId}:`, {
+            firestoreDeleted: results.firestore.deleted,
+            firestoreUpdated: results.firestore.updated,
+            realtimeDbDeleted: results.realtimeDb.deleted,
+            storageDeleted: results.storage.deleted,
+            errors: [
+                ...results.firestore.errors,
+                ...results.realtimeDb.errors,
+                ...results.storage.errors,
+            ],
+        });
+
+        return { success: true, results };
+
+    } catch (error) {
+        console.error(`Error cleaning up user ${userId}:`, error);
+        return { success: false, error: error.message, partialResults: results };
+    }
+});
+
+// ============================================================================
+// BUSINESS REVIEWS: RATING AGGREGATION
+// ============================================================================
+
+/**
+ * Helper function to recalculate business rating from all reviews.
+ * @param {string} businessId - The ID of the business to update
+ */
+async function recalculateBusinessRating(businessId) {
+    const db = admin.firestore();
+
+    const reviewsSnapshot = await db.collection("business_reviews")
+        .where("businessId", "==", businessId)
+        .where("status", "==", "published")
+        .get();
+
+    let totalRating = 0;
+    let reviewCount = 0;
+
+    reviewsSnapshot.docs.forEach((doc) => {
+        const review = doc.data();
+        if (review.rating) {
+            totalRating += review.rating;
+            reviewCount++;
+        }
+    });
+
+    const averageRating = reviewCount > 0
+        ? Math.round((totalRating / reviewCount) * 10) / 10
+        : 0;
+
+    await db.collection("businesses").doc(businessId).update({
+        averageRating: averageRating,
+        reviewCount: reviewCount,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`Updated business ${businessId}: ${averageRating} rating, ${reviewCount} reviews`);
+}
+
+/**
+ * Triggered when a new review is created.
+ * Updates the business's averageRating and reviewCount.
+ */
+exports.onReviewCreated = functions.firestore
+    .document("business_reviews/{reviewId}")
+    .onCreate(async (snapshot, context) => {
+        const review = snapshot.data();
+        const businessId = review.businessId;
+
+        if (!businessId) {
+            console.log("No businessId in review");
+            return null;
+        }
+
+        try {
+            await recalculateBusinessRating(businessId);
+            return { success: true };
+        } catch (error) {
+            console.error("Error updating business rating on create:", error);
+            return { success: false, error: error.message };
+        }
+    });
+
+/**
+ * Triggered when a review is updated.
+ * Recalculates the business rating if the rating changed.
+ */
+exports.onReviewUpdated = functions.firestore
+    .document("business_reviews/{reviewId}")
+    .onUpdate(async (change, context) => {
+        const before = change.before.data();
+        const after = change.after.data();
+
+        // Only recalculate if rating or status changed
+        if (before.rating === after.rating && before.status === after.status) {
+            return null;
+        }
+
+        const businessId = after.businessId;
+
+        if (!businessId) {
+            console.log("No businessId in review");
+            return null;
+        }
+
+        try {
+            await recalculateBusinessRating(businessId);
+            return { success: true };
+        } catch (error) {
+            console.error("Error updating business rating on update:", error);
+            return { success: false, error: error.message };
+        }
+    });
+
+/**
+ * Triggered when a review is deleted.
+ * Recalculates the business rating.
+ */
+exports.onReviewDeleted = functions.firestore
+    .document("business_reviews/{reviewId}")
+    .onDelete(async (snapshot, context) => {
+        const review = snapshot.data();
+        const businessId = review.businessId;
+
+        if (!businessId) {
+            console.log("No businessId in review");
+            return null;
+        }
+
+        try {
+            await recalculateBusinessRating(businessId);
+            return { success: true };
+        } catch (error) {
+            console.error("Error updating business rating on delete:", error);
+            return { success: false, error: error.message };
         }
     });

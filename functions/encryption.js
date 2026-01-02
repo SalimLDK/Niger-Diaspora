@@ -3,10 +3,17 @@ const CryptoJS = require("crypto-js");
 /**
  * Encryption/Decryption service for Firebase Functions
  * Uses the same AES-256 key as the Flutter app to decrypt messages
+ *
+ * IMPORTANT: The encryption key is stored in .env file as ENCRYPTION_KEY
+ * This key MUST match the Flutter app's EncryptionService key
  */
 
-// Same key as in Flutter EncryptionService
-const KEY_STRING = "DiaspoNigerSecureKey2025ForApps!";
+// Get encryption key from environment variable
+const KEY_STRING = process.env.ENCRYPTION_KEY;
+
+if (!KEY_STRING) {
+    console.warn("WARNING: ENCRYPTION_KEY not set in .env file. Message decryption will fail.");
+}
 
 /**
  * Decrypts text from the format "iv:base64ciphertext"

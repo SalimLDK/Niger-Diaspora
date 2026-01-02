@@ -6,7 +6,7 @@ part of 'permission_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentAdminRoleHash() => r'c3c6a7b43e35d5716777fef654b73a9413f95388';
+String _$currentAdminRoleHash() => r'70b2c478a7480e000a8a86c6769e06e1be99abf1';
 
 /// Provider qui récupère le rôle admin de l'utilisateur courant depuis Firestore
 ///

@@ -76,8 +76,26 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   @override
   Future<Either<Failure, bool>> hasSeenCoachMarks() async {
     try {
-      final result = await _localDataSource.hasSeenCoachMarks();
-      return Right(result);
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        return const Right(false);
+      }
+
+      // Check local first for speed
+      final localResult = await _localDataSource.hasSeenCoachMarks(user.uid);
+      if (localResult) {
+        return const Right(true);
+      }
+
+      // If not in local, check remote
+      final remoteResult = await _remoteDataSource.hasSeenCoachMarks();
+      if (remoteResult) {
+        // Sync to local
+        await _localDataSource.setCoachMarksComplete(user.uid);
+      }
+      return Right(remoteResult);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -86,8 +104,23 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   @override
   Future<Either<Failure, void>> markCoachMarksComplete() async {
     try {
-      await _localDataSource.setCoachMarksComplete();
+      final user = _firebaseAuth.currentUser;
+
+      // Update remote always if possible
+      final remoteFuture = _remoteDataSource.setCoachMarksComplete();
+
+      // Update local only if we have a user
+      Future<void> localFuture = Future.value();
+      if (user != null) {
+        localFuture = _localDataSource.setCoachMarksComplete(user.uid);
+      }
+
+      await Future.wait([localFuture, remoteFuture]);
+
       return const Right(null);
+    } on ServerException catch (e) {
+      // Even if remote fails, local is updated
+      return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

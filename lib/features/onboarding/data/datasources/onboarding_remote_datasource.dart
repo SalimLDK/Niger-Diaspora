@@ -5,6 +5,8 @@ import '../../../../core/errors/exceptions.dart';
 abstract class OnboardingRemoteDataSource {
   Future<bool> hasSeenOnboarding();
   Future<void> setOnboardingComplete();
+  Future<bool> hasSeenCoachMarks();
+  Future<void> setCoachMarksComplete();
 }
 
 class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
@@ -50,6 +52,42 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
       }, SetOptions(merge: true));
     } catch (e) {
       throw ServerException('Erreur lors de la mise a jour onboarding');
+    }
+  }
+
+  @override
+  Future<bool> hasSeenCoachMarks() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) {
+        return false;
+      }
+
+      final data = doc.data();
+      return data?['hasSeenCoachMarks'] ?? false;
+    } catch (e) {
+      throw ServerException('Erreur lors de la verification coach marks');
+    }
+  }
+
+  @override
+  Future<void> setCoachMarksComplete() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw ServerException('Utilisateur non connecte');
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'hasSeenCoachMarks': true,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw ServerException('Erreur lors de la mise a jour coach marks');
     }
   }
 }

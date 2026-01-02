@@ -30,12 +30,30 @@ class UserModel with _$UserModel {
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
+    // Helper to parse dates from Timestamp or String
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     // Process data with migration support
     final processedData = <String, dynamic>{'id': doc.id};
 
     data.forEach((key, value) {
       if (value is Timestamp) {
         processedData[key] = value.toDate();
+      } else if (key.contains('At') && value is String) {
+        // Handle date fields stored as String
+        processedData[key] = parseDate(value);
       } else {
         processedData[key] = value;
       }
@@ -80,6 +98,16 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
     if (timestamp == null) return null;
     if (timestamp is Timestamp) {
       return timestamp.toDate();
+    }
+    if (timestamp is DateTime) {
+      return timestamp;
+    }
+    if (timestamp is String) {
+      try {
+        return DateTime.parse(timestamp);
+      } catch (_) {
+        return null;
+      }
     }
     return null;
   }

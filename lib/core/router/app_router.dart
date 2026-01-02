@@ -9,6 +9,8 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/consent_screen.dart';
+import '../../features/auth/presentation/screens/maintenance_screen.dart';
+import '../services/feature_flag_service.dart';
 import '../../features/onboarding/presentation/screens/onboarding_intro_screen.dart';
 import '../../features/onboarding/presentation/providers/onboarding_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -53,6 +55,7 @@ import '../../features/businesses/presentation/screens/businesses_screen.dart';
 import '../../features/businesses/presentation/screens/business_detail_screen.dart';
 import '../../features/businesses/presentation/screens/create_business_screen.dart';
 import '../../features/businesses/presentation/screens/boost_business_screen.dart';
+import '../../features/businesses/presentation/screens/business_reviews_screen.dart';
 import '../../features/businesses/domain/entities/business_entity.dart';
 // Marketplace
 import '../../features/marketplace/presentation/screens/marketplace_screen.dart';
@@ -113,6 +116,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     authNotifier.notify();
   });
 
+  // Écouter les changements du mode maintenance pour rafraîchir le routeur
+  ref.listen(isMaintenanceModeProvider, (_, __) {
+    authNotifier.notify();
+  });
+
   _cachedRouter = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
@@ -126,6 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Use read() here to avoid rebuilding the provider
       final authState = ref.read(authNotifierProvider);
       final onboardingState = ref.read(onboardingNotifierProvider);
+      final isMaintenanceMode = ref.read(isMaintenanceModeProvider);
 
       final isAuthLoading = authState.maybeWhen(
         initial: () => true,
@@ -138,11 +147,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
+      // Vérifier si l'utilisateur est admin (exempt de la maintenance)
+      final isAdmin = authState.maybeWhen(
+        authenticated: (user) => user.isAdmin,
+        orElse: () => false,
+      );
+
       final isSplashRoute = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isConsentRoute = state.matchedLocation == '/consent';
       final isProfileConfigRoute = state.matchedLocation == '/profile-config';
       final isOnboardingRoute = state.matchedLocation == '/onboarding/intro';
+      final isMaintenanceRoute = state.matchedLocation == '/maintenance';
       final isLegalRoute =
           state.matchedLocation == '/settings/terms' ||
           state.matchedLocation == '/settings/privacy' ||
@@ -163,22 +179,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/splash';
       }
 
-      // 4. Check if user has given consent (except for terms/privacy pages)
+      // 4. Check maintenance mode (admins are exempt)
+      if (isMaintenanceMode && !isAdmin) {
+        return isMaintenanceRoute ? null : '/maintenance';
+      }
+
+      // 5. If maintenance mode is off but user is on maintenance page, redirect to home
+      if (!isMaintenanceMode && isMaintenanceRoute) {
+        return '/home';
+      }
+
+      // 6. Check if user has given consent (except for terms/privacy pages)
       if (!onboardingState.hasGivenConsent && !isLegalRoute) {
         return isConsentRoute ? null : '/consent';
       }
 
-      // 5. Check if user has completed profile configuration (except for terms/privacy pages)
+      // 7. Check if user has completed profile configuration (except for terms/privacy pages)
       if (!onboardingState.profileConfigComplete && !isLegalRoute) {
         return isProfileConfigRoute ? null : '/profile-config';
       }
 
-      // 6. Check if user needs to see onboarding (except for terms/privacy pages)
+      // 8. Check if user needs to see onboarding (except for terms/privacy pages)
       if (!onboardingState.hasSeenIntro && !isLegalRoute) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 7. User is authenticated and has completed all setup steps
+      // 9. User is authenticated and has completed all setup steps
       // Redirect to home if on splash, auth, consent, profile-config, or onboarding pages
       if (isSplashRoute ||
           isAuthRoute ||
@@ -196,6 +222,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/maintenance',
+        builder: (context, state) => const MaintenanceScreen(),
       ),
       GoRoute(
         path: '/auth/login',
@@ -441,6 +471,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           final businessId = state.pathParameters['businessId']!;
           final business = state.extra as BusinessEntity?;
           return BoostBusinessScreen(
+            businessId: businessId,
+            business: business,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/businesses/:businessId/reviews',
+        builder: (context, state) {
+          final businessId = state.pathParameters['businessId']!;
+          final business = state.extra as BusinessEntity?;
+          return BusinessReviewsScreen(
             businessId: businessId,
             business: business,
           );

@@ -130,7 +130,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: context.isTablet ? AppSpacing.tabletMaxContentWidth + 100 : double.infinity,
+                        maxWidth:
+                            context.isTablet
+                                ? AppSpacing.tabletMaxContentWidth + 100
+                                : double.infinity,
                       ),
                       child: _buildStatsCard(l10n),
                     ),
@@ -151,7 +154,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 child: Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: context.isTablet ? AppSpacing.tabletMaxContentWidth : double.infinity,
+                      maxWidth:
+                          context.isTablet
+                              ? AppSpacing.tabletMaxContentWidth
+                              : double.infinity,
                     ),
                     child: _buildProfileContent(l10n),
                   ),
@@ -217,10 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.privacy,
-                Icons.shield_outlined,
-              ),
+              _buildSectionHeader(l10n.privacy, Icons.shield_outlined),
               _SettingsCard(
                 children: [
                   _SettingsSwitchTile(
@@ -278,10 +281,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.preferences,
-                Icons.tune_outlined,
-              ),
+              _buildSectionHeader(l10n.preferences, Icons.tune_outlined),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -318,10 +318,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.helpAndSupport,
-                Icons.help_outline,
-              ),
+              _buildSectionHeader(l10n.helpAndSupport, Icons.help_outline),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -345,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _SettingsTile(
                     icon: Icons.info_outline,
                     title: l10n.about,
-                    subtitle: '${l10n.version} 1.1.0+8',
+                    subtitle: '${l10n.version} 1.2.0+10',
                     onTap: () => _showAbout(l10n),
                   ),
                 ],
@@ -1310,7 +1307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         ),
                       ),
                       Text(
-                        '${l10n.version} 1.1.0+8',
+                        '${l10n.version} 1.2.0+10',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,

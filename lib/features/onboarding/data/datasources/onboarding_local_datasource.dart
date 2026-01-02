@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract class OnboardingLocalDataSource {
   Future<bool> hasSeenOnboarding(String userId);
   Future<void> setOnboardingComplete(String userId);
-  Future<bool> hasSeenCoachMarks();
-  Future<void> setCoachMarksComplete();
+  Future<bool> hasSeenCoachMarks(String userId);
+  Future<void> setCoachMarksComplete(String userId);
 }
 
 class OnboardingLocalDataSourceImpl implements OnboardingLocalDataSource {
@@ -27,12 +27,12 @@ class OnboardingLocalDataSourceImpl implements OnboardingLocalDataSource {
   }
 
   @override
-  Future<bool> hasSeenCoachMarks() async {
-    return _prefs.getBool(_hasSeenCoachMarksKey) ?? false;
+  Future<bool> hasSeenCoachMarks(String userId) async {
+    return _prefs.getBool('${_hasSeenCoachMarksKey}_$userId') ?? false;
   }
 
   @override
-  Future<void> setCoachMarksComplete() async {
-    await _prefs.setBool(_hasSeenCoachMarksKey, true);
+  Future<void> setCoachMarksComplete(String userId) async {
+    await _prefs.setBool('${_hasSeenCoachMarksKey}_$userId', true);
   }
 }

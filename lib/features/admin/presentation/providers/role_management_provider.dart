@@ -35,14 +35,28 @@ class AdminUser with _$AdminUser {
       role = AdminRole.superAdmin;
     }
 
+    // Helper to parse DateTime from Timestamp or String
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     return AdminUser(
       id: doc.id,
       email: data['email'] as String?,
       displayName: data['displayName'] as String?,
       photoUrl: data['photoUrl'] as String?,
       adminRole: role,
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
-      lastLoginAt: (data['lastLoginAt'] as Timestamp?)?.toDate(),
+      createdAt: parseDate(data['createdAt']),
+      lastLoginAt: parseDate(data['lastLoginAt']),
     );
   }
 }

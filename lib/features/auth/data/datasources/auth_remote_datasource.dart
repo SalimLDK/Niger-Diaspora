@@ -1,8 +1,11 @@
+import 'dart:developer' as dev;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/user_model.dart';
+
+const String _tag = 'AuthRemoteDataSource';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithEmail({
@@ -75,41 +78,63 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> signInWithGoogle() async {
+    dev.log('=== DEBUT signInWithGoogle ===', name: _tag);
     try {
+      dev.log('Etape 1: Appel de _googleSignIn.signIn()...', name: _tag);
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
+        dev.log('ERREUR: googleUser est null - connexion annulee par l\'utilisateur', name: _tag);
         throw ServerException('Connexion Google annulee');
       }
 
+      dev.log('Etape 2: googleUser obtenu - email: ${googleUser.email}, id: ${googleUser.id}', name: _tag);
+
+      dev.log('Etape 3: Recuperation des tokens d\'authentification...', name: _tag);
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      dev.log('Etape 4: Tokens obtenus - accessToken: ${googleAuth.accessToken != null ? "present" : "null"}, idToken: ${googleAuth.idToken != null ? "present" : "null"}', name: _tag);
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      dev.log('Etape 5: Credential Google cree, appel de Firebase signInWithCredential...', name: _tag);
+
       final userCredential = await _firebaseAuth.signInWithCredential(
         credential,
       );
 
+      dev.log('Etape 6: Firebase signInWithCredential reussi', name: _tag);
+
       if (userCredential.user == null) {
+        dev.log('ERREUR: userCredential.user est null apres signInWithCredential', name: _tag);
         throw ServerException('User is null after Google sign in');
       }
 
+      dev.log('Etape 7: User Firebase obtenu - uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}, displayName: ${userCredential.user!.displayName}', name: _tag);
+
+      dev.log('Etape 8: Creation/mise a jour du document Firestore...', name: _tag);
       await _createOrUpdateUserDocument(
         userCredential.user!,
         displayName: userCredential.user!.displayName,
         email: userCredential.user!.email,
         photoUrl: userCredential.user!.photoURL,
       );
+      dev.log('Etape 9: Document Firestore mis a jour', name: _tag);
 
+      dev.log('Etape 10: Recuperation des donnees depuis Firestore...', name: _tag);
       // Fetch from Firestore to get isAdmin and other fields
-      return _getUserDataFromFirestore(userCredential.user!);
+      final userModel = await _getUserDataFromFirestore(userCredential.user!);
+      dev.log('=== FIN signInWithGoogle - SUCCES === user: ${userModel.id}', name: _tag);
+      return userModel;
     } on FirebaseAuthException catch (e) {
+      dev.log('ERREUR FirebaseAuthException: code=${e.code}, message=${e.message}', name: _tag, error: e);
       throw ServerException(_mapFirebaseAuthError(e.code));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      dev.log('ERREUR Exception: ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       throw ServerException('Echec de la connexion Google: ${e.toString()}');
     }
   }
@@ -338,44 +363,55 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? email,
     String? photoUrl,
   }) async {
-    final userDoc = _firestore.collection('users').doc(user.uid);
+    dev.log('_createOrUpdateUserDocument: debut pour uid=${user.uid}', name: _tag);
+    try {
+      final userDoc = _firestore.collection('users').doc(user.uid);
 
-    final docSnapshot = await userDoc.get();
+      final docSnapshot = await userDoc.get();
+      dev.log('_createOrUpdateUserDocument: document existe=${docSnapshot.exists}', name: _tag);
 
-    if (!docSnapshot.exists) {
-      await userDoc.set({
-        'email': email ?? user.email,
-        'displayName': displayName ?? user.displayName,
-        'photoUrl': photoUrl ?? user.photoURL,
-        'phoneNumber': user.phoneNumber,
-        'hasSeenOnboarding': false,
-        'hasGivenConsent': false,
-        'profileConfigComplete': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLoginAt': FieldValue.serverTimestamp(),
-      });
-    } else {
-      final data = docSnapshot.data() ?? {};
-      final updates = <String, dynamic>{
-        'lastLoginAt': FieldValue.serverTimestamp(),
-      };
+      if (!docSnapshot.exists) {
+        dev.log('_createOrUpdateUserDocument: creation nouveau document...', name: _tag);
+        await userDoc.set({
+          'email': email ?? user.email,
+          'displayName': displayName ?? user.displayName,
+          'photoUrl': photoUrl ?? user.photoURL,
+          'phoneNumber': user.phoneNumber,
+          'hasSeenOnboarding': false,
+          'hasGivenConsent': false,
+          'profileConfigComplete': false,
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        });
+        dev.log('_createOrUpdateUserDocument: nouveau document cree avec succes', name: _tag);
+      } else {
+        dev.log('_createOrUpdateUserDocument: mise a jour document existant...', name: _tag);
+        final data = docSnapshot.data() ?? {};
+        final updates = <String, dynamic>{
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        };
 
-      // Initialize onboarding fields if missing (for existing users before these fields were added)
-      if (data['hasSeenOnboarding'] == null) {
-        updates['hasSeenOnboarding'] = false;
+        // Initialize onboarding fields if missing (for existing users before these fields were added)
+        if (data['hasSeenOnboarding'] == null) {
+          updates['hasSeenOnboarding'] = false;
+        }
+        if (data['hasGivenConsent'] == null) {
+          updates['hasGivenConsent'] = false;
+        }
+        if (data['profileConfigComplete'] == null) {
+          updates['profileConfigComplete'] = false;
+        }
+
+        // If we have explicit fresh data, make sure existing doc is updated too
+        if (displayName != null) updates['displayName'] = displayName;
+        if (photoUrl != null) updates['photoUrl'] = photoUrl;
+
+        await userDoc.set(updates, SetOptions(merge: true));
+        dev.log('_createOrUpdateUserDocument: document mis a jour avec succes', name: _tag);
       }
-      if (data['hasGivenConsent'] == null) {
-        updates['hasGivenConsent'] = false;
-      }
-      if (data['profileConfigComplete'] == null) {
-        updates['profileConfigComplete'] = false;
-      }
-
-      // If we have explicit fresh data, make sure existing doc is updated too
-      if (displayName != null) updates['displayName'] = displayName;
-      if (photoUrl != null) updates['photoUrl'] = photoUrl;
-
-      await userDoc.set(updates, SetOptions(merge: true));
+    } catch (e, stackTrace) {
+      dev.log('_createOrUpdateUserDocument: ERREUR ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
+      rethrow;
     }
   }
 
@@ -414,22 +450,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   Future<UserModel> _getUserDataFromFirestore(User firebaseUser) async {
+    dev.log('_getUserDataFromFirestore: debut pour uid=${firebaseUser.uid}', name: _tag);
     try {
       final doc =
           await _firestore.collection('users').doc(firebaseUser.uid).get();
 
+      dev.log('_getUserDataFromFirestore: document existe=${doc.exists}', name: _tag);
+
       if (doc.exists) {
-        return UserModel.fromFirestore(doc).copyWith(
+        final userModel = UserModel.fromFirestore(doc).copyWith(
           // Ensure these fields are up to date from Auth if missing in Firestore
           email: firebaseUser.email,
           // We prioritize values from Firestore if they exist, but fallback to Auth
         );
+        dev.log('_getUserDataFromFirestore: UserModel cree depuis Firestore - id=${userModel.id}, email=${userModel.email}', name: _tag);
+        return userModel;
       }
 
       // If doc doesn't exist, fallback to Auth data
+      dev.log('_getUserDataFromFirestore: document non trouve, fallback sur Auth data', name: _tag);
       return _mapFirebaseUserToModel(firebaseUser);
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Fallback if read fails
+      dev.log('_getUserDataFromFirestore: ERREUR ${e.toString()}, fallback sur Auth data', name: _tag, error: e, stackTrace: stackTrace);
       return _mapFirebaseUserToModel(firebaseUser);
     }
   }

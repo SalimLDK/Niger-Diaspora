@@ -34,12 +34,13 @@ class ServicesScreen extends ConsumerWidget {
           color: AppColors.primaryDark,
           route: '/businesses',
         ),
-      _ServiceItem(
-        icon: Icons.account_balance,
-        label: 'Ambassades',
-        color: Colors.indigo,
-        route: '/embassies',
-      ),
+      if (ref.watch(isEmbassiesEnabledProvider))
+        _ServiceItem(
+          icon: Icons.account_balance,
+          label: 'Ambassades',
+          color: Colors.indigo,
+          route: '/embassies',
+        ),
     ];
 
     return Scaffold(
