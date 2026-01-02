@@ -12,6 +12,41 @@ import '../constants/firebase_collections.dart';
 import '../constants/app_colors.dart';
 import 'background_location_service.dart';
 
+/// Représente une notification active pour le groupement style WhatsApp
+class ActiveNotification {
+  final int id;
+  final String title;
+  final String body;
+  final String? senderName;
+  final DateTime timestamp;
+
+  ActiveNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    this.senderName,
+    required this.timestamp,
+  });
+}
+
+/// Groupe de notifications actives
+class NotificationGroup {
+  final String groupKey;
+  final String type;
+  final List<ActiveNotification> notifications;
+  final String? targetId;
+
+  NotificationGroup({
+    required this.groupKey,
+    required this.type,
+    required this.notifications,
+    this.targetId,
+  });
+
+  int get count => notifications.length;
+  int get unreadCount => notifications.length;
+}
+
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -30,6 +65,23 @@ class NotificationService {
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
+
+  /// Cache des groupes de notifications actives (style WhatsApp)
+  final Map<String, NotificationGroup> _activeGroups = {};
+
+  /// IDs réservés pour les notifications de résumé par type
+  static const int _messageSummaryId = 100000;
+  static const int _groupSummaryId = 100001;
+  static const int _eventSummaryId = 100002;
+  static const int _friendSummaryId = 100003;
+  static const int _orderSummaryId = 100004;
+
+  /// Préfixes pour les groupKeys automatiques
+  static const String _messageGroupPrefix = 'messages_';
+  static const String _groupGroupPrefix = 'group_';
+  static const String _eventGroupPrefix = 'event_';
+  static const String _friendGroupPrefix = 'friend_';
+  static const String _orderGroupPrefix = 'order_';
 
   /// Initialize the notification service
   Future<void> initialize() async {
@@ -461,11 +513,11 @@ class NotificationService {
     );
   }
 
-  /// Show local notification
+  /// Show local notification avec groupement style WhatsApp
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     final data = message.data;
-    final type = data['type'];
+    final type = data['type'] as String?;
 
     // Get title and body from notification or fallback to data payload
     final title =
@@ -474,7 +526,6 @@ class NotificationService {
 
     // Skip if no content to show
     if (title.isEmpty && body.isEmpty) {
-      // debugPrint('Skipping notification: no title or body');
       return;
     }
 
@@ -498,12 +549,31 @@ class NotificationService {
     if (await _isInQuietHours(prefs)) {
       soundEnabled = false;
       vibrationEnabled = false;
-      // debugPrint('Quiet hours active - sound and vibration disabled');
     }
 
     // Generate unique notification ID
     final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
+    // Générer automatiquement le groupKey style WhatsApp
+    final groupKey = _generateGroupKey(type, data);
+    final targetId = data['targetId'] as String?;
+    final senderName = data['senderName'] as String? ?? title;
+
+    // Ajouter au cache des groupes actifs
+    _addToActiveGroup(
+      groupKey: groupKey,
+      type: type ?? 'general',
+      targetId: targetId,
+      notification: ActiveNotification(
+        id: notificationId,
+        title: title,
+        body: body,
+        senderName: senderName,
+        timestamp: DateTime.now(),
+      ),
+    );
+
+    // Afficher la notification individuelle
     await _localNotifications.show(
       notificationId,
       title,
@@ -526,18 +596,252 @@ class NotificationService {
           color: AppColors.primary,
           playSound: soundEnabled,
           enableVibration: vibrationEnabled,
-          groupKey: data['groupKey'],
+          groupKey: groupKey,
+          setAsGroupSummary: false,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: soundEnabled,
+          threadIdentifier: groupKey, // iOS grouping
         ),
       ),
       payload: jsonEncode(data),
     );
 
-    // debugPrint('Local notification shown: $title');
+    // Afficher/mettre à jour la notification de résumé (style WhatsApp)
+    await _showGroupSummaryNotification(
+      groupKey: groupKey,
+      type: type,
+      channelId: channelId,
+      channelName: channelName,
+      importance: importance,
+      soundEnabled: false, // Le résumé ne fait pas de son
+      vibrationEnabled: false,
+    );
+  }
+
+  /// Génère un groupKey automatique basé sur le type et la cible
+  String _generateGroupKey(String? type, Map<String, dynamic> data) {
+    final targetId = data['targetId'] as String? ?? '';
+    final conversationId = data['conversationId'] as String?;
+    final senderId = data['senderId'] as String?;
+
+    switch (type) {
+      case 'message':
+        // Grouper par conversation (comme WhatsApp)
+        final id = conversationId ?? senderId ?? targetId;
+        return '$_messageGroupPrefix$id';
+      case 'groupInvite':
+      case 'groupJoinRequest':
+      case 'groupRequestApproved':
+      case 'groupRequestRejected':
+      case 'newMember':
+        return '$_groupGroupPrefix$targetId';
+      case 'eventUpdate':
+      case 'eventReminder':
+      case 'eventAttendance':
+        return '$_eventGroupPrefix$targetId';
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+      case 'friendAccepted':
+      case 'newFollower':
+        return '${_friendGroupPrefix}requests';
+      case 'newOrder':
+      case 'orderPaid':
+      case 'orderShipped':
+      case 'orderDelivered':
+      case 'orderCancelled':
+      case 'orderCompleted':
+        return '$_orderGroupPrefix$targetId';
+      default:
+        return 'general_notifications';
+    }
+  }
+
+  /// Ajoute une notification au groupe actif
+  void _addToActiveGroup({
+    required String groupKey,
+    required String type,
+    String? targetId,
+    required ActiveNotification notification,
+  }) {
+    if (_activeGroups.containsKey(groupKey)) {
+      _activeGroups[groupKey]!.notifications.add(notification);
+    } else {
+      _activeGroups[groupKey] = NotificationGroup(
+        groupKey: groupKey,
+        type: type,
+        targetId: targetId,
+        notifications: [notification],
+      );
+    }
+  }
+
+  /// Affiche la notification de résumé du groupe (style WhatsApp)
+  Future<void> _showGroupSummaryNotification({
+    required String groupKey,
+    String? type,
+    required String channelId,
+    required String channelName,
+    required Importance importance,
+    required bool soundEnabled,
+    required bool vibrationEnabled,
+  }) async {
+    final group = _activeGroups[groupKey];
+    if (group == null || group.count < 2) {
+      // Pas besoin de résumé pour une seule notification
+      return;
+    }
+
+    final summaryId = _getSummaryIdForType(type);
+    final (summaryTitle, summaryBody) = _buildSummaryText(group);
+
+    // Construire les lignes pour InboxStyle (comme WhatsApp)
+    final inboxLines = group.notifications
+        .take(5) // Max 5 lignes visibles
+        .map((n) => '${n.senderName}: ${n.body}')
+        .toList();
+
+    await _localNotifications.show(
+      summaryId,
+      summaryTitle,
+      summaryBody,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId,
+          channelName,
+          channelDescription: 'Summary for $channelName',
+          importance: importance,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          color: AppColors.primary,
+          playSound: soundEnabled,
+          enableVibration: vibrationEnabled,
+          groupKey: groupKey,
+          setAsGroupSummary: true,
+          styleInformation: InboxStyleInformation(
+            inboxLines,
+            contentTitle: summaryTitle,
+            summaryText: '${group.count} notifications',
+          ),
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: soundEnabled,
+          threadIdentifier: groupKey,
+        ),
+      ),
+    );
+  }
+
+  /// Retourne l'ID de résumé pour un type donné
+  int _getSummaryIdForType(String? type) {
+    switch (type) {
+      case 'message':
+        return _messageSummaryId;
+      case 'groupInvite':
+      case 'groupJoinRequest':
+      case 'groupRequestApproved':
+      case 'groupRequestRejected':
+      case 'newMember':
+        return _groupSummaryId;
+      case 'eventUpdate':
+      case 'eventReminder':
+      case 'eventAttendance':
+        return _eventSummaryId;
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+      case 'friendAccepted':
+      case 'newFollower':
+        return _friendSummaryId;
+      case 'newOrder':
+      case 'orderPaid':
+      case 'orderShipped':
+      case 'orderDelivered':
+      case 'orderCancelled':
+      case 'orderCompleted':
+        return _orderSummaryId;
+      default:
+        return 99999;
+    }
+  }
+
+  /// Construit le texte de résumé style WhatsApp
+  (String title, String body) _buildSummaryText(NotificationGroup group) {
+    final count = group.count;
+    final type = group.type;
+
+    switch (type) {
+      case 'message':
+        // Style WhatsApp: "X nouveaux messages"
+        final senders = group.notifications
+            .map((n) => n.senderName)
+            .toSet()
+            .toList();
+        if (senders.length == 1) {
+          return (
+            senders.first ?? 'Messages',
+            '$count nouveaux messages',
+          );
+        } else {
+          return (
+            'Diaspo Niger',
+            '$count messages de ${senders.length} conversations',
+          );
+        }
+      case 'groupInvite':
+      case 'groupJoinRequest':
+      case 'groupRequestApproved':
+      case 'groupRequestRejected':
+      case 'newMember':
+        return ('Groupes', '$count notifications de groupe');
+      case 'eventUpdate':
+      case 'eventReminder':
+      case 'eventAttendance':
+        return ('Événements', '$count notifications d\'événement');
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+      case 'friendAccepted':
+      case 'newFollower':
+        return ('Amis', '$count demandes d\'ami');
+      case 'newOrder':
+      case 'orderPaid':
+      case 'orderShipped':
+      case 'orderDelivered':
+      case 'orderCancelled':
+      case 'orderCompleted':
+        return ('Commandes', '$count mises à jour de commande');
+      default:
+        return ('Diaspo Niger', '$count nouvelles notifications');
+    }
+  }
+
+  /// Efface le cache des groupes actifs (à appeler quand l'app est ouverte)
+  void clearActiveGroups() {
+    _activeGroups.clear();
+  }
+
+  /// Efface un groupe spécifique (quand l'utilisateur ouvre une conversation)
+  Future<void> clearGroupNotifications(String groupKey) async {
+    final group = _activeGroups[groupKey];
+    if (group != null) {
+      // Annuler toutes les notifications du groupe
+      for (final notification in group.notifications) {
+        await _localNotifications.cancel(notification.id);
+      }
+      // Annuler le résumé
+      final summaryId = _getSummaryIdForType(group.type);
+      await _localNotifications.cancel(summaryId);
+      // Supprimer du cache
+      _activeGroups.remove(groupKey);
+    }
+  }
+
+  /// Efface les notifications de messages pour une conversation spécifique
+  Future<void> clearConversationNotifications(String conversationId) async {
+    await clearGroupNotifications('$_messageGroupPrefix$conversationId');
   }
 
   /// Check if current time is within quiet hours

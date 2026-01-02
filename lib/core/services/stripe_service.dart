@@ -96,29 +96,69 @@ class StripeService {
         return null;
       }
 
-      final clientSecret = paymentData['clientSecret'] as String;
-      final paymentIntentId = paymentData['paymentIntentId'] as String;
+      // Robust null validation to prevent crashes (especially on OnePlus devices)
+      // Related to Stripe 3DS2 ChallengeViewArgs null value issue
+      final clientSecret = paymentData['clientSecret'];
+      final paymentIntentId = paymentData['paymentIntentId'];
+
+      if (clientSecret == null || clientSecret is! String || clientSecret.isEmpty) {
+        throw StateError(
+          'Invalid payment intent response: clientSecret is null or empty. '
+          'Please verify Cloud Functions are properly configured.',
+        );
+      }
+
+      if (paymentIntentId == null || paymentIntentId is! String || paymentIntentId.isEmpty) {
+        throw StateError(
+          'Invalid payment intent response: paymentIntentId is null or empty. '
+          'Please verify Cloud Functions are properly configured.',
+        );
+      }
 
       // debugPrint('Payment intent created: $paymentIntentId');
 
       // 2. Initialize payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Diaspo Niger',
-          style: ThemeMode.system,
-          billingDetailsCollectionConfiguration:
-              const BillingDetailsCollectionConfiguration(
-                name: CollectionMode.always,
-                email: CollectionMode.always,
-              ),
-        ),
-      );
+      try {
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: clientSecret,
+            merchantDisplayName: 'Diaspo Niger',
+            style: ThemeMode.system,
+            billingDetailsCollectionConfiguration:
+                const BillingDetailsCollectionConfiguration(
+                  name: CollectionMode.always,
+                  email: CollectionMode.always,
+                ),
+          ),
+        );
+      } catch (e) {
+        throw StateError(
+          'Failed to initialize payment sheet. This may be a configuration issue. '
+          'Error: $e',
+        );
+      }
 
       // debugPrint('Payment sheet initialized');
 
       // 3. Present payment sheet
-      await Stripe.instance.presentPaymentSheet();
+      // Wrapped in try-catch to handle potential 3DS2 ChallengeActivity issues
+      // (especially on OnePlus devices with aggressive memory management)
+      try {
+        await Stripe.instance.presentPaymentSheet();
+      } catch (e) {
+        // Check if this is a 3DS2-related crash (ChallengeViewArgs null issue)
+        final errorMessage = e.toString().toLowerCase();
+        if (errorMessage.contains('required value was null') ||
+            errorMessage.contains('challengeviewargs') ||
+            errorMessage.contains('illegalargumentexception')) {
+          throw StateError(
+            'Payment authentication failed due to a device-specific issue. '
+            'Please try again or use a different payment method. '
+            'Original error: $e',
+          );
+        }
+        rethrow;
+      }
 
       // debugPrint('✅ Payment completed successfully');
       return paymentIntentId;
@@ -194,10 +234,24 @@ class StripeService {
                   Exception(data['error'] ?? 'Failed to create payment intent'),
                 );
               } else {
-                completer.complete({
-                  'clientSecret': data['clientSecret'],
-                  'paymentIntentId': data['paymentIntentId'],
-                });
+                // Validate response data before completing
+                final clientSecret = data['clientSecret'];
+                final paymentIntentId = data['paymentIntentId'];
+
+                if (clientSecret == null || paymentIntentId == null) {
+                  completer.completeError(
+                    StateError(
+                      'Cloud Function returned incomplete payment intent data. '
+                      'clientSecret: ${clientSecret != null}, '
+                      'paymentIntentId: ${paymentIntentId != null}',
+                    ),
+                  );
+                } else {
+                  completer.complete({
+                    'clientSecret': clientSecret,
+                    'paymentIntentId': paymentIntentId,
+                  });
+                }
               }
             }
           }

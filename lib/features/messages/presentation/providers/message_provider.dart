@@ -304,6 +304,20 @@ class PaginatedMessages extends _$PaginatedMessages {
                 // debugPrint(
                 //   '📨 Received ${newMessages.length} new messages from stream',
                 // );
+
+                // Mark new messages as read if they are from other users
+                final currentUser =
+                    ref.read(currentUserAsyncProvider).valueOrNull;
+                if (currentUser != null) {
+                  final hasMessagesFromOthers = newMessages.any(
+                    (m) => m.senderId != currentUser.id,
+                  );
+                  if (hasMessagesFromOthers) {
+                    // Call markAsRead to update readBy and reset unreadCount
+                    ref.read(markAsReadProvider.notifier).mark(conversationId);
+                  }
+                }
+
                 final existingMessages = List<MessageEntity>.from(
                   state.messages,
                 );

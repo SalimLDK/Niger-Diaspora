@@ -105,7 +105,7 @@ dependencies:
   gal: ^2.3.0
 
   # Payments & Monetization
-  flutter_stripe: ^11.0.0
+  flutter_stripe: ^11.4.0
   uuid: ^4.2.1
   firebase_remote_config: ^5.5.0
   flutter_background_service: ^5.1.0

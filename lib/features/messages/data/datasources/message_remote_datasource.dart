@@ -544,11 +544,42 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
   dynamic _safeValue(Object? value) {
     if (value is Map) {
+      // Check if this Map is actually an array from Firebase RTDB
+      // Firebase RTDB converts arrays to Maps with numeric string keys like {"0": "a", "1": "b"}
+      if (_isArrayLikeMap(value)) {
+        return _convertMapToList(value);
+      }
       return _safeMap(value);
     } else if (value is List) {
       return value.map((e) => _safeValue(e)).toList();
     }
     return value;
+  }
+
+  /// Check if a Map looks like an array (has sequential numeric string keys)
+  bool _isArrayLikeMap(Map map) {
+    if (map.isEmpty) return false;
+    final keys = map.keys.toList();
+    // Check if all keys are numeric strings
+    for (final key in keys) {
+      final keyStr = key.toString();
+      if (int.tryParse(keyStr) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Convert a Firebase RTDB array-like Map back to a List
+  List<dynamic> _convertMapToList(Map map) {
+    final entries = map.entries.toList();
+    // Sort by numeric key to maintain order
+    entries.sort((a, b) {
+      final aKey = int.tryParse(a.key.toString()) ?? 0;
+      final bKey = int.tryParse(b.key.toString()) ?? 0;
+      return aKey.compareTo(bKey);
+    });
+    return entries.map((e) => _safeValue(e.value)).toList();
   }
 
   @override
