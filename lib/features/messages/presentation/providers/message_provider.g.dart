@@ -376,7 +376,7 @@ final totalUnreadCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TotalUnreadCountRef = AutoDisposeProviderRef<int>;
-String _$paginatedMessagesHash() => r'e267117bda25191a92424f3e88e6ad2a7e045c26';
+String _$paginatedMessagesHash() => r'd079bb5909171e26a8efde6810a96ee958921b99';
 
 abstract class _$PaginatedMessages
     extends BuildlessNotifier<MessagePaginationState> {

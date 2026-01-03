@@ -24,6 +24,7 @@ mixin _$EventEntity {
   DateTime? get endDate => throw _privateConstructorUsedError;
   String get location => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
+  String? get country => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
   double? get longitude => throw _privateConstructorUsedError;
   String get organizerId => throw _privateConstructorUsedError;
@@ -63,6 +64,7 @@ abstract class $EventEntityCopyWith<$Res> {
     DateTime? endDate,
     String location,
     String? address,
+    String? country,
     double? latitude,
     double? longitude,
     String organizerId,
@@ -104,6 +106,7 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
     Object? endDate = freezed,
     Object? location = null,
     Object? address = freezed,
+    Object? country = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? organizerId = null,
@@ -157,6 +160,11 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
                 freezed == address
                     ? _value.address
                     : address // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
                         as String?,
             latitude:
                 freezed == latitude
@@ -261,6 +269,7 @@ abstract class _$$EventEntityImplCopyWith<$Res>
     DateTime? endDate,
     String location,
     String? address,
+    String? country,
     double? latitude,
     double? longitude,
     String organizerId,
@@ -301,6 +310,7 @@ class __$$EventEntityImplCopyWithImpl<$Res>
     Object? endDate = freezed,
     Object? location = null,
     Object? address = freezed,
+    Object? country = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? organizerId = null,
@@ -354,6 +364,11 @@ class __$$EventEntityImplCopyWithImpl<$Res>
             freezed == address
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
                     as String?,
         latitude:
             freezed == latitude
@@ -451,6 +466,7 @@ class _$EventEntityImpl implements _EventEntity {
     this.endDate,
     required this.location,
     this.address,
+    this.country,
     this.latitude,
     this.longitude,
     required this.organizerId,
@@ -485,6 +501,8 @@ class _$EventEntityImpl implements _EventEntity {
   final String location;
   @override
   final String? address;
+  @override
+  final String? country;
   @override
   final double? latitude;
   @override
@@ -545,7 +563,7 @@ class _$EventEntityImpl implements _EventEntity {
 
   @override
   String toString() {
-    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
+    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
   }
 
   @override
@@ -563,6 +581,7 @@ class _$EventEntityImpl implements _EventEntity {
             (identical(other.location, location) ||
                 other.location == location) &&
             (identical(other.address, address) || other.address == address) &&
+            (identical(other.country, country) || other.country == country) &&
             (identical(other.latitude, latitude) ||
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
@@ -612,6 +631,7 @@ class _$EventEntityImpl implements _EventEntity {
     endDate,
     location,
     address,
+    country,
     latitude,
     longitude,
     organizerId,
@@ -648,6 +668,7 @@ abstract class _EventEntity implements EventEntity {
     final DateTime? endDate,
     required final String location,
     final String? address,
+    final String? country,
     final double? latitude,
     final double? longitude,
     required final String organizerId,
@@ -680,6 +701,8 @@ abstract class _EventEntity implements EventEntity {
   String get location;
   @override
   String? get address;
+  @override
+  String? get country;
   @override
   double? get latitude;
   @override

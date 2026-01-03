@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/services/security_gate_provider.dart';
+import '../../../../core/services/security_gate_service.dart';
 import '../../../../shared/widgets/price_text.dart';
 import '../providers/marketplace_provider.dart';
 
@@ -280,6 +282,22 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
     });
 
     try {
+      // Vérification de sécurité Play Integrity
+      final securityGate = ref.read(securityGateProvider);
+      final canProceed = await securityGate.checkAndShowDialog(
+        context,
+        level: SecurityLevel.playStoreRequired,
+        customTitle: 'Achat sécurisé',
+        customMessage:
+            'Les achats sur le marketplace nécessitent l\'installation '
+            'de l\'application depuis Google Play Store.',
+      );
+
+      if (!canProceed) {
+        setState(() => _isProcessing = false);
+        return;
+      }
+
       final repository = ref.read(marketplaceRepositoryProvider);
       final currentUser = FirebaseAuth.instance.currentUser;
 

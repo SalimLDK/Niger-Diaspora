@@ -1075,6 +1075,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wholeCountry => 'Whole country';
 
   @override
+  String get everywhere => 'Global';
+
+  @override
+  String get everywhereLabel => 'Global';
+
+  @override
   String get countryLabel => 'Country';
 
   @override

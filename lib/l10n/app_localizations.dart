@@ -2171,6 +2171,18 @@ abstract class AppLocalizations {
   /// **'Pays entier'**
   String get wholeCountry;
 
+  /// No description provided for @everywhere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Global'**
+  String get everywhere;
+
+  /// No description provided for @everywhereLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Global'**
+  String get everywhereLabel;
+
   /// No description provided for @countryLabel.
   ///
   /// In fr, this message translates to:

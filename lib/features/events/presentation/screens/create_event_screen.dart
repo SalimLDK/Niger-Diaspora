@@ -223,6 +223,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final errorMessage = l10n.eventCreationError;
     final onlineLabel = l10n.online;
 
+    // Récupérer le pays de l'utilisateur depuis son profil
+    final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+    final userCountry = profile?.currentCountry;
+
     setState(() => _isLoading = true);
 
     final startDateTime = DateTime(
@@ -255,6 +259,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           _addressController.text.trim().isNotEmpty
               ? _addressController.text.trim()
               : null,
+      country: userCountry,
       organizerId: currentUser.id,
       organizerName: currentUser.displayName,
       organizerPhotoUrl: currentUser.photoUrl,

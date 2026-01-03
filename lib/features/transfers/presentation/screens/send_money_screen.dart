@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/security_gate_provider.dart';
+import '../../../../core/services/security_gate_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
@@ -853,6 +855,23 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Vérification de sécurité Play Integrity
+      final securityGate = ref.read(securityGateProvider);
+      final canProceed = await securityGate.checkAndShowDialog(
+        context,
+        level: SecurityLevel.playStoreRequired,
+        customTitle: 'Transfert sécurisé',
+        customMessage:
+            'Les transferts d\'argent nécessitent l\'installation '
+            'de l\'application depuis Google Play Store pour garantir '
+            'la sécurité de vos transactions.',
+      );
+
+      if (!canProceed) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser == null) throw Exception('Utilisateur non connecte');
 

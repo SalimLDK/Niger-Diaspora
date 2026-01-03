@@ -444,6 +444,8 @@
   "searchRadius": "Rayon de recherche",
   "searchRadiusDescription": "Sélectionnez la distance maximale pour trouver des membres",
   "wholeCountry": "Pays entier",
+  "everywhere": "Global",
+  "everywhereLabel": "Global",
   "countryLabel": "Pays",
   "filterAll": "Tous",
   "filterEntrepreneurs": "Entrepreneurs",

@@ -28,6 +28,7 @@ mixin _$EventModel {
   DateTime? get endDate => throw _privateConstructorUsedError;
   String get location => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
+  String? get country => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
   double? get longitude => throw _privateConstructorUsedError;
   String get organizerId => throw _privateConstructorUsedError;
@@ -70,6 +71,7 @@ abstract class $EventModelCopyWith<$Res> {
     DateTime? endDate,
     String location,
     String? address,
+    String? country,
     double? latitude,
     double? longitude,
     String organizerId,
@@ -111,6 +113,7 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
     Object? endDate = freezed,
     Object? location = null,
     Object? address = freezed,
+    Object? country = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? organizerId = null,
@@ -164,6 +167,11 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
                 freezed == address
                     ? _value.address
                     : address // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            country:
+                freezed == country
+                    ? _value.country
+                    : country // ignore: cast_nullable_to_non_nullable
                         as String?,
             latitude:
                 freezed == latitude
@@ -268,6 +276,7 @@ abstract class _$$EventModelImplCopyWith<$Res>
     DateTime? endDate,
     String location,
     String? address,
+    String? country,
     double? latitude,
     double? longitude,
     String organizerId,
@@ -308,6 +317,7 @@ class __$$EventModelImplCopyWithImpl<$Res>
     Object? endDate = freezed,
     Object? location = null,
     Object? address = freezed,
+    Object? country = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? organizerId = null,
@@ -361,6 +371,11 @@ class __$$EventModelImplCopyWithImpl<$Res>
             freezed == address
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        country:
+            freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
                     as String?,
         latitude:
             freezed == latitude
@@ -458,6 +473,7 @@ class _$EventModelImpl extends _EventModel {
     this.endDate,
     required this.location,
     this.address,
+    this.country,
     this.latitude,
     this.longitude,
     required this.organizerId,
@@ -496,6 +512,8 @@ class _$EventModelImpl extends _EventModel {
   final String location;
   @override
   final String? address;
+  @override
+  final String? country;
   @override
   final double? latitude;
   @override
@@ -556,7 +574,7 @@ class _$EventModelImpl extends _EventModel {
 
   @override
   String toString() {
-    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
+    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
   }
 
   @override
@@ -574,6 +592,7 @@ class _$EventModelImpl extends _EventModel {
             (identical(other.location, location) ||
                 other.location == location) &&
             (identical(other.address, address) || other.address == address) &&
+            (identical(other.country, country) || other.country == country) &&
             (identical(other.latitude, latitude) ||
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
@@ -624,6 +643,7 @@ class _$EventModelImpl extends _EventModel {
     endDate,
     location,
     address,
+    country,
     latitude,
     longitude,
     organizerId,
@@ -665,6 +685,7 @@ abstract class _EventModel extends EventModel {
     final DateTime? endDate,
     required final String location,
     final String? address,
+    final String? country,
     final double? latitude,
     final double? longitude,
     required final String organizerId,
@@ -701,6 +722,8 @@ abstract class _EventModel extends EventModel {
   String get location;
   @override
   String? get address;
+  @override
+  String? get country;
   @override
   double? get latitude;
   @override

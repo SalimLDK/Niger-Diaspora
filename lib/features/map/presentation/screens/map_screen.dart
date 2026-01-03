@@ -84,8 +84,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  // Options de rayon disponibles (en km) - 0 = pays entier (aucune limite)
-  final List<double> _radiusOptions = [10, 25, 50, 100, 200, 500, 0];
+  // Options de rayon disponibles (en km) - 0 = pays entier, -1 = global (monde entier)
+  final List<double> _radiusOptions = [10, 25, 50, 100, 200, 500, 0, -1];
 
   final Map<String, BitmapDescriptor> _markerCache = {};
 
@@ -372,8 +372,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       final dataSource = ProfileRemoteDataSourceImpl();
       List<ProfileModel> members;
 
+      // Si rayon = -1, recherche globale (monde entier)
+      if (_selectedRadius == -1) {
+        members = await dataSource.getNearbyProfiles(
+          latitude,
+          longitude,
+          50000.0, // Rayon suffisant pour couvrir le monde entier
+        );
+      }
       // Si rayon = 0 et pays connu, chercher par pays
-      if (_selectedRadius == 0 && _userCountry != null) {
+      else if (_selectedRadius == 0 && _userCountry != null) {
         members = await dataSource.getProfilesByCountry(_userCountry!);
       } else if (_selectedRadius == 0) {
         // Si pas de pays connu, utiliser un grand rayon par défaut
@@ -1661,9 +1669,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                       : null,
                             ),
                             child: Text(
-                              radius == 0
-                                  ? l10n.wholeCountry
-                                  : '${radius.toInt()} km',
+                              radius == -1
+                                  ? l10n.everywhere
+                                  : radius == 0
+                                      ? l10n.wholeCountry
+                                      : '${radius.toInt()} km',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -1746,9 +1756,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _selectedRadius == 0
-                        ? l10n.countryLabel
-                        : '${_selectedRadius.toInt()} km',
+                    _selectedRadius == -1
+                        ? l10n.everywhereLabel
+                        : _selectedRadius == 0
+                            ? l10n.countryLabel
+                            : '${_selectedRadius.toInt()} km',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

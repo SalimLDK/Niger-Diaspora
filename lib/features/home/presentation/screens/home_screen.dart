@@ -347,7 +347,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Le profil est chargé automatiquement par le provider family si écouté
       // Mais ici on veut peut-être forcer le rafraichissement ou juste lire
       // On s'assure juste que c'est init
-      ref.read(profileNotifierProvider(currentUser.id));
+      final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+
+      // Mettre à jour les stats en fonction du pays de l'utilisateur
+      if (profile?.currentCountry != null) {
+        ref.read(homeStatsNotifierProvider.notifier).setCountry(profile!.currentCountry);
+      }
 
       // Déterminer la localisation
       double lat = 13.5116; // Par défaut: Niamey
@@ -525,6 +530,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       }
     });
+
+    // Écouter les changements de profil pour mettre à jour les stats par pays
+    if (authUser != null) {
+      ref.listen(profileNotifierProvider(authUser.id), (previous, next) {
+        final newCountry = next.valueOrNull?.currentCountry;
+        final oldCountry = previous?.valueOrNull?.currentCountry;
+        if (newCountry != oldCountry && newCountry != null) {
+          ref.read(homeStatsNotifierProvider.notifier).setCountry(newCountry);
+        }
+      });
+    }
 
     // Priorité aux données du profil, sinon fallback sur auth
     final profile = profileAsync.valueOrNull;
@@ -780,6 +796,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // Stats Header with country
+                  if (profile?.currentCountry != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 16,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            profile!.currentCountry!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   // Stats Row
                   Container(
                     key: _statsRowKey,

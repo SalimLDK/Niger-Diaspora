@@ -1,8 +1,169 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { GoogleAuth } = require("google-auth-library");
 const { decryptText } = require("./encryption");
 
 admin.initializeApp();
+
+// ============================================================================
+// PLAY INTEGRITY API VERIFICATION
+// ============================================================================
+
+/**
+ * Verifies a Play Integrity token and returns the decoded verdict.
+ *
+ * Call this from your Flutter app after getting an integrity token:
+ *
+ * ```dart
+ * final result = await FirebaseFunctions.instance
+ *     .httpsCallable('verifyPlayIntegrity')
+ *     .call({'token': integrityToken, 'nonce': originalNonce});
+ * ```
+ *
+ * The function returns the decoded verdict with all integrity signals.
+ */
+exports.verifyPlayIntegrity = functions.https.onCall(async (data, context) => {
+    // Require authentication
+    if (!context.auth) {
+        throw new functions.https.HttpsError(
+            "unauthenticated",
+            "User must be authenticated to verify integrity"
+        );
+    }
+
+    const { token, nonce } = data;
+
+    if (!token) {
+        throw new functions.https.HttpsError(
+            "invalid-argument",
+            "Integrity token is required"
+        );
+    }
+
+    try {
+        // Get application default credentials
+        const auth = new GoogleAuth({
+            scopes: ["https://www.googleapis.com/auth/playintegrity"],
+        });
+        const client = await auth.getClient();
+        const accessToken = await client.getAccessToken();
+
+        // Package name must match your Android app
+        const packageName = "com.diasponiger.diasponiger";
+
+        // Call Google's Play Integrity API to decode the token
+        const response = await fetch(
+            `https://playintegrity.googleapis.com/v1/${packageName}:decodeIntegrityToken`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${accessToken.token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ integrity_token: token }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Play Integrity API error:", errorText);
+            throw new functions.https.HttpsError(
+                "internal",
+                `Play Integrity API error: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+        const payload = result.tokenPayloadExternal;
+
+        if (!payload) {
+            throw new functions.https.HttpsError(
+                "internal",
+                "Invalid response from Play Integrity API"
+            );
+        }
+
+        // Verify nonce matches (prevents replay attacks)
+        if (nonce && payload.requestDetails?.nonce !== nonce) {
+            console.warn("Nonce mismatch - possible replay attack");
+            throw new functions.https.HttpsError(
+                "permission-denied",
+                "Nonce verification failed"
+            );
+        }
+
+        // Verify the request was for our package
+        if (payload.requestDetails?.requestPackageName !== packageName) {
+            throw new functions.https.HttpsError(
+                "permission-denied",
+                "Package name mismatch"
+            );
+        }
+
+        // Extract verdict information
+        const deviceIntegrity = payload.deviceIntegrity?.deviceRecognitionVerdict || [];
+        const appIntegrity = payload.appIntegrity || {};
+        const accountDetails = payload.accountDetails || {};
+        const environmentDetails = payload.environmentDetails || {};
+
+        // Build the response with all verdict data
+        const verdict = {
+            // Device integrity
+            meetsBasicIntegrity: deviceIntegrity.includes("MEETS_BASIC_INTEGRITY"),
+            meetsDeviceIntegrity: deviceIntegrity.includes("MEETS_DEVICE_INTEGRITY"),
+            meetsStrongIntegrity: deviceIntegrity.includes("MEETS_STRONG_INTEGRITY"),
+
+            // App integrity
+            isPlayRecognized: appIntegrity.appRecognitionVerdict === "PLAY_RECOGNIZED",
+            appVersionCode: appIntegrity.versionCode,
+            certificateSha256Digest: appIntegrity.certificateSha256Digest,
+
+            // Account details (license status)
+            appLicensingVerdict: accountDetails.appLicensingVerdict,
+            isLicensed: accountDetails.appLicensingVerdict === "LICENSED",
+
+            // Recent device activity
+            deviceActivityLevel: accountDetails.recentDeviceActivity?.deviceActivityLevel,
+
+            // Environment details (Play Protect & app access risk)
+            playProtectVerdict: environmentDetails.playProtectVerdict,
+            appAccessRiskVerdict: environmentDetails.appAccessRiskVerdict,
+
+            // Raw payload for advanced use cases
+            rawPayload: payload,
+        };
+
+        // Determine overall security level
+        verdict.isSecure = verdict.meetsBasicIntegrity &&
+                          verdict.meetsDeviceIntegrity &&
+                          verdict.isPlayRecognized;
+
+        verdict.isHighlySecure = verdict.meetsStrongIntegrity &&
+                                 verdict.meetsDeviceIntegrity &&
+                                 verdict.isPlayRecognized &&
+                                 verdict.isLicensed;
+
+        // Log for monitoring (remove in production if too verbose)
+        console.log(`Integrity check for user ${context.auth.uid}:`, {
+            meetsBasicIntegrity: verdict.meetsBasicIntegrity,
+            meetsStrongIntegrity: verdict.meetsStrongIntegrity,
+            isPlayRecognized: verdict.isPlayRecognized,
+            isSecure: verdict.isSecure,
+        });
+
+        return verdict;
+
+    } catch (error) {
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        console.error("Error verifying Play Integrity token:", error);
+        throw new functions.https.HttpsError(
+            "internal",
+            `Failed to verify integrity: ${error.message}`
+        );
+    }
+});
 
 /**
  * Triggered when a new document is created in the 'notifications' collection.

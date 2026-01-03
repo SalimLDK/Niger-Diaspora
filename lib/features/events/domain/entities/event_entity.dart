@@ -12,6 +12,7 @@ class EventEntity with _$EventEntity {
     DateTime? endDate,
     required String location,
     String? address,
+    String? country,
     double? latitude,
     double? longitude,
     required String organizerId,
