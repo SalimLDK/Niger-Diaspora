@@ -1,8 +1,12 @@
 import 'dart:developer' as dev;
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/secure_preferences_service.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/user_model.dart';
 
 const String _tag = 'AuthRemoteDataSource';
@@ -32,20 +36,37 @@ abstract class AuthRemoteDataSource {
   Stream<UserModel?> get authStateChanges;
 
   Future<void> sendPasswordResetEmail(String email);
+
+  Future<void> sendPhoneOtp(String phoneNumber);
+
+  Future<void> verifyPhoneOtp({
+    required String phoneNumber,
+    required String code,
+  });
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firestore;
   final GoogleSignIn _googleSignIn;
+  final String? _serverClientId;
+  bool _googleSignInInitialized = false;
 
   AuthRemoteDataSourceImpl({
     required FirebaseAuth firebaseAuth,
-    required FirebaseFirestore firestore,
     required GoogleSignIn googleSignIn,
+    String? serverClientId,
   }) : _firebaseAuth = firebaseAuth,
-       _firestore = firestore,
-       _googleSignIn = googleSignIn;
+       _googleSignIn = googleSignIn,
+       _serverClientId = serverClientId;
+
+  SupabaseClient get _supabase => Supabase.instance.client;
+
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (!_googleSignInInitialized) {
+      await _googleSignIn.initialize(serverClientId: _serverClientId);
+      _googleSignInInitialized = true;
+    }
+  }
 
   @override
   Future<UserModel> signInWithEmail({
@@ -62,13 +83,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('User is null after sign in');
       }
 
-      // Ensure user document exists and update last login
-      await _createOrUpdateUserDocument(
-        credential.user!,
-        email: credential.user!.email,
-      );
+      final user = credential.user!;
 
-      return _getUserDataFromFirestore(credential.user!);
+      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+      try {
+        await _upsertUserToSupabase(user, email: user.email);
+      } catch (_) {}
+
+      return _getUserDataFromSupabase(user);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -78,63 +100,101 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> signInWithGoogle() async {
-    dev.log('=== DEBUT signInWithGoogle ===', name: _tag);
+    if (kDebugMode) dev.log('=== DEBUT signInWithGoogle ===', name: _tag);
     try {
-      dev.log('Etape 1: Appel de _googleSignIn.signIn()...', name: _tag);
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      // Step 0: Ensure GoogleSignIn is initialized (required for 7.x)
+      if (kDebugMode) dev.log('Etape 0: Initialisation de GoogleSignIn...', name: _tag);
+      await _ensureGoogleSignInInitialized();
 
-      if (googleUser == null) {
-        dev.log('ERREUR: googleUser est null - connexion annulee par l\'utilisateur', name: _tag);
-        throw ServerException('Connexion Google annulee');
+      // Step 0b: Disconnect any previous session to reset state
+      // This helps prevent NullPointerException on some devices (especially OnePlus)
+      // where SignInHubActivity may have corrupted state from a previous session
+      if (kDebugMode) dev.log('Etape 0b: Deconnexion de la session precedente...', name: _tag);
+      try {
+        await _googleSignIn.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors - user might not be signed in
+        if (kDebugMode) dev.log('Etape 0b: disconnect() ignore (normal si pas de session): $e', name: _tag);
       }
 
-      dev.log('Etape 2: googleUser obtenu - email: ${googleUser.email}, id: ${googleUser.id}', name: _tag);
+      if (kDebugMode) dev.log('Etape 1: Appel de _googleSignIn.authenticate()...', name: _tag);
+      final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await _googleSignIn.authenticate();
+      } on GoogleSignInException catch (e) {
+        if (e.code == GoogleSignInExceptionCode.canceled) {
+          if (kDebugMode) dev.log('ERREUR: connexion annulee par l\'utilisateur', name: _tag);
+          throw ServerException('Connexion Google annulee');
+        }
+        rethrow;
+      }
 
-      dev.log('Etape 3: Recuperation des tokens d\'authentification...', name: _tag);
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      if (kDebugMode) dev.log('Etape 2: googleUser obtenu - email: ${googleUser.email}, id: ${googleUser.id}', name: _tag);
 
-      dev.log('Etape 4: Tokens obtenus - accessToken: ${googleAuth.accessToken != null ? "present" : "null"}, idToken: ${googleAuth.idToken != null ? "present" : "null"}', name: _tag);
+      if (kDebugMode) dev.log('Etape 3: Recuperation des tokens d\'authentification...', name: _tag);
+      final googleAuth = googleUser.authentication;
+
+      if (kDebugMode) dev.log('Etape 4: Tokens obtenus - idToken: ${googleAuth.idToken != null ? 'present' : 'null'}', name: _tag);
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      dev.log('Etape 5: Credential Google cree, appel de Firebase signInWithCredential...', name: _tag);
+      if (kDebugMode) dev.log('Etape 5: Credential Google cree, appel de Firebase signInWithCredential...', name: _tag);
 
       final userCredential = await _firebaseAuth.signInWithCredential(
         credential,
       );
 
-      dev.log('Etape 6: Firebase signInWithCredential reussi', name: _tag);
+      if (kDebugMode) dev.log('Etape 6: Firebase signInWithCredential reussi', name: _tag);
 
       if (userCredential.user == null) {
-        dev.log('ERREUR: userCredential.user est null apres signInWithCredential', name: _tag);
+        if (kDebugMode) dev.log('ERREUR: userCredential.user est null apres signInWithCredential', name: _tag);
         throw ServerException('User is null after Google sign in');
       }
 
-      dev.log('Etape 7: User Firebase obtenu - uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}, displayName: ${userCredential.user!.displayName}', name: _tag);
+      final user = userCredential.user!;
+      if (kDebugMode) dev.log('Etape 7: User Firebase obtenu - uid: ${user.uid}, email: ${user.email}, displayName: ${user.displayName}', name: _tag);
 
-      dev.log('Etape 8: Creation/mise a jour du document Firestore...', name: _tag);
-      await _createOrUpdateUserDocument(
-        userCredential.user!,
-        displayName: userCredential.user!.displayName,
-        email: userCredential.user!.email,
-        photoUrl: userCredential.user!.photoURL,
-      );
-      dev.log('Etape 9: Document Firestore mis a jour', name: _tag);
+      if (kDebugMode) dev.log('Etape 8: Sync JWT Supabase...', name: _tag);
+      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+      if (kDebugMode) dev.log('Etape 9: Upsert vers Supabase...', name: _tag);
+      try {
+        await _upsertUserToSupabase(
+          user,
+          displayName: user.displayName,
+          email: user.email,
+          photoUrl: user.photoURL,
+        );
+        if (kDebugMode) dev.log('Etape 10: Upsert Supabase effectue', name: _tag);
+      } catch (e) {
+        if (kDebugMode) dev.log('Etape 10: Upsert Supabase echoue (non-fatal): $e', name: _tag);
+      }
 
-      dev.log('Etape 10: Recuperation des donnees depuis Firestore...', name: _tag);
-      // Fetch from Firestore to get isAdmin and other fields
-      final userModel = await _getUserDataFromFirestore(userCredential.user!);
-      dev.log('=== FIN signInWithGoogle - SUCCES === user: ${userModel.id}', name: _tag);
+      if (kDebugMode) dev.log('Etape 11: Recuperation des donnees depuis Supabase...', name: _tag);
+      final userModel = await _getUserDataFromSupabase(user);
+      if (kDebugMode) dev.log('=== FIN signInWithGoogle - SUCCES === user: ${userModel.id}', name: _tag);
       return userModel;
     } on FirebaseAuthException catch (e) {
-      dev.log('ERREUR FirebaseAuthException: code=${e.code}, message=${e.message}', name: _tag, error: e);
+      if (kDebugMode) dev.log('ERREUR FirebaseAuthException: code=${e.code}, message=${e.message}', name: _tag, error: e);
       throw ServerException(_mapFirebaseAuthError(e.code));
+    } on PlatformException catch (e, stackTrace) {
+      // Handle PlatformException which wraps native Android exceptions
+      // This includes NullPointerException from SignInHubActivity on OnePlus devices
+      if (kDebugMode) dev.log('ERREUR PlatformException: code=${e.code}, message=${e.message}', name: _tag, error: e, stackTrace: stackTrace);
+
+      // Check for specific error patterns
+      if (e.message?.contains('NullPointerException') == true ||
+          e.message?.contains('getClass()') == true ||
+          e.code == 'sign_in_failed') {
+        // This is likely the OnePlus SignInHubActivity crash
+        throw ServerException(
+          'Erreur de connexion Google. Veuillez réessayer ou redémarrer l\'application.',
+        );
+      }
+      throw ServerException('Echec de la connexion Google: ${e.message}');
     } catch (e, stackTrace) {
-      dev.log('ERREUR Exception: ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
+      if (kDebugMode) dev.log('ERREUR Exception: ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       throw ServerException('Echec de la connexion Google: ${e.toString()}');
     }
   }
@@ -156,21 +216,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       await credential.user!.updateDisplayName(displayName);
-      await credential.user!
-          .reload(); // Reload to ensure displayName is updated
+      await credential.user!.reload(); // Reload to ensure displayName is updated
 
       // Get fresh user object after reload
       final updatedUser = _firebaseAuth.currentUser!;
 
       // Pass displayName explicitly to ensure it's saved even if user.displayName is not yet updated locally
-      await _createOrUpdateUserDocument(
-        updatedUser,
-        displayName: displayName,
-        email: email,
-      );
+      await SupabaseAuthBridge.instance.syncWithFirebase(updatedUser);
+      try {
+        await _upsertUserToSupabase(
+          updatedUser,
+          displayName: displayName,
+          email: email,
+        );
+      } catch (_) {}
 
-      // Fetch from Firestore to get all fields (for consistency with other methods)
-      return _getUserDataFromFirestore(updatedUser);
+      // Fetch from Supabase to get all fields (for consistency with other methods)
+      return _getUserDataFromSupabase(updatedUser);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -181,6 +243,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> signOut() async {
     try {
+      await _ensureGoogleSignInInitialized();
+      await SupabaseAuthBridge.instance.signOut();
       await Future.wait([_firebaseAuth.signOut(), _googleSignIn.signOut()]);
     } catch (e) {
       throw ServerException('Echec de la deconnexion');
@@ -211,6 +275,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> deleteAccount() async {
     try {
+      await _ensureGoogleSignInInitialized();
       final user = _firebaseAuth.currentUser;
       if (user == null) {
         throw ServerException('Aucun utilisateur connecté');
@@ -218,90 +283,53 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final userId = user.uid;
 
-      // 1. Delete user profile from Firestore
-      await _firestore.collection('users').doc(userId).delete();
+      // Clean up Supabase data FIRST, then delete Auth.
+      // If Supabase cleanup fails, the user can retry — their account still exists.
+      // If Auth were deleted first, a failure would leave orphaned data with no recovery.
 
-      // 2. Delete user's conversations (where they are the only participant or leave group)
-      final conversationsQuery =
-          await _firestore
-              .collection('conversations')
-              .where('participantIds', arrayContains: userId)
-              .get();
+      // 1. Delete user from Supabase users table
+      //    (cascades to related data via FK ON DELETE CASCADE where configured)
+      await _supabase.from('users').delete().eq('id', userId);
 
-      final batch = _firestore.batch();
-      for (final doc in conversationsQuery.docs) {
-        final data = doc.data();
-        final participantIds = List<String>.from(data['participantIds'] ?? []);
+      // 2. Handle conversations the user participated in
+      final conversations = await _supabase
+          .from('conversations')
+          .select('id, participant_ids')
+          .contains('participant_ids', [userId]);
 
-        if (participantIds.length <= 2) {
-          // Individual conversation or small group - delete entirely
-          batch.delete(doc.reference);
-          // Delete all messages in this conversation
-          final messagesQuery =
-              await doc.reference.collection('messages').get();
-          for (final messageDoc in messagesQuery.docs) {
-            batch.delete(messageDoc.reference);
-          }
+      for (final conv in conversations) {
+        final participants = List<String>.from(conv['participant_ids'] as List);
+        if (participants.length <= 2) {
+          await _supabase.from('conversations').delete().eq('id', conv['id'] as String);
         } else {
-          // Group conversation - just remove user from participants
-          participantIds.remove(userId);
-          batch.update(doc.reference, {'participantIds': participantIds});
+          participants.remove(userId);
+          await _supabase
+              .from('conversations')
+              .update({'participant_ids': participants})
+              .eq('id', conv['id'] as String);
         }
       }
-      await batch.commit();
 
-      // 3. Remove user from groups they are member of
-      final groupsQuery =
-          await _firestore
-              .collection('groups')
-              .where('memberIds', arrayContains: userId)
-              .get();
+      // 3. Remove user from groups they are a member of
+      final groups = await _supabase
+          .from('groups')
+          .select('id, member_ids, created_by')
+          .contains('member_ids', [userId]);
 
-      final groupBatch = _firestore.batch();
-      for (final doc in groupsQuery.docs) {
-        final data = doc.data();
-        final memberIds = List<String>.from(data['memberIds'] ?? []);
+      for (final group in groups) {
+        final memberIds = List<String>.from(group['member_ids'] as List);
         memberIds.remove(userId);
-
-        if (data['createdBy'] == userId && memberIds.isEmpty) {
-          // User created the group and is the only member - delete group
-          groupBatch.delete(doc.reference);
+        if (group['created_by'] == userId && memberIds.isEmpty) {
+          await _supabase.from('groups').delete().eq('id', group['id'] as String);
         } else {
-          groupBatch.update(doc.reference, {'memberIds': memberIds});
+          await _supabase
+              .from('groups')
+              .update({'member_ids': memberIds})
+              .eq('id', group['id'] as String);
         }
       }
-      await groupBatch.commit();
 
-      // 4. Delete events created by user
-      final eventsQuery =
-          await _firestore
-              .collection('events')
-              .where('organizerId', isEqualTo: userId)
-              .get();
-
-      final eventBatch = _firestore.batch();
-      for (final doc in eventsQuery.docs) {
-        eventBatch.delete(doc.reference);
-      }
-      await eventBatch.commit();
-
-      // 5. Remove user from events they are attending
-      final attendingEventsQuery =
-          await _firestore
-              .collection('events')
-              .where('attendeeIds', arrayContains: userId)
-              .get();
-
-      final attendeeBatch = _firestore.batch();
-      for (final doc in attendingEventsQuery.docs) {
-        final data = doc.data();
-        final attendeeIds = List<String>.from(data['attendeeIds'] ?? []);
-        attendeeIds.remove(userId);
-        attendeeBatch.update(doc.reference, {'attendeeIds': attendeeIds});
-      }
-      await attendeeBatch.commit();
-
-      // 6. Delete Firebase Auth user
+      // 4. Delete Firebase Auth user LAST
       try {
         await user.delete();
       } on FirebaseAuthException catch (e) {
@@ -312,8 +340,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException(_mapFirebaseAuthError(e.code));
       }
 
-      // 7. Sign out from Google if applicable
+      // 5. Sign out from Google and Supabase
+      await SupabaseAuthBridge.instance.signOut();
       await _googleSignIn.signOut();
+
+      // 6. Security: clean up secure storage on account deletion
+      await SecurePreferencesService.instance.clearAll();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
         throw ServerException(
@@ -332,16 +364,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser() async {
     final user = _firebaseAuth.currentUser;
     if (user == null) return null;
-    // Fetch from Firestore to get isAdmin and other fields
-    return _getUserDataFromFirestore(user);
+    await SupabaseAuthBridge.instance.syncWithFirebase(user);
+    try {
+      await _upsertUserToSupabase(user, email: user.email);
+    } catch (_) {}
+    return _getUserDataFromSupabase(user);
   }
 
   @override
   Stream<UserModel?> get authStateChanges {
     return _firebaseAuth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;
-      // Fetch from Firestore to get isAdmin and other fields
-      return _getUserDataFromFirestore(user);
+      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+      try {
+        await _upsertUserToSupabase(user, email: user.email);
+      } catch (_) {}
+      return _getUserDataFromSupabase(user);
     });
   }
 
@@ -357,70 +395,83 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
   }
 
-  Future<void> _createOrUpdateUserDocument(
+  Future<void> _upsertUserToSupabase(
     User user, {
     String? displayName,
     String? email,
     String? photoUrl,
   }) async {
-    dev.log('_createOrUpdateUserDocument: debut pour uid=${user.uid}', name: _tag);
+    if (kDebugMode) dev.log('_upsertUserToSupabase: debut pour uid=${user.uid}', name: _tag);
     try {
-      final userDoc = _firestore.collection('users').doc(user.uid);
-
-      final docSnapshot = await userDoc.get();
-      dev.log('_createOrUpdateUserDocument: document existe=${docSnapshot.exists}', name: _tag);
-
-      if (!docSnapshot.exists) {
-        dev.log('_createOrUpdateUserDocument: creation nouveau document...', name: _tag);
-        await userDoc.set({
-          'email': email ?? user.email,
-          'displayName': displayName ?? user.displayName,
-          'photoUrl': photoUrl ?? user.photoURL,
-          'phoneNumber': user.phoneNumber,
-          'hasSeenOnboarding': false,
-          'hasGivenConsent': false,
-          'profileConfigComplete': false,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        });
-        dev.log('_createOrUpdateUserDocument: nouveau document cree avec succes', name: _tag);
-      } else {
-        dev.log('_createOrUpdateUserDocument: mise a jour document existant...', name: _tag);
-        final data = docSnapshot.data() ?? {};
-        final updates = <String, dynamic>{
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-
-        // Initialize onboarding fields if missing (for existing users before these fields were added)
-        if (data['hasSeenOnboarding'] == null) {
-          updates['hasSeenOnboarding'] = false;
-        }
-        if (data['hasGivenConsent'] == null) {
-          updates['hasGivenConsent'] = false;
-        }
-        if (data['profileConfigComplete'] == null) {
-          updates['profileConfigComplete'] = false;
-        }
-
-        // If we have explicit fresh data, make sure existing doc is updated too
-        if (displayName != null) updates['displayName'] = displayName;
-        if (photoUrl != null) updates['photoUrl'] = photoUrl;
-
-        await userDoc.set(updates, SetOptions(merge: true));
-        dev.log('_createOrUpdateUserDocument: document mis a jour avec succes', name: _tag);
+      final ok = await SupabaseAuthBridge.instance.ensureAuthenticated();
+      if (!ok) {
+        throw Exception('Supabase session introuvable');
       }
+      await _supabase.from('users').upsert({
+        'id': user.uid,
+        'email': email ?? user.email,
+        'display_name': displayName ?? user.displayName,
+        'avatar_url': photoUrl ?? user.photoURL,
+        'phone_number': user.phoneNumber,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id',);
+      if (kDebugMode) dev.log('_upsertUserToSupabase: upsert effectue avec succes', name: _tag);
     } catch (e, stackTrace) {
-      dev.log('_createOrUpdateUserDocument: ERREUR ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
+      if (kDebugMode) dev.log('_upsertUserToSupabase: ERREUR ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       rethrow;
+    }
+  }
+
+  Future<UserModel> _getUserDataFromSupabase(User firebaseUser) async {
+    if (kDebugMode) dev.log('_getUserDataFromSupabase: debut pour uid=${firebaseUser.uid}', name: _tag);
+    try {
+      final row = await _supabase
+          .from('users')
+          .select()
+          .eq('id', firebaseUser.uid)
+          .maybeSingle();
+
+      if (kDebugMode) dev.log('_getUserDataFromSupabase: row trouvee=${row != null}', name: _tag);
+
+      if (row != null) {
+        // Supabase columns are snake_case; UserModel.fromJson expects camelCase.
+        // Merge with Firebase Auth data so null Supabase fields fall back to
+        // the values Firebase already knows about (email, displayName, photoUrl).
+        final mapped = <String, dynamic>{
+          'id': firebaseUser.uid,
+          'email': row['email'] ?? firebaseUser.email,
+          'displayName': row['display_name'] ?? firebaseUser.displayName,
+          'photoUrl': row['avatar_url'] ?? firebaseUser.photoURL,
+          'phoneNumber': row['phone_number'] ?? firebaseUser.phoneNumber,
+          'createdAt': row['created_at'],
+          'lastLoginAt': row['last_active_at'],
+          'adminRole': row['admin_role'],
+          'isBanned': row['is_banned'] ?? false,
+          'banReason': row['ban_reason'],
+          'bannedAt': row['banned_at'],
+          'isVerified': row['is_verified'] ?? false,
+        };
+        final userModel = UserModel.fromJson(mapped);
+        if (kDebugMode) dev.log('_getUserDataFromSupabase: UserModel cree depuis Supabase - id=${userModel.id}, email=${userModel.email}', name: _tag);
+        return userModel;
+      }
+
+      // If row doesn't exist, fallback to Auth data
+      if (kDebugMode) dev.log('_getUserDataFromSupabase: row non trouvee, fallback sur Auth data', name: _tag);
+      return _mapFirebaseUserToModel(firebaseUser);
+    } catch (e, stackTrace) {
+      // Fallback if read fails
+      if (kDebugMode) dev.log('_getUserDataFromSupabase: ERREUR ${e.toString()}, fallback sur Auth data', name: _tag, error: e, stackTrace: stackTrace);
+      return _mapFirebaseUserToModel(firebaseUser);
     }
   }
 
   String _mapFirebaseAuthError(String code) {
     switch (code) {
       case 'user-not-found':
-        return 'Aucun utilisateur trouve avec cet email';
       case 'wrong-password':
-        return 'Mot de passe incorrect';
+        // Security: unified error message prevents user enumeration
+        return 'Email ou mot de passe incorrect';
       case 'email-already-in-use':
         return 'Cet email est deja utilise';
       case 'invalid-email':
@@ -449,31 +500,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  Future<UserModel> _getUserDataFromFirestore(User firebaseUser) async {
-    dev.log('_getUserDataFromFirestore: debut pour uid=${firebaseUser.uid}', name: _tag);
+  @override
+  Future<void> sendPhoneOtp(String phoneNumber) async {
     try {
-      final doc =
-          await _firestore.collection('users').doc(firebaseUser.uid).get();
-
-      dev.log('_getUserDataFromFirestore: document existe=${doc.exists}', name: _tag);
-
-      if (doc.exists) {
-        final userModel = UserModel.fromFirestore(doc).copyWith(
-          // Ensure these fields are up to date from Auth if missing in Firestore
-          email: firebaseUser.email,
-          // We prioritize values from Firestore if they exist, but fallback to Auth
-        );
-        dev.log('_getUserDataFromFirestore: UserModel cree depuis Firestore - id=${userModel.id}, email=${userModel.email}', name: _tag);
-        return userModel;
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      final response = await _supabase.functions.invoke(
+        'send-phone-otp',
+        body: {'phone_number': phoneNumber},
+      );
+      if (response.status != 200) {
+        final error = (response.data as Map<String, dynamic>?)?['error'] as String?
+            ?? 'Echec de l\'envoi du SMS';
+        throw ServerException(error);
       }
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('Echec de l\'envoi du code: ${e.toString()}');
+    }
+  }
 
-      // If doc doesn't exist, fallback to Auth data
-      dev.log('_getUserDataFromFirestore: document non trouve, fallback sur Auth data', name: _tag);
-      return _mapFirebaseUserToModel(firebaseUser);
-    } catch (e, stackTrace) {
-      // Fallback if read fails
-      dev.log('_getUserDataFromFirestore: ERREUR ${e.toString()}, fallback sur Auth data', name: _tag, error: e, stackTrace: stackTrace);
-      return _mapFirebaseUserToModel(firebaseUser);
+  @override
+  Future<void> verifyPhoneOtp({
+    required String phoneNumber,
+    required String code,
+  }) async {
+    try {
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      final response = await _supabase.functions.invoke(
+        'verify-phone-otp',
+        body: {'phone_number': phoneNumber, 'code': code},
+      );
+      if (response.status != 200) {
+        final error = (response.data as Map<String, dynamic>?)?['error'] as String?
+            ?? 'Code invalide ou expiré';
+        throw ServerException(error);
+      }
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('Echec de la verification: ${e.toString()}');
     }
   }
 }
