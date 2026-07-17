@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-// import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -33,17 +33,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final profile = await remoteDataSource.getProfile(userId);
       return Right(profile.toEntity());
     } on ServerException catch (e) {
-      if (e.message.contains('non trouvé')) {
-        return Right(
-          ProfileEntity(
-            id: userId,
-            displayName: 'Utilisateur supprimé',
-            photoUrl: null,
-            bio: 'Ce profil n\'existe plus.',
-          ),
-        );
-      }
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -70,8 +62,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
       ProfileModel? oldProfile;
       try {
         oldProfile = await remoteDataSource.getProfile(profile.id);
-      } catch (_) {
-        // Ignore error if profile fetch fails, treating as new location setup
+      } catch (e, stackTrace) {
+        LoggerService.d('ProfileRepository: Old profile fetch failed (new location setup)', e, stackTrace);
       }
 
       // 2. Update profile
@@ -191,9 +183,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
             await prefs.setBool('has_shown_proximity_notification', true);
           }
         }
-      } catch (e) {
-        // Silently fail for proximity check to not bloat main logic errors
-        // debugPrint('Error checking nearby members: $e');
+      } catch (e, stackTrace) {
+        LoggerService.w('ProfileRepository: Proximity check failed', e, stackTrace);
       }
 
       return const Right(null);
@@ -254,23 +245,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
           >.fromHandlers(
             handleData: (data, sink) => sink.add(data),
             handleError: (error, stackTrace, sink) {
-              if (error is ServerException) {
-                if (error.message.contains('non trouvé')) {
-                  sink.add(
-                    Right<Failure, ProfileEntity>(
-                      ProfileEntity(
-                        id: userId,
-                        displayName: 'Utilisateur supprimé',
-                        photoUrl: null,
-                        bio: 'Ce profil n\'existe plus.',
-                      ),
-                    ),
-                  );
-                } else {
-                  sink.add(
-                    Left<Failure, ProfileEntity>(ServerFailure(error.message)),
-                  );
-                }
+              if (error is NotFoundException) {
+                // Ressource réellement absente → NotFoundFailure. Seul ce cas
+                // sera présenté comme « profil supprimé » côté UI.
+                sink.add(
+                  Left<Failure, ProfileEntity>(NotFoundFailure(error.message)),
+                );
+              } else if (error is ServerException) {
+                // Erreur transitoire (réseau, RLS, session) → retryable, PAS
+                // « supprimé ».
+                sink.add(
+                  Left<Failure, ProfileEntity>(ServerFailure(error.message)),
+                );
               } else {
                 sink.add(
                   Left<Failure, ProfileEntity>(ServerFailure(error.toString())),

@@ -1,16 +1,44 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_callkit_incoming/entities/entities.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
-import '../constants/firebase_collections.dart';
 import '../constants/app_colors.dart';
 import 'background_location_service.dart';
+import 'background_reply_service.dart';
+import '../../l10n/app_localizations.dart';
+import 'preferences_service.dart';
+
+/// Représente un message pour le style MessagingStyle (comme WhatsApp)
+class NotificationMessage {
+  final String text;
+  final DateTime timestamp;
+  final Person? sender;
+
+  NotificationMessage({
+    required this.text,
+    required this.timestamp,
+    this.sender,
+  });
+
+  Message toMessage() {
+    return Message(text, timestamp, sender);
+  }
+}
 
 /// Représente une notification active pour le groupement style WhatsApp
 class ActiveNotification {
@@ -18,14 +46,18 @@ class ActiveNotification {
   final String title;
   final String body;
   final String? senderName;
+  final String? senderPhotoUrl;
   final DateTime timestamp;
+  final String? messageType; // text, image, video, audio, document
 
   ActiveNotification({
     required this.id,
     required this.title,
     required this.body,
     this.senderName,
+    this.senderPhotoUrl,
     required this.timestamp,
+    this.messageType,
   });
 }
 
@@ -35,22 +67,521 @@ class NotificationGroup {
   final String type;
   final List<ActiveNotification> notifications;
   final String? targetId;
+  final String? conversationTitle; // Nom du groupe ou de la personne
+  final String? conversationPhotoUrl;
+  final bool isGroup;
 
   NotificationGroup({
     required this.groupKey,
     required this.type,
     required this.notifications,
     this.targetId,
+    this.conversationTitle,
+    this.conversationPhotoUrl,
+    this.isGroup = false,
   });
 
   int get count => notifications.length;
   int get unreadCount => notifications.length;
+
+  /// Retourne les expéditeurs uniques dans ce groupe
+  Set<String> get uniqueSenders =>
+      notifications
+          .map((n) => n.senderName ?? '')
+          .where((s) => s.isNotEmpty)
+          .toSet();
+}
+
+/// Constantes pour les actions de notification
+const String kReplyActionId = 'reply_action';
+const String kMarkReadActionId = 'mark_read_action';
+
+/// Helper to get localized strings in background context where BuildContext is unavailable
+/// Uses stored locale preference to determine which language to use
+String _getLocalizedString(String key) {
+  final prefs = PreferencesService.instance;
+  final locale = prefs.locale ?? 'fr'; // Default to French
+
+  // Notification strings map
+  final strings = {
+    'en': {
+      'reply_sent': 'Message sent',
+      'reply_confirmation': 'Your reply has been sent',
+      'pending_message': 'Pending message',
+      'pending_reply': 'Your reply will be sent as soon as possible',
+      'incoming_video_call': 'Incoming video call...',
+      'incoming_audio_call': 'Incoming audio call...',
+      'answer': 'Answer',
+      'decline': 'Decline',
+      'reply': 'Reply',
+      'mark_read': 'Mark as read',
+      'send': 'Send',
+      'type_reply': 'Type your reply...',
+      'calls': 'Calls',
+      'calls_description': 'Notifications for incoming calls',
+      'unknown': 'Unknown',
+    },
+    'fr': {
+      'reply_sent': 'Message envoyé',
+      'reply_confirmation': 'Votre réponse a été envoyée',
+      'pending_message': 'Message en attente',
+      'pending_reply': 'Votre réponse sera envoyée dès que possible',
+      'incoming_video_call': 'Appel vidéo entrant...',
+      'incoming_audio_call': 'Appel vocal entrant...',
+      'answer': 'Répondre',
+      'decline': 'Refuser',
+      'reply': 'Répondre',
+      'mark_read': 'Marquer comme lu',
+      'send': 'Envoyer',
+      'type_reply': 'Tapez votre réponse...',
+      'calls': 'Appels',
+      'calls_description': 'Notifications pour les appels entrants',
+      'unknown': 'Inconnu',
+    },
+  };
+
+  return strings[locale]?[key] ?? strings['fr']![key]!;
+}
+
+/// Handler background pour les réponses aux actions de notification
+/// DOIT être une fonction top-level (en dehors de toute classe)
+@pragma('vm:entry-point')
+Future<void> notificationActionBackgroundHandler(
+  NotificationResponse response,
+) async {
+  // Initialiser Firebase si nécessaire
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp();
+  }
+
+  final actionId = response.actionId;
+  final payload = response.payload;
+  final input = response.input; // Texte de la réponse directe
+  final notificationId = response.id;
+
+  if (payload == null) return;
+
+  try {
+    final data = jsonDecode(payload) as Map<String, dynamic>;
+    final conversationId = data['conversationId'] as String?;
+
+    if (conversationId == null) return;
+
+    if (actionId == kReplyActionId && input != null && input.isNotEmpty) {
+      // Envoyer la réponse via le service background
+      final success = await BackgroundReplyService.sendReply(
+        conversationId: conversationId,
+        replyText: input,
+      );
+
+      // Show confirmation notification
+      await _showQuickReplyConfirmation(
+        conversationId: conversationId,
+        success: success,
+        notificationId: notificationId,
+      );
+    } else if (actionId == kMarkReadActionId) {
+      // Marquer la conversation comme lue
+      await BackgroundReplyService.markAsRead(conversationId: conversationId);
+      // Fermer les notifications de cette conversation
+      await _cancelNotificationsForConversation(conversationId, notificationId);
+    }
+  } catch (e) {
+    // Silently fail
+  }
+}
+
+/// Show a brief confirmation notification after quick reply
+/// This replaces the original notification with a status update
+Future<void> _showQuickReplyConfirmation({
+  required String conversationId,
+  required bool success,
+  int? notificationId,
+}) async {
+  final localNotifications = FlutterLocalNotificationsPlugin();
+
+  // Initialize for background
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSettings = DarwinInitializationSettings();
+  const initSettings = InitializationSettings(
+    android: androidSettings,
+    iOS: iosSettings,
+  );
+  await localNotifications.initialize(initSettings);
+
+  // Use the same notification ID to replace the original, or generate one
+  final confirmationId = notificationId ?? conversationId.hashCode;
+
+  if (success) {
+    // Show success confirmation briefly
+    const androidDetails = AndroidNotificationDetails(
+      'quick_reply_confirmation',
+      'Reply Confirmation',
+      channelDescription: 'Confirmation of sent messages',
+      importance: Importance.low,
+      priority: Priority.low,
+      autoCancel: true,
+      timeoutAfter: 3000, // Auto-dismiss after 3 seconds
+      icon: '@drawable/ic_stat_notification',
+      color: Color(0xFF4CAF50), // Green for success
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: false,
+      presentBadge: false,
+      presentSound: false,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await localNotifications.show(
+      confirmationId,
+      _getLocalizedString('reply_sent'),
+      _getLocalizedString('reply_confirmation'),
+      details,
+    );
+
+    // Cancel after a short delay (Android handles this with timeoutAfter)
+    // For iOS, we cancel manually
+    Future.delayed(const Duration(seconds: 3), () {
+      localNotifications.cancel(confirmationId);
+    });
+  } else {
+    // Show failure notification with option to retry when app opens
+    const androidDetails = AndroidNotificationDetails(
+      'quick_reply_confirmation',
+      'Reply Confirmation',
+      channelDescription: 'Confirmation of sent messages',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      autoCancel: true,
+      icon: '@drawable/ic_stat_notification',
+      color: Color(0xFFFF9800), // Orange for pending/retry
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: false,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await localNotifications.show(
+      confirmationId,
+      _getLocalizedString('pending_message'),
+      _getLocalizedString('pending_reply'),
+      details,
+      payload: jsonEncode({
+        'conversationId': conversationId,
+        'action': 'pending_reply',
+      }),
+    );
+  }
+}
+
+/// Gère le dismiss de notification depuis un autre appareil (background)
+Future<void> _handleNotificationDismissBackground(
+  Map<String, dynamic> data,
+) async {
+  final notificationType = data['notificationType'] as String?;
+  final conversationId = data['conversationId'] as String?;
+  final targetId = data['targetId'] as String?;
+
+  final localNotifications = FlutterLocalNotificationsPlugin();
+
+  // Initialiser les notifications locales pour le background
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSettings = DarwinInitializationSettings();
+  const initSettings = InitializationSettings(
+    android: androidSettings,
+    iOS: iosSettings,
+  );
+  await localNotifications.initialize(initSettings);
+
+  try {
+    if (notificationType == 'message' && conversationId != null) {
+      // Récupérer et annuler les IDs de notification de cette conversation
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'notification_ids_$conversationId';
+      final idsJson = prefs.getString(key);
+
+      if (idsJson != null) {
+        final ids = (jsonDecode(idsJson) as List).cast<int>();
+        for (final id in ids) {
+          await localNotifications.cancel(id);
+        }
+        await prefs.remove(key);
+      }
+
+      // Annuler aussi le groupe de notification
+      await localNotifications.cancel('msg_$conversationId'.hashCode);
+    } else if (targetId != null) {
+      // Pour les autres types, annuler par targetId
+      await localNotifications.cancel(targetId.hashCode);
+    }
+
+    // Mettre à jour le badge de l'app
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('currentUserId');
+    if (userId != null) {
+      // Compter les notifications non lues depuis Supabase
+      final countResult = await Supabase.instance.client
+          .from('notifications')
+          .select()
+          .eq('user_id', userId)
+          .eq('is_read', false)
+          .count(CountOption.exact);
+
+      final count = countResult.count;
+      if (count > 0) {
+        AppBadgePlus.updateBadge(count);
+      } else {
+        AppBadgePlus.updateBadge(0);
+      }
+    }
+  } catch (e) {
+    // Silently fail - dismiss is best effort
+  }
+}
+
+/// Ferme les notifications pour une conversation (utilisé depuis le handler background)
+Future<void> _cancelNotificationsForConversation(
+  String conversationId,
+  int? currentNotificationId,
+) async {
+  final localNotifications = FlutterLocalNotificationsPlugin();
+
+  // Initialiser les notifications locales pour le background
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSettings = DarwinInitializationSettings();
+  const initSettings = InitializationSettings(
+    android: androidSettings,
+    iOS: iosSettings,
+  );
+  await localNotifications.initialize(initSettings);
+
+  // Annuler la notification actuelle
+  if (currentNotificationId != null) {
+    await localNotifications.cancel(currentNotificationId);
+  }
+
+  // Récupérer et annuler les autres IDs de notification de cette conversation depuis SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  final key = 'notification_ids_$conversationId';
+  final idsJson = prefs.getString(key);
+
+  if (idsJson != null) {
+    try {
+      final ids = (jsonDecode(idsJson) as List).cast<int>();
+      for (final id in ids) {
+        if (id != currentNotificationId) {
+          await localNotifications.cancel(id);
+        }
+      }
+      // Nettoyer les IDs sauvegardés
+      await prefs.remove(key);
+    } catch (_) {}
+  }
 }
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // debugPrint('Handling background message: ${message.messageId}');
+  // Initialize Firebase if needed (required for background)
+  await Firebase.initializeApp();
+
+  final data = message.data;
+  final type = data['type'];
+
+  // Handle incoming call notifications in background
+  if (type == 'incoming_call') {
+    await _showIncomingCallNotificationBackground(data);
+    return;
+  }
+
+  // Handle notification dismiss from another device (multi-device sync)
+  if (type == 'notification_dismiss') {
+    await _handleNotificationDismissBackground(data);
+    return;
+  }
+
+  // Only handle message notifications for delivery confirmation
+  if (type == 'message') {
+    final conversationId = data['conversationId'];
+    final messageId = data['messageId'];
+
+    // Get current user ID from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('currentUserId');
+
+    if (conversationId != null && messageId != null && userId != null) {
+      try {
+        // Confirm delivery directly to RTDB
+        final database = FirebaseDatabase.instance;
+        final messageRef = database
+            .ref()
+            .child('messages')
+            .child(conversationId)
+            .child(messageId);
+
+        // Read current deliveredTo and add user
+        final snapshot = await messageRef.child('deliveredTo').get();
+        final List<String> deliveredTo = [];
+        if (snapshot.value != null) {
+          if (snapshot.value is List) {
+            deliveredTo.addAll((snapshot.value as List).cast<String>());
+          } else if (snapshot.value is Map) {
+            // Firebase RTDB sometimes converts arrays to maps
+            final map = snapshot.value as Map;
+            for (final value in map.values) {
+              if (value is String) deliveredTo.add(value);
+            }
+          }
+        }
+
+        if (!deliveredTo.contains(userId)) {
+          deliveredTo.add(userId);
+          await messageRef.update({
+            'deliveredTo': deliveredTo,
+            'deliveredAt/$userId': DateTime.now().toUtc().toIso8601String(),
+          });
+        }
+      } catch (e) {
+        // Silently fail - delivery confirmation is best effort
+      }
+    }
+
+    // Fallback local notification for Android OEM devices (Xiaomi, Huawei, OPPO…)
+    // that may suppress the FCM notification field in background state.
+    // Same tag as Cloud Functions (msg_{conversationId}) → replaces FCM notification,
+    // no duplicate. On iOS, this handler is never called for notification messages.
+    if (conversationId != null) {
+      final title =
+          data['title'] as String? ?? data['senderName'] as String? ?? 'Message';
+      final body = data['isE2EE'] == 'true'
+          ? '🔒 Nouveau message'
+          : (data['body'] as String? ?? 'Nouveau message');
+      await _showFallbackMessageNotification(
+        conversationId: conversationId,
+        title: title,
+        body: body,
+      );
+    }
+  }
+}
+
+/// Shows a minimal local notification for a message when the OS may have
+/// suppressed the FCM notification (background state on restrictive Android OEMs).
+@pragma('vm:entry-point')
+Future<void> _showFallbackMessageNotification({
+  required String conversationId,
+  required String title,
+  required String body,
+}) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSettings = DarwinInitializationSettings();
+  await plugin.initialize(
+    const InitializationSettings(android: androidSettings, iOS: iosSettings),
+  );
+  final notifId = conversationId.hashCode.abs() % 99999;
+  await plugin.show(
+    notifId,
+    title,
+    body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        'messages',
+        'Messages',
+        channelDescription: 'Notifications pour les messages',
+        importance: Importance.high,
+        priority: Priority.high,
+        tag: 'msg_$conversationId', // same tag as Cloud Functions → no duplicate
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    ),
+    payload: 'message:$conversationId',
+  );
+}
+
+/// Show incoming call notification in background using native call UI
+/// Uses flutter_callkit_incoming to display CallKit (iOS) / ConnectionService (Android)
+/// This provides the native full-screen call experience like WhatsApp/Messenger
+@pragma('vm:entry-point')
+Future<void> _showIncomingCallNotificationBackground(
+  Map<String, dynamic> data,
+) async {
+  final callerName =
+      data['callerName'] as String? ?? _getLocalizedString('unknown');
+  final callerPhotoUrl = data['callerPhotoUrl'] as String?;
+  final callType = data['callType'] as String? ?? 'audio';
+  final callId = data['callId'] as String? ?? '';
+  final isVideo = callType == 'video';
+
+  // Use flutter_callkit_incoming for native call UI
+  // This works even when the app is killed and shows on lock screen
+  final params = CallKitParams(
+    id: callId,
+    nameCaller: callerName,
+    appName: 'Diaspo Niger',
+    avatar: callerPhotoUrl,
+    handle: callerName,
+    type: isVideo ? 1 : 0, // 0 = audio, 1 = video
+    textAccept: 'Accepter',
+    textDecline: 'Refuser',
+    missedCallNotification: NotificationParams(
+      showNotification: true,
+      isShowCallback: true,
+      subtitle: isVideo ? 'Appel vidéo manqué' : 'Appel manqué',
+      callbackText: 'Rappeler',
+    ),
+    duration: 45000, // Ring for 45 seconds
+    extra: <String, dynamic>{
+      'callId': callId,
+      'isVideo': isVideo,
+    },
+    headers: <String, dynamic>{'callId': callId},
+    android: const AndroidParams(
+      isCustomNotification: true,
+      isShowLogo: true,
+      ringtonePath: 'system_ringtone_default',
+      backgroundColor: '#E97424',
+      actionColor: '#4CAF50',
+      textColor: '#FFFFFF',
+      incomingCallNotificationChannelName: 'Appels entrants',
+      missedCallNotificationChannelName: 'Appels manqués',
+      isShowCallID: false,
+    ),
+    ios: IOSParams(
+      iconName: 'CallKitIcon',
+      handleType: 'generic',
+      supportsVideo: isVideo,
+      maximumCallGroups: 1,
+      maximumCallsPerCallGroup: 1,
+      audioSessionMode: 'voiceChat',
+      audioSessionActive: true,
+      audioSessionPreferredSampleRate: 16000.0,
+      audioSessionPreferredIOBufferDuration: 0.005,
+      supportsDTMF: false,
+      supportsHolding: true,
+      supportsGrouping: false,
+      supportsUngrouping: false,
+      ringtonePath: 'system_ringtone_default',
+    ),
+  );
+
+  await FlutterCallkitIncoming.showCallkitIncoming(params);
 }
 
 class NotificationService {
@@ -59,7 +590,6 @@ class NotificationService {
   NotificationService._internal();
 
   FirebaseMessaging get _messaging => FirebaseMessaging.instance;
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -68,6 +598,12 @@ class NotificationService {
 
   /// Cache des groupes de notifications actives (style WhatsApp)
   final Map<String, NotificationGroup> _activeGroups = {};
+
+  /// Cache des photos de profil téléchargées
+  final Map<String, String> _avatarPathCache = {};
+
+  /// Cache des Person pour MessagingStyle
+  final Map<String, Person> _personCache = {};
 
   /// IDs réservés pour les notifications de résumé par type
   static const int _messageSummaryId = 100000;
@@ -136,7 +672,8 @@ class NotificationService {
       _handleNotificationTap(initialMessage);
     }
 
-    // debugPrint('NotificationService initialization complete');
+    // Nettoyer les anciens fichiers d'avatar en arrière-plan
+    cleanupOldAvatarCache();
   }
 
   /// Initialize local notifications with Android channels
@@ -149,44 +686,47 @@ class NotificationService {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-    const iosSettings = DarwinInitializationSettings(
+
+    // Configuration iOS avec catégories pour les actions de notification
+    final iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'message_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.text(
+              kReplyActionId,
+              _getLocalizedString('reply'),
+              buttonTitle: _getLocalizedString('send'),
+              placeholder: _getLocalizedString('type_reply'),
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              kMarkReadActionId,
+              _getLocalizedString('mark_read'),
+            ),
+          ],
+          options: <DarwinNotificationCategoryOption>{
+            DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+          },
+        ),
+      ],
     );
 
-    const settings = InitializationSettings(
+    final settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
 
     await _localNotifications.initialize(
       settings,
-      onDidReceiveNotificationResponse: (details) {
-        if (details.payload != null) {
-          // debugPrint('Local notification tapped: ${details.payload}');
-          try {
-            final data = jsonDecode(details.payload!) as Map<String, dynamic>;
-            final type = data['type'] as String?;
-            final targetId = data['targetId'] as String? ?? '';
-
-            if (type != null) {
-              if (_notificationTapCallback != null) {
-                _notificationTapCallback!.call(type, targetId, data);
-              } else {
-                // debugPrint('Queueing local notification tap: $type');
-                _pendingNotificationTap = (
-                  type: type,
-                  targetId: targetId,
-                  data: data,
-                );
-              }
-            }
-          } catch (e) {
-            // debugPrint('Error parsing notification payload: $e');
-          }
-        }
-      },
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          notificationActionBackgroundHandler,
     );
 
     // Request notification permission for Android 13+ (API 33+)
@@ -203,6 +743,111 @@ class NotificationService {
     }
   }
 
+  /// Télécharge et cache une photo de profil pour les notifications
+  Future<String?> _downloadAndCacheAvatar(
+    String? photoUrl,
+    String uniqueId,
+  ) async {
+    if (photoUrl == null || photoUrl.isEmpty) return null;
+
+    // Vérifier le cache en mémoire
+    if (_avatarPathCache.containsKey(uniqueId)) {
+      final cachedPath = _avatarPathCache[uniqueId]!;
+      if (await File(cachedPath).exists()) {
+        return cachedPath;
+      }
+    }
+
+    try {
+      final response = await http
+          .get(Uri.parse(photoUrl))
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath = '${tempDir.path}/notification_avatar_$uniqueId.png';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        _avatarPathCache[uniqueId] = filePath;
+        return filePath;
+      }
+    } catch (e) {
+      // Silently fail - use default icon
+    }
+    return null;
+  }
+
+  /// Crée un objet Person pour MessagingStyle avec photo
+  Future<Person> _getOrCreatePerson({
+    required String name,
+    required String uniqueKey,
+    String? photoUrl,
+    bool isBot = false,
+  }) async {
+    // Vérifier le cache
+    if (_personCache.containsKey(uniqueKey)) {
+      return _personCache[uniqueKey]!;
+    }
+
+    String? iconPath;
+
+    // Télécharger la photo si disponible (Android seulement)
+    if (Platform.isAndroid && photoUrl != null && photoUrl.isNotEmpty) {
+      iconPath = await _downloadAndCacheAvatar(photoUrl, uniqueKey);
+    }
+
+    final person = Person(
+      name: name,
+      key: uniqueKey,
+      icon: iconPath != null ? BitmapFilePathAndroidIcon(iconPath) : null,
+      bot: isBot,
+    );
+
+    _personCache[uniqueKey] = person;
+    return person;
+  }
+
+  /// Génère le pattern de vibration selon le type
+  Int64List _getVibrationPattern(String? type) {
+    switch (type) {
+      case 'message':
+        // Pattern court pour les messages (comme WhatsApp)
+        return Int64List.fromList([0, 100, 50, 100]);
+      case 'incoming_call':
+        // Pattern long répétitif pour les appels
+        return Int64List.fromList([0, 500, 200, 500, 200, 500]);
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+        return Int64List.fromList([0, 200, 100, 200]);
+      default:
+        return Int64List.fromList([0, 250, 100, 250]);
+    }
+  }
+
+  /// Retourne la couleur LED selon le type
+  Color _getLedColorForType(String? type) {
+    switch (type) {
+      case 'message':
+        return AppColors.primary;
+      case 'friendRequest':
+      case 'friendRequestAccepted':
+        return Colors.blue;
+      case 'groupInvite':
+      case 'groupJoinRequest':
+        return Colors.purple;
+      case 'eventUpdate':
+      case 'eventReminder':
+        return Colors.orange;
+      case 'incoming_call':
+        return Colors.green;
+      case 'newOrder':
+      case 'orderPaid':
+        return Colors.teal;
+      default:
+        return AppColors.primary;
+    }
+  }
+
   /// Create Android notification channels
   Future<void> _createNotificationChannels() async {
     final androidPlugin =
@@ -213,51 +858,64 @@ class NotificationService {
 
     if (androidPlugin == null) return;
 
-    // Messages channel (matches Firebase function channel ID)
+    // Messages channel optimisé (style WhatsApp)
     await androidPlugin.createNotificationChannel(
-      const AndroidNotificationChannel(
+      AndroidNotificationChannel(
         'messages',
         'Messages',
-        description: 'Notifications for new messages',
+        description: 'Notifications pour les nouveaux messages',
         importance: Importance.high,
         playSound: true,
         enableVibration: true,
+        enableLights: true,
+        ledColor: AppColors.primary,
+        showBadge: true,
+        vibrationPattern: Int64List.fromList([0, 100, 50, 100]),
       ),
     );
 
-    // Friend requests channel
+    // Friend requests channel avec LED bleue
     await androidPlugin.createNotificationChannel(
       const AndroidNotificationChannel(
         'friends_channel',
-        'Friend Requests',
-        description: 'Notifications for friend requests',
+        'Demandes d\'amis',
+        description: 'Notifications pour les demandes d\'amis',
         importance: Importance.high,
         playSound: true,
         enableVibration: true,
+        enableLights: true,
+        ledColor: Colors.blue,
+        showBadge: true,
       ),
     );
 
-    // Groups channel
+    // Groups channel avec LED violette
     await androidPlugin.createNotificationChannel(
       const AndroidNotificationChannel(
         'groups_channel',
-        'Groups',
-        description: 'Notifications for group activities',
-        importance: Importance.defaultImportance,
+        'Groupes',
+        description: 'Notifications pour les activités de groupe',
+        importance: Importance.high,
         playSound: true,
         enableVibration: true,
+        enableLights: true,
+        ledColor: Colors.purple,
+        showBadge: true,
       ),
     );
 
-    // Events channel
+    // Events channel avec LED orange
     await androidPlugin.createNotificationChannel(
       const AndroidNotificationChannel(
         'events_channel',
-        'Events',
-        description: 'Notifications for events',
+        'Événements',
+        description: 'Notifications pour les événements',
         importance: Importance.defaultImportance,
         playSound: true,
         enableVibration: true,
+        enableLights: true,
+        ledColor: Colors.orange,
+        showBadge: true,
       ),
     );
 
@@ -267,6 +925,66 @@ class NotificationService {
         'event_reminders_channel',
         'Event Reminders',
         description: 'Reminders for upcoming events',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Audio rooms reminders channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'audio_rooms_reminders_channel',
+        'Rappels de salles audio',
+        description: 'Rappels pour les salles audio programmées',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Audio room active channel (ongoing while in a room)
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'audio_room_active_channel',
+        'Salon Audio Actif',
+        description: 'Notification pendant la participation à un salon audio',
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      ),
+    );
+
+    // Podcast reminders channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'podcast_reminders_channel',
+        'Nouveaux épisodes',
+        description: 'Notifications pour les nouveaux épisodes de podcasts',
+        importance: Importance.defaultImportance,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    // Podcast playback channel (ongoing while playing)
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'podcast_playback_channel',
+        'Lecture Podcast',
+        description: 'Contrôles de lecture audio',
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      ),
+    );
+
+    // Transfer reminders channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'transfer_reminders_channel',
+        'Rappels de transferts',
+        description: 'Rappels pour les transferts programmés',
         importance: Importance.high,
         playSound: true,
         enableVibration: true,
@@ -321,6 +1039,20 @@ class NotificationService {
       ),
     );
 
+    // Calls channel - HIGH PRIORITY for incoming calls
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'calls_channel',
+        'Appels',
+        description: 'Notifications pour les appels entrants',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
+        ledColor: AppColors.primary,
+      ),
+    );
+
     // debugPrint('Android notification channels created');
   }
 
@@ -343,6 +1075,224 @@ class NotificationService {
     // debugPrint('Notification permission: ${settings.authorizationStatus}');
 
     return isAuthorized;
+  }
+
+  /// Key for tracking if notification permission dialog has been shown
+  static const String _notificationPermissionCheckedKey =
+      'notification_permission_checked';
+
+  /// Check if permission has already been requested
+  Future<bool> hasRequestedNotificationPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationPermissionCheckedKey) ?? false;
+  }
+
+  /// Mark that permission has been requested
+  Future<void> _markPermissionRequested() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationPermissionCheckedKey, true);
+  }
+
+  /// Check current notification permission status without requesting
+  Future<bool> isNotificationPermissionGranted() async {
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
+  /// Show notification permission dialog
+  Future<bool?> _showNotificationPermissionDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Navigator.of(context).push<bool>(
+      DialogRoute<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.notifications_active,
+                    color: Color(0xFFE97424),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l10n.enableNotifications)),
+                ],
+              ),
+              content: Text(l10n.notificationEnableDescription),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(l10n.later),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(l10n.enable),
+                ),
+              ],
+            ),
+      ),
+    );
+  }
+
+  /// Public method to request notification permission with optional contextual dialog
+  /// Call this at an optimal moment (e.g., before first message send, or from settings)
+  /// Returns true if permission was granted, false otherwise
+  Future<bool> requestNotificationPermission({
+    BuildContext? context,
+    bool showContextDialog = true,
+  }) async {
+    // Check if already granted
+    if (await isNotificationPermissionGranted()) {
+      return true;
+    }
+
+    // Check if already requested and denied (don't show dialog again)
+    final alreadyRequested = await hasRequestedNotificationPermission();
+
+    // If context provided and showContextDialog is true, show contextual dialog first
+    if (context != null &&
+        showContextDialog &&
+        context.mounted &&
+        !alreadyRequested) {
+      final shouldProceed = await _showNotificationPermissionDialog(context);
+
+      if (shouldProceed != true) {
+        return false;
+      }
+    }
+
+    // Request the actual system permission
+    await _markPermissionRequested();
+    final granted = await _requestPermission();
+
+    // If granted, get the token
+    if (granted) {
+      await _getToken();
+    } else if (context != null && context.mounted) {
+      // Permission was denied - show denial handling dialog
+      await _showPermissionDeniedDialog(context);
+    }
+
+    return granted;
+  }
+
+  /// Show dialog when notification permission is denied
+  /// Offers option to open app settings
+  Future<void> _showPermissionDeniedDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final shouldOpenSettings = await Navigator.of(context).push<bool>(
+      DialogRoute<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.notifications_off, color: Colors.orange),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l10n.notificationsDisabled)),
+                ],
+              ),
+              content: Text(l10n.notificationDisabledDescription),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(l10n.later),
+                ),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  icon: const Icon(Icons.settings, size: 18),
+                  label: Text(l10n.settings),
+                ),
+              ],
+            ),
+      ),
+    );
+
+    if (shouldOpenSettings == true) {
+      await openNotificationSettings();
+    }
+  }
+
+  /// Open system app settings for notifications
+  /// Works on both Android and iOS
+  Future<bool> openNotificationSettings() async {
+    try {
+      return await ph.openAppSettings();
+    } catch (e) {
+      debugPrint('Error opening app settings: $e');
+      return false;
+    }
+  }
+
+  /// Check if notification permission is permanently denied
+  /// Returns true if user selected "Don't ask again" on Android
+  Future<bool> isNotificationPermissionPermanentlyDenied() async {
+    if (Platform.isAndroid) {
+      final status = await ph.Permission.notification.status;
+      return status.isPermanentlyDenied;
+    }
+    // iOS doesn't have "permanently denied" - user can always change in settings
+    return false;
+  }
+
+  /// Request notification permission again after it was denied
+  /// If permanently denied, opens app settings instead
+  Future<bool> retryNotificationPermission({BuildContext? context}) async {
+    // Check if already granted
+    if (await isNotificationPermissionGranted()) {
+      return true;
+    }
+
+    // Check if permanently denied (Android)
+    if (await isNotificationPermissionPermanentlyDenied()) {
+      if (context != null && context.mounted) {
+        await _showPermanentlyDeniedDialog(context);
+      }
+      return false;
+    }
+
+    // Try requesting again (check mounted before passing context)
+    return requestNotificationPermission(
+      context: (context != null && context.mounted) ? context : null,
+      showContextDialog:
+          false, // Don't show intro dialog, user knows what they want
+    );
+  }
+
+  /// Show dialog when permission is permanently denied
+  Future<void> _showPermanentlyDeniedDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final shouldOpenSettings = await Navigator.of(context).push<bool>(
+      DialogRoute<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.block, color: Colors.red),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l10n.permissionBlocked)),
+                ],
+              ),
+              content: Text(l10n.notificationBlockedDescription),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  icon: const Icon(Icons.settings, size: 18),
+                  label: Text(l10n.openSettings),
+                ),
+              ],
+            ),
+      ),
+    );
+
+    if (shouldOpenSettings == true) {
+      await openNotificationSettings();
+    }
   }
 
   /// Get FCM token
@@ -378,38 +1328,67 @@ class NotificationService {
     }
   }
 
-  /// Save token to Firestore
+  /// Save token to Supabase
   Future<void> _saveTokenToDatabase(String token, {String? userId}) async {
     if (userId == null) return;
-
     try {
-      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
-        {
-          'fcmTokens': FieldValue.arrayUnion([token]),
-          'lastTokenUpdate': FieldValue.serverTimestamp(),
-        },
-      );
-
-      // debugPrint('FCM token saved for user: $userId');
+      final row = await Supabase.instance.client
+          .from('users')
+          .select('fcm_tokens')
+          .eq('id', userId)
+          .maybeSingle();
+      final tokens = List<String>.from(row?['fcm_tokens'] as List? ?? []);
+      if (!tokens.contains(token)) tokens.add(token);
+      await Supabase.instance.client
+          .from('users')
+          .update({'fcm_tokens': tokens, 'last_token_update': DateTime.now().toIso8601String()})
+          .eq('id', userId);
     } catch (e) {
-      // debugPrint('Error saving FCM token: $e');
+      debugPrint('Error saving FCM token to database: $e');
     }
   }
 
   /// Remove FCM token when user logs out
   Future<void> removeTokenForUser(String userId) async {
     if (_fcmToken == null) return;
-
     try {
-      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
-        {
-          'fcmTokens': FieldValue.arrayRemove([_fcmToken]),
-        },
-      );
-
-      // debugPrint('FCM token removed for user: $userId');
+      final row = await Supabase.instance.client
+          .from('users')
+          .select('fcm_tokens')
+          .eq('id', userId)
+          .maybeSingle();
+      final tokens = List<String>.from(row?['fcm_tokens'] as List? ?? [])
+        ..remove(_fcmToken);
+      await Supabase.instance.client
+          .from('users')
+          .update({'fcm_tokens': tokens})
+          .eq('id', userId);
     } catch (e) {
-      // debugPrint('Error removing FCM token: $e');
+      debugPrint('Error removing FCM token from database: $e');
+    }
+  }
+
+  /// Save VoIP push token for iOS (for CallKit incoming calls)
+  Future<void> saveVoipTokenForUser(String userId, String voipToken) async {
+    try {
+      await Supabase.instance.client
+          .from('users')
+          .update({'voip_token': voipToken, 'last_token_update': DateTime.now().toIso8601String()})
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('Error saving VoIP token: $e');
+    }
+  }
+
+  /// Remove VoIP token when user logs out
+  Future<void> removeVoipTokenForUser(String userId) async {
+    try {
+      await Supabase.instance.client
+          .from('users')
+          .update({'voip_token': null})
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('Error removing VoIP token: $e');
     }
   }
 
@@ -422,15 +1401,66 @@ class NotificationService {
     // debugPrint('Data payload: ${message.data}');
     // debugPrint('=================================================');
 
-    // Store notification in Firestore
-    _storeNotification(message);
+    final data = message.data;
+    final type = data['type'];
+
+    // Handle incoming call notifications specially
+    if (type == 'incoming_call') {
+      _handleIncomingCallNotification(data);
+      return; // Don't show standard notification for calls
+    }
+
+    // Handle call status updates
+    if (type == 'call_status') {
+      _handleCallStatusNotification(data);
+      return;
+    }
+
+    // Handle notification dismiss from other devices (multi-device sync)
+    if (type == 'notification_dismiss') {
+      await _handleNotificationDismiss(data);
+      return;
+    }
+
+    // Confirm delivery for message notifications
+    if (type == 'message') {
+      await _confirmMessageDelivery(
+        conversationId: data['conversationId'],
+        messageId: data['messageId'],
+      );
+
+      // Check if this is for the currently open conversation
+      final conversationId = data['conversationId'] as String?;
+      if (conversationId != null &&
+          conversationId == _currentOpenConversationId) {
+        // Don't show any notification - message will appear directly in the conversation
+        // debugPrint('Skipping notification - conversation is already open');
+        return;
+      }
+    }
+
+    // Volontairement AUCUNE écriture en base ici : la ligne `notifications` est
+    // créée côté serveur AVANT le push (c'est son INSERT qui déclenche le
+    // trigger -> send-push). Ré-insérer ici créerait un doublon dans la cloche
+    // in-app, et surtout une boucle infinie (insert -> trigger -> push ->
+    // insert -> ...). Le foreground se contente d'AFFICHER.
 
     // Check if notification should be shown based on user preferences
-    final shouldShow = await _shouldShowNotification(message.data['type']);
+    final shouldShow = await _shouldShowNotification(type);
     // debugPrint('Should show notification: $shouldShow');
 
     if (shouldShow) {
-      // Show local notification
+      // For message notifications in foreground, try to show in-app banner first
+      if (type == 'message' && _inAppNotificationCallback != null) {
+        final showedBanner = _inAppNotificationCallback!(data);
+        if (showedBanner) {
+          // Banner was shown, don't show system notification
+          // debugPrint('In-app banner shown, skipping system notification');
+          return;
+        }
+      }
+
+      // Show local notification (system notification)
       // debugPrint('Attempting to show local notification...');
       try {
         await _showLocalNotification(message);
@@ -445,6 +1475,87 @@ class NotificationService {
       // debugPrint(
       //   'Notification filtered by user preferences: ${message.data['type']}',
       // );
+    }
+  }
+
+  /// Handle incoming call notification
+  void _handleIncomingCallNotification(Map<String, dynamic> data) {
+    final callId = data['callId'] as String?;
+    final callerId = data['callerId'] as String?;
+    final callerName = data['callerName'] as String?;
+    final callerPhotoUrl = data['callerPhotoUrl'] as String?;
+    final callType = data['callType'] as String?;
+
+    if (callId == null || callerId == null) return;
+
+    if (_incomingCallCallback != null) {
+      _incomingCallCallback!(
+        callId: callId,
+        callerId: callerId,
+        callerName: callerName ?? _getLocalizedString('unknown'),
+        callerPhotoUrl: callerPhotoUrl,
+        isVideo: callType == 'video',
+      );
+    }
+  }
+
+  /// Handle call status notification (declined, missed, etc.)
+  void _handleCallStatusNotification(Map<String, dynamic> data) {
+    final callId = data['callId'] as String?;
+    final status = data['status'] as String?;
+
+    if (callId == null || status == null) return;
+
+    if (_callStatusCallback != null) {
+      _callStatusCallback!(callId: callId, status: status);
+    }
+  }
+
+  /// Handle notification dismiss from another device (multi-device sync)
+  /// When a user reads a message/notification on one device, this clears
+  /// the local notification on all other devices.
+  Future<void> _handleNotificationDismiss(Map<String, dynamic> data) async {
+    final notificationType = data['notificationType'] as String?;
+    final conversationId = data['conversationId'] as String?;
+    final targetId = data['targetId'] as String?;
+
+    debugPrint(
+      'NotificationService: Received dismiss sync - type: $notificationType, conversationId: $conversationId',
+    );
+
+    try {
+      if (notificationType == 'message' && conversationId != null) {
+        // Clear all notifications for this conversation
+        await clearConversationNotifications(conversationId);
+        debugPrint(
+          'NotificationService: Cleared notifications for conversation $conversationId',
+        );
+      } else if (targetId != null) {
+        // For other notification types, try to clear by targetId
+        // The notification ID is typically based on the targetId hash
+        await _localNotifications.cancel(targetId.hashCode);
+        debugPrint(
+          'NotificationService: Cancelled notification for targetId $targetId',
+        );
+      }
+
+      // Also update app badge count
+      await _updateAppBadge();
+    } catch (e) {
+      debugPrint('NotificationService: Error handling dismiss sync: $e');
+    }
+  }
+
+  /// Update app badge count based on unread notifications
+  Future<void> _updateAppBadge() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('currentUserId');
+      if (userId != null) {
+        await refreshAppBadge(userId);
+      }
+    } catch (e) {
+      // Silently fail
     }
   }
 
@@ -470,6 +1581,23 @@ class NotificationService {
           return prefs.getBool('notify_events') ?? true;
         case 'eventReminder':
           return prefs.getBool('notify_event_reminders') ?? true;
+        case 'audioRoomReminder':
+        case 'audioRoomLive':
+        case 'audioRoomInvite':
+        case 'audioRoomSpeakerRequest':
+        case 'audioRoomEnded':
+          return prefs.getBool('notify_audio_room_reminders') ?? true;
+        case 'podcastNewEpisode':
+        case 'podcastLiveStarting':
+        case 'podcastLiveNow':
+          return prefs.getBool('notify_podcast_episodes') ?? true;
+        case 'transferReminder':
+        case 'transferCompleted':
+        case 'transferReceived':
+        case 'transferFailed':
+          return prefs.getBool('notify_transfer_reminders') ?? true;
+        case 'missedCall':
+          return prefs.getBool('notify_calls') ?? true;
         case 'newOrder':
         case 'orderPaid':
         case 'orderShipped':
@@ -513,7 +1641,7 @@ class NotificationService {
     );
   }
 
-  /// Show local notification avec groupement style WhatsApp
+  /// Show local notification avec groupement style WhatsApp et MessagingStyle
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     final data = message.data;
@@ -522,7 +1650,34 @@ class NotificationService {
     // Get title and body from notification or fallback to data payload
     final title =
         notification?.title ?? data['title'] ?? 'Nouvelle notification';
-    final body = notification?.body ?? data['body'] ?? '';
+    var body = notification?.body ?? data['body'] ?? '';
+
+    // Récupérer les infos de l'expéditeur pour MessagingStyle
+    final senderName = data['senderName'] as String? ?? title;
+    final senderPhotoUrl = data['senderPhotoUrl'] as String?;
+    final senderId = data['senderId'] as String? ?? '';
+    final conversationType = data['conversationType'] as String?;
+    final messageType = data['messageType'] as String? ?? 'text';
+    final conversationId = data['conversationId'] as String?;
+    final conversationTitle = data['conversationTitle'] as String?;
+    final conversationPhotoUrl = data['conversationPhotoUrl'] as String?;
+    final isGroup = conversationType == 'group';
+
+    // Pour les messages E2EE, tenter de déchiffrer le contenu au premier plan
+    final isE2EE = data['isE2EE'] == 'true';
+    if (isE2EE && _e2eeDecryptionCallback != null && type == 'message') {
+      final encryptedPreview = data['encryptedPreview'] as String?;
+
+      try {
+        body = await _e2eeDecryptionCallback!(
+          senderId,
+          encryptedPreview,
+          messageType,
+        );
+      } catch (e) {
+        // En cas d'erreur, garder le body générique de FCM
+      }
+    }
 
     // Skip if no content to show
     if (title.isEmpty && body.isEmpty) {
@@ -551,29 +1706,89 @@ class NotificationService {
       vibrationEnabled = false;
     }
 
-    // Generate unique notification ID
-    final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    // Generate unique notification ID basé sur la conversation pour regrouper
+    final notificationId =
+        conversationId?.hashCode ??
+        DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     // Générer automatiquement le groupKey style WhatsApp
     final groupKey = _generateGroupKey(type, data);
     final targetId = data['targetId'] as String?;
-    final senderName = data['senderName'] as String? ?? title;
 
     // Ajouter au cache des groupes actifs
     _addToActiveGroup(
       groupKey: groupKey,
       type: type ?? 'general',
       targetId: targetId,
+      conversationTitle: isGroup ? conversationTitle : senderName,
+      conversationPhotoUrl: isGroup ? conversationPhotoUrl : senderPhotoUrl,
+      isGroup: isGroup,
       notification: ActiveNotification(
         id: notificationId,
         title: title,
         body: body,
         senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
         timestamp: DateTime.now(),
+        messageType: messageType,
       ),
     );
 
-    // Afficher la notification individuelle
+    // Construire les détails Android avec MessagingStyle pour les messages
+    final isMessageNotification = type == 'message' && conversationId != null;
+
+    // Actions de notification pour les messages (répondre, marquer comme lu)
+    final List<AndroidNotificationAction> androidActions =
+        isMessageNotification
+            ? [
+              AndroidNotificationAction(
+                kReplyActionId,
+                _getLocalizedString('reply'),
+                icon: const DrawableResourceAndroidBitmap('@drawable/ic_reply'),
+                showsUserInterface: false,
+                inputs: <AndroidNotificationActionInput>[
+                  AndroidNotificationActionInput(
+                    label: _getLocalizedString('type_reply'),
+                    allowFreeFormInput: true,
+                  ),
+                ],
+              ),
+              AndroidNotificationAction(
+                kMarkReadActionId,
+                _getLocalizedString('mark_read'),
+                icon: const DrawableResourceAndroidBitmap(
+                  '@drawable/ic_mark_read',
+                ),
+                showsUserInterface: false,
+              ),
+            ]
+            : [];
+
+    // Préparer le StyleInformation selon le type
+    StyleInformation? styleInformation;
+
+    if (isMessageNotification) {
+      // Utiliser MessagingStyle pour les messages (style WhatsApp)
+      styleInformation = await _buildMessagingStyle(
+        groupKey: groupKey,
+        isGroup: isGroup,
+        conversationTitle: isGroup ? (conversationTitle ?? title) : null,
+      );
+    } else if (_hasImageAttachment(messageType, data)) {
+      // Utiliser BigPictureStyle pour les images
+      final imageUrl = data['imageUrl'] as String?;
+      if (imageUrl != null) {
+        styleInformation = await _buildBigPictureStyle(imageUrl, body);
+      }
+    }
+
+    // Couleur LED selon le type
+    final ledColor = _getLedColorForType(type);
+
+    // Pattern de vibration personnalisé
+    final vibrationPattern = _getVibrationPattern(type);
+
+    // Afficher la notification avec MessagingStyle
     await _localNotifications.show(
       notificationId,
       title,
@@ -592,22 +1807,52 @@ class NotificationService {
                   : importance == Importance.low
                   ? Priority.low
                   : Priority.defaultPriority,
-          icon: '@mipmap/ic_launcher',
+          icon: '@drawable/ic_stat_notification',
           color: AppColors.primary,
+          colorized: true,
           playSound: soundEnabled,
           enableVibration: vibrationEnabled,
+          vibrationPattern: vibrationEnabled ? vibrationPattern : null,
+          enableLights: true,
+          ledColor: ledColor,
+          ledOnMs: 1000,
+          ledOffMs: 500,
           groupKey: groupKey,
           setAsGroupSummary: false,
+          styleInformation: styleInformation,
+          actions: androidActions,
+          category:
+              isMessageNotification
+                  ? AndroidNotificationCategory.message
+                  : AndroidNotificationCategory.social,
+          visibility: NotificationVisibility.private,
+          showWhen: true,
+          when: DateTime.now().millisecondsSinceEpoch,
+          usesChronometer: false,
+          autoCancel: true,
+          onlyAlertOnce: false,
+          showProgress: false,
+          ticker: body,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: soundEnabled,
-          threadIdentifier: groupKey, // iOS grouping
+          threadIdentifier: groupKey,
+          categoryIdentifier: isMessageNotification ? 'message_category' : null,
+          interruptionLevel:
+              importance == Importance.high
+                  ? InterruptionLevel.timeSensitive
+                  : InterruptionLevel.active,
         ),
       ),
       payload: jsonEncode(data),
     );
+
+    // Sauvegarder l'ID de notification pour pouvoir l'annuler depuis le background
+    if (isMessageNotification) {
+      await _saveNotificationIdForConversation(conversationId, notificationId);
+    }
 
     // Afficher/mettre à jour la notification de résumé (style WhatsApp)
     await _showGroupSummaryNotification(
@@ -616,9 +1861,109 @@ class NotificationService {
       channelId: channelId,
       channelName: channelName,
       importance: importance,
-      soundEnabled: false, // Le résumé ne fait pas de son
+      soundEnabled: false,
       vibrationEnabled: false,
     );
+  }
+
+  /// Construit le MessagingStyle avec l'historique des messages
+  Future<MessagingStyleInformation> _buildMessagingStyle({
+    required String groupKey,
+    required bool isGroup,
+    String? conversationTitle,
+  }) async {
+    final group = _activeGroups[groupKey];
+    final messages = <Message>[];
+
+    if (group != null) {
+      for (final notification in group.notifications.take(10)) {
+        // Créer la Person pour l'expéditeur
+        final person = await _getOrCreatePerson(
+          name: notification.senderName ?? 'Utilisateur',
+          uniqueKey: notification.senderName ?? 'unknown',
+          photoUrl: notification.senderPhotoUrl,
+        );
+
+        // Adapter le texte selon le type de message
+        final messageText = _formatMessagePreview(
+          notification.body,
+          notification.messageType,
+        );
+
+        messages.add(Message(messageText, notification.timestamp, person));
+      }
+    }
+
+    // Person "moi" pour la conversation
+    const me = Person(name: 'Moi', key: 'me');
+
+    return MessagingStyleInformation(
+      me,
+      messages: messages.reversed.toList(), // Plus récents en premier
+      conversationTitle: isGroup ? conversationTitle : null,
+      groupConversation: isGroup,
+    );
+  }
+
+  /// Formate l'aperçu du message selon son type
+  String _formatMessagePreview(String body, String? messageType) {
+    switch (messageType) {
+      case 'image':
+        return '📷 Photo';
+      case 'video':
+        return '🎥 Vidéo';
+      case 'voiceNote':
+      case 'audio':
+        return '🎙️ Message vocal';
+      case 'audioFile':
+        return '🎵 Audio';
+      case 'document':
+      case 'file':
+        return '📄 Document';
+      case 'location':
+        return '📍 Position';
+      case 'contact':
+        return '👤 Contact';
+      case 'sticker':
+        return '🎨 Sticker';
+      default:
+        return body;
+    }
+  }
+
+  /// Vérifie si le message contient une image
+  bool _hasImageAttachment(String? messageType, Map<String, dynamic> data) {
+    return messageType == 'image' && data['imageUrl'] != null;
+  }
+
+  /// Construit BigPictureStyle pour les notifications avec images
+  Future<BigPictureStyleInformation?> _buildBigPictureStyle(
+    String imageUrl,
+    String body,
+  ) async {
+    try {
+      final response = await http
+          .get(Uri.parse(imageUrl))
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath =
+            '${tempDir.path}/notif_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        return BigPictureStyleInformation(
+          FilePathAndroidBitmap(filePath),
+          contentTitle: body,
+          summaryText: '📷 Photo',
+          hideExpandedLargeIcon: true,
+        );
+      }
+    } catch (e) {
+      // Silently fail
+    }
+    return null;
   }
 
   /// Génère un groupKey automatique basé sur le type et la cible
@@ -664,6 +2009,9 @@ class NotificationService {
     required String groupKey,
     required String type,
     String? targetId,
+    String? conversationTitle,
+    String? conversationPhotoUrl,
+    bool isGroup = false,
     required ActiveNotification notification,
   }) {
     if (_activeGroups.containsKey(groupKey)) {
@@ -673,6 +2021,9 @@ class NotificationService {
         groupKey: groupKey,
         type: type,
         targetId: targetId,
+        conversationTitle: conversationTitle,
+        conversationPhotoUrl: conversationPhotoUrl,
+        isGroup: isGroup,
         notifications: [notification],
       );
     }
@@ -698,10 +2049,17 @@ class NotificationService {
     final (summaryTitle, summaryBody) = _buildSummaryText(group);
 
     // Construire les lignes pour InboxStyle (comme WhatsApp)
-    final inboxLines = group.notifications
-        .take(5) // Max 5 lignes visibles
-        .map((n) => '${n.senderName}: ${n.body}')
-        .toList();
+    final inboxLines =
+        group.notifications
+            .take(7) // Max 7 lignes visibles (comme WhatsApp)
+            .map((n) {
+              final preview = _formatMessagePreview(n.body, n.messageType);
+              return '${n.senderName}: $preview';
+            })
+            .toList();
+
+    // Couleur LED selon le type
+    final ledColor = _getLedColorForType(type);
 
     await _localNotifications.show(
       summaryId,
@@ -711,26 +2069,42 @@ class NotificationService {
         android: AndroidNotificationDetails(
           channelId,
           channelName,
-          channelDescription: 'Summary for $channelName',
+          channelDescription: 'Résumé pour $channelName',
           importance: importance,
           priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
+          icon: '@drawable/ic_stat_notification',
           color: AppColors.primary,
+          colorized: true,
           playSound: soundEnabled,
           enableVibration: vibrationEnabled,
+          enableLights: true,
+          ledColor: ledColor,
           groupKey: groupKey,
           setAsGroupSummary: true,
           styleInformation: InboxStyleInformation(
             inboxLines,
             contentTitle: summaryTitle,
-            summaryText: '${group.count} notifications',
+            summaryText: summaryBody,
+            htmlFormatLines: false,
+            htmlFormatContentTitle: false,
+            htmlFormatSummaryText: false,
           ),
+          category:
+              type == 'message'
+                  ? AndroidNotificationCategory.message
+                  : AndroidNotificationCategory.social,
+          visibility: NotificationVisibility.private,
+          showWhen: true,
+          when: group.notifications.last.timestamp.millisecondsSinceEpoch,
+          number: group.count,
+          autoCancel: true,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: soundEnabled,
           threadIdentifier: groupKey,
+          interruptionLevel: InterruptionLevel.active,
         ),
       ),
     );
@@ -776,15 +2150,10 @@ class NotificationService {
     switch (type) {
       case 'message':
         // Style WhatsApp: "X nouveaux messages"
-        final senders = group.notifications
-            .map((n) => n.senderName)
-            .toSet()
-            .toList();
+        final senders =
+            group.notifications.map((n) => n.senderName).toSet().toList();
         if (senders.length == 1) {
-          return (
-            senders.first ?? 'Messages',
-            '$count nouveaux messages',
-          );
+          return (senders.first ?? 'Messages', '$count nouveaux messages');
         } else {
           return (
             'Diaspo Niger',
@@ -823,6 +2192,64 @@ class NotificationService {
     _activeGroups.clear();
   }
 
+  /// Efface tous les caches (avatars, persons, groupes)
+  Future<void> clearAllCaches() async {
+    _activeGroups.clear();
+    _personCache.clear();
+
+    // Supprimer les fichiers d'avatar cachés
+    for (final path in _avatarPathCache.values) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {}
+    }
+    _avatarPathCache.clear();
+  }
+
+  /// Nettoie les fichiers d'avatar obsolètes (plus de 24h)
+  Future<void> cleanupOldAvatarCache() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final dir = Directory(tempDir.path);
+      final now = DateTime.now();
+
+      await for (final entity in dir.list()) {
+        if (entity is File && entity.path.contains('notification_avatar_')) {
+          final stat = await entity.stat();
+          final age = now.difference(stat.modified);
+          if (age.inHours > 24) {
+            await entity.delete();
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  /// Sauvegarde l'ID de notification pour une conversation (pour annulation depuis le background)
+  Future<void> _saveNotificationIdForConversation(
+    String conversationId,
+    int notificationId,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'notification_ids_$conversationId';
+      final existingJson = prefs.getString(key);
+
+      List<int> ids = [];
+      if (existingJson != null) {
+        ids = (jsonDecode(existingJson) as List).cast<int>();
+      }
+
+      if (!ids.contains(notificationId)) {
+        ids.add(notificationId);
+        await prefs.setString(key, jsonEncode(ids));
+      }
+    } catch (_) {}
+  }
+
   /// Efface un groupe spécifique (quand l'utilisateur ouvre une conversation)
   Future<void> clearGroupNotifications(String groupKey) async {
     final group = _activeGroups[groupKey];
@@ -842,6 +2269,11 @@ class NotificationService {
   /// Efface les notifications de messages pour une conversation spécifique
   Future<void> clearConversationNotifications(String conversationId) async {
     await clearGroupNotifications('$_messageGroupPrefix$conversationId');
+    // Nettoyer les IDs sauvegardés
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('notification_ids_$conversationId');
+    } catch (_) {}
   }
 
   /// Check if current time is within quiet hours
@@ -887,12 +2319,44 @@ class NotificationService {
         return ('events_channel', 'Events', Importance.defaultImportance);
       case 'eventReminder':
         return ('event_reminders_channel', 'Event Reminders', Importance.high);
+      case 'audioRoomReminder':
+      case 'audioRoomLive':
+      case 'audioRoomInvite':
+      case 'audioRoomSpeakerRequest':
+      case 'audioRoomEnded':
+        return (
+          'audio_rooms_reminders_channel',
+          'Audio Room Reminders',
+          Importance.high,
+        );
+      case 'podcastNewEpisode':
+      case 'podcastLiveStarting':
+      case 'podcastLiveNow':
+        return (
+          'podcast_reminders_channel',
+          'Podcast Episodes',
+          Importance.defaultImportance,
+        );
+      case 'transferReminder':
+      case 'transferCompleted':
+      case 'transferReceived':
+      case 'transferFailed':
+        return (
+          'transfer_reminders_channel',
+          'Transfer Reminders',
+          Importance.high,
+        );
+      case 'missedCall':
+        return ('calls_channel', 'Appels', Importance.max);
       case 'newOrder':
       case 'orderPaid':
       case 'orderShipped':
       case 'orderDelivered':
       case 'orderCancelled':
         return ('orders_channel', 'Orders', Importance.high);
+      case 'incoming_call':
+      case 'call_status':
+        return ('calls_channel', 'Appels', Importance.max);
       default:
         return (
           'general_channel',
@@ -969,24 +2433,231 @@ class NotificationService {
     }
   }
 
-  /// Store notification in Firestore for the user's notification history
-  Future<void> _storeNotification(RemoteMessage message) async {
-    final userId = message.data['userId'];
-    if (userId == null) return;
+  // Callbacks pour les actions de notification (réponse directe, marquer comme lu)
+  void Function(String conversationId, String replyText)? _directReplyCallback;
+  void Function(String conversationId)? _markAsReadCallback;
+
+  // Callback pour le déchiffrement E2EE des notifications (foreground uniquement)
+  Future<String> Function(
+    String senderId,
+    String? encryptedPreview,
+    String messageType,
+  )?
+  _e2eeDecryptionCallback;
+
+  // Callbacks pour les appels entrants
+  void Function({
+    required String callId,
+    required String callerId,
+    required String callerName,
+    String? callerPhotoUrl,
+    required bool isVideo,
+  })?
+  _incomingCallCallback;
+
+  void Function({required String callId, required String status})?
+  _callStatusCallback;
+
+  // Callback pour les notifications in-app (foreground)
+  // Retourne true si la notification a été affichée en tant que banner
+  bool Function(Map<String, dynamic> data)? _inAppNotificationCallback;
+
+  // ID de la conversation actuellement ouverte (pour filtrer les notifications)
+  String? _currentOpenConversationId;
+
+  /// Définir la conversation actuellement ouverte
+  /// Les notifications pour cette conversation ne déclencheront pas de banner
+  void setCurrentConversation(String? conversationId) {
+    _currentOpenConversationId = conversationId;
+    // Si on ouvre une conversation, effacer ses notifications
+    if (conversationId != null) {
+      clearConversationNotifications(conversationId);
+    }
+  }
+
+  /// Obtenir l'ID de la conversation actuellement ouverte
+  String? get currentOpenConversationId => _currentOpenConversationId;
+
+  /// Définit le callback pour les notifications in-app
+  /// Ce callback est appelé pour les messages en foreground quand l'utilisateur
+  /// n'est pas dans la conversation concernée.
+  /// Le callback doit retourner true s'il a affiché un banner, false sinon.
+  void setInAppNotificationCallback(
+    bool Function(Map<String, dynamic> data) callback,
+  ) {
+    _inAppNotificationCallback = callback;
+  }
+
+  /// Définit le callback pour les réponses directes depuis les notifications
+  void setDirectReplyCallback(
+    void Function(String conversationId, String replyText) callback,
+  ) {
+    _directReplyCallback = callback;
+  }
+
+  /// Définit le callback pour marquer comme lu depuis les notifications
+  void setMarkAsReadCallback(void Function(String conversationId) callback) {
+    _markAsReadCallback = callback;
+  }
+
+  /// Définit le callback pour déchiffrer les notifications E2EE (foreground)
+  ///
+  /// Ce callback est appelé quand une notification E2EE arrive au premier plan.
+  /// Il reçoit: senderId, encryptedPreview, messageType
+  /// Il retourne: le texte déchiffré ou un fallback générique
+  void setE2EEDecryptionCallback(
+    Future<String> Function(
+      String senderId,
+      String? encryptedPreview,
+      String messageType,
+    )
+    callback,
+  ) {
+    _e2eeDecryptionCallback = callback;
+  }
+
+  /// Définit le callback pour les appels entrants
+  ///
+  /// Ce callback est appelé quand une notification d'appel entrant arrive.
+  /// Il doit afficher l'écran/overlay d'appel entrant.
+  void setIncomingCallCallback(
+    void Function({
+      required String callId,
+      required String callerId,
+      required String callerName,
+      String? callerPhotoUrl,
+      required bool isVideo,
+    })
+    callback,
+  ) {
+    _incomingCallCallback = callback;
+  }
+
+  /// Définit le callback pour les changements de statut d'appel
+  ///
+  /// Ce callback est appelé quand le statut d'un appel change (refusé, manqué, etc.)
+  void setCallStatusCallback(
+    void Function({required String callId, required String status}) callback,
+  ) {
+    _callStatusCallback = callback;
+  }
+
+  /// Gère les réponses aux notifications (foreground)
+  void _handleNotificationResponse(NotificationResponse details) {
+    final actionId = details.actionId;
+    final payload = details.payload;
+    final input = details.input;
+
+    if (payload != null) {
+      try {
+        final data = jsonDecode(payload) as Map<String, dynamic>;
+        final type = data['type'] as String?;
+        final targetId = data['targetId'] as String? ?? '';
+        final conversationId = data['conversationId'] as String?;
+
+        // Gestion de l'action "Répondre"
+        if (actionId == kReplyActionId &&
+            input != null &&
+            input.isNotEmpty &&
+            conversationId != null) {
+          _handleDirectReply(conversationId, input);
+          return;
+        }
+
+        // Gestion de l'action "Marquer comme lu"
+        if (actionId == kMarkReadActionId && conversationId != null) {
+          _handleMarkAsRead(conversationId);
+          return;
+        }
+
+        // Gestion du tap normal (pas d'action spécifique)
+        if (actionId == null || actionId.isEmpty) {
+          if (type != null) {
+            if (_notificationTapCallback != null) {
+              _notificationTapCallback!.call(type, targetId, data);
+            } else {
+              _pendingNotificationTap = (
+                type: type,
+                targetId: targetId,
+                data: data,
+              );
+            }
+          }
+        }
+      } catch (e) {
+        // debugPrint('Error parsing notification payload: $e');
+      }
+    }
+  }
+
+  /// Traite une réponse directe
+  void _handleDirectReply(String conversationId, String replyText) {
+    if (_directReplyCallback != null) {
+      _directReplyCallback!(conversationId, replyText);
+    } else {
+      // Fallback: utiliser le service background si pas de callback
+      BackgroundReplyService.sendReply(
+        conversationId: conversationId,
+        replyText: replyText,
+      );
+    }
+  }
+
+  /// Traite une action "marquer comme lu"
+  void _handleMarkAsRead(String conversationId) {
+    if (_markAsReadCallback != null) {
+      _markAsReadCallback!(conversationId);
+    } else {
+      // Fallback: utiliser le service background
+      BackgroundReplyService.markAsRead(conversationId: conversationId);
+    }
+    // Effacer les notifications de cette conversation
+    clearConversationNotifications(conversationId);
+  }
+
+  /// Confirm message delivery to RTDB
+  Future<void> _confirmMessageDelivery({
+    required String? conversationId,
+    required String? messageId,
+  }) async {
+    if (conversationId == null || messageId == null) return;
 
     try {
-      await _firestore.collection(FirebaseCollections.notifications).add({
-        'userId': userId,
-        'title': message.notification?.title,
-        'body': message.notification?.body,
-        'data': message.data,
-        'type': message.data['type'],
-        'targetId': message.data['targetId'],
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('currentUserId');
+      if (userId == null) return;
+
+      final database = FirebaseDatabase.instance;
+      final messageRef = database
+          .ref()
+          .child('messages')
+          .child(conversationId)
+          .child(messageId);
+
+      // Read current deliveredTo and add user
+      final snapshot = await messageRef.child('deliveredTo').get();
+      final List<String> deliveredTo = [];
+      if (snapshot.value != null) {
+        if (snapshot.value is List) {
+          deliveredTo.addAll((snapshot.value as List).cast<String>());
+        } else if (snapshot.value is Map) {
+          // Firebase RTDB sometimes converts arrays to maps
+          final map = snapshot.value as Map;
+          for (final value in map.values) {
+            if (value is String) deliveredTo.add(value);
+          }
+        }
+      }
+
+      if (!deliveredTo.contains(userId)) {
+        deliveredTo.add(userId);
+        await messageRef.update({
+          'deliveredTo': deliveredTo,
+          'deliveredAt/$userId': DateTime.now().toUtc().toIso8601String(),
+        });
+      }
     } catch (e) {
-      // debugPrint('Error storing notification: $e');
+      // Silently fail - delivery confirmation is best effort
     }
   }
 
@@ -1000,17 +2671,14 @@ class NotificationService {
     Map<String, dynamic>? data,
   }) async {
     try {
-      await _firestore.collection(FirebaseCollections.notifications).add({
-        'userId': userId,
+      await Supabase.instance.client.from('notifications').insert({
+        'user_id': userId,
+        'type': type,
         'title': title,
         'body': body,
-        'data': data ?? {},
-        'type': type,
-        'targetId': targetId,
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
+        'data': {...?data, 'target_id': targetId},
+        'is_read': false,
       });
-      // debugPrint('Notification created manually for user: $userId');
     } catch (e) {
       // debugPrint('Error creating manual notification: $e');
     }
@@ -1022,22 +2690,52 @@ class NotificationService {
       0, // ID 0 for generic proximity alert (replaces previous one)
       'Membres à proximité',
       '$count membres de la diaspora sont à moins de 5km de vous',
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'proximity_channel', // id
           'Proximity Notifications', // title
           channelDescription: 'Notifications for nearby members',
           importance: Importance.high,
           priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
+          icon: '@drawable/ic_stat_notification',
           color: AppColors.primary,
         ),
-        iOS: const DarwinNotificationDetails(
+        iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
         ),
       ),
+    );
+  }
+
+  /// Show a simple local notification (for message failures, etc.)
+  Future<void> showSimpleNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _localNotifications.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'general_channel',
+          'General Notifications',
+          channelDescription: 'Notifications generales de l\'application',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@drawable/ic_stat_notification',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: payload,
     );
   }
 
@@ -1059,5 +2757,69 @@ class NotificationService {
     } catch (e) {
       // debugPrint('Error unsubscribing from topic: $e');
     }
+  }
+
+  // ================== APP ICON BADGE MANAGEMENT ==================
+
+  /// Clear the app icon badge (cross-platform)
+  /// Call this when the user opens the app or marks all messages as read.
+  Future<void> clearAppBadge() async {
+    try {
+      // Check if badge is supported on this device
+      final isSupported = await AppBadgePlus.isSupported();
+      if (isSupported) {
+        await AppBadgePlus.updateBadge(0);
+      }
+    } catch (e) {
+      // Silently fail - badge is not critical
+    }
+  }
+
+  /// Update the app icon badge count (cross-platform)
+  /// Call this to set a specific badge count (e.g., total unread messages).
+  /// Note: On Android, badge support depends on the launcher.
+  Future<void> updateAppBadge(int count) async {
+    try {
+      // Check if badge is supported on this device
+      final isSupported = await AppBadgePlus.isSupported();
+      if (!isSupported) return;
+
+      if (count <= 0) {
+        await AppBadgePlus.updateBadge(0);
+      } else {
+        await AppBadgePlus.updateBadge(count);
+      }
+    } catch (e) {
+      // Silently fail - badge is not critical
+    }
+  }
+
+  /// Get the total unread count for badge display
+  /// Returns the sum of all unread messages across all conversations.
+  Future<int> getTotalUnreadCount(String userId) async {
+    try {
+      final rows = await Supabase.instance.client
+          .from('conversations')
+          .select('data')
+          .contains('participant_ids', [userId]);
+
+      int totalUnread = 0;
+      for (final row in rows as List) {
+        final data = row['data'] as Map<String, dynamic>? ?? {};
+        final unreadCount = data['unreadCount'] as Map<String, dynamic>? ?? {};
+        final userUnread = unreadCount[userId];
+        if (userUnread is int) totalUnread += userUnread;
+      }
+      return totalUnread;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Update badge based on current unread count
+  /// Call this when the app state changes (e.g., message read, app resumed).
+  Future<void> refreshAppBadge(String userId) async {
+    final count = await getTotalUnreadCount(userId);
+    await updateAppBadge(count);
   }
 }

@@ -45,6 +45,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>All Files</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.image</string>
+				<string>public.movie</string>
+				<string>public.audio</string>
+				<string>public.data</string>
+				<string>public.text</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array/>
 	<key>NSCameraUsageDescription</key>
 	<string>Nous avons besoin d'accéder à votre caméra pour scanner les QR codes des profils</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -57,13 +76,31 @@
 	<string>Nous avons besoin de votre localisation pour vous connecter avec les membres de la diaspora nigérienne à proximité</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Nous avons besoin de cette permission pour sauvegarder des images dans votre galerie</string>
+	<!-- App Tracking Transparency : requis dès qu'une SDK pub (AdMob) peut accéder
+	     à l'IDFA. Sans cette clé, l'appel à requestTrackingAuthorization crashe et
+	     App Store rejette le build. -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Cette autorisation nous permet de vous proposer des publicités plus pertinentes. Vous pouvez la refuser sans impacter le fonctionnement de l'application.</string>
+	<!-- AdMob App ID — remplacer par l'ID réel en production -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-4674966180025040~3434699770</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>location</string>
 		<string>fetch</string>
 		<string>processing</string>
+		<string>remote-notification</string>
+		<string>voip</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -75,6 +112,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>diasponiger</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.539228418594-t57j3s9ncgldbgk49a1td9f1hdrld7ic</string>
 			</array>
 		</dict>
 	</array>

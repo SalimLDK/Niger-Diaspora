@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router_codec.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -19,34 +21,44 @@ import '../../features/map/presentation/screens/map_screen.dart';
 import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/groups/presentation/screens/group_detail_screen.dart';
 import '../../features/groups/presentation/screens/create_group_screen.dart';
+import '../../features/groups/presentation/screens/groups_map_screen.dart';
 import '../../features/groups/presentation/screens/edit_group_screen.dart';
 import '../../features/groups/domain/entities/group_entity.dart';
 import '../../features/groups/presentation/screens/group_members_screen.dart';
+import '../../features/groups/presentation/screens/group_requests_screen.dart';
 import '../../features/messages/presentation/screens/messages_screen.dart';
 import '../../features/messages/presentation/screens/conversation_screen.dart';
 import '../../features/messages/presentation/screens/new_conversation_screen.dart';
 import '../../features/messages/presentation/screens/media_gallery_screen.dart';
+import '../../features/messages/presentation/screens/starred_messages_screen.dart';
+import '../../features/messages/presentation/screens/share_to_conversation_screen.dart';
+import '../services/shared_media_service.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_view_screen.dart';
 import '../../features/profile/presentation/screens/qr_scanner_screen.dart';
 import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
+import '../../features/feed/presentation/screens/my_posts_screen.dart';
+import '../../features/feed/presentation/screens/saved_posts_screen.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/events/presentation/screens/edit_event_screen.dart';
 import '../../features/events/presentation/screens/event_recap_screen.dart';
 import '../../features/events/domain/entities/event_entity.dart';
+import '../../features/polls/presentation/screens/poll_results_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/notifications/presentation/screens/notification_settings_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/search/presentation/providers/search_provider.dart';
-import '../../features/settings/presentation/screens/settings_screen.dart';
+// import '../../features/settings/presentation/screens/settings_screen.dart'; // Fusionné dans ProfileScreen
 import '../../features/settings/presentation/screens/terms_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/code_of_conduct_screen.dart';
+import '../../features/settings/presentation/screens/security_backup_screen.dart';
+import '../../features/settings/presentation/screens/devices_screen.dart';
 import '../../features/reports/presentation/screens/my_reports_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../shell/main_shell.dart';
@@ -83,6 +95,30 @@ import '../../features/embassies/domain/entities/embassy_entity.dart';
 import '../../features/admin/presentation/screens/admin_embassy_verification_screen.dart';
 import '../../features/admin/presentation/screens/admin_create_embassy_screen.dart';
 import '../../features/embassies/presentation/screens/employee_search_screen.dart';
+// Payment Accounts
+import '../../features/payment_accounts/presentation/screens/payment_accounts_screen.dart';
+import '../../features/payment_accounts/presentation/screens/add_payment_account_screen.dart';
+// Payment History
+import '../../features/payment_history/presentation/screens/payment_history_screen.dart';
+import '../../features/payment_history/presentation/screens/payment_detail_screen.dart';
+import '../../features/payment_history/domain/entities/payment_history_item.dart';
+// Support Tickets
+import '../../features/support/presentation/screens/support_tickets_screen.dart';
+import '../../features/support/presentation/screens/create_ticket_screen.dart';
+import '../../features/support/presentation/screens/ticket_detail_screen.dart';
+import '../../features/support/presentation/screens/admin_support_screen.dart';
+import '../../features/support/domain/entities/support_ticket_entity.dart';
+import 'routes/audio_rooms_routes.dart';
+import 'routes/podcasts_routes.dart';
+// Feed social
+import '../../features/feed/presentation/screens/feed_screen.dart';
+import '../../features/feed/presentation/screens/create_post_screen.dart';
+import '../../features/feed/presentation/screens/post_detail_screen.dart';
+import '../../features/feed/presentation/screens/reposts_screen.dart';
+import '../../features/feed/presentation/screens/reposters_screen.dart';
+import '../../features/feed/domain/entities/post_entity.dart';
+// Calls
+import 'routes/calls_routes.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -91,40 +127,26 @@ GoRouter? _cachedRouter;
 _SimpleNotifier? _cachedAuthNotifier;
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Return cached router if it exists to prevent duplicate GlobalKey errors
+  // Return cached router if it exists to prevent duplicate GlobalKey errors.
+  // Re-register all listeners under the new ref so they are properly disposed.
   if (_cachedRouter != null && _cachedAuthNotifier != null) {
-    // Re-attach listeners for the cached router
-    ref.listen(authNotifierProvider, (_, __) {
-      _cachedAuthNotifier!.notify();
-    });
-    ref.listen(onboardingNotifierProvider, (_, __) {
-      _cachedAuthNotifier!.notify();
-    });
+    ref.listen(authNotifierProvider, (_, __) => _cachedAuthNotifier!.notify());
+    ref.listen(onboardingNotifierProvider, (_, __) => _cachedAuthNotifier!.notify());
+    ref.listen(isMaintenanceModeProvider, (_, __) => _cachedAuthNotifier!.notify());
     return _cachedRouter!;
   }
 
-  // Validates that the provider exists but doesn't rebuild the router when it changes
-  // We use a ChangeNotifier to notify GoRouter when to refresh
   final authNotifier = _SimpleNotifier();
   _cachedAuthNotifier = authNotifier;
 
-  ref.listen(authNotifierProvider, (_, __) {
-    authNotifier.notify();
-  });
-
-  ref.listen(onboardingNotifierProvider, (_, __) {
-    authNotifier.notify();
-  });
-
-  // Écouter les changements du mode maintenance pour rafraîchir le routeur
-  ref.listen(isMaintenanceModeProvider, (_, __) {
-    authNotifier.notify();
-  });
+  ref.listen(authNotifierProvider, (_, __) => authNotifier.notify());
+  ref.listen(onboardingNotifierProvider, (_, __) => authNotifier.notify());
+  ref.listen(isMaintenanceModeProvider, (_, __) => authNotifier.notify());
 
   _cachedRouter = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     refreshListenable: authNotifier,
     extraCodec: const AppRouterCodec(),
     observers: [
@@ -169,9 +191,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/splash';
       }
 
-      // 2. If not authenticated, redirect to login
+      // 2. If not authenticated, redirect to login (except for legal routes)
       if (!isAuthenticated) {
-        return isAuthRoute ? null : '/auth/login';
+        return (isAuthRoute || isLegalRoute) ? null : '/auth/login';
       }
 
       // 3. If authenticated, check onboarding loading status
@@ -204,7 +226,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 9. User is authenticated and has completed all setup steps
+      // 9. PHASE 2 FEATURE FLAGS — protect routes for transfers, marketplace, businesses, podcasts
+      // Using static flag checks (not Riverpod) to avoid lifecycle issues in redirect
+      final phase2Paths = <String, bool>{
+        '/transfers': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
+        '/marketplace': FeatureFlagService.isFeatureEnabled(AppFeature.marketplace),
+        '/businesses': FeatureFlagService.isFeatureEnabled(AppFeature.businessDirectory),
+        '/podcasts': FeatureFlagService.isFeatureEnabled(AppFeature.podcasts),
+        '/payment-accounts': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
+        '/payment-history': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
+        '/audio-rooms': FeatureFlagService.isFeatureEnabled(AppFeature.audioRooms),
+      };
+      for (final entry in phase2Paths.entries) {
+        if (state.matchedLocation.startsWith(entry.key) && !entry.value) {
+          return '/home';
+        }
+      }
+
+      // 10. User is authenticated and has completed all setup steps
       // Redirect to home if on splash, auth, consent, profile-config, or onboarding pages
       if (isSplashRoute ||
           isAuthRoute ||
@@ -259,17 +298,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile/edit',
         builder: (context, state) => const EditProfileScreen(),
       ),
+      // ⚠️ Les sous-routes statiques /profile/* DOIVENT être déclarées AVANT
+      // '/profile/:userId' : sinon GoRouter capture "my-posts" / "saved-posts" /
+      // "reposts" comme un userId → ProfileViewScreen charge un profil inexistant
+      // → écran « Profil supprimé ». (Ordre = priorité de matching dans GoRouter.)
+      GoRoute(
+        path: '/profile/my-posts',
+        builder: (context, state) => const MyPostsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/saved-posts',
+        builder: (context, state) => const SavedPostsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/reposts',
+        builder: (context, state) => const RepostsScreen(),
+      ),
       GoRoute(
         path: '/profile/:userId',
-        redirect: (context, state) {
-          final userId = state.pathParameters['userId']!;
-          final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-          // Redirect to profile tab if viewing own profile
-          if (currentUserId != null && currentUserId == userId) {
-            return '/profile';
-          }
-          return null;
-        },
+        // No redirect to '/profile' shell branch: push() + redirect to a shell
+        // route creates two ShellPage entries with the same key in the root
+        // navigator, triggering _debugCheckDuplicatedPageKeys. ProfileViewScreen
+        // handles own-profile display via userId == currentUser.uid check.
         builder: (context, state) {
           final userId = state.pathParameters['userId']!;
           final profile = state.extra as ProfileEntity?;
@@ -279,15 +329,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Deep link support for profile shares
       GoRoute(
         path: '/p/u/:userId',
-        redirect: (context, state) {
-          final userId = state.pathParameters['userId']!;
-          final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-          // Redirect to profile tab if viewing own profile
-          if (currentUserId != null && currentUserId == userId) {
-            return '/profile';
-          }
-          return '/profile/$userId';
-        },
+        redirect: (context, state) => '/profile/${state.pathParameters['userId']!}',
       ),
       GoRoute(
         path: '/qr-scanner',
@@ -330,6 +372,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CreateGroupScreen(),
       ),
       GoRoute(
+        path: '/groups/map',
+        builder: (context, state) => const GroupsMapScreen(),
+      ),
+      GoRoute(
         path: '/search',
         builder: (context, state) => const SearchScreen(),
       ),
@@ -364,6 +410,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           return GroupMembersScreen(groupId: groupId, group: group);
         },
       ),
+      GoRoute(
+        path: '/groups/:groupId/events/create',
+        builder: (context, state) {
+          final groupId = state.pathParameters['groupId']!;
+          final group = state.extra as GroupEntity?;
+          return CreateEventScreen(groupId: groupId, groupName: group?.name);
+        },
+      ),
+      GoRoute(
+        path: '/conversations/:conversationId/events/create',
+        builder: (context, state) {
+          final conversationId = state.pathParameters['conversationId']!;
+          return CreateEventScreen(conversationId: conversationId);
+        },
+      ),
+      GoRoute(
+        path: '/polls/:pollId/results',
+        builder: (context, state) {
+          final pollId = state.pathParameters['pollId']!;
+          return PollResultsScreen(pollId: pollId);
+        },
+      ),
+      GoRoute(
+        path: '/groups/:groupId/requests',
+        builder: (context, state) {
+          final groupId = state.pathParameters['groupId']!;
+          return GroupRequestsScreen(groupId: groupId);
+        },
+      ),
       // Notifications routes
       GoRoute(
         path: '/notifications',
@@ -385,11 +460,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/friends',
         builder: (context, state) => const FriendsScreen(),
       ),
-      // Settings route
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
+      // Settings route - COMMENTÉ (fusionné dans ProfileScreen)
+      // GoRoute(
+      //   path: '/settings',
+      //   builder: (context, state) => const SettingsScreen(),
+      // ),
       GoRoute(
         path: '/settings/terms',
         builder: (context, state) => const TermsScreen(),
@@ -405,6 +480,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/my-reports',
         builder: (context, state) => const MyReportsScreen(),
+      ),
+      // E2EE Security routes
+      GoRoute(
+        path: '/settings/security/backup',
+        builder: (context, state) => const SecurityBackupScreen(),
+      ),
+      GoRoute(
+        path: '/settings/security/devices',
+        builder: (context, state) => const DevicesScreen(),
       ),
       // Embassies routes
       GoRoute(
@@ -569,7 +653,78 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/transfers/recipients/add',
         builder: (context, state) => const FriendRecipientSelectScreen(),
       ),
+      // Payment Accounts routes
+      GoRoute(
+        path: '/payment-accounts',
+        builder: (context, state) => const PaymentAccountsScreen(),
+      ),
+      GoRoute(
+        path: '/payment-accounts/add',
+        builder: (context, state) => const AddPaymentAccountScreen(),
+      ),
+      // Payment History routes
+      GoRoute(
+        path: '/payment-history',
+        builder: (context, state) => const PaymentHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/payment-history/:transactionId',
+        builder: (context, state) {
+          final item = state.extra as PaymentHistoryItem?;
+          if (item != null) {
+            return PaymentDetailScreen(item: item);
+          }
+          // Fallback - go back to history list
+          return const PaymentHistoryScreen();
+        },
+      ),
+      // Support Tickets routes
+      GoRoute(
+        path: '/support',
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: '/support/new',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return CreateTicketScreen(
+            prefillSubject: extra?['subject'] as String?,
+            prefillDescription: extra?['description'] as String?,
+            relatedTransactionId: extra?['transactionId'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/support/:ticketId',
+        builder: (context, state) {
+          final ticket = state.extra as SupportTicketEntity?;
+          if (ticket != null) {
+            return TicketDetailScreen(ticket: ticket);
+          }
+          return const SupportTicketsScreen();
+        },
+      ),
+      GoRoute(
+        path: '/admin/support',
+        builder: (context, state) => const AdminSupportScreen(),
+      ),
       // Messages routes
+      GoRoute(
+        path: '/share',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is List<SharedMediaFile> && extra.isNotEmpty) {
+            return ShareToConversationScreen(mediaFiles: extra);
+          }
+
+          final media = SharedMediaService().consumeInitialMedia();
+          if (media != null && media.isNotEmpty) {
+            return ShareToConversationScreen(mediaFiles: media);
+          }
+
+          return const MessagesScreen();
+        },
+      ),
       GoRoute(
         path: '/messages/new',
         builder: (context, state) => const NewConversationScreen(),
@@ -600,6 +755,51 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: '/messages/:conversationId/starred',
+        builder: (context, state) {
+          final conversationId = state.pathParameters['conversationId']!;
+          return StarredMessagesScreen(conversationId: conversationId);
+        },
+      ),
+      // Audio Rooms routes
+      ...AudioRoomsRoutes.routes,
+      // Feed routes
+      GoRoute(
+        path: '/feed',
+        builder: (context, state) => FeedScreen(
+          hashtagFilter: state.uri.queryParameters['hashtag'],
+        ),
+      ),
+      GoRoute(
+        path: '/feed/create',
+        builder: (context, state) => const CreatePostScreen(),
+      ),
+      GoRoute(
+        path: '/feed/:postId/edit',
+        builder: (context, state) {
+          final post = state.extra as PostEntity?;
+          return CreatePostScreen(editingPost: post);
+        },
+      ),
+      GoRoute(
+        path: '/feed/:postId/reposts',
+        builder: (context, state) {
+          final postId = state.pathParameters['postId']!;
+          return RepostersScreen(postId: postId);
+        },
+      ),
+      GoRoute(
+        path: '/feed/:postId',
+        builder: (context, state) {
+          final postId = state.pathParameters['postId']!;
+          return PostDetailScreen(postId: postId);
+        },
+      ),
+      // Podcasts routes
+      ...PodcastsRoutes.routes,
+      // Calls routes
+      ...CallsRoutes.routes,
       // Shell routes (with bottom navigation and persistent state)
       StatefulShellRoute.indexedStack(
         builder:
@@ -680,7 +880,19 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 class _SimpleNotifier extends ChangeNotifier {
+  bool _pending = false;
+
+  // Debounce: coalesce rapid back-to-back calls (e.g. auth + onboarding both
+  // firing in the same Riverpod tick) into a single GoRouter refresh per frame.
+  // Without this, two simultaneous notifyListeners() calls can produce two
+  // conflicting page-list updates in the same frame, causing the Navigator
+  // duplicate-page-key assertion.
   void notify() {
-    notifyListeners();
+    if (_pending) return;
+    _pending = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _pending = false;
+      if (hasListeners) notifyListeners();
+    });
   }
 }
