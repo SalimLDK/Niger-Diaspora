@@ -40,7 +40,6 @@ import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
-import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../calls/domain/entities/call_entity.dart';
 import '../../../calls/presentation/providers/call_provider.dart';
 import '../../../calls/presentation/screens/call_screen.dart';
@@ -188,42 +187,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // En cas d'erreur, ne pas appliquer de filtre (fail-safe)
       // debugPrint('⚠️ Error setting up private group filter: $e');
     }
-  }
-
-  void _showEncryptionInfo(BuildContext context, bool isE2EE) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder:
-          (_) => Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppIcon(
-                  AppIcon.lock,
-                  color: isE2EE ? Colors.green.shade600 : Colors.grey.shade500,
-                  size: 32,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Chiffré',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isE2EE
-                      ? 'Chiffrement de bout en bout (Signal Protocol). Personne d\'autre ne peut lire vos messages.'
-                      : 'Chiffrement AES-256. Vos messages sont protégés sur le serveur.',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-    );
   }
 
   /// Calculate unread messages count and first unread index on conversation open
@@ -2855,49 +2818,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
       ),
       actions: [
-        // E2EE lock icon — individual chats
-        if (!widget.isGroup && widget.otherUserId != null)
-          ref
-              .watch(conversationE2EEStatusProvider(widget.otherUserId!))
-              .when(
-                data:
-                    (hasSession) => IconButton(
-                      icon: AppIcon(
-                        AppIcon.lock,
-                        size: 20,
-                        color:
-                            hasSession
-                                ? Colors.green.shade600
-                                : Colors.grey.shade400,
-                      ),
-                      tooltip: 'Chiffré',
-                      onPressed: () => _showEncryptionInfo(context, hasSession),
-                    ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-        // E2EE lock icon — group chats
-        if (widget.isGroup && widget.groupId != null)
-          ref
-              .watch(groupSenderKeyStatusProvider(widget.groupId!))
-              .when(
-                data:
-                    (hasSenderKey) => IconButton(
-                      icon: AppIcon(
-                        AppIcon.lock,
-                        size: 20,
-                        color:
-                            hasSenderKey
-                                ? Colors.green.shade600
-                                : Colors.grey.shade400,
-                      ),
-                      tooltip: 'Chiffré',
-                      onPressed:
-                          () => _showEncryptionInfo(context, hasSenderKey),
-                    ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
         // Call buttons for individual chats only
         if (!widget.isGroup && !isDeletedUser) ...[
           IconButton(

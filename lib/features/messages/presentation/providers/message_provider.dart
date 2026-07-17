@@ -350,52 +350,56 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
             (newMessages) {
               if (!mounted) return;
               if (newMessages.isNotEmpty) {
-                debugPrint('📥 New messages received: ${newMessages.length}');
                 final existingMessages = List<MessageEntity>.from(state.messages);
 
                 for (final newMessage in newMessages) {
-                  debugPrint('📨 Processing new message: type=${newMessage.type}, id=${newMessage.id}, lat=${newMessage.latitude}, lng=${newMessage.longitude}');
-
-                  // Priority 1: exact clientMessageId match (deterministic, no false merges)
-                  int optimisticIndex = existingMessages.indexWhere(
-                    (m) =>
-                        m.id.startsWith('temp_') &&
-                        newMessage.clientMessageId != null &&
-                        m.clientMessageId == newMessage.clientMessageId,
-                  );
-
-                  // Priority 2: fall back to temporal+content heuristic for messages
-                  // without a clientMessageId (e.g. older clients, other message types)
-                  if (optimisticIndex == -1) {
+                  // Priority 1: match by clientMessageId — que la copie locale soit
+                  // encore optimiste (`temp_`) OU que son id ait déjà été remplacé
+                  // par l'id réel via updateMessageStatusAndCancelTimeout(). Ne plus
+                  // exiger le préfixe `temp_` ferme la course « l'INSERT temps réel
+                  // arrive juste après le retour de send() » qui créait un doublon.
+                  int optimisticIndex = -1;
+                  if (newMessage.clientMessageId != null) {
                     optimisticIndex = existingMessages.indexWhere(
-                      (m) {
-                        final idMatch = m.id.startsWith('temp_');
-                        final senderMatch = m.senderId == newMessage.senderId;
-                        final typeMatch = m.type == newMessage.type;
-                        final timeDiff = m.createdAt.difference(newMessage.createdAt).abs().inSeconds;
-                        final timeMatch = timeDiff < 5;
-                        final contentMatch = _matchesOptimisticMessage(m, newMessage);
-                        // Only use temporal matching when no clientMessageId is available
-                        final noClientId = m.clientMessageId == null && newMessage.clientMessageId == null;
-
-                        if (idMatch && senderMatch && typeMatch) {
-                          debugPrint('🔍 Checking optimistic match: id=${m.id}, timeDiff=$timeDiff, timeMatch=$timeMatch, contentMatch=$contentMatch');
-                        }
-
-                        return idMatch && senderMatch && typeMatch && timeMatch && contentMatch && noClientId;
-                      },
+                      (m) => m.clientMessageId == newMessage.clientMessageId,
                     );
                   }
 
+                  // Priority 2: heuristique temporelle pour les messages sans
+                  // clientMessageId des deux côtés (stickers, GIF, localisation,
+                  // anciens clients). Fenêtre élargie à 15 s pour qu'un aller-retour
+                  // lent (gros média, établissement de session Signal) fusionne
+                  // quand même l'écho au lieu de le dupliquer.
+                  if (optimisticIndex == -1) {
+                    optimisticIndex = existingMessages.indexWhere((m) {
+                      final idMatch = m.id.startsWith('temp_');
+                      final senderMatch = m.senderId == newMessage.senderId;
+                      final typeMatch = m.type == newMessage.type;
+                      final timeDiff = m.createdAt
+                          .difference(newMessage.createdAt)
+                          .abs()
+                          .inSeconds;
+                      final timeMatch = timeDiff < 15;
+                      final contentMatch = _matchesOptimisticMessage(m, newMessage);
+                      final noClientId = m.clientMessageId == null &&
+                          newMessage.clientMessageId == null;
+                      return idMatch &&
+                          senderMatch &&
+                          typeMatch &&
+                          timeMatch &&
+                          contentMatch &&
+                          noClientId;
+                    });
+                  }
+
                   if (optimisticIndex != -1) {
-                    debugPrint('✅ Found optimistic match at index $optimisticIndex, replacing with real message');
                     _cancelOptimisticTimeout(existingMessages[optimisticIndex].id);
-                    existingMessages[optimisticIndex] = newMessage;
+                    existingMessages[optimisticIndex] = _reconcileEcho(
+                      existingMessages[optimisticIndex],
+                      newMessage,
+                    );
                   } else if (!existingMessages.any((m) => m.id == newMessage.id)) {
-                    debugPrint('➕ Adding new message (no optimistic match found)');
                     existingMessages.add(newMessage);
-                  } else {
-                    debugPrint('⏭️ Message already exists, skipping');
                   }
                 }
 
@@ -514,6 +518,21 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   void _cancelOptimisticTimeout(String messageId) {
     _optimisticTimeouts[messageId]?.cancel();
     _optimisticTimeouts.remove(messageId);
+  }
+
+  /// Fusionne l'écho temps réel d'un message qu'on a envoyé dans sa copie locale.
+  ///
+  /// Adopte l'id réel et les métadonnées du serveur, mais conserve le contenu
+  /// déjà déchiffré localement : un message Signal ne peut pas être re-déchiffré
+  /// par son propre expéditeur, donc la ligne temps réel remplacerait sinon notre
+  /// texte clair par le placeholder « 🔐 Message chiffré ».
+  MessageEntity _reconcileEcho(MessageEntity local, MessageEntity incoming) {
+    final incomingIsUnreadable =
+        incoming.content.isEmpty || incoming.content == '🔐 Message chiffré';
+    if (incomingIsUnreadable && local.content.isNotEmpty) {
+      return incoming.copyWith(content: local.content);
+    }
+    return incoming;
   }
 
   /// Check if an optimistic message matches a new message from the server
