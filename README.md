@@ -4,14 +4,18 @@ Bienvenue sur le projet **Diaspo Niger**.
 
 ## Documentation
 
-La documentation détaillée se trouve dans le dossier `docs/` :
+La documentation est organisée dans le dossier `docs/` — voir le **[sommaire complet](docs/README.md)**.
+
+Points d'entrée principaux :
 
 1.  **[Vue d'ensemble du Projet](docs/PROJECT_OVERVIEW.md)**
     *   Architecture, Structure des dossiers, Stack technique.
-2.  **[Configuration](docs/CONFIGURATION.md)**
+2.  **[Configuration](docs/configuration/CONFIGURATION.md)**
     *   Variables d'environnement, Feature Flags, Stripe, Firebase.
-3.  **[Déploiement](docs/DEPLOYMENT.md)**
+3.  **[Déploiement](docs/deploiement/DEPLOYMENT.md)**
     *   Génération des livrables (APK, AAB, IPA) pour la production.
+
+Les documents historiques (audits remédiés, plans exécutés) sont dans [docs/archive/](docs/archive/README.md).
 
 ## Démarrage Rapide
 
