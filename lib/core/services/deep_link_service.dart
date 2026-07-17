@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Service pour gérer les liens dynamiques et le partage social
@@ -8,9 +9,9 @@ class DeepLinkService {
 
   DeepLinkService._();
 
-  // Base URL pour les liens dynamiques
-  static const String _baseUrl = 'https://diasponiger.page.link';
-  static const String _webFallbackUrl = 'https://diasponiger.com';
+  // Base URL pour les liens (utilise Firebase Hosting)
+  // Note: Firebase Dynamic Links est déprécié depuis août 2025
+  static String get _baseUrl => dotenv.env['DEEP_LINK_BASE_URL'] ?? 'https://diasponiger.web.app';
 
   // ==================== Génération de liens ====================
 
@@ -24,6 +25,22 @@ class DeepLinkService {
       socialMetaTagInfo: SocialMetaTagInfo(
         title: userName ?? 'Membre Diaspo Niger',
         description: 'Rejoignez la communauté nigérienne à travers le monde',
+      ),
+    );
+  }
+
+  /// Génère un lien de partage pour une publication du feed
+  String generatePostLink(String postId, {String? authorName}) {
+    final path = '/feed/$postId';
+    return _buildDynamicLink(
+      path: path,
+      title: authorName != null
+          ? 'Publication de $authorName'
+          : 'Publication Diaspo Niger',
+      description: 'Découvrez cette publication sur Diaspo Niger',
+      socialMetaTagInfo: SocialMetaTagInfo(
+        title: authorName ?? 'Diaspo Niger',
+        description: 'Découvrez cette publication de la communauté',
       ),
     );
   }
@@ -117,6 +134,97 @@ class DeepLinkService {
     );
   }
 
+  /// Genere un lien de partage pour un salon audio
+  String generateAudioRoomLink(
+    String roomId, {
+    String? roomTitle,
+    String? hostName,
+    bool isLive = false,
+  }) {
+    final path = '/audio-rooms/$roomId';
+    final statusText = isLive ? '🔴 EN DIRECT' : 'Salon audio';
+    return _buildDynamicLink(
+      path: path,
+      title: roomTitle ?? 'Salon Audio Diaspo Niger',
+      description: hostName != null
+          ? '$statusText - Anime par $hostName'
+          : statusText,
+      socialMetaTagInfo: SocialMetaTagInfo(
+        title: roomTitle ?? 'Salon Audio',
+        description: 'Rejoignez ce salon audio sur Diaspo Niger',
+      ),
+    );
+  }
+
+  /// Génère un lien de partage pour un podcast
+  String generatePodcastLink(
+    String podcastId, {
+    String? podcastTitle,
+    String? hostName,
+    String? imageUrl,
+  }) {
+    final path = '/podcasts/$podcastId';
+    return _buildDynamicLink(
+      path: path,
+      title: podcastTitle ?? 'Podcast Diaspo Niger',
+      description: hostName != null
+          ? 'Podcast par $hostName'
+          : 'Découvrez ce podcast sur Diaspo Niger',
+      imageUrl: imageUrl,
+      socialMetaTagInfo: SocialMetaTagInfo(
+        title: podcastTitle ?? 'Podcast',
+        description: 'Écoutez ce podcast sur Diaspo Niger',
+        imageUrl: imageUrl,
+      ),
+    );
+  }
+
+  /// Génère un lien de partage pour un épisode de podcast
+  String generateEpisodeLink(
+    String episodeId, {
+    String? episodeTitle,
+    String? podcastTitle,
+    String? imageUrl,
+    Duration? duration,
+  }) {
+    final path = '/podcasts/episodes/$episodeId';
+    final durationStr = duration != null
+        ? ' - ${duration.inMinutes} min'
+        : '';
+    return _buildDynamicLink(
+      path: path,
+      title: episodeTitle ?? 'Épisode Diaspo Niger',
+      description: podcastTitle != null
+          ? '$podcastTitle$durationStr'
+          : 'Écoutez cet épisode$durationStr',
+      imageUrl: imageUrl,
+      socialMetaTagInfo: SocialMetaTagInfo(
+        title: episodeTitle ?? 'Épisode',
+        description: podcastTitle ?? 'Podcast Diaspo Niger',
+        imageUrl: imageUrl,
+      ),
+    );
+  }
+
+  /// Génère un lien de partage pour un appel (rejoindre un appel de groupe)
+  String generateCallLink(
+    String callId, {
+    String? callerName,
+    bool isVideo = false,
+  }) {
+    final path = '/calls/$callId';
+    final callType = isVideo ? 'Appel vidéo' : 'Appel audio';
+    return _buildDynamicLink(
+      path: path,
+      title: callerName != null ? '$callType avec $callerName' : callType,
+      description: 'Rejoignez cet appel sur Diaspo Niger',
+      socialMetaTagInfo: SocialMetaTagInfo(
+        title: callType,
+        description: 'Rejoignez cet appel',
+      ),
+    );
+  }
+
   /// Génère un lien d'invitation à rejoindre l'app
   String generateInviteLink({String? referrerId}) {
     var path = '/invite';
@@ -143,29 +251,10 @@ class DeepLinkService {
     String? imageUrl,
     SocialMetaTagInfo? socialMetaTagInfo,
   }) {
-    // Construire l'URL de base avec le path
-    final deepLink = '$_webFallbackUrl$path';
-
-    // Encoder les paramètres pour le lien dynamique
-    final encodedLink = Uri.encodeComponent(deepLink);
-    final encodedTitle = Uri.encodeComponent(socialMetaTagInfo?.title ?? title);
-    final encodedDesc = Uri.encodeComponent(socialMetaTagInfo?.description ?? description);
-
-    // Construire le lien Firebase Dynamic Links
-    var dynamicLink = '$_baseUrl/?link=$encodedLink';
-    dynamicLink += '&apn=com.diasponiger.app'; // Android package name
-    dynamicLink += '&ibi=com.diasponiger.app'; // iOS bundle ID
-    dynamicLink += '&st=$encodedTitle'; // Social title
-    dynamicLink += '&sd=$encodedDesc'; // Social description
-
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      dynamicLink += '&si=${Uri.encodeComponent(imageUrl)}';
-    }
-
-    // Fallback vers le web si l'app n'est pas installée
-    dynamicLink += '&ofl=$_webFallbackUrl';
-
-    return dynamicLink;
+    // Construire directement l'URL avec le path
+    // Note: Firebase Dynamic Links est déprécié, on utilise des liens directs
+    // L'app gère ces liens via App Links (Android) / Universal Links (iOS)
+    return '$_baseUrl$path';
   }
 
   // ==================== Partage ====================
@@ -178,9 +267,11 @@ class DeepLinkService {
   }) async {
     try {
       final shareText = text ?? title;
-      await Share.share(
-        '$shareText\n\n$link',
-        subject: title,
+      await SharePlus.instance.share(
+        ShareParams(
+          text: '$shareText\n\n$link',
+          subject: title,
+        ),
       );
     } catch (e) {
       debugPrint('DeepLinkService: Error sharing link: $e');
@@ -288,6 +379,89 @@ class DeepLinkService {
     );
   }
 
+  /// Partage un salon audio
+  Future<void> shareAudioRoom({
+    required String roomId,
+    required String roomTitle,
+    String? hostName,
+    bool isLive = false,
+  }) async {
+    final link = generateAudioRoomLink(
+      roomId,
+      roomTitle: roomTitle,
+      hostName: hostName,
+      isLive: isLive,
+    );
+    final statusText = isLive ? '🔴 EN DIRECT: ' : '';
+    await shareLink(
+      link: link,
+      title: roomTitle,
+      text: '$statusText"$roomTitle" sur Diaspo Niger',
+    );
+  }
+
+  /// Partage un podcast
+  Future<void> sharePodcast({
+    required String podcastId,
+    required String podcastTitle,
+    String? hostName,
+    String? imageUrl,
+  }) async {
+    final link = generatePodcastLink(
+      podcastId,
+      podcastTitle: podcastTitle,
+      hostName: hostName,
+      imageUrl: imageUrl,
+    );
+    await shareLink(
+      link: link,
+      title: podcastTitle,
+      text: 'Écoutez "$podcastTitle" sur Diaspo Niger',
+    );
+  }
+
+  /// Partage un épisode de podcast
+  Future<void> shareEpisode({
+    required String episodeId,
+    required String episodeTitle,
+    String? podcastTitle,
+    String? imageUrl,
+    Duration? duration,
+  }) async {
+    final link = generateEpisodeLink(
+      episodeId,
+      episodeTitle: episodeTitle,
+      podcastTitle: podcastTitle,
+      imageUrl: imageUrl,
+      duration: duration,
+    );
+    final podcastText = podcastTitle != null ? ' du podcast "$podcastTitle"' : '';
+    await shareLink(
+      link: link,
+      title: episodeTitle,
+      text: 'Écoutez "$episodeTitle"$podcastText sur Diaspo Niger',
+    );
+  }
+
+  /// Partage un lien d'appel
+  Future<void> shareCall({
+    required String callId,
+    String? callerName,
+    bool isVideo = false,
+  }) async {
+    final link = generateCallLink(
+      callId,
+      callerName: callerName,
+      isVideo: isVideo,
+    );
+    final callType = isVideo ? 'appel vidéo' : 'appel audio';
+    await shareLink(
+      link: link,
+      title: 'Rejoindre l\'appel',
+      text: 'Rejoignez cet $callType sur Diaspo Niger',
+    );
+  }
+
   // ==================== Parsing des liens ====================
 
   /// Parse un lien dynamique et retourne les informations de navigation
@@ -295,8 +469,10 @@ class DeepLinkService {
     try {
       final uri = Uri.parse(url);
 
-      // Vérifier si c'est un lien dynamique
-      if (uri.host.contains('diasponiger')) {
+      // Vérifier si c'est un lien dynamique (exact host match to prevent spoofing)
+      if (uri.host == 'diasponiger.web.app' ||
+          uri.host == 'diaspo-niger.web.app' ||
+          uri.host == 'diasponiger.com') {
         final link = uri.queryParameters['link'];
         if (link != null) {
           return _parseLink(Uri.parse(Uri.decodeComponent(link)));
@@ -377,6 +553,51 @@ class DeepLinkService {
           type: DeepLinkType.invite,
           id: uri.queryParameters['ref'],
         );
+
+      // Support pour /g/{id} (raccourci pour groups)
+      case 'g':
+        if (segments.length >= 2) {
+          return DeepLinkInfo(
+            type: DeepLinkType.group,
+            id: segments[1],
+          );
+        }
+        break;
+
+      case 'audio-rooms':
+        if (segments.length >= 2) {
+          return DeepLinkInfo(
+            type: DeepLinkType.audioRoom,
+            id: segments[1],
+          );
+        }
+        break;
+
+      case 'podcasts':
+        // /podcasts/episodes/{episodeId}
+        if (segments.length >= 3 && segments[1] == 'episodes') {
+          return DeepLinkInfo(
+            type: DeepLinkType.episode,
+            id: segments[2],
+          );
+        }
+        // /podcasts/{podcastId}
+        if (segments.length >= 2) {
+          return DeepLinkInfo(
+            type: DeepLinkType.podcast,
+            id: segments[1],
+          );
+        }
+        break;
+
+      case 'calls':
+        if (segments.length >= 2) {
+          return DeepLinkInfo(
+            type: DeepLinkType.call,
+            id: segments[1],
+          );
+        }
+        break;
     }
 
     return null;
@@ -404,6 +625,10 @@ enum DeepLinkType {
   business,
   product,
   invite,
+  audioRoom,
+  podcast,
+  episode,
+  call,
 }
 
 /// Informations extraites d'un lien profond
@@ -433,6 +658,14 @@ class DeepLinkInfo {
         return '/marketplace/$id';
       case DeepLinkType.invite:
         return '/home';
+      case DeepLinkType.audioRoom:
+        return '/audio-rooms/$id';
+      case DeepLinkType.podcast:
+        return '/podcasts/$id';
+      case DeepLinkType.episode:
+        return '/podcasts/episodes/$id';
+      case DeepLinkType.call:
+        return '/calls/$id';
     }
   }
 }

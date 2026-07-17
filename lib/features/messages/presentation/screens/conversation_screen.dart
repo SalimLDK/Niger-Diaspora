@@ -7,12 +7,15 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/locale_helper.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
 import '../providers/typing_indicator_provider.dart';
 import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
+import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -20,7 +23,11 @@ import '../widgets/uploading_media_skeleton.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../groups/domain/entities/group_pinned_item_entity.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
+import '../../../groups/presentation/widgets/group_pinned_banner.dart';
+import '../../../polls/domain/entities/poll_entity.dart';
+import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
@@ -29,6 +36,18 @@ import '../../../settings/data/models/chat_background_model.dart';
 import '../../../settings/domain/entities/chat_background_entity.dart';
 import '../widgets/chat_background_picker_modal.dart';
 import 'dart:convert';
+import '../../../../core/errors/failure_mapper.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/providers/in_app_notification_provider.dart';
+import '../../domain/services/message_deletion_service.dart';
+import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
+import '../../../calls/domain/entities/call_entity.dart';
+import '../../../calls/presentation/providers/call_provider.dart';
+import '../../../calls/presentation/screens/call_screen.dart';
+import '../../../gifs/domain/entities/gif_entity.dart';
+import '../../../stickers/domain/entities/sticker_entity.dart';
+import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -73,15 +92,28 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // For highlighting a message when scrolling to it
   String? _highlightedMessageId;
 
+  // Unread messages separator
+  int? _firstUnreadMessageIndex;
+  int _unreadCountOnOpen = 0;
+  bool _hasCalculatedUnread = false;
+  bool _hasScrolledToInitialPosition = false;
+
+  // Multi-selection mode
+  bool _isSelectionMode = false;
+  final Set<String> _selectedMessageIds = {};
+
+  // Search mode
+  bool _isSearchMode = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  // Track app lifecycle state to prevent marking as read when in background
+  bool _isAppInForeground = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // debugPrint('🔍 ConversationScreen initialized:');
-    // debugPrint('   conversationId: ${widget.conversationId}');
-    // debugPrint('   isGroup: ${widget.isGroup}');
-    // debugPrint('   groupId: ${widget.groupId}');
-    // debugPrint('   otherUserId: ${widget.otherUserId}');
 
     _scrollController.addListener(_onScroll);
 
@@ -95,11 +127,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       curve: Curves.easeOut,
     );
 
-    // Mark as read on open
+    // Mark as read and load background after frame is built
+    // Note: _calculateUnreadOnOpen() is called via ref.listen in build() when messages are loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
       ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
       _loadChatBackground();
       _setupPrivateGroupFilter();
+
+      // Clear unread mention badge when opening a group conversation
+      if (widget.isGroup) {
+        final userId = ref.read(currentUserProvider).valueOrNull?.id;
+        if (userId != null) {
+          ref
+              .read(messageRepositoryProvider)
+              .clearUnreadMentions(
+                conversationId: widget.conversationId,
+                userId: userId,
+              );
+        }
+      }
+
+      // Signal this conversation is open to prevent in-app notifications
+      NotificationService().setCurrentConversation(widget.conversationId);
+      ref
+          .read(inAppNotificationProvider.notifier)
+          .setCurrentConversation(widget.conversationId);
     });
   }
 
@@ -137,30 +190,156 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
   }
 
+  void _showEncryptionInfo(BuildContext context, bool isE2EE) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (_) => Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppIcon(
+                  AppIcon.lock,
+                  color: isE2EE ? Colors.green.shade600 : Colors.grey.shade500,
+                  size: 32,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Chiffré',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isE2EE
+                      ? 'Chiffrement de bout en bout (Signal Protocol). Personne d\'autre ne peut lire vos messages.'
+                      : 'Chiffrement AES-256. Vos messages sont protégés sur le serveur.',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  /// Calculate unread messages count and first unread index on conversation open
+  void _calculateUnreadOnOpen() {
+    if (_hasCalculatedUnread) return;
+
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    final paginationState = ref.read(
+      paginatedMessagesProvider(widget.conversationId),
+    );
+    final messages = paginationState.messages;
+
+    if (messages.isEmpty) return;
+
+    int unreadCount = 0;
+    int? firstUnreadIndex;
+
+    for (int i = 0; i < messages.length; i++) {
+      final message = messages[i];
+      // Skip own messages
+      if (message.senderId == currentUser.id) continue;
+      // Check if message is unread
+      if (!message.readBy.contains(currentUser.id)) {
+        unreadCount++;
+        // Track the first unread message index
+        firstUnreadIndex ??= i;
+      }
+    }
+
+    if (unreadCount > 0 && firstUnreadIndex != null) {
+      setState(() {
+        _unreadCountOnOpen = unreadCount;
+        _firstUnreadMessageIndex = firstUnreadIndex;
+        _hasCalculatedUnread = true;
+      });
+      _scrollToUnreadOrBottom(firstUnreadIndex, messages.length);
+    } else {
+      _hasCalculatedUnread = true;
+      _scrollToUnreadOrBottom(null, messages.length);
+    }
+  }
+
+  /// Scroll vers le premier message non lu (si nécessaire)
+  /// Avec reverse: true, la liste démarre déjà au bas (position 0 = messages récents)
+  void _scrollToUnreadOrBottom(int? unreadIndex, int totalMessages) {
+    if (_hasScrolledToInitialPosition) return;
+    _hasScrolledToInitialPosition = true;
+
+    // Avec reverse: true, la liste démarre au bas (position 0)
+    // Donc pas besoin de scroll si pas de messages non lus
+    if (unreadIndex == null) return;
+
+    // Attendre que le ListView soit complètement rendu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      if (maxExtent <= 0) return;
+
+      // Avec reverse: true, l'index dans la liste inversée est:
+      // reversedIndex = totalMessages - 1 - unreadIndex
+      // Position = (reversedIndex / totalMessages) * maxExtent
+      final reversedIndex = totalMessages - 1 - unreadIndex;
+      final ratio = reversedIndex / totalMessages;
+      final targetPosition = (maxExtent * ratio).clamp(0.0, maxExtent);
+
+      _scrollController.jumpTo(targetPosition);
+    });
+  }
+
   @override
   void dispose() {
+    // Clear current conversation to re-enable in-app notifications
+    NotificationService().setCurrentConversation(null);
+    // Note: We don't clear the provider here because dispose() may be called
+    // after the widget is unmounted, and ref may no longer be valid.
+    // The provider will be cleared when navigating to a new conversation.
+
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _scrollButtonController.dispose();
     _showScrollToBottomButton.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Refresh date separators when app resumes from background
+
+    // Track foreground state to prevent marking messages as read when in background
     if (state == AppLifecycleState.resumed) {
+      _isAppInForeground = true;
+      ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
+      ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
       setState(() {
         // Force rebuild to update date labels like "Aujourd'hui", "Hier"
       });
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _isAppInForeground = false;
     }
   }
 
   void _onScroll() {
-    // Check if we're near the top to load more
-    if (_scrollController.position.pixels <= 100) {
+    // With reverse: true, maxScrollExtent is at the TOP (oldest messages)
+    // and pixels = 0 is at the BOTTOM (newest messages)
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+
+    // Check if we're near the top (oldest messages) to load more
+    if ((maxScroll - currentScroll) <= 100) {
       final paginationState = ref.read(
         paginatedMessagesProvider(widget.conversationId),
       );
@@ -171,13 +350,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       }
     }
 
-    // Track if we're near bottom
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    _isNearBottom = (maxScroll - currentScroll) <= 100;
+    // Track if we're near bottom (newest messages = near pixels 0)
+    _isNearBottom = currentScroll <= 100;
 
-    // Show/hide scroll to bottom button (using ValueNotifier to avoid setState)
-    final shouldShowButton = (maxScroll - currentScroll) > 300;
+    // Show/hide scroll to bottom button (show when scrolled up from bottom)
+    final shouldShowButton = currentScroll > 300;
     if (shouldShowButton != _showScrollToBottomButton.value) {
       _showScrollToBottomButton.value = shouldShowButton;
       if (shouldShowButton) {
@@ -197,9 +374,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final index = messages.indexWhere((m) => m.id == messageId);
 
     if (index != -1 && _scrollController.hasClients) {
+      // With reverse: true, convert to reversed index
+      final reversedIndex = messages.length - 1 - index;
       // Estimate position - each message is roughly 80 pixels
-      // This is approximate, for exact positioning we'd need GlobalKey per message
-      final estimatedPosition = index * 80.0;
+      final estimatedPosition = reversedIndex * 80.0;
       _scrollController.animateTo(
         estimatedPosition.clamp(0, _scrollController.position.maxScrollExtent),
         duration: const Duration(milliseconds: 300),
@@ -223,9 +401,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   void _scrollToBottom() {
+    // With reverse: true, position 0 is at the bottom (newest messages)
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -252,7 +431,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       return MessageEntity(
         id: data['id'] as String? ?? '',
         senderId: data['senderId'] as String? ?? '',
-        senderName: data['senderName'] as String? ?? 'Utilisateur',
+        senderName:
+            data['senderName'] as String? ?? AppLocalizations.of(context)!.user,
         content: data['content'] as String? ?? '',
         type: MessageType.values.firstWhere(
           (e) => e.name == data['type'],
@@ -281,6 +461,256 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     setState(() {
       _replyToMessage = null;
     });
+  }
+
+  // --- Multi-selection & Forward ---
+
+  void _handleForward(MessageEntity message) {
+    ForwardConversationPicker.show(context, messages: [message]);
+  }
+
+  Future<void> _pinMessage(MessageEntity message) async {
+    final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
+    if (currentUserId == null) return;
+
+    final success = await ref
+        .read(groupPinActionsNotifierProvider.notifier)
+        .pinItem(
+          groupId:
+              widget.isGroup ? (widget.groupId ?? widget.conversationId) : null,
+          conversationId: widget.isGroup ? null : widget.conversationId,
+          itemType: GroupPinnedItemType.message,
+          itemId: message.id,
+          pinnedBy: currentUserId,
+        );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Message épinglé' : 'Impossible d\'épingler ce message',
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Détache un message épinglé depuis son menu contextuel : le bandeau ne
+  /// porte plus de croix, c'est le seul chemin de désépinglage (comme Telegram).
+  Future<void> _unpinMessage(MessageEntity message) async {
+    final items =
+        (widget.isGroup && widget.groupId != null
+                ? ref.read(groupPinnedItemsProvider(widget.groupId!))
+                : ref.read(
+                  conversationPinnedItemsProvider(widget.conversationId),
+                ))
+            .valueOrNull;
+    final pin =
+        items
+            ?.where(
+              (i) =>
+                  i.itemType == GroupPinnedItemType.message &&
+                  i.itemId == message.id,
+            )
+            .firstOrNull;
+    if (pin == null) return;
+
+    final success = await ref
+        .read(groupPinActionsNotifierProvider.notifier)
+        .unpinItem(pin.id);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Message détaché' : 'Impossible de détacher ce message',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _handleSelect(MessageEntity message) {
+    setState(() {
+      if (!_isSelectionMode) {
+        // Enter selection mode with this message
+        _isSelectionMode = true;
+        _selectedMessageIds.clear();
+        _selectedMessageIds.add(message.id);
+      } else if (_selectedMessageIds.contains(message.id)) {
+        _selectedMessageIds.remove(message.id);
+        if (_selectedMessageIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedMessageIds.add(message.id);
+      }
+    });
+  }
+
+  /// Handle call back from a call message bubble
+  Future<void> _handleCallBack(MessageEntity message) async {
+    // Only allow call back in 1:1 conversations
+    if (widget.isGroup || widget.otherUserId == null) {
+      return;
+    }
+
+    // Determine call type from the message
+    final callType =
+        message.callType == 'video' ? CallType.video : CallType.audio;
+
+    // Initiate call
+    final l10n = AppLocalizations.of(context)!;
+    final call = await ref
+        .read(currentCallProvider.notifier)
+        .initiateCall(
+          calleeId: widget.otherUserId!,
+          calleeName: widget.conversationName ?? l10n.user,
+          calleePhotoUrl: widget.conversationImageUrl,
+          type: callType,
+        );
+
+    if (call != null && mounted) {
+      // Navigate to call screen
+      context.push('/calls/${call.id}');
+    } else if (mounted) {
+      final callState = ref.read(currentCallProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(callState.error ?? l10n.callError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedMessageIds.clear();
+    });
+  }
+
+  List<MessageEntity> _getSelectedMessages(List<MessageEntity> allMessages) {
+    return allMessages.where((m) => _selectedMessageIds.contains(m.id)).toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  Future<void> _forwardSelectedMessages(List<MessageEntity> allMessages) async {
+    final selected = _getSelectedMessages(allMessages);
+    if (selected.isEmpty) return;
+
+    final result = await ForwardConversationPicker.show(
+      context,
+      messages: selected,
+    );
+
+    if (result == true && mounted) {
+      _exitSelectionMode();
+    }
+  }
+
+  Future<void> _deleteSelectedMessages(List<MessageEntity> allMessages) async {
+    final selected = _getSelectedMessages(allMessages);
+    if (selected.isEmpty) return;
+
+    final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
+    if (currentUserId == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: ctx.surfaceColor,
+            title: Text(
+              l10n.deleteSelectedMessages(selected.length),
+              style: TextStyle(color: ctx.textPrimaryColor),
+            ),
+            content: Text(
+              l10n.messagesDeletedForYou,
+              style: TextStyle(color: ctx.textSecondaryColor),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  l10n.cancel,
+                  style: TextStyle(color: ctx.textSecondaryColor),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  l10n.delete,
+                  style: TextStyle(
+                    color:
+                        ctx.isDarkMode ? AppColors.errorDark : AppColors.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && mounted) {
+      // Utiliser la suppression batch pour de meilleures performances
+      final service = ref.read(messageDeletionServiceProvider);
+      final result = await service.deleteMultipleForMe(
+        conversationId: widget.conversationId,
+        messageIds: selected.map((m) => m.id).toList(),
+        userId: currentUserId,
+      );
+
+      result.fold(
+        (failure) {
+          // Afficher un message d'erreur user-friendly
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  FailureMapper.toUserFriendlyString(failure.message, context),
+                ),
+                backgroundColor:
+                    context.isDarkMode ? AppColors.errorDark : AppColors.error,
+              ),
+            );
+          }
+        },
+        (deletedCount) {
+          // Mettre à jour l'UI localement pour chaque message supprimé
+          final notifier = ref.read(
+            paginatedMessagesProvider(widget.conversationId).notifier,
+          );
+          for (final message in selected) {
+            notifier.markMessageDeletedForMe(message.id, currentUserId);
+          }
+          // Afficher confirmation
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.messagesDeletedSuccess(deletedCount)),
+                backgroundColor: AppColors.secondary,
+              ),
+            );
+          }
+        },
+      );
+      _exitSelectionMode();
+    }
+  }
+
+  void _starSelectedMessages(List<MessageEntity> allMessages) {
+    final selected = _getSelectedMessages(allMessages);
+    if (selected.isEmpty) return;
+
+    final notifier = ref.read(
+      paginatedMessagesProvider(widget.conversationId).notifier,
+    );
+    for (final message in selected) {
+      notifier.toggleStar(message.id);
+    }
+    _exitSelectionMode();
   }
 
   Future<void> _loadChatBackground() async {
@@ -350,6 +780,28 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         (conversation.createdBy == currentUser.id ||
             conversation.adminIds.contains(currentUser.id));
 
+    // Get fallback data from providers if widget params are null
+    String? displayName = widget.conversationName;
+    String? displayImage = widget.conversationImageUrl;
+    bool canPostEvents = false;
+    bool canPostPolls = false;
+
+    if (widget.isGroup && widget.groupId != null) {
+      final groupData =
+          ref.read(groupStreamProvider(widget.groupId!)).valueOrNull;
+      displayName ??= groupData?.name;
+      displayImage ??= groupData?.imageUrl;
+      canPostEvents =
+          groupData?.permissions.canPostEvents(isAdmin: isAdmin) ?? false;
+      canPostPolls =
+          groupData?.permissions.canPostPolls(isAdmin: isAdmin) ?? false;
+    } else if (!widget.isGroup && widget.otherUserId != null) {
+      final otherUser =
+          ref.read(userStreamProvider(widget.otherUserId!)).valueOrNull;
+      displayName ??= otherUser?.displayName;
+      displayImage ??= otherUser?.photoUrl;
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -358,104 +810,104 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           (context) => ConversationOptionsModal(
             conversationId: widget.conversationId,
             otherUserId: widget.otherUserId,
-            otherUserName: widget.conversationName,
-            otherUserPhotoUrl: widget.conversationImageUrl,
+            otherUserName: displayName,
+            otherUserPhotoUrl: displayImage,
             isGroup: widget.isGroup,
             isAdmin: isAdmin,
+            groupId: widget.groupId,
+            canPostEvents: canPostEvents,
+            canPostPolls: canPostPolls,
             onChangeBackground: _showBackgroundPicker,
+            onSearch: () {
+              setState(() {
+                _isSearchMode = true;
+              });
+            },
           ),
     );
   }
 
   // Get date separator label
   String _getDateLabel(DateTime date, AppLocalizations l10n) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final messageDate = DateTime(date.year, date.month, date.day);
 
     if (messageDate == today) {
-      return "Aujourd'hui";
+      return l10n.today('');
     } else if (messageDate == yesterday) {
-      return 'Hier';
+      return l10n.yesterday('');
     } else if (now.difference(date).inDays < 7) {
-      // Show day name for last week
-      return DateFormat.EEEE('fr').format(date);
+      return DateFormat.EEEE(
+        LocaleHelper.getDateFormatLocale(context),
+      ).format(date);
     } else {
-      return DateFormat.yMMMd('fr').format(date);
+      return DateFormat.yMMMd(
+        LocaleHelper.getDateFormatLocale(context),
+      ).format(date);
     }
   }
 
-  // Check if we need a date separator
-  bool _needsDateSeparator(List<MessageEntity> messages, int index) {
-    // debugPrint(
-    //   '📅 _needsDateSeparator called: index=$index, total=${messages.length}',
-    // );
-
-    if (index == 0) {
-      // debugPrint('   ✅ First message, showing separator');
+  // Check if we need a date separator for reversed list
+  // In reversed list, index 0 = newest, higher index = older
+  // Date separator should appear ABOVE (after in reversed index) the first message of a new date
+  bool _needsDateSeparatorReversed(List<MessageEntity> messages, int index) {
+    // Last item (oldest message) always needs separator
+    if (index == messages.length - 1) {
       return true;
     }
 
     final currentMessage = messages[index];
-    final previousMessage = messages[index - 1];
+    final olderMessage = messages[index + 1]; // Next index = older message
 
     final currentDate = DateTime(
       currentMessage.createdAt.year,
       currentMessage.createdAt.month,
       currentMessage.createdAt.day,
     );
-    final previousDate = DateTime(
-      previousMessage.createdAt.year,
-      previousMessage.createdAt.month,
-      previousMessage.createdAt.day,
+    final olderDate = DateTime(
+      olderMessage.createdAt.year,
+      olderMessage.createdAt.month,
+      olderMessage.createdAt.day,
     );
 
-    final needsSeparator = currentDate != previousDate;
-    // debugPrint('   Current: $currentDate, Previous: $previousDate');
-    // debugPrint(
-    //   '   ${needsSeparator ? "✅ Different dates" : "❌ Same date"} -> needsSeparator=$needsSeparator',
-    // );
-
-    return needsSeparator;
+    return currentDate != olderDate;
   }
 
-  // Get message group position
-  MessageGroupPosition _getMessageGroupPosition(
+  // Get message group position for reversed list
+  MessageGroupPosition _getMessageGroupPositionReversed(
     List<MessageEntity> messages,
     int index,
-    String? currentUserId,
-  ) {
+    String? currentUserId, {
+    required bool hasDateBreak,
+    required bool hasNextDateBreak,
+  }) {
     final message = messages[index];
 
-    final hasPreviousSameSender =
+    // In reversed list: lower index = newer, higher index = older
+    // "Previous" visually (below) = index - 1 (newer)
+    // "Next" visually (above) = index + 1 (older)
+    final hasNewerSameSender =
         index > 0 && messages[index - 1].senderId == message.senderId;
-    final hasNextSameSender =
+    final hasOlderSameSender =
         index < messages.length - 1 &&
         messages[index + 1].senderId == message.senderId;
 
-    // Check for date separator break
-    final hasDateBreak = _needsDateSeparator(messages, index);
-    final hasNextDateBreak =
-        index < messages.length - 1 && _needsDateSeparator(messages, index + 1);
-
     if (hasDateBreak) {
-      // After date separator, treat as first message
-      if (hasNextSameSender && !hasNextDateBreak) {
-        return MessageGroupPosition.first;
+      // After date separator (visually), treat as last message of group
+      if (hasNewerSameSender && !hasNextDateBreak) {
+        return MessageGroupPosition.last;
       }
       return MessageGroupPosition.single;
     }
 
-    if (!hasPreviousSameSender && !hasNextSameSender) {
+    if (!hasNewerSameSender && !hasOlderSameSender) {
       return MessageGroupPosition.single;
-    } else if (!hasPreviousSameSender &&
-        hasNextSameSender &&
-        !hasNextDateBreak) {
+    } else if (!hasNewerSameSender && hasOlderSameSender) {
       return MessageGroupPosition.first;
-    } else if (hasPreviousSameSender &&
-        hasNextSameSender &&
-        !hasNextDateBreak) {
+    } else if (hasNewerSameSender && hasOlderSameSender) {
       return MessageGroupPosition.middle;
     } else {
       return MessageGroupPosition.last;
@@ -484,6 +936,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Check if conversation exists
     final isDeleted = !conversationAsync.isLoading && conversation == null;
+
+    // Check if this is a pending request from current user (hide read/delivered status)
+    final isPendingRequestFromMe =
+        conversation != null &&
+        conversation.requestStatus == ConversationRequestStatus.pending &&
+        conversation.requesterId == currentUser?.id;
 
     // Check if other user is blocked (I blocked them)
     bool isBlocked = false;
@@ -516,17 +974,112 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     final otherUser = otherUserAsync?.valueOrNull;
 
+    // Stream group data if it's a group chat and we have groupId
+    // This ensures we can display group name/image even when navigating from notifications
+    dynamic groupData;
+    if (widget.isGroup && widget.groupId != null) {
+      final groupAsync = ref.watch(groupStreamProvider(widget.groupId!));
+      groupData = groupAsync.valueOrNull;
+    }
+
+    final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
+    final List<MentionedUser> groupMembers =
+        widget.isGroup && groupData != null
+            ? ref
+                    .watch(
+                      groupMemberNamesProvider(
+                        (groupData.memberIds as List<String>)
+                            .where((id) => id != currentUserId)
+                            .toList(),
+                      ),
+                    )
+                    .valueOrNull ??
+                []
+            : [];
+
+    // Création événement/sondage depuis le menu « + » du composer.
+    // DM : événement toujours possible ; groupe : selon les permissions.
+    // Sondage : groupes uniquement (PollContextType ne couvre pas les DM).
+    final isConvAdmin =
+        conversation != null &&
+        currentUser != null &&
+        (conversation.createdBy == currentUser.id ||
+            conversation.adminIds.contains(currentUser.id));
+    final canCreateEvent =
+        widget.isGroup
+            ? (widget.groupId != null &&
+                ((groupData?.permissions.canPostEvents(isAdmin: isConvAdmin)
+                        as bool?) ??
+                    false))
+            : true;
+    final canCreatePoll =
+        widget.isGroup &&
+        widget.groupId != null &&
+        ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin) as bool?) ??
+            false);
+
     // Determine display name for typing indicator
+    // For groups: use passed name, fallback to loaded group data, then default
+    // For individual: use loaded user profile, fallback to passed name, then default
     final displayName =
         widget.isGroup
-            ? widget.conversationName
-            : otherUser?.displayName ?? widget.conversationName;
+            ? (widget.conversationName ?? groupData?.name ?? l10n.group)
+            : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
-    // Auto-scroll to bottom when new messages arrive
+    // Typing users for the in-list bubble
+    final typingStatusValue = ref.watch(
+      typingStatusProvider(widget.conversationId),
+    );
+    final typingUserIds =
+        typingStatusValue
+            .whenData(
+              (map) =>
+                  map.entries
+                      .where((e) => e.key != currentUser?.id && e.value)
+                      .map((e) => e.key)
+                      .toList(),
+            )
+            .valueOrNull ??
+        <String>[];
+    final Map<String, String>? typingNames =
+        widget.isGroup
+            ? {for (final m in groupMembers) m.id: m.name}
+            : (widget.otherUserId != null
+                ? {widget.otherUserId!: displayName}
+                : null);
+
+    // Auto-scroll to bottom when new messages arrive & calculate unread on first load
     ref.listen(paginatedMessagesProvider(widget.conversationId), (
       previous,
       next,
     ) {
+      // Calculate unread count and scroll to initial position when messages are first loaded
+      if (!_hasCalculatedUnread &&
+          next.messages.isNotEmpty &&
+          !next.isLoadingInitial) {
+        _calculateUnreadOnOpen();
+      }
+
+      // Mark new messages as read only if app is in foreground
+      if (previous != null &&
+          next.messages.length > previous.messages.length &&
+          _isAppInForeground) {
+        final currentUserId = currentUser?.id;
+        if (currentUserId != null) {
+          // Check if there are new messages from other users
+          final newMessagesFromOthers = next.messages
+              .where((m) => !previous.messages.any((pm) => pm.id == m.id))
+              .any((m) => m.senderId != currentUserId);
+
+          if (newMessagesFromOthers) {
+            ref
+                .read(markAsDeliveredProvider.notifier)
+                .mark(widget.conversationId);
+            ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
+          }
+        }
+      }
+
       if (previous != null &&
           next.messages.length > previous.messages.length &&
           _isNearBottom) {
@@ -541,7 +1094,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           _chatBackground?.isDefault ?? true ? context.backgroundColor : null,
       extendBodyBehindAppBar:
           _chatBackground != null && !_chatBackground!.isDefault,
-      appBar: _buildAppBar(otherUser),
+      appBar:
+          _isSelectionMode
+              ? _buildSelectionAppBar(paginationState.messages)
+              : _isSearchMode
+              ? _buildSearchAppBar()
+              : _buildAppBar(otherUser, groupData),
       body: Container(
         decoration:
             _chatBackground != null && !_chatBackground!.isDefault
@@ -607,6 +1165,29 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       ],
                     ),
                   ),
+                // Message request banner (pending request)
+                if (conversation != null &&
+                    conversation.isPendingRequest &&
+                    currentUser != null)
+                  _buildMessageRequestBanner(
+                    l10n,
+                    conversation,
+                    currentUser.id,
+                  ),
+                // Bandeau des éléments épinglés (event/poll/message), façon
+                // Telegram : ligne fine fixée sous l'en-tête, toujours visible.
+                // Le widget porte sa propre marge : il ne laisse aucun espace
+                // quand rien n'est épinglé.
+                if (widget.isGroup && widget.groupId != null)
+                  GroupPinnedBanner(
+                    groupId: widget.groupId!,
+                    messageConversationId: widget.conversationId,
+                  )
+                else if (!widget.isGroup)
+                  GroupPinnedBanner(
+                    conversationId: widget.conversationId,
+                    messageConversationId: widget.conversationId,
+                  ),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -614,37 +1195,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     currentUser?.id,
                     l10n,
                     blockedUsers.map((u) => u.id).toSet(),
+                    isPendingRequestFromMe,
+                    (!isDeleted && !isBlocked) ? typingUserIds : const [],
+                    typingNames,
                   ),
                 ),
-
-                // Typing indicator
-                if (!isDeleted && !isBlocked)
-                  TypingIndicatorWidget(
-                    conversationId: widget.conversationId,
-                    currentUserId: currentUser?.id,
-                    userNames:
-                        widget.otherUserId != null
-                            ? {
-                              widget.otherUserId!:
-                                  displayName ??
-                                  widget.conversationName ??
-                                  'Utilisateur',
-                            }
-                            : null,
-                  ),
 
                 // Input or Blocked/Deleted Message
                 if (isDeleted ||
                     (otherUser != null &&
-                        otherUser.displayName == 'Utilisateur supprimé'))
+                        otherUser.displayName == l10n.deletedUser))
                   Container(
                     padding: const EdgeInsets.all(16),
                     color: context.surfaceColor,
                     width: double.infinity,
                     child: Text(
                       isDeleted
-                          ? "Ce groupe a été supprimé"
-                          : "Cet utilisateur a été supprimé",
+                          ? l10n.thisGroupWasDeleted
+                          : l10n.thisUserWasDeleted,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color:
@@ -661,7 +1229,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     color: context.surfaceColor,
                     width: double.infinity,
                     child: Text(
-                      "Vous avez bloqué cet utilisateur",
+                      l10n.youBlockedThisUser,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color:
@@ -674,15 +1242,33 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   )
                 else
                   MessageInput(
+                    conversationId: widget.conversationId,
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
                     onCancelReply: _cancelReply,
+                    groupMembers: groupMembers,
+                    onCreateEvent:
+                        canCreateEvent
+                            ? () => context.push(
+                              widget.isGroup
+                                  ? '/groups/${widget.groupId}/events/create'
+                                  : '/conversations/${widget.conversationId}/events/create',
+                            )
+                            : null,
+                    onCreatePoll:
+                        canCreatePoll
+                            ? () => showCreatePollSheet(
+                              context,
+                              contextType: PollContextType.group,
+                              contextId: widget.groupId!,
+                            )
+                            : null,
                     onTyping: () {
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
                           .onUserTyping(widget.conversationId);
                     },
-                    onSendText: (text) async {
+                    onSendText: (text, mentions) async {
                       // Stop typing indicator when sending
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
@@ -698,9 +1284,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
                       // Send with retry logic
                       // If blocked by other user, include their ID in sentWhileBlockedBy
-                      final blockedByList = isBlockedByOther && widget.otherUserId != null
-                          ? [widget.otherUserId!]
-                          : <String>[];
+                      final blockedByList =
+                          isBlockedByOther && widget.otherUserId != null
+                              ? [widget.otherUserId!]
+                              : <String>[];
 
                       final success = await ref
                           .read(sendMessageProvider.notifier)
@@ -710,6 +1297,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             optimisticMessageId: messageId,
                             replyToMessage: replyTo,
                             sentWhileBlockedBy: blockedByList,
+                            mentionedUsers: mentions,
                           );
 
                       if (!mounted) return;
@@ -779,6 +1367,39 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         if (_replyToMessage != null) _cancelReply();
                       }
                     },
+                    onSendAudioFile: (File file, {String? caption}) async {
+                      // If blocked, don't send audio file.
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendFile(
+                            conversationId: widget.conversationId,
+                            file: file,
+                            type: MessageType.audio,
+                            caption: caption,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'audio',
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
                     onSendAudio: (
                       File audioFile,
                       int duration,
@@ -817,11 +1438,130 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         if (_replyToMessage != null) _cancelReply();
                       }
                     },
+                    onSendLocation: (
+                      double latitude,
+                      double longitude,
+                      String address,
+                    ) async {
+                      // If blocked, don't send location
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendLocation(
+                            conversationId: widget.conversationId,
+                            latitude: latitude,
+                            longitude: longitude,
+                            address: address,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'location',
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
+                    onSendSticker: (StickerEntity sticker) async {
+                      // If blocked, don't send sticker
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendSticker(
+                            conversationId: widget.conversationId,
+                            stickerPackId: sticker.packId,
+                            stickerId: sticker.id,
+                            stickerUrl: sticker.url,
+                            isAnimated: sticker.isAnimated,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'sticker',
+                            'sticker_pack': sticker.packId,
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
+                    onSendGif: (GifEntity gif) async {
+                      if (isBlockedByOther) {
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                        return;
+                      }
+
+                      // Un GIF distant est un média flottant identifié par une
+                      // URL : il réutilise le transport « sticker », en portant
+                      // le fournisseur (tenor/giphy) comme identifiant de pack.
+                      final success = await ref
+                          .read(sendMessageProvider.notifier)
+                          .sendSticker(
+                            conversationId: widget.conversationId,
+                            stickerPackId: gif.packId,
+                            stickerId: gif.id,
+                            stickerUrl: gif.url,
+                            isAnimated: true,
+                            replyToMessage: _replyToMessage,
+                          );
+
+                      if (!mounted) return;
+
+                      if (success) {
+                        AnalyticsService.instance.logEvent(
+                          name: 'send_message',
+                          parameters: {
+                            'type': 'gif',
+                            'gif_provider': gif.provider.name,
+                            'conversation_id': widget.conversationId,
+                            'is_group': widget.isGroup ? 'true' : 'false',
+                          },
+                        );
+                        _scrollToBottom();
+                        if (_replyToMessage != null) _cancelReply();
+                      }
+                    },
                   ),
               ],
             ),
 
-            // Scroll to bottom FAB
+            // Search results overlay
+            if (_isSearchMode && _searchQuery.length >= 2)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _buildSearchResults(),
+              ),
+
+            // Scroll to bottom FAB with unread badge
             ValueListenableBuilder<bool>(
               valueListenable: _showScrollToBottomButton,
               builder: (context, showButton, child) {
@@ -831,14 +1571,50 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   right: 16,
                   child: ScaleTransition(
                     scale: _scrollButtonAnimation,
-                    child: FloatingActionButton.small(
-                      onPressed: _scrollToBottom,
-                      backgroundColor: context.surfaceColor,
-                      elevation: 4,
-                      child: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: context.textPrimaryColor,
-                      ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        FloatingActionButton.small(
+                          onPressed: _scrollToBottom,
+                          backgroundColor: context.surfaceColor,
+                          elevation: 4,
+                          child: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                        // Unread count badge
+                        if (_unreadCountOnOpen > 0)
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.adaptivePrimaryColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                _unreadCountOnOpen > 99
+                                    ? '99+'
+                                    : _unreadCountOnOpen.toString(),
+                                style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 );
@@ -855,27 +1631,30 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     String? currentUserId,
     AppLocalizations l10n,
     Set<String> blockedUserIds,
+    bool isPendingRequestFromMe,
+    List<String> typingUserIds,
+    Map<String, String>? typingNames,
   ) {
     if (paginationState.isLoadingInitial) {
-      return Center(
-        child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
-      );
+      return const SizedBox.shrink();
     }
 
     if (paginationState.error != null && paginationState.messages.isEmpty) {
+      // Convertir l'erreur technique en message user-friendly
+      final userFriendlyError = FailureMapper.toUserFriendlyString(
+        paginationState.error!,
+        context,
+      );
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: context.textTertiaryColor,
-            ),
+            AppIcon(AppIcon.error, size: 48, color: context.textTertiaryColor),
             const SizedBox(height: 16),
             Text(
-              l10n.loadingError,
+              userFriendlyError,
               style: TextStyle(color: context.textSecondaryColor, fontSize: 16),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             TextButton.icon(
@@ -886,7 +1665,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     )
                     .refresh();
               },
-              icon: const Icon(Icons.refresh),
+              icon: const AppIcon(AppIcon.refresh, color: AppColors.white),
               label: Text(l10n.retry),
             ),
           ],
@@ -922,10 +1701,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final isUploadingHere =
         uploadState.isUploading &&
         uploadState.conversationId == widget.conversationId;
+    final typingCount = typingUserIds.isNotEmpty ? 1 : 0;
     final totalCount =
         messages.length +
         (paginationState.isLoadingMore ? 1 : 0) +
-        (isUploadingHere ? 1 : 0);
+        (isUploadingHere ? 1 : 0) +
+        typingCount;
 
     // Calculate top padding - add extra when body extends behind app bar
     final topPadding =
@@ -933,13 +1714,30 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             ? MediaQuery.of(context).padding.top + kToolbarHeight + 16
             : 16.0;
 
+    // Reverse messages so newest is at index 0 (for reverse: true ListView)
+    final reversedMessages = messages.reversed.toList();
+
     return ListView.builder(
       controller: _scrollController,
-      padding: EdgeInsets.only(top: topPadding, bottom: 16),
+      reverse: true, // Start from bottom (newest messages)
+      padding: EdgeInsets.only(top: 16, bottom: topPadding),
       itemCount: totalCount,
       itemBuilder: (context, index) {
-        // Show loading indicator at the top when loading more
-        if (paginationState.isLoadingMore && index == 0) {
+        // Typing bubble at index 0 (bottom of reversed list = nearest to input)
+        if (typingUserIds.isNotEmpty && index == 0) {
+          return TypingBubble(
+            typingUserIds: typingUserIds,
+            userNames: typingNames,
+          );
+        }
+
+        // Show uploading skeleton just above the typing bubble
+        if (isUploadingHere && index == typingCount) {
+          return const UploadingMediaSkeleton();
+        }
+
+        // Show loading indicator at the top when loading more (last index in reversed list)
+        if (paginationState.isLoadingMore && index == totalCount - 1) {
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Center(
@@ -955,40 +1753,47 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           );
         }
 
-        // Show uploading skeleton at the bottom
-        if (isUploadingHere && index == totalCount - 1) {
-          return const UploadingMediaSkeleton();
-        }
-
-        // Calculate message index
-        final messageIndex = paginationState.isLoadingMore ? index - 1 : index;
+        // Calculate message index in reversed list (accounting for typing + upload offsets)
+        final messageIndex = index - typingCount - (isUploadingHere ? 1 : 0);
 
         // Safety check
-        if (messageIndex < 0 || messageIndex >= messages.length) {
+        if (messageIndex < 0 || messageIndex >= reversedMessages.length) {
           return const SizedBox.shrink();
         }
 
-        final message = messages[messageIndex];
+        final message = reversedMessages[messageIndex];
         final isMe = message.senderId == currentUserId;
 
-        // Get group position for linked bubbles
-        final groupPosition = _getMessageGroupPosition(
-          messages,
+        // For reversed list, date separators appear AFTER the message (visually above)
+        // Check if the NEXT message (older, higher index) has a different date
+        final needsSeparator = _needsDateSeparatorReversed(
+          reversedMessages,
+          messageIndex,
+        );
+        final hasNextDateBreak =
+            messageIndex > 0
+                ? _needsDateSeparatorReversed(
+                  reversedMessages,
+                  messageIndex - 1,
+                )
+                : false;
+
+        // Get group position for linked bubbles (pass pre-computed values)
+        final groupPosition = _getMessageGroupPositionReversed(
+          reversedMessages,
           messageIndex,
           currentUserId,
+          hasDateBreak: needsSeparator,
+          hasNextDateBreak: hasNextDateBreak,
         );
 
         // Only show sender info for the first message in a group (first or single)
-        // This avoids redundant display of sender name for consecutive messages
+        // In reversed list, "first" visually means the bottom-most of a group
         final showSenderInfo =
             widget.isGroup &&
             !isMe &&
             (groupPosition == MessageGroupPosition.first ||
                 groupPosition == MessageGroupPosition.single);
-
-        // Check if we need a date separator
-        final needsSeparator = _needsDateSeparator(messages, messageIndex);
-        // debugPrint('🔹 Message $messageIndex: needsSeparator=$needsSeparator');
 
         final conversation =
             ref
@@ -1000,60 +1805,342 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             (conversation.createdBy == currentUserId ||
                 conversation.adminIds.contains(currentUserId));
 
+        // En 1-a-1, les deux participants peuvent epingler ; en groupe, selon
+        // les permissions du groupe.
+        final canPin =
+            !widget.isGroup
+                ? true
+                : (widget.groupId != null
+                    ? (ref
+                            .watch(groupStreamProvider(widget.groupId!))
+                            .valueOrNull
+                            ?.permissions
+                            .canPin(isAdmin: isAdmin) ??
+                        false)
+                    : false);
+
+        // Ids des messages déjà épinglés : le menu contextuel bascule alors
+        // « Épingler » en « Détacher » (le bandeau n'a plus de croix).
+        final pinnedMessageIds =
+            ((widget.isGroup && widget.groupId != null
+                            ? ref.watch(
+                              groupPinnedItemsProvider(widget.groupId!),
+                            )
+                            : ref.watch(
+                              conversationPinnedItemsProvider(
+                                widget.conversationId,
+                              ),
+                            ))
+                        .valueOrNull ??
+                    const [])
+                .where((i) => i.itemType == GroupPinnedItemType.message)
+                .map((i) => i.itemId)
+                .toSet();
+
+        // Check if we need to show unread separator
+        // In reversed list, first unread is at a different index
+        final originalIndex = reversedMessages.length - 1 - messageIndex;
+        final showUnreadSeparator =
+            _firstUnreadMessageIndex != null &&
+            originalIndex == _firstUnreadMessageIndex &&
+            _unreadCountOnOpen > 0;
+
+        // With reverse: true, separators go BEFORE the message in the Column
+        // so they appear visually ABOVE (Column still renders top-to-bottom within each item)
         return Column(
           children: [
-            // Date separator
+            // Date separator (appears ABOVE message visually)
             if (needsSeparator) _buildDateSeparator(message.createdAt, l10n),
 
+            // Unread messages separator (appears ABOVE message visually)
+            if (showUnreadSeparator) _buildUnreadSeparator(_unreadCountOnOpen),
+
             // Message bubble with highlight animation
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              decoration: BoxDecoration(
-                color:
-                    _highlightedMessageId == message.id
-                        ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Align(
-                alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                child: MessageBubble(
-                  message: message,
-                  isMe: isMe,
-                  showSenderInfo: showSenderInfo,
-                  groupPosition: groupPosition,
-                  conversationId: widget.conversationId,
-                  currentUserId: currentUserId,
-                  isAdmin: isAdmin,
-                  onReply: _handleReply,
-                  onReact: _handleReact,
-                  onRetry:
-                      message.status == MessageStatus.failed
-                          ? () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final success = await ref
-                                .read(sendMessageProvider.notifier)
-                                .retryFailedMessage(
-                                  conversationId: widget.conversationId,
-                                  failedMessage: message,
-                                );
-                            if (!success && mounted) {
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text('Échec du renvoi du message'),
-                                  backgroundColor: Colors.red,
+            // RepaintBoundary isolates repaints for better performance
+            RepaintBoundary(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                decoration: BoxDecoration(
+                  color:
+                      _highlightedMessageId == message.id
+                          ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Align(
+                  alignment:
+                      isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child:
+                      widget.isGroup && !isMe
+                          ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Mini avatar for group messages
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 4,
+                                  bottom: 4,
                                 ),
-                              );
-                            }
-                          }
-                          : null,
-                  onSenderTap: (userId) {
-                    if (widget.isGroup) {
-                      context.push('/profile/$userId');
-                    }
-                  },
-                  replyToMessage: _getReplyEntity(message),
-                  onScrollToMessage: _scrollToMessage,
+                                child:
+                                    showSenderInfo
+                                        ? CircleAvatar(
+                                          radius: 12,
+                                          backgroundImage:
+                                              message.senderPhotoUrl != null
+                                                  ? CachedNetworkImageProvider(
+                                                    message.senderPhotoUrl!,
+                                                  )
+                                                  : null,
+                                          backgroundColor:
+                                              context.surfaceVariantColor,
+                                          child:
+                                              message.senderPhotoUrl == null
+                                                  ? Text(
+                                                    message
+                                                            .senderName
+                                                            .isNotEmpty
+                                                        ? message.senderName[0]
+                                                            .toUpperCase()
+                                                        : '?',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          context
+                                                              .textSecondaryColor,
+                                                    ),
+                                                  )
+                                                  : null,
+                                        )
+                                        : const SizedBox(
+                                          width: 24,
+                                        ), // Spacing for alignment
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: MessageBubble(
+                                  key: ValueKey(message.id),
+                                  message: message,
+                                  isMe: isMe,
+                                  showSenderInfo: showSenderInfo,
+                                  groupPosition: groupPosition,
+                                  conversationId: widget.conversationId,
+                                  currentUserId: currentUserId,
+                                  isAdmin: isAdmin,
+                                  canPin: canPin,
+                                  isPinned: pinnedMessageIds.contains(
+                                    message.id,
+                                  ),
+                                  onPin: canPin ? _pinMessage : null,
+                                  onUnpin: canPin ? _unpinMessage : null,
+                                  onReply: _handleReply,
+                                  onReact: _handleReact,
+                                  onForward: _handleForward,
+                                  onToggleStar: (msg) {
+                                    ref
+                                        .read(
+                                          paginatedMessagesProvider(
+                                            widget.conversationId,
+                                          ).notifier,
+                                        )
+                                        .toggleStar(msg.id);
+                                  },
+                                  onEdit: (msg, newContent) async {
+                                    final l10n = AppLocalizations.of(context)!;
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    final success = await ref
+                                        .read(
+                                          paginatedMessagesProvider(
+                                            widget.conversationId,
+                                          ).notifier,
+                                        )
+                                        .editMessage(
+                                          messageId: msg.id,
+                                          newContent: newContent,
+                                        );
+                                    if (mounted) {
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? l10n.messageEdited
+                                                : l10n.editTimeExpired,
+                                          ),
+                                          backgroundColor:
+                                              success
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  isSelectionMode: _isSelectionMode,
+                                  isSelected: _selectedMessageIds.contains(
+                                    message.id,
+                                  ),
+                                  onSelect: _handleSelect,
+                                  // Call back support for call messages (1:1 conversations only)
+                                  onCallBack:
+                                      (!widget.isGroup &&
+                                              widget.otherUserId != null &&
+                                              message.isCall)
+                                          ? () => _handleCallBack(message)
+                                          : null,
+                                  // Skip animation for existing messages (performance)
+                                  skipAnimation: true,
+                                  // Hide read/delivered status for pending requests
+                                  isPendingRequest: isPendingRequestFromMe,
+                                  onRetry:
+                                      message.status == MessageStatus.failed
+                                          ? () async {
+                                            final messenger =
+                                                ScaffoldMessenger.of(context);
+                                            final l10nMsg =
+                                                AppLocalizations.of(context)!;
+                                            final success = await ref
+                                                .read(
+                                                  sendMessageProvider.notifier,
+                                                )
+                                                .retryFailedMessage(
+                                                  conversationId:
+                                                      widget.conversationId,
+                                                  failedMessage: message,
+                                                );
+                                            if (!success && mounted) {
+                                              messenger.showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    l10nMsg.messageResendFailed,
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          }
+                                          : null,
+                                  onSenderTap: (userId) {
+                                    if (widget.isGroup) {
+                                      context.push('/profile/$userId');
+                                    }
+                                  },
+                                  replyToMessage: _getReplyEntity(message),
+                                  onScrollToMessage: _scrollToMessage,
+                                  groupId:
+                                      widget.isGroup
+                                          ? (widget.groupId ??
+                                              widget.conversationId)
+                                          : null,
+                                ),
+                              ),
+                            ],
+                          )
+                          : MessageBubble(
+                            key: ValueKey(message.id),
+                            message: message,
+                            isMe: isMe,
+                            showSenderInfo: showSenderInfo,
+                            groupPosition: groupPosition,
+                            conversationId: widget.conversationId,
+                            currentUserId: currentUserId,
+                            isAdmin: isAdmin,
+                            canPin: canPin,
+                            isPinned: pinnedMessageIds.contains(message.id),
+                            onPin: canPin ? _pinMessage : null,
+                            onUnpin: canPin ? _unpinMessage : null,
+                            onReply: _handleReply,
+                            onReact: _handleReact,
+                            onForward: _handleForward,
+                            onToggleStar: (msg) {
+                              ref
+                                  .read(
+                                    paginatedMessagesProvider(
+                                      widget.conversationId,
+                                    ).notifier,
+                                  )
+                                  .toggleStar(msg.id);
+                            },
+                            onEdit: (msg, newContent) async {
+                              final l10n = AppLocalizations.of(context)!;
+                              final messenger = ScaffoldMessenger.of(context);
+                              final success = await ref
+                                  .read(
+                                    paginatedMessagesProvider(
+                                      widget.conversationId,
+                                    ).notifier,
+                                  )
+                                  .editMessage(
+                                    messageId: msg.id,
+                                    newContent: newContent,
+                                  );
+                              if (mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? l10n.messageEdited
+                                          : l10n.editTimeExpired,
+                                    ),
+                                    backgroundColor:
+                                        success ? Colors.green : Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            isSelectionMode: _isSelectionMode,
+                            isSelected: _selectedMessageIds.contains(
+                              message.id,
+                            ),
+                            onSelect: _handleSelect,
+                            onCallBack:
+                                (!widget.isGroup &&
+                                        widget.otherUserId != null &&
+                                        message.isCall)
+                                    ? () => _handleCallBack(message)
+                                    : null,
+                            skipAnimation: true,
+                            isPendingRequest: isPendingRequestFromMe,
+                            onRetry:
+                                message.status == MessageStatus.failed
+                                    ? () async {
+                                      final messenger = ScaffoldMessenger.of(
+                                        context,
+                                      );
+                                      final l10nMsg =
+                                          AppLocalizations.of(context)!;
+                                      final success = await ref
+                                          .read(sendMessageProvider.notifier)
+                                          .retryFailedMessage(
+                                            conversationId:
+                                                widget.conversationId,
+                                            failedMessage: message,
+                                          );
+                                      if (!success && mounted) {
+                                        messenger.showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10nMsg.messageResendFailed,
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                    : null,
+                            onSenderTap: (userId) {
+                              if (widget.isGroup) {
+                                context.push('/profile/$userId');
+                              }
+                            },
+                            replyToMessage: _getReplyEntity(message),
+                            onScrollToMessage: _scrollToMessage,
+                            groupId:
+                                widget.isGroup
+                                    ? (widget.groupId ?? widget.conversationId)
+                                    : null,
+                          ),
                 ),
               ),
             ),
@@ -1064,41 +2151,72 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   Widget _buildDateSeparator(DateTime date, AppLocalizations l10n) {
-    // final label = _getDateLabel(date, l10n);
-    // debugPrint(
-    //   '🔷 _buildDateSeparator: Building separator with label="$label" for date=$date',
-    // );
-
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         children: [
           Expanded(
             child: Container(
               height: 1,
-              color: context.outlineColor.withValues(alpha: 0.1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    context.outlineColor.withValues(alpha: 0.15),
+                  ],
+                ),
+              ),
             ),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: context.surfaceVariantColor,
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  context.surfaceVariantColor.withValues(alpha: 0.9),
+                  context.surfaceVariantColor.withValues(alpha: 0.7),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    context.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               _getDateLabel(date, l10n),
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: context.textSecondaryColor,
+                letterSpacing: 0.3,
               ),
             ),
           ),
           Expanded(
             child: Container(
               height: 1,
-              color: context.outlineColor.withValues(alpha: 0.1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    context.outlineColor.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -1106,29 +2224,143 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
-  void _showCallComingSoon({required bool isVideo}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isVideo ? Icons.videocam : Icons.call,
-              color: Colors.white,
-              size: 20,
+  Widget _buildUnreadSeparator(int unreadCount) {
+    final label =
+        unreadCount == 1 ? '1 message non lu' : '$unreadCount messages non lus';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    context.adaptivePrimaryColor.withValues(alpha: 0.4),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              isVideo
-                  ? 'Appel vidéo - Bientôt disponible'
-                  : 'Appel vocal - Bientôt disponible',
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  context.adaptivePrimaryColor,
+                  context.adaptivePrimaryColor.withValues(alpha: 0.85),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-        backgroundColor: context.adaptivePrimaryColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    context.adaptivePrimaryColor.withValues(alpha: 0.4),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  /// Start a call with the other user
+  Future<void> _startCall({required bool isVideo}) async {
+    if (widget.otherUserId == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    // Get other user info from watched data
+    final otherUserAsync = ref.read(userStreamProvider(widget.otherUserId!));
+    final otherUser = otherUserAsync.valueOrNull;
+
+    final calleeName =
+        otherUser?.displayName ?? widget.conversationName ?? l10n.user;
+    final calleePhotoUrl = otherUser?.photoUrl ?? widget.conversationImageUrl;
+
+    // Vérifier si le destinataire peut recevoir des notifications (en ligne OU a un token FCM)
+    final isCalleeOnline = otherUser?.canReceiveNotifications ?? false;
+
+    // Create the call in Firestore via CurrentCall provider
+    final call = await ref
+        .read(currentCallProvider.notifier)
+        .initiateCall(
+          calleeId: widget.otherUserId!,
+          calleeName: calleeName,
+          calleePhotoUrl: calleePhotoUrl,
+          type: isVideo ? CallType.video : CallType.audio,
+        );
+
+    if (call == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.unableToStartCall),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Navigate to call screen with the real call ID from Firestore
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (context) => CallScreen(
+                callId: call.id,
+                isInitiator: true,
+                isVideo: isVideo,
+                calleeName: calleeName,
+                calleePhotoUrl: calleePhotoUrl,
+                isCalleeOnline: isCalleeOnline,
+              ),
+        ),
+      );
+    }
+
+    // Log analytics
+    AnalyticsService.instance.logEvent(
+      name: 'start_call',
+      parameters: {
+        'call_type': isVideo ? 'video' : 'audio',
+        'callee_id': widget.otherUserId!,
+      },
     );
   }
 
@@ -1142,22 +2374,321 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     return name[0].toUpperCase();
   }
 
-  PreferredSizeWidget _buildAppBar(dynamic otherUser) {
+  PreferredSizeWidget _buildSelectionAppBar(List<MessageEntity> allMessages) {
+    return AppBar(
+      backgroundColor: context.adaptivePrimaryColor,
+      elevation: 0,
+      leading: IconButton(
+        onPressed: _exitSelectionMode,
+        icon: const AppIcon(AppIcon.close, color: AppColors.white),
+      ),
+      title: Text(
+        '${_selectedMessageIds.length} sélectionné${_selectedMessageIds.length > 1 ? 's' : ''}',
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      actions: [
+        // Select all
+        IconButton(
+          onPressed: () {
+            setState(() {
+              if (_selectedMessageIds.length == allMessages.length) {
+                _selectedMessageIds.clear();
+              } else {
+                _selectedMessageIds
+                  ..clear()
+                  ..addAll(allMessages.map((m) => m.id));
+              }
+            });
+          },
+          icon: Icon(
+            _selectedMessageIds.length == allMessages.length
+                ? Icons.deselect
+                : Icons.select_all,
+            color: AppColors.white,
+          ),
+          tooltip:
+              _selectedMessageIds.length == allMessages.length
+                  ? AppLocalizations.of(context)!.deselectAll
+                  : AppLocalizations.of(context)!.selectAll,
+        ),
+        // Star selected
+        IconButton(
+          onPressed: () => _starSelectedMessages(allMessages),
+          icon: const Icon(Icons.star_border, color: AppColors.white),
+          tooltip: AppLocalizations.of(context)!.favorites,
+        ),
+        // Forward selected
+        IconButton(
+          onPressed: () => _forwardSelectedMessages(allMessages),
+          icon: const Icon(Icons.shortcut, color: AppColors.white),
+          tooltip: AppLocalizations.of(context)!.forward,
+        ),
+        // Delete selected
+        IconButton(
+          onPressed: () => _deleteSelectedMessages(allMessages),
+          icon: const AppIcon(AppIcon.delete, color: AppColors.white),
+          tooltip: AppLocalizations.of(context)!.delete,
+        ),
+      ],
+    );
+  }
+
+  PreferredSizeWidget _buildSearchAppBar() {
+    return AppBar(
+      backgroundColor: context.surfaceColor,
+      elevation: 0,
+      leading: IconButton(
+        onPressed: () {
+          setState(() {
+            _isSearchMode = false;
+            _searchQuery = '';
+            _searchController.clear();
+          });
+        },
+        icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
+      ),
+      title: TextField(
+        controller: _searchController,
+        autofocus: true,
+        style: TextStyle(color: context.textPrimaryColor, fontSize: 16),
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.searchMessages,
+          hintStyle: TextStyle(color: context.textTertiaryColor, fontSize: 16),
+          border: InputBorder.none,
+        ),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.trim();
+          });
+        },
+      ),
+      actions: [
+        if (_searchController.text.isNotEmpty)
+          IconButton(
+            onPressed: () {
+              _searchController.clear();
+              setState(() {
+                _searchQuery = '';
+              });
+            },
+            icon: AppIcon(AppIcon.close, color: context.textTertiaryColor),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final resultsAsync = ref.watch(
+          messageSearchProvider((
+            conversationId: widget.conversationId,
+            query: _searchQuery,
+          )),
+        );
+
+        return GestureDetector(
+          onTap: () {
+            // Dismiss search on tap outside
+            setState(() {
+              _isSearchMode = false;
+              _searchQuery = '';
+              _searchController.clear();
+            });
+          },
+          child: Container(
+            color: context.surfaceColor.withValues(alpha: 0.95),
+            child: resultsAsync.when(
+              loading:
+                  () => Center(
+                    child: CircularProgressIndicator(
+                      color: context.adaptivePrimaryColor,
+                    ),
+                  ),
+              error:
+                  (_, __) => Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.searchError,
+                      style: TextStyle(color: context.textSecondaryColor),
+                    ),
+                  ),
+              data: (results) {
+                if (results.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 48,
+                          color: context.textTertiaryColor.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          AppLocalizations.of(context)!.noSearchResults,
+                          style: TextStyle(color: context.textSecondaryColor),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: results.length,
+                  separatorBuilder:
+                      (_, __) => Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: context.dividerColor,
+                      ),
+                  itemBuilder: (context, index) {
+                    final message = results[index];
+                    return ListTile(
+                      onTap: () {
+                        setState(() {
+                          _isSearchMode = false;
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                        _scrollToMessage(message.id);
+                      },
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: context.adaptivePrimaryColor
+                            .withValues(alpha: 0.15),
+                        child: Text(
+                          message.senderName.isNotEmpty
+                              ? message.senderName[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        message.senderName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                      subtitle: _buildHighlightedText(
+                        context,
+                        message.content,
+                        _searchQuery,
+                      ),
+                      trailing: Text(
+                        DateFormat.Hm().format(message.createdAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHighlightedText(
+    BuildContext context,
+    String text,
+    String query,
+  ) {
+    if (query.isEmpty) {
+      return Text(
+        text,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+      );
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final matchIndex = lowerText.indexOf(lowerQuery);
+
+    if (matchIndex == -1) {
+      return Text(
+        text,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+      );
+    }
+
+    // Show context around the match
+    final start = (matchIndex - 20).clamp(0, text.length);
+    final end = (matchIndex + query.length + 40).clamp(0, text.length);
+    final snippet = text.substring(start, end);
+    final snippetMatchStart = matchIndex - start;
+
+    return Text.rich(
+      TextSpan(
+        children: [
+          if (start > 0) const TextSpan(text: '...'),
+          TextSpan(
+            text: snippet.substring(0, snippetMatchStart),
+            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+          ),
+          TextSpan(
+            text: snippet.substring(
+              snippetMatchStart,
+              snippetMatchStart + query.length,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: context.adaptivePrimaryColor,
+            ),
+          ),
+          TextSpan(
+            text: snippet.substring(snippetMatchStart + query.length),
+            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+          ),
+          if (end < text.length) const TextSpan(text: '...'),
+        ],
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(dynamic otherUser, dynamic groupData) {
+    final l10n = AppLocalizations.of(context)!;
+    // For groups: use passed name, fallback to loaded group data, then default
+    // For individual: use loaded user profile, fallback to passed name, then default
     final displayName =
         widget.isGroup
-            ? widget.conversationName
-            : otherUser?.displayName ?? widget.conversationName;
+            ? (widget.conversationName ?? groupData?.name ?? l10n.group)
+            : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
     final displayImage =
         widget.isGroup
-            ? widget.conversationImageUrl
-            : otherUser?.photoUrl ?? widget.conversationImageUrl;
+            ? (widget.conversationImageUrl ?? groupData?.imageUrl)
+            : (otherUser?.photoUrl ?? widget.conversationImageUrl);
 
     final initials = _getInitials(displayName);
 
     // Check if user is deleted
     final isDeletedUser =
-        otherUser != null && otherUser.displayName == 'Utilisateur supprimé';
+        otherUser != null && otherUser.displayName == l10n.deletedUser;
 
     return AppBar(
       backgroundColor: context.surfaceColor,
@@ -1167,7 +2698,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       leading: IconButton(
         padding: EdgeInsets.zero,
         onPressed: () => Navigator.of(context).pop(),
-        icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
+        icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
       ),
       title: InkWell(
         onTap: () async {
@@ -1177,26 +2708,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           // debugPrint('   otherUserId: ${widget.otherUserId}');
 
           if (widget.isGroup) {
-            String? groupIdToUse = widget.groupId;
+            // Use passed groupId, fallback to loaded groupData, then search by name
+            String? groupIdToUse = widget.groupId ?? groupData?.id;
 
             if (groupIdToUse == null && widget.conversationName != null) {
-              // debugPrint(
-              //   '   🔍 groupId is null, searching by name: ${widget.conversationName}',
-              // );
               final group = await ref.read(
                 groupByNameProvider(widget.conversationName!).future,
               );
               groupIdToUse = group?.id;
-              // debugPrint('   📍 Found groupId: $groupIdToUse');
             }
 
-            if (mounted) {
-              // debugPrint('   ➡️ Navigating to /groups/$groupIdToUse');
+            if (mounted && groupIdToUse != null) {
               context.push('/groups/$groupIdToUse');
-            } else {
-              // debugPrint(
-              //   '   ⚠️ Cannot navigate: groupId is null and group not found!',
-              // );
             }
           } else if (widget.otherUserId != null) {
             if (isDeletedUser) {
@@ -1212,102 +2735,78 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           child: Row(
             children: [
               // Avatar
-              Stack(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient:
-                          widget.isGroup
-                              ? context.adaptiveSecondaryGradient
-                              : context.adaptivePrimaryGradient,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child:
-                        displayImage != null
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: CachedNetworkImage(
-                                imageUrl: displayImage,
-                                fit: BoxFit.cover,
-                                placeholder:
-                                    (_, __) => Center(
-                                      child:
-                                          widget.isGroup
-                                              ? const Icon(
-                                                Icons.groups,
-                                                color: AppColors.white,
-                                                size: 20,
-                                              )
-                                              : Text(
-                                                initials,
-                                                style: const TextStyle(
-                                                  color: AppColors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient:
+                      widget.isGroup
+                          ? context.adaptiveSecondaryGradient
+                          : context.adaptivePrimaryGradient,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child:
+                    displayImage != null
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: CachedNetworkImage(
+                            imageUrl: displayImage,
+                            fit: BoxFit.cover,
+                            placeholder:
+                                (_, __) => Center(
+                                  child:
+                                      widget.isGroup
+                                          ? const AppIcon(
+                                            AppIcon.groups,
+                                            color: AppColors.white,
+                                            size: 20,
+                                          )
+                                          : Text(
+                                            initials,
+                                            style: const TextStyle(
+                                              color: AppColors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                ),
+                            errorWidget:
+                                (_, __, ___) => Center(
+                                  child:
+                                      widget.isGroup
+                                          ? const AppIcon(
+                                            AppIcon.groups,
+                                            color: AppColors.white,
+                                            size: 20,
+                                          )
+                                          : Text(
+                                            initials,
+                                            style: const TextStyle(
+                                              color: AppColors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                ),
+                          ),
+                        )
+                        : Center(
+                          child:
+                              widget.isGroup
+                                  ? const AppIcon(
+                                    AppIcon.groups,
+                                    color: AppColors.white,
+                                    size: 20,
+                                  )
+                                  : Text(
+                                    initials,
+                                    style: const TextStyle(
+                                      color: AppColors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                errorWidget:
-                                    (_, __, ___) => Center(
-                                      child:
-                                          widget.isGroup
-                                              ? const Icon(
-                                                Icons.groups,
-                                                color: AppColors.white,
-                                                size: 20,
-                                              )
-                                              : Text(
-                                                initials,
-                                                style: const TextStyle(
-                                                  color: AppColors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                    ),
-                              ),
-                            )
-                            : Center(
-                              child:
-                                  widget.isGroup
-                                      ? const Icon(
-                                        Icons.groups,
-                                        color: AppColors.white,
-                                        size: 20,
-                                      )
-                                      : Text(
-                                        initials,
-                                        style: const TextStyle(
-                                          color: AppColors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                            ),
-                  ),
-                  // Online indicator dot on avatar (only for individual chats)
-                  if (!widget.isGroup &&
-                      widget.otherUserId != null &&
-                      !isDeletedUser)
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: context.surfaceColor,
-                          shape: BoxShape.circle,
+                                  ),
                         ),
-                        child: OnlineStatusIndicator(
-                          userId: widget.otherUserId!,
-                          showText: false,
-                          dotSize: 10,
-                        ),
-                      ),
-                    ),
-                ],
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1356,20 +2855,60 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
       ),
       actions: [
+        // E2EE lock icon — individual chats
+        if (!widget.isGroup && widget.otherUserId != null)
+          ref
+              .watch(conversationE2EEStatusProvider(widget.otherUserId!))
+              .when(
+                data:
+                    (hasSession) => IconButton(
+                      icon: AppIcon(
+                        AppIcon.lock,
+                        size: 20,
+                        color:
+                            hasSession
+                                ? Colors.green.shade600
+                                : Colors.grey.shade400,
+                      ),
+                      tooltip: 'Chiffré',
+                      onPressed: () => _showEncryptionInfo(context, hasSession),
+                    ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+        // E2EE lock icon — group chats
+        if (widget.isGroup && widget.groupId != null)
+          ref
+              .watch(groupSenderKeyStatusProvider(widget.groupId!))
+              .when(
+                data:
+                    (hasSenderKey) => IconButton(
+                      icon: AppIcon(
+                        AppIcon.lock,
+                        size: 20,
+                        color:
+                            hasSenderKey
+                                ? Colors.green.shade600
+                                : Colors.grey.shade400,
+                      ),
+                      tooltip: 'Chiffré',
+                      onPressed:
+                          () => _showEncryptionInfo(context, hasSenderKey),
+                    ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
         // Call buttons for individual chats only
         if (!widget.isGroup && !isDeletedUser) ...[
           IconButton(
-            onPressed: () => _showCallComingSoon(isVideo: false),
-            icon: Icon(Icons.call_outlined, color: context.textPrimaryColor),
-            tooltip: 'Appel vocal',
+            onPressed: () => _startCall(isVideo: false),
+            icon: AppIcon(AppIcon.call, color: context.textPrimaryColor),
+            tooltip: l10n.voiceCall,
           ),
           IconButton(
-            onPressed: () => _showCallComingSoon(isVideo: true),
-            icon: Icon(
-              Icons.videocam_outlined,
-              color: context.textPrimaryColor,
-            ),
-            tooltip: 'Appel vidéo',
+            onPressed: () => _startCall(isVideo: true),
+            icon: AppIcon(AppIcon.video, color: context.textPrimaryColor),
+            tooltip: l10n.videoCall,
           ),
         ],
         // More options button
@@ -1394,10 +2933,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context)!;
+    // Scrollable : en paysage (ou clavier ouvert) la hauteur restante tombe
+    // sous les ~317 px de l'illustration + textes → RenderFlex overflow.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Animated chat illustration
@@ -1418,8 +2960,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(
-                    Icons.chat_bubble_outline_rounded,
+                  AppIcon(
+                    AppIcon.chatBubble,
                     size: 48,
                     color: context.adaptivePrimaryColor,
                   ),
@@ -1467,7 +3009,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             const SizedBox(height: 12),
             Text(
               widget.isGroup
-                  ? "Soyez le premier à envoyer un message dans ce groupe !"
+                  ? l10n.sendFirstMessageGroup
                   : l10n.sendFirstMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1488,7 +3030,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "Tapez votre message ci-dessous",
+                  l10n.typeYourMessageBelow,
                   style: TextStyle(
                     fontSize: 13,
                     color: context.textTertiaryColor,
@@ -1501,5 +3043,127 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildMessageRequestBanner(
+    AppLocalizations l10n,
+    ConversationEntity conversation,
+    String currentUserId,
+  ) {
+    final isRecipient = conversation.isRequestRecipient(currentUserId);
+
+    if (isRecipient) {
+      // Show accept/decline banner for recipient
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+          border: Border(
+            bottom: BorderSide(
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.2),
+            ),
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.mark_email_unread_outlined,
+                  color: context.adaptivePrimaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.wantsToMessageYou,
+                    style: TextStyle(
+                      color: context.adaptivePrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _handleDeclineRequest(conversation.id),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    child: Text(l10n.declineRequest),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _handleAcceptRequest(conversation.id),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.adaptivePrimaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(l10n.acceptRequest),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Sender sees nothing special - conversation looks normal
+    return const SizedBox.shrink();
+  }
+
+  Future<void> _handleAcceptRequest(String conversationId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final notifier = ref.read(messageRequestActionsProvider.notifier);
+    final success = await notifier.acceptRequest(conversationId);
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.requestAccepted)));
+        // Refresh conversation
+        ref.invalidate(conversationStreamProvider(conversationId));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.errorOccurred),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleDeclineRequest(String conversationId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final notifier = ref.read(messageRequestActionsProvider.notifier);
+    final success = await notifier.declineRequest(conversationId);
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.requestDeclined)));
+        // Go back after declining
+        context.pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.errorOccurred),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

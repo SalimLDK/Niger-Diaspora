@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/group_entity.dart';
+import 'package:diaspo_niger/shared/utils/external_share.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ShareGroupDialog extends ConsumerStatefulWidget {
   final String groupName;
@@ -66,7 +68,11 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       curve: Curves.easeOutBack,
     );
     _animationController.forward();
-    _shareUrl = 'https://diasponiger.com/g/${widget.groupId}';
+    _shareUrl = DeepLinkService.instance.generateGroupLink(
+      widget.groupId,
+      groupName: widget.groupName,
+      imageUrl: widget.groupImageUrl,
+    );
   }
 
   @override
@@ -121,15 +127,15 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                         const SizedBox(height: 20),
 
                         // Link display
-                        _buildLinkDisplay(isDark),
+                        _buildLinkDisplay(isDark, l10n),
                         const SizedBox(height: 20),
 
                         // Share buttons
                         _buildShareButtons(isDark, l10n),
                         const SizedBox(height: 16),
 
-                        // TODO: Scan QR code button - disabled temporarily
-                        // _buildScanButton(isDark, l10n),
+                        // Scan QR code button
+                        _buildScanButton(isDark, l10n),
                       ],
                     ),
                   ),
@@ -164,8 +170,8 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
             children: [
               const SizedBox(width: 32),
               Text(
-                'Partager le groupe',
-                style: TextStyle(
+                l10n.shareGroup,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -179,8 +185,8 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close_rounded,
+                  child: const AppIcon(
+                    AppIcon.close,
                     color: Colors.white,
                     size: 18,
                   ),
@@ -212,14 +218,12 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                           widget.groupImageUrl!,
                           fit: BoxFit.cover,
                           errorBuilder:
-                              (_, __, ___) => Icon(
-                                Icons.groups,
+                              (_, __, ___) => AppIcon(AppIcon.groups,
                                 color: context.adaptiveSecondaryColor,
                                 size: 28,
                               ),
                         )
-                        : Icon(
-                          Icons.groups,
+                        : AppIcon(AppIcon.groups,
                           color: context.adaptiveSecondaryColor,
                           size: 28,
                         ),
@@ -280,9 +284,9 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                   eyeShape: QrEyeShape.square,
                   color: context.adaptiveSecondaryColor,
                 ),
-                dataModuleStyle: QrDataModuleStyle(
+                dataModuleStyle: const QrDataModuleStyle(
                   dataModuleShape: QrDataModuleShape.circle,
-                  color: const Color(0xFF1A1A2E),
+                  color: Color(0xFF1A1A2E),
                 ),
                 errorCorrectionLevel: QrErrorCorrectLevel.H,
               ),
@@ -313,8 +317,8 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                     ),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(
-                    Icons.groups_rounded,
+                  child: const AppIcon(
+                    AppIcon.groups,
                     color: Colors.white,
                     size: 18,
                   ),
@@ -341,7 +345,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Scannez pour rejoindre',
+                  l10n.scanToJoin,
                   style: TextStyle(
                     color: context.adaptiveSecondaryColor,
                     fontWeight: FontWeight.w500,
@@ -356,7 +360,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     );
   }
 
-  Widget _buildLinkDisplay(bool isDark) {
+  Widget _buildLinkDisplay(bool isDark, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -435,7 +439,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _copied ? 'Copié!' : 'Copier',
+                      _copied ? l10n.copied : l10n.copy,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -457,7 +461,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Partager via',
+          l10n.shareVia,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -468,36 +472,66 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
         Row(
           children: [
             _ShareIconButton(
-              icon: Icons.message_rounded,
+              asset: AppIcon.whatsapp,
               color: const Color(0xFF25D366),
-              label: 'WhatsApp',
+              label: AppLocalizations.of(context)!.whatsApp,
               onTap: _shareViaWhatsApp,
             ),
             const SizedBox(width: 12),
             _ShareIconButton(
-              icon: Icons.facebook_rounded,
+              asset: AppIcon.facebook,
               color: const Color(0xFF1877F2),
-              label: 'Facebook',
+              label: AppLocalizations.of(context)!.facebook,
               onTap: _shareViaFacebook,
             ),
             const SizedBox(width: 12),
             _ShareIconButton(
-              icon: Icons.close_rounded,
+              asset: AppIcon.x,
               color: isDark ? Colors.white : const Color(0xFF14171A),
               iconColor: isDark ? const Color(0xFF14171A) : Colors.white,
-              label: 'X',
-              onTap: _shareViaTwitter,
+              label: AppLocalizations.of(context)!.xTwitter,
+              onTap: _shareViaX,
             ),
             const SizedBox(width: 12),
             _ShareIconButton(
               icon: Icons.more_horiz_rounded,
               color: context.adaptiveSecondaryColor,
-              label: 'Plus',
+              label: AppLocalizations.of(context)!.more,
               onTap: _shareViaSystem,
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildScanButton(bool isDark, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          Navigator.pop(context);
+          context.push('/qr-scanner');
+        },
+        icon: Icon(
+          Icons.qr_code_scanner_rounded,
+          color: context.adaptiveSecondaryColor,
+        ),
+        label: Text(
+          l10n.scanQRCode,
+          style: TextStyle(
+            color: context.adaptiveSecondaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          side: BorderSide(color: context.adaptiveSecondaryColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
     );
   }
 
@@ -512,63 +546,52 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     });
   }
 
+  String _getShareMessage() {
+    final l10n = AppLocalizations.of(context)!;
+    return l10n.joinGroupInvite(widget.groupName, _shareUrl);
+  }
+
   Future<void> _shareViaWhatsApp() async {
     HapticFeedback.lightImpact();
-    final message =
-        'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl';
-    final url = Uri.parse(
-      'https://wa.me/?text=${Uri.encodeComponent(message)}',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    await ExternalShare.whatsApp(_getShareMessage());
   }
 
   Future<void> _shareViaFacebook() async {
     HapticFeedback.lightImpact();
-    final url = Uri.parse(
-      'https://www.facebook.com/sharer/sharer.php?u=${Uri.encodeComponent(_shareUrl)}',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    await ExternalShare.facebook(_shareUrl);
   }
 
-  Future<void> _shareViaTwitter() async {
+  Future<void> _shareViaX() async {
     HapticFeedback.lightImpact();
-    final message =
-        'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl';
-    final url = Uri.parse(
-      'https://twitter.com/intent/tweet?text=${Uri.encodeComponent(message)}',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    await ExternalShare.x(_getShareMessage());
   }
 
   Future<void> _shareViaSystem() async {
     HapticFeedback.lightImpact();
-    await Share.share(
-      'Rejoignez le groupe "${widget.groupName}" sur Diaspo Niger: $_shareUrl',
+    await ExternalShare.system(
+      text: _getShareMessage(),
       subject: widget.groupName,
     );
   }
 }
 
 class _ShareIconButton extends StatelessWidget {
-  final IconData icon;
+  /// Icone Material (fallback) ou glyphe SVG de marque via [asset].
+  final IconData? icon;
+  final String? asset;
   final Color color;
   final Color? iconColor;
   final String label;
   final VoidCallback onTap;
 
   const _ShareIconButton({
-    required this.icon,
+    this.icon,
+    this.asset,
     required this.color,
     this.iconColor,
     required this.label,
     required this.onTap,
-  });
+  }) : assert(icon != null || asset != null);
 
   @override
   Widget build(BuildContext context) {
@@ -590,11 +613,15 @@ class _ShareIconButton extends StatelessWidget {
                 Container(
                   width: 36,
                   height: 36,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: color,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: iconColor ?? Colors.white, size: 18),
+                  child: asset != null
+                      ? AppIcon(asset!,
+                          color: iconColor ?? Colors.white, size: 18)
+                      : Icon(icon, color: iconColor ?? Colors.white, size: 18),
                 ),
                 const SizedBox(height: 6),
                 Text(

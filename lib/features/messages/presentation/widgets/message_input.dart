@@ -1,23 +1,43 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_shadows.dart';
+import 'emoji_sticker_picker.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/services/permission_service.dart';
+import '../../../../core/services/preferences_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
-import 'audio_recorder_overlay.dart';
+import 'location_picker_modal.dart';
 import '../screens/media_preview_screen.dart';
 import '../../domain/entities/message_entity.dart';
+import '../../../gifs/domain/entities/gif_entity.dart';
+import '../../../stickers/domain/entities/sticker_entity.dart';
+import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import 'mention_suggestion_overlay.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class MessageInput extends StatefulWidget {
-  final Function(String) onSendText;
+  final String conversationId;
+  final Function(String, List<MentionedUser>) onSendText;
   final Function(File, bool isImage, {String? caption}) onSendFile;
+  final Function(File audioFile, {String? caption})? onSendAudioFile;
   final Function(File audioFile, int duration, List<double> waveform)?
   onSendAudio;
+  final Function(double latitude, double longitude, String address)?
+  onSendLocation;
+  final Function(StickerEntity sticker)? onSendSticker;
+
+  /// Appelé quand un GIF (ou sticker Tenor/Giphy) est choisi dans le picker.
+  final Function(GifEntity gif)? onSendGif;
   final VoidCallback? onTyping;
   final bool isLoading;
 
@@ -25,15 +45,30 @@ class MessageInput extends StatefulWidget {
   final MessageEntity? replyToMessage;
   final VoidCallback? onCancelReply;
 
+  // Mention support (empty for non-group conversations)
+  final List<MentionedUser> groupMembers;
+
+  // Création d'événement/sondage depuis le menu « + » (null = option masquée)
+  final VoidCallback? onCreateEvent;
+  final VoidCallback? onCreatePoll;
+
   const MessageInput({
     super.key,
+    required this.conversationId,
     required this.onSendText,
     required this.onSendFile,
+    this.onSendAudioFile,
     this.onSendAudio,
+    this.onSendLocation,
+    this.onSendSticker,
+    this.onSendGif,
     this.onTyping,
     this.isLoading = false,
     this.replyToMessage,
     this.onCancelReply,
+    this.groupMembers = const [],
+    this.onCreateEvent,
+    this.onCreatePoll,
   });
 
   @override
@@ -47,13 +82,27 @@ class _MessageInputState extends State<MessageInput>
   final AudioRecordingService _recordingService = AudioRecordingService();
 
   bool _hasText = false;
+  bool _isOverLimit = false;
   bool _isRecording = false;
+  bool _showPicker = false;
+  int _pickerTabIndex = 0; // 0 = emojis, 1 = stickers
   double _dragOffset = 0;
   bool _isCancelling = false;
+  bool _isLocked = false;
+  double _verticalDragOffset = 0;
 
   // Character counter threshold
   static const int _charCountThreshold = 200;
   static const int _maxCharCount = 2000;
+
+  // Draft persistence
+  Timer? _draftSaveTimer;
+
+  // Mention state
+  List<MentionedUser> _pendingMentions = [];
+  List<MentionedUser> _mentionSuggestions = [];
+  String? _activeMentionQuery;
+  int? _mentionTriggerOffset;
 
   // Morphing animation
   late AnimationController _morphController;
@@ -73,15 +122,35 @@ class _MessageInputState extends State<MessageInput>
       curve: Curves.easeOutCubic,
     );
 
+    // Load saved draft
+    _loadDraft();
+
+    // Listen to focus changes for input field styling and emoji/sticker picker
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _showPicker) {
+        setState(() {
+          _showPicker = false;
+        });
+      } else {
+        setState(() {});
+      }
+    });
+
     _controller.addListener(() {
+      _detectMentionTrigger();
       final hasText = _controller.text.trim().isNotEmpty;
-      if (hasText != _hasText) {
-        setState(() => _hasText = hasText);
+      final isOverLimit = _controller.text.length > _maxCharCount;
+
+      if (hasText != _hasText || isOverLimit != _isOverLimit) {
+        setState(() {
+          _hasText = hasText;
+          _isOverLimit = isOverLimit;
+        });
 
         // Animate morphing
-        if (hasText) {
+        if (hasText && !isOverLimit) {
           _morphController.forward();
-        } else {
+        } else if (!hasText) {
           _morphController.reverse();
         }
       }
@@ -95,11 +164,42 @@ class _MessageInputState extends State<MessageInput>
               _controller.text.isNotEmpty)) {
         setState(() {});
       }
+
+      // Save draft with debounce
+      _scheduleDraftSave();
     });
+  }
+
+  void _loadDraft() {
+    final draft = PreferencesService.instance.getMessageDraft(
+      widget.conversationId,
+    );
+    if (draft != null && draft.isNotEmpty) {
+      _controller.text = draft;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: draft.length),
+      );
+    }
+  }
+
+  void _scheduleDraftSave() {
+    _draftSaveTimer?.cancel();
+    _draftSaveTimer = Timer(const Duration(milliseconds: 500), () {
+      PreferencesService.instance.saveMessageDraft(
+        widget.conversationId,
+        _controller.text,
+      );
+    });
+  }
+
+  void _clearDraft() {
+    _draftSaveTimer?.cancel();
+    PreferencesService.instance.clearMessageDraft(widget.conversationId);
   }
 
   @override
   void dispose() {
+    _draftSaveTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     _morphController.dispose();
@@ -109,13 +209,146 @@ class _MessageInputState extends State<MessageInput>
     super.dispose();
   }
 
+  void _detectMentionTrigger() {
+    if (widget.groupMembers.isEmpty) return;
+    final text = _controller.text;
+    final cursor = _controller.selection.baseOffset;
+    if (cursor < 0) return;
+
+    final before = text.substring(0, cursor);
+    final atIndex = before.lastIndexOf('@');
+    if (atIndex == -1) {
+      _clearMentionState();
+      return;
+    }
+
+    final query = before.substring(atIndex + 1);
+    if (query.contains(' ') || query.contains('\n')) {
+      _clearMentionState();
+      return;
+    }
+
+    final filtered = widget.groupMembers
+        .where((m) => m.name.toLowerCase().startsWith(query.toLowerCase()))
+        .toList();
+
+    if (_activeMentionQuery != query ||
+        _mentionTriggerOffset != atIndex ||
+        _mentionSuggestions.length != filtered.length) {
+      setState(() {
+        _activeMentionQuery = query;
+        _mentionTriggerOffset = atIndex;
+        _mentionSuggestions = filtered;
+      });
+    }
+  }
+
+  void _clearMentionState() {
+    if (_activeMentionQuery != null || _mentionSuggestions.isNotEmpty) {
+      setState(() {
+        _activeMentionQuery = null;
+        _mentionTriggerOffset = null;
+        _mentionSuggestions = [];
+      });
+    }
+  }
+
+  void _onMentionSelected(MentionedUser user) {
+    final text = _controller.text;
+    final triggerOffset = _mentionTriggerOffset!;
+    final cursor = _controller.selection.baseOffset;
+    final newText = text.replaceRange(triggerOffset, cursor, '@${user.name} ');
+    _controller.text = newText;
+    _controller.selection = TextSelection.collapsed(
+      offset: triggerOffset + user.name.length + 2,
+    );
+
+    if (!_pendingMentions.any((m) => m.id == user.id)) {
+      _pendingMentions = [..._pendingMentions, user];
+    }
+    _clearMentionState();
+    _focusNode.requestFocus();
+  }
+
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    widget.onSendText(text);
+    final finalMentions = _pendingMentions
+        .where((m) => text.contains('@${m.name}'))
+        .toList();
+
+    widget.onSendText(text, finalMentions);
+    _pendingMentions = [];
+    _clearMentionState();
     _controller.clear();
+    _clearDraft();
     _focusNode.requestFocus();
+  }
+
+  void _togglePicker({int tabIndex = 0}) {
+    if (_showPicker && _pickerTabIndex == tabIndex) {
+      // Hide picker and show keyboard
+      setState(() => _showPicker = false);
+      _focusNode.requestFocus();
+    } else {
+      // Hide keyboard and show picker
+      _focusNode.unfocus();
+      setState(() {
+        _showPicker = true;
+        _pickerTabIndex = tabIndex;
+      });
+    }
+  }
+
+  void _hidePicker() {
+    setState(() => _showPicker = false);
+    _focusNode.requestFocus();
+  }
+
+  void _onStickerSelected(StickerEntity sticker) {
+    // Hide picker
+    setState(() => _showPicker = false);
+    // Send sticker
+    widget.onSendSticker?.call(sticker);
+  }
+
+  void _onGifSelected(GifEntity gif) {
+    setState(() => _showPicker = false);
+    widget.onSendGif?.call(gif);
+  }
+
+  void _onEmojiSelected(
+    emoji_picker.Category? category,
+    emoji_picker.Emoji emoji,
+  ) {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    final start = selection.start >= 0 ? selection.start : text.length;
+    final end = selection.end >= 0 ? selection.end : text.length;
+    final newText = text.replaceRange(start, end, emoji.emoji);
+    _controller.text = newText;
+    _controller.selection = TextSelection.collapsed(
+      offset: start + emoji.emoji.length,
+    );
+  }
+
+  void _onBackspacePressed() {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    if (text.isNotEmpty && selection.start > 0) {
+      // Handle emoji deletion (emojis can be multiple code units)
+      final beforeCursor = text.substring(0, selection.start);
+      final characters = beforeCursor.characters.toList();
+      if (characters.isNotEmpty) {
+        characters.removeLast();
+        final newText = characters.join() + text.substring(selection.end);
+        _controller.text = newText;
+        _controller.selection = TextSelection.collapsed(
+          offset: characters.join().length,
+        );
+      }
+    }
   }
 
   Future<void> _pickImage() async {
@@ -164,8 +397,71 @@ class _MessageInputState extends State<MessageInput>
         imageQuality: 70,
       );
 
-      if (image != null) {
-        widget.onSendFile(File(image.path), true);
+      if (image != null && mounted) {
+        // Navigate to preview screen
+        final result = await Navigator.push<MediaPreviewResult>(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => MediaPreviewScreen(
+                  file: File(image.path),
+                  type: MediaType.image,
+                  conversationId: '',
+                ),
+          ),
+        );
+
+        if (result != null && mounted) {
+          widget.onSendFile(
+            result.file,
+            result.isImage,
+            caption: result.caption,
+          );
+        }
+      }
+    } on PlatformException catch (e) {
+      if (e.code == 'camera_access_denied' && mounted) {
+        _showCameraPermissionError(PermissionResult.permanentlyDenied);
+      }
+    }
+  }
+
+  Future<void> _takeVideo() async {
+    // Request camera permission first
+    final permissionResult =
+        await PermissionService().requestCameraPermission();
+
+    if (permissionResult != PermissionResult.granted) {
+      if (mounted) {
+        _showCameraPermissionError(permissionResult);
+      }
+      return;
+    }
+
+    try {
+      final picker = ImagePicker();
+      final video = await picker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: const Duration(minutes: 5), // Limite de 5 minutes
+      );
+
+      if (video != null && mounted) {
+        // Navigate to preview screen
+        final result = await Navigator.push<MediaPreviewResult>(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => MediaPreviewScreen(
+                  file: File(video.path),
+                  type: MediaType.video,
+                  conversationId: '',
+                ),
+          ),
+        );
+
+        if (result != null && mounted) {
+          widget.onSendFile(result.file, false, caption: result.caption);
+        }
       }
     } on PlatformException catch (e) {
       if (e.code == 'camera_access_denied' && mounted) {
@@ -175,22 +471,23 @@ class _MessageInputState extends State<MessageInput>
   }
 
   void _showCameraPermissionError(PermissionResult result) {
+    final l10n = AppLocalizations.of(context)!;
     final isPermanent = result == PermissionResult.permanentlyDenied;
-    final message = PermissionService.getCameraPermissionDeniedMessage(result);
+    final message = PermissionService.getCameraPermissionDeniedMessageLocalized(
+      context,
+      result,
+    );
 
     if (isPermanent) {
       PermissionService.showPermissionDeniedDialog(
         context: context,
-        title: 'Permission caméra requise',
+        title: l10n.cameraPermissionRequiredTitle,
         message: message,
         showSettingsButton: true,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }
   }
@@ -203,6 +500,26 @@ class _MessageInputState extends State<MessageInput>
 
     if (result != null && result.files.single.path != null) {
       widget.onSendFile(File(result.files.single.path!), false);
+    }
+  }
+
+  Future<void> _pickAudio() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final caption = _controller.text.trim();
+      if (widget.onSendAudioFile != null) {
+        widget.onSendAudioFile!(file, caption: caption.isEmpty ? null : caption);
+      } else {
+        // Fallback for legacy callers.
+        widget.onSendFile(file, false);
+      }
+      _controller.clear();
+      setState(() => _hasText = false);
     }
   }
 
@@ -233,9 +550,11 @@ class _MessageInputState extends State<MessageInput>
   void _showAttachmentOptions() {
     // Unfocus to hide keyboard before showing attachment options
     _focusNode.unfocus();
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder:
           (context) => Container(
             padding: const EdgeInsets.all(20),
@@ -259,7 +578,7 @@ class _MessageInputState extends State<MessageInput>
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Envoyer un fichier',
+                  l10n.sendFileTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -267,13 +586,13 @@ class _MessageInputState extends State<MessageInput>
                   ),
                 ),
                 const SizedBox(height: 24),
-                // First row
+                // First row - Gallery options (Photos, Vidéos)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _AttachmentOption(
                       icon: Icons.photo_library,
-                      label: 'Galerie',
+                      label: l10n.photosLabel,
                       color: context.adaptivePrimaryColor,
                       onTap: () {
                         Navigator.pop(context);
@@ -281,33 +600,33 @@ class _MessageInputState extends State<MessageInput>
                       },
                     ),
                     _AttachmentOption(
-                      icon: Icons.camera_alt,
-                      label: 'Caméra',
-                      color: context.adaptiveSecondaryColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _takePhoto();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Second row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _AttachmentOption(
-                      icon: Icons.videocam,
-                      label: 'Vidéo',
+                      icon: Icons.video_library,
+                      label: l10n.videosLabel,
                       color: Colors.purple,
                       onTap: () {
                         Navigator.pop(context);
                         _pickVideo();
                       },
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Second row - Gallery options (Audio, Documents)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _AttachmentOption(
+                      icon: Icons.audiotrack,
+                      label: l10n.audioLabel,
+                      color: Colors.orange,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickAudio();
+                      },
+                    ),
                     _AttachmentOption(
                       icon: Icons.insert_drive_file,
-                      label: 'Document',
+                      label: l10n.documentsLabel,
                       color: Colors.blue,
                       onTap: () {
                         Navigator.pop(context);
@@ -316,9 +635,148 @@ class _MessageInputState extends State<MessageInput>
                     ),
                   ],
                 ),
+                if (widget.onCreateEvent != null ||
+                    widget.onCreatePoll != null) ...[
+                  const SizedBox(height: 16),
+                  // Third row - Contenu interactif (Événement, Sondage)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      if (widget.onCreateEvent != null)
+                        _AttachmentOption(
+                          icon: Icons.event,
+                          label: 'Événement',
+                          color: Colors.teal,
+                          onTap: () {
+                            Navigator.pop(context);
+                            widget.onCreateEvent!();
+                          },
+                        ),
+                      if (widget.onCreatePoll != null)
+                        _AttachmentOption(
+                          icon: Icons.poll,
+                          label: 'Sondage',
+                          color: const Color(0xFF6B5CE0),
+                          onTap: () {
+                            Navigator.pop(context);
+                            widget.onCreatePoll!();
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 20),
+                // Divider with label
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: context.outlineColor.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        l10n.cameraSection,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: context.outlineColor.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Second row - Camera options
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _AttachmentOption(
+                      icon: Icons.camera_alt,
+                      label: l10n.photoLabel,
+                      color: context.adaptiveSecondaryColor,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _takePhoto();
+                      },
+                    ),
+                    _AttachmentOption(
+                      icon: Icons.videocam,
+                      label: l10n.videoLabel,
+                      color: Colors.red,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _takeVideo();
+                      },
+                    ),
+                  ],
+                ),
+                // Location option
+                if (widget.onSendLocation != null) ...[
+                  const SizedBox(height: 20),
+                  // Divider with label
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: context.outlineColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          l10n.locationSection,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.textTertiaryColor,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: context.outlineColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _AttachmentOption(
+                        icon: Icons.location_on,
+                        label: l10n.positionLabel,
+                        color: Colors.green,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showLocationPicker();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 20),
               ],
             ),
+          ),
+    );
+  }
+
+  Future<void> _showLocationPicker() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => LocationPickerModal(
+            onLocationSelected: (lat, lng, address) {
+              widget.onSendLocation?.call(lat, lng, address);
+            },
           ),
     );
   }
@@ -330,9 +788,10 @@ class _MessageInputState extends State<MessageInput>
     final hasPermission = await _recordingService.requestPermission();
     if (!hasPermission) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Permission du microphone requise'),
+          SnackBar(
+            content: Text(l10n.microphonePermissionRequired),
             backgroundColor: Colors.red,
           ),
         );
@@ -347,6 +806,8 @@ class _MessageInputState extends State<MessageInput>
         _isRecording = true;
         _dragOffset = 0;
         _isCancelling = false;
+        _isLocked = false;
+        _verticalDragOffset = 0;
       });
     }
   }
@@ -366,136 +827,624 @@ class _MessageInputState extends State<MessageInput>
       }
     }
 
-    setState(() {
-      _isRecording = false;
-      _dragOffset = 0;
-      _isCancelling = false;
-    });
+    _resetRecordingState();
   }
 
-  void _onRecordingDrag(DragUpdateDetails details) {
-    if (!_isRecording) return;
+  void _onLongPressDrag(LongPressMoveUpdateDetails details) {
+    if (!_isRecording || _isLocked) return;
+
+    final wasCancelling = _isCancelling;
+    final wasNearLock = _verticalDragOffset < -35;
 
     setState(() {
-      _dragOffset += details.delta.dx;
+      // offsetFromOrigin est déjà relatif au point de départ du LongPress
+      _dragOffset = details.offsetFromOrigin.dx;
+      _verticalDragOffset = details.offsetFromOrigin.dy;
+
+      // Annulation si drag horizontal vers la gauche > 80px
       _isCancelling = _dragOffset < -80;
+
+      // Verrouillage si drag vertical vers le haut > 50px
+      if (_verticalDragOffset < -50) {
+        _isLocked = true;
+        HapticFeedback.heavyImpact();
+      }
     });
 
-    if (_isCancelling && !_recordingService.isRecording) {
+    // Feedback haptic quand on entre dans la zone d'annulation
+    if (_isCancelling && !wasCancelling) {
+      HapticFeedback.mediumImpact();
+    }
+
+    // Feedback quand on approche du seuil de verrouillage
+    if (_verticalDragOffset < -35 && !wasNearLock && !_isLocked) {
       HapticFeedback.selectionClick();
     }
   }
 
+  void _onLongPressRelease() {
+    if (!_isRecording) return;
+
+    if (_isCancelling) {
+      // Annuler l'enregistrement
+      _recordingService.cancelRecording();
+      HapticFeedback.lightImpact();
+      _resetRecordingState();
+    } else if (!_isLocked) {
+      // Envoyer l'enregistrement
+      _stopRecording();
+    }
+    // Si verrouillé, ne rien faire - l'utilisateur utilisera les boutons
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isRecording) {
-      return GestureDetector(
-        onHorizontalDragUpdate: _onRecordingDrag,
-        onHorizontalDragEnd: (_) => _stopRecording(),
-        onPanEnd: (_) => _stopRecording(),
-        child: AudioRecorderOverlay(
-          dragOffset: _dragOffset,
-          isCancelling: _isCancelling,
-          onCancel: () async {
-            await _recordingService.cancelRecording();
-            setState(() {
-              _isRecording = false;
-              _dragOffset = 0;
-              _isCancelling = false;
-            });
-          },
-          onSend: _stopRecording,
-        ),
-      );
-    }
-
+    // Structure simple : Row avec l'input/overlay à gauche et le bouton à droite
+    // Le bouton reste TOUJOURS dans l'arbre pour maintenir la continuité des gestes
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Reply preview
-        if (widget.replyToMessage != null) _buildReplyPreview(context),
+        // Mention suggestions overlay
+        MentionSuggestionOverlay(
+          suggestions: _mentionSuggestions,
+          onSelect: _onMentionSelected,
+        ),
 
-        // Main input area
-        Container(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 12,
+        // Reply preview (uniquement si pas en enregistrement)
+        if (widget.replyToMessage != null && !_isRecording)
+          _buildReplyPreview(context),
+
+        // Zone principale avec input OU overlay d'enregistrement
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            12,
+            4,
+            12,
+            MediaQuery.of(context).padding.bottom + 8,
           ),
-          decoration: BoxDecoration(
-            color: context.surfaceColor,
-            boxShadow:
-                context.isDarkMode
-                    ? null
-                    : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed: () => _showAttachmentOptions(),
-                    icon: const Icon(Icons.attach_file),
-                    color: context.textSecondaryColor,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 56, sigmaY: 56),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: _isRecording
+                      ? (_isCancelling
+                          ? Colors.red.withValues(alpha: 0.15)
+                          : _isLocked
+                              ? context.adaptivePrimaryColor
+                                  .withValues(alpha: 0.12)
+                              : (context.isDarkMode
+                                  ? AppColors.surfaceDark.withValues(alpha: 0.4)
+                                  : AppColors.surface.withValues(alpha: 0.5)))
+                      : (context.isDarkMode
+                          ? AppColors.surfaceDark.withValues(alpha: 0.35)
+                          : AppColors.surface.withValues(alpha: 0.4)),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: context.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.white.withValues(alpha: 0.5),
+                    width: 1,
                   ),
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(maxHeight: 120),
-                      decoration: BoxDecoration(
-                        color: context.surfaceVariantColor,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        enabled: !widget.isLoading,
-                        maxLines: null,
-                        maxLength: _maxCharCount,
-                        buildCounter:
-                            (
-                              context, {
-                              required currentLength,
-                              required isFocused,
-                              maxLength,
-                            }) => null,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          hintText: 'Votre message...',
-                          hintStyle: TextStyle(
-                            color: context.textTertiaryColor,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                        ),
-                        onSubmitted: (_) => _sendMessage(),
-                      ),
+                  boxShadow: context.isDarkMode
+                      ? AppShadows.shadowBottomNavDark
+                      : AppShadows.shadowBottomNav,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: _isRecording
+                          ? _buildInlineRecordingUI(context)
+                          : _buildInputContent(context),
+                    ),
+                    if (!_isLocked) ...[
+                      const SizedBox(width: 8),
+                      _buildPersistentActionButton(context),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Combined emoji/sticker picker (uniquement si pas en enregistrement)
+        if (_showPicker && !_isRecording)
+          EmojiStickerPicker(
+            // Hauteur adaptative : 300 dp fixes débordaient en paysage
+            // (en-tête + composer + picker > écran ~390 dp). En paysage on
+            // prend une part plus large de l'écran : la conversation n'a pas
+            // besoin d'être lue pendant qu'on choisit, et sous ~240 dp la
+            // grille (44 onglets + 50 recherche) n'affiche plus de rangée.
+            height: MediaQuery.of(context).orientation == Orientation.landscape
+                ? (MediaQuery.of(context).size.height * 0.62)
+                    .clamp(160.0, 260.0)
+                : (MediaQuery.of(context).size.height * 0.45)
+                    .clamp(180.0, 300.0),
+            initialTabIndex: _pickerTabIndex,
+            onEmojiSelected: _onEmojiSelected,
+            onBackspacePressed: _onBackspacePressed,
+            onStickerSelected: widget.onSendSticker != null ? _onStickerSelected : null,
+            onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
+            onClose: _hidePicker,
+          ),
+      ],
+    );
+  }
+
+  /// Contenu de l'input (emoji, attachment, text field)
+  Widget _buildInputContent(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Emoji/Sticker picker button
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    _showPicker
+                        ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
+                        : context.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                onPressed: () => _togglePicker(),
+                icon: Icon(
+                  _showPicker
+                      ? Icons.keyboard
+                      : Icons.emoji_emotions_outlined,
+                ),
+                color:
+                    _showPicker
+                        ? context.adaptivePrimaryColor
+                        : context.textSecondaryColor,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const SizedBox(width: 6),
+
+            // Attachment button
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    context.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                onPressed: () => _showAttachmentOptions(),
+                icon: const Icon(Icons.attach_file),
+                color: context.textSecondaryColor,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Text field
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                constraints: const BoxConstraints(maxHeight: 120),
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color:
+                        _focusNode.hasFocus
+                            ? context.adaptivePrimaryColor.withValues(
+                              alpha: 0.3,
+                            )
+                            : Colors.transparent,
+                    width: 2,
+                  ),
+                  boxShadow:
+                      _focusNode.hasFocus
+                          ? [
+                            BoxShadow(
+                              color: context.adaptivePrimaryColor.withValues(
+                                alpha: 0.15,
+                              ),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                          : null,
+                ),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  enabled: !widget.isLoading,
+                  maxLines: null,
+                  maxLength: _maxCharCount,
+                  buildCounter:
+                      (
+                        context, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.yourMessage,
+                    hintStyle: TextStyle(color: context.textTertiaryColor),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _buildActionButton(context),
-                ],
+                  onSubmitted: (_) => _sendMessage(),
+                ),
               ),
+            ),
+          ],
+        ),
+        // Character counter
+        if (_controller.text.length >= _charCountThreshold)
+          _buildCharacterCounter(context),
+      ],
+    );
+  }
 
-              // Character counter
-              if (_controller.text.length >= _charCountThreshold)
-                _buildCharacterCounter(context),
-            ],
+  /// UI d'enregistrement inline (remplace l'input pendant l'enregistrement)
+  Widget _buildInlineRecordingUI(BuildContext context) {
+    final cancelProgress = (_dragOffset.abs() / 100).clamp(0.0, 1.0);
+    final showCancelHint = _dragOffset < -30;
+    final showLockIndicator = _verticalDragOffset < -20 && !_isLocked;
+
+    if (_isLocked) {
+      // Mode verrouillé : afficher les boutons d'action
+      return _buildLockedRecordingUI(context);
+    }
+
+    // Mode normal : afficher l'UI d'enregistrement avec hints
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Indicateur flottant "Relâchez pour verrouiller" (état 4)
+        if (showLockIndicator) _buildFloatingLockIndicator(context),
+
+        // Ligne principale
+        Row(
+          children: [
+            // Cancel hint (seulement "Annuler", pas de "Verrouiller")
+            Expanded(
+              flex: 2,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 150),
+                child:
+                    showCancelHint
+                        ? _buildCancelHint(context, cancelProgress)
+                        : _buildDefaultRecordingHint(context),
+              ),
+            ),
+
+            // Recording indicator and duration
+            _buildRecordingIndicator(context),
+
+            const SizedBox(width: 12),
+
+            // Waveform visualization
+            Expanded(flex: 3, child: _buildSimpleWaveform(context)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Indicateur flottant qui apparaît quand on glisse vers le haut
+  Widget _buildFloatingLockIndicator(BuildContext context) {
+    final progress = (_verticalDragOffset.abs() / 50).clamp(0.0, 1.0);
+    final isNearLock = _verticalDragOffset < -40;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color:
+            isNearLock
+                ? context.adaptivePrimaryColor.withValues(alpha: 0.2)
+                : context.surfaceVariantColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: context.adaptivePrimaryColor.withValues(alpha: progress * 0.5),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          isNearLock
+              ? AppIcon(
+                  AppIcon.lock,
+                  color: context.adaptivePrimaryColor.withValues(
+                    alpha: 0.5 + progress * 0.5,
+                  ),
+                  size: 20,
+                )
+              : AppIcon(
+                  AppIcon.lockOpen,
+                  color: context.adaptivePrimaryColor.withValues(
+                    alpha: 0.5 + progress * 0.5,
+                  ),
+                  size: 20,
+                ),
+          const SizedBox(width: 8),
+          Text(
+            isNearLock
+                ? AppLocalizations.of(context)!.releaseToLock
+                : AppLocalizations.of(context)!.slideUpToLock,
+            style: TextStyle(
+              color: context.textSecondaryColor.withValues(
+                alpha: 0.7 + progress * 0.3,
+              ),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCancelHint(BuildContext context, double progress) {
+    return Row(
+      key: const ValueKey('cancel'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.arrow_back_ios_rounded, color: Colors.red, size: 24),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            AppLocalizations.of(context)!.releaseToCancel,
+            style: const TextStyle(
+              color: Colors.red,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildDefaultRecordingHint(BuildContext context) {
+    // Hint "Annuler" avec flèche - le cadenas est au-dessus du bouton micro
+    return Row(
+      key: const ValueKey('default'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.arrow_back_ios_rounded,
+          color: context.textSecondaryColor,
+          size: 22,
+        ),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            AppLocalizations.of(context)!.slideToCancel,
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordingIndicator(BuildContext context) {
+    return StreamBuilder<int>(
+      stream: _recordingService.durationStream,
+      initialData: 0,
+      builder: (context, snapshot) {
+        final duration = snapshot.data ?? 0;
+        final minutes = duration ~/ 60;
+        final secs = duration % 60;
+        final durationText = '$minutes:${secs.toString().padLeft(2, '0')}';
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Pulsing red dot
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.5, end: 1.0),
+              duration: const Duration(milliseconds: 500),
+              builder: (context, value, child) {
+                return Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: value),
+                    shape: BoxShape.circle,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            Text(
+              durationText,
+              style: TextStyle(
+                color: context.textPrimaryColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSimpleWaveform(BuildContext context) {
+    return StreamBuilder<double>(
+      stream: _recordingService.amplitudeStream,
+      initialData: 0.3,
+      builder: (context, snapshot) {
+        final amplitude = snapshot.data ?? 0.3;
+        return Container(
+          height: 32,
+          decoration: BoxDecoration(
+            color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(15, (index) {
+              final height = 8 + (amplitude * 16 * ((index % 3) + 1) / 3);
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                width: 3,
+                height: height.clamp(4.0, 24.0),
+                decoration: BoxDecoration(
+                  color:
+                      _isCancelling ? Colors.red : context.adaptivePrimaryColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              );
+            }),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLockedRecordingUI(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Badge "Enregistrement verrouillé"
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: context.adaptivePrimaryColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon(AppIcon.lock, color: context.adaptivePrimaryColor, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.of(context)!.recordingLocked,
+                style: TextStyle(
+                  color: context.adaptivePrimaryColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Ligne de contrôles
+        Row(
+          children: [
+            // Delete button
+            GestureDetector(
+              onTap: () async {
+                await _recordingService.cancelRecording();
+                _resetRecordingState();
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const AppIcon(AppIcon.delete,
+                  color: Colors.red,
+                  size: 22,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // Recording indicator
+            _buildRecordingIndicator(context),
+
+            const SizedBox(width: 10),
+
+            // Waveform
+            Expanded(child: _buildSimpleWaveform(context)),
+
+            const SizedBox(width: 12),
+
+            // Send button
+            GestureDetector(
+              onTap: _stopRecording,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      context.adaptivePrimaryColor,
+                      context.adaptivePrimaryColor.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.adaptivePrimaryColor.withValues(
+                        alpha: 0.3,
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const AppIcon(AppIcon.send, color: Colors.white, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Reset l'état d'enregistrement
+  void _resetRecordingState() {
+    setState(() {
+      _isRecording = false;
+      _dragOffset = 0;
+      _isCancelling = false;
+      _isLocked = false;
+      _verticalDragOffset = 0;
+    });
   }
 
   Widget _buildReplyPreview(BuildContext context) {
@@ -551,8 +1500,7 @@ class _MessageInputState extends State<MessageInput>
           ),
           IconButton(
             onPressed: widget.onCancelReply,
-            icon: Icon(
-              Icons.close,
+            icon: AppIcon(AppIcon.close,
               size: 20,
               color: context.textSecondaryColor,
             ),
@@ -565,18 +1513,27 @@ class _MessageInputState extends State<MessageInput>
   }
 
   String _getMediaTypeLabel(MessageType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case MessageType.image:
-        return '📷 Photo';
+        return l10n.messageTypePhoto;
       case MessageType.video:
-        return '🎥 Vidéo';
+        return l10n.messageTypeVideo;
+      case MessageType.voiceNote:
+        return l10n.messageTypeVoiceNote;
       case MessageType.audio:
-        return '🎵 Audio';
+        return l10n.messageTypeAudio;
       case MessageType.file:
-        return '📄 Document';
+        return l10n.messageTypeFile;
       case MessageType.text:
       case MessageType.system:
         return '';
+      case MessageType.call:
+        return l10n.messageTypeCall;
+      case MessageType.location:
+        return l10n.messageTypeLocation;
+      case MessageType.sticker:
+        return l10n.messageTypeSticker;
     }
   }
 
@@ -622,17 +1579,34 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
-  Widget _buildActionButton(BuildContext context) {
+  /// Bouton d'action persistant - TOUJOURS dans l'arbre de widgets
+  /// Gère tous les gestes LongPress pour l'enregistrement audio
+  Widget _buildPersistentActionButton(BuildContext context) {
+    // État de chargement
     if (widget.isLoading) {
       return Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: context.adaptivePrimaryColor,
-          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.adaptivePrimaryColor,
+              context.adaptivePrimaryColor.withValues(alpha: 0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: CircularProgressIndicator(
+        child: const CircularProgressIndicator(
           color: AppColors.white,
           strokeWidth: 2,
         ),
@@ -643,87 +1617,202 @@ class _MessageInputState extends State<MessageInput>
       animation: _morphAnimation,
       builder: (context, child) {
         return GestureDetector(
-          onTap: _hasText ? _sendMessage : null,
+          // Tap pour envoyer du texte
+          onTap: (_hasText && !_isOverLimit) ? _sendMessage : null,
+
+          // LongPress pour démarrer l'enregistrement
           onLongPressStart:
               !_hasText && widget.onSendAudio != null
                   ? (_) => _startRecording()
                   : null,
-          onLongPressEnd:
-              !_hasText && widget.onSendAudio != null
-                  ? (_) => _stopRecording()
-                  : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient:
-                  _hasText
-                      ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          context.adaptivePrimaryColor,
-                          context.adaptivePrimaryColor.withValues(alpha: 0.8),
-                        ],
-                      )
-                      : null,
-              color:
-                  _hasText
-                      ? null
-                      : widget.onSendAudio != null
-                      ? context.adaptivePrimaryColor
-                      : context.surfaceVariantColor,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow:
-                  _hasText
-                      ? [
-                        BoxShadow(
-                          color: context.adaptivePrimaryColor.withValues(
-                            alpha: 0.3,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                      : null,
+
+          // LongPressMoveUpdate gère le drag PENDANT l'enregistrement
+          // C'est la clé : ce handler reste actif car le bouton reste dans l'arbre
+          onLongPressMoveUpdate: (details) {
+            if (_isRecording && !_isLocked) {
+              _onLongPressDrag(details);
+            }
+          },
+
+          // LongPressEnd gère le relâcher
+          onLongPressEnd: (_) {
+            if (_isRecording) {
+              _onLongPressRelease();
+            }
+          },
+
+          child: Transform.translate(
+            // Le bouton suit légèrement le doigt pendant le drag
+            offset: Offset(
+              _isRecording && !_isLocked
+                  ? (_dragOffset.clamp(-60.0, 0.0) * 0.3)
+                  : 0,
+              _isRecording && !_isLocked
+                  ? (_verticalDragOffset.clamp(-40.0, 0.0) * 0.3)
+                  : 0,
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Mic icon (fades out when text is present)
-                AnimatedOpacity(
-                  opacity: _hasText ? 0.0 : 1.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Transform.scale(
-                    scale: 1 - (_morphAnimation.value * 0.3),
-                    child: Icon(
-                      Icons.mic,
-                      color:
-                          widget.onSendAudio != null
-                              ? AppColors.white
-                              : context.textTertiaryColor,
-                    ),
-                  ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              width: _isRecording ? 56 : 44,
+              height: _isRecording ? 56 : 44,
+              decoration: BoxDecoration(
+                gradient: _getButtonGradient(context),
+                color: _getButtonColor(context),
+                borderRadius: BorderRadius.circular(_isRecording ? 28 : 22),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1.5,
                 ),
-                // Send icon (fades in when text is present)
-                AnimatedOpacity(
-                  opacity: _hasText ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Transform.scale(
-                    scale: 0.7 + (_morphAnimation.value * 0.3),
-                    child: Transform.rotate(
-                      angle: -0.4, // Slight rotation for send icon
-                      child: Icon(Icons.send_rounded, color: AppColors.white),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getButtonShadowColor(context),
+                    blurRadius: _isRecording ? 16 : 12,
+                    offset: const Offset(0, 3),
+                    spreadRadius: _isRecording ? 0 : -2,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: _buildButtonContent(context),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Gradient du bouton selon l'état
+  LinearGradient? _getButtonGradient(BuildContext context) {
+    if (_isCancelling) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Colors.red.shade400, Colors.red.shade600],
+      );
+    }
+    if (_isRecording) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          context.adaptivePrimaryColor,
+          context.adaptivePrimaryColor.withValues(alpha: 0.8),
+        ],
+      );
+    }
+    if (_hasText || widget.onSendAudio != null) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors:
+            _isOverLimit
+                ? [Colors.red.shade400, Colors.red.shade600]
+                : [
+                  context.adaptivePrimaryColor,
+                  context.adaptivePrimaryColor.withValues(alpha: 0.8),
+                ],
+      );
+    }
+    return null;
+  }
+
+  /// Couleur de fond du bouton (si pas de gradient)
+  Color? _getButtonColor(BuildContext context) {
+    if (_isRecording || _hasText || widget.onSendAudio != null) {
+      return null;
+    }
+    return context.surfaceVariantColor;
+  }
+
+  /// Couleur de l'ombre du bouton
+  Color _getButtonShadowColor(BuildContext context) {
+    if (_isCancelling) {
+      return Colors.red.withValues(alpha: 0.4);
+    }
+    if (_isRecording) {
+      return context.adaptivePrimaryColor.withValues(alpha: 0.4);
+    }
+    if (_hasText || widget.onSendAudio != null) {
+      return _isOverLimit
+          ? Colors.red.withValues(alpha: 0.35)
+          : context.adaptivePrimaryColor.withValues(alpha: 0.35);
+    }
+    return Colors.black.withValues(alpha: 0.1);
+  }
+
+  /// Contenu du bouton (icône)
+  Widget _buildButtonContent(BuildContext context) {
+    // Pendant l'enregistrement
+    if (_isRecording) {
+      // Stack pour superposer le micro et le petit cadenas
+      return Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Icône principale (micro ou poubelle)
+          _isCancelling
+              ? const AppIcon(AppIcon.delete, color: AppColors.white, size: 26)
+              : const AppIcon(AppIcon.mic, color: AppColors.white, size: 26),
+          // Cadenas flottant AU-DESSUS du bouton (sauf si annulation ou déjà verrouillé)
+          if (!_isCancelling && !_isLocked)
+            Positioned(
+              right: -4,
+              top: -55,
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: AppIcon(AppIcon.lock,
+                  size: 24,
+                  color: context.adaptivePrimaryColor,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    // Mode normal avec morphing mic <-> send
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Icône micro (disparaît quand il y a du texte)
+        AnimatedOpacity(
+          opacity: _hasText ? 0.0 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: Transform.scale(
+            scale: 1 - (_morphAnimation.value * 0.3),
+            child: AppIcon(AppIcon.mic,
+              color:
+                  widget.onSendAudio != null
+                      ? AppColors.white
+                      : context.textTertiaryColor,
+            ),
+          ),
+        ),
+        // Icône envoi (apparaît quand il y a du texte)
+        AnimatedOpacity(
+          opacity: _hasText ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Transform.scale(
+            scale: 0.7 + (_morphAnimation.value * 0.3),
+            child: Transform.rotate(
+              angle: -0.4,
+              child: const AppIcon(AppIcon.send, color: AppColors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -749,18 +1838,33 @@ class _AttachmentOption extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: color.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(icon, color: color, size: 28),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
-            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: context.textSecondaryColor,
+            ),
           ),
         ],
       ),
