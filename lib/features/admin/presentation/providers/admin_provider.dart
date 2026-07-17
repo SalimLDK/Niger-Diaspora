@@ -1,74 +1,303 @@
+import 'dart:async';
+
+import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/services/currency_service.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../events/data/models/event_model.dart';
-import '../../../groups/data/models/group_model.dart';
-import '../../../events/domain/entities/event_entity.dart';
-import '../../../groups/domain/entities/group_entity.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../businesses/data/models/business_model.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
+import '../../../events/data/models/event_model.dart';
+import '../../../events/domain/entities/event_entity.dart';
+import '../../../groups/data/models/group_model.dart';
+import '../../../groups/domain/entities/group_entity.dart';
 import '../../../marketplace/data/models/product_model.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../../../transfers/data/models/transaction_model.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 
-part 'admin_provider.freezed.dart';
-part 'admin_provider.g.dart';
+// ---------------------------------------------------------------------------
+// Supabase client accessor
+// ---------------------------------------------------------------------------
+
+SupabaseClient get _supabase => Supabase.instance.client;
+
+// ---------------------------------------------------------------------------
+// Row → camelCase mappers (Supabase snake_case → model fromJson keys)
+// ---------------------------------------------------------------------------
+
+Map<String, dynamic> _mapUser(Map<String, dynamic> row) => {
+  'id': row['id'],
+  'email': row['email'],
+  'displayName': row['display_name'],
+  'photoUrl': row['avatar_url'],
+  'phoneNumber': row['phone_number'],
+  'createdAt': row['created_at'],
+  'lastLoginAt': row['last_active_at'],
+  'adminRole': row['admin_role'],
+  'isAdmin': row['is_admin'] ?? false,
+  'isBanned': row['is_banned'] ?? false,
+  'banReason': row['ban_reason'],
+  'bannedAt': row['banned_at'],
+  'isVerified': row['is_verified'] ?? false,
+};
+
+Map<String, dynamic> _mapBusiness(Map<String, dynamic> row) => {
+  'id': row['id'],
+  'ownerId': row['owner_id'],
+  'name': row['name'],
+  'description': row['description'] ?? '',
+  'category': row['category'] ?? 'other',
+  'photoUrls': (row['images'] as List?)?.cast<String>() ?? [],
+  'logoUrl': row['avatar_url'],
+  'phone': row['phone'],
+  'email': row['email'],
+  'website': row['website_url'],
+  'address': row['address'],
+  'city': row['city'],
+  'country': row['country_code'],
+  'latitude': (row['latitude'] as num?)?.toDouble(),
+  'longitude': (row['longitude'] as num?)?.toDouble(),
+  'openingHours':
+      (row['opening_hours'] as Map?)?.cast<String, dynamic>() ?? {},
+  'isVerified': row['is_verified'] ?? false,
+  'isBoosted': row['is_boosted'] ?? false,
+  'boostExpiresAt': row['boost_expires_at'],
+  'averageRating': (row['rating'] as num?)?.toDouble() ?? 0.0,
+  'reviewCount': row['review_count'] ?? 0,
+  'viewCount': row['view_count'] ?? 0,
+  'tags': (row['tags'] as List?)?.cast<String>() ?? [],
+  'services': (row['services'] as List?)?.cast<String>() ?? [],
+  'createdAt': row['created_at'],
+  'updatedAt': row['updated_at'],
+};
+
+Map<String, dynamic> _mapEvent(Map<String, dynamic> row) => {
+  'id': row['id'],
+  'title': row['title'],
+  'description': row['description'] ?? '',
+  'startDate': row['starts_at'],
+  'endDate': row['ends_at'],
+  'location': row['address'],
+  'address': row['address'],
+  'country': row['country_code'],
+  'latitude': (row['latitude'] as num?)?.toDouble(),
+  'longitude': (row['longitude'] as num?)?.toDouble(),
+  'organizerId': row['organizer_id'],
+  'organizerName': row['organizer_name'] ?? '',
+  'organizerPhotoUrl': row['organizer_photo_url'],
+  'posterUrls': (row['poster_urls'] as List?)?.cast<String>() ?? [],
+  'attendeeIds': (row['attendee_ids'] as List?)?.cast<String>() ?? [],
+  'maxAttendees': row['max_attendees'],
+  'isOnline': row['is_online'] ?? false,
+  'onlineLink': row['online_link'],
+  'category': row['category'] ?? 'general',
+  'status': row['status'] ?? 'upcoming',
+  'createdAt': row['created_at'],
+  'recapPhotoUrls':
+      (row['recap_photo_urls'] as List?)?.cast<String>() ?? [],
+  'recapDescription': row['recap_description'],
+  'recapCreatedAt': row['recap_created_at'],
+};
+
+Map<String, dynamic> _mapGroup(Map<String, dynamic> row) => {
+  'id': row['id'],
+  'name': row['name'],
+  'description': row['description'] ?? '',
+  'imageUrl': row['avatar_url'],
+  'creatorId': row['creator_id'],
+  'creatorName': row['creator_name'],
+  'adminIds': (row['admin_ids'] as List?)?.cast<String>() ?? [],
+  'memberIds': (row['member_ids'] as List?)?.cast<String>() ?? [],
+  'category': row['category'] ?? 'general',
+  'isPrivate': row['is_private'] ?? false,
+  'location': row['group_location'],
+  'tags': (row['tags'] as List?)?.cast<String>() ?? [],
+  'country': row['country_code'],
+  'originRegion': row['origin_region'],
+  'createdAt': row['created_at'],
+  'memberCount': row['member_count'] ?? 0,
+};
+
+const _zeroDecimalCurrencies = {
+  'bif', 'clp', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg',
+  'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf',
+};
+
+double _fromBaseUnits(int amount, String currency) =>
+    _zeroDecimalCurrencies.contains(currency.toLowerCase())
+        ? amount.toDouble()
+        : amount / 100.0;
+
+Map<String, dynamic> _mapProduct(Map<String, dynamic> row) {
+  final currency = row['currency'] as String? ?? 'XOF';
+  return {
+    'id': row['id'],
+    'sellerId': row['seller_id'],
+    'title': row['title'],
+    'description': row['description'] ?? '',
+    'price': _fromBaseUnits((row['price'] as int?) ?? 0, currency),
+    'currency': currency,
+    'imageUrls': (row['images'] as List?)
+            ?.map((e) => (e as Map)['url']?.toString() ?? '')
+            .where((u) => u.isNotEmpty)
+            .toList() ??
+        [],
+    'category': row['category'] ?? 'other',
+    'condition': row['condition'] ?? 'newProduct',
+    'country': row['country_code'],
+    'location': row['city'],
+    'isAvailable': row['is_available'] ?? true,
+    'quantity': row['stock_quantity'] ?? 0,
+    'viewCount': row['view_count'] ?? 0,
+    'tags': (row['tags'] as List?)?.cast<String>() ?? [],
+    'createdAt': row['created_at'],
+    'updatedAt': row['updated_at'],
+  };
+}
+
+Map<String, dynamic> _mapTransaction(Map<String, dynamic> row) {
+  final currency = row['currency'] as String? ?? 'XOF';
+  final amountBase = (row['amount'] as int?) ?? 0;
+  return {
+    'id': row['id'],
+    'senderId': row['sender_id'],
+    'recipientId': row['recipient_id'] ?? '',
+    'amount': _fromBaseUnits(amountBase, currency),
+    'currency': currency,
+    'exchangeRate': (row['exchange_rate'] as num?)?.toDouble() ?? 1.0,
+    'amountInXof': (row['amount_in_xof'] as num?)?.toDouble() ?? 0.0,
+    'fee': (row['fee'] as num?)?.toDouble() ?? 0.0,
+    'totalCharged': (row['total_charged'] as num?)?.toDouble() ?? 0.0,
+    'status': row['status'] ?? 'pending',
+    'provider': row['payment_provider'] ?? 'stripe',
+    'paymentIntentId': row['stripe_payment_intent_id'],
+    'failureReason': row['failure_reason'],
+    'notes': row['notes'],
+    'createdAt': row['created_at'],
+    'completedAt': row['completed_at'],
+    ...((row['metadata'] as Map?)?.cast<String, dynamic>() ?? {}),
+  };
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  return null;
+}
 
 // ============================================================================
 // CURRENT ADMIN PROVIDER - Provides current admin info for audit logging
 // ============================================================================
 
-@freezed
-class CurrentAdmin with _$CurrentAdmin {
-  const factory CurrentAdmin({
-    required String id,
-    String? name,
-    String? email,
-  }) = _CurrentAdmin;
+class CurrentAdmin extends Equatable {
+  final String id;
+  final String? name;
+  final String? email;
+
+  const CurrentAdmin({required this.id, this.name, this.email});
+
+  @override
+  List<Object?> get props => [id, name, email];
 }
 
-@riverpod
-CurrentAdmin? currentAdmin(Ref ref) {
+final currentAdminProvider = Provider<CurrentAdmin?>((ref) {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return null;
-  return CurrentAdmin(
-    id: user.uid,
-    name: user.displayName,
-    email: user.email,
-  );
-}
+  return CurrentAdmin(id: user.uid, name: user.displayName, email: user.email);
+});
 
 // ============================================================================
 // ADMIN DASHBOARD STATE
 // ============================================================================
 
-@freezed
-class AdminDashboardState with _$AdminDashboardState {
-  const factory AdminDashboardState({
-    @Default(0) int totalUsers,
-    @Default(0) int activeSessions,
-    @Default(0) int totalEvents,
-    @Default(0) int totalGroups,
-    @Default(0) int totalBusinesses,
-    @Default(0) int totalProducts,
-    @Default(0) int totalTransactions,
-    @Default(0) int pendingReports,
-    @Default([]) List<UserEntity> recentUsers,
-    @Default([]) List<dynamic> recentContent,
-    @Default(false) bool isLoading,
+class AdminDashboardState extends Equatable {
+  final int totalUsers;
+  final int activeSessions;
+  final int totalEvents;
+  final int totalGroups;
+  final int totalBusinesses;
+  final int totalProducts;
+  final int totalTransactions;
+  final int pendingReports;
+  final List<UserEntity> recentUsers;
+  final List<dynamic> recentContent;
+  final bool isLoading;
+  final String? error;
+
+  const AdminDashboardState({
+    this.totalUsers = 0,
+    this.activeSessions = 0,
+    this.totalEvents = 0,
+    this.totalGroups = 0,
+    this.totalBusinesses = 0,
+    this.totalProducts = 0,
+    this.totalTransactions = 0,
+    this.pendingReports = 0,
+    this.recentUsers = const [],
+    this.recentContent = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminDashboardState copyWith({
+    int? totalUsers,
+    int? activeSessions,
+    int? totalEvents,
+    int? totalGroups,
+    int? totalBusinesses,
+    int? totalProducts,
+    int? totalTransactions,
+    int? pendingReports,
+    List<UserEntity>? recentUsers,
+    List<dynamic>? recentContent,
+    bool? isLoading,
     String? error,
-  }) = _AdminDashboardState;
+  }) {
+    return AdminDashboardState(
+      totalUsers: totalUsers ?? this.totalUsers,
+      activeSessions: activeSessions ?? this.activeSessions,
+      totalEvents: totalEvents ?? this.totalEvents,
+      totalGroups: totalGroups ?? this.totalGroups,
+      totalBusinesses: totalBusinesses ?? this.totalBusinesses,
+      totalProducts: totalProducts ?? this.totalProducts,
+      totalTransactions: totalTransactions ?? this.totalTransactions,
+      pendingReports: pendingReports ?? this.pendingReports,
+      recentUsers: recentUsers ?? this.recentUsers,
+      recentContent: recentContent ?? this.recentContent,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    totalUsers,
+    activeSessions,
+    totalEvents,
+    totalGroups,
+    totalBusinesses,
+    totalProducts,
+    totalTransactions,
+    pendingReports,
+    recentUsers,
+    recentContent,
+    isLoading,
+    error,
+  ];
 }
 
-@riverpod
-class AdminDashboardNotifier extends _$AdminDashboardNotifier {
+final adminDashboardNotifierProvider =
+    NotifierProvider<AdminDashboardNotifier, AdminDashboardState>(
+      AdminDashboardNotifier.new,
+    );
+
+class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
   @override
   AdminDashboardState build() {
     return const AdminDashboardState();
@@ -77,44 +306,44 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
   Future<void> loadDashboardStats() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final firestore = FirebaseFirestore.instance;
-
-      // Helper function to safely get count
-      Future<int> safeCount(Query query) async {
+      Future<int> tableCount(String table) async {
         try {
-          final snapshot = await query.count().get();
-          return snapshot.count ?? 0;
-        } catch (e) {
-          // Fallback: get docs and count them (slower but more compatible)
-          try {
-            final docs = await query.limit(1000).get();
-            return docs.docs.length;
-          } catch (_) {
-            return 0;
-          }
+          final resp = await _supabase
+              .from(table)
+              .select('id')
+              .count(CountOption.exact);
+          return resp.count;
+        } catch (_) {
+          return 0;
         }
       }
 
-      // Helper for collection count
-      Future<int> collectionCount(String collection) async {
-        return safeCount(firestore.collection(collection));
-      }
+      final now = DateTime.now();
+      final yesterday = now.subtract(const Duration(hours: 24));
 
-      // Fetch all counts in parallel
       final results = await Future.wait([
-        collectionCount('users'),
-        collectionCount('events'),
-        collectionCount('groups'),
-        collectionCount('businesses'),
-        collectionCount('products'),
-        collectionCount('transactions'),
-        safeCount(firestore.collection('reports').where('status', isEqualTo: 'pending')),
-        safeCount(firestore.collection('users').where(
-          'lastLoginAt',
-          isGreaterThan: Timestamp.fromDate(
-            DateTime.now().subtract(const Duration(hours: 24)),
-          ),
-        )),
+        tableCount('users'),
+        tableCount('events'),
+        tableCount('groups'),
+        tableCount('businesses'),
+        tableCount('products'),
+        tableCount('transactions'),
+        // pending reports count
+        _supabase
+            .from('reports')
+            .select('id')
+            .eq('status', 'pending')
+            .count(CountOption.exact)
+            .then((r) => r.count)
+            .catchError((_) => 0),
+        // active sessions: users active in last 24 h
+        _supabase
+            .from('users')
+            .select('id')
+            .gte('last_active_at', yesterday.toIso8601String())
+            .count(CountOption.exact)
+            .then((r) => r.count)
+            .catchError((_) => 0),
       ]);
 
       state = state.copyWith(
@@ -136,17 +365,15 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
   Future<void> fetchRecentUsers() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .orderBy('createdAt', descending: true)
-              .limit(20)
-              .get();
+      final rows = await _supabase
+          .from('users')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(20);
 
-      final users =
-          snapshot.docs
-              .map((doc) => UserModel.fromFirestore(doc).toEntity())
-              .toList();
+      final users = (rows as List)
+          .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
+          .toList();
 
       state = state.copyWith(isLoading: false, recentUsers: users);
     } catch (e) {
@@ -154,13 +381,18 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
     }
   }
 
-  Future<bool> forceLogoutUser(String userId, {required String adminId, String? adminName}) async {
+  Future<bool> forceLogoutUser(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
       final newSessionId =
-          "force_logout_${DateTime.now().millisecondsSinceEpoch}";
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'session_id': newSessionId,
-      });
+          'force_logout_${DateTime.now().millisecondsSinceEpoch}';
+      await _supabase
+          .from('users')
+          .update({'session_id': newSessionId})
+          .eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -172,7 +404,7 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
 
       return true;
     } catch (e) {
-      state = state.copyWith(error: "Failed to logout user: $e");
+      state = state.copyWith(error: 'Failed to logout user: $e');
       return false;
     }
   }
@@ -180,29 +412,25 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
   Future<void> fetchRecentContent() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final eventsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('events')
-              .orderBy('createdAt', descending: true)
-              .limit(10)
-              .get();
+      final eventsRows = await _supabase
+          .from('events')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(10);
 
-      final events =
-          eventsSnapshot.docs
-              .map((doc) => EventModel.fromFirestore(doc).toEntity())
-              .toList();
+      final events = (eventsRows as List)
+          .map((row) => EventModel.fromJson(_mapEvent(row)).toEntity())
+          .toList();
 
-      final groupsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('groups')
-              .orderBy('createdAt', descending: true)
-              .limit(10)
-              .get();
+      final groupsRows = await _supabase
+          .from('groups')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(10);
 
-      final groups =
-          groupsSnapshot.docs
-              .map((doc) => GroupModel.fromFirestore(doc).toEntity())
-              .toList();
+      final groups = (groupsRows as List)
+          .map((row) => GroupModel.fromJson(_mapGroup(row)).toEntity())
+          .toList();
 
       final allContent = [...events, ...groups]..sort((a, b) {
         final dateA =
@@ -223,18 +451,48 @@ class AdminDashboardNotifier extends _$AdminDashboardNotifier {
 // BUSINESS MANAGEMENT
 // ============================================================================
 
-@freezed
-class AdminBusinessState with _$AdminBusinessState {
-  const factory AdminBusinessState({
-    @Default([]) List<BusinessEntity> businesses,
-    @Default([]) List<BusinessEntity> pendingVerification,
-    @Default(false) bool isLoading,
+class AdminBusinessState extends Equatable {
+  final List<BusinessEntity> businesses;
+  final List<BusinessEntity> pendingVerification;
+  final bool isLoading;
+  final String? error;
+
+  const AdminBusinessState({
+    this.businesses = const [],
+    this.pendingVerification = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminBusinessState copyWith({
+    List<BusinessEntity>? businesses,
+    List<BusinessEntity>? pendingVerification,
+    bool? isLoading,
     String? error,
-  }) = _AdminBusinessState;
+  }) {
+    return AdminBusinessState(
+      businesses: businesses ?? this.businesses,
+      pendingVerification: pendingVerification ?? this.pendingVerification,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    businesses,
+    pendingVerification,
+    isLoading,
+    error,
+  ];
 }
 
-@riverpod
-class AdminBusinessNotifier extends _$AdminBusinessNotifier {
+final adminBusinessNotifierProvider =
+    NotifierProvider<AdminBusinessNotifier, AdminBusinessState>(
+      AdminBusinessNotifier.new,
+    );
+
+class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
   @override
   AdminBusinessState build() {
     return const AdminBusinessState();
@@ -243,19 +501,19 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
   Future<void> fetchAllBusinesses() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('businesses')
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('businesses')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
       final businesses = <BusinessEntity>[];
-      for (final doc in snapshot.docs) {
+      for (final row in (rows as List)) {
         try {
-          businesses.add(BusinessModel.fromFirestore(doc).toEntity());
+          businesses
+              .add(BusinessModel.fromJson(_mapBusiness(row)).toEntity());
         } catch (e) {
-          // debugPrint('Error parsing business ${doc.id}: $e');
+          // Skip problematic rows
         }
       }
 
@@ -271,15 +529,19 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
     }
   }
 
-  Future<bool> verifyBusiness(String businessId, {required String adminId, String? adminName}) async {
+  Future<bool> verifyBusiness(
+    String businessId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('businesses')
-          .doc(businessId)
+      await _supabase
+          .from('businesses')
           .update({
-            'isVerified': true,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+            'is_verified': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', businessId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -297,15 +559,19 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
     }
   }
 
-  Future<bool> unverifyBusiness(String businessId, {required String adminId, String? adminName}) async {
+  Future<bool> unverifyBusiness(
+    String businessId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('businesses')
-          .doc(businessId)
+      await _supabase
+          .from('businesses')
           .update({
-            'isVerified': false,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+            'is_verified': false,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', businessId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -332,22 +598,22 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
   }) async {
     try {
       final updates = <String, dynamic>{
-        'isBoosted': boost,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'is_boosted': boost,
+        'updated_at': DateTime.now().toIso8601String(),
       };
 
       if (boost) {
-        updates['boostExpiresAt'] = Timestamp.fromDate(
-          DateTime.now().add(Duration(days: days)),
-        );
+        updates['boost_expires_at'] = DateTime.now()
+            .add(Duration(days: days))
+            .toIso8601String();
       } else {
-        updates['boostExpiresAt'] = null;
+        updates['boost_expires_at'] = null;
       }
 
-      await FirebaseFirestore.instance
-          .collection('businesses')
-          .doc(businessId)
-          .update(updates);
+      await _supabase
+          .from('businesses')
+          .update(updates)
+          .eq('id', businessId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -366,12 +632,13 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
     }
   }
 
-  Future<bool> deleteBusiness(String businessId, {required String adminId, String? adminName}) async {
+  Future<bool> deleteBusiness(
+    String businessId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('businesses')
-          .doc(businessId)
-          .delete();
+      await _supabase.from('businesses').delete().eq('id', businessId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -394,18 +661,43 @@ class AdminBusinessNotifier extends _$AdminBusinessNotifier {
 // CONTENT MODERATION (Events & Groups)
 // ============================================================================
 
-@freezed
-class AdminContentState with _$AdminContentState {
-  const factory AdminContentState({
-    @Default([]) List<EventEntity> events,
-    @Default([]) List<GroupEntity> groups,
-    @Default(false) bool isLoading,
+class AdminContentState extends Equatable {
+  final List<EventEntity> events;
+  final List<GroupEntity> groups;
+  final bool isLoading;
+  final String? error;
+
+  const AdminContentState({
+    this.events = const [],
+    this.groups = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminContentState copyWith({
+    List<EventEntity>? events,
+    List<GroupEntity>? groups,
+    bool? isLoading,
     String? error,
-  }) = _AdminContentState;
+  }) {
+    return AdminContentState(
+      events: events ?? this.events,
+      groups: groups ?? this.groups,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [events, groups, isLoading, error];
 }
 
-@riverpod
-class AdminContentNotifier extends _$AdminContentNotifier {
+final adminContentNotifierProvider =
+    NotifierProvider<AdminContentNotifier, AdminContentState>(
+      AdminContentNotifier.new,
+    );
+
+class AdminContentNotifier extends Notifier<AdminContentState> {
   @override
   AdminContentState build() {
     return const AdminContentState();
@@ -414,39 +706,33 @@ class AdminContentNotifier extends _$AdminContentNotifier {
   Future<void> fetchAllContent() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      // Fetch events with safe parsing
-      final eventsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('events')
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final eventsRows = await _supabase
+          .from('events')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
       final events = <EventEntity>[];
-      for (final doc in eventsSnapshot.docs) {
+      for (final row in (eventsRows as List)) {
         try {
-          events.add(EventModel.fromFirestore(doc).toEntity());
+          events.add(EventModel.fromJson(_mapEvent(row)).toEntity());
         } catch (e) {
-          // Skip problematic documents
-          // debugPrint('Error parsing event ${doc.id}: $e');
+          // Skip problematic rows
         }
       }
 
-      // Fetch groups with safe parsing
-      final groupsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('groups')
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final groupsRows = await _supabase
+          .from('groups')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
       final groups = <GroupEntity>[];
-      for (final doc in groupsSnapshot.docs) {
+      for (final row in (groupsRows as List)) {
         try {
-          groups.add(GroupModel.fromFirestore(doc).toEntity());
+          groups.add(GroupModel.fromJson(_mapGroup(row)).toEntity());
         } catch (e) {
-          // Skip problematic documents
-          // debugPrint('Error parsing group ${doc.id}: $e');
+          // Skip problematic rows
         }
       }
 
@@ -456,12 +742,13 @@ class AdminContentNotifier extends _$AdminContentNotifier {
     }
   }
 
-  Future<bool> deleteEvent(String eventId, {required String adminId, String? adminName}) async {
+  Future<bool> deleteEvent(
+    String eventId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('events')
-          .doc(eventId)
-          .delete();
+      await _supabase.from('events').delete().eq('id', eventId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -479,11 +766,19 @@ class AdminContentNotifier extends _$AdminContentNotifier {
     }
   }
 
-  Future<bool> cancelEvent(String eventId, {required String adminId, String? adminName}) async {
+  Future<bool> cancelEvent(
+    String eventId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('events').doc(eventId).update(
-        {'status': 'cancelled', 'updatedAt': FieldValue.serverTimestamp()},
-      );
+      await _supabase
+          .from('events')
+          .update({
+            'status': 'cancelled',
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', eventId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -501,12 +796,13 @@ class AdminContentNotifier extends _$AdminContentNotifier {
     }
   }
 
-  Future<bool> deleteGroup(String groupId, {required String adminId, String? adminName}) async {
+  Future<bool> deleteGroup(
+    String groupId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('groups')
-          .doc(groupId)
-          .delete();
+      await _supabase.from('groups').delete().eq('id', groupId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -524,11 +820,20 @@ class AdminContentNotifier extends _$AdminContentNotifier {
     }
   }
 
-  Future<bool> toggleGroupPrivacy(String groupId, bool isPrivate, {required String adminId, String? adminName}) async {
+  Future<bool> toggleGroupPrivacy(
+    String groupId,
+    bool isPrivate, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('groups').doc(groupId).update(
-        {'isPrivate': isPrivate, 'updatedAt': FieldValue.serverTimestamp()},
-      );
+      await _supabase
+          .from('groups')
+          .update({
+            'is_private': isPrivate,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', groupId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -552,7 +857,6 @@ class AdminContentNotifier extends _$AdminContentNotifier {
 // REPORTS MANAGEMENT
 // ============================================================================
 
-/// Snapshot du contenu signalé (préservé même après suppression)
 class ContentSnapshotData {
   final String? text;
   final String? imageUrl;
@@ -584,59 +888,112 @@ class ContentSnapshotData {
       fileName: data['fileName'] as String?,
       contentType: data['contentType'] as String?,
       metadata: data['metadata'] as Map<String, dynamic>?,
-      capturedAt: data['capturedAt'] is Timestamp
-          ? (data['capturedAt'] as Timestamp).toDate()
-          : null,
+      capturedAt: _parseDateTime(data['capturedAt']),
     );
   }
 
   bool get hasContent =>
-      text != null ||
-      imageUrl != null ||
-      videoUrl != null ||
-      fileUrl != null;
+      text != null || imageUrl != null || videoUrl != null || fileUrl != null;
 }
 
-@freezed
-class ReportEntity with _$ReportEntity {
-  const factory ReportEntity({
-    required String id,
-    required String reporterId,
-    String? reporterName,
-    required String
-    targetType, // 'user', 'message', 'event', 'group', 'business', 'product'
-    required String targetId,
-    String? targetName,
-    String? conversationId, // For message/conversation reports
-    required String reason,
-    String? description,
-    /// Snapshot du contenu signalé
-    ContentSnapshotData? contentSnapshot,
-    /// ID de l'utilisateur signalé (pour notification)
-    String? reportedUserId,
-    @Default('pending')
-    String status, // 'pending', 'reviewed', 'resolved', 'dismissed'
-    String? adminNote,
-    String? reviewedBy,
-    DateTime? createdAt,
-    DateTime? reviewedAt,
-    /// Indique si la personne signalée a été notifiée
-    @Default(false) bool reportedUserNotified,
-  }) = _ReportEntity;
+class ReportEntity extends Equatable {
+  final String id;
+  final String reporterId;
+  final String? reporterName;
+  final String targetType;
+  final String targetId;
+  final String? targetName;
+  final String? conversationId;
+  final String reason;
+  final String? description;
+  final ContentSnapshotData? contentSnapshot;
+  final String? reportedUserId;
+  final String status;
+  final String? adminNote;
+  final String? reviewedBy;
+  final DateTime? createdAt;
+  final DateTime? reviewedAt;
+  final bool reportedUserNotified;
+
+  const ReportEntity({
+    required this.id,
+    required this.reporterId,
+    this.reporterName,
+    required this.targetType,
+    required this.targetId,
+    this.targetName,
+    this.conversationId,
+    required this.reason,
+    this.description,
+    this.contentSnapshot,
+    this.reportedUserId,
+    this.status = 'pending',
+    this.adminNote,
+    this.reviewedBy,
+    this.createdAt,
+    this.reviewedAt,
+    this.reportedUserNotified = false,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    reporterId,
+    reporterName,
+    targetType,
+    targetId,
+    targetName,
+    conversationId,
+    reason,
+    description,
+    contentSnapshot,
+    reportedUserId,
+    status,
+    adminNote,
+    reviewedBy,
+    createdAt,
+    reviewedAt,
+    reportedUserNotified,
+  ];
 }
 
-@freezed
-class AdminReportsState with _$AdminReportsState {
-  const factory AdminReportsState({
-    @Default([]) List<ReportEntity> reports,
-    @Default([]) List<ReportEntity> pendingReports,
-    @Default(false) bool isLoading,
+class AdminReportsState extends Equatable {
+  final List<ReportEntity> reports;
+  final List<ReportEntity> pendingReports;
+  final bool isLoading;
+  final String? error;
+
+  const AdminReportsState({
+    this.reports = const [],
+    this.pendingReports = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminReportsState copyWith({
+    List<ReportEntity>? reports,
+    List<ReportEntity>? pendingReports,
+    bool? isLoading,
     String? error,
-  }) = _AdminReportsState;
+  }) {
+    return AdminReportsState(
+      reports: reports ?? this.reports,
+      pendingReports: pendingReports ?? this.pendingReports,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [reports, pendingReports, isLoading, error];
 }
 
-@riverpod
-class AdminReportsNotifier extends _$AdminReportsNotifier {
+final adminReportsNotifierProvider =
+    NotifierProvider<AdminReportsNotifier, AdminReportsState>(
+      AdminReportsNotifier.new,
+    );
+
+class AdminReportsNotifier extends Notifier<AdminReportsState> {
   @override
   AdminReportsState build() {
     return const AdminReportsState();
@@ -645,39 +1002,38 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
   Future<void> fetchAllReports() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('reports')
-              .orderBy('createdAt', descending: true)
-              .limit(100)
-              .get();
+      final rows = await _supabase
+          .from('reports')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(100);
 
-      final reports =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
-            return ReportEntity(
-              id: doc.id,
-              reporterId: data['reporterId'] ?? '',
-              reporterName: data['reporterName'],
-              targetType: data['targetType'] ?? 'unknown',
-              targetId: data['targetId'] ?? '',
-              targetName: data['targetName'],
-              conversationId: data['conversationId'],
-              reason: data['reason'] ?? '',
-              description: data['description'],
-              contentSnapshot: data['contentSnapshot'] != null
-                  ? ContentSnapshotData.fromMap(
-                      data['contentSnapshot'] as Map<String, dynamic>)
-                  : null,
-              reportedUserId: data['reportedUserId'] as String?,
-              status: data['status'] ?? 'pending',
-              adminNote: data['adminNote'],
-              reviewedBy: data['reviewedBy'],
-              createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
-              reviewedAt: (data['reviewedAt'] as Timestamp?)?.toDate(),
-              reportedUserNotified: data['reportedUserNotified'] as bool? ?? false,
-            );
-          }).toList();
+      final reports = (rows as List).map((row) {
+        return ReportEntity(
+          id: row['id'] as String,
+          reporterId: row['reporter_id'] as String? ?? '',
+          reporterName: row['reporter_name'] as String?,
+          targetType: row['target_type'] as String? ?? 'unknown',
+          targetId: row['target_id'] as String? ?? '',
+          targetName: row['target_name'] as String?,
+          conversationId: row['conversation_id'] as String?,
+          reason: row['reason'] as String? ?? '',
+          description: row['description'] as String?,
+          contentSnapshot: row['content_snapshot'] != null
+              ? ContentSnapshotData.fromMap(
+                  (row['content_snapshot'] as Map).cast<String, dynamic>(),
+                )
+              : null,
+          reportedUserId: row['reported_user_id'] as String?,
+          status: row['status'] as String? ?? 'pending',
+          adminNote: row['admin_note'] as String?,
+          reviewedBy: row['reviewed_by'] as String?,
+          createdAt: _parseDateTime(row['created_at']),
+          reviewedAt: _parseDateTime(row['reviewed_at']),
+          reportedUserNotified:
+              row['reported_user_notified'] as bool? ?? false,
+        );
+      }).toList();
 
       final pending = reports.where((r) => r.status == 'pending').toList();
 
@@ -701,16 +1057,16 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     bool notifyUser = true,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('reports')
-          .doc(reportId)
+      await _supabase
+          .from('reports')
           .update({
             'status': 'resolved',
-            'adminNote': adminNote,
-            'actionTaken': action,
-            'reviewedBy': adminId,
-            'reviewedAt': FieldValue.serverTimestamp(),
-          });
+            'admin_note': adminNote,
+            'action_taken': action,
+            'reviewed_by': adminId,
+            'reviewed_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', reportId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -721,7 +1077,6 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
         details: {'actionTaken': action, 'note': adminNote},
       );
 
-      // Notifier l'utilisateur signalé
       if (notifyUser && reportedUserId != null) {
         await _notifyReportedUser(
           reportId: reportId,
@@ -739,7 +1094,6 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     }
   }
 
-  /// Notifie l'utilisateur dont le contenu a été signalé
   Future<void> _notifyReportedUser({
     required String reportId,
     required String reportedUserId,
@@ -747,43 +1101,48 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     required bool contentRemoved,
   }) async {
     try {
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'userId': reportedUserId,
-        'type': 'report_resolved',
-        'title': contentRemoved ? 'Contenu supprimé' : 'Signalement traité',
-        'body': contentRemoved
-            ? 'Un contenu que vous avez publié a été signalé et supprimé pour violation de nos règles communautaires.'
-            : 'Un signalement concernant votre contenu a été examiné. Aucune action n\'a été prise.',
-        'data': {
+      // RPC SECURITY DEFINER : un INSERT direct sur une notif destinée à un
+      // AUTRE utilisateur (reportedUserId) est bloqué par la RLS notifications_own.
+      await _supabase.rpc('create_user_notification', params: {
+        'p_user_id': reportedUserId,
+        'p_type': 'report_resolved',
+        'p_title':
+            contentRemoved ? 'Contenu supprime' : 'Signalement traite',
+        'p_body': contentRemoved
+            ? 'Un contenu que vous avez publie a ete signale et supprime pour violation de nos regles communautaires.'
+            : "Un signalement concernant votre contenu a ete examine. Aucune action n'a ete prise.",
+        'p_data': {
           'reportId': reportId,
           'resolution': resolution,
           'contentRemoved': contentRemoved,
         },
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // Marquer le report comme notifié
-      await FirebaseFirestore.instance
-          .collection('reports')
-          .doc(reportId)
-          .update({'reportedUserNotified': true});
+      await _supabase
+          .from('reports')
+          .update({'reported_user_notified': true})
+          .eq('id', reportId);
     } catch (e) {
       debugPrint('Failed to notify reported user: $e');
     }
   }
 
-  Future<bool> dismissReport(String reportId, String reason, {required String adminId, String? adminName}) async {
+  Future<bool> dismissReport(
+    String reportId,
+    String reason, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('reports')
-          .doc(reportId)
+      await _supabase
+          .from('reports')
           .update({
             'status': 'dismissed',
-            'adminNote': reason,
-            'reviewedBy': adminId,
-            'reviewedAt': FieldValue.serverTimestamp(),
-          });
+            'admin_note': reason,
+            'reviewed_by': adminId,
+            'reviewed_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', reportId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -812,12 +1171,9 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     bool notifyUser = true,
   }) async {
     try {
-      final collection = _getCollectionForType(targetType);
-      if (collection != null) {
-        await FirebaseFirestore.instance
-            .collection(collection)
-            .doc(targetId)
-            .delete();
+      final table = _getTableForType(targetType);
+      if (table != null) {
+        await _supabase.from(table).delete().eq('id', targetId);
 
         await AdminAuditHelper.log(
           adminId: adminId,
@@ -828,12 +1184,11 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
         );
       }
 
-      // Notifier l'utilisateur signalé que son contenu a été supprimé
       if (notifyUser && reportedUserId != null && reportId != null) {
         await _notifyReportedUser(
           reportId: reportId,
           reportedUserId: reportedUserId,
-          resolution: 'Contenu supprimé pour violation des règles',
+          resolution: 'Contenu supprime pour violation des regles',
           contentRemoved: true,
         );
       }
@@ -845,7 +1200,7 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
     }
   }
 
-  String? _getCollectionForType(String type) {
+  String? _getTableForType(String type) {
     switch (type) {
       case 'message':
         return 'messages';
@@ -867,19 +1222,47 @@ class AdminReportsNotifier extends _$AdminReportsNotifier {
 // MARKETPLACE MANAGEMENT
 // ============================================================================
 
-@freezed
-class AdminMarketplaceState with _$AdminMarketplaceState {
-  const factory AdminMarketplaceState({
-    @Default([]) List<ProductEntity> products,
-    @Default([]) List<Map<String, dynamic>> orders,
-    @Default([]) List<Map<String, dynamic>> disputes,
-    @Default(false) bool isLoading,
+class AdminMarketplaceState extends Equatable {
+  final List<ProductEntity> products;
+  final List<Map<String, dynamic>> orders;
+  final List<Map<String, dynamic>> disputes;
+  final bool isLoading;
+  final String? error;
+
+  const AdminMarketplaceState({
+    this.products = const [],
+    this.orders = const [],
+    this.disputes = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminMarketplaceState copyWith({
+    List<ProductEntity>? products,
+    List<Map<String, dynamic>>? orders,
+    List<Map<String, dynamic>>? disputes,
+    bool? isLoading,
     String? error,
-  }) = _AdminMarketplaceState;
+  }) {
+    return AdminMarketplaceState(
+      products: products ?? this.products,
+      orders: orders ?? this.orders,
+      disputes: disputes ?? this.disputes,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [products, orders, disputes, isLoading, error];
 }
 
-@riverpod
-class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
+final adminMarketplaceNotifierProvider =
+    NotifierProvider<AdminMarketplaceNotifier, AdminMarketplaceState>(
+      AdminMarketplaceNotifier.new,
+    );
+
+class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
   @override
   AdminMarketplaceState build() {
     return const AdminMarketplaceState();
@@ -888,17 +1271,15 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
   Future<void> fetchAllProducts() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('products')
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('products')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
-      final products =
-          snapshot.docs
-              .map((doc) => ProductModel.fromFirestore(doc).toEntity())
-              .toList();
+      final products = (rows as List)
+          .map((row) => ProductModel.fromJson(_mapProduct(row)).toEntity())
+          .toList();
 
       state = state.copyWith(isLoading: false, products: products);
     } catch (e) {
@@ -909,19 +1290,16 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
   Future<void> fetchOrders() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('orders')
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('orders')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
-      final orders =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
+      final orders = (rows as List).map((row) {
+        final data = Map<String, dynamic>.from(row as Map);
+        return data;
+      }).toList();
 
       state = state.copyWith(isLoading: false, orders: orders);
     } catch (e) {
@@ -932,20 +1310,17 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
   Future<void> fetchDisputes() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('orders')
-              .where('hasDispute', isEqualTo: true)
-              .orderBy('createdAt', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('orders')
+          .select()
+          .eq('is_in_dispute', true)
+          .order('created_at', ascending: false)
+          .limit(50);
 
-      final disputes =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
+      final disputes = (rows as List).map((row) {
+        final data = Map<String, dynamic>.from(row as Map);
+        return data;
+      }).toList();
 
       state = state.copyWith(isLoading: false, disputes: disputes);
     } catch (e) {
@@ -960,13 +1335,13 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
     String? adminName,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
+      await _supabase
+          .from('products')
           .update({
-            'isAvailable': isAvailable,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+            'is_available': isAvailable,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', productId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -985,12 +1360,13 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
     }
   }
 
-  Future<bool> deleteProduct(String productId, {required String adminId, String? adminName}) async {
+  Future<bool> deleteProduct(
+    String productId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .delete();
+      await _supabase.from('products').delete().eq('id', productId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1016,16 +1392,17 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
     String? adminName,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('orders')
-          .doc(orderId)
+      await _supabase
+          .from('orders')
           .update({
-            'disputeResolution': resolution,
-            'disputeNote': adminNote,
-            'disputeResolvedBy': adminId,
-            'disputeResolvedAt': FieldValue.serverTimestamp(),
-            'hasDispute': false,
-          });
+            'dispute_resolution': resolution,
+            'dispute_note': adminNote,
+            'dispute_resolved_by': adminId,
+            'dispute_resolved_at': DateTime.now().toIso8601String(),
+            'is_in_dispute': false,
+            'has_dispute': false,
+          })
+          .eq('id', orderId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1049,19 +1426,47 @@ class AdminMarketplaceNotifier extends _$AdminMarketplaceNotifier {
 // USER MANAGEMENT (Extended)
 // ============================================================================
 
-@freezed
-class AdminUsersState with _$AdminUsersState {
-  const factory AdminUsersState({
-    @Default([]) List<UserEntity> users,
-    @Default([]) List<UserEntity> bannedUsers,
-    @Default([]) List<UserEntity> admins,
-    @Default(false) bool isLoading,
+class AdminUsersState extends Equatable {
+  final List<UserEntity> users;
+  final List<UserEntity> bannedUsers;
+  final List<UserEntity> admins;
+  final bool isLoading;
+  final String? error;
+
+  const AdminUsersState({
+    this.users = const [],
+    this.bannedUsers = const [],
+    this.admins = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminUsersState copyWith({
+    List<UserEntity>? users,
+    List<UserEntity>? bannedUsers,
+    List<UserEntity>? admins,
+    bool? isLoading,
     String? error,
-  }) = _AdminUsersState;
+  }) {
+    return AdminUsersState(
+      users: users ?? this.users,
+      bannedUsers: bannedUsers ?? this.bannedUsers,
+      admins: admins ?? this.admins,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [users, bannedUsers, admins, isLoading, error];
 }
 
-@riverpod
-class AdminUsersNotifier extends _$AdminUsersNotifier {
+final adminUsersNotifierProvider =
+    NotifierProvider<AdminUsersNotifier, AdminUsersState>(
+      AdminUsersNotifier.new,
+    );
+
+class AdminUsersNotifier extends Notifier<AdminUsersState> {
   @override
   AdminUsersState build() {
     return const AdminUsersState();
@@ -1070,17 +1475,15 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
   Future<void> fetchAllUsers({int limit = 50}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .orderBy('createdAt', descending: true)
-              .limit(limit)
-              .get();
+      final rows = await _supabase
+          .from('users')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
 
-      final users =
-          snapshot.docs
-              .map((doc) => UserModel.fromFirestore(doc).toEntity())
-              .toList();
+      final users = (rows as List)
+          .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
+          .toList();
 
       final banned = users.where((u) => u.isBanned).toList();
       final admins = users.where((u) => u.isAdmin).toList();
@@ -1096,19 +1499,24 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
     }
   }
 
-  Future<bool> banUser(String userId, String reason, {required String adminId, String? adminName}) async {
+  Future<bool> banUser(
+    String userId,
+    String reason, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'isBanned': true,
-        'banReason': reason,
-        'bannedAt': FieldValue.serverTimestamp(),
-      });
+      await _supabase.from('users').update({
+        'is_banned': true,
+        'ban_reason': reason,
+        'banned_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
 
-      // Force logout the banned user
-      final newSessionId = "banned_${DateTime.now().millisecondsSinceEpoch}";
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'session_id': newSessionId,
-      });
+      final newSessionId = 'banned_${DateTime.now().millisecondsSinceEpoch}';
+      await _supabase
+          .from('users')
+          .update({'session_id': newSessionId})
+          .eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1127,13 +1535,17 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
     }
   }
 
-  Future<bool> unbanUser(String userId, {required String adminId, String? adminName}) async {
+  Future<bool> unbanUser(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'isBanned': false,
-        'banReason': FieldValue.delete(),
-        'bannedAt': FieldValue.delete(),
-      });
+      await _supabase.from('users').update({
+        'is_banned': false,
+        'ban_reason': null,
+        'banned_at': null,
+      }).eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1151,11 +1563,16 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
     }
   }
 
-  Future<bool> promoteToAdmin(String userId, {required String adminId, String? adminName}) async {
+  Future<bool> promoteToAdmin(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'isAdmin': true,
-      });
+      await _supabase
+          .from('users')
+          .update({'is_admin': true})
+          .eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1173,11 +1590,16 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
     }
   }
 
-  Future<bool> demoteFromAdmin(String userId, {required String adminId, String? adminName}) async {
+  Future<bool> demoteFromAdmin(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'isAdmin': false,
-      });
+      await _supabase
+          .from('users')
+          .update({'is_admin': false})
+          .eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1195,16 +1617,16 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
     }
   }
 
-  Future<bool> verifyProfile(String userId, {required String adminId, String? adminName}) async {
+  Future<bool> verifyProfile(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      // Use set with merge to handle case where profile doc doesn't exist
-      await FirebaseFirestore.instance
-          .collection('profiles')
-          .doc(userId)
-          .set({
-            'isVerified': true,
-            'verifiedAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+      await _supabase.from('users').update({
+        'is_verified': true,
+        'verified_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1214,6 +1636,34 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
         targetId: userId,
       );
 
+      await fetchAllUsers();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> revokeVerification(
+    String userId, {
+    required String adminId,
+    String? adminName,
+  }) async {
+    try {
+      await _supabase.from('users').update({
+        'is_verified': false,
+        'verified_at': null,
+      }).eq('id', userId);
+
+      await AdminAuditHelper.log(
+        adminId: adminId,
+        adminName: adminName,
+        action: 'revoke_verification',
+        targetType: 'user',
+        targetId: userId,
+      );
+
+      await fetchAllUsers();
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1223,18 +1673,15 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
 
   Future<List<Map<String, dynamic>>> getUserActivity(String userId) async {
     try {
-      final activitySnapshot =
-          await FirebaseFirestore.instance
-              .collection('activity_logs')
-              .where('userId', isEqualTo: userId)
-              .orderBy('timestamp', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('activity_logs')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(50);
 
-      return activitySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
+      return (rows as List).map((row) {
+        return Map<String, dynamic>.from(row as Map);
       }).toList();
     } catch (e) {
       return [];
@@ -1246,23 +1693,73 @@ class AdminUsersNotifier extends _$AdminUsersNotifier {
 // TRANSACTIONS MONITORING
 // ============================================================================
 
-@freezed
-class AdminTransactionsState with _$AdminTransactionsState {
-  const factory AdminTransactionsState({
-    @Default([]) List<TransactionEntity> transactions,
-    @Default([]) List<TransactionEntity> pendingTransactions,
-    @Default([]) List<TransactionEntity> failedTransactions,
-    @Default(0.0) double totalVolumeUSD, // Total converted to USD
-    @Default(0.0) double totalFeesUSD, // Fees converted to USD
-    @Default(<String, double>{}) Map<String, double> volumeByCurrency, // Volume per currency
-    @Default(<String, double>{}) Map<String, double> feesByCurrency, // Fees per currency
-    @Default(false) bool isLoading,
+class AdminTransactionsState extends Equatable {
+  final List<TransactionEntity> transactions;
+  final List<TransactionEntity> pendingTransactions;
+  final List<TransactionEntity> failedTransactions;
+  final double totalVolumeUSD;
+  final double totalFeesUSD;
+  final Map<String, double> volumeByCurrency;
+  final Map<String, double> feesByCurrency;
+  final bool isLoading;
+  final String? error;
+
+  const AdminTransactionsState({
+    this.transactions = const [],
+    this.pendingTransactions = const [],
+    this.failedTransactions = const [],
+    this.totalVolumeUSD = 0.0,
+    this.totalFeesUSD = 0.0,
+    this.volumeByCurrency = const {},
+    this.feesByCurrency = const {},
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminTransactionsState copyWith({
+    List<TransactionEntity>? transactions,
+    List<TransactionEntity>? pendingTransactions,
+    List<TransactionEntity>? failedTransactions,
+    double? totalVolumeUSD,
+    double? totalFeesUSD,
+    Map<String, double>? volumeByCurrency,
+    Map<String, double>? feesByCurrency,
+    bool? isLoading,
     String? error,
-  }) = _AdminTransactionsState;
+  }) {
+    return AdminTransactionsState(
+      transactions: transactions ?? this.transactions,
+      pendingTransactions: pendingTransactions ?? this.pendingTransactions,
+      failedTransactions: failedTransactions ?? this.failedTransactions,
+      totalVolumeUSD: totalVolumeUSD ?? this.totalVolumeUSD,
+      totalFeesUSD: totalFeesUSD ?? this.totalFeesUSD,
+      volumeByCurrency: volumeByCurrency ?? this.volumeByCurrency,
+      feesByCurrency: feesByCurrency ?? this.feesByCurrency,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    transactions,
+    pendingTransactions,
+    failedTransactions,
+    totalVolumeUSD,
+    totalFeesUSD,
+    volumeByCurrency,
+    feesByCurrency,
+    isLoading,
+    error,
+  ];
 }
 
-@riverpod
-class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
+final adminTransactionsNotifierProvider =
+    NotifierProvider<AdminTransactionsNotifier, AdminTransactionsState>(
+      AdminTransactionsNotifier.new,
+    );
+
+class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
   @override
   AdminTransactionsState build() {
     return const AdminTransactionsState();
@@ -1271,28 +1768,25 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
   Future<void> fetchAllTransactions({int limit = 100}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('transactions')
-              .orderBy('createdAt', descending: true)
-              .limit(limit)
-              .get();
+      final rows = await _supabase
+          .from('transactions')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
 
-      final transactions =
-          snapshot.docs
-              .map((doc) => TransactionModel.fromFirestore(doc).toEntity())
-              .toList();
+      final transactions = (rows as List)
+          .map(
+            (row) => TransactionModel.fromJson(_mapTransaction(row)).toEntity(),
+          )
+          .toList();
 
-      final pending =
-          transactions
-              .where((t) => t.status == TransactionStatus.pending)
-              .toList();
-      final failed =
-          transactions
-              .where((t) => t.status == TransactionStatus.failed)
-              .toList();
+      final pending = transactions
+          .where((t) => t.status == TransactionStatus.pending)
+          .toList();
+      final failed = transactions
+          .where((t) => t.status == TransactionStatus.failed)
+          .toList();
 
-      // Calculate totals with proper currency conversion to USD
       final currencyService = CurrencyService.instance;
       double totalVolumeUSD = 0;
       double totalFeesUSD = 0;
@@ -1302,17 +1796,21 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
       for (final t in transactions.where(
         (t) => t.status == TransactionStatus.completed,
       )) {
-        // Get the currency from the transaction
         final currencyCode = t.currency.toUpperCase();
         final currency = CurrencyExtension.fromCode(currencyCode);
 
-        // Add to per-currency totals
-        volumeByCurrency[currencyCode] = (volumeByCurrency[currencyCode] ?? 0) + t.amount;
-        feesByCurrency[currencyCode] = (feesByCurrency[currencyCode] ?? 0) + t.fee;
+        volumeByCurrency[currencyCode] =
+            (volumeByCurrency[currencyCode] ?? 0) + t.amount;
+        feesByCurrency[currencyCode] =
+            (feesByCurrency[currencyCode] ?? 0) + t.fee;
 
-        // Convert to USD for global total
-        final amountInUSD = currencyService.convert(t.amount, currency, Currency.usd);
-        final feeInUSD = currencyService.convert(t.fee, currency, Currency.usd);
+        final amountInUSD = currencyService.convert(
+          t.amount,
+          currency,
+          Currency.usd,
+        );
+        final feeInUSD =
+            currencyService.convert(t.fee, currency, Currency.usd);
         totalVolumeUSD += amountInUSD;
         totalFeesUSD += feeInUSD;
       }
@@ -1332,17 +1830,22 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
     }
   }
 
-  Future<bool> refundTransaction(String transactionId, String reason, {required String adminId, String? adminName}) async {
+  Future<bool> refundTransaction(
+    String transactionId,
+    String reason, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('transactions')
-          .doc(transactionId)
+      await _supabase
+          .from('transactions')
           .update({
             'status': 'refunded',
-            'refundReason': reason,
-            'refundedBy': adminId,
-            'refundedAt': FieldValue.serverTimestamp(),
-          });
+            'refund_reason': reason,
+            'refunded_by': adminId,
+            'refunded_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', transactionId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1361,16 +1864,20 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
     }
   }
 
-  Future<bool> markAsCompleted(String transactionId, {required String adminId, String? adminName}) async {
+  Future<bool> markAsCompleted(
+    String transactionId, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('transactions')
-          .doc(transactionId)
+      await _supabase
+          .from('transactions')
           .update({
             'status': 'completed',
-            'completedBy': adminId,
-            'completedAt': FieldValue.serverTimestamp(),
-          });
+            'completed_by': adminId,
+            'completed_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', transactionId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1388,16 +1895,21 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
     }
   }
 
-  Future<bool> markAsFailed(String transactionId, String reason, {required String adminId, String? adminName}) async {
+  Future<bool> markAsFailed(
+    String transactionId,
+    String reason, {
+    required String adminId,
+    String? adminName,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('transactions')
-          .doc(transactionId)
+      await _supabase
+          .from('transactions')
           .update({
             'status': 'failed',
-            'failureReason': reason,
-            'failedBy': adminId,
-          });
+            'failure_reason': reason,
+            'failed_by': adminId,
+          })
+          .eq('id', transactionId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -1421,31 +1933,73 @@ class AdminTransactionsNotifier extends _$AdminTransactionsNotifier {
 // ANALYTICS & REPORTS
 // ============================================================================
 
-@freezed
-class AnalyticsData with _$AnalyticsData {
-  const factory AnalyticsData({
-    @Default({}) Map<String, int> userGrowth,
-    @Default({}) Map<String, int> eventsByCategory,
-    @Default({}) Map<String, int> businessesByCategory,
-    @Default({}) Map<String, double> transactionVolume,
-    @Default({}) Map<String, int> activeUsersByDay,
-    @Default(0) int newUsersToday,
-    @Default(0) int newUsersThisWeek,
-    @Default(0) int newUsersThisMonth,
-  }) = _AnalyticsData;
+class AnalyticsData extends Equatable {
+  final Map<String, int> userGrowth;
+  final Map<String, int> eventsByCategory;
+  final Map<String, int> businessesByCategory;
+  final Map<String, double> transactionVolume;
+  final Map<String, int> activeUsersByDay;
+  final int newUsersToday;
+  final int newUsersThisWeek;
+  final int newUsersThisMonth;
+
+  const AnalyticsData({
+    this.userGrowth = const {},
+    this.eventsByCategory = const {},
+    this.businessesByCategory = const {},
+    this.transactionVolume = const {},
+    this.activeUsersByDay = const {},
+    this.newUsersToday = 0,
+    this.newUsersThisWeek = 0,
+    this.newUsersThisMonth = 0,
+  });
+
+  @override
+  List<Object?> get props => [
+    userGrowth,
+    eventsByCategory,
+    businessesByCategory,
+    transactionVolume,
+    activeUsersByDay,
+    newUsersToday,
+    newUsersThisWeek,
+    newUsersThisMonth,
+  ];
 }
 
-@freezed
-class AdminAnalyticsState with _$AdminAnalyticsState {
-  const factory AdminAnalyticsState({
-    @Default(AnalyticsData()) AnalyticsData data,
-    @Default(false) bool isLoading,
+class AdminAnalyticsState extends Equatable {
+  final AnalyticsData data;
+  final bool isLoading;
+  final String? error;
+
+  const AdminAnalyticsState({
+    this.data = const AnalyticsData(),
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminAnalyticsState copyWith({
+    AnalyticsData? data,
+    bool? isLoading,
     String? error,
-  }) = _AdminAnalyticsState;
+  }) {
+    return AdminAnalyticsState(
+      data: data ?? this.data,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [data, isLoading, error];
 }
 
-@riverpod
-class AdminAnalyticsNotifier extends _$AdminAnalyticsNotifier {
+final adminAnalyticsNotifierProvider =
+    NotifierProvider<AdminAnalyticsNotifier, AdminAnalyticsState>(
+      AdminAnalyticsNotifier.new,
+    );
+
+class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
   @override
   AdminAnalyticsState build() {
     return const AdminAnalyticsState();
@@ -1454,47 +2008,49 @@ class AdminAnalyticsNotifier extends _$AdminAnalyticsNotifier {
   Future<void> loadAnalytics() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final firestore = FirebaseFirestore.instance;
       final now = DateTime.now();
 
-      // Helper function to safely get count (web compatible)
-      Future<int> safeCount(Query query) async {
+      Future<int> countWhere(
+        String table, {
+        String? column,
+        String? gte,
+        String? lt,
+      }) async {
         try {
-          final snapshot = await query.count().get();
-          return snapshot.count ?? 0;
-        } catch (e) {
-          // Fallback: get docs and count them (slower but more compatible)
-          try {
-            final docs = await query.limit(1000).get();
-            return docs.docs.length;
-          } catch (_) {
-            return 0;
+          var q = _supabase.from(table).select('id');
+          if (column != null && gte != null) {
+            q = q.gte(column, gte);
           }
+          if (column != null && lt != null) {
+            q = (q as dynamic).lt(column, lt) as dynamic;
+          }
+          final resp = await (q as dynamic).count(CountOption.exact);
+          return (resp as dynamic).count as int;
+        } catch (_) {
+          return 0;
         }
       }
 
-      // New users today
       final todayStart = DateTime(now.year, now.month, now.day);
-      final newUsersToday = await safeCount(
-        firestore
-            .collection('users')
-            .where('createdAt', isGreaterThan: Timestamp.fromDate(todayStart)),
+      final newUsersToday = await countWhere(
+        'users',
+        column: 'created_at',
+        gte: todayStart.toIso8601String(),
       );
 
-      // New users this week
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
-      final newUsersThisWeek = await safeCount(
-        firestore
-            .collection('users')
-            .where('createdAt', isGreaterThan: Timestamp.fromDate(weekStart)),
+      final newUsersThisWeek = await countWhere(
+        'users',
+        column: 'created_at',
+        gte: DateTime(weekStart.year, weekStart.month, weekStart.day)
+            .toIso8601String(),
       );
 
-      // New users this month
       final monthStart = DateTime(now.year, now.month, 1);
-      final newUsersThisMonth = await safeCount(
-        firestore
-            .collection('users')
-            .where('createdAt', isGreaterThan: Timestamp.fromDate(monthStart)),
+      final newUsersThisMonth = await countWhere(
+        'users',
+        column: 'created_at',
+        gte: monthStart.toIso8601String(),
       );
 
       // User growth by month (last 6 months)
@@ -1502,33 +2058,42 @@ class AdminAnalyticsNotifier extends _$AdminAnalyticsNotifier {
       for (int i = 5; i >= 0; i--) {
         final month = DateTime(now.year, now.month - i, 1);
         final nextMonth = DateTime(now.year, now.month - i + 1, 1);
-        final count = await safeCount(
-          firestore
-              .collection('users')
-              .where(
-                'createdAt',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(month),
-              )
-              .where('createdAt', isLessThan: Timestamp.fromDate(nextMonth)),
-        );
-        final monthKey =
-            '${month.year}-${month.month.toString().padLeft(2, '0')}';
-        userGrowth[monthKey] = count;
+        try {
+          final resp = await _supabase
+              .from('users')
+              .select('id')
+              .gte('created_at', month.toIso8601String())
+              .lt('created_at', nextMonth.toIso8601String())
+              .count(CountOption.exact);
+          final monthKey =
+              '${month.year}-${month.month.toString().padLeft(2, '0')}';
+          userGrowth[monthKey] = resp.count;
+        } catch (_) {
+          final monthKey =
+              '${month.year}-${month.month.toString().padLeft(2, '0')}';
+          userGrowth[monthKey] = 0;
+        }
       }
 
       // Events by category
-      final eventsSnapshot = await firestore.collection('events').get();
+      final eventsRows = await _supabase
+          .from('events')
+          .select('category')
+          .catchError((_) => <dynamic>[]);
       final eventsByCategory = <String, int>{};
-      for (final doc in eventsSnapshot.docs) {
-        final category = doc.data()['category'] as String? ?? 'other';
+      for (final row in (eventsRows as List)) {
+        final category = (row as Map)['category'] as String? ?? 'other';
         eventsByCategory[category] = (eventsByCategory[category] ?? 0) + 1;
       }
 
       // Businesses by category
-      final businessesSnapshot = await firestore.collection('businesses').get();
+      final businessesRows = await _supabase
+          .from('businesses')
+          .select('category')
+          .catchError((_) => <dynamic>[]);
       final businessesByCategory = <String, int>{};
-      for (final doc in businessesSnapshot.docs) {
-        final category = doc.data()['category'] as String? ?? 'other';
+      for (final row in (businessesRows as List)) {
+        final category = (row as Map)['category'] as String? ?? 'other';
         businessesByCategory[category] =
             (businessesByCategory[category] ?? 0) + 1;
       }
@@ -1554,19 +2119,53 @@ class AdminAnalyticsNotifier extends _$AdminAnalyticsNotifier {
 // GLOBAL NOTIFICATIONS
 // ============================================================================
 
-@freezed
-class AdminNotificationState with _$AdminNotificationState {
-  const factory AdminNotificationState({
-    @Default([]) List<Map<String, dynamic>> sentNotifications,
-    @Default(false) bool isLoading,
-    @Default(false) bool isSending,
+class AdminNotificationState extends Equatable {
+  final List<Map<String, dynamic>> sentNotifications;
+  final bool isLoading;
+  final bool isSending;
+  final String? error;
+  final String? successMessage;
+
+  const AdminNotificationState({
+    this.sentNotifications = const [],
+    this.isLoading = false,
+    this.isSending = false,
+    this.error,
+    this.successMessage,
+  });
+
+  AdminNotificationState copyWith({
+    List<Map<String, dynamic>>? sentNotifications,
+    bool? isLoading,
+    bool? isSending,
     String? error,
     String? successMessage,
-  }) = _AdminNotificationState;
+  }) {
+    return AdminNotificationState(
+      sentNotifications: sentNotifications ?? this.sentNotifications,
+      isLoading: isLoading ?? this.isLoading,
+      isSending: isSending ?? this.isSending,
+      error: error,
+      successMessage: successMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    sentNotifications,
+    isLoading,
+    isSending,
+    error,
+    successMessage,
+  ];
 }
 
-@riverpod
-class AdminNotificationNotifier extends _$AdminNotificationNotifier {
+final adminNotificationNotifierProvider =
+    NotifierProvider<AdminNotificationNotifier, AdminNotificationState>(
+      AdminNotificationNotifier.new,
+    );
+
+class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
   @override
   AdminNotificationState build() {
     return const AdminNotificationState();
@@ -1575,19 +2174,15 @@ class AdminNotificationNotifier extends _$AdminNotificationNotifier {
   Future<void> fetchSentNotifications() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('admin_notifications')
-              .orderBy('sentAt', descending: true)
-              .limit(50)
-              .get();
+      final rows = await _supabase
+          .from('admin_notifications')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(50);
 
-      final notifications =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
+      final notifications = (rows as List).map((row) {
+        return Map<String, dynamic>.from(row as Map);
+      }).toList();
 
       state = state.copyWith(
         isLoading: false,
@@ -1601,39 +2196,39 @@ class AdminNotificationNotifier extends _$AdminNotificationNotifier {
   Future<bool> sendGlobalNotification({
     required String title,
     required String body,
-    String? targetGroup, // null = all, 'admins', 'verified', etc.
+    String? targetGroup,
     Map<String, dynamic>? data,
     required String adminId,
     String? adminName,
   }) async {
     state = state.copyWith(isSending: true, error: null, successMessage: null);
     try {
-      // Store the notification record
-      final docRef = await FirebaseFirestore.instance.collection('admin_notifications').add({
-        'title': title,
-        'body': body,
-        'targetGroup': targetGroup ?? 'all',
-        'data': data,
-        'sentBy': adminId,
-        'sentAt': FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
+      final inserted = await _supabase
+          .from('admin_notifications')
+          .insert({
+            'sent_by': adminId,
+            'title': title,
+            'body': body,
+            'target_type': targetGroup ?? 'all',
+            'data': data ?? {},
+          })
+          .select('id')
+          .single();
+
+      final newId = (inserted as Map)['id'] as String? ?? '';
 
       await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
         targetType: 'notification',
-        targetId: docRef.id,
+        targetId: newId,
         details: {'title': title, 'targetGroup': targetGroup ?? 'all'},
       );
 
-      // Note: Actual push notification sending would be handled by Cloud Functions
-      // triggered by the above Firestore write
-
       state = state.copyWith(
         isSending: false,
-        successMessage: 'Notification envoyée avec succès',
+        successMessage: 'Notification envoyee avec succes',
       );
       await fetchSentNotifications();
       return true;
@@ -1653,29 +2248,37 @@ class AdminNotificationNotifier extends _$AdminNotificationNotifier {
   }) async {
     state = state.copyWith(isSending: true, error: null, successMessage: null);
     try {
-      final docRef = await FirebaseFirestore.instance.collection('admin_notifications').add({
-        'title': title,
-        'body': body,
-        'targetType': 'specific_users',
-        'targetUserIds': userIds,
-        'data': data,
-        'sentBy': adminId,
-        'sentAt': FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
+      final inserted = await _supabase
+          .from('admin_notifications')
+          .insert({
+            'sent_by': adminId,
+            'title': title,
+            'body': body,
+            'target_type': 'specific_users',
+            'target_value': userIds.join(','),
+            'data': {
+              ...?data,
+              'targetUserIds': userIds,
+            },
+          })
+          .select('id')
+          .single();
+
+      final newId = (inserted as Map)['id'] as String? ?? '';
 
       await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
         targetType: 'notification',
-        targetId: docRef.id,
+        targetId: newId,
         details: {'title': title, 'targetCount': userIds.length},
       );
 
       state = state.copyWith(
         isSending: false,
-        successMessage: 'Notification envoyée à ${userIds.length} utilisateurs',
+        successMessage:
+            'Notification envoyee a ${userIds.length} utilisateurs',
       );
       await fetchSentNotifications();
       return true;
@@ -1694,31 +2297,73 @@ class AdminNotificationNotifier extends _$AdminNotificationNotifier {
 // AUDIT LOGS
 // ============================================================================
 
-@freezed
-class AuditLogEntry with _$AuditLogEntry {
-  const factory AuditLogEntry({
-    required String id,
-    required String adminId,
-    String? adminName,
-    required String action,
-    required String targetType,
-    String? targetId,
-    Map<String, dynamic>? details,
-    DateTime? timestamp,
-  }) = _AuditLogEntry;
+class AuditLogEntry extends Equatable {
+  final String id;
+  final String adminId;
+  final String? adminName;
+  final String action;
+  final String targetType;
+  final String? targetId;
+  final Map<String, dynamic>? details;
+  final DateTime? timestamp;
+
+  const AuditLogEntry({
+    required this.id,
+    required this.adminId,
+    this.adminName,
+    required this.action,
+    required this.targetType,
+    this.targetId,
+    this.details,
+    this.timestamp,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    adminId,
+    adminName,
+    action,
+    targetType,
+    targetId,
+    details,
+    timestamp,
+  ];
 }
 
-@freezed
-class AdminAuditState with _$AdminAuditState {
-  const factory AdminAuditState({
-    @Default([]) List<AuditLogEntry> logs,
-    @Default(false) bool isLoading,
+class AdminAuditState extends Equatable {
+  final List<AuditLogEntry> logs;
+  final bool isLoading;
+  final String? error;
+
+  const AdminAuditState({
+    this.logs = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminAuditState copyWith({
+    List<AuditLogEntry>? logs,
+    bool? isLoading,
     String? error,
-  }) = _AdminAuditState;
+  }) {
+    return AdminAuditState(
+      logs: logs ?? this.logs,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [logs, isLoading, error];
 }
 
-@riverpod
-class AdminAuditNotifier extends _$AdminAuditNotifier {
+final adminAuditNotifierProvider =
+    NotifierProvider<AdminAuditNotifier, AdminAuditState>(
+      AdminAuditNotifier.new,
+    );
+
+class AdminAuditNotifier extends Notifier<AdminAuditState> {
   @override
   AdminAuditState build() {
     return const AdminAuditState();
@@ -1727,27 +2372,24 @@ class AdminAuditNotifier extends _$AdminAuditNotifier {
   Future<void> fetchAuditLogs({int limit = 100}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('admin_audit_logs')
-              .orderBy('timestamp', descending: true)
-              .limit(limit)
-              .get();
+      final rows = await _supabase
+          .from('admin_audit_logs')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
 
-      final logs =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
-            return AuditLogEntry(
-              id: doc.id,
-              adminId: data['adminId'] ?? '',
-              adminName: data['adminName'],
-              action: data['action'] ?? '',
-              targetType: data['targetType'] ?? '',
-              targetId: data['targetId'],
-              details: data['details'] as Map<String, dynamic>?,
-              timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
-            );
-          }).toList();
+      final logs = (rows as List).map((row) {
+        return AuditLogEntry(
+          id: row['id'] as String,
+          adminId: row['admin_id'] as String? ?? '',
+          adminName: row['admin_name'] as String?,
+          action: row['action'] as String? ?? '',
+          targetType: row['target_type'] as String? ?? '',
+          targetId: row['target_id'] as String?,
+          details: (row['details'] as Map?)?.cast<String, dynamic>(),
+          timestamp: _parseDateTime(row['created_at']),
+        );
+      }).toList();
 
       state = state.copyWith(isLoading: false, logs: logs);
     } catch (e) {
@@ -1764,14 +2406,13 @@ class AdminAuditNotifier extends _$AdminAuditNotifier {
     Map<String, dynamic>? details,
   }) async {
     try {
-      await FirebaseFirestore.instance.collection('admin_audit_logs').add({
-        'adminId': adminId,
-        'adminName': adminName,
+      await _supabase.from('admin_audit_logs').insert({
+        'admin_id': adminId,
+        'admin_name': adminName,
         'action': action,
-        'targetType': targetType,
-        'targetId': targetId,
-        'details': details,
-        'timestamp': FieldValue.serverTimestamp(),
+        'target_type': targetType,
+        'target_id': targetId,
+        'details': details ?? {},
       });
     } catch (e) {
       // Silently fail for audit logs
@@ -1793,17 +2434,125 @@ class AdminAuditHelper {
     Map<String, dynamic>? details,
   }) async {
     try {
-      await FirebaseFirestore.instance.collection('admin_audit_logs').add({
-        'adminId': adminId,
-        'adminName': adminName,
+      await _supabase.from('admin_audit_logs').insert({
+        'admin_id': adminId,
+        'admin_name': adminName,
         'action': action,
-        'targetType': targetType,
-        'targetId': targetId,
-        'details': details,
-        'timestamp': FieldValue.serverTimestamp(),
+        'target_type': targetType,
+        'target_id': targetId,
+        'details': details ?? {},
       });
     } catch (e) {
       // debugPrint('Failed to log audit action: $e');
+    }
+  }
+}
+
+// ============================================================================
+// ERROR LOGS
+// ============================================================================
+
+class ErrorLogEntry extends Equatable {
+  final String id;
+  final String? userId;
+  final String errorType;
+  final String message;
+  final String? stackTrace;
+  final Map<String, dynamic>? context;
+  final String severity;
+  final String? platform;
+  final DateTime? timestamp;
+
+  const ErrorLogEntry({
+    required this.id,
+    this.userId,
+    required this.errorType,
+    required this.message,
+    this.stackTrace,
+    this.context,
+    required this.severity,
+    this.platform,
+    this.timestamp,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    userId,
+    errorType,
+    message,
+    stackTrace,
+    context,
+    severity,
+    platform,
+    timestamp,
+  ];
+}
+
+class AdminErrorLogsState extends Equatable {
+  final List<ErrorLogEntry> logs;
+  final bool isLoading;
+  final String? error;
+
+  const AdminErrorLogsState({
+    this.logs = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AdminErrorLogsState copyWith({
+    List<ErrorLogEntry>? logs,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AdminErrorLogsState(
+      logs: logs ?? this.logs,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  @override
+  List<Object?> get props => [logs, isLoading, error];
+}
+
+final adminErrorLogsNotifierProvider =
+    NotifierProvider<AdminErrorLogsNotifier, AdminErrorLogsState>(
+      AdminErrorLogsNotifier.new,
+    );
+
+class AdminErrorLogsNotifier extends Notifier<AdminErrorLogsState> {
+  @override
+  AdminErrorLogsState build() {
+    return const AdminErrorLogsState();
+  }
+
+  Future<void> fetchErrorLogs({int limit = 100}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final rows = await Supabase.instance.client
+          .from('error_logs')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      final logs = (rows as List).map((row) {
+        return ErrorLogEntry(
+          id: row['id'] as String,
+          userId: row['user_id'] as String?,
+          errorType: row['error_type'] as String? ?? 'unknown',
+          message: row['message'] as String? ?? '',
+          stackTrace: row['stack_trace'] as String?,
+          context: (row['context'] as Map?)?.cast<String, dynamic>(),
+          severity: row['severity'] as String? ?? 'error',
+          platform: row['platform'] as String?,
+          timestamp: _parseDateTime(row['created_at']),
+        );
+      }).toList();
+
+      state = state.copyWith(isLoading: false, logs: logs);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 }

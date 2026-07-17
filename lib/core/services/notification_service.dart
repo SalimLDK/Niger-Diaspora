@@ -2671,16 +2671,19 @@ class NotificationService {
     Map<String, dynamic>? data,
   }) async {
     try {
-      await Supabase.instance.client.from('notifications').insert({
-        'user_id': userId,
-        'type': type,
-        'title': title,
-        'body': body,
-        'data': {...?data, 'target_id': targetId},
-        'is_read': false,
+      // Passe par le RPC SECURITY DEFINER : un INSERT direct est bloqué par la
+      // RLS notifications_own (firebase_uid() = user_id) dès que le destinataire
+      // n'est pas l'appelant — c.-à-d. pour TOUTES les notifs entre utilisateurs.
+      // Le RPC contourne la RLS après avoir validé l'appelant et le destinataire.
+      await Supabase.instance.client.rpc('create_user_notification', params: {
+        'p_user_id': userId,
+        'p_type': type,
+        'p_title': title,
+        'p_body': body,
+        'p_data': {...?data, 'target_id': targetId},
       });
     } catch (e) {
-      // debugPrint('Error creating manual notification: $e');
+      debugPrint('Error creating notification: $e');
     }
   }
 
