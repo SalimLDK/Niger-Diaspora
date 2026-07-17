@@ -1,3 +1,17 @@
+# Secrets / credentials — NE JAMAIS committer
+serviceAccount.json
+serviceAccount*.json
+*serviceAccountKey*.json
+# Clés de service Firebase : le nom généré par la console est du type
+# <projet>-firebase-adminsdk-<hash>.json et ne matchait AUCUN motif ci-dessus.
+# Ce sont des clés privées d'ADMIN (accès total Firestore/RTDB/Auth/Storage).
+*firebase-adminsdk*.json
+*-adminsdk-*.json
+# Fichier temporaire d'injection du service account vers les secrets Supabase
+.env.fcm
+*.pem
+*.key
+
 # Miscellaneous
 *.class
 *.log
