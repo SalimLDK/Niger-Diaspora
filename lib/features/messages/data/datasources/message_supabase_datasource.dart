@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 
@@ -144,27 +145,26 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     try {
       final CryptoResult result;
+      bool recipientHadKeys = false;
 
       if (recipientId != null) {
-        // Guard: recipient must have published their pre-keys on Firebase.
-        // Fails immediately (no 10 s wait) if the user never set up E2EE.
-        final hasKeys = await _crypto.recipientHasKeys(recipientId);
-        if (!hasKeys) {
-          throw E2EEException(
-            "Le destinataire n'a pas encore activé le chiffrement sur son appareil.",
-          );
-        }
-
-        // Fast path: if a local session already exists, skip X3DH entirely.
-        final sessionExists = await _crypto.hasSessionFor(recipientId);
-        if (!sessionExists) {
-          // No local session — run X3DH with a 10 s safety timeout.
-          try {
-            await _crypto
-                .preEstablishSessions([recipientId])
-                .timeout(const Duration(seconds: 10));
-          } on TimeoutException {
-            debugPrint('MessageSupabaseDataSource: Signal session setup timed out');
+        // On tente d'établir une session Signal seulement si le destinataire a
+        // publié ses pré-clés. Sinon (jamais activé E2EE), on n'attend pas :
+        // encrypt1to1() retombe automatiquement sur AES (clé globale), le
+        // repli prévu par l'architecture — le message part quand même.
+        recipientHadKeys = await _crypto.recipientHasKeys(recipientId);
+        if (recipientHadKeys) {
+          // Fast path: if a local session already exists, skip X3DH entirely.
+          final sessionExists = await _crypto.hasSessionFor(recipientId);
+          if (!sessionExists) {
+            // No local session — run X3DH with a 10 s safety timeout.
+            try {
+              await _crypto
+                  .preEstablishSessions([recipientId])
+                  .timeout(const Duration(seconds: 10));
+            } on TimeoutException {
+              debugPrint('MessageSupabaseDataSource: Signal session setup timed out');
+            }
           }
         }
 
@@ -187,11 +187,26 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         result = await _crypto.encryptGroup(plaintext, groupId: conversationId);
       }
 
-      if (result.encryptionLevel != 'e2ee') {
-        throw E2EEException(
-          'Chiffrement Signal indisponible. Vérifiez votre connexion et réessayez.',
-        );
+      // Instrumentation continue du taux de repli AES (fire-and-forget, non
+      // bloquant). Ne jamais laisser l'analytics impacter l'envoi.
+      final isDirect = recipientId != null;
+      String? fallbackReason;
+      if (result.encryptionLevel == 'aes') {
+        fallbackReason = isDirect
+            ? (recipientHadKeys ? 'session_failed' : 'recipient_no_keys')
+            : 'sender_key_failed';
       }
+      unawaited(
+        AnalyticsService.instance.logMessageEncryption(
+          level: result.encryptionLevel,
+          scope: isDirect ? 'direct' : 'group',
+          fallbackReason: fallbackReason,
+        ),
+      );
+
+      // On accepte le résultat quel que soit son niveau : 'e2ee' si une session
+      // Signal a pu être établie, 'aes' (repli clé globale) sinon. Ne jamais
+      // bloquer l'envoi ici — le repli AES est le comportement prévu.
       return result.fields;
     } on E2EEException {
       rethrow;
@@ -1584,6 +1599,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'is_deleted': true,
         'data': data,
       }).eq('id', messageId);
+
+      // Retire l'épingle éventuelle : sans ça le bandeau garde une entrée
+      // fantôme (« Appuyez pour voir ») vers un message qui n'existe plus.
+      // RLS sans droit d'épinglage ⇒ 0 ligne supprimée, sans erreur.
+      await _supabase
+          .from('group_pinned_items')
+          .delete()
+          .eq('item_type', 'message')
+          .eq('item_id', messageId);
     } catch (e) {
       throw ServerException('deleteMessageForEveryone error: $e');
     }

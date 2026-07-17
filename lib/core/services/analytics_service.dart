@@ -17,7 +17,11 @@ class AnalyticsService {
     Map<String, Object>? parameters,
   }) async {
     try {
-      await _analytics.logEvent(name: name, parameters: parameters);
+      // Firebase Analytics only accepts String or num — convert bool to 0/1.
+      final sanitized = parameters?.map(
+        (k, v) => MapEntry(k, v is bool ? (v ? 1 : 0) : v),
+      );
+      await _analytics.logEvent(name: name, parameters: sanitized);
     } catch (e) {
       debugPrint('AnalyticsService: Error logging event: $e');
     }
@@ -438,6 +442,33 @@ class AnalyticsService {
         if (screenName != null) 'screen_name': screenName,
         if (userId != null) 'user_id': userId,
         'timestamp': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  // ==================== Chiffrement des messages ====================
+
+  /// Suit le niveau de chiffrement effectif de chaque message texte envoyé,
+  /// pour mesurer EN CONTINU le taux de repli AES (fallback clé globale) vs
+  /// Signal (E2EE).
+  ///
+  /// Exploitation côté Firebase Analytics (event `message_encryption`) :
+  ///   taux de fallback = count(level=aes) / count(*), filtré par `scope`.
+  /// `fallback_reason` (présent seulement quand level=aes) permet de séparer
+  /// « destinataire sans clés » (rollout en cours) de « session échouée »
+  /// (problème structurel d'établissement Signal).
+  Future<void> logMessageEncryption({
+    required String level, // 'e2ee' | 'aes'
+    required String scope, // 'direct' | 'group'
+    String? fallbackReason, // renseigné uniquement quand level == 'aes'
+  }) async {
+    await logEvent(
+      name: 'message_encryption',
+      parameters: {
+        'level': level,
+        'scope': scope,
+        'is_fallback': level == 'aes',
+        if (fallbackReason != null) 'fallback_reason': fallbackReason,
       },
     );
   }
