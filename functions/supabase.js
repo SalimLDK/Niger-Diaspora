@@ -83,4 +83,75 @@ async function removeFcmTokens(userId, deadTokens) {
   }
 }
 
-module.exports = { getFcmTokens, removeFcmTokens, isConfigured };
+/**
+ * Récupère une conversation Supabase (métadonnées de notification).
+ * @param {string} conversationId
+ * @returns {Promise<null|{id,type,participantIds:string[],groupId:string,name:string,imageUrl:string,mutedBy:object}>}
+ */
+async function getConversation(conversationId) {
+  if (!isConfigured()) return null;
+  const url =
+    `${SUPABASE_URL}/rest/v1/conversations` +
+    `?id=eq.${encodeURIComponent(conversationId)}` +
+    `&select=id,type,participant_ids,group_id,data`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) {
+    console.error(`Supabase getConversation ${res.status}: ${await res.text()}`);
+    return null;
+  }
+  const rows = await res.json();
+  const row = rows && rows[0];
+  if (!row) return null;
+  const data = row.data || {};
+  return {
+    id: row.id,
+    type: row.type || "individual",
+    participantIds: Array.isArray(row.participant_ids) ? row.participant_ids : [],
+    groupId: row.group_id || "",
+    name: data.name || "",
+    imageUrl: data.image_url || "",
+    mutedBy: data.muted_by || {},
+  };
+}
+
+/**
+ * Récupère, en une requête, les infos push de plusieurs utilisateurs.
+ * @param {string[]} userIds
+ * @returns {Promise<Map<string,{displayName,avatarUrl,fcmTokens:string[],notificationsEnabled:boolean,showMessagePreview:boolean}>>}
+ */
+async function getUsersForPush(userIds) {
+  const map = new Map();
+  if (!isConfigured() || !userIds || userIds.length === 0) return map;
+  const uniq = [...new Set(userIds.filter(Boolean))];
+  if (uniq.length === 0) return map;
+  // Les Firebase UID sont alphanumériques → sûrs dans une in-list PostgREST.
+  const inList = uniq.map((id) => `"${id}"`).join(",");
+  const url =
+    `${SUPABASE_URL}/rest/v1/users?id=in.(${inList})` +
+    `&select=id,display_name,avatar_url,fcm_tokens,notifications_enabled,show_message_preview`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) {
+    console.error(`Supabase getUsersForPush ${res.status}: ${await res.text()}`);
+    return map;
+  }
+  const rows = await res.json();
+  for (const row of rows) {
+    map.set(row.id, {
+      displayName: row.display_name || "",
+      avatarUrl: row.avatar_url || "",
+      fcmTokens: Array.isArray(row.fcm_tokens) ? row.fcm_tokens.filter(Boolean) : [],
+      // Défaut permissif (comme l'ancien code Firestore : !== false).
+      notificationsEnabled: row.notifications_enabled !== false,
+      showMessagePreview: row.show_message_preview !== false,
+    });
+  }
+  return map;
+}
+
+module.exports = {
+  getFcmTokens,
+  removeFcmTokens,
+  getConversation,
+  getUsersForPush,
+  isConfigured,
+};

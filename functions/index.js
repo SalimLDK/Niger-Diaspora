@@ -7,8 +7,13 @@ const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
 const { decryptText } = require("./encryption");
 const partners = require("./partners");
-// Tokens FCM : lus dans Supabase (users.fcm_tokens), PAS dans Firestore.
-const { getFcmTokens, removeFcmTokens } = require("./supabase");
+// Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
+const {
+  getFcmTokens,
+  removeFcmTokens,
+  getConversation,
+  getUsersForPush,
+} = require("./supabase");
 
 admin.initializeApp();
 
@@ -452,22 +457,24 @@ exports.onMessageCreated = functions
         // console.log(`New message created in conversation ${conversationId}`);
 
         try {
-            // Get conversation details from Firestore
-            const conversationDoc = await admin.firestore()
-                .collection("conversations")
-                .doc(conversationId)
-                .get();
-
-            if (!conversationDoc.exists) {
-                // console.log(`Conversation ${conversationId} not found in Firestore`);
+            // Conversation lue dans Supabase (les conversations ont migré depuis
+            // Firestore). Sans ça, la fonction sortait toujours en amont.
+            const conv = await getConversation(conversationId);
+            if (!conv) {
+                // console.log(`Conversation ${conversationId} not found in Supabase`);
                 return null;
             }
 
-            const conversation = conversationDoc.data();
+            // Objet compat pour les usages aval (conversation.name/imageUrl/groupId).
+            const conversation = {
+                name: conv.name,
+                imageUrl: conv.imageUrl,
+                groupId: conv.groupId,
+            };
             const senderId = message.senderId;
-            const participantIds = conversation.participantIds || [];
-            const mutedBy = conversation.mutedBy || {};
-            const conversationType = conversation.type;
+            const participantIds = conv.participantIds;
+            const mutedBy = conv.mutedBy;
+            const conversationType = conv.type;
 
             // Helper function to check if user is currently muted
             const isUserMuted = (userId) => {
@@ -488,11 +495,20 @@ exports.onMessageCreated = functions
                 return null;
             }
 
-            // Get sender's name and photo
-            const senderDoc = await admin.firestore().collection("users").doc(senderId).get();
-            const senderData = senderDoc.exists ? senderDoc.data() : {};
-            const senderName = senderData.displayName || "Un utilisateur";
-            const senderPhotoUrl = senderData.photoUrl || "";
+            // Fetch groupé (1 requête) : expéditeur + destinataires + mentionnés.
+            const mentionedIds = (message.mentionedUsers || [])
+                .map((m) => m && m.id)
+                .filter(Boolean);
+            const usersMap = await getUsersForPush([
+                senderId,
+                ...recipients,
+                ...mentionedIds,
+            ]);
+
+            // Nom + photo de l'expéditeur (depuis Supabase).
+            const senderInfo = usersMap.get(senderId) || {};
+            const senderName = senderInfo.displayName || "Un utilisateur";
+            const senderPhotoUrl = senderInfo.avatarUrl || "";
 
             // Prepare notification content based on message type
             const messageType = message.type || "text";
@@ -547,20 +563,17 @@ exports.onMessageCreated = functions
                     continue;
                 }
 
-                const recipientDoc = await admin.firestore().collection("users").doc(recipientId).get();
-                if (recipientDoc.exists) {
-                    const userData = recipientDoc.data();
-                    const tokens = userData.fcmTokens || [];
-                    const notificationsEnabled = userData.notificationsEnabled !== false;
-                    const showMessagePreview = userData.showMessagePreview !== false; // Default true
+                const info = usersMap.get(recipientId);
+                if (info) {
+                    const tokens = info.fcmTokens;
+                    const notificationsEnabled = info.notificationsEnabled;
+                    const showMessagePreview = info.showMessagePreview;
 
-                    // For system messages, check if user wants these notifications
+                    // Messages système : la préférence dédiée (notifySystemMessages)
+                    // n'a pas de colonne Supabase → on garde le défaut historique
+                    // (désactivé) et on ne pousse pas les messages système.
                     if (messageType === "system") {
-                        const systemMessagesEnabled = userData.notifySystemMessages === true;
-                        if (!systemMessagesEnabled) {
-                            // console.log(`User ${recipientId} has disabled system message notifications`);
-                            continue;
-                        }
+                        continue;
                     }
 
                     if (notificationsEnabled && tokens.length > 0) {
@@ -708,13 +721,16 @@ exports.onMessageCreated = functions
                 for (const mentioned of mentionedUsers) {
                     if (!mentioned.id || mentioned.id === senderId) continue;
 
-                    // Increment unreadMentions in Firestore (even if conversation is muted)
+                    // Increment unreadMentions (best-effort ; la conversation a
+                    // migré vers Supabase, cette écriture Firestore est morte —
+                    // .catch pour ne pas interrompre l'envoi des pushes).
                     await admin.firestore()
                         .collection("conversations")
                         .doc(conversationId)
                         .update({
                             [`unreadMentions.${mentioned.id}`]: admin.firestore.FieldValue.increment(1),
-                        });
+                        })
+                        .catch(() => {/* conversation absente de Firestore : ignore */});
 
                     // Store notification document in Firestore (visible in Notifications screen)
                     await admin.firestore().collection("notifications").add({
@@ -729,12 +745,9 @@ exports.onMessageCreated = functions
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     }).catch(() => {/* ignore storage errors */});
 
-                    // Send a targeted FCM notification
-                    const mentionedDoc = await admin.firestore()
-                        .collection("users").doc(mentioned.id).get();
-                    if (!mentionedDoc.exists) continue;
-                    const mentionedData = mentionedDoc.data();
-                    const mentionTokens = mentionedData.fcmTokens || [];
+                    // Send a targeted FCM notification (tokens depuis Supabase)
+                    const mentionedInfo = usersMap.get(mentioned.id);
+                    const mentionTokens = mentionedInfo ? mentionedInfo.fcmTokens : [];
                     if (mentionTokens.length === 0) continue;
 
                     const mentionTitle = conversation.name || "Groupe";
@@ -774,9 +787,7 @@ exports.onMessageCreated = functions
 
                 await Promise.all(
                     Object.entries(updates).map(([userId, tokens]) =>
-                        admin.firestore().collection("users").doc(userId).update({
-                            fcmTokens: admin.firestore.FieldValue.arrayRemove(...tokens),
-                        })
+                        removeFcmTokens(userId, tokens)
                     )
                 );
             }
