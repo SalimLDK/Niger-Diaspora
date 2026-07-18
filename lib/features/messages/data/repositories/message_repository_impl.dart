@@ -7,6 +7,8 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/audio_playback_service.dart';
+import '../../../../core/services/blurhash_service.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
@@ -15,11 +17,13 @@ import '../../domain/repositories/message_repository.dart';
 import '../datasources/message_remote_datasource.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
+import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 
 class MessageRepositoryImpl implements MessageRepository {
   final MessageRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
   final CacheService cacheService;
+  final BlurhashService blurhashService;
 
   // DocumentSnapshot? _lastDocument; // Removed: using stateless cursor via beforeMessageId (RTDB key)
 
@@ -27,7 +31,58 @@ class MessageRepositoryImpl implements MessageRepository {
     required this.remoteDataSource,
     required this.networkInfo,
     CacheService? cacheService,
-  }) : cacheService = cacheService ?? CacheService.instance;
+    BlurhashService? blurhashService,
+  }) : cacheService = cacheService ?? CacheService.instance,
+       blurhashService = blurhashService ?? BlurhashService();
+
+  /// Collapse duplicate 1:1 conversations that share the same participant pair.
+  ///
+  /// Legacy data can hold two rows for the same two users: a 'request' row
+  /// (accepted requests keep type='request') plus a plain 'individual' row
+  /// created later because findIndividualConversation used to ignore request
+  /// rows. Both map to [ConversationType.individual] here, so the same contact
+  /// would appear twice in the list. We keep only the most recently active row
+  /// per pair. Groups are never collapsed.
+  List<ConversationEntity> _dedupConversationsByPair(
+    List<ConversationEntity> conversations,
+  ) {
+    final indexByPair = <String, int>{};
+    final result = <ConversationEntity>[];
+
+    for (final c in conversations) {
+      final key = _participantPairKey(c);
+      if (key == null) {
+        // Groups (or malformed pairs): never merged.
+        result.add(c);
+        continue;
+      }
+
+      final existingIndex = indexByPair[key];
+      if (existingIndex == null) {
+        indexByPair[key] = result.length;
+        result.add(c);
+      } else if (_isMoreRecentlyActive(c, result[existingIndex])) {
+        // Keep the row that was actually used most recently.
+        result[existingIndex] = c;
+      }
+    }
+    return result;
+  }
+
+  /// Stable key for a 1:1 conversation's participant pair; null for groups
+  /// or conversations without exactly two participants.
+  String? _participantPairKey(ConversationEntity c) {
+    if (c.isGroup) return null;
+    if (c.participantIds.length != 2) return null;
+    final ids = [...c.participantIds]..sort();
+    return ids.join('|');
+  }
+
+  bool _isMoreRecentlyActive(ConversationEntity a, ConversationEntity b) {
+    final aTime = a.lastMessageAt ?? a.createdAt;
+    final bTime = b.lastMessageAt ?? b.createdAt;
+    return aTime.isAfter(bTime);
+  }
 
   @override
   Stream<Either<Failure, List<ConversationEntity>>> getConversations(
@@ -49,7 +104,9 @@ class MessageRepositoryImpl implements MessageRepository {
           cacheService.cacheConversations(conversationsMap);
 
           return Right<Failure, List<ConversationEntity>>(
-            filteredConversations.map((c) => c.toEntity()).toList(),
+            _dedupConversationsByPair(
+              filteredConversations.map((c) => c.toEntity()).toList(),
+            ),
           );
         })
         .handleError((error) {
@@ -68,7 +125,9 @@ class MessageRepositoryImpl implements MessageRepository {
       cachedMap.sort((a, b) {
         final aTime = a['lastMessageAt'] as String?;
         final bTime = b['lastMessageAt'] as String?;
-        if (aTime == null || bTime == null) return 0;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1; // nulls sink to end
+        if (bTime == null) return -1;
         return bTime.compareTo(aTime); // Descending
       });
 
@@ -80,7 +139,7 @@ class MessageRepositoryImpl implements MessageRepository {
               .map((model) => model.toEntity())
               .toList();
 
-      return Right(entities);
+      return Right(_dedupConversationsByPair(entities));
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
@@ -153,11 +212,19 @@ class MessageRepositoryImpl implements MessageRepository {
     required String senderId,
     required String senderName,
     String? senderPhotoUrl,
+    bool senderIsVerified = false,
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    Map<String, dynamic>? postData,
     List<String> sentWhileBlockedBy = const [],
+    Map<String, dynamic>? linkPreviewData,
+    bool isForwarded = false,
+    List<MentionedUser> mentionedUsers = const [],
+    String? clientMessageId,
+    String? recipientId,
+    List<String> participantIds = const [],
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -169,13 +236,23 @@ class MessageRepositoryImpl implements MessageRepository {
         senderId: senderId,
         senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
+        senderIsVerified: senderIsVerified,
         content: content,
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
         productData: productData,
+        postData: postData,
         sentWhileBlockedBy: sentWhileBlockedBy,
+        linkPreviewData: linkPreviewData,
+        isForwarded: isForwarded,
+        mentionedUsers: mentionedUsers.map((m) => {'id': m.id, 'name': m.name}).toList(),
+        clientMessageId: clientMessageId,
+        recipientId: recipientId,
+        participantIds: participantIds,
       );
       return Right(message.toEntity());
+    } on E2EEException catch (e) {
+      return Left(E2EEFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -278,7 +355,27 @@ class MessageRepositoryImpl implements MessageRepository {
           mimeType = 'image/$ext';
         } else if (ext == 'pdf') {
           mimeType = 'application/pdf';
+        } else if (['mp3', 'm4a', 'aac', 'ogg', 'wav', 'flac'].contains(ext)) {
+          mimeType = 'audio/$ext';
         }
+
+        // Generate blurhash for images and videos
+        String? blurhash;
+        if (type == MessageType.image) {
+          blurhash = await blurhashService.generateFromImage(file);
+        } else if (type == MessageType.video) {
+          blurhash = await blurhashService.generateFromVideo(file);
+        }
+
+        // Extract audio duration for audio files.
+        int? audioDuration;
+        if (type == MessageType.audio) {
+          final duration = await AudioPlaybackService.getDurationFromFile(file.path);
+          audioDuration = duration?.inSeconds;
+        }
+
+        // Map app MessageType to DB type string.
+        final dbType = type == MessageType.audio ? 'audioFile' : type.name;
 
         final message = await remoteDataSource.sendMediaMessage(
           conversationId: conversationId,
@@ -289,10 +386,12 @@ class MessageRepositoryImpl implements MessageRepository {
           fileName: fileName,
           fileSize: fileSize,
           mimeType: mimeType,
-          type: type.name,
+          type: dbType,
           caption: caption,
           replyToId: replyToId,
           replyToMessageData: replyToMessageData,
+          blurhash: blurhash,
+          audioDuration: audioDuration,
         );
         return Right(message.toEntity());
       });
@@ -354,6 +453,22 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
+  Future<Either<Failure, void>> markAsDelivered({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      await remoteDataSource.markAsDelivered(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure('Erreur livraison: ${e.toString()}'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> markAsRead({
     required String conversationId,
     required String userId,
@@ -364,6 +479,27 @@ class MessageRepositoryImpl implements MessageRepository {
 
     try {
       await remoteDataSource.markAsRead(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> clearUnreadMentions({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      await remoteDataSource.clearUnreadMentions(
         conversationId: conversationId,
         userId: userId,
       );
@@ -392,8 +528,50 @@ class MessageRepositoryImpl implements MessageRepository {
       } else {
         // Offline deletion not fully supported yet for sync,
         // but could implement local marking if needed.
-        return Left(NetworkFailure('Non disponible hors connexion'));
+        return const Left(NetworkFailure('Non disponible hors connexion'));
       }
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConversationEntity?>> getConversationById(
+    String conversationId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final conversation = await remoteDataSource.getConversationById(
+        conversationId,
+      );
+      return Right(conversation?.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> restoreConversationForUser({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.restoreConversationForUser(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -419,6 +597,19 @@ class MessageRepositoryImpl implements MessageRepository {
       );
 
       if (existing != null) {
+        // CORRECTION: Verifier si supprimee pour l'utilisateur actuel
+        if (existing.deletedBy.containsKey(currentUserId)) {
+          // Retirer le flag deletedBy pour "ressusciter" la conversation
+          await remoteDataSource.restoreConversationForUser(
+            conversationId: existing.id,
+            userId: currentUserId,
+          );
+          // Retourner la conversation restauree
+          final restored = existing.copyWith(
+            deletedBy: Map.from(existing.deletedBy)..remove(currentUserId),
+          );
+          return Right(restored.toEntity());
+        }
         return Right(existing.toEntity());
       }
 
@@ -451,25 +642,24 @@ class MessageRepositoryImpl implements MessageRepository {
     if (isConnected) {
       try {
         // debugPrint('🌐 Repository: Fetching from remote data source...');
+        // Fetch limit+1 to detect whether a next page exists without generating
+        // a spurious empty page when the result count equals the page size.
         final (messages, _) = await remoteDataSource.getMessagesPaginated(
           conversationId: conversationId,
-          limit: limit,
+          limit: limit + 1,
           lastMessageKey: beforeMessageId,
           filterAfterDate: filterAfterDate,
         );
 
-        // debugPrint(
-        //   '📦 Repository: Received ${messages.length} messages from remote',
-        // );
+        final hasMore = messages.length > limit;
+        // Drop the oldest probe item used to detect hasMore, keeping the
+        // newest `limit` messages (datasource returns ascending order).
+        final trimmed = hasMore ? messages.sublist(1) : messages;
 
-        // _lastDocument = lastDoc; // Not needed anymore
-
-        final entities = messages.map((m) => m.toEntity()).toList();
-        // Fix: use > instead of >= to avoid false positive when exactly limit messages returned
-        final hasMore = messages.length == limit;
+        final entities = trimmed.map((m) => m.toEntity()).toList();
 
         // Cache the messages
-        final messageMaps = messages.map((m) => m.toJson()).toList();
+        final messageMaps = trimmed.map((m) => m.toJson()).toList();
         await cacheService.cacheMessages(conversationId, messageMaps);
 
         // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
@@ -581,6 +771,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required List<double> waveform,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -595,6 +786,81 @@ class MessageRepositoryImpl implements MessageRepository {
         audioFile: audioFile,
         duration: duration,
         waveform: waveform,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
+        isForwarded: isForwarded,
+      );
+      return Right(message.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, MessageEntity>> sendLocationMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required double latitude,
+    required double longitude,
+    required String address,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final message = await remoteDataSource.sendLocationMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
+      );
+      return Right(message.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, MessageEntity>> sendStickerMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String stickerPackId,
+    required String stickerId,
+    required String stickerUrl,
+    bool isAnimated = false,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final message = await remoteDataSource.sendStickerMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        stickerPackId: stickerPackId,
+        stickerId: stickerId,
+        stickerUrl: stickerUrl,
+        isAnimated: isAnimated,
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
       );
@@ -768,6 +1034,7 @@ class MessageRepositoryImpl implements MessageRepository {
   Future<Either<Failure, void>> muteConversation({
     required String conversationId,
     required String userId,
+    Duration? duration,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -777,6 +1044,7 @@ class MessageRepositoryImpl implements MessageRepository {
       await remoteDataSource.muteConversation(
         conversationId: conversationId,
         userId: userId,
+        duration: duration,
       );
       return const Right(null);
     } on ServerException catch (e) {
@@ -805,6 +1073,289 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> pinConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.pinConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> unpinConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.unpinConversation(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> toggleStarMessage({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      await remoteDataSource.toggleStarMessage(
+        conversationId: conversationId,
+        messageId: messageId,
+        userId: userId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<MessageEntity>>> getStarredMessages({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      final models = await remoteDataSource.getStarredMessages(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<MessageEntity>>> searchMessagesInConversation({
+    required String conversationId,
+    required String query,
+  }) async {
+    try {
+      final models = await remoteDataSource.searchMessagesInConversation(
+        conversationId: conversationId,
+        query: query,
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String newContent,
+    required String oldContent,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.editMessage(
+        conversationId: conversationId,
+        messageId: messageId,
+        newContent: newContent,
+        oldContent: oldContent,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setAutoDeleteSettings({
+    required String conversationId,
+    required int? durationSeconds,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      await remoteDataSource.setAutoDeleteSettings(
+        conversationId: conversationId,
+        durationSeconds: durationSeconds,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  /// Synchroniser les messages de maniere incrementale (sync differentielle)
+  Future<Either<Failure, List<MessageEntity>>> syncMessagesIncremental({
+    required String conversationId,
+  }) async {
+    try {
+      // 1. Obtenir le dernier timestamp du cache
+      final cachedMessages = cacheService.getCachedMessages(conversationId);
+
+      DateTime lastTimestamp;
+      if (cachedMessages.isNotEmpty) {
+        // Prendre le timestamp du message le plus recent
+        final timestamps =
+            cachedMessages
+                .map((m) => m['createdAt'] as String?)
+                .where((t) => t != null)
+                .map((t) => DateTime.parse(t!))
+                .toList();
+
+        if (timestamps.isNotEmpty) {
+          lastTimestamp = timestamps.reduce((a, b) => a.isAfter(b) ? a : b);
+        } else {
+          lastTimestamp = DateTime.now().subtract(const Duration(days: 30));
+        }
+      } else {
+        // Pas de cache, charger les 30 derniers jours
+        lastTimestamp = DateTime.now().subtract(const Duration(days: 30));
+      }
+
+      // 2. Recuperer seulement les nouveaux messages
+      final newMessages = await remoteDataSource.getMessagesSince(
+        conversationId: conversationId,
+        since: lastTimestamp,
+      );
+
+      // debugPrint('SyncIncremental: Found ${newMessages.length} new messages since $lastTimestamp');
+
+      // 3. Merger avec le cache
+      if (newMessages.isNotEmpty) {
+        final newMessagesJson = newMessages.map((m) => m.toJson()).toList();
+        await cacheService.cacheMessagesLRU(conversationId, newMessagesJson);
+      }
+
+      // 4. Retourner tous les messages du cache
+      final allCachedMessages = cacheService.getCachedMessages(conversationId);
+      final entities =
+          allCachedMessages
+              .map((json) => MessageModel.fromJson(json).toEntity())
+              .toList();
+
+      return Right(entities);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur de synchronisation: $e'));
+    }
+  }
+
+  // ============ MESSAGE REQUESTS (Zone Tampon) ============
+
+  @override
+  Stream<Either<Failure, List<ConversationEntity>>> getMessageRequests(
+    String userId,
+  ) {
+    return remoteDataSource.getMessageRequests(userId).map((models) {
+      try {
+        final entities = models.map((m) => m.toEntity()).toList();
+        return Right<Failure, List<ConversationEntity>>(entities);
+      } catch (e) {
+        return const Left<Failure, List<ConversationEntity>>(
+          ServerFailure('Erreur lors de la recuperation des demandes'),
+        );
+      }
+    });
+  }
+
+  @override
+  Future<Either<Failure, void>> acceptMessageRequest({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    try {
+      await remoteDataSource.updateRequestStatus(
+        conversationId: conversationId,
+        status: 'accepted',
+        recipientId: recipientId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur lors de l\'acceptation: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> declineMessageRequest({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    try {
+      await remoteDataSource.updateRequestStatus(
+        conversationId: conversationId,
+        status: 'declined',
+        recipientId: recipientId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur lors du refus: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConversationEntity>> createMessageRequest({
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final model = await remoteDataSource.createIndividualConversationAsRequest(
+        currentUserId: currentUserId,
+        otherUserId: otherUserId,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur lors de la creation de la demande: $e'));
     }
   }
 }

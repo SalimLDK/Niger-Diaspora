@@ -1159,21 +1159,31 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId2,
   }) async {
     try {
+      // On cherche parmi les 1:1 « normales » (individual) ET les demandes
+      // (request) : une demande acceptée garde type='request', et sans ça
+      // getOrCreateIndividualConversation en recréerait une seconde ligne
+      // 'individual' → le même contact apparaîtrait deux fois dans la liste.
       final rows = await _supabase
           .from('conversations')
           .select()
-          .eq('type', 'individual')
+          .inFilter('type', ['individual', 'request'])
           .contains('participant_ids', [userId1, userId2]);
 
+      ConversationModel? requestMatch;
       for (final row in rows) {
         final ids = List<String>.from(row['participant_ids'] as List? ?? []);
         if (ids.length == 2 &&
             ids.contains(userId1) &&
             ids.contains(userId2)) {
-          return _convFromRow(row);
+          // Une vraie conversation 'individual' est prioritaire ; sinon on
+          // réutilise la ligne 'request' au lieu d'en créer une nouvelle.
+          if (row['type'] == 'individual') {
+            return _convFromRow(row);
+          }
+          requestMatch ??= _convFromRow(row);
         }
       }
-      return null;
+      return requestMatch;
     } catch (e) {
       throw ServerException('findIndividualConversation error: $e');
     }
