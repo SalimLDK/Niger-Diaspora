@@ -13,9 +13,24 @@ import '../providers/event_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/error_handler.dart';
+import '../../../messages/presentation/providers/media_gallery_provider.dart'
+    show groupConversationIdProvider;
+import '../../../messages/presentation/providers/message_provider.dart'
+    show sendMessageProvider;
 
 class CreateEventScreen extends ConsumerStatefulWidget {
-  const CreateEventScreen({super.key});
+  final String? groupId;
+  final String? groupName;
+  final String? conversationId;
+
+  const CreateEventScreen({
+    super.key,
+    this.groupId,
+    this.groupName,
+    this.conversationId,
+  });
 
   @override
   ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
@@ -37,6 +52,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   TimeOfDay? _endTime;
   bool _isOnline = false;
   bool _isLoading = false;
+  // Groupe uniquement : publier aussi l'event dans le fil public (écran
+  // Événements global), en plus de la visibilité par défaut aux membres.
+  bool _publishToFeed = false;
   final List<XFile> _selectedPosters = [];
   final _imagePicker = ImagePicker();
 
@@ -52,13 +70,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void _prefillLocation() {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
-      final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+      final profile =
+          ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
       if (profile != null && _locationController.text.isEmpty) {
         final parts = <String>[];
         if (profile.currentCity != null && profile.currentCity!.isNotEmpty) {
           parts.add(profile.currentCity!);
         }
-        if (profile.currentCountry != null && profile.currentCountry!.isNotEmpty) {
+        if (profile.currentCountry != null &&
+            profile.currentCountry!.isNotEmpty) {
           parts.add(profile.currentCountry!);
         }
         if (parts.isNotEmpty) {
@@ -198,7 +218,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la sélection des images: $e'),
+            content: Text(
+              ErrorHandler.instance.getShortMessage(
+                ErrorHandler.instance.handleException(e),
+              ),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -224,7 +248,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final onlineLabel = l10n.online;
 
     // Récupérer le pays de l'utilisateur depuis son profil
-    final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+    final profile =
+        ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
     final userCountry = profile?.currentCountry;
 
     setState(() => _isLoading = true);
@@ -274,18 +299,29 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ? int.tryParse(_maxAttendeesController.text) ?? 0
               : 0,
       attendeeIds: [currentUser.id],
+      groupId: widget.groupId,
+      groupName: widget.groupName,
+      conversationId: widget.conversationId,
+      // Événement créé depuis une discussion (DM ou groupe) : privé par défaut
+      // (participants du DM / membres du groupe) ; la case "publier dans le fil"
+      // l'expose aussi à l'écran Événements global. Standalone : géré côté
+      // requêtes/RLS.
+      isPublic: (widget.groupId != null || widget.conversationId != null)
+          ? _publishToFeed
+          : false,
       createdAt: DateTime.now(),
     );
 
-    final success = await ref
+    final created = await ref
         .read(myEventsNotifierProvider.notifier)
         .createEvent(event);
+    final success = created != null;
 
     if (success && _selectedPosters.isNotEmpty) {
       // Upload posters if event was created successfully
       final repository = ref.read(eventRepositoryProvider);
       for (final poster in _selectedPosters) {
-        await repository.uploadEventPoster(event.id, poster.path);
+        await repository.uploadEventPoster(created.id, poster.path);
       }
     }
 
@@ -298,6 +334,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'has_posters': _selectedPosters.isNotEmpty,
         },
       );
+      // Bulle événement dans la discussion d'origine (DM ou chat de groupe).
+      await _postEventBubble(created);
     }
 
     setState(() => _isLoading = false);
@@ -321,6 +359,37 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
   }
 
+  /// Poste la bulle événement dans la discussion d'origine : la conversation
+  /// DM directement, ou le chat du groupe (résolu via son id) pour un event
+  /// de groupe. Ne bloque pas la création si l'envoi échoue (best-effort).
+  Future<void> _postEventBubble(EventEntity created) async {
+    String? targetConversationId = widget.conversationId;
+    if (targetConversationId == null && widget.groupId != null) {
+      targetConversationId = await ref.read(
+        groupConversationIdProvider(widget.groupId!).future,
+      );
+    }
+    if (targetConversationId == null) return;
+
+    final eventData = <String, dynamic>{
+      'eventId': created.id,
+      'title': created.title,
+      'startDate': created.startDate.toIso8601String(),
+      'location': created.location,
+      'isOnline': created.isOnline,
+    };
+
+    try {
+      await ref.read(sendMessageProvider.notifier).sendText(
+            conversationId: targetConversationId,
+            content: '📅 ${created.title}',
+            eventData: eventData,
+          );
+    } catch (_) {
+      // Non bloquant : l'event existe même si la bulle échoue à s'envoyer.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -333,7 +402,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       appBar: AppBar(
         title: Text(l10n.createEvent),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: AppIcon(AppIcon.close, color: Theme.of(context).iconTheme.color!),
           onPressed: () => context.pop(),
         ),
       ),
@@ -481,8 +550,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.access_time,
+                          AppIcon(AppIcon.clock,
                             size: 18,
                             color: context.adaptivePrimaryColor,
                           ),
@@ -574,8 +642,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.access_time,
+                          AppIcon(AppIcon.clock,
                             size: 18,
                             color:
                                 _endTime != null
@@ -648,11 +715,62 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   Switch(
                     value: _isOnline,
                     onChanged: (value) => setState(() => _isOnline = value),
-                    activeColor: context.adaptivePrimaryColor,
+                    activeThumbColor: context.adaptivePrimaryColor,
                   ),
                 ],
               ),
             ),
+
+            // Visibilité (créé depuis une discussion — DM ou groupe) : par
+            // défaut réservé aux participants/membres, avec option pour le
+            // publier aussi dans le fil public (écran Événements global).
+            if (widget.groupId != null || widget.conversationId != null) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: context.surfaceColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Publier dans le fil public',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _publishToFeed
+                                ? 'Visible par tout le monde dans Événements, en plus de la discussion.'
+                                : (widget.groupId != null
+                                    ? 'Visible uniquement par les membres du groupe.'
+                                    : 'Visible uniquement par les participants de la conversation.'),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.textTertiaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _publishToFeed,
+                      onChanged: (value) =>
+                          setState(() => _publishToFeed = value),
+                      activeThumbColor: context.adaptivePrimaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 20),
 
@@ -713,7 +831,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             const SizedBox(height: 20),
 
             // Event Posters Section
-            _buildLabel('Affiches de l\'événement (optionnel)'),
+            _buildLabel(l10n.eventPostersOptional),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
@@ -726,7 +844,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ajoutez jusqu\'à 5 affiches pour votre événement',
+                    l10n.eventPostersUpTo5,
                     style: TextStyle(
                       fontSize: 13,
                       color: context.textTertiaryColor,
@@ -738,7 +856,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _pickPosters,
                         icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Sélectionner des images'),
+                        label: Text(l10n.eventSelectImages),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: context.adaptivePrimaryColor,
                           side: BorderSide(color: context.adaptivePrimaryColor),
@@ -783,12 +901,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                     onTap: () => _removePoster(index),
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         color: Colors.red,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
-                                        Icons.close,
+                                      child: const AppIcon(AppIcon.close,
                                         size: 16,
                                         color: Colors.white,
                                       ),
@@ -804,7 +921,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           Center(
                             child: TextButton.icon(
                               onPressed: _pickPosters,
-                              icon: const Icon(Icons.add),
+                              icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
                               label: Text(
                                 'Ajouter (${_selectedPosters.length}/5)',
                               ),

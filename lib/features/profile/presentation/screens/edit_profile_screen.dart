@@ -15,6 +15,7 @@ import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -39,7 +40,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   String _phoneVisibility = ProfileOptions.phoneVisibilityEveryone;
   bool _isPhoneVerified = false;
   String? _photoUrl;
-  bool _pendingPhotoDelete = false; // Flag pour indiquer que l'utilisateur veut supprimer sa photo
+  bool _pendingPhotoDelete =
+      false; // Flag pour indiquer que l'utilisateur veut supprimer sa photo
   String _completePhoneNumber = '';
   String _verifiedPhoneNumber = '';
 
@@ -226,7 +228,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: context.surfaceColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -256,9 +260,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      'Changer la photo',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.changePhoto,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -268,8 +272,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 const SizedBox(height: 24),
                 _ImagePickerOption(
                   icon: Icons.camera_alt_outlined,
-                  title: 'Prendre une photo',
-                  subtitle: 'Utiliser l\'appareil photo',
+                  title: AppLocalizations.of(context)!.takePhotoTitle,
+                  subtitle: AppLocalizations.of(context)!.takePhotoSubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.camera);
@@ -277,8 +281,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 ),
                 _ImagePickerOption(
                   icon: Icons.photo_library_outlined,
-                  title: 'Choisir dans la galerie',
-                  subtitle: 'Sélectionner une image existante',
+                  title: AppLocalizations.of(context)!.galleryTitle,
+                  subtitle: AppLocalizations.of(context)!.gallerySubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.gallery);
@@ -287,8 +291,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 if (_photoUrl != null)
                   _ImagePickerOption(
                     icon: Icons.delete_outline,
-                    title: 'Supprimer la photo',
-                    subtitle: 'Utiliser les initiales par défaut',
+                    title: AppLocalizations.of(context)!.deletePhotoTitle,
+                    subtitle: AppLocalizations.of(context)!.deletePhotoSubtitle,
                     isDestructive: true,
                     onTap: () {
                       Navigator.pop(context);
@@ -325,7 +329,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           if (url != null) {
             setState(() {
               _photoUrl = url;
-              _pendingPhotoDelete = false; // Réinitialiser le flag car nouvelle photo
+              _pendingPhotoDelete =
+                  false; // Réinitialiser le flag car nouvelle photo
               _isLoading = false;
             });
           } else {
@@ -407,6 +412,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             .read(profileNotifierProvider(user.id).notifier)
             .updateProfile(profile);
 
+        // Vérifier que l'écriture a réussi (sinon on affichait un faux succès
+        // alors que rien n'était sauvegardé).
+        final saved = ref.read(profileNotifierProvider(user.id));
+        if (saved.hasError) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.profileUpdateError(saved.error?.toString() ?? ''),
+                ),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
+
         // Réinitialiser le flag après sauvegarde réussie
         _pendingPhotoDelete = false;
 
@@ -416,7 +440,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: AppColors.white),
+                  const AppIcon(AppIcon.checkCircle, color: AppColors.white),
                   const SizedBox(width: 12),
                   Text(l10n.profileUpdatedSuccess),
                 ],
@@ -519,11 +543,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       color: AppColors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.close, color: Colors.white),
+                    child: const AppIcon(AppIcon.close, color: Colors.white),
                   ),
                   onPressed: () => context.pop(),
                 ),
                 actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.white,
+                    ),
+                    tooltip: AppLocalizations.of(context)!.previewTooltip,
+                    onPressed: () {
+                      final authState = ref.read(authNotifierProvider);
+                      authState.maybeWhen(
+                        authenticated: (user) =>
+                            context.push('/profile/${user.id}'),
+                        orElse: () {},
+                      );
+                    },
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: TextButton.icon(
@@ -540,7 +579,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                   ),
                                 ),
                               )
-                              : const Icon(Icons.check, color: Colors.white),
+                              : const AppIcon(AppIcon.check, color: Colors.white),
                       label: Text(
                         l10n.save,
                         style: const TextStyle(
@@ -609,7 +648,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 const SizedBox(height: 12),
                                 CustomTextField(
                                   controller: _customProfessionController,
-                                  label: 'Precisez votre profession',
+                                  label: l10n.specifyYourProfession,
                                   prefixIcon: Icons.edit_outlined,
                                 ),
                               ],
@@ -673,18 +712,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                               horizontal: 16,
-                                              vertical: 16,
+                                              vertical: 12,
                                             ),
                                       ),
-                                      initialCountryCode: 'NE',
+                                      // Si un numéro E.164 est déjà stocké
+                                      // (+1…, +33…, etc.), on laisse le package
+                                      // détecter le pays depuis le préfixe au
+                                      // lieu de forcer 'NE' (sinon un numéro
+                                      // hors Niger devient invalide et bloque
+                                      // l'enregistrement).
+                                      initialCountryCode:
+                                          _completePhoneNumber.trim().startsWith(
+                                            '+',
+                                          )
+                                          ? null
+                                          : 'NE',
                                       initialValue: _completePhoneNumber,
                                       onChanged: (phone) {
                                         _onPhoneNumberChanged(
                                           phone.completeNumber,
                                         );
                                       },
-                                      invalidNumberMessage: 'Numéro invalide',
-                                      disableLengthCheck: false,
+                                      invalidNumberMessage:
+                                          l10n.adminInvalidNumberError,
+                                      // Téléphone optionnel : un champ vide ne
+                                      // doit jamais empêcher l'enregistrement.
+                                      disableLengthCheck: true,
+                                      validator: (phone) {
+                                        final n = phone?.number.trim() ?? '';
+                                        if (n.isEmpty) return null;
+                                        if (n.length < 4) {
+                                          return l10n.adminInvalidNumberError;
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -743,7 +804,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 const SizedBox(height: 12),
                                 CustomTextField(
                                   controller: _customCountryController,
-                                  label: 'Ou saisissez votre pays',
+                                  label: l10n.profileSpecifyCountry,
                                   prefixIcon: Icons.edit_outlined,
                                 ),
                               ],
@@ -756,7 +817,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               const SizedBox(height: 20),
                               // Origine au Niger
                               Text(
-                                'Origine au Niger',
+                                l10n.originAtNiger,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -766,7 +827,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               const SizedBox(height: 12),
                               // Dropdown Region
                               _buildDropdownField(
-                                label: 'Region',
+                                label: l10n.profileRegion,
                                 icon: Icons.map_outlined,
                                 value: _selectedOriginRegion,
                                 items: ProfileOptions.regions,
@@ -783,7 +844,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               if (_selectedOriginRegion != null &&
                                   _selectedOriginRegion != 'Autre')
                                 _buildDropdownField(
-                                  label: 'Ville d\'origine',
+                                  label: l10n.profileOriginCity,
                                   icon: Icons.home_outlined,
                                   value: _selectedOriginCity,
                                   items: ProfileOptions.getCitiesForRegion(
@@ -803,7 +864,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 const SizedBox(height: 12),
                                 CustomTextField(
                                   controller: _customOriginCityController,
-                                  label: 'Precisez votre ville d\'origine',
+                                  label: l10n.profileSpecifyOriginCity,
                                   prefixIcon: Icons.edit_outlined,
                                 ),
                               ],
@@ -825,7 +886,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             title: l10n.interests,
                             icon: Icons.interests_outlined,
                             subtitle:
-                                '${_selectedInterests.length} sélectionnés',
+                                AppLocalizations.of(context)!.selectedCount(_selectedInterests.length),
                           ),
                           const SizedBox(height: 16),
                           _FormCard(
@@ -875,7 +936,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             title: l10n.spokenLanguages,
                             icon: Icons.translate_outlined,
                             subtitle:
-                                '${_selectedLanguages.length} sélectionnées',
+                                AppLocalizations.of(context)!.selectedCount(_selectedLanguages.length),
                           ),
                           const SizedBox(height: 16),
                           _FormCard(
@@ -1173,7 +1234,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         border: Border.all(color: context.borderColor),
       ),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: context.textTertiaryColor),
@@ -1223,7 +1284,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
     if (isCurrentNumberVerified) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: context.successColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
@@ -1252,7 +1313,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     return GestureDetector(
       onTap: hasPhone ? _showOtpVerificationDialog : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color:
               hasPhone
@@ -1276,7 +1337,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             ),
             const SizedBox(width: 6),
             Text(
-              'Verifier',
+              AppLocalizations.of(context)!.verify,
               style: TextStyle(
                 color:
                     hasPhone
@@ -1305,13 +1366,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 _verifiedPhoneNumber = _completePhoneNumber;
               });
               Navigator.pop(context);
+              final l10n = AppLocalizations.of(context)!;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: AppColors.white),
+                      const AppIcon(AppIcon.checkCircle, color: AppColors.white),
                       const SizedBox(width: 12),
-                      const Text('Numero verifie avec succes!'),
+                      Text(l10n.profilePhoneVerified),
                     ],
                   ),
                   backgroundColor: AppColors.success,
@@ -1406,14 +1468,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            AppIcon(
                               entry.key ==
                                       ProfileOptions.phoneVisibilityEveryone
-                                  ? Icons.public
+                                  ? AppIcon.public
                                   : entry.key ==
                                       ProfileOptions.phoneVisibilityFriends
-                                  ? Icons.people
-                                  : Icons.lock,
+                                  ? AppIcon.people
+                                  : AppIcon.lock,
                               size: 20,
                               color:
                                   isSelected
@@ -1463,7 +1525,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         border: Border.all(color: context.borderColor),
       ),
       child: DropdownButtonFormField<CountryOption>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: context.textTertiaryColor),
@@ -1663,7 +1725,7 @@ class _SelectableChip extends StatelessWidget {
             ),
             if (isSelected) ...[
               const SizedBox(width: 6),
-              Icon(Icons.check_circle, size: 16, color: color),
+              AppIcon(AppIcon.checkCircle, size: 16, color: color),
             ],
           ],
         ),
@@ -1737,7 +1799,7 @@ class _LanguageChip extends StatelessWidget {
             ),
             if (isSelected) ...[
               const SizedBox(width: 6),
-              Icon(Icons.check_circle, size: 16, color: secondaryColor),
+              AppIcon(AppIcon.checkCircle, size: 16, color: secondaryColor),
             ],
           ],
         ),
@@ -1809,7 +1871,7 @@ class _PrivacyToggle extends StatelessWidget {
         Switch.adaptive(
           value: value,
           onChanged: onChanged,
-          activeColor: primaryColor,
+          activeThumbColor: primaryColor,
           activeTrackColor: primaryColor.withValues(alpha: 0.3),
         ),
       ],
@@ -1837,13 +1899,13 @@ class _ImagePickerOption extends StatelessWidget {
     final color =
         isDestructive ? AppColors.error : context.adaptivePrimaryColor;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
         color: context.surfaceVariantColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -1872,6 +1934,7 @@ class _ImagePickerOption extends StatelessWidget {
           HapticFeedback.selectionClick();
           onTap();
         },
+        ),
       ),
     );
   }
@@ -1952,7 +2015,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Code envoye au ${widget.phoneNumber}'),
+                content: Text(AppLocalizations.of(context)!.codeSentTo(widget.phoneNumber)),
                 backgroundColor: AppColors.primary,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -1970,7 +2033,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erreur lors de l\'envoi du code';
+          _errorMessage = AppLocalizations.of(context)!.phoneVerifSendError;
         });
       }
     }
@@ -1989,14 +2052,14 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
     final otp = _otpControllers.map((c) => c.text).join();
     if (otp.length != 6) {
       setState(() {
-        _errorMessage = 'Veuillez entrer le code complet';
+        _errorMessage = AppLocalizations.of(context)!.phoneVerifEnterComplete;
       });
       return;
     }
 
     if (_verificationId == null) {
       setState(() {
-        _errorMessage = 'Erreur de vérification. Veuillez renvoyer le code.';
+        _errorMessage = AppLocalizations.of(context)!.phoneVerifResendRequired;
       });
       return;
     }
@@ -2012,11 +2075,25 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
         smsCode: otp,
       );
 
-      // Vérifier le code sans affecter l'authentification actuelle
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = AppLocalizations.of(context)!.phoneVerifUserNotLoggedIn;
+        });
+        return;
+      }
 
-      // Déconnecter immédiatement pour ne pas affecter l'utilisateur actuel
-      await FirebaseAuth.instance.signOut();
+      try {
+        await currentUser.linkWithCredential(credential);
+      } on FirebaseAuthException catch (e) {
+        // Ces codes signifient que l'OTP était valide → vérifié quand même
+        if (e.code != 'credential-already-in-use' &&
+            e.code != 'account-exists-with-different-credential' &&
+            e.code != 'provider-already-linked') {
+          rethrow;
+        }
+      }
 
       if (mounted) {
         widget.onVerified();
@@ -2025,40 +2102,43 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          final l10n = AppLocalizations.of(context)!;
           _errorMessage =
               e.code == 'invalid-verification-code'
-                  ? 'Code invalide'
-                  : 'Erreur de vérification';
+                  ? l10n.phoneVerifInvalidCode
+                  : l10n.phoneVerifError;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erreur de vérification';
+          _errorMessage = AppLocalizations.of(context)!.phoneVerifError;
         });
       }
     }
   }
 
   String _getErrorMessage(String code) {
+    final l10n = AppLocalizations.of(context)!;
     switch (code) {
       case 'invalid-phone-number':
-        return 'Numéro de téléphone invalide';
+        return l10n.phoneVerifInvalidNumber;
       case 'too-many-requests':
-        return 'Trop de tentatives. Réessayez plus tard';
+        return l10n.phoneVerifTooManyAttempts;
       case 'quota-exceeded':
-        return 'Quota dépassé. Réessayez plus tard';
+        return l10n.phoneVerifQuotaExceeded;
       case 'network-request-failed':
-        return 'Erreur réseau. Vérifiez votre connexion';
+        return l10n.phoneVerifNetworkError;
       default:
-        return 'Erreur lors de l\'envoi du code';
+        return l10n.phoneVerifSendError;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final primaryColor = context.adaptivePrimaryColor;
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       backgroundColor: context.surfaceColor,
@@ -2081,7 +2161,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Verification du numero',
+                l10n.phoneVerifTitle,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -2091,8 +2171,8 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
               const SizedBox(height: 8),
               Text(
                 _codeSent
-                    ? 'Entrez le code envoye au\n${widget.phoneNumber}'
-                    : 'Nous allons envoyer un code de verification au\n${widget.phoneNumber}',
+                    ? l10n.phoneVerifEnterCodeHint(widget.phoneNumber)
+                    : l10n.phoneVerifSendCodeHint(widget.phoneNumber),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -2114,8 +2194,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.error_outline,
+                      const AppIcon(AppIcon.error,
                         color: AppColors.error,
                         size: 20,
                       ),
@@ -2161,9 +2240,9 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                                 ),
                               ),
                             )
-                            : const Text(
-                              'Envoyer le code',
-                              style: TextStyle(
+                            : Text(
+                              l10n.sendCode,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -2213,6 +2292,9 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                           } else if (value.isEmpty && index > 0) {
                             _focusNodes[index - 1].requestFocus();
                           }
+                          if (index == 5 && value.isNotEmpty) {
+                            _verifyOtp();
+                          }
                         },
                       ),
                     );
@@ -2245,9 +2327,9 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                                 ),
                               ),
                             )
-                            : const Text(
-                              'Verifier',
-                              style: TextStyle(
+                            : Text(
+                              l10n.verify,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -2261,8 +2343,8 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                   onPressed: _resendTimer > 0 ? null : _sendOtp,
                   child: Text(
                     _resendTimer > 0
-                        ? 'Renvoyer dans ${_resendTimer}s'
-                        : 'Renvoyer le code',
+                        ? l10n.resendCodeIn(_resendTimer)
+                        : l10n.resendCode,
                     style: TextStyle(
                       color:
                           _resendTimer > 0
@@ -2278,7 +2360,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Annuler',
+                  l10n.cancel,
                   style: TextStyle(color: context.textSecondaryColor),
                 ),
               ),

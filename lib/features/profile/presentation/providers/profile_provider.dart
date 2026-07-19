@@ -34,6 +34,9 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
   final Ref _ref;
   final String userId;
 
+  /// Évite de retenter l'adhésion au groupe pays à chaque rafraîchissement.
+  bool _countryGroupJoinAttempted = false;
+
   ProfileNotifier(this._ref, this.userId) : super(const AsyncValue.loading()) {
     _loadProfile();
   }
@@ -61,7 +64,10 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
     result.fold(
       (failure) =>
           state = AsyncValue.error(Exception(failure.message), StackTrace.current),
-      (profile) => state = AsyncValue.data(profile),
+      (profile) {
+        state = AsyncValue.data(profile);
+        _maybeJoinCountryGroup(profile);
+      },
     );
   }
 
@@ -77,11 +83,23 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
         (profile) {
           // Mise a jour de l'etat avec les donnees fraiches
           state = AsyncValue.data(profile);
+          _maybeJoinCountryGroup(profile);
         },
       );
     } catch (e) {
       // Erreur inattendue ignoree pour ne pas crasher l'UI
     }
+  }
+
+  /// Rattache l'utilisateur au groupe officiel de son pays au chargement du
+  /// profil (une seule fois par session). Idempotent côté backend.
+  void _maybeJoinCountryGroup(ProfileEntity? profile) {
+    if (_countryGroupJoinAttempted) return;
+    if (profile == null) return;
+    if (profile.countryCode == null || profile.countryCode!.isEmpty) return;
+    _countryGroupJoinAttempted = true;
+    // Best-effort, ne bloque jamais l'UI.
+    _joinOfficialCountryGroup(profile);
   }
 
   Future<void> updateProfile(ProfileEntity profile) async {

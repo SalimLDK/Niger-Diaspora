@@ -18,6 +18,7 @@ import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
+import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
 import '../widgets/uploading_media_skeleton.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
@@ -42,6 +43,8 @@ import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
 import '../../../calls/domain/entities/call_entity.dart';
 import '../../../calls/presentation/providers/call_provider.dart';
+import '../../../group_calls/domain/entities/group_call_entity.dart';
+import '../../../group_calls/presentation/providers/group_call_provider.dart';
 import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
@@ -56,6 +59,9 @@ class ConversationScreen extends ConsumerStatefulWidget {
   final bool isGroup;
   final String? groupId;
 
+  /// « Mes notes » : conversation avec soi-même (brouillon/scratchpad).
+  final bool isSelfNotes;
+
   const ConversationScreen({
     super.key,
     required this.conversationId,
@@ -64,6 +70,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
     this.otherUserId,
     this.isGroup = false,
     this.groupId,
+    this.isSelfNotes = false,
   });
 
   @override
@@ -436,11 +443,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
     if (currentUserId == null) return;
 
+    // widget.groupId peut être absent (notification/deep link sans extra
+    // complet) : widget.conversationId N'EST PAS un groupId valide, l'utiliser
+    // en repli garantissait l'échec de l'insertion (violation de clé
+    // étrangère group_pinned_items.group_id → groups.id). On retombe plutôt
+    // sur le group_id connu de la conversation elle-même.
+    final effectiveGroupId = widget.groupId ??
+        ref
+            .read(conversationStreamProvider(widget.conversationId))
+            .valueOrNull
+            ?.groupId;
+
+    if (widget.isGroup && effectiveGroupId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible d\'épingler ce message'),
+          ),
+        );
+      }
+      return;
+    }
+
     final success = await ref
         .read(groupPinActionsNotifierProvider.notifier)
         .pinItem(
-          groupId:
-              widget.isGroup ? (widget.groupId ?? widget.conversationId) : null,
+          groupId: widget.isGroup ? effectiveGroupId : null,
           conversationId: widget.isGroup ? null : widget.conversationId,
           itemType: GroupPinnedItemType.message,
           itemId: message.id,
@@ -461,9 +489,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// Détache un message épinglé depuis son menu contextuel : le bandeau ne
   /// porte plus de croix, c'est le seul chemin de désépinglage (comme Telegram).
   Future<void> _unpinMessage(MessageEntity message) async {
+    final effectiveGroupId = widget.groupId ??
+        ref
+            .read(conversationStreamProvider(widget.conversationId))
+            .valueOrNull
+            ?.groupId;
     final items =
-        (widget.isGroup && widget.groupId != null
-                ? ref.read(groupPinnedItemsProvider(widget.groupId!))
+        (widget.isGroup && effectiveGroupId != null
+                ? ref.read(groupPinnedItemsProvider(effectiveGroupId))
                 : ref.read(
                   conversationPinnedItemsProvider(widget.conversationId),
                 ))
@@ -476,7 +509,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   i.itemId == message.id,
             )
             .firstOrNull;
-    if (pin == null) return;
+    if (pin == null) {
+      // La liste d'épingles locale (ref.read, snapshot synchrone) ne
+      // contenait pas ce message : sans ce retour explicite, l'utilisateur
+      // tapait « Détacher » et rien ne se passait, sans le moindre signal.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible de détacher ce message'),
+          ),
+        );
+      }
+      return;
+    }
 
     final success = await ref
         .read(groupPinActionsNotifierProvider.notifier)
@@ -541,6 +586,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(callState.error ?? l10n.callError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  /// Démarre un appel de groupe (audio/vidéo) avec tous les membres.
+  Future<void> _startGroupCall({required bool isVideo}) async {
+    final l10n = AppLocalizations.of(context)!;
+    final gid = widget.groupId ??
+        ref
+            .read(conversationStreamProvider(widget.conversationId))
+            .valueOrNull
+            ?.groupId;
+    if (gid == null) return;
+    final group = ref.read(groupStreamProvider(gid)).valueOrNull;
+    if (group == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.loadingError)),
+      );
+      return;
+    }
+    final call = await ref
+        .read(currentGroupCallProvider.notifier)
+        .createGroupCall(
+          name: group.name,
+          participantIds: group.memberIds,
+          type: isVideo ? GroupCallType.video : GroupCallType.audio,
+        );
+    if (call != null && mounted) {
+      context.push('/group-calls/${call.id}');
+    } else if (mounted) {
+      final st = ref.read(currentGroupCallProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(st.error ?? l10n.callError),
           backgroundColor: AppColors.error,
         ),
       );
@@ -737,7 +818,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ref.read(conversationStreamProvider(widget.conversationId)).valueOrNull;
     final currentUser = ref.read(currentUserProvider).valueOrNull;
 
-    final isAdmin =
+    bool isAdmin =
         conversation != null &&
         currentUser != null &&
         (conversation.createdBy == currentUser.id ||
@@ -754,6 +835,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           ref.read(groupStreamProvider(widget.groupId!)).valueOrNull;
       displayName ??= groupData?.name;
       displayImage ??= groupData?.imageUrl;
+      // Le rôle admin/modérateur (group_members.role, source de vérité côté
+      // RLS) prime sur conversation.adminIds : ce dernier n'est qu'un
+      // instantané figé au moment de la création de la conversation, jamais
+      // mis à jour lors d'une promotion/rétrogradation dans le groupe.
+      isAdmin = currentUser != null &&
+          groupData != null &&
+          (groupData.creatorId == currentUser.id ||
+              groupData.adminIds.contains(currentUser.id));
       canPostEvents =
           groupData?.permissions.canPostEvents(isAdmin: isAdmin) ?? false;
       canPostPolls =
@@ -964,22 +1053,35 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // DM : événement toujours possible ; groupe : selon les permissions.
     // Sondage : groupes uniquement (PollContextType ne couvre pas les DM).
     final isConvAdmin =
-        conversation != null &&
-        currentUser != null &&
-        (conversation.createdBy == currentUser.id ||
-            conversation.adminIds.contains(currentUser.id));
-    final canCreateEvent =
         widget.isGroup
-            ? (widget.groupId != null &&
-                ((groupData?.permissions.canPostEvents(isAdmin: isConvAdmin)
-                        as bool?) ??
-                    false))
-            : true;
+            ? (currentUserId != null &&
+                groupData != null &&
+                (groupData.creatorId == currentUserId ||
+                    (groupData.adminIds as List<String>).contains(
+                      currentUserId,
+                    )))
+            : (conversation != null &&
+                currentUser != null &&
+                (conversation.createdBy == currentUser.id ||
+                    conversation.adminIds.contains(currentUser.id)));
+    final canCreateEvent =
+        widget.isSelfNotes
+            ? false
+            : widget.isGroup
+                ? (widget.groupId != null &&
+                    ((groupData?.permissions.canPostEvents(isAdmin: isConvAdmin)
+                            as bool?) ??
+                        false))
+                : true;
+    // Sondage : dans « Mes notes », on autorise un brouillon de sondage (note
+    // structurée) ; dans un groupe, un vrai sondage votable selon permissions.
     final canCreatePoll =
-        widget.isGroup &&
-        widget.groupId != null &&
-        ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin) as bool?) ??
-            false);
+        widget.isSelfNotes ||
+        (widget.isGroup &&
+            widget.groupId != null &&
+            ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin)
+                    as bool?) ??
+                false));
 
     // Determine display name for typing indicator
     // For groups: use passed name, fallback to loaded group data, then default
@@ -1141,15 +1243,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // Telegram : ligne fine fixée sous l'en-tête, toujours visible.
                 // Le widget porte sa propre marge : il ne laisse aucun espace
                 // quand rien n'est épinglé.
-                if (widget.isGroup && widget.groupId != null)
+                // Repli sur conversation?.groupId : widget.groupId peut être
+                // absent (notification/deep link sans extra complet) alors que
+                // la conversation elle-même connaît son group_id — sans ce
+                // repli, le bandeau (et donc les messages épinglés) restait
+                // invisible en permanence pour cette conversation.
+                if (widget.isGroup && (widget.groupId ?? conversation?.groupId) != null)
                   GroupPinnedBanner(
-                    groupId: widget.groupId!,
+                    groupId: (widget.groupId ?? conversation?.groupId)!,
                     messageConversationId: widget.conversationId,
+                    onOpenMessage: _scrollToMessage,
                   )
                 else if (!widget.isGroup)
                   GroupPinnedBanner(
                     conversationId: widget.conversationId,
                     messageConversationId: widget.conversationId,
+                    onOpenMessage: _scrollToMessage,
                   ),
                 // Messages
                 Expanded(
@@ -1219,13 +1328,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             )
                             : null,
                     onCreatePoll:
-                        canCreatePoll
-                            ? () => showCreatePollSheet(
-                              context,
-                              contextType: PollContextType.group,
-                              contextId: widget.groupId!,
-                            )
-                            : null,
+                        !canCreatePoll
+                            ? null
+                            : widget.isSelfNotes
+                                ? () => _createPollDraft()
+                                : () => showCreatePollSheet(
+                                      context,
+                                      contextType: PollContextType.group,
+                                      contextId: widget.groupId!,
+                                    ),
                     onTyping: () {
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
@@ -1762,32 +1873,54 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             ref
                 .watch(conversationStreamProvider(widget.conversationId))
                 .valueOrNull;
+        // widget.groupId peut être absent (notification/deep link sans extra
+        // complet) alors que la conversation connaît son group_id : sans ce
+        // repli, canPin/pinnedMessageIds retombaient sur
+        // conversationPinnedItemsProvider — qui ne renvoie jamais rien pour un
+        // groupe (les épingles de groupe sont indexées par group_id, pas
+        // conversation_id) — et les messages épinglés semblaient absents.
+        final effectiveGroupId = widget.groupId ?? conversation?.groupId;
+        // Le rôle admin/modérateur (group_members.role) est la source de
+        // vérité côté RLS ; conversation.adminIds n'est qu'un instantané figé
+        // à la création de la conversation (jamais mis à jour lors d'une
+        // promotion), d'où un décrochage sinon entre ce que montre l'UI et ce
+        // que les RLS Supabase autorisent réellement pour épingler/détacher.
+        final groupForAdminCheck = effectiveGroupId != null
+            ? ref.watch(groupStreamProvider(effectiveGroupId)).valueOrNull
+            : null;
         final isAdmin =
-            conversation != null &&
-            currentUserId != null &&
-            (conversation.createdBy == currentUserId ||
-                conversation.adminIds.contains(currentUserId));
+            widget.isGroup
+                ? (currentUserId != null &&
+                    groupForAdminCheck != null &&
+                    (groupForAdminCheck.creatorId == currentUserId ||
+                        groupForAdminCheck.adminIds.contains(currentUserId)))
+                : (conversation != null &&
+                    currentUserId != null &&
+                    (conversation.createdBy == currentUserId ||
+                        conversation.adminIds.contains(currentUserId)));
+
+        // L'expéditeur de CE message est-il admin/créateur du groupe ?
+        // (Badge « Admin » à côté de son nom.)
+        final senderIsAdmin = widget.isGroup &&
+            !isMe &&
+            groupForAdminCheck != null &&
+            (groupForAdminCheck.creatorId == message.senderId ||
+                groupForAdminCheck.adminIds.contains(message.senderId));
 
         // En 1-a-1, les deux participants peuvent epingler ; en groupe, selon
         // les permissions du groupe.
         final canPin =
             !widget.isGroup
                 ? true
-                : (widget.groupId != null
-                    ? (ref
-                            .watch(groupStreamProvider(widget.groupId!))
-                            .valueOrNull
-                            ?.permissions
-                            .canPin(isAdmin: isAdmin) ??
-                        false)
-                    : false);
+                : (groupForAdminCheck?.permissions.canPin(isAdmin: isAdmin) ??
+                    false);
 
         // Ids des messages déjà épinglés : le menu contextuel bascule alors
         // « Épingler » en « Détacher » (le bandeau n'a plus de croix).
         final pinnedMessageIds =
-            ((widget.isGroup && widget.groupId != null
+            ((widget.isGroup && effectiveGroupId != null
                             ? ref.watch(
-                              groupPinnedItemsProvider(widget.groupId!),
+                              groupPinnedItemsProvider(effectiveGroupId),
                             )
                             : ref.watch(
                               conversationPinnedItemsProvider(
@@ -1887,6 +2020,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                   message: message,
                                   isMe: isMe,
                                   showSenderInfo: showSenderInfo,
+                                  senderIsAdmin: senderIsAdmin,
                                   groupPosition: groupPosition,
                                   conversationId: widget.conversationId,
                                   currentUserId: currentUserId,
@@ -2005,6 +2139,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             message: message,
                             isMe: isMe,
                             showSenderInfo: showSenderInfo,
+                                  senderIsAdmin: senderIsAdmin,
                             groupPosition: groupPosition,
                             conversationId: widget.conversationId,
                             currentUserId: currentUserId,
@@ -2633,19 +2768,37 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
+  /// Compose un brouillon de sondage dans « Mes notes » et l'envoie comme note
+  /// texte structurée (question + options). Pas de vote — c'est un aide-mémoire
+  /// à recopier/publier ailleurs.
+  Future<void> _createPollDraft() async {
+    final draft = await showNotePollDraftSheet(context);
+    if (draft == null || draft.isEmpty || !mounted) return;
+
+    final success = await ref.read(sendMessageProvider.notifier).sendText(
+          conversationId: widget.conversationId,
+          content: draft,
+        );
+    if (mounted && success) _scrollToBottom();
+  }
+
   PreferredSizeWidget _buildAppBar(dynamic otherUser, dynamic groupData) {
     final l10n = AppLocalizations.of(context)!;
     // For groups: use passed name, fallback to loaded group data, then default
     // For individual: use loaded user profile, fallback to passed name, then default
     final displayName =
-        widget.isGroup
-            ? (widget.conversationName ?? groupData?.name ?? l10n.group)
-            : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
+        widget.isSelfNotes
+            ? 'Mes notes'
+            : widget.isGroup
+                ? (widget.conversationName ?? groupData?.name ?? l10n.group)
+                : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
     final displayImage =
-        widget.isGroup
-            ? (widget.conversationImageUrl ?? groupData?.imageUrl)
-            : (otherUser?.photoUrl ?? widget.conversationImageUrl);
+        widget.isSelfNotes
+            ? null
+            : widget.isGroup
+                ? (widget.conversationImageUrl ?? groupData?.imageUrl)
+                : (otherUser?.photoUrl ?? widget.conversationImageUrl);
 
     final initials = _getInitials(displayName);
 
@@ -2681,8 +2834,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               groupIdToUse = group?.id;
             }
 
-            if (mounted && groupIdToUse != null) {
+            if (!mounted) return;
+            if (groupIdToUse != null) {
               context.push('/groups/$groupIdToUse');
+            } else {
+              final l10n = AppLocalizations.of(context)!;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.loadingError)),
+              );
             }
           } else if (widget.otherUserId != null) {
             if (isDeletedUser) {
@@ -2755,7 +2914,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         )
                         : Center(
                           child:
-                              widget.isGroup
+                              widget.isSelfNotes
+                                  ? const Icon(
+                                    Icons.bookmark_rounded,
+                                    color: AppColors.white,
+                                    size: 22,
+                                  )
+                                  : widget.isGroup
                                   ? const AppIcon(
                                     AppIcon.groups,
                                     color: AppColors.white,
@@ -2789,13 +2954,29 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       overflow: TextOverflow.ellipsis,
                     ),
                     // Status text below name
-                    if (widget.isGroup)
+                    if (widget.isSelfNotes)
                       Text(
-                        AppLocalizations.of(context)!.group,
+                        'Notes personnelles',
                         style: TextStyle(
                           fontSize: 12,
                           color: context.textTertiaryColor,
                         ),
+                      )
+                    else if (widget.isGroup)
+                      Builder(
+                        builder: (_) {
+                          final count = groupData?.memberCount as int?;
+                          final label = (count != null && count > 0)
+                              ? '$count ${count > 1 ? 'membres' : 'membre'}'
+                              : AppLocalizations.of(context)!.group;
+                          return Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.textTertiaryColor,
+                            ),
+                          );
+                        },
                       )
                     else if (!widget.isGroup &&
                         widget.otherUserId != null &&
@@ -2818,8 +2999,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
       ),
       actions: [
-        // Call buttons for individual chats only
-        if (!widget.isGroup && !isDeletedUser) ...[
+        // Call buttons for individual chats only (not for « Mes notes »)
+        if (!widget.isGroup && !isDeletedUser && !widget.isSelfNotes) ...[
           IconButton(
             onPressed: () => _startCall(isVideo: false),
             icon: AppIcon(AppIcon.call, color: context.textPrimaryColor),
@@ -2827,6 +3008,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           ),
           IconButton(
             onPressed: () => _startCall(isVideo: true),
+            icon: AppIcon(AppIcon.video, color: context.textPrimaryColor),
+            tooltip: l10n.videoCall,
+          ),
+        ],
+        // Appels de groupe (comme en 1-a-1, mais pour tout le groupe)
+        if (widget.isGroup && !widget.isSelfNotes) ...[
+          IconButton(
+            onPressed: () => _startGroupCall(isVideo: false),
+            icon: AppIcon(AppIcon.call, color: context.textPrimaryColor),
+            tooltip: l10n.voiceCall,
+          ),
+          IconButton(
+            onPressed: () => _startGroupCall(isVideo: true),
             icon: AppIcon(AppIcon.video, color: context.textPrimaryColor),
             tooltip: l10n.videoCall,
           ),

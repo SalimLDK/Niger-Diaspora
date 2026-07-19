@@ -1,28 +1,51 @@
+import 'dart:async' show unawaited;
+import 'dart:io';
+import 'dart:ui' show ImageFilter;
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/verification_badge.dart';
+import '../../../../core/services/auto_download_service.dart';
+import '../../../../core/services/file_download_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/user_color_utils.dart';
 import '../../../reports/domain/entities/report_entity.dart'
     show ReportTargetType, ContentSnapshot;
 import '../../../reports/presentation/widgets/report_content_modal.dart';
+import 'audio_file_bubble.dart';
 import 'audio_message_bubble.dart';
+import 'blurhash_image.dart';
+import 'call_message_bubble.dart';
+import 'e2ee_session_required_bubble.dart';
 import 'delete_message_modal.dart';
 import 'full_screen_image_viewer.dart';
+import 'link_preview_bubble.dart';
+import 'message_info_sheet.dart';
 import 'optimized_image_bubble.dart';
 import 'document_bubble.dart';
 import 'video_bubble.dart';
+import 'post_message_card.dart';
+import 'event_message_card.dart';
 import 'product_message_card.dart';
+import 'location_message_bubble.dart';
+import '../../../stickers/presentation/widgets/sticker_bubble.dart';
 
 /// Position of a message in a group of consecutive messages from the same sender
 enum MessageGroupPosition { first, middle, last, single }
 
-class MessageBubble extends StatefulWidget {
+class MessageBubble extends ConsumerStatefulWidget {
   final MessageEntity message;
   final bool isMe;
   final bool showSenderInfo;
@@ -49,6 +72,46 @@ class MessageBubble extends StatefulWidget {
 
   final bool isAdmin;
 
+  /// L'expéditeur de ce message est-il admin/modérateur du groupe ?
+  /// (Affiche un badge « Admin » à côté de son nom dans les bulles de groupe.)
+  final bool senderIsAdmin;
+
+  // Forward support
+  final Function(MessageEntity message)? onForward;
+
+  // Multi-selection support
+  final bool isSelectionMode;
+  final bool isSelected;
+  final Function(MessageEntity message)? onSelect;
+
+  // Star support
+  final Function(MessageEntity message)? onToggleStar;
+
+  // Pin support (groupes uniquement, selon les permissions du groupe)
+  final bool canPin;
+  final Function(MessageEntity message)? onPin;
+
+  /// Message déjà épinglé : le menu propose « Détacher » au lieu d'« Épingler »
+  /// (le bandeau d'épinglés ne porte pas de croix).
+  final bool isPinned;
+  final Function(MessageEntity message)? onUnpin;
+
+  // Edit support
+  final Function(MessageEntity message, String newContent)? onEdit;
+
+  // Call back support (for call messages)
+  final VoidCallback? onCallBack;
+
+  // Skip animation for existing messages (performance optimization)
+  final bool skipAnimation;
+
+  // Hide read/delivered status for pending requests (sender only sees "sent")
+  final bool isPendingRequest;
+
+  // Non-null for group conversations — forwarded to E2EESessionRequiredBubble
+  // so it can call fetchPendingDistributions instead of preEstablishSessions.
+  final String? groupId;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -65,13 +128,28 @@ class MessageBubble extends StatefulWidget {
     this.readByAvatars,
     this.onScrollToMessage,
     this.isAdmin = false,
+    this.senderIsAdmin = false,
+    this.onForward,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
+    this.onToggleStar,
+    this.canPin = false,
+    this.onPin,
+    this.isPinned = false,
+    this.onUnpin,
+    this.onEdit,
+    this.onCallBack,
+    this.skipAnimation = false,
+    this.isPendingRequest = false,
+    this.groupId,
   });
 
   @override
-  State<MessageBubble> createState() => _MessageBubbleState();
+  ConsumerState<MessageBubble> createState() => _MessageBubbleState();
 }
 
-class _MessageBubbleState extends State<MessageBubble>
+class _MessageBubbleState extends ConsumerState<MessageBubble>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -84,6 +162,13 @@ class _MessageBubbleState extends State<MessageBubble>
   // Reactions popup
   bool _showReactionsPopup = false;
 
+  // Cached emoji-only check (computed once)
+  late final bool _cachedIsEmojiOnly;
+
+  // Local file path for expired media (null = not downloaded or not yet checked)
+  String? _cachedLocalPath;
+  bool _localPathChecked = false;
+
   static const List<String> _quickReactions = [
     '❤️',
     '👍',
@@ -93,27 +178,58 @@ class _MessageBubbleState extends State<MessageBubble>
     '🙏',
   ];
 
+  /// Horodatage bleu clair pour les messages envoyés (style Telegram/Signal).
+  static const Color _kTimestampBlue = Color(0xFFBFD0FF);
+
+  /// Accusé de lecture « lu » : double coche + cercle en bleu.
+  static const Color _kReadReceiptBlue = Color(0xFF5B9BFF);
+
   @override
   void initState() {
     super.initState();
+
+    // Cache emoji-only check to avoid repeated regex evaluation
+    _cachedIsEmojiOnly = _computeIsEmojiOnly();
+
+    // Fire-and-forget: save media locally before the 15-day TTL expires
+    unawaited(AutoDownloadService().tryDownload(widget.message));
+
+    // For expired media, check synchronously whether a local copy exists
+    if (widget.message.mediaExpired) {
+      unawaited(_checkLocalPath());
+    }
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 350),
       vsync: this,
     );
 
+    // Modern bouncy animation for message entry
     _slideAnimation = Tween<double>(
-      begin: widget.isMe ? 30 : -30,
+      begin: widget.isMe ? 40 : -40,
       end: 0,
     ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCirc),
     );
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutQuart),
     );
 
-    // Start animation
-    _animationController.forward();
+    // Only animate new messages, skip for existing ones (performance)
+    if (widget.skipAnimation) {
+      _animationController.value = 1.0;
+    } else {
+      _animationController.forward();
+    }
+  }
+
+  /// Compute emoji-only status once and cache it
+  bool _computeIsEmojiOnly() {
+    if (widget.message.type != MessageType.text) return false;
+    if (widget.message.deletedForEveryone) return false;
+    if (widget.replyToMessage != null) return false;
+    return _isEmojiOnly(widget.message.content);
   }
 
   @override
@@ -123,8 +239,9 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   BorderRadius _getBorderRadius() {
-    const double largeRadius = 20;
-    const double smallRadius = 6;
+    // Modern increased radii for a more contemporary look
+    const double largeRadius = 28;
+    const double smallRadius = 8;
     const double tinyRadius = 4;
 
     switch (widget.groupPosition) {
@@ -184,11 +301,9 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   /// Check if message is emoji-only text (for bubble-less display)
+  /// Uses cached value for performance
   bool _isEmojiOnlyTextMessage() {
-    return widget.message.type == MessageType.text &&
-        !widget.message.deletedForEveryone &&
-        widget.replyToMessage == null &&
-        _isEmojiOnly(widget.message.content);
+    return _cachedIsEmojiOnly;
   }
 
   /// Build emoji-only content without bubble
@@ -218,16 +333,24 @@ class _MessageBubbleState extends State<MessageBubble>
               ),
             ),
           // Large emoji
-          Text(
-            widget.message.content,
-            style: const TextStyle(fontSize: 42),
-          ),
+          Text(widget.message.content, style: const TextStyle(fontSize: 42)),
           // Time and status below emoji
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (widget.currentUserId != null &&
+                    widget.message.isStarredBy(widget.currentUserId!)) ...[
+                  AppIcon(
+                    AppIcon.star,
+                    size: 12,
+                    color: context.textTertiaryColor,
+                  ),
+                  const SizedBox(width: 2),
+                ],
+                _buildEncryptionIcon(context),
+                const SizedBox(width: 2),
                 Text(
                   _formatTime(widget.message.createdAt),
                   style: TextStyle(
@@ -254,6 +377,16 @@ class _MessageBubbleState extends State<MessageBubble>
       return Center(child: _buildSystemMessageContent(context));
     }
 
+    // Call messages get special treatment - aligned based on direction, no swipe gestures
+    if (widget.message.isCall) {
+      return CallMessageBubble(
+        message: widget.message,
+        isMe: widget.isMe,
+        currentUserId: widget.currentUserId ?? '',
+        onCallBack: widget.onCallBack,
+      );
+    }
+
     // Check if message is deleted for the current user
     final isDeleted =
         widget.currentUserId != null &&
@@ -264,6 +397,49 @@ class _MessageBubbleState extends State<MessageBubble>
       return const SizedBox.shrink();
     }
 
+    // Selection mode: wrap with tap-to-select and show checkbox
+    if (widget.isSelectionMode) {
+      return GestureDetector(
+        onTap: () => widget.onSelect?.call(widget.message),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          color:
+              widget.isSelected
+                  ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
+                  : Colors.transparent,
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(scale: animation, child: child);
+                  },
+                  child: Icon(
+                    widget.isSelected
+                        ? Icons.check_circle
+                        : Icons.circle_outlined,
+                    key: ValueKey(widget.isSelected),
+                    size: 24,
+                    color:
+                        widget.isSelected
+                            ? context.adaptivePrimaryColor
+                            : context.textTertiaryColor,
+                  ),
+                ),
+              ),
+              Expanded(child: _buildMainContent(context, isDeleted)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return _buildMainContent(context, isDeleted);
+  }
+
+  Widget _buildMainContent(BuildContext context, bool isDeleted) {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -313,121 +489,339 @@ class _MessageBubbleState extends State<MessageBubble>
               offset: Offset(_swipeOffset, 0),
               child: Padding(
                 padding: EdgeInsets.only(
-                  left: widget.isMe ? 64 : 16,
+                  left: widget.isMe ? 64 : (widget.showSenderInfo ? 8 : 16),
                   right: widget.isMe ? 16 : 64,
                   top: _getVerticalPadding(),
                   bottom: _getVerticalPadding(),
                 ),
-                child: Column(
-                  crossAxisAlignment:
-                      widget.isMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Reactions popup
-                    if (_showReactionsPopup) _buildReactionsPopup(context),
-
-                    // Check if this is an emoji-only text message (no bubble)
-                    _isEmojiOnlyTextMessage()
-                        ? _buildEmojiOnlyContent(context)
-                        : GestureDetector(
-                          onLongPress: _onLongPress,
-                          onDoubleTap: _onDoubleTap,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color:
-                                  widget.isMe
-                                      ? context.adaptiveSecondaryColor
-                                          .withValues(alpha: 0.85)
-                                      : context.isDarkMode
-                                      ? context.adaptivePrimaryColor.withValues(
-                                        alpha: 0.65,
-                                      )
-                                      : context.adaptivePrimaryColor.withValues(
-                                        alpha: 0.55,
-                                      ),
-                              borderRadius: _getBorderRadius(),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      context.isDarkMode
-                                          ? Colors.black.withValues(alpha: 0.4)
-                                          : Colors.black.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                  blurRadius: context.isDarkMode ? 6 : 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                              border: Border.all(
-                                color:
-                                    widget.isMe
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.white.withValues(alpha: 0.15),
-                                width: 1,
+                    // Mini-avatar for group messages (non-me)
+                    if (widget.showSenderInfo && !widget.isMe)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8, bottom: 2),
+                        child: GestureDetector(
+                          onTap:
+                              () => widget.onSenderTap?.call(
+                                widget.message.senderId,
                               ),
-                            ),
-                            child: GestureDetector(
-                              onTap:
-                                  widget.message.status == MessageStatus.failed &&
-                                          widget.onRetry != null
-                                      ? widget.onRetry
-                                      : null,
-                              child: ClipRRect(
-                                borderRadius: _getBorderRadius(),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Sender name inside bubble for groups
-                                    if (widget.showSenderInfo && !widget.isMe)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 12,
-                                          right: 12,
-                                          top: 8,
-                                        ),
-                                        child: InkWell(
-                                          onTap:
-                                              () => widget.onSenderTap?.call(
-                                                widget.message.senderId,
-                                              ),
-                                          child: Text(
-                                            widget.message.senderName,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: UserColorUtils.getUserColor(
-                                                widget.message.senderId,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    // Reply preview
-                                    if (widget.replyToMessage != null)
-                                      _buildReplyPreview(context),
-
-                                    // Message content
-                                    widget.message.deletedForEveryone
-                                        ? _buildDeletedContent(context)
-                                        : _buildContent(context),
-                                  ],
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: UserColorUtils.getUserColor(
+                                  widget.message.senderId,
                                 ),
+                                backgroundImage:
+                                    widget.message.senderPhotoUrl != null
+                                        ? CachedNetworkImageProvider(
+                                          widget.message.senderPhotoUrl!,
+                                        )
+                                        : null,
+                                child:
+                                    widget.message.senderPhotoUrl == null
+                                        ? Text(
+                                          widget.message.senderName.isNotEmpty
+                                              ? widget.message.senderName[0]
+                                                  .toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                        : null,
                               ),
-                            ),
+                              if (widget.message.senderIsVerified)
+                                const Positioned(
+                                  bottom: -2,
+                                  right: -2,
+                                  child: VerificationBadge(
+                                    size: VerificationBadgeSize.small,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            widget.isMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                        children: [
+                          // Reactions popup
+                          if (_showReactionsPopup)
+                            _buildReactionsPopup(context),
 
-                    // Reactions display
-                    if (widget.message.reactions.isNotEmpty)
-                      _buildReactionsDisplay(context, widget.message.reactions),
+                          // Check if this is an emoji-only text message (no bubble)
+                          _isEmojiOnlyTextMessage()
+                              ? _buildEmojiOnlyContent(context)
+                              : GestureDetector(
+                                onLongPress: _onLongPress,
+                                onDoubleTap: _onDoubleTap,
+                                child: ClipRRect(
+                                  borderRadius: _getBorderRadius(),
+                                  child: BackdropFilter(
+                                    // Glass morphism effect - more blur for incoming messages
+                                    filter: ImageFilter.blur(
+                                      sigmaX: widget.isMe ? 0 : 12,
+                                      sigmaY: widget.isMe ? 0 : 12,
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        // Modern glass effect with gradients
+                                        gradient:
+                                            widget.isMe
+                                                ? LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    context
+                                                        .adaptiveSecondaryColor
+                                                        .withValues(alpha: 0.9),
+                                                    context
+                                                        .adaptiveSecondaryColor
+                                                        .withValues(alpha: 0.8),
+                                                  ],
+                                                )
+                                                : LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors:
+                                                      context.isDarkMode
+                                                          ? [
+                                                            context
+                                                                .adaptivePrimaryColor
+                                                                .withValues(
+                                                                  alpha: 0.7,
+                                                                ),
+                                                            context
+                                                                .adaptivePrimaryColor
+                                                                .withValues(
+                                                                  alpha: 0.6,
+                                                                ),
+                                                          ]
+                                                          : [
+                                                            context
+                                                                .adaptivePrimaryColor
+                                                                .withValues(
+                                                                  alpha: 0.65,
+                                                                ),
+                                                            context
+                                                                .adaptivePrimaryColor
+                                                                .withValues(
+                                                                  alpha: 0.55,
+                                                                ),
+                                                          ],
+                                                ),
+                                        borderRadius: _getBorderRadius(),
+                                        // Modern softer shadows
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                context.isDarkMode
+                                                    ? Colors.black.withValues(
+                                                      alpha: 0.35,
+                                                    )
+                                                    : Colors.black.withValues(
+                                                      alpha: 0.12,
+                                                    ),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 4),
+                                            spreadRadius: -4,
+                                          ),
+                                        ],
+                                        // Subtle glass border
+                                        border: Border.all(
+                                          color:
+                                              widget.isMe
+                                                  ? Colors.white.withValues(
+                                                    alpha: 0.15,
+                                                  )
+                                                  : Colors.white.withValues(
+                                                    alpha: 0.25,
+                                                  ),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: GestureDetector(
+                                        onTap:
+                                            widget.message.status ==
+                                                        MessageStatus.failed &&
+                                                    widget.onRetry != null
+                                                ? widget.onRetry
+                                                : null,
+                                        child: ClipRRect(
+                                          borderRadius: _getBorderRadius(),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // Forwarded label
+                                              if (widget.message.isForwarded)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 12,
+                                                        right: 12,
+                                                        top: 8,
+                                                      ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Transform.flip(
+                                                        flipX: true,
+                                                        child: Icon(
+                                                          Icons.reply,
+                                                          size: 16,
+                                                          color:
+                                                              widget.isMe
+                                                                  ? AppColors
+                                                                      .white
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.6,
+                                                                      )
+                                                                  : context
+                                                                      .textTertiaryColor
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.8,
+                                                                      ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.forwarded,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontStyle:
+                                                              FontStyle.italic,
+                                                          color:
+                                                              widget.isMe
+                                                                  ? AppColors
+                                                                      .white
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.6,
+                                                                      )
+                                                                  : context
+                                                                      .textTertiaryColor
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.8,
+                                                                      ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              // Sender name inside bubble for groups
+                                              if (widget.showSenderInfo &&
+                                                  !widget.isMe)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 12,
+                                                        right: 12,
+                                                        top: 8,
+                                                      ),
+                                                  child: InkWell(
+                                                    onTap:
+                                                        () => widget.onSenderTap
+                                                            ?.call(
+                                                              widget
+                                                                  .message
+                                                                  .senderId,
+                                                            ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          widget
+                                                              .message
+                                                              .senderName,
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color:
+                                                                UserColorUtils.getUserColor(
+                                                                  widget
+                                                                      .message
+                                                                      .senderId,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                        if (widget
+                                                            .message
+                                                            .senderIsVerified) ...[
+                                                          const SizedBox(
+                                                            width: 4,
+                                                          ),
+                                                          const VerificationBadge(
+                                                            size:
+                                                                VerificationBadgeSize
+                                                                    .small,
+                                                          ),
+                                                        ],
+                                                        if (widget
+                                                            .senderIsAdmin) ...[
+                                                          const SizedBox(
+                                                            width: 6,
+                                                          ),
+                                                          _buildAdminBadge(
+                                                            context,
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              // Reply preview
+                                              if (widget.replyToMessage != null)
+                                                _buildReplyPreview(context),
 
-                    // Read avatars for groups
-                    if (widget.readByAvatars != null &&
-                        widget.readByAvatars!.isNotEmpty &&
-                        widget.isMe)
-                      _buildReadAvatars(context),
+                                              // Message content
+                                              widget.message.deletedForEveryone
+                                                  ? _buildDeletedContent(
+                                                    context,
+                                                  )
+                                                  : _buildContent(context),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                          // Reactions display
+                          if (widget.message.reactions.isNotEmpty)
+                            _buildReactionsDisplay(
+                              context,
+                              widget.message.reactions,
+                            ),
+
+                          // Read avatars for groups
+                          if (widget.readByAvatars?.isNotEmpty == true &&
+                              widget.isMe)
+                            _buildReadAvatars(context),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -583,13 +977,43 @@ class _MessageBubbleState extends State<MessageBubble>
     );
   }
 
+  /// Petit badge « Admin » affiché à côté du nom de l'expéditeur (groupes).
+  Widget _buildAdminBadge(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: context.adaptivePrimaryColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppIcon(
+            AppIcon.star,
+            size: 9,
+            color: context.adaptivePrimaryColor,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            'Admin',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: context.adaptivePrimaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildReadAvatars(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 4, right: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children:
-            widget.readByAvatars!.take(3).map((avatarUrl) {
+            (widget.readByAvatars ?? const []).take(3).map((avatarUrl) {
               return Container(
                 margin: const EdgeInsets.only(left: 2),
                 width: 16,
@@ -611,8 +1035,8 @@ class _MessageBubbleState extends State<MessageBubble>
                 ),
                 child:
                     avatarUrl.isEmpty
-                        ? Icon(
-                          Icons.person,
+                        ? AppIcon(
+                          AppIcon.person,
                           size: 10,
                           color: context.adaptivePrimaryColor,
                         )
@@ -643,139 +1067,373 @@ class _MessageBubbleState extends State<MessageBubble>
                 top: Radius.circular(20),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.textTertiaryColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: context.textTertiaryColor.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Reply option
-                if (widget.onReply != null)
-                  ListTile(
-                    leading: Icon(Icons.reply, color: context.textPrimaryColor),
-                    title: Text(
-                      'Répondre',
-                      style: TextStyle(color: context.textPrimaryColor),
+                  // Reply option
+                  if (widget.onReply != null)
+                    ListTile(
+                      leading: Icon(
+                        Icons.reply,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.reply,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        widget.onReply?.call(widget.message);
+                      },
                     ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      widget.onReply?.call(widget.message);
-                    },
-                  ),
 
-                // React option
-                if (widget.onReact != null)
-                  ListTile(
-                    leading: Icon(
-                      Icons.add_reaction_outlined,
-                      color: context.textPrimaryColor,
+                  // React option
+                  if (widget.onReact != null)
+                    ListTile(
+                      leading: Icon(
+                        Icons.add_reaction_outlined,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.react,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() {
+                          _showReactionsPopup = true;
+                        });
+                      },
                     ),
-                    title: Text(
-                      'Réagir',
-                      style: TextStyle(color: context.textPrimaryColor),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      setState(() {
-                        _showReactionsPopup = true;
-                      });
-                    },
-                  ),
 
-                // Copy option (for text messages)
-                if (widget.message.type == MessageType.text)
-                  ListTile(
-                    leading: Icon(Icons.copy, color: context.textPrimaryColor),
-                    title: Text(
-                      'Copier',
-                      style: TextStyle(color: context.textPrimaryColor),
+                  // Message info option (sender only)
+                  if (widget.isMe &&
+                      !widget.message.deletedForEveryone &&
+                      widget.conversationId != null)
+                    ListTile(
+                      leading: AppIcon(
+                        AppIcon.info,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.messageInfoTitle,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showMessageInfoSheet(context);
+                      },
                     ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Clipboard.setData(
-                        ClipboardData(text: widget.message.content),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Message copié'),
-                          backgroundColor: context.adaptivePrimaryColor,
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 1),
+
+                  // Star option
+                  if (widget.onToggleStar != null &&
+                      !widget.message.deletedForEveryone) ...[
+                    Builder(
+                      builder: (_) {
+                        final isStarred =
+                            widget.currentUserId != null &&
+                            widget.message.isStarredBy(widget.currentUserId!);
+                        return ListTile(
+                          leading:
+                              isStarred
+                                  ? const AppIcon(
+                                    AppIcon.star,
+                                    color: Colors.amber,
+                                  )
+                                  : AppIcon(
+                                    AppIcon.starBorder,
+                                    color: context.textPrimaryColor,
+                                  ),
+                          title: Text(
+                            isStarred
+                                ? AppLocalizations.of(context)!.unstarMessage
+                                : AppLocalizations.of(context)!.starMessage,
+                            style: TextStyle(color: context.textPrimaryColor),
+                          ),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            widget.onToggleStar?.call(widget.message);
+                          },
+                        );
+                      },
+                    ),
+                  ],
+
+                  // Épingler / Détacher (groupes : selon permission)
+                  if (widget.canPin && !widget.message.deletedForEveryone)
+                    if (widget.isPinned && widget.onUnpin != null)
+                      ListTile(
+                        leading: AppIcon(
+                          AppIcon.pin,
+                          size: 20,
+                          color: context.textPrimaryColor,
                         ),
-                      );
-                    },
-                  ),
+                        title: Text(
+                          'Détacher',
+                          style: TextStyle(color: context.textPrimaryColor),
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          widget.onUnpin?.call(widget.message);
+                        },
+                      )
+                    else if (!widget.isPinned && widget.onPin != null)
+                      ListTile(
+                        leading: AppIcon(
+                          AppIcon.pin,
+                          size: 20,
+                          color: context.textPrimaryColor,
+                        ),
+                        title: Text(
+                          'Épingler',
+                          style: TextStyle(color: context.textPrimaryColor),
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          widget.onPin?.call(widget.message);
+                        },
+                      ),
 
-                // Delete option
-                if (_canShowDeleteOption())
-                  ListTile(
-                    leading: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.red,
+                  // Forward option
+                  if (!widget.message.deletedForEveryone)
+                    ListTile(
+                      leading: Icon(
+                        Icons.shortcut,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.forwardTo,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        widget.onForward?.call(widget.message);
+                      },
                     ),
-                    title: const Text(
-                      'Supprimer',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showDeleteModal(context);
-                    },
-                  ),
 
-                // Report option (for messages from other users)
-                if (!widget.isMe && !widget.message.deletedForEveryone)
-                  ListTile(
-                    leading: const Icon(
-                      Icons.flag_outlined,
-                      color: Colors.orange,
+                  // Share to external apps
+                  if (!widget.message.deletedForEveryone &&
+                      (widget.message.type == MessageType.text ||
+                          widget.message.type == MessageType.image ||
+                          widget.message.type == MessageType.video ||
+                          widget.message.type == MessageType.file))
+                    ListTile(
+                      leading: AppIcon(
+                        AppIcon.share,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.share,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _shareMessage();
+                      },
                     ),
-                    title: const Text(
-                      'Signaler',
-                      style: TextStyle(color: Colors.orange),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      // Créer le snapshot du contenu
-                      final snapshot = _createMessageSnapshot();
-                      ReportContentModal.show(
-                        context,
-                        targetType: ReportTargetType.message,
-                        targetId: widget.message.id,
-                        targetName: widget.message.senderName,
-                        targetPreview: widget.message.type == MessageType.text
-                            ? widget.message.content
-                            : null,
-                        conversationId: widget.conversationId,
-                        contentSnapshot: snapshot,
-                        reportedUserId: widget.message.senderId,
-                      );
-                    },
-                  ),
 
-                SizedBox(height: MediaQuery.of(ctx).padding.bottom),
-              ],
+                  // Select option (enter multi-selection mode)
+                  if (widget.onSelect != null)
+                    ListTile(
+                      leading: AppIcon(
+                        AppIcon.checkCircle,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.select,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        widget.onSelect?.call(widget.message);
+                      },
+                    ),
+
+                  // Copy option (for text messages)
+                  if (widget.message.type == MessageType.text)
+                    ListTile(
+                      leading: Icon(
+                        Icons.copy,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.copy,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Clipboard.setData(
+                          ClipboardData(text: widget.message.content),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(context)!.messageCopied,
+                            ),
+                            backgroundColor: context.adaptivePrimaryColor,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                    ),
+
+                  // Edit option (for sender's text messages within 25 min)
+                  if (widget.isMe &&
+                      widget.message.type == MessageType.text &&
+                      !widget.message.deletedForEveryone &&
+                      widget.onEdit != null &&
+                      widget.currentUserId != null &&
+                      widget.message.canEdit(widget.currentUserId!))
+                    ListTile(
+                      leading: Icon(
+                        Icons.edit_outlined,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.edit,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showEditDialog(context);
+                      },
+                    ),
+
+                  // Delete option
+                  if (_canShowDeleteOption())
+                    ListTile(
+                      leading: const AppIcon(AppIcon.delete, color: Colors.red),
+                      title: Text(
+                        AppLocalizations.of(context)!.delete,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showDeleteModal(context);
+                      },
+                    ),
+
+                  // Report option (for messages from other users)
+                  if (!widget.isMe && !widget.message.deletedForEveryone)
+                    ListTile(
+                      leading: const AppIcon(
+                        AppIcon.flag,
+                        color: Colors.orange,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.report,
+                        style: const TextStyle(color: Colors.orange),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        // Créer le snapshot du contenu
+                        final snapshot = _createMessageSnapshot();
+                        ReportContentModal.show(
+                          context,
+                          targetType: ReportTargetType.message,
+                          targetId: widget.message.id,
+                          targetName: widget.message.senderName,
+                          targetPreview:
+                              widget.message.type == MessageType.text
+                                  ? widget.message.content
+                                  : null,
+                          conversationId: widget.conversationId,
+                          contentSnapshot: snapshot,
+                          reportedUserId: widget.message.senderId,
+                        );
+                      },
+                    ),
+
+                  SizedBox(height: MediaQuery.of(ctx).padding.bottom),
+                ],
+              ),
             ),
           ),
     );
   }
 
+  void _showMessageInfoSheet(BuildContext context) {
+    final conversationId = widget.conversationId;
+    if (conversationId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (_) => MessageInfoSheet(
+            message: widget.message,
+            conversationId: conversationId,
+            currentUserId: widget.currentUserId,
+          ),
+    );
+  }
+
   void _showDeleteModal(BuildContext context) {
-    if (widget.conversationId == null || widget.currentUserId == null) return;
+    final conversationId = widget.conversationId;
+    final currentUserId = widget.currentUserId;
+    if (conversationId == null || currentUserId == null) return;
 
     DeleteMessageModal.show(
       context,
       message: widget.message,
-      conversationId: widget.conversationId!,
-      currentUserId: widget.currentUserId!,
+      conversationId: conversationId,
+      currentUserId: currentUserId,
       isAdmin: widget.isAdmin,
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textController = TextEditingController(text: widget.message.content);
+
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(l10n.editMessage),
+            content: TextField(
+              controller: textController,
+              maxLines: 5,
+              minLines: 1,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l10n.editMessage,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final newContent = textController.text.trim();
+                  if (newContent.isNotEmpty &&
+                      newContent != widget.message.content) {
+                    widget.onEdit?.call(widget.message, newContent);
+                  }
+                  Navigator.pop(ctx);
+                },
+                child: Text(l10n.save),
+              ),
+            ],
+          ),
     );
   }
 
@@ -790,9 +1448,10 @@ class _MessageBubbleState extends State<MessageBubble>
       case MessageType.image:
         return ReportContentModal.imageSnapshot(
           message.fileUrl ?? '',
-          caption: message.content.isNotEmpty && message.content != message.fileName
-              ? message.content
-              : null,
+          caption:
+              message.content.isNotEmpty && message.content != message.fileName
+                  ? message.content
+                  : null,
         );
 
       case MessageType.video:
@@ -802,6 +1461,7 @@ class _MessageBubbleState extends State<MessageBubble>
         );
 
       case MessageType.audio:
+      case MessageType.voiceNote:
       case MessageType.file:
         return ReportContentModal.fileSnapshot(
           message.fileUrl ?? '',
@@ -810,10 +1470,23 @@ class _MessageBubbleState extends State<MessageBubble>
 
       case MessageType.system:
         return ReportContentModal.textMessageSnapshot(message.content);
+      case MessageType.call:
+        final l10n = AppLocalizations.of(context)!;
+        return ReportContentModal.textMessageSnapshot(
+          '${l10n.call} ${message.callType == 'video' ? l10n.video : l10n.audio}',
+        );
+      case MessageType.location:
+        final l10n = AppLocalizations.of(context)!;
+        return ReportContentModal.textMessageSnapshot(
+          '${l10n.location}: ${message.locationAddress ?? l10n.sharedLocation}',
+        );
+      case MessageType.sticker:
+        return ReportContentModal.imageSnapshot(message.fileUrl ?? '');
     }
   }
 
   Widget _buildDeletedContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -829,7 +1502,7 @@ class _MessageBubbleState extends State<MessageBubble>
           ),
           const SizedBox(width: 8),
           Text(
-            'Message supprimé',
+            l10n.messageDeleted,
             style: TextStyle(
               fontSize: 14,
               fontStyle: FontStyle.italic,
@@ -844,13 +1517,282 @@ class _MessageBubbleState extends State<MessageBubble>
     );
   }
 
+  // Greyscale + alpha-reduced color matrix for expired media ghost effect
+  static const ColorFilter _greyFilter = ColorFilter.matrix([
+    0.2126,
+    0.7152,
+    0.0722,
+    0,
+    0,
+    0.2126,
+    0.7152,
+    0.0722,
+    0,
+    0,
+    0.2126,
+    0.7152,
+    0.0722,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.55,
+    0,
+  ]);
+
+  Widget _buildExpiredBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_clock, color: Colors.white70, size: 12),
+          SizedBox(width: 3),
+          Text('Expiré', style: TextStyle(color: Colors.white70, fontSize: 10)),
+        ],
+      ),
+    );
+  }
+
+  /// Ghost of an image or video — shows the blurhash faded with a dark veil.
+  Widget _buildExpiredVisualGhost() {
+    final message = widget.message;
+    final blurhash = message.blurhash;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 200,
+        height: 150,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Ghost background: blurhash if available, grey otherwise
+            if (blurhash != null && blurhash.isNotEmpty)
+              BlurhashImage(blurhash: blurhash, fit: BoxFit.cover)
+            else
+              ColoredBox(color: Colors.grey.shade400),
+            // Dark veil
+            ColoredBox(color: Colors.black.withValues(alpha: 0.55)),
+            // Centred icon + label
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  message.type == MessageType.video
+                      ? Icons.videocam_off_rounded
+                      : Icons.image_not_supported_rounded,
+                  color: Colors.white60,
+                  size: 32,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Média expiré',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpiredMediaPlaceholder(BuildContext context) {
+    // _cachedLocalPath is set by _checkLocalPath() called in initState.
+    // Shows ghost immediately, then switches to local media with a single
+    // setState — no FutureBuilder re-build cycle, no null assertion needed.
+    if (_localPathChecked && _cachedLocalPath != null) {
+      return _buildLocalMediaWidget(_cachedLocalPath!);
+    }
+    return _buildExpiredGhost();
+  }
+
+  /// Renders the media from a local file when the Storage URL has expired.
+  Widget _buildLocalMediaWidget(String localPath) {
+    final message = widget.message;
+    final file = File(localPath);
+
+    switch (message.type) {
+      case MessageType.image:
+        return Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                file,
+                width: 200,
+                height: 150,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildExpiredGhost(),
+              ),
+            ),
+            Positioned(top: 4, right: 4, child: _buildLocalBadge()),
+          ],
+        );
+
+      case MessageType.voiceNote:
+        // Pass a file:// URI so just_audio can play from local storage.
+        // Reset mediaExpired so the bubble renders and plays normally.
+        final localEntity = message.copyWith(
+          fileUrl: 'file://$localPath',
+          mediaExpired: false,
+        );
+        return Stack(
+          children: [
+            AudioMessageBubble(message: localEntity, isMe: widget.isMe),
+            Positioned(top: 4, right: 4, child: _buildLocalBadge()),
+          ],
+        );
+
+      case MessageType.audio:
+        // Audio file picked from device: render the compact player from local storage.
+        final localEntity = message.copyWith(
+          fileUrl: 'file://$localPath',
+          mediaExpired: false,
+        );
+        return Stack(
+          children: [
+            AudioFileBubble(message: localEntity, isMe: widget.isMe),
+            Positioned(top: 4, right: 4, child: _buildLocalBadge()),
+          ],
+        );
+
+      case MessageType.video:
+      case MessageType.file:
+        // Show the greyed card but with a local badge; user can open from device
+        return Stack(
+          children: [
+            ColorFiltered(
+              colorFilter: _greyFilter,
+              child: IgnorePointer(
+                child: DocumentBubble(
+                  fileUrl: '',
+                  fileName: message.fileName ?? 'Fichier',
+                  fileSize: message.fileSize,
+                  isMe: widget.isMe,
+                  timestamp: message.createdAt,
+                  messageStatus: message.status,
+                  readBy: message.readBy,
+                  deliveredTo: message.deliveredTo,
+                ),
+              ),
+            ),
+            Positioned(top: 4, right: 4, child: _buildLocalBadge()),
+          ],
+        );
+
+      default:
+        return _buildExpiredGhost();
+    }
+  }
+
+  Widget _buildLocalBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.phone_android, color: Colors.white70, size: 12),
+          SizedBox(width: 3),
+          Text('Local', style: TextStyle(color: Colors.white70, fontSize: 10)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpiredGhost() {
+    final message = widget.message;
+
+    switch (message.type) {
+      case MessageType.image:
+      case MessageType.video:
+        return _buildExpiredVisualGhost();
+
+      case MessageType.voiceNote:
+        return Stack(
+          children: [
+            ColorFiltered(
+              colorFilter: _greyFilter,
+              child: IgnorePointer(
+                child: AudioMessageBubble(message: message, isMe: widget.isMe),
+              ),
+            ),
+            Positioned(top: 4, right: 4, child: _buildExpiredBadge()),
+          ],
+        );
+
+      case MessageType.audio:
+        return Stack(
+          children: [
+            ColorFiltered(
+              colorFilter: _greyFilter,
+              child: IgnorePointer(
+                child: AudioFileBubble(message: message, isMe: widget.isMe),
+              ),
+            ),
+            Positioned(top: 4, right: 4, child: _buildExpiredBadge()),
+          ],
+        );
+
+      case MessageType.file:
+        return Stack(
+          children: [
+            ColorFiltered(
+              colorFilter: _greyFilter,
+              child: IgnorePointer(
+                child: DocumentBubble(
+                  fileUrl: '',
+                  fileName: message.fileName ?? 'Fichier',
+                  fileSize: message.fileSize,
+                  isMe: widget.isMe,
+                  timestamp: message.createdAt,
+                  messageStatus: message.status,
+                  readBy: message.readBy,
+                  deliveredTo: message.deliveredTo,
+                ),
+              ),
+            ),
+            Positioned(top: 4, right: 4, child: _buildExpiredBadge()),
+          ],
+        );
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   Widget _buildContent(BuildContext context) {
+    // Show expired placeholder for any media type whose Storage file was deleted
+    if (widget.message.mediaExpired &&
+        (widget.message.type == MessageType.image ||
+            widget.message.type == MessageType.video ||
+            widget.message.type == MessageType.audio ||
+            widget.message.type == MessageType.voiceNote ||
+            widget.message.type == MessageType.file)) {
+      return _buildExpiredMediaPlaceholder(context);
+    }
+
     switch (widget.message.type) {
       case MessageType.image:
         return OptimizedImageBubble(
           imageUrl: widget.message.fileUrl ?? '',
           caption:
               widget.message.content == widget.message.fileName ||
+                      widget.message.content == widget.message.fileUrl ||
                       widget.message.content.isEmpty
                   ? null
                   : widget.message.content,
@@ -858,8 +1800,11 @@ class _MessageBubbleState extends State<MessageBubble>
           heroTag: 'message_image_${widget.message.id}',
           timestamp: widget.message.createdAt,
           messageStatus: widget.message.status,
+          readBy: widget.message.readBy,
+          deliveredTo: widget.message.deliveredTo,
           showSenderInfo: widget.showSenderInfo && !widget.isMe,
           senderName: widget.message.senderName,
+          blurhash: widget.message.blurhash,
           onTap:
               () => FullScreenImageViewer.show(
                 context,
@@ -867,7 +1812,10 @@ class _MessageBubbleState extends State<MessageBubble>
                 heroTag: 'message_image_${widget.message.id}',
                 senderName: widget.message.senderName,
                 sentAt: widget.message.createdAt,
+                messageId: widget.message.id,
               ),
+          onSave: () => _saveImageToGallery(widget.message.fileUrl!),
+          onShare: () => _shareMessage(),
         );
 
       case MessageType.file:
@@ -878,7 +1826,10 @@ class _MessageBubbleState extends State<MessageBubble>
           isMe: widget.isMe,
           timestamp: widget.message.createdAt,
           messageStatus: widget.message.status,
+          readBy: widget.message.readBy,
+          deliveredTo: widget.message.deliveredTo,
           onTap: () => _openFile(widget.message.fileUrl),
+          onShare: () => _shareMessage(),
         );
 
       case MessageType.video:
@@ -886,16 +1837,36 @@ class _MessageBubbleState extends State<MessageBubble>
           videoUrl: widget.message.fileUrl ?? '',
           thumbnailUrl: widget.message.thumbnailUrl,
           duration: widget.message.videoDuration,
-          caption: widget.message.content,
+          caption:
+              widget.message.content == widget.message.fileName ||
+                      widget.message.content == widget.message.fileUrl ||
+                      widget.message.content.isEmpty
+                  ? null
+                  : widget.message.content,
           isMe: widget.isMe,
           timestamp: widget.message.createdAt,
           messageStatus: widget.message.status,
+          readBy: widget.message.readBy,
+          deliveredTo: widget.message.deliveredTo,
           showSenderInfo: widget.showSenderInfo && !widget.isMe,
           senderName: widget.message.senderName,
-          onTap: () => _openFile(widget.message.fileUrl),
+          messageId: widget.message.id,
+          blurhash: widget.message.blurhash,
+          onForward:
+              widget.onForward != null
+                  ? () => widget.onForward?.call(widget.message)
+                  : null,
+          onSave:
+              widget.message.fileUrl != null
+                  ? () => _saveVideoToDevice(widget.message.fileUrl!)
+                  : null,
+          onShare: () => _shareMessage(),
         );
 
       case MessageType.audio:
+        return AudioFileBubble(message: widget.message, isMe: widget.isMe);
+
+      case MessageType.voiceNote:
         return AudioMessageBubble(message: widget.message, isMe: widget.isMe);
 
       case MessageType.text:
@@ -903,12 +1874,45 @@ class _MessageBubbleState extends State<MessageBubble>
 
       case MessageType.system:
         return _buildSystemMessageContent(context);
+      case MessageType.call:
+        return CallMessageBubble(
+          message: widget.message,
+          isMe: widget.isMe,
+          currentUserId: widget.currentUserId ?? '',
+          onCallBack: widget.onCallBack,
+        );
+
+      case MessageType.location:
+        return LocationMessageBubble(
+          latitude: widget.message.latitude ?? 0,
+          longitude: widget.message.longitude ?? 0,
+          address: widget.message.locationAddress ?? '',
+          isMe: widget.isMe,
+          createdAt: widget.message.createdAt,
+          status: widget.message.status,
+          readBy: widget.message.readBy,
+          deliveredTo: widget.message.deliveredTo,
+          senderId: widget.message.senderId,
+          onRetry: widget.onRetry,
+        );
+
+      case MessageType.sticker:
+        return StickerBubble(
+          stickerUrl: widget.message.fileUrl ?? '',
+          isAnimated: widget.message.isAnimatedSticker,
+          isMe: widget.isMe,
+          timestamp: widget.message.createdAt,
+          messageStatus: widget.message.status,
+          readBy: widget.message.readBy,
+          deliveredTo: widget.message.deliveredTo,
+        );
     }
   }
 
   Widget _buildReplyPreview(BuildContext context) {
+    final reply = widget.replyToMessage;
+    if (reply == null) return const SizedBox.shrink();
     final isMe = widget.isMe;
-    final reply = widget.replyToMessage!;
     final isDarkMode = context.isDarkMode;
     final l10n = AppLocalizations.of(context)!;
 
@@ -998,31 +2002,296 @@ class _MessageBubbleState extends State<MessageBubble>
         return Icons.image;
       case MessageType.video:
         return Icons.videocam;
-      case MessageType.audio:
+      case MessageType.voiceNote:
         return Icons.mic;
+      case MessageType.audio:
+        return Icons.audiotrack;
       case MessageType.file:
         return Icons.insert_drive_file;
+      case MessageType.location:
+        return Icons.location_on;
+      case MessageType.sticker:
+        return Icons.emoji_emotions;
       default:
         return Icons.chat_bubble;
     }
   }
 
+  static final _urlRegex = RegExp(
+    r'(?:https?://|www\.)[^\s<>\]\)]+|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+(?:com|fr|org|net|io|co|app|dev|info|biz|edu|gov|me|tv|uk|de|nl|be|ch|ca|au|nz|ng|sn|ml|bf|ci|tg|bj|ne|gn|cm|cd|cg|ga|td|cf|rw|bi|ug|ke|tz|et|gh|za|ma|dz|tn|eg|ly|sd|mu|mg|mw|zm|zw|mz|ao|na|bw|sz|ls|so|dj|er|ss)(?:/[^\s<>\]\)]*)?',
+    caseSensitive: false,
+  );
+
+  // Phone number regex supporting international and African formats
+  // +227 XX XX XX XX, 00227 XX XX XX XX, 227 XX XX XX XX, local formats
+  static final _phoneRegex = RegExp(
+    r'(?:\+|00)?(?:227|226|225|224|223|222|221|220|234|233|231|230|229|228|237|236|235|241|240|243|242|244|245|250|251|252|253|254|255|256|257|258|260|261|262|263|264|265|266|267|268|269|27|20|212|213|216|218|1|33|44|49|34|39|31|32|41)?[-.\s]?\(?\d{2,3}\)?[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{0,2}',
+  );
+
+  // Email regex
+  static final _emailRegex = RegExp(
+    r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+    caseSensitive: false,
+  );
+
+  // Rich text formatting regex: *bold*, _italic_, ~strikethrough~, `code`
+  static final _richTextRegex = RegExp(
+    r'(\*[^*\n]+\*)|(_[^_\n]+_)|(~[^~\n]+~)|(`[^`\n]+`)',
+  );
+
+  /// Build a RichText widget with clickable URLs, phone numbers, and emails
+  Widget _buildRichTextWithLinks(BuildContext context, String text) {
+    // Collect all matches: URLs, phone numbers, and emails
+    final allMatches = <_LinkMatch>[];
+
+    // URLs
+    for (final match in _urlRegex.allMatches(text)) {
+      allMatches.add(
+        _LinkMatch(
+          start: match.start,
+          end: match.end,
+          text: match.group(0)!,
+          type: _LinkType.url,
+        ),
+      );
+    }
+
+    // Phone numbers
+    for (final match in _phoneRegex.allMatches(text)) {
+      final phoneText = match.group(0)!;
+      // Only include if it has at least 8 digits (valid phone number)
+      final digits = phoneText.replaceAll(RegExp(r'\D'), '');
+      if (digits.length >= 8) {
+        // Check for overlap with existing matches
+        final hasOverlap = allMatches.any(
+          (m) =>
+              (match.start >= m.start && match.start < m.end) ||
+              (match.end > m.start && match.end <= m.end) ||
+              (match.start <= m.start && match.end >= m.end),
+        );
+        if (!hasOverlap) {
+          allMatches.add(
+            _LinkMatch(
+              start: match.start,
+              end: match.end,
+              text: phoneText,
+              type: _LinkType.phone,
+            ),
+          );
+        }
+      }
+    }
+
+    // Emails
+    for (final match in _emailRegex.allMatches(text)) {
+      final hasOverlap = allMatches.any(
+        (m) =>
+            (match.start >= m.start && match.start < m.end) ||
+            (match.end > m.start && match.end <= m.end) ||
+            (match.start <= m.start && match.end >= m.end),
+      );
+      if (!hasOverlap) {
+        allMatches.add(
+          _LinkMatch(
+            start: match.start,
+            end: match.end,
+            text: match.group(0)!,
+            type: _LinkType.email,
+          ),
+        );
+      }
+    }
+
+    // Mentions — highlight @Name for each confirmed mentioned user
+    final mentionedUsers = widget.message.mentionedUsers;
+    if (mentionedUsers.isNotEmpty) {
+      final mentionPattern = RegExp(
+        mentionedUsers.map((m) => RegExp.escape('@${m.name}')).join('|'),
+      );
+      for (final match in mentionPattern.allMatches(text)) {
+        final hasOverlap = allMatches.any(
+          (m) =>
+              (match.start >= m.start && match.start < m.end) ||
+              (match.end > m.start && match.end <= m.end) ||
+              (match.start <= m.start && match.end >= m.end),
+        );
+        if (!hasOverlap) {
+          allMatches.add(
+            _LinkMatch(
+              start: match.start,
+              end: match.end,
+              text: match.group(0)!,
+              type: _LinkType.mention,
+            ),
+          );
+        }
+      }
+    }
+
+    final baseStyle = TextStyle(
+      fontSize: 15,
+      color: widget.isMe ? AppColors.white : context.textPrimaryColor,
+    );
+
+    if (allMatches.isEmpty) {
+      // No links, but may have rich text formatting.
+      // Text.rich (non-sélectionnable) plutôt que SelectableText : la
+      // sélection de texte native captait l'appui long avant le
+      // GestureDetector de la bulle, affichant le menu OS (Copier / Partager
+      // / Tout sélectionner) au lieu du menu contextuel façon Signal.
+      final richSpans = _parseRichText(text, baseStyle);
+      return Text.rich(TextSpan(children: richSpans));
+    }
+
+    // Sort matches by start position
+    allMatches.sort((a, b) => a.start.compareTo(b.start));
+
+    final spans = <InlineSpan>[];
+    int lastEnd = 0;
+
+    for (final match in allMatches) {
+      // Text before this match (may contain rich text formatting)
+      if (match.start > lastEnd) {
+        final plainText = text.substring(lastEnd, match.start);
+        spans.addAll(_parseRichText(plainText, baseStyle));
+      }
+
+      // The link/mention itself
+      if (match.type == _LinkType.mention) {
+        spans.add(
+          TextSpan(
+            text: match.text,
+            style: TextStyle(
+              fontSize: 15,
+              color:
+                  widget.isMe
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      } else {
+        final linkColor =
+            match.type == _LinkType.phone
+                ? (widget.isMe ? Colors.greenAccent : Colors.green)
+                : (widget.isMe ? Colors.lightBlueAccent : Colors.blue);
+
+        spans.add(
+          TextSpan(
+            text: match.text,
+            style: TextStyle(
+              fontSize: 15,
+              color: linkColor,
+              decoration: TextDecoration.underline,
+              decorationColor: linkColor,
+            ),
+            recognizer:
+                TapGestureRecognizer()..onTap = () => _handleLinkTap(match),
+          ),
+        );
+      }
+
+      lastEnd = match.end;
+    }
+
+    // Remaining text after last match (may contain rich text formatting)
+    if (lastEnd < text.length) {
+      final remainingText = text.substring(lastEnd);
+      spans.addAll(_parseRichText(remainingText, baseStyle));
+    }
+
+    return Text.rich(TextSpan(children: spans));
+  }
+
+  /// Parse text for rich formatting: *bold*, _italic_, ~strikethrough~, `code`
+  List<InlineSpan> _parseRichText(String text, TextStyle baseStyle) {
+    final matches = _richTextRegex.allMatches(text).toList();
+
+    if (matches.isEmpty) {
+      return [TextSpan(text: text, style: baseStyle)];
+    }
+
+    final spans = <InlineSpan>[];
+    int lastEnd = 0;
+
+    for (final match in matches) {
+      // Text before this match
+      if (match.start > lastEnd) {
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style: baseStyle,
+          ),
+        );
+      }
+
+      final matchedText = match.group(0)!;
+      final content = matchedText.substring(1, matchedText.length - 1);
+      TextStyle style = baseStyle;
+
+      if (matchedText.startsWith('*')) {
+        // Bold
+        style = style.copyWith(fontWeight: FontWeight.bold);
+      } else if (matchedText.startsWith('_')) {
+        // Italic
+        style = style.copyWith(fontStyle: FontStyle.italic);
+      } else if (matchedText.startsWith('~')) {
+        // Strikethrough
+        style = style.copyWith(decoration: TextDecoration.lineThrough);
+      } else if (matchedText.startsWith('`')) {
+        // Code
+        style = style.copyWith(
+          fontFamily: 'monospace',
+          backgroundColor:
+              widget.isMe
+                  ? Colors.black.withValues(alpha: 0.2)
+                  : Colors.grey.withValues(alpha: 0.2),
+        );
+      }
+
+      spans.add(TextSpan(text: content, style: style));
+      lastEnd = match.end;
+    }
+
+    // Remaining text after last match
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastEnd), style: baseStyle));
+    }
+
+    return spans;
+  }
+
   Widget _buildTextContent(BuildContext context) {
+    // E2EE session missing — show contextual re-establish UI instead of raw text.
+    if (widget.message.content == '[🔐 E2EE — session requise]') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: E2EESessionRequiredBubble(
+          senderId: widget.message.senderId,
+          isSentByMe: widget.isMe,
+          groupId: widget.groupId,
+        ),
+      );
+    }
+
     final isEmojiOnly = _isEmojiOnly(widget.message.content);
-    final hasProduct = widget.message.hasProduct;
+    final postData = widget.message.postData;
+    final productData = widget.message.productData;
+    final eventData = widget.message.eventData;
+    final linkPreviewData = widget.message.linkPreviewData;
+    final hasProduct = productData != null;
+    final hasLinkPreview = linkPreviewData != null;
 
     // Emoji-only messages: larger text, no bubble background
-    if (isEmojiOnly && !hasProduct) {
+    if (isEmojiOnly && !hasProduct && eventData == null) {
       return Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              widget.message.content,
-              style: const TextStyle(fontSize: 42),
-            ),
+            Text(widget.message.content, style: const TextStyle(fontSize: 42)),
             const SizedBox(height: 4),
             _buildInlineTimeStatus(context),
           ],
@@ -1036,48 +2305,102 @@ class _MessageBubbleState extends State<MessageBubble>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Post share card if attached
+          if (postData != null)
+            PostMessageCard(postData: postData, isMe: widget.isMe),
           // Product card if attached
           if (hasProduct)
-            ProductMessageCard(
-              productData: widget.message.productData!,
-              isMe: widget.isMe,
-            ),
+            ProductMessageCard(productData: productData, isMe: widget.isMe),
+          // Event card if attached
+          if (eventData != null)
+            EventMessageCard(eventData: eventData, isMe: widget.isMe),
           // Message content with inline time
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Flexible(
-                child: Text(
-                  widget.message.content,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color:
-                        widget.isMe
-                            ? AppColors.white
-                            : context.textPrimaryColor,
-                  ),
-                ),
+                child: _buildRichTextWithLinks(context, widget.message.content),
               ),
               const SizedBox(width: 8),
               // Time and status inline
               _buildInlineTimeStatus(context),
             ],
           ),
+          // Link preview card
+          if (hasLinkPreview)
+            LinkPreviewBubble.fromMap(linkPreviewData, isMe: widget.isMe),
         ],
       ),
     );
   }
 
   Widget _buildInlineTimeStatus(BuildContext context) {
+    final isStarred =
+        widget.currentUserId != null &&
+        widget.message.isStarredBy(widget.currentUserId!);
+    final l10n = AppLocalizations.of(context)!;
+
+    // « Vu par N » : sur MES messages de groupe lus par au moins un autre
+    // membre (info spécifique aux groupes, en plus de la double coche).
+    final groupReadCount = widget.message.readBy
+        .where((id) => id != widget.message.senderId)
+        .length;
+    final showGroupReadCount = widget.isMe &&
+        widget.groupId != null &&
+        !widget.message.deletedForEveryone &&
+        groupReadCount > 0;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (showGroupReadCount) ...[
+          Text(
+            'Vu par $groupReadCount',
+            style: const TextStyle(
+              fontSize: 11,
+              color: _kReadReceiptBlue,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
+        if (isStarred) ...[
+          AppIcon(
+            AppIcon.star,
+            size: 12,
+            color: AppColors.white.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 2),
+        ],
+        // Edited indicator
+        if (widget.message.isEdited) ...[
+          Text(
+            l10n.edited,
+            style: TextStyle(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: AppColors.white.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+        // Ephemeral indicator
+        if (widget.message.isEphemeral) ...[
+          Icon(
+            Icons.timer_outlined,
+            size: 12,
+            color: AppColors.white.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 2),
+        ],
         Text(
           _formatTime(widget.message.createdAt),
           style: TextStyle(
             fontSize: 11,
-            color: AppColors.white.withValues(alpha: 0.7),
+            color: widget.isMe
+                ? _kTimestampBlue
+                : AppColors.white.withValues(alpha: 0.7),
           ),
         ),
         if (widget.isMe && !widget.message.deletedForEveryone) ...[
@@ -1089,20 +2412,65 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   String _getMediaTypeLabel(MessageType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case MessageType.image:
-        return '📷 Photo';
+        return '📷 ${l10n.photo}';
       case MessageType.video:
-        return '🎥 Vidéo';
+        return '🎥 ${l10n.video}';
+      case MessageType.voiceNote:
+        return '🎙️ ${l10n.messageTypeVoiceNote}';
       case MessageType.audio:
-        return '🎵 Audio';
+        return '🎵 ${l10n.messageTypeAudio}';
       case MessageType.file:
-        return '📄 Document';
+        return '📄 ${l10n.document}';
       case MessageType.text:
         return '';
       case MessageType.system:
-        return '💬 Message système';
+        return '💬 ${l10n.systemMessage}';
+      case MessageType.call:
+        return '📞 ${l10n.call}';
+      case MessageType.location:
+        return '📍 ${l10n.location}';
+      case MessageType.sticker:
+        return '🎭 Sticker';
     }
+  }
+
+  /// Verifier si le message est en attente dans la queue offline
+  bool _isPendingOffline() {
+    return widget.message.id.startsWith('pending_') &&
+        widget.message.status == MessageStatus.sending;
+  }
+
+  /// Small lock icon showing the encryption level of this message.
+  ///   🔒 green  = Signal Protocol (E2EE, server cannot read)
+  ///   🔒 grey   = AES-256-GCM (encrypted in transit, server key-encrypted)
+  Widget _buildEncryptionIcon(BuildContext context) {
+    final isE2EE =
+        widget.message.encryptionLevel == MessageEncryptionLevel.e2ee;
+    return Tooltip(
+      message: isE2EE ? 'Chiffré — bout en bout (Signal)' : 'Chiffré',
+      child: AppIcon(
+        AppIcon.lock,
+        size: 10,
+        color: isE2EE ? Colors.green.shade600 : context.textTertiaryColor,
+      ),
+    );
+  }
+
+  /// Coche (simple ou double) entourée d'un cercle — accusé de réception.
+  /// Gris pour envoyé/reçu, bleu pour lu. Rendu en gras (cercle épais + coche
+  /// large) pour être très visible.
+  Widget _circledReceipt(String icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(2.5),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 2),
+      ),
+      child: AppIcon(icon, size: 13, color: color),
+    );
   }
 
   Widget _buildStatusIcon(BuildContext context, {bool inline = false}) {
@@ -1113,38 +2481,96 @@ class _MessageBubbleState extends State<MessageBubble>
                 : context.textTertiaryColor)
             : context.textTertiaryColor;
 
+    // Gris franc (bien visible) pour les accusés « envoyé » / « reçu ».
+    final receiptGrey =
+        (inline && widget.isMe)
+            ? AppColors.white.withValues(alpha: 0.95)
+            : context.textSecondaryColor;
+
+    late final Widget iconWidget;
+
     switch (widget.message.status) {
       case MessageStatus.sending:
-        return SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-        );
+        // Message en attente dans la queue offline
+        if (_isPendingOffline()) {
+          final l10n = AppLocalizations.of(context)!;
+          iconWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.schedule, size: 12, color: Colors.orange),
+              const SizedBox(width: 2),
+              Text(
+                l10n.pending,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.orange[700],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          );
+        } else {
+          // Message en cours d'envoi normal
+          iconWidget = SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          );
+        }
 
       case MessageStatus.failed:
-        return GestureDetector(
+        iconWidget = GestureDetector(
           onTap: widget.onRetry,
-          child: const Icon(
-            Icons.warning_amber_rounded,
-            size: 14,
-            color: Colors.red,
-          ),
+          child: const AppIcon(AppIcon.warning, size: 14, color: Colors.red),
         );
 
       case MessageStatus.sent:
-        final isRead = widget.message.readBy.length > 1;
-        return Icon(
-          isRead ? Icons.done_all : Icons.check,
-          size: 14,
-          color:
-              isRead
-                  ? (inline && widget.isMe ? Colors.white : Colors.blue)
-                  : color,
-        );
+        // For pending requests, only show "sent" (single check) - no read/delivered
+        if (widget.isPendingRequest) {
+          iconWidget = _circledReceipt(AppIcon.check, receiptGrey);
+          break;
+        }
+
+        // Check delivery and read status
+        // readBy contains sender, so > 1 means at least one other person read it
+        final otherReadersCount =
+            widget.message.readBy
+                .where((id) => id != widget.message.senderId)
+                .length;
+        final isRead = otherReadersCount > 0;
+
+        final otherDeliveredCount =
+            widget.message.deliveredTo
+                .where((id) => id != widget.message.senderId)
+                .length;
+        final isDelivered = otherDeliveredCount > 0;
+
+        if (isRead) {
+          // Lu : double coche dans un cercle bleu
+          iconWidget = _circledReceipt(AppIcon.doneAll, _kReadReceiptBlue);
+        } else if (isDelivered) {
+          // Reçu : double coche dans un cercle gris
+          iconWidget = _circledReceipt(AppIcon.doneAll, receiptGrey);
+        } else {
+          // Envoyé : simple coche dans un cercle gris
+          iconWidget = _circledReceipt(AppIcon.check, receiptGrey);
+        }
     }
+
+    // Tap to open message info for sent messages from the current user
+    if (widget.isMe &&
+        widget.message.status == MessageStatus.sent &&
+        widget.conversationId != null) {
+      return GestureDetector(
+        onTap: () => _showMessageInfoSheet(context),
+        child: iconWidget,
+      );
+    }
+
+    return iconWidget;
   }
 
   Widget _buildSystemMessageContent(BuildContext context) {
@@ -1152,31 +2578,278 @@ class _MessageBubbleState extends State<MessageBubble>
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: context.isDarkMode
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.05),
+        color:
+            context.isDarkMode
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         widget.message.content,
-        style: TextStyle(
-          fontSize: 12,
-          color: context.textSecondaryColor,
-        ),
+        style: TextStyle(fontSize: 12, color: context.textSecondaryColor),
         textAlign: TextAlign.center,
       ),
     );
   }
 
   String _formatTime(DateTime dateTime) {
+    // Message de moins d'une minute : « À l'instant » / « Just now »,
+    // sinon l'heure exacte (12:04). Localisé via AppLocalizations.justNow.
+    final diff = DateTime.now().difference(dateTime);
+    if (!diff.isNegative && diff.inMinutes < 1) {
+      return AppLocalizations.of(context)!.justNow;
+    }
     return DateFormat.Hm().format(dateTime);
+  }
+
+  Future<void> _checkLocalPath() async {
+    final path = await FileDownloadService().getDownloadedPath(
+      widget.message.id,
+    );
+    if (!mounted) return;
+    setState(() {
+      _cachedLocalPath =
+          (path != null && File(path).existsSync()) ? path : null;
+      _localPathChecked = true;
+    });
+  }
+
+  Future<void> _saveImageToGallery(String imageUrl) async {
+    final service = FileDownloadService();
+    final hasPermission = await service.hasGalleryPermission();
+    if (!hasPermission) {
+      final granted = await service.requestGalleryPermission();
+      if (!granted) return;
+    }
+    final success = await service.downloadImageToGallery(
+      imageUrl,
+      messageId: widget.message.id,
+    );
+    if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? l10n.imageSaved : l10n.saveFailed),
+          backgroundColor: success ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveVideoToDevice(String videoUrl) async {
+    final msg = widget.message;
+    final fileName =
+        msg.fileName?.isNotEmpty == true ? msg.fileName! : '${msg.id}.mp4';
+    final file = await FileDownloadService().downloadToAppDirectory(
+      videoUrl,
+      fileName: fileName,
+      messageId: msg.id,
+    );
+    if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(file != null ? l10n.videoSaved : l10n.saveFailed),
+          backgroundColor: file != null ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Future<void> _openFile(String? url) async {
     if (url == null) return;
-    final uri = Uri.parse(url);
+    // Add https:// if no protocol is specified
+    String normalizedUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      normalizedUrl = 'https://$url';
+    }
+    final uri = Uri.parse(normalizedUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
+
+  Future<void> _shareMessage() async {
+    final l10n = AppLocalizations.of(context)!;
+    final scaffold = ScaffoldMessenger.of(context);
+    final message = widget.message;
+
+    try {
+      if (message.type == MessageType.text) {
+        await SharePlus.instance.share(ShareParams(text: message.content));
+        return;
+      }
+
+      final url = message.fileUrl;
+      if (url == null || url.isEmpty) {
+        scaffold.showSnackBar(
+          SnackBar(
+            content: Text(l10n.shareError),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text(l10n.shareDownloadingMedia),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      String fileName = message.fileName ?? '';
+      if (fileName.isEmpty) {
+        final ext = url.split('.').last.split('?').first;
+        final sanitized = ext.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+        fileName =
+            'shared_${message.type.name}_${DateTime.now().millisecondsSinceEpoch}.${sanitized.isNotEmpty ? sanitized : 'file'}';
+      }
+
+      final file = await FileDownloadService().downloadToTemp(
+        url,
+        fileName: fileName,
+      );
+
+      if (file == null) {
+        scaffold.showSnackBar(
+          SnackBar(
+            content: Text(l10n.shareError),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final caption =
+          message.content.isNotEmpty &&
+                  message.content != message.fileName &&
+                  message.content != message.fileUrl
+              ? message.content
+              : '';
+
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path)], text: caption),
+      );
+    } catch (e) {
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text(l10n.shareError),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleLinkTap(_LinkMatch match) async {
+    switch (match.type) {
+      case _LinkType.url:
+        final confirmed = await _showUrlConfirmDialog(match.text);
+        if (confirmed == true) {
+          await _openFile(match.text);
+        }
+        break;
+      case _LinkType.phone:
+        final cleanNumber = match.text.replaceAll(RegExp(r'[\s.\-()]'), '');
+        final confirmed = await _showPhoneConfirmDialog(cleanNumber);
+        if (confirmed == true) {
+          final uri = Uri.parse('tel:$cleanNumber');
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          }
+        }
+        break;
+      case _LinkType.email:
+        final uri = Uri.parse('mailto:${match.text}');
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+        break;
+      case _LinkType.mention:
+        // No action for mentions
+        break;
+    }
+  }
+
+  Future<bool?> _showPhoneConfirmDialog(String phoneNumber) {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.phone, color: AppColors.success),
+                const SizedBox(width: 8),
+                Text(l10n.audioCall),
+              ],
+            ),
+            content: Text('${l10n.callConfirmMessage} $phoneNumber ?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.audioCall),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<bool?> _showUrlConfirmDialog(String url) {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(
+                  Icons.open_in_browser,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(l10n.openLink),
+              ],
+            ),
+            content: Text('${l10n.openLinkConfirmMessage}\n\n$url'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.open),
+              ),
+            ],
+          ),
+    );
+  }
+}
+
+/// Type of detected link in message content
+enum _LinkType { url, phone, email, mention }
+
+/// Represents a detected link in message content
+class _LinkMatch {
+  final int start;
+  final int end;
+  final String text;
+  final _LinkType type;
+
+  const _LinkMatch({
+    required this.start,
+    required this.end,
+    required this.text,
+    required this.type,
+  });
 }
