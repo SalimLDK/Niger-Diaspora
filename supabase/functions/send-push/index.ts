@@ -1,27 +1,29 @@
 // =============================================================================
 // send-push — Edge Function
 //
-// Déclenchée par un Database Webhook (trigger Postgres) à chaque INSERT dans la
+// Déclenchée par un Database Webhook / trigger pg_net à chaque INSERT dans la
 // table `notifications`. Lit les tokens FCM du destinataire dans `users.fcm_tokens`
 // et envoie une notification push via l'API FCM HTTP v1.
 //
-// Remplace l'ancienne Cloud Function Firestore `sendNotificationOnCreate` (morte
-// depuis la migration des notifications vers Supabase).
+// Remplace l'ancienne Cloud Function Firestore `sendNotificationOnCreate` et le
+// flux RTDB `onMessageCreated` (messages de chat inclus).
 //
 // Sécurité : la fonction n'est appelable que par le trigger DB, qui présente le
 // secret partagé `PUSH_WEBHOOK_SECRET` dans l'en-tête `x-webhook-secret`. Le client
-// n'envoie jamais de push directement — il insère seulement une ligne `notifications`
-// (sous contrôle RLS), évitant tout spoofing de cible.
+// n'envoie jamais de push directement — il insère seulement une ligne `messages`
+// (ou appelle create_user_notification) ; le serveur crée les lignes
+// `notifications` (SECURITY DEFINER) → webhook → FCM.
 //
 // Secrets requis (supabase secrets set ...) :
 //   - FCM_SERVICE_ACCOUNT : le JSON complet d'un service account Firebase
-//   - PUSH_WEBHOOK_SECRET  : secret partagé avec le trigger DB
+//   - PUSH_WEBHOOK_SECRET  : secret partagé avec le trigger DB / Database Webhook
 //   - SERVICE_ROLE_KEY     : nouvelle clé secrète Supabase (sb_secret_…) pour
 //     l'accès privilégié. Remplace la legacy SUPABASE_SERVICE_ROLE_KEY auto-
 //     injectée (désactivée depuis la migration vers les nouvelles API keys).
 //   (SUPABASE_URL reste auto-injecté par le runtime)
 //
-// Déploiement : supabase functions deploy send-push --no-verify-jwt
+// Déploiement : supabase functions deploy send-push
+//   (verify_jwt = false est déclaré dans supabase/config.toml)
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -110,6 +112,7 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
 // Mappe un type de notification vers un canal Android (créés côté app dans
 // notification_service.dart). Repli sûr : general_channel.
 function channelFor(type: string): string {
+  if (type === 'message') return 'messages'
   if (type.startsWith('order')) return 'orders_channel'
   if (type.startsWith('event') || type === 'localEvent') return 'events_channel'
   if (type.startsWith('audioRoom')) return 'audio_rooms_reminders_channel'
@@ -131,12 +134,12 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json()
-    const record = payload?.record
+    // Database Webhook / pg_net : { type, table, record, ... }
+    // Compat : accepter aussi un record passé à la racine.
+    const record = payload?.record ?? payload
     if (!record?.user_id) return json(200, { skipped: 'no user_id' })
 
     const type = String(record.type ?? 'general')
-    // Les messages de chat sont poussés par un autre flux.
-    if (type === 'message') return json(200, { skipped: 'message handled elsewhere' })
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -144,9 +147,15 @@ Deno.serve(async (req) => {
 
     const { data: userRow } = await supabase
       .from('users')
-      .select('fcm_tokens')
+      .select('fcm_tokens, notifications_enabled, show_message_preview')
       .eq('id', record.user_id)
       .maybeSingle()
+
+    // Préférence globale push désactivée → pas d'envoi FCM (la ligne
+    // notifications reste visible in-app).
+    if (userRow?.notifications_enabled === false) {
+      return json(200, { skipped: 'notifications disabled' })
+    }
 
     const tokens: string[] = (userRow?.fcm_tokens as string[] | null) ?? []
     if (tokens.length === 0) return json(200, { skipped: 'no tokens' })
@@ -154,17 +163,69 @@ Deno.serve(async (req) => {
     const sa = JSON.parse(FCM_SERVICE_ACCOUNT) as ServiceAccount
     const accessToken = await getAccessToken(sa)
 
-    const title = String(record.title ?? 'Diaspo Niger')
-    const body = String(record.body ?? '')
-    const rawData = (record.data && typeof record.data === 'object') ? record.data : {}
+    const rawData = (record.data && typeof record.data === 'object')
+      ? (record.data as Record<string, unknown>)
+      : {}
+
+    let title = String(record.title ?? 'Diaspo Niger')
+    let body = String(record.body ?? '')
+
+    // Aligné sur l'ancien onMessageCreated CF + notification_service.dart :
+    // sans aperçu → titre = senderName, body générique.
+    if (type === 'message' && userRow?.show_message_preview === false) {
+      title = String(rawData.senderName ?? title)
+      body = 'Nouveau message'
+    }
+
+    const conversationId = String(
+      rawData.conversationId ?? record.target_id ?? rawData.target_id ?? '',
+    )
+    const targetId = String(
+      record.target_id ?? rawData.targetId ?? rawData.target_id ?? conversationId,
+    )
+
+    // Payload data attendu par notification_service.dart (tous les champs string).
     const dataMap: Record<string, string> = {
       type,
-      targetId: String(record.target_id ?? rawData.target_id ?? ''),
+      title,
+      body,
+      targetId,
       click_action: 'FLUTTER_NOTIFICATION_CLICK',
     }
-    for (const [k, v] of Object.entries(rawData)) dataMap[k] = String(v)
+    for (const [k, v] of Object.entries(rawData)) {
+      if (v === null || v === undefined) continue
+      // JSON objects/arrays → string JSON ; scalaires → String()
+      dataMap[k] = typeof v === 'object' ? JSON.stringify(v) : String(v)
+    }
+    // Garantit les clés camelCase utilisées par le client message.
+    if (type === 'message') {
+      if (conversationId) dataMap.conversationId = conversationId
+      if (!dataMap.targetId && conversationId) dataMap.targetId = conversationId
+      dataMap.showMessagePreview =
+        userRow?.show_message_preview === false ? 'false' : 'true'
+    }
 
     const channelId = channelFor(type)
+    const androidNotification: Record<string, string> = {
+      channel_id: channelId,
+      sound: 'default',
+    }
+    // Groupement Android / iOS par conversation (comme l'ancien CF).
+    if (type === 'message' && conversationId) {
+      androidNotification.tag = `msg_${conversationId}`
+    }
+
+    const apnsHeaders: Record<string, string> = { 'apns-push-type': 'alert' }
+    const aps: Record<string, unknown> = {
+      sound: 'default',
+      badge: 1,
+      'content-available': 1,
+    }
+    if (type === 'message' && conversationId) {
+      apnsHeaders['apns-collapse-id'] = conversationId
+      aps['thread-id'] = conversationId
+    }
+
     const dead: string[] = []
 
     await Promise.all(
@@ -184,13 +245,11 @@ Deno.serve(async (req) => {
                 data: dataMap,
                 android: {
                   priority: 'high',
-                  notification: { channel_id: channelId, sound: 'default' },
+                  notification: androidNotification,
                 },
                 apns: {
-                  headers: { 'apns-push-type': 'alert' },
-                  payload: {
-                    aps: { sound: 'default', badge: 1, 'content-available': 1 },
-                  },
+                  headers: apnsHeaders,
+                  payload: { aps },
                 },
               },
             }),

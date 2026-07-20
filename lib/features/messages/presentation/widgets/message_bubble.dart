@@ -361,6 +361,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 if (widget.isMe) ...[
                   const SizedBox(width: 3),
                   _buildStatusIcon(context, inline: false),
+                  _buildReadReceiptDot(),
                 ],
               ],
             ),
@@ -437,6 +438,32 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
 
     return _buildMainContent(context, isDeleted);
+  }
+
+  Widget _buildReadReceiptDot() {
+    if (!widget.isMe) return const SizedBox.shrink();
+    if (widget.isPendingRequest) return const SizedBox.shrink();
+    if (widget.message.status == MessageStatus.sending) {
+      return const SizedBox.shrink();
+    }
+    if (widget.message.deletedForEveryone) return const SizedBox.shrink();
+
+    final otherReadersCount = widget.message.readBy
+        .where((id) => id != widget.message.senderId)
+        .length;
+    final isRead = otherReadersCount > 0;
+
+    if (!isRead) return const SizedBox.shrink();
+
+    return Container(
+      width: 8,
+      height: 8,
+      margin: const EdgeInsets.only(left: 4),
+      decoration: const BoxDecoration(
+        color: _kReadReceiptBlue,
+        shape: BoxShape.circle,
+      ),
+    );
   }
 
   Widget _buildMainContent(BuildContext context, bool isDeleted) {
@@ -2416,6 +2443,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         if (widget.isMe && !widget.message.deletedForEveryone) ...[
           const SizedBox(width: 3),
           _buildStatusIcon(context, inline: true),
+          _buildReadReceiptDot(),
         ],
       ],
     );

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'package:flutter/material.dart';
@@ -424,36 +423,13 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
     if (conversationId != null && messageId != null && userId != null) {
       try {
-        // Confirm delivery directly to RTDB
-        final database = FirebaseDatabase.instance;
-        final messageRef = database
-            .ref()
-            .child('messages')
-            .child(conversationId)
-            .child(messageId);
-
-        // Read current deliveredTo and add user
-        final snapshot = await messageRef.child('deliveredTo').get();
-        final List<String> deliveredTo = [];
-        if (snapshot.value != null) {
-          if (snapshot.value is List) {
-            deliveredTo.addAll((snapshot.value as List).cast<String>());
-          } else if (snapshot.value is Map) {
-            // Firebase RTDB sometimes converts arrays to maps
-            final map = snapshot.value as Map;
-            for (final value in map.values) {
-              if (value is String) deliveredTo.add(value);
-            }
-          }
-        }
-
-        if (!deliveredTo.contains(userId)) {
-          deliveredTo.add(userId);
-          await messageRef.update({
-            'deliveredTo': deliveredTo,
-            'deliveredAt/$userId': DateTime.now().toUtc().toIso8601String(),
-          });
-        }
+        // Confirm delivery directly via Supabase RPC (single source of truth).
+        // RTDB delivery tracking has been retired; all delivery/read state lives
+        // in the messages.data JSONB column and is surfaced by Supabase Realtime.
+        await Supabase.instance.client.rpc('mark_messages_as_delivered', params: {
+          'p_conversation_id': conversationId,
+          'p_user_id': userId,
+        });
       } catch (e) {
         // Silently fail - delivery confirmation is best effort
       }
@@ -2627,7 +2603,7 @@ class NotificationService {
     clearConversationNotifications(conversationId);
   }
 
-  /// Confirm message delivery to RTDB
+  /// Confirm message delivery to Supabase (single source of truth).
   Future<void> _confirmMessageDelivery({
     required String? conversationId,
     required String? messageId,
@@ -2639,35 +2615,10 @@ class NotificationService {
       final userId = prefs.getString('currentUserId');
       if (userId == null) return;
 
-      final database = FirebaseDatabase.instance;
-      final messageRef = database
-          .ref()
-          .child('messages')
-          .child(conversationId)
-          .child(messageId);
-
-      // Read current deliveredTo and add user
-      final snapshot = await messageRef.child('deliveredTo').get();
-      final List<String> deliveredTo = [];
-      if (snapshot.value != null) {
-        if (snapshot.value is List) {
-          deliveredTo.addAll((snapshot.value as List).cast<String>());
-        } else if (snapshot.value is Map) {
-          // Firebase RTDB sometimes converts arrays to maps
-          final map = snapshot.value as Map;
-          for (final value in map.values) {
-            if (value is String) deliveredTo.add(value);
-          }
-        }
-      }
-
-      if (!deliveredTo.contains(userId)) {
-        deliveredTo.add(userId);
-        await messageRef.update({
-          'deliveredTo': deliveredTo,
-          'deliveredAt/$userId': DateTime.now().toUtc().toIso8601String(),
-        });
-      }
+      await Supabase.instance.client.rpc('mark_messages_as_delivered', params: {
+        'p_conversation_id': conversationId,
+        'p_user_id': userId,
+      });
     } catch (e) {
       // Silently fail - delivery confirmation is best effort
     }

@@ -439,6 +439,9 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                   content: existing.content,
                   fileUrl: existing.fileUrl,
                 );
+                debugPrint(
+                  'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',
+                );
                 state = state.copyWith(messages: existingMessages);
               }
             },
@@ -782,7 +785,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
-    final senderIsVerified = _ref.read(userStreamProvider(currentUser.id)).valueOrNull?.isVerified ?? false;
+    final senderProfile = _ref.read(userStreamProvider(currentUser.id)).valueOrNull;
+    final senderIsVerified = senderProfile?.isPhoneVerified ?? false;
 
     // Verifier la connectivite
     final isOnline = _ref.read(connectivityNotifierProvider);
