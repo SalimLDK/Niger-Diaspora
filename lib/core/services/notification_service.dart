@@ -22,6 +22,7 @@ import 'background_location_service.dart';
 import 'background_reply_service.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
+import 'supabase_auth_bridge.dart';
 
 /// Représente un message pour le style MessagingStyle (comme WhatsApp)
 class NotificationMessage {
@@ -1318,7 +1319,12 @@ class NotificationService {
   }
 
   /// Save FCM token to Firestore for a specific user
+  /// Dernier userId connu : permet au listener onTokenRefresh (qui ne reçoit
+  /// que le token) de sauvegarder sous le bon utilisateur.
+  String? _lastKnownUserId;
+
   Future<void> saveTokenForUser(String userId) async {
+    _lastKnownUserId = userId;
     if (_fcmToken == null) {
       await _getToken();
     }
@@ -1330,19 +1336,23 @@ class NotificationService {
 
   /// Save token to Supabase
   Future<void> _saveTokenToDatabase(String token, {String? userId}) async {
-    if (userId == null) return;
+    final uid = userId ?? _lastKnownUserId;
+    if (uid == null) return;
     try {
+      // Sans session Supabase authentifiée, RLS bloque l'update de `users` :
+      // le token n'était jamais enregistré → aucune notification push.
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
       final row = await Supabase.instance.client
           .from('users')
           .select('fcm_tokens')
-          .eq('id', userId)
+          .eq('id', uid)
           .maybeSingle();
       final tokens = List<String>.from(row?['fcm_tokens'] as List? ?? []);
       if (!tokens.contains(token)) tokens.add(token);
       await Supabase.instance.client
           .from('users')
           .update({'fcm_tokens': tokens, 'last_token_update': DateTime.now().toIso8601String()})
-          .eq('id', userId);
+          .eq('id', uid);
     } catch (e) {
       debugPrint('Error saving FCM token to database: $e');
     }
@@ -1352,6 +1362,7 @@ class NotificationService {
   Future<void> removeTokenForUser(String userId) async {
     if (_fcmToken == null) return;
     try {
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
       final row = await Supabase.instance.client
           .from('users')
           .select('fcm_tokens')
@@ -1371,6 +1382,7 @@ class NotificationService {
   /// Save VoIP push token for iOS (for CallKit incoming calls)
   Future<void> saveVoipTokenForUser(String userId, String voipToken) async {
     try {
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
       await Supabase.instance.client
           .from('users')
           .update({'voip_token': voipToken, 'last_token_update': DateTime.now().toIso8601String()})

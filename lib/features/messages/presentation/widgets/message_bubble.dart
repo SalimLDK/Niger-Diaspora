@@ -945,31 +945,41 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         spacing: 4,
         children:
             reactionCounts.entries.map((entry) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: context.outlineColor.withValues(alpha: 0.2),
-                    width: 1,
+              // Re-tap sur une réaction = toggle → retire l'emoji déjà posé.
+              return GestureDetector(
+                onTap: widget.onReact == null
+                    ? null
+                    : () {
+                        HapticFeedback.lightImpact();
+                        widget.onReact?.call(widget.message, entry.key);
+                      },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: context.outlineColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(entry.key, style: const TextStyle(fontSize: 14)),
-                    if (entry.value > 1) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '${entry.value}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.textSecondaryColor,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(entry.key, style: const TextStyle(fontSize: 14)),
+                      if (entry.value > 1) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          '${entry.value}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.textSecondaryColor,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               );
             }).toList(),

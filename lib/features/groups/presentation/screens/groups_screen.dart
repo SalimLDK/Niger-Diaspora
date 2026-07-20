@@ -5,11 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/errors/failure_mapper.dart';
+import '../../../../core/responsive/responsive_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../providers/group_request_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class GroupsScreen extends ConsumerStatefulWidget {
   const GroupsScreen({super.key});
@@ -22,6 +26,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   GroupCategory? _selectedCategory;
   String? _selectedCountry;
   String? _selectedRegion;
+  bool _showTitle = false;
+  static const double _expandedHeight = 210;
 
   @override
   void initState() {
@@ -32,12 +38,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     });
   }
 
-  void _loadData() {
+  Future<void> _loadData() async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (currentUser != null) {
-      ref.read(myGroupsNotifierProvider.notifier).loadMyGroups(currentUser.id);
-    }
-    ref.read(groupsNotifierProvider.notifier).loadGroups();
+    // Charger les données en parallèle et attendre qu'elles arrivent pour le feedback visuel
+    await Future.wait([
+      ref.read(groupsNotifierProvider.notifier).loadGroups(),
+      if (currentUser != null)
+        ref.read(myGroupsNotifierProvider.notifier).loadMyGroups(currentUser.id),
+    ]);
   }
 
   void _loadDefaultCountryFilter() {
@@ -61,26 +69,91 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     });
   }
 
-  /// Applique tous les filtres actifs (catégorie, pays, région) à une liste de groupes
-  List<GroupEntity> _applyFilters(List<GroupEntity> groups) {
+  /// Applique tous les filtres actifs (catégorie, pays, région) à une liste de groupes.
+  /// [applyGeoFilters] permet d'exclure les filtres géographiques pour "Mes groupes".
+  List<GroupEntity> _applyFilters(
+    List<GroupEntity> groups, {
+    bool applyGeoFilters = true,
+  }) {
     var filtered = groups;
 
-    // Filtre par catégorie
     if (_selectedCategory != null) {
       filtered = filtered.where((g) => g.category == _selectedCategory).toList();
     }
 
-    // Filtre par pays d'accueil
+    if (!applyGeoFilters) return filtered;
+
     if (_selectedCountry != null) {
       filtered = filtered.where((g) => g.country == _selectedCountry).toList();
     }
 
-    // Filtre par région d'origine
     if (_selectedRegion != null) {
       filtered = filtered.where((g) => g.originRegion == _selectedRegion).toList();
     }
 
     return filtered;
+  }
+
+  /// Groupes correspondant au pays/région du profil de l'utilisateur, qu'il
+  /// n'a pas encore rejoints. Le groupe officiel du pays (s'il est present)
+  /// est mis en avant en premier.
+  Widget _buildSuggestedSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    String? currentUserId,
+    AsyncValue<List<GroupEntity>> allGroupsAsync,
+    AsyncValue<List<GroupEntity>> myGroupsAsync,
+  ) {
+    if (currentUserId == null) return const SizedBox.shrink();
+
+    final profile = ref.watch(profileNotifierProvider(currentUserId)).valueOrNull;
+    if (profile == null) return const SizedBox.shrink();
+    if ((profile.currentCountry ?? '').isEmpty &&
+        (profile.originRegion ?? '').isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final allGroups = allGroupsAsync.valueOrNull ?? [];
+    final myGroupIds = (myGroupsAsync.valueOrNull ?? []).map((g) => g.id).toSet();
+
+    final suggested = allGroups
+        .where((g) => !myGroupIds.contains(g.id))
+        .where(
+          (g) =>
+              (profile.currentCountry != null &&
+                  g.country == profile.currentCountry) ||
+              (profile.originRegion != null &&
+                  g.originRegion == profile.originRegion),
+        )
+        .toList()
+      ..sort((a, b) => (b.isOfficial ? 1 : 0) - (a.isOfficial ? 1 : 0));
+
+    if (suggested.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 28),
+        _SectionHeader(
+          title: 'Suggéré pour toi',
+          icon: Icons.auto_awesome,
+          iconColor: context.adaptivePrimaryColor,
+        ),
+        const SizedBox(height: 16),
+        ...suggested.take(5).map(
+              (group) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _GroupCard(
+                  group: group,
+                  isJoined: false,
+                  currentUserId: currentUserId,
+                  onTap: () => context.push('/groups/${group.id}', extra: group),
+                  onJoinLeave: () => _joinGroup(group.id),
+                ),
+              ),
+            ),
+      ],
+    );
   }
 
   @override
@@ -92,22 +165,37 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      body: RefreshIndicator(
-        onRefresh: () async => _loadData(),
-        color: context.adaptivePrimaryColor,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (n) {
+          final collapsed = n.metrics.pixels > (_expandedHeight - kToolbarHeight);
+          if (collapsed != _showTitle) setState(() => _showTitle = collapsed);
+          return false;
+        },
+        child: RefreshIndicator(
+          onRefresh: () async => _loadData(),
+          color: context.adaptivePrimaryColor,
+          child: CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             // Header avec gradient
-            SliverToBoxAdapter(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: context.adaptiveSecondaryGradient,
-                ),
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: _expandedHeight,
+              backgroundColor: context.adaptivePrimaryColor,
+              automaticallyImplyLeading: false,
+              title: _showTitle
+                  ? Text(l10n.groupsTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+                  : null,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.pin,
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: context.adaptiveSecondaryGradient,
+                  ),
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    padding: EdgeInsets.fromLTRB(context.horizontalPadding, 16, context.horizontalPadding, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -127,7 +215,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Rejoignez une communauté',
+                                  l10n.joinCommunity,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: AppColors.white.withValues(
@@ -137,20 +225,40 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                 ),
                               ],
                             ),
-                            GestureDetector(
-                              onTap: () => context.push('/groups/create'),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(14),
+                            Row(
+                              children: [
+                                // TODO: Réactiver l'icône carte des groupes une fois
+                                // GroupsMapScreen stabilisé (désactivée sur demande).
+                                // GestureDetector(
+                                //   onTap: () => context.push('/groups/map'),
+                                //   child: Container(
+                                //     padding: const EdgeInsets.all(12),
+                                //     decoration: BoxDecoration(
+                                //       color: AppColors.white.withValues(alpha: 0.2),
+                                //       borderRadius: BorderRadius.circular(14),
+                                //     ),
+                                //     child: const AppIcon(AppIcon.location,
+                                //       color: AppColors.white,
+                                //       size: 24,
+                                //     ),
+                                //   ),
+                                // ),
+                                // const SizedBox(width: 10),
+                                GestureDetector(
+                                  onTap: () => context.push('/groups/create'),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const AppIcon(AppIcon.add,
+                                      color: AppColors.white,
+                                      size: 24,
+                                    ),
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.add,
-                                  color: AppColors.white,
-                                  size: 24,
-                                ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
@@ -187,8 +295,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                     color: context.secondaryBackgroundColor,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(
-                                    Icons.search,
+                                  child: AppIcon(AppIcon.search,
                                     color: context.adaptivePrimaryColor,
                                     size: 20,
                                   ),
@@ -213,6 +320,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                 ),
               ),
             ),
+          ),
             // Filtres par catégorie
             SliverToBoxAdapter(
               child: Container(
@@ -220,10 +328,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                 margin: const EdgeInsets.only(top: 20),
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
                   children: [
                     _CategoryChip(
-                      label: 'Tous',
+                      label: l10n.all,
                       isSelected: _selectedCategory == null,
                       onTap: () => setState(() => _selectedCategory = null),
                     ),
@@ -249,9 +357,12 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
             ),
             // Contenu principal
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(context.horizontalPadding),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // Invitations reçues
+                  _ReceivedInvitationsSection(onInviteAccepted: _loadData),
+
                   // Mes groupes
                   _SectionHeader(
                     title: l10n.myGroups,
@@ -264,7 +375,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   myGroupsAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (myGroups) {
-                      final filteredGroups = _applyFilters(myGroups);
+                      final filteredGroups = _applyFilters(myGroups, applyGeoFilters: false);
 
                       if (filteredGroups.isEmpty) {
                         return _buildEmptyMyGroups();
@@ -294,6 +405,9 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                     loading: () => _buildLoadingCards(2),
                     error: (error, _) => _buildErrorWidget(l10n.loadingError),
                   ),
+
+                  // Suggéré pour toi (pays/région du profil) - masquée si rien à suggérer
+                  _buildSuggestedSection(context, l10n, currentUser?.id, allGroupsAsync, myGroupsAsync),
 
                   // Section Découvrir - masquée si aucun groupe à découvrir
                   allGroupsAsync.when(
@@ -357,7 +471,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                 ]),
               ),
             ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ),
           ],
+        ),
         ),
       ),
     );
@@ -412,11 +530,18 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     );
 
     if (confirm == true) {
-      final success = await ref
+      final result = await ref
           .read(groupDetailNotifierProvider.notifier)
           .leaveGroup(groupId, currentUser.id);
 
-      if (success) {
+      if (result.isCreator) {
+        // Le créateur doit d'abord transférer la propriété
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.creatorMustTransferOwnership)),
+          );
+        }
+      } else if (result.success) {
         _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -434,8 +559,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
       decoration: context.cardDecoration,
       child: Column(
         children: [
-          Icon(
-            Icons.groups_outlined,
+          AppIcon(
+            AppIcon.groups,
             size: 48,
             color: context.textTertiaryColor.withValues(alpha: 0.5),
           ),
@@ -478,16 +603,19 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Widget _buildErrorWidget(String message) {
+    // Convertir l'erreur technique en message user-friendly
+    final userFriendlyMessage = FailureMapper.toUserFriendlyString(message, context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: context.cardDecoration,
       child: Column(
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          const AppIcon(AppIcon.error, size: 48, color: Colors.red),
           const SizedBox(height: 12),
           Text(
-            message,
+            userFriendlyMessage,
             style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -495,6 +623,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Widget _buildGeoFilters() {
+    final l10n = AppLocalizations.of(context)!;
     final countries = ref.watch(availableGroupCountriesProvider);
     final regions = ref.watch(availableGroupRegionsProvider);
 
@@ -521,7 +650,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Pays d\'accueil',
+                    l10n.hostCountry,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -535,10 +664,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               height: 36,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
                 children: [
                   _GeoFilterChip(
-                    label: 'Tous',
+                    label: l10n.all,
                     isSelected: _selectedCountry == null,
                     onTap: () => setState(() => _selectedCountry = null),
                   ),
@@ -563,14 +692,13 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               padding: const EdgeInsets.only(left: 20, bottom: 8),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.location_on,
+                  AppIcon(AppIcon.location,
                     size: 14,
                     color: context.textTertiaryColor,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Région d\'origine',
+                    l10n.originRegionLabel,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -584,10 +712,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               height: 36,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: context.horizontalPadding),
                 children: [
                   _GeoFilterChip(
-                    label: 'Toutes',
+                    label: l10n.allFeminine,
                     isSelected: _selectedRegion == null,
                     onTap: () => setState(() => _selectedRegion = null),
                   ),
@@ -681,16 +809,14 @@ class _GroupCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           placeholder:
                               (_, __) => const Center(
-                                child: Icon(
-                                  Icons.groups,
+                                child: AppIcon(AppIcon.groups,
                                   color: AppColors.white,
                                   size: 30,
                                 ),
                               ),
                           errorWidget:
                               (_, __, ___) => const Center(
-                                child: Icon(
-                                  Icons.groups,
+                                child: AppIcon(AppIcon.groups,
                                   color: AppColors.white,
                                   size: 30,
                                 ),
@@ -698,8 +824,7 @@ class _GroupCard extends StatelessWidget {
                         ),
                       )
                       : const Center(
-                        child: Icon(
-                          Icons.groups,
+                        child: AppIcon(AppIcon.groups,
                           color: AppColors.white,
                           size: 30,
                         ),
@@ -710,15 +835,42 @@ class _GroupCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    group.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.textPrimaryColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          group.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: context.textPrimaryColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (group.isOfficial) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Officiel',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -745,8 +897,7 @@ class _GroupCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.people,
+                            AppIcon(AppIcon.people,
                               size: 12,
                               color: context.adaptivePrimaryColor,
                             ),
@@ -1039,6 +1190,401 @@ class _GeoFilterChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ReceivedInvitationsSection extends ConsumerWidget {
+  final VoidCallback onInviteAccepted;
+
+  const _ReceivedInvitationsSection({required this.onInviteAccepted});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final invitesAsync = ref.watch(receivedGroupInvitesProvider);
+    final invites = invitesAsync.valueOrNull ?? [];
+
+    if (invites.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.mail_outline, color: context.adaptivePrimaryColor, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              '${l10n.receivedGroupInvitations} (${invites.length})',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...invites.map(
+          (invite) => _InviteCard(
+            invite: invite,
+            onAccepted: onInviteAccepted,
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+}
+
+class _InviteCard extends ConsumerWidget {
+  final dynamic invite;
+  final VoidCallback onAccepted;
+
+  const _InviteCard({required this.invite, required this.onAccepted});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
+        ),
+        boxShadow: context.isDarkMode
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Zone d'infos : tap = aperçu des détails du groupe avant de décider.
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _showGroupDetails(context, ref),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: invite.groupImageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            invite.groupImageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => AppIcon(
+                              AppIcon.groups,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                          ),
+                        )
+                      : AppIcon(AppIcon.groups,
+                          color: context.adaptivePrimaryColor),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        invite.groupName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: context.textPrimaryColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.invitedByName(invite.inviterName),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.textTertiaryColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: context.textTertiaryColor,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Accepter / Refuser sur la même ligne, pleine largeur (moins d'erreurs).
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _decline(context, ref),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(l10n.declineRequest),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _accept(context, ref),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(l10n.acceptRequest),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _accept(BuildContext context, WidgetRef ref) async {
+    final ok = await ref
+        .read(groupInviteNotifierProvider.notifier)
+        .acceptInvite(invite.id);
+    if (ok) {
+      ref.invalidate(myGroupsNotifierProvider);
+      onAccepted();
+    } else if (context.mounted) {
+      _showError(context);
+    }
+  }
+
+  Future<void> _decline(BuildContext context, WidgetRef ref) async {
+    final ok = await ref
+        .read(groupInviteNotifierProvider.notifier)
+        .declineInvite(invite.id);
+    // La liste se rafraîchit via l'invalidation dans le notifier.
+    if (!ok && context.mounted) {
+      _showError(context);
+    }
+  }
+
+  void _showError(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Action impossible pour le moment, réessayez.'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  /// Aperçu des détails du groupe (nom, description, membres) avant de décider.
+  void _showGroupDetails(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Consumer(
+          builder: (ctx, ref2, _) {
+            final groupAsync = ref2.watch(groupByIdProvider(invite.groupId));
+            return Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(ctx).padding.bottom + 20,
+              ),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: context.textTertiaryColor.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: context.adaptivePrimaryColor
+                              .withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: invite.groupImageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Image.network(
+                                  invite.groupImageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => AppIcon(
+                                    AppIcon.groups,
+                                    color: context.adaptivePrimaryColor,
+                                  ),
+                                ),
+                              )
+                            : AppIcon(AppIcon.groups,
+                                color: context.adaptivePrimaryColor),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              invite.groupName,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: context.textPrimaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              AppLocalizations.of(context)!
+                                  .invitedByName(invite.inviterName),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: context.textTertiaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  groupAsync.when(
+                    data: (group) {
+                      if (group == null) {
+                        return Text(
+                          'Détails indisponibles.',
+                          style: TextStyle(color: context.textTertiaryColor),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.group_outlined,
+                                  size: 18,
+                                  color: context.textTertiaryColor),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${group.memberCount} membre${group.memberCount > 1 ? 's' : ''}',
+                                style: TextStyle(
+                                  color: context.textSecondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (group.description.trim().isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              group.description,
+                              style: TextStyle(
+                                color: context.textSecondaryColor,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => Text(
+                      'Détails indisponibles.',
+                      style: TextStyle(color: context.textTertiaryColor),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _decline(context, ref);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.declineRequest,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _accept(context, ref);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.acceptRequest,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
