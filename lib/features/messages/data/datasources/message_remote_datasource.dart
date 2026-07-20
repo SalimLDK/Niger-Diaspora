@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:flutter/foundation.dart';
-// import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 // No need for 'Query' import conflict if we use prefixes or explicit types
 // But MessageRemoteDataSource interface used DocumentSnapshot, we changed it to dynamic lastMessageKey
@@ -14,6 +14,9 @@ import 'package:path/path.dart' as path;
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/encryption_service.dart';
+import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/utils/retry_helper.dart';
+import '../../domain/entities/message_entity.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 
@@ -49,17 +52,34 @@ abstract class MessageRemoteDataSource {
     required String conversationId,
   });
 
+  /// Récupérer un message précis (déchiffré), même hors de la fenêtre
+  /// paginée — utilisé par le bandeau des messages épinglés.
+  Future<MessageModel?> getMessageById({
+    required String conversationId,
+    required String messageId,
+  });
+
   /// Envoyer un message texte
   Future<MessageModel> sendTextMessage({
     required String conversationId,
     required String senderId,
     required String senderName,
     String? senderPhotoUrl,
+    bool senderIsVerified = false,
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    String? recipientId,
+    List<String> participantIds = const [],
     Map<String, dynamic>? productData,
+    Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
+    Map<String, dynamic>? linkPreviewData,
+    bool isForwarded = false,
+    List<Map<String, String>> mentionedUsers = const [],
+    String? clientMessageId,
+    bool selfNote = false,
   });
 
   /// Envoyer un message avec fichier (Legacy - prefer split methods)
@@ -96,12 +116,23 @@ abstract class MessageRemoteDataSource {
     String? caption,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
+    String? thumbnailUrl,
+    int? videoDuration,
+    int? audioDuration,
+    List<double>? audioWaveform,
+    String? blurhash,
   });
 
   /// Créer une conversation individuelle
   Future<ConversationModel> createIndividualConversation({
     required String currentUserId,
     required String otherUserId,
+  });
+
+  /// Obtenir ou créer la conversation « Mes notes » (self-chat) de l'utilisateur.
+  Future<ConversationModel> getOrCreateSelfConversation({
+    required String userId,
   });
 
   /// Créer une conversation de groupe
@@ -113,8 +144,20 @@ abstract class MessageRemoteDataSource {
     String? groupId, // Add groupId parameter
   });
 
+  /// Marquer comme livré (message reçu sur l'appareil du destinataire)
+  Future<void> markAsDelivered({
+    required String conversationId,
+    required String userId,
+  });
+
   /// Marquer comme lu
   Future<void> markAsRead({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Remettre à zéro le compteur de mentions non lues pour un utilisateur
+  Future<void> clearUnreadMentions({
     required String conversationId,
     required String userId,
   });
@@ -141,6 +184,34 @@ abstract class MessageRemoteDataSource {
     required File audioFile,
     required int duration,
     required List<double> waveform,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
+  });
+
+  /// Envoyer un message de localisation
+  Future<MessageModel> sendLocationMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required double latitude,
+    required double longitude,
+    required String address,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  });
+
+  /// Envoyer un sticker
+  Future<MessageModel> sendStickerMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String stickerPackId,
+    required String stickerId,
+    required String stickerUrl,
+    bool isAnimated = false,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
   });
@@ -190,9 +261,11 @@ abstract class MessageRemoteDataSource {
   });
 
   /// Mettre en sourdine une conversation
+  /// [duration] - Duration to mute for. null means mute forever.
   Future<void> muteConversation({
     required String conversationId,
     required String userId,
+    Duration? duration,
   });
 
   /// Réactiver les notifications pour une conversation
@@ -200,6 +273,21 @@ abstract class MessageRemoteDataSource {
     required String conversationId,
     required String userId,
   });
+
+  /// Épingler une conversation
+  Future<void> pinConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Désépingler une conversation
+  Future<void> unpinConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Obtenir le nombre de conversations épinglées par un utilisateur
+  Future<int> getPinnedConversationCount(String userId);
 
   /// Promouvoir un utilisateur comme admin du groupe
   Future<void> promoteToAdmin({
@@ -269,24 +357,96 @@ abstract class MessageRemoteDataSource {
     String userId,
     String query,
   );
+
+  /// Toggle star status for a message
+  Future<void> toggleStarMessage({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  });
+
+  /// Edit a text message (within time limit)
+  Future<void> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String newContent,
+    required String oldContent,
+  });
+
+  /// Set auto-delete settings for ephemeral messages
+  Future<void> setAutoDeleteSettings({
+    required String conversationId,
+    required int? durationSeconds,
+  });
+
+  /// Get auto-delete settings for a conversation
+  Future<int?> getAutoDeleteSettings(String conversationId);
+
+  /// Get starred messages for a conversation by user
+  Future<List<MessageModel>> getStarredMessages({
+    required String conversationId,
+    required String userId,
+    int limit = 100,
+  });
+
+  /// Search messages in a conversation by content
+  Future<List<MessageModel>> searchMessagesInConversation({
+    required String conversationId,
+    required String query,
+    int limit = 200,
+  });
+
+  /// Restaurer une conversation pour un utilisateur (retirer de deletedBy)
+  Future<void> restoreConversationForUser({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Recuperer une conversation par son ID
+  Future<ConversationModel?> getConversationById(String conversationId);
+
+  /// Recuperer uniquement les messages depuis un timestamp (sync differentielle)
+  Future<List<MessageModel>> getMessagesSince({
+    required String conversationId,
+    required DateTime since,
+    int limit = 100,
+  });
+
+  /// Get pending message requests for a user (conversations where user is recipient)
+  Stream<List<ConversationModel>> getMessageRequests(String userId);
+
+  /// Update the request status of a conversation (accept or decline)
+  Future<void> updateRequestStatus({
+    required String conversationId,
+    required String status,
+    required String recipientId,
+  });
+
+  /// Create an individual conversation as a message request (for non-linked users)
+  Future<ConversationModel> createIndividualConversationAsRequest({
+    required String currentUserId,
+    required String otherUserId,
+  });
 }
 
 class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   final firestore.FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
   final FirebaseDatabase _database;
-  final EncryptionService _encryptionService; // New dependency
+  final EncryptionService _encryptionService;
+  final MessageCryptoService? _crypto;
 
   MessageRemoteDataSourceImpl({
     firestore.FirebaseFirestore? firestoreInstance,
     FirebaseStorage? storage,
     FirebaseDatabase? database,
     EncryptionService? encryptionService,
+    MessageCryptoService? messageCryptoService,
   }) : _firestore = firestoreInstance ?? firestore.FirebaseFirestore.instance,
        _storage = storage ?? FirebaseStorage.instance,
        _database = database ?? FirebaseDatabase.instance,
-       _encryptionService =
-           encryptionService ?? EncryptionService(); // Default or injected
+       _encryptionService = encryptionService ?? EncryptionService(),
+       _crypto = messageCryptoService;
 
   firestore.CollectionReference get _conversationsCollection =>
       _firestore.collection(FirebaseCollections.conversations);
@@ -378,9 +538,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         if (value is Map) {
           final data = _safeMap(value);
           data['id'] = key;
-          if (data['content'] is String) {
-            data['content'] = _encryptionService.decryptText(data['content']);
-          }
+          _decryptMessageFields(data);
           messages.add(MessageModel.fromJson(data));
         }
       });
@@ -432,16 +590,16 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       final messages = <MessageModel>[];
       final map = snapshot.value as Map<dynamic, dynamic>;
 
-      map.forEach((key, value) {
-        if (value is Map) {
-          final data = _safeMap(value);
-          data['id'] = key;
-          if (data['content'] is String) {
-            data['content'] = _encryptionService.decryptText(data['content']);
-          }
+      for (final entry in map.entries) {
+        if (entry.value is Map) {
+          final data = _safeMap(entry.value as Map);
+          data['id'] = entry.key;
+          _decryptMessageFields(data);
+          // Async Signal decryption (overrides AES content if e2eePayload present)
+          await _decryptE2EEContent(data);
           messages.add(MessageModel.fromJson(data));
         }
-      });
+      }
 
       // RTDB returns order by key/child if we iterate correctly, but raw Map is unordered.
       messages.sort((a, b) {
@@ -494,11 +652,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
             if (value is Map) {
               final data = _safeMap(value);
               data['id'] = key;
-              if (data['content'] is String) {
-                data['content'] = _encryptionService.decryptText(
-                  data['content'],
-                );
-              }
+              _decryptMessageFields(data);
               messages.add(MessageModel.fromJson(data));
             }
           });
@@ -523,11 +677,110 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     return _messagesRef(conversationId).onChildChanged.map((event) {
       final data = _safeMap(event.snapshot.value);
       data['id'] = event.snapshot.key;
-      if (data['content'] is String) {
-        data['content'] = _encryptionService.decryptText(data['content']);
-      }
+      _decryptMessageFields(data);
       return MessageModel.fromJson(data);
     });
+  }
+
+  @override
+  Future<MessageModel?> getMessageById({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    final snapshot = await _messagesRef(conversationId).child(messageId).get();
+    if (snapshot.value == null) return null;
+    final data = _safeMap(snapshot.value);
+    data['id'] = messageId;
+    _decryptMessageFields(data);
+    return MessageModel.fromJson(data);
+  }
+
+  /// Helper to decrypt message fields (content, locationAddress, latitude, longitude)
+  void _decryptMessageFields(Map<String, dynamic> data) {
+    if (data['content'] is String) {
+      try {
+        data['content'] = _encryptionService.decryptText(data['content']);
+      } catch (_) {
+        // Keep original content if decryption fails (legacy unencrypted data)
+      }
+    }
+    if (data['locationAddress'] is String && (data['locationAddress'] as String).isNotEmpty) {
+      try {
+        data['locationAddress'] = _encryptionService.decryptText(data['locationAddress']);
+      } catch (_) {
+        // Keep original address if decryption fails (legacy unencrypted data)
+      }
+    }
+    if (data['latitude'] is String) {
+      try {
+        final decrypted = _encryptionService.decryptText(data['latitude'] as String);
+        data['latitude'] = double.tryParse(decrypted) ?? data['latitude'];
+      } catch (_) {
+        // Keep original value if decryption fails (legacy unencrypted data)
+      }
+    }
+    if (data['longitude'] is String) {
+      try {
+        final decrypted = _encryptionService.decryptText(data['longitude'] as String);
+        data['longitude'] = double.tryParse(decrypted) ?? data['longitude'];
+      } catch (_) {
+        // Keep original value if decryption fails (legacy unencrypted data)
+      }
+    }
+  }
+
+  /// Encrypt [plaintext] for a conversation, choosing Signal or AES-GCM based
+  /// on conversation type and session availability.
+  ///
+  /// Reads participantIds from [convDoc] (already fetched by most callers).
+  /// Returns a [CryptoResult] that callers spread into their RTDB payload.
+  Future<CryptoResult> _encryptContent({
+    required String plaintext,
+    required String senderId,
+    required firestore.DocumentSnapshot convDoc,
+    String? conversationId,
+  }) async {
+    if (_crypto != null && convDoc.exists) {
+      final convData = convDoc.data() as Map<String, dynamic>?;
+      final participantIds = List<String>.from(convData?['participantIds'] ?? []);
+      if (participantIds.length == 2) {
+        // 1:1 conversation — Signal per-session encryption
+        final recipientId = participantIds.firstWhere(
+          (id) => id != senderId,
+          orElse: () => '',
+        );
+        if (recipientId.isNotEmpty) {
+          return _crypto.encrypt1to1(plaintext: plaintext, recipientId: recipientId);
+        }
+      }
+      // Group conversation — Sender Key encryption
+      return _crypto.encryptGroup(plaintext, groupId: conversationId);
+    }
+    return CryptoResult(
+      {'content': _encryptionService.encryptText(plaintext), 'encryptionLevel': 'aes'},
+      'aes',
+    );
+  }
+
+  /// Async Signal-Protocol decryption step.
+  /// Called after [_decryptMessageFields] (sync AES-GCM pass).
+  /// Handles both the new multi-device format (`e2eePayloads`) and the legacy
+  /// single-device format (`e2eePayload`). Delegates entirely to
+  /// [MessageCryptoService.decrypt] which encapsulates all format detection.
+  Future<void> _decryptE2EEContent(Map<String, dynamic> data) async {
+    if (_crypto == null) return;
+    // Only enter the async path if an E2EE payload is actually present.
+    final hasNew       = data['e2eePayloads']      != null;
+    final hasLegacy    = data['e2eePayload']        != null;
+    final hasSenderKey = data['senderKeyPayload']   != null;
+    if (!hasNew && !hasLegacy && !hasSenderKey) return;
+
+    final senderId = data['senderId'] as String? ?? '';
+    data['content'] = await _crypto.decrypt(payload: data, senderId: senderId);
+    // Clean up raw payload fields after decryption
+    data.remove('e2eePayloads');
+    data.remove('e2eePayload');
+    data.remove('senderKeyPayload');
   }
 
   /// Helper to safe convert `Map<Object?, Object?>` to `Map<String, dynamic>` recursively
@@ -588,27 +841,74 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String senderId,
     required String senderName,
     String? senderPhotoUrl,
+    bool senderIsVerified = false,
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
+    Map<String, dynamic>? linkPreviewData,
+    bool isForwarded = false,
+    List<Map<String, String>> mentionedUsers = const [],
+    String? clientMessageId,
+    String? recipientId,
+    List<String> participantIds = const [],
+    bool selfNote = false,
   }) async {
-    final now = DateTime.now().toIso8601String();
-    final encryptedContent = _encryptionService.encryptText(content);
+    // CORRECTION: Ressusciter la conversation si necessaire (soft delete)
+    final convDoc = await _conversationsCollection.doc(conversationId).get();
+    int? autoDeleteSeconds;
+    if (convDoc.exists) {
+      final convData = convDoc.data() as Map<String, dynamic>?;
+      final participantIds = List<String>.from(convData?['participantIds'] ?? []);
+      autoDeleteSeconds = convData?['autoDeleteAfterSeconds'] as int?;
+      await _resurrectConversationIfNeeded(
+        conversationId: conversationId,
+        participantIds: participantIds,
+      );
+    }
+
+    final nowDateTime = DateTime.now();
+    final now = nowDateTime.toIso8601String();
+
+    final cryptoResult = await _encryptContent(
+      plaintext: content,
+      senderId: senderId,
+      convDoc: convDoc,
+      conversationId: conversationId,
+    );
+
+    // Calculate expiresAt if auto-delete is enabled
+    String? expiresAt;
+    if (autoDeleteSeconds != null) {
+      expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+    }
+
     final messageData = {
       'senderId': senderId,
       'senderName': senderName,
       'senderPhotoUrl': senderPhotoUrl,
-      'content': encryptedContent,
+      ...cryptoResult.fields,
       'type': 'text',
       'readBy': [senderId],
       'readAt': {senderId: now},
+      'deliveredTo': [senderId],
+      'deliveredAt': {senderId: now},
       'createdAt': now,
       'replyToId': replyToId,
       'replyToMessageData': replyToMessageData,
       if (productData != null) 'productData': productData,
+      if (postData != null) 'postData': postData,
+      if (eventData != null) 'eventData': eventData,
       if (sentWhileBlockedBy.isNotEmpty) 'sentWhileBlockedBy': sentWhileBlockedBy,
+      if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
+      if (isForwarded) 'isForwarded': true,
+      if (expiresAt != null) 'expiresAt': expiresAt,
+      if (mentionedUsers.isNotEmpty) 'mentionedUsers': mentionedUsers,
+      if (clientMessageId != null) 'clientMessageId': clientMessageId,
+      if (senderIsVerified) 'senderIsVerified': true,
     };
 
     // Create message in RTDB - this is the critical operation
@@ -619,9 +919,11 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     await _updateConversationLastMessage(
       conversationId: conversationId,
       lastMessage:
-          productData != null
-              ? '🛒 ${productData['title'] ?? 'Produit'}'
-              : content,
+          postData != null
+              ? '📌 ${postData['authorName'] ?? 'Post partagé'}'
+              : productData != null
+                  ? '🛒 ${productData['title'] ?? 'Produit'}'
+                  : content,
       senderId: senderId,
     );
 
@@ -639,6 +941,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         senderId: senderId,
         senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
+        senderIsVerified: senderIsVerified,
         content: content,
         type: 'text',
         createdAt: DateTime.parse(now),
@@ -647,6 +950,8 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
         productData: productData,
+        postData: postData,
+        eventData: eventData,
       );
     }
   }
@@ -683,10 +988,21 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   Future<void> muteConversation({
     required String conversationId,
     required String userId,
+    Duration? duration,
   }) async {
     try {
+      // Calculate mute expiration time
+      // null duration = forever, otherwise calculate expiration
+      final String muteValue;
+      if (duration == null) {
+        muteValue = 'forever';
+      } else {
+        final expirationTime = DateTime.now().add(duration);
+        muteValue = expirationTime.toIso8601String();
+      }
+
       await _conversationsCollection.doc(conversationId).update({
-        'mutedBy': firestore.FieldValue.arrayUnion([userId]),
+        'mutedBy.$userId': muteValue,
       });
     } on firestore.FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise en sourdine');
@@ -700,12 +1016,59 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   }) async {
     try {
       await _conversationsCollection.doc(conversationId).update({
-        'mutedBy': firestore.FieldValue.arrayRemove([userId]),
+        'mutedBy.$userId': firestore.FieldValue.delete(),
       });
     } on firestore.FirebaseException catch (e) {
       throw ServerException(
         e.message ?? 'Erreur lors de la réactivation des notifications',
       );
+    }
+  }
+
+  @override
+  Future<void> pinConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      // Vérifier la limite de 5 conversations épinglées
+      final count = await getPinnedConversationCount(userId);
+      if (count >= 5) {
+        throw ServerException('Vous ne pouvez pas épingler plus de 5 conversations');
+      }
+
+      await _conversationsCollection.doc(conversationId).update({
+        'pinnedBy.$userId': firestore.FieldValue.serverTimestamp(),
+      });
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de l\'épinglage');
+    }
+  }
+
+  @override
+  Future<void> unpinConversation({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      await _conversationsCollection.doc(conversationId).update({
+        'pinnedBy.$userId': firestore.FieldValue.delete(),
+      });
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors du désépinglage');
+    }
+  }
+
+  @override
+  Future<int> getPinnedConversationCount(String userId) async {
+    try {
+      final snapshot = await _conversationsCollection
+          .where('participantIds', arrayContains: userId)
+          .where('pinnedBy.$userId', isNull: false)
+          .get();
+      return snapshot.docs.length;
+    } on firestore.FirebaseException {
+      return 0;
     }
   }
 
@@ -724,16 +1087,37 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     try {
       // Legacy method - still functional but blocking
       final fileName = path.basename(file.path);
-      final task = uploadMediaFile(
-        file: file,
-        conversationId: conversationId,
-        fileName: fileName,
-      );
 
-      final snapshot = await task;
-      final fileUrl = await snapshot.ref.getDownloadURL();
+      // Upload avec retry automatique
+      final fileUrl = await RetryHelper.withRetry(
+        operation: () async {
+          final task = uploadMediaFile(
+            file: file,
+            conversationId: conversationId,
+            fileName: fileName,
+          );
+          final snapshot = await task;
+          return await snapshot.ref.getDownloadURL();
+        },
+        config: RetryConfig.uploadConfig,
+        onRetry: (attempt, error) {
+          // debugPrint('Upload retry $attempt: $error');
+        },
+      );
       final fileSize = await file.length();
       final mimeType = _getMimeType(path.extension(file.path));
+
+      // Generate and upload thumbnail for videos
+      String? thumbnailUrl;
+      int? videoDuration;
+      if (type == 'video') {
+        final thumbnailResult = await _generateAndUploadVideoThumbnail(
+          videoFile: file,
+          conversationId: conversationId,
+        );
+        thumbnailUrl = thumbnailResult.$1;
+        videoDuration = thumbnailResult.$2;
+      }
 
       return sendMediaMessage(
         conversationId: conversationId,
@@ -748,11 +1132,57 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         caption: caption,
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
+        thumbnailUrl: thumbnailUrl,
+        videoDuration: videoDuration,
       );
     } catch (e) {
       throw ServerException(
         'Erreur lors de l\'envoi du fichier: ${e.toString()}',
       );
+    }
+  }
+
+  /// Generate a thumbnail from a video file and upload it to Firebase Storage
+  Future<(String?, int?)> _generateAndUploadVideoThumbnail({
+    required File videoFile,
+    required String conversationId,
+  }) async {
+    try {
+      // Generate thumbnail from video
+      final Uint8List? thumbnailData = await VideoThumbnail.thumbnailData(
+        video: videoFile.path,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 320,
+        quality: 75,
+      );
+
+      if (thumbnailData == null) {
+        return (null, null);
+      }
+
+      // Upload thumbnail to Firebase Storage
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final thumbnailPath = 'thumbnails/$conversationId/${timestamp}_thumb.jpg';
+      final thumbnailRef = _storage.ref().child(thumbnailPath);
+
+      await thumbnailRef.putData(
+        thumbnailData,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      final thumbnailUrl = await thumbnailRef.getDownloadURL();
+
+      // Try to get video duration (approximate from file size if not available)
+      // Note: Getting exact duration requires video_player or ffmpeg
+      // For now, we'll estimate based on file size (rough approximation)
+      final fileSize = await videoFile.length();
+      // Rough estimate: 1MB ~= 8 seconds for compressed video
+      final estimatedDuration = (fileSize / (1024 * 1024) * 8).round();
+
+      return (thumbnailUrl, estimatedDuration > 0 ? estimatedDuration : null);
+    } catch (e) {
+      // If thumbnail generation fails, continue without it
+      return (null, null);
     }
   }
 
@@ -782,18 +1212,47 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     String? caption,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
+    String? thumbnailUrl,
+    int? videoDuration,
+    int? audioDuration,
+    List<double>? audioWaveform,
+    String? blurhash,
   }) async {
     try {
-      final now = DateTime.now().toIso8601String();
-      final encryptedContent = _encryptionService.encryptText(
-        caption ?? fileName,
+      // Check for auto-delete settings
+      final convDoc = await _conversationsCollection.doc(conversationId).get();
+      int? autoDeleteSeconds;
+      if (convDoc.exists) {
+        final convData = convDoc.data() as Map<String, dynamic>?;
+        autoDeleteSeconds = convData?['autoDeleteAfterSeconds'] as int?;
+      }
+
+      final nowDateTime = DateTime.now();
+      final now = nowDateTime.toIso8601String();
+      // For video/image/audio file, use caption only - never show filename to users
+      final contentText =
+          (type == 'video' || type == 'image' || type == 'audioFile')
+              ? (caption ?? '')
+              : (caption ?? fileName);
+      final cryptoResult = await _encryptContent(
+        plaintext: contentText,
+        senderId: senderId,
+        convDoc: convDoc,
+        conversationId: conversationId,
       );
+
+      // Calculate expiresAt if auto-delete is enabled
+      String? expiresAt;
+      if (autoDeleteSeconds != null) {
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+      }
 
       final messageData = {
         'senderId': senderId,
         'senderName': senderName,
         'senderPhotoUrl': senderPhotoUrl,
-        'content': encryptedContent,
+        ...cryptoResult.fields,
         'type': type,
         'fileUrl': fileUrl,
         'fileName': fileName,
@@ -801,31 +1260,64 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'mimeType': mimeType,
         'readBy': [senderId],
         'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
         'createdAt': now,
         'replyToId': replyToId,
         'replyToMessageData': replyToMessageData,
+        if (isForwarded) 'isForwarded': true,
+        if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
+        if (videoDuration != null) 'videoDuration': videoDuration,
+        if (audioDuration != null) 'audioDuration': audioDuration,
+        if (audioWaveform != null) 'audioWaveform': audioWaveform,
+        if (blurhash != null) 'blurhash': blurhash,
+        if (expiresAt != null) 'expiresAt': expiresAt,
+        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toIso8601String(),
+        'mediaExpired': false,
       };
 
       final newMessageRef = _messagesRef(conversationId).push();
       await newMessageRef.set(messageData);
 
       // Update conversation metadata
-      final lastMessageText = type == 'image' ? '📷 Photo' : '📎 $fileName';
+      final String lastMessageText;
+      final MessageType msgType;
+      switch (type) {
+        case 'image':
+          lastMessageText = '📷 Photo';
+          msgType = MessageType.image;
+        case 'video':
+          lastMessageText = '🎬 Vidéo';
+          msgType = MessageType.video;
+        case 'audioFile':
+          lastMessageText = '🎵 Audio';
+          msgType = MessageType.audio;
+        default:
+          lastMessageText = '📎 Fichier';
+          msgType = MessageType.file;
+      }
       await _updateConversationLastMessage(
         conversationId: conversationId,
         lastMessage: lastMessageText,
         senderId: senderId,
+        messageType: msgType,
+        messageTypeString: type == 'audioFile' ? 'audioFile' : null,
       );
 
       final snapshot = await newMessageRef.get();
       // Handle potential null snapshot (though unlikely after set)
       if (snapshot.value == null) {
+        // For video/image/audio file, use caption only - never show filename to users
+        final contentForMedia =
+            (type == 'video' || type == 'image' || type == 'audioFile')
+                ? (caption ?? '')
+                : (caption ?? fileName);
         return MessageModel(
           id: newMessageRef.key!,
           senderId: senderId,
           senderName: senderName,
           senderPhotoUrl: senderPhotoUrl,
-          content: caption ?? fileName,
+          content: contentForMedia,
           type: type,
           fileUrl: fileUrl,
           fileName: fileName,
@@ -885,6 +1377,17 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         e.message ?? 'Erreur lors de la création de la conversation',
       );
     }
+  }
+
+  @override
+  Future<ConversationModel> getOrCreateSelfConversation({
+    required String userId,
+  }) async {
+    // Backend Firebase historique (non utilisé — l'app passe par Supabase).
+    // Implémentation minimale pour satisfaire l'interface.
+    throw ServerException(
+      'getOrCreateSelfConversation non supporté par le backend Firebase legacy',
+    );
   }
 
   @override
@@ -1034,6 +1537,14 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   }
 
   @override
+  Future<void> markAsDelivered({
+    required String conversationId,
+    required String userId,
+  }) async {
+    // Firebase RTDB handles delivery via presence; no-op for this implementation
+  }
+
+  @override
   Future<void> markAsRead({
     required String conversationId,
     required String userId,
@@ -1044,11 +1555,10 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'unreadCount.$userId': 0,
       });
 
-      // Update readBy on recent messages in RTDB
+      // Update readBy on all unread messages in RTDB
       final messagesRef = _messagesRef(conversationId);
       final snapshot = await messagesRef
           .orderByChild('createdAt')
-          .limitToLast(50) // Limit to recent messages for performance
           .get();
 
       if (snapshot.exists && snapshot.value != null) {
@@ -1079,6 +1589,22 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du marquage comme lu');
+    }
+  }
+
+  @override
+  Future<void> clearUnreadMentions({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      await _conversationsCollection.doc(conversationId).update({
+        'unreadMentions.$userId': 0,
+      });
+    } on FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la remise à zéro des mentions',
+      );
     }
   }
 
@@ -1189,6 +1715,8 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String conversationId,
     required String lastMessage,
     required String senderId,
+    MessageType messageType = MessageType.text,
+    String? messageTypeString,
   }) async {
     try {
       // Récupérer les participants pour incrémenter leurs compteurs
@@ -1211,6 +1739,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'lastMessage': encryptedLastMessage,
         'lastMessageSenderId': senderId,
         'lastMessageStatus': 'sent', // Always sent initially
+        'lastMessageType': messageTypeString ?? messageType.name,
         'lastMessageAt': firestore.FieldValue.serverTimestamp(),
         ...unreadUpdates,
       });
@@ -1444,29 +1973,55 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required List<double> waveform,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
   }) async {
     try {
-      // Upload audio file
+      // Upload audio file avec retry automatique
       final fileName = path.basename(audioFile.path);
       final fileExtension = path.extension(audioFile.path);
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final storagePath =
           'messages/$conversationId/audio_$timestamp$fileExtension';
 
-      final ref = _storage.ref().child(storagePath);
-      final uploadTask = await ref.putFile(audioFile);
-      final fileUrl = await uploadTask.ref.getDownloadURL();
+      final fileUrl = await RetryHelper.withRetry(
+        operation: () async {
+          final ref = _storage.ref().child(storagePath);
+          final uploadTask = await ref.putFile(audioFile);
+          return await uploadTask.ref.getDownloadURL();
+        },
+        config: RetryConfig.uploadConfig,
+        onRetry: (attempt, error) {
+          // debugPrint('Audio upload retry $attempt: $error');
+        },
+      );
 
       final mimeType = _getMimeType(fileExtension);
       final fileSize = await audioFile.length();
-      final now = DateTime.now().toIso8601String();
+
+      // Check for auto-delete settings
+      final convDoc = await _conversationsCollection.doc(conversationId).get();
+      int? autoDeleteSeconds;
+      if (convDoc.exists) {
+        final convData = convDoc.data() as Map<String, dynamic>?;
+        autoDeleteSeconds = convData?['autoDeleteAfterSeconds'] as int?;
+      }
+
+      final nowDateTime = DateTime.now();
+      final now = nowDateTime.toIso8601String();
+
+      // Calculate expiresAt if auto-delete is enabled
+      String? expiresAt;
+      if (autoDeleteSeconds != null) {
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+      }
 
       final messageData = {
         'senderId': senderId,
         'senderName': senderName,
         'senderPhotoUrl': senderPhotoUrl,
         'content': '',
-        'type': 'audio',
+        'encryptionLevel': 'aes',
+        'type': 'voiceNote',
         'fileUrl': fileUrl,
         'fileName': fileName,
         'fileSize': fileSize,
@@ -1475,9 +2030,15 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'audioWaveform': waveform,
         'readBy': [senderId],
         'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
         'createdAt': now,
         'replyToId': replyToId,
         'replyToMessageData': replyToMessageData,
+        if (isForwarded) 'isForwarded': true,
+        if (expiresAt != null) 'expiresAt': expiresAt,
+        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toIso8601String(),
+        'mediaExpired': false,
       };
 
       final newMessageRef = _messagesRef(conversationId).push();
@@ -1486,18 +2047,199 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       // Update conversation last message
       await _updateConversationLastMessage(
         conversationId: conversationId,
-        lastMessage: '🎤 Message vocal',
+        lastMessage: '🎙️ Message vocal',
         senderId: senderId,
+        messageType: MessageType.voiceNote,
       );
 
       final snapshot = await newMessageRef.get();
       final data = _safeMap(snapshot.value);
       data['id'] = snapshot.key;
 
+      // Clean up temporary audio file after successful upload
+      try {
+        if (await audioFile.exists()) {
+          await audioFile.delete();
+        }
+      } catch (_) {
+        // Ignore cleanup errors - file will be cleaned up by system eventually
+      }
+
       return MessageModel.fromJson(data);
     } catch (e) {
       throw ServerException(
         'Erreur lors de l\'envoi du message vocal: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<MessageModel> sendLocationMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required double latitude,
+    required double longitude,
+    required String address,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  }) async {
+    try {
+      // Resurrect conversation if needed
+      final convDoc = await _conversationsCollection.doc(conversationId).get();
+      int? autoDeleteSeconds;
+      if (convDoc.exists) {
+        final convData = convDoc.data() as Map<String, dynamic>?;
+        final participantIds = List<String>.from(convData?['participantIds'] ?? []);
+        autoDeleteSeconds = convData?['autoDeleteAfterSeconds'] as int?;
+        await _resurrectConversationIfNeeded(
+          conversationId: conversationId,
+          participantIds: participantIds,
+        );
+      }
+
+      final nowDateTime = DateTime.now();
+      final now = nowDateTime.toIso8601String();
+
+      // Calculate expiresAt if auto-delete is enabled
+      String? expiresAt;
+      if (autoDeleteSeconds != null) {
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+      }
+
+      // Location: coordinates stay AES (they are numeric, already low-precision).
+      // Content and address use AES-GCM for consistency.
+      final contentText = address.isNotEmpty ? address : 'Position partagée';
+      final encryptedContent = _encryptionService.encryptText(contentText);
+      final encryptedAddress = _encryptionService.encryptText(address);
+
+      final messageData = {
+        'senderId': senderId,
+        'senderName': senderName,
+        'senderPhotoUrl': senderPhotoUrl,
+        'content': encryptedContent,
+        'encryptionLevel': 'aes',
+        'type': 'location',
+        'latitude': _encryptionService.encryptText(latitude.toString()),
+        'longitude': _encryptionService.encryptText(longitude.toString()),
+        'locationAddress': encryptedAddress,
+        'readBy': [senderId],
+        'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
+        'createdAt': now,
+        'replyToId': replyToId,
+        'replyToMessageData': replyToMessageData,
+        if (expiresAt != null) 'expiresAt': expiresAt,
+      };
+
+      final newMessageRef = _messagesRef(conversationId).push();
+      await newMessageRef.set(messageData);
+
+      // Update conversation last message
+      await _updateConversationLastMessage(
+        conversationId: conversationId,
+        lastMessage: '📍 Position partagée',
+        senderId: senderId,
+        messageType: MessageType.location,
+      );
+
+      final snapshot = await newMessageRef.get();
+      final data = _safeMap(snapshot.value);
+      data['id'] = snapshot.key;
+      // Decrypt fields for the returned message
+      _decryptMessageFields(data);
+
+      debugPrint('📍 sendLocationMessage: Created message id=${data['id']}, lat=${data['latitude']}, lng=${data['longitude']}');
+
+      return MessageModel.fromJson(data);
+    } catch (e) {
+      debugPrint('❌ sendLocationMessage error: ${e.toString()}');
+      throw ServerException(
+        'Erreur lors de l\'envoi de la position: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<MessageModel> sendStickerMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String stickerPackId,
+    required String stickerId,
+    required String stickerUrl,
+    bool isAnimated = false,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  }) async {
+    try {
+      // Resurrect conversation if needed
+      final convDoc = await _conversationsCollection.doc(conversationId).get();
+      int? autoDeleteSeconds;
+      if (convDoc.exists) {
+        final convData = convDoc.data() as Map<String, dynamic>?;
+        final participantIds = List<String>.from(convData?['participantIds'] ?? []);
+        autoDeleteSeconds = convData?['autoDeleteAfterSeconds'] as int?;
+        await _resurrectConversationIfNeeded(
+          conversationId: conversationId,
+          participantIds: participantIds,
+        );
+      }
+
+      final nowDateTime = DateTime.now();
+      final now = nowDateTime.toIso8601String();
+
+      // Calculate expiresAt if auto-delete is enabled
+      String? expiresAt;
+      if (autoDeleteSeconds != null) {
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+      }
+
+      final messageData = {
+        'senderId': senderId,
+        'senderName': senderName,
+        'senderPhotoUrl': senderPhotoUrl,
+        'content': 'Sticker',
+        'type': 'sticker',
+        'fileUrl': stickerUrl,
+        'stickerPackId': stickerPackId,
+        'stickerId': stickerId,
+        'isAnimatedSticker': isAnimated,
+        'readBy': [senderId],
+        'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
+        'createdAt': now,
+        'replyToId': replyToId,
+        'replyToMessageData': replyToMessageData,
+        if (expiresAt != null) 'expiresAt': expiresAt,
+      };
+
+      final newMessageRef = _messagesRef(conversationId).push();
+      await newMessageRef.set(messageData);
+
+      // Update conversation last message
+      await _updateConversationLastMessage(
+        conversationId: conversationId,
+        lastMessage: '🎭 Sticker',
+        senderId: senderId,
+        messageType: MessageType.sticker,
+      );
+
+      final snapshot = await newMessageRef.get();
+      final data = _safeMap(snapshot.value);
+      data['id'] = snapshot.key;
+
+      debugPrint('🎭 sendStickerMessage: Created message id=${data['id']}, packId=$stickerPackId, stickerId=$stickerId');
+
+      return MessageModel.fromJson(data);
+    } catch (e) {
+      debugPrint('❌ sendStickerMessage error: ${e.toString()}');
+      throw ServerException(
+        'Erreur lors de l\'envoi du sticker: ${e.toString()}',
       );
     }
   }
@@ -1641,20 +2383,35 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   }) async {
     try {
       final messageRef = _messagesRef(conversationId).child(messageId);
+
+      // Verifier existence du message
       final snapshot = await messageRef.get();
-
       if (!snapshot.exists) {
-        throw ServerException('Message non trouvé');
+        throw ServerException('Message non trouve');
       }
 
-      // Get current deletedFor list and add the user
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
-      final deletedFor = List<String>.from(data['deletedFor'] ?? []);
+      // CORRECTION: Utiliser une transaction atomique pour eviter les race conditions
+      // Si deux utilisateurs suppriment simultanement, les deux seront ajoutes correctement
+      await messageRef.child('deletedFor').runTransaction((currentData) {
+        // Parser les donnees actuelles
+        List<String> deletedFor = [];
+        if (currentData != null) {
+          if (currentData is List) {
+            deletedFor = List<String>.from(currentData.map((e) => e.toString()));
+          } else if (currentData is Map) {
+            // Firebase RTDB peut convertir les listes en Maps avec des cles numeriques
+            deletedFor = currentData.values.map((e) => e.toString()).toList();
+          }
+        }
 
-      if (!deletedFor.contains(userId)) {
-        deletedFor.add(userId);
-        await messageRef.update({'deletedFor': deletedFor});
-      }
+        // Ajouter l'userId s'il n'est pas deja present
+        if (!deletedFor.contains(userId)) {
+          deletedFor.add(userId);
+        }
+
+        // Retourner la nouvelle valeur (Transaction.success est implicite)
+        return Transaction.success(deletedFor);
+      });
     } on FirebaseException catch (e) {
       throw ServerException(
         e.message ?? 'Erreur lors de la suppression du message',
@@ -1762,6 +2519,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
               conversationId: conversationId,
               lastMessage: '🚫 Message supprimé',
               senderId: data['senderId'],
+              messageType: MessageType.system,
             );
           }
         }
@@ -1937,6 +2695,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         conversationId: conversationId,
         lastMessage: content,
         senderId: 'system',
+        messageType: MessageType.system,
       );
 
       // Return the created message
@@ -2008,6 +2767,521 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       throw ServerException(
         e.message ?? 'Erreur lors de la recherche des conversations',
       );
+    }
+  }
+
+  @override
+  Future<void> toggleStarMessage({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      final messageRef = _messagesRef(conversationId).child(messageId);
+      final snapshot = await messageRef.child('starredBy').get();
+      List<String> starredBy = [];
+      if (snapshot.value != null) {
+        final data = snapshot.value;
+        if (data is List) {
+          starredBy = data.whereType<String>().toList();
+        } else if (data is Map) {
+          starredBy = data.values.whereType<String>().toList();
+        }
+      }
+
+      if (starredBy.contains(userId)) {
+        starredBy.remove(userId);
+      } else {
+        starredBy.add(userId);
+      }
+
+      await messageRef.update({'starredBy': starredBy});
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors du marquage du message: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String newContent,
+    required String oldContent,
+  }) async {
+    try {
+      final messageRef = _messagesRef(conversationId).child(messageId);
+      final snapshot = await messageRef.get();
+
+      if (snapshot.value == null) {
+        throw ServerException('Message introuvable');
+      }
+
+      final data = _safeMap(snapshot.value);
+      final now = DateTime.now().toIso8601String();
+
+      // Get existing edit history or create new one
+      List<Map<String, dynamic>> editHistory = [];
+      if (data['editHistory'] != null && data['editHistory'] is List) {
+        editHistory = (data['editHistory'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+
+      // Add current content to history before editing
+      editHistory.add({
+        'content': oldContent,
+        'editedAt': now,
+      });
+
+      // Re-encrypt at the same level as the original message.
+      // For Signal-encrypted messages, re-encrypt for the same conversation;
+      // for AES messages, keep using AES-GCM.
+      final originalLevel = data['encryptionLevel'] as String? ?? 'aes';
+      final Map<String, dynamic> encryptedFields;
+      if (originalLevel == 'e2ee') {
+        final convDoc = await _conversationsCollection.doc(conversationId).get();
+        final senderId = data['senderId'] as String? ?? '';
+        final result = await _encryptContent(
+          plaintext: newContent,
+          senderId: senderId,
+          convDoc: convDoc,
+          conversationId: conversationId,
+        );
+        encryptedFields = result.fields;
+      } else {
+        encryptedFields = {
+          'content': _encryptionService.encryptText(newContent),
+          'encryptionLevel': 'aes',
+        };
+      }
+
+      // Update the message
+      await messageRef.update({
+        ...encryptedFields,
+        'editedAt': now,
+        'editHistory': editHistory,
+      });
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(
+        'Erreur lors de la modification du message: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> setAutoDeleteSettings({
+    required String conversationId,
+    required int? durationSeconds,
+  }) async {
+    try {
+      if (durationSeconds == null) {
+        // Remove auto-delete setting
+        await _conversationsCollection.doc(conversationId).update({
+          'autoDeleteAfterSeconds': firestore.FieldValue.delete(),
+        });
+      } else {
+        // Set auto-delete duration
+        await _conversationsCollection.doc(conversationId).update({
+          'autoDeleteAfterSeconds': durationSeconds,
+        });
+      }
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors de la configuration des messages éphémères: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<int?> getAutoDeleteSettings(String conversationId) async {
+    try {
+      final doc = await _conversationsCollection.doc(conversationId).get();
+      if (!doc.exists) return null;
+      final data = doc.data() as Map<String, dynamic>?;
+      return data?['autoDeleteAfterSeconds'] as int?;
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors de la récupération des paramètres: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<MessageModel>> getStarredMessages({
+    required String conversationId,
+    required String userId,
+    int limit = 100,
+  }) async {
+    try {
+      final snapshot = await _messagesRef(conversationId)
+          .orderByChild('createdAt')
+          .limitToLast(500)
+          .get();
+
+      if (snapshot.value == null) return [];
+
+      final messages = <MessageModel>[];
+      final map = snapshot.value as Map<dynamic, dynamic>;
+
+      map.forEach((key, value) {
+        if (value is Map) {
+          final data = _safeMap(value);
+          data['id'] = key;
+
+          // Check if starred by user
+          final starredBy = data['starredBy'];
+          bool isStarred = false;
+          if (starredBy is List) {
+            isStarred = starredBy.contains(userId);
+          } else if (starredBy is Map) {
+            isStarred = starredBy.values.contains(userId);
+          }
+
+          if (isStarred) {
+            if (data['content'] is String) {
+              data['content'] = _encryptionService.decryptText(data['content']);
+            }
+            messages.add(MessageModel.fromJson(data));
+          }
+        }
+      });
+
+      messages.sort((a, b) {
+        final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
+
+      return messages.take(limit).toList();
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors de la récupération des messages favoris: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<MessageModel>> searchMessagesInConversation({
+    required String conversationId,
+    required String query,
+    int limit = 200,
+  }) async {
+    try {
+      if (query.trim().length < 2) return [];
+
+      final lowerQuery = query.toLowerCase();
+
+      // Try using the Firestore search index first (more scalable)
+      try {
+        final indexSnapshot = await _firestore
+            .collection('messages_searchindex')
+            .where('conversationId', isEqualTo: conversationId)
+            .orderBy('createdAt', descending: true)
+            .limit(limit * 2) // Get more to filter
+            .get();
+
+        if (indexSnapshot.docs.isNotEmpty) {
+          final matchingMessageIds = <String>[];
+
+          for (final doc in indexSnapshot.docs) {
+            final searchableText = doc.data()['searchableText'] as String? ?? '';
+            if (searchableText.contains(lowerQuery)) {
+              matchingMessageIds.add(doc.id);
+              if (matchingMessageIds.length >= limit) break;
+            }
+          }
+
+          if (matchingMessageIds.isNotEmpty) {
+            // Fetch actual messages from RTDB
+            final messages = <MessageModel>[];
+            for (final messageId in matchingMessageIds) {
+              final msgSnapshot = await _messagesRef(conversationId)
+                  .child(messageId)
+                  .get();
+
+              if (msgSnapshot.exists && msgSnapshot.value != null) {
+                final data = _safeMap(msgSnapshot.value as Map);
+                data['id'] = messageId;
+
+                // Decrypt content if needed
+                if (data['content'] is String) {
+                  try {
+                    data['content'] = _encryptionService.decryptText(data['content']);
+                  } catch (_) {
+                    // Keep encrypted content
+                  }
+                }
+
+                messages.add(MessageModel.fromJson(data));
+              }
+            }
+
+            return messages;
+          }
+        }
+      } catch (_) {
+        // Fall back to client-side search if index query fails
+      }
+
+      // Fallback: Client-side search (original implementation)
+      final snapshot = await _messagesRef(conversationId)
+          .orderByChild('createdAt')
+          .limitToLast(500)
+          .get();
+
+      if (snapshot.value == null) return [];
+
+      final messages = <MessageModel>[];
+      final map = snapshot.value as Map<dynamic, dynamic>;
+
+      map.forEach((key, value) {
+        if (value is Map) {
+          final data = _safeMap(value);
+          data['id'] = key;
+
+          // Decrypt content to search (avec gestion d'erreur)
+          String content = '';
+          if (data['content'] is String) {
+            try {
+              content = _encryptionService.decryptText(data['content']);
+              data['content'] = content;
+            } catch (_) {
+              // Ignorer les messages avec contenu corrompu
+              content = '';
+            }
+          }
+
+          // Match against decrypted content or sender name
+          final senderName = (data['senderName'] ?? '').toString().toLowerCase();
+          if (content.toLowerCase().contains(lowerQuery) ||
+              senderName.contains(lowerQuery)) {
+            messages.add(MessageModel.fromJson(data));
+          }
+        }
+      });
+
+      messages.sort((a, b) {
+        final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
+
+      return messages.take(limit).toList();
+    } catch (e) {
+      throw ServerException(
+        'Erreur lors de la recherche de messages: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> restoreConversationForUser({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      await _conversationsCollection.doc(conversationId).update({
+        'deletedBy.$userId': firestore.FieldValue.delete(),
+      });
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la restauration de la conversation',
+      );
+    }
+  }
+
+  @override
+  Future<ConversationModel?> getConversationById(String conversationId) async {
+    try {
+      final doc = await _conversationsCollection.doc(conversationId).get();
+      if (!doc.exists) return null;
+
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return null;
+
+      data['id'] = doc.id;
+      return ConversationModel.fromJson(data);
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(
+        e.message ?? 'Erreur lors de la recuperation de la conversation',
+      );
+    }
+  }
+
+  /// Ressusciter une conversation automatiquement si elle a ete supprimee (soft delete)
+  /// Appele avant d'envoyer un message pour reactiver la conversation pour tous les participants
+  Future<void> _resurrectConversationIfNeeded({
+    required String conversationId,
+    required List<String> participantIds,
+  }) async {
+    try {
+      final doc = await _conversationsCollection.doc(conversationId).get();
+      if (!doc.exists) return;
+
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return;
+
+      final deletedBy = data['deletedBy'] as Map<String, dynamic>? ?? {};
+
+      // Retirer tous les participants de deletedBy
+      if (deletedBy.isNotEmpty) {
+        final updates = <String, dynamic>{};
+        for (final participantId in participantIds) {
+          if (deletedBy.containsKey(participantId)) {
+            updates['deletedBy.$participantId'] = firestore.FieldValue.delete();
+          }
+        }
+        if (updates.isNotEmpty) {
+          await _conversationsCollection.doc(conversationId).update(updates);
+        }
+      }
+    } catch (e) {
+      // Log l'erreur mais ne pas bloquer l'envoi du message
+      // debugPrint('Erreur lors de la resurrection de la conversation: $e');
+    }
+  }
+
+  @override
+  Future<List<MessageModel>> getMessagesSince({
+    required String conversationId,
+    required DateTime since,
+    int limit = 100,
+  }) async {
+    try {
+      final snapshot = await _messagesRef(conversationId)
+          .orderByChild('createdAt')
+          .startAt(since.toIso8601String())
+          .limitToLast(limit)
+          .get();
+
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final messages = <MessageModel>[];
+      final data = snapshot.value as Map<dynamic, dynamic>;
+
+      for (final entry in data.entries) {
+        final messageData = _safeMap(entry.value);
+        messageData['id'] = entry.key;
+
+        // Decrypter le contenu
+        if (messageData['content'] is String) {
+          messageData['content'] = _encryptionService.decryptText(messageData['content']);
+        }
+
+        messages.add(MessageModel.fromJson(messageData));
+      }
+
+      // Trier par date decroissante
+      messages.sort((a, b) {
+        final aTime = a.createdAt ?? DateTime(2020);
+        final bTime = b.createdAt ?? DateTime(2020);
+        return bTime.compareTo(aTime);
+      });
+
+      return messages;
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la recuperation des messages');
+    }
+  }
+
+  // ============ MESSAGE REQUESTS (Zone Tampon) ============
+
+  @override
+  Stream<List<ConversationModel>> getMessageRequests(String userId) {
+    // Get individual conversations where:
+    // - User is a participant
+    // - requestStatus is 'pending'
+    // - User is NOT the requester (they are the recipient)
+    return _conversationsCollection
+        .where('type', isEqualTo: 'individual')
+        .where('participantIds', arrayContains: userId)
+        .where('requestStatus', isEqualTo: 'pending')
+        .orderBy('requestedAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => ConversationModel.fromFirestore(doc))
+          .where((conv) => conv.requesterId != userId) // Exclude requests sent by user
+          .toList();
+    });
+  }
+
+  @override
+  Future<void> updateRequestStatus({
+    required String conversationId,
+    required String status,
+    required String recipientId,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'requestStatus': status,
+        'respondedAt': firestore.FieldValue.serverTimestamp(),
+      };
+
+      await _conversationsCollection.doc(conversationId).update(updateData);
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la mise a jour du statut');
+    }
+  }
+
+  @override
+  Future<ConversationModel> createIndividualConversationAsRequest({
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    try {
+      // Check if conversation already exists
+      final existing = await findIndividualConversation(
+        userId1: currentUserId,
+        userId2: otherUserId,
+      );
+
+      if (existing != null) {
+        // If it exists but was declined, allow re-requesting
+        if (existing.requestStatus == 'declined') {
+          await _conversationsCollection.doc(existing.id).update({
+            'requestStatus': 'pending',
+            'requesterId': currentUserId,
+            'requestedAt': firestore.FieldValue.serverTimestamp(),
+            'respondedAt': null,
+          });
+          return existing.copyWith(
+            requestStatus: 'pending',
+            requesterId: currentUserId,
+          );
+        }
+        return existing;
+      }
+
+      // Create new conversation as a request
+      final docRef = _conversationsCollection.doc();
+      final conversationData = {
+        'type': 'individual',
+        'participantIds': [currentUserId, otherUserId],
+        'createdBy': currentUserId,
+        'createdAt': firestore.FieldValue.serverTimestamp(),
+        'unreadCount': {
+          currentUserId: 0,
+          otherUserId: 0,
+        },
+        'requestStatus': 'pending',
+        'requesterId': currentUserId,
+        'requestedAt': firestore.FieldValue.serverTimestamp(),
+      };
+
+      await docRef.set(conversationData);
+
+      // Sync participants to RTDB
+      await _syncParticipantsToRTDB(docRef.id, [currentUserId, otherUserId]);
+
+      // Return the model
+      final snapshot = await docRef.get();
+      return ConversationModel.fromFirestore(snapshot);
+    } on firestore.FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la creation de la demande');
     }
   }
 }

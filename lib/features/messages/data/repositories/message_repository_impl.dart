@@ -218,6 +218,7 @@ class MessageRepositoryImpl implements MessageRepository {
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
     Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
     Map<String, dynamic>? linkPreviewData,
     bool isForwarded = false,
@@ -225,6 +226,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String? clientMessageId,
     String? recipientId,
     List<String> participantIds = const [],
+    bool selfNote = false,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));
@@ -242,6 +244,7 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToMessageData: replyToMessageData,
         productData: productData,
         postData: postData,
+        eventData: eventData,
         sentWhileBlockedBy: sentWhileBlockedBy,
         linkPreviewData: linkPreviewData,
         isForwarded: isForwarded,
@@ -249,6 +252,7 @@ class MessageRepositoryImpl implements MessageRepository {
         clientMessageId: clientMessageId,
         recipientId: recipientId,
         participantIds: participantIds,
+        selfNote: selfNote,
       );
       return Right(message.toEntity());
     } on E2EEException catch (e) {
@@ -453,6 +457,22 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
+  Future<Either<Failure, MessageEntity?>> getMessageById({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    try {
+      final model = await remoteDataSource.getMessageById(
+        conversationId: conversationId,
+        messageId: messageId,
+      );
+      return Right(model?.toEntity());
+    } catch (e) {
+      return Left(ServerFailure('Erreur chargement message: ${e.toString()}'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> markAsDelivered({
     required String conversationId,
     required String userId,
@@ -617,6 +637,26 @@ class MessageRepositoryImpl implements MessageRepository {
       final conversation = await remoteDataSource.createIndividualConversation(
         currentUserId: currentUserId,
         otherUserId: otherUserId,
+      );
+      return Right(conversation.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConversationEntity>> getOrCreateSelfConversation({
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+
+    try {
+      final conversation = await remoteDataSource.getOrCreateSelfConversation(
+        userId: userId,
       );
       return Right(conversation.toEntity());
     } on ServerException catch (e) {

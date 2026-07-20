@@ -26,11 +26,15 @@ class GroupPinnedBanner extends ConsumerStatefulWidget {
   /// message épinglé (le contenu réel plutôt qu'un libellé générique).
   final String? messageConversationId;
 
+  /// Tap sur un message épinglé : navigue vers le message (scroll + highlight).
+  final void Function(String messageId)? onOpenMessage;
+
   const GroupPinnedBanner({
     super.key,
     this.groupId,
     this.conversationId,
     this.messageConversationId,
+    this.onOpenMessage,
   }) : assert(groupId != null || conversationId != null);
 
   @override
@@ -60,6 +64,7 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
           index: index,
           total: items.length,
           messageConversationId: widget.messageConversationId,
+          onOpenMessage: widget.onOpenMessage,
           onCycle:
               items.length > 1
                   ? () => setState(() => _index = (index + 1) % items.length)
@@ -75,6 +80,7 @@ class _PinnedRow extends ConsumerWidget {
   final int index;
   final int total;
   final String? messageConversationId;
+  final void Function(String messageId)? onOpenMessage;
   final VoidCallback? onCycle;
 
   const _PinnedRow({
@@ -82,6 +88,7 @@ class _PinnedRow extends ConsumerWidget {
     required this.index,
     required this.total,
     this.messageConversationId,
+    this.onOpenMessage,
     this.onCycle,
   });
 
@@ -94,10 +101,9 @@ class _PinnedRow extends ConsumerWidget {
           data:
               (event) =>
                   event == null
-                      ? const SizedBox.shrink()
+                      ? _unresolvedRow(context)
                       : _row(
                         context,
-                        ref,
                         accent: context.adaptivePrimaryColor,
                         label: 'Événement épinglé',
                         title: event.title,
@@ -115,10 +121,9 @@ class _PinnedRow extends ConsumerWidget {
           data:
               (poll) =>
                   poll == null
-                      ? const SizedBox.shrink()
+                      ? _unresolvedRow(context)
                       : _row(
                         context,
-                        ref,
                         accent: _pollAccent,
                         label: 'Sondage épinglé',
                         title: poll.question,
@@ -127,30 +132,63 @@ class _PinnedRow extends ConsumerWidget {
           orElse: () => const SizedBox.shrink(),
         );
       case GroupPinnedItemType.message:
-        // Le bandeau n'apparaît que si le message épinglé existe réellement :
-        // une épingle orpheline (message supprimé, ou pas encore chargé) ne
-        // doit pas afficher une entrée fantôme.
         if (messageConversationId == null) return const SizedBox.shrink();
-        final msgs =
-            ref.watch(messagesProvider(messageConversationId!)).valueOrNull;
-        if (msgs == null) return const SizedBox.shrink();
-        final msg = msgs.where((m) => m.id == item.itemId).firstOrNull;
+        // Résolution : d'abord la fenêtre de messages chargée, sinon fetch
+        // ciblé (déchiffré) — un message épinglé ancien hors fenêtre doit
+        // quand même s'afficher (sinon le bandeau disparaissait dès qu'une
+        // seule épingle sortait de la pagination).
+        final loaded = ref
+            .watch(messagesProvider(messageConversationId!))
+            .valueOrNull
+            ?.where((m) => m.id == item.itemId)
+            .firstOrNull;
+        final msg = loaded ??
+            ref
+                .watch(messageByIdProvider((
+                  conversationId: messageConversationId!,
+                  messageId: item.itemId,
+                )))
+                .valueOrNull;
         if (msg == null || msg.deletedForEveryone) {
-          return const SizedBox.shrink();
+          return _unresolvedRow(context);
         }
-        final preview =
-            msg.isText && msg.content.trim().isNotEmpty
-                ? msg.content
-                : _mediaLabel(msg.type);
+        // Jamais de contenu chiffré dans le bandeau : libellé générique.
+        final text = msg.content.trim();
+        final looksEncrypted =
+            text.startsWith('🔐') || text.startsWith('gcm:');
+        final preview = msg.isText && text.isNotEmpty && !looksEncrypted
+            ? text
+            : _mediaLabel(msg.type);
         return _row(
           context,
-          ref,
           accent: _pinAccent,
           label: total > 1 ? 'Message épinglé ${index + 1}' : 'Message épinglé',
           title: preview,
-          onOpen: onCycle,
+          // Tap : navigue vers le message épinglé, et passe à l'épingle
+          // suivante s'il y en a plusieurs (comportement Telegram).
+          onOpen: onOpenMessage == null
+              ? onCycle
+              : () {
+                  onOpenMessage!(item.itemId);
+                  onCycle?.call();
+                },
         );
     }
+  }
+
+  /// Élément épinglé introuvable (supprimé, ou hors de portée des permissions
+  /// de lecture) : sans cette ligne, le bandeau redevenait entièrement vide
+  /// et — s'il y avait d'autres épingles valides — impossible à faire
+  /// défiler puisque aucun contenu tapable n'était rendu pour cet index.
+  Widget _unresolvedRow(BuildContext context) {
+    if (total <= 1) return const SizedBox.shrink();
+    return _row(
+      context,
+      accent: context.textTertiaryColor,
+      label: total > 1 ? 'Épingle ${index + 1}' : 'Épingle',
+      title: 'Élément indisponible',
+      onOpen: onCycle,
+    );
   }
 
   String _mediaLabel(MessageType type) {
@@ -174,8 +212,7 @@ class _PinnedRow extends ConsumerWidget {
   }
 
   Widget _row(
-    BuildContext context,
-    WidgetRef ref, {
+    BuildContext context, {
     required Color accent,
     required String label,
     required String title,

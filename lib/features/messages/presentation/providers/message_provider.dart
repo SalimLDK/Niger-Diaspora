@@ -773,6 +773,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     MessageEntity? replyToMessage,
     Map<String, dynamic>? productData,
     Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
     Map<String, dynamic>? linkPreviewData,
     bool isForwarded = false,
@@ -828,6 +829,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         replyToMessageData: replyToMessageData,
         productData: productData,
         postData: postData,
+        eventData: eventData,
         sentWhileBlockedBy: sentWhileBlockedBy,
       );
 
@@ -867,6 +869,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       replyToMessageData: replyToMessageData,
       productData: productData,
       postData: postData,
+      eventData: eventData,
       sentWhileBlockedBy: sentWhileBlockedBy,
       linkPreviewData: linkPreviewData,
       isForwarded: isForwarded,
@@ -881,9 +884,13 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     // Resolve E2EE target on every attempt so retries don't lose the recipient.
     String? recipientId;
     List<String> participantIds = const [];
+    bool selfNote = false;
     final conversation = _ref.read(conversationStreamProvider(conversationId)).valueOrNull;
     if (conversation != null) {
-      if (conversation.isIndividual) {
+      if (conversation.isSelfNotesFor(currentUser.id)) {
+        // « Mes notes » : pas de destinataire → chiffrement AES au repos.
+        selfNote = true;
+      } else if (conversation.isIndividual) {
         recipientId = conversation.getOtherParticipantId(currentUser.id);
       } else {
         participantIds = conversation.participantIds
@@ -903,6 +910,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       replyToMessageData: replyToMessageData,
       productData: productData,
       postData: postData,
+      eventData: eventData,
       sentWhileBlockedBy: sentWhileBlockedBy,
       linkPreviewData: linkPreviewData,
       isForwarded: isForwarded,
@@ -910,6 +918,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       clientMessageId: cid,
       recipientId: recipientId,
       participantIds: participantIds,
+      selfNote: selfNote,
     );
 
     return result.fold(
@@ -926,6 +935,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             replyToMessage: replyToMessage,
             productData: productData,
             postData: postData,
+            eventData: eventData,
             sentWhileBlockedBy: sentWhileBlockedBy,
             linkPreviewData: linkPreviewData,
             isForwarded: isForwarded,
@@ -980,6 +990,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           content: failedMessage.content,
           replyToMessage: replyToMessage,
           productData: failedMessage.productData,
+          eventData: failedMessage.eventData,
         );
       case MessageType.image:
       case MessageType.file:
@@ -1493,6 +1504,75 @@ class CreateConversationNotifier extends StateNotifier<AsyncValue<ConversationEn
     );
   }
 }
+
+// ============ Mes notes (self-chat) ============
+
+/// Renvoie la conversation « Mes notes » déjà existante dans la liste, sans
+/// déclencher de création. Sert à l'affichage instantané (badge, aperçu).
+final selfNotesConversationProvider = Provider<ConversationEntity?>((ref) {
+  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  if (currentUser == null) return null;
+  final conversations = ref.watch(conversationsProvider).valueOrNull ?? [];
+  for (final conv in conversations) {
+    if (conv.isSelfNotesFor(currentUser.id)) return conv;
+  }
+  return null;
+});
+
+/// Obtient ou crée la conversation « Mes notes » de l'utilisateur (self-chat).
+/// Appelé à la demande (au tap sur l'entrée « Mes notes »).
+final ensureSelfNotesProvider =
+    StateNotifierProvider<EnsureSelfNotesNotifier, AsyncValue<ConversationEntity?>>(
+  (ref) => EnsureSelfNotesNotifier(ref),
+);
+
+class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntity?>> {
+  final Ref _ref;
+
+  EnsureSelfNotesNotifier(this._ref) : super(const AsyncValue.data(null));
+
+  Future<ConversationEntity?> ensure() async {
+    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser == null) return null;
+
+    // Réutilise l'éventuelle conversation déjà chargée pour éviter un aller-retour.
+    final existing = _ref.read(selfNotesConversationProvider);
+    if (existing != null) {
+      state = AsyncValue.data(existing);
+      return existing;
+    }
+
+    state = const AsyncValue.loading();
+    final result = await _ref
+        .read(messageRepositoryProvider)
+        .getOrCreateSelfConversation(userId: currentUser.id);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return null;
+      },
+      (conversation) {
+        state = AsyncValue.data(conversation);
+        _ref.invalidate(conversationsProvider);
+        return conversation;
+      },
+    );
+  }
+}
+
+// ============ Message par id ============
+
+/// Message précis (déchiffré), même hors de la fenêtre paginée — utilisé par
+/// le bandeau épinglé pour résoudre le contenu d'un message épinglé ancien.
+final messageByIdProvider = FutureProvider.family<
+    MessageEntity?, ({String conversationId, String messageId})>((ref, params) async {
+  final result = await ref.watch(messageRepositoryProvider).getMessageById(
+        conversationId: params.conversationId,
+        messageId: params.messageId,
+      );
+  return result.fold((_) => null, (m) => m);
+});
 
 // ============ Marquer comme lu ============
 

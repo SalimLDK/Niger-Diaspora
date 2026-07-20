@@ -1,28 +1,124 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:equatable/equatable.dart';
+import 'group_permissions_entity.dart';
 
-part 'group_entity.freezed.dart';
+/// Entite representant un groupe
+class GroupEntity extends Equatable {
+  final String id;
+  final String name;
+  final String description;
+  final String? imageUrl;
+  final String creatorId;
+  final String? creatorName;
+  final List<String> adminIds;
+  final List<String> memberIds;
+  final GroupCategory category;
+  final bool isPrivate;
+  final String? location;
+  final List<String> tags;
+  final Map<String, DateTime> memberJoinedAt;
+  final DateTime? createdAt;
+  // Filtres geographiques pour la diaspora
+  final String? country; // Pays d'accueil (France, USA, Canada...)
+  final String? originRegion; // Region d'origine au Niger (Niamey, Zinder...)
+  final GroupPermissionsEntity permissions;
+  final bool isOfficial;
 
-@freezed
-class GroupEntity with _$GroupEntity {
-  const factory GroupEntity({
-    required String id,
-    required String name,
-    required String description,
+  const GroupEntity({
+    required this.id,
+    required this.name,
+    required this.description,
+    this.imageUrl,
+    required this.creatorId,
+    this.creatorName,
+    this.adminIds = const [],
+    this.memberIds = const [],
+    this.category = GroupCategory.other,
+    this.isPrivate = false,
+    this.location,
+    this.tags = const [],
+    this.memberJoinedAt = const {},
+    this.createdAt,
+    this.country,
+    this.originRegion,
+    this.permissions = const GroupPermissionsEntity(),
+    this.isOfficial = false,
+  });
+
+  /// Nombre de membres
+  int get memberCount => memberIds.length;
+
+  /// Verifier si un utilisateur est admin
+  bool isAdmin(String userId) => adminIds.contains(userId) || userId == creatorId;
+
+  /// Verifier si un utilisateur est membre
+  bool isMember(String userId) => memberIds.contains(userId);
+
+  GroupEntity copyWith({
+    String? id,
+    String? name,
+    String? description,
     String? imageUrl,
-    required String creatorId,
+    String? creatorId,
     String? creatorName,
-    @Default([]) List<String> adminIds,
-    @Default([]) List<String> memberIds,
-    @Default(GroupCategory.other) GroupCategory category,
-    @Default(false) bool isPrivate,
+    List<String>? adminIds,
+    List<String>? memberIds,
+    GroupCategory? category,
+    bool? isPrivate,
     String? location,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, DateTime> memberJoinedAt,
+    List<String>? tags,
+    Map<String, DateTime>? memberJoinedAt,
     DateTime? createdAt,
-    // Filtres géographiques pour la diaspora
-    String? country, // Pays d'accueil (France, USA, Canada...)
-    String? originRegion, // Région d'origine au Niger (Niamey, Zinder...)
-  }) = _GroupEntity;
+    String? country,
+    String? originRegion,
+    GroupPermissionsEntity? permissions,
+    bool? isOfficial,
+  }) {
+    return GroupEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      creatorId: creatorId ?? this.creatorId,
+      creatorName: creatorName ?? this.creatorName,
+      adminIds: adminIds ?? this.adminIds,
+      memberIds: memberIds ?? this.memberIds,
+      category: category ?? this.category,
+      isPrivate: isPrivate ?? this.isPrivate,
+      location: location ?? this.location,
+      tags: tags ?? this.tags,
+      memberJoinedAt: memberJoinedAt ?? this.memberJoinedAt,
+      createdAt: createdAt ?? this.createdAt,
+      country: country ?? this.country,
+      originRegion: originRegion ?? this.originRegion,
+      permissions: permissions ?? this.permissions,
+      isOfficial: isOfficial ?? this.isOfficial,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        imageUrl,
+        creatorId,
+        creatorName,
+        adminIds,
+        memberIds,
+        category,
+        isPrivate,
+        location,
+        tags,
+        memberJoinedAt,
+        createdAt,
+        country,
+        originRegion,
+        permissions,
+        isOfficial,
+      ];
+
+  @override
+  String toString() => 'GroupEntity(id: $id, name: $name)';
 }
 
 enum GroupCategory {

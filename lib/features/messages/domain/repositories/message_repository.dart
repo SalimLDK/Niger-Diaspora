@@ -6,6 +6,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/conversation_entity.dart';
 import '../entities/message_entity.dart';
 import '../entities/paginated_messages.dart';
+import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 
 abstract class MessageRepository {
   /// Stream des conversations de l'utilisateur
@@ -60,11 +61,21 @@ abstract class MessageRepository {
     required String senderId,
     required String senderName,
     String? senderPhotoUrl,
+    bool senderIsVerified = false,
     required String content,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
+    Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
+    Map<String, dynamic>? linkPreviewData,
+    bool isForwarded = false,
+    List<MentionedUser> mentionedUsers = const [],
+    String? clientMessageId,
+    String? recipientId,
+    List<String> participantIds = const [],
+    bool selfNote = false,
   });
 
   /// Envoyer un message avec fichier (image ou document)
@@ -97,8 +108,26 @@ abstract class MessageRepository {
     String? groupId, // Add groupId parameter
   });
 
+  /// Récupérer un message précis (déchiffré), même hors fenêtre paginée.
+  Future<Either<Failure, MessageEntity?>> getMessageById({
+    required String conversationId,
+    required String messageId,
+  });
+
+  /// Marquer les messages comme livrés
+  Future<Either<Failure, void>> markAsDelivered({
+    required String conversationId,
+    required String userId,
+  });
+
   /// Marquer les messages comme lus
   Future<Either<Failure, void>> markAsRead({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Remettre à zéro le compteur de mentions non lues
+  Future<Either<Failure, void>> clearUnreadMentions({
     required String conversationId,
     required String userId,
   });
@@ -110,11 +139,27 @@ abstract class MessageRepository {
     bool forEveryone = false,
   });
 
+  /// Recuperer une conversation par son ID
+  Future<Either<Failure, ConversationEntity?>> getConversationById(
+    String conversationId,
+  );
+
+  /// Restaurer une conversation supprimee pour un utilisateur
+  Future<Either<Failure, void>> restoreConversationForUser({
+    required String conversationId,
+    required String userId,
+  });
+
   /// Obtenir ou créer une conversation individuelle existante
   Future<Either<Failure, ConversationEntity>>
   getOrCreateIndividualConversation({
     required String currentUserId,
     required String otherUserId,
+  });
+
+  /// Obtenir ou créer la conversation « Mes notes » (self-chat) de l'utilisateur
+  Future<Either<Failure, ConversationEntity>> getOrCreateSelfConversation({
+    required String userId,
   });
 
   /// Envoyer un message audio
@@ -126,6 +171,34 @@ abstract class MessageRepository {
     required File audioFile,
     required int duration,
     required List<double> waveform,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
+  });
+
+  /// Envoyer un message de localisation
+  Future<Either<Failure, MessageEntity>> sendLocationMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required double latitude,
+    required double longitude,
+    required String address,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  });
+
+  /// Envoyer un sticker
+  Future<Either<Failure, MessageEntity>> sendStickerMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String stickerPackId,
+    required String stickerId,
+    required String stickerUrl,
+    bool isAnimated = false,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
   });
@@ -181,14 +254,87 @@ abstract class MessageRepository {
   });
 
   /// Mettre en sourdine une conversation
+  /// [duration] - Duration to mute for. null means mute forever.
   Future<Either<Failure, void>> muteConversation({
     required String conversationId,
     required String userId,
+    Duration? duration,
   });
 
   /// Réactiver les notifications pour une conversation
   Future<Either<Failure, void>> unmuteConversation({
     required String conversationId,
     required String userId,
+  });
+
+  /// Épingler une conversation
+  Future<Either<Failure, void>> pinConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Désépingler une conversation
+  Future<Either<Failure, void>> unpinConversation({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Toggle star status for a message
+  Future<Either<Failure, void>> toggleStarMessage({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  });
+
+  /// Get starred messages for a conversation
+  Future<Either<Failure, List<MessageEntity>>> getStarredMessages({
+    required String conversationId,
+    required String userId,
+  });
+
+  /// Search messages in a conversation by content
+  Future<Either<Failure, List<MessageEntity>>> searchMessagesInConversation({
+    required String conversationId,
+    required String query,
+  });
+
+  /// Edit a text message (within 25 minute time limit)
+  Future<Either<Failure, void>> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String newContent,
+    required String oldContent,
+  });
+
+  /// Set auto-delete settings for ephemeral messages
+  /// [durationSeconds] - null to disable, or duration in seconds (86400=24h, 604800=7d, 2592000=30d)
+  Future<Either<Failure, void>> setAutoDeleteSettings({
+    required String conversationId,
+    required int? durationSeconds,
+  });
+
+  // ============ MESSAGE REQUESTS (Zone Tampon) ============
+
+  /// Get pending message requests for a user
+  Stream<Either<Failure, List<ConversationEntity>>> getMessageRequests(
+    String userId,
+  );
+
+  /// Accept a message request
+  Future<Either<Failure, void>> acceptMessageRequest({
+    required String conversationId,
+    required String recipientId,
+  });
+
+  /// Decline a message request
+  Future<Either<Failure, void>> declineMessageRequest({
+    required String conversationId,
+    required String recipientId,
+  });
+
+  /// Create a conversation as a message request (for non-linked users)
+  Future<Either<Failure, ConversationEntity>> createMessageRequest({
+    required String currentUserId,
+    required String otherUserId,
   });
 }

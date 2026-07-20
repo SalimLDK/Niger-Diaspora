@@ -72,6 +72,9 @@ class PreferencesService {
   static const String _keyNotifyEventReminders = 'notify_event_reminders';
   static const String _keyNotifyLocalEvents = 'notify_local_events';
   static const String _keyNotifySystemMessages = 'notify_system_messages';
+  static const String _keyNotifyAudioRoomReminders = 'notify_audio_room_reminders';
+  static const String _keyNotifyPodcastEpisodes = 'notify_podcast_episodes';
+  static const String _keyNotifyTransferReminders = 'notify_transfer_reminders';
   static const String _keyNotificationSound = 'notification_sound';
   static const String _keyNotificationVibration = 'notification_vibration';
   static const String _keyQuietHoursEnabled = 'quiet_hours_enabled';
@@ -79,20 +82,36 @@ class PreferencesService {
   static const String _keyQuietHoursStartMinute = 'quiet_hours_start_minute';
   static const String _keyQuietHoursEndHour = 'quiet_hours_end_hour';
   static const String _keyQuietHoursEndMinute = 'quiet_hours_end_minute';
+  static const String _keyShowMessagePreview = 'show_message_preview';
 
   // Media Preferences
   static const String _keyAutoDownloadImages = 'auto_download_images';
   static const String _keyAutoDownloadVideos = 'auto_download_videos';
   static const String _keyDataSaverMode = 'data_saver_mode';
+  // Auto-download mode keys: 'always' | 'wifi_only' | 'never'
+  static const String _keyAutoDownloadImagesMode = 'auto_dl_images_mode';
+  static const String _keyAutoDownloadAudioMode = 'auto_dl_audio_mode';
+  static const String _keyAutoDownloadVideoMode = 'auto_dl_video_mode';
+  static const String _keyAutoDownloadFilesMode = 'auto_dl_files_mode';
 
   // Privacy & Security
   static const String _keyBiometricEnabled = 'biometric_enabled';
   static const String _keyAnalyticsOptOut = 'analytics_opt_out';
+  static const String _keyNearbyMembersEnabled = 'nearby_members_enabled';
+  static const String _keyMapBusinessesLayerVisible =
+      'map_businesses_layer_visible';
+  static const String _keyMapMembersPanelHidden = 'map_members_panel_hidden';
   static const String _keySessionId = 'session_id'; // Internal session tracking
 
   // Chat Background Customization
   static const String _keyDefaultChatBackground = 'default_chat_background';
   static const String _keyCustomChatBackgrounds = 'custom_chat_backgrounds';
+
+  // Call Settings
+  static const String _keyNoiseSuppressionEnabled = 'noise_suppression_enabled';
+
+  // Message Drafts
+  static const String _keyMessageDrafts = 'message_drafts';
 
   // ============================
   // SESSION
@@ -173,6 +192,21 @@ class PreferencesService {
   Future<void> setNotifyLocalEvents(bool enabled) =>
       prefs.setBool(_keyNotifyLocalEvents, enabled);
 
+  bool get notifyAudioRoomReminders =>
+      prefs.getBool(_keyNotifyAudioRoomReminders) ?? true;
+  Future<void> setNotifyAudioRoomReminders(bool enabled) =>
+      prefs.setBool(_keyNotifyAudioRoomReminders, enabled);
+
+  bool get notifyPodcastEpisodes =>
+      prefs.getBool(_keyNotifyPodcastEpisodes) ?? true;
+  Future<void> setNotifyPodcastEpisodes(bool enabled) =>
+      prefs.setBool(_keyNotifyPodcastEpisodes, enabled);
+
+  bool get notifyTransferReminders =>
+      prefs.getBool(_keyNotifyTransferReminders) ?? true;
+  Future<void> setNotifyTransferReminders(bool enabled) =>
+      prefs.setBool(_keyNotifyTransferReminders, enabled);
+
   bool get notifySystemMessages =>
       prefs.getBool(_keyNotifySystemMessages) ?? false;
   Future<void> setNotifySystemMessages(bool enabled) =>
@@ -210,6 +244,11 @@ class PreferencesService {
   Future<void> setQuietHoursEndMinute(int minute) =>
       prefs.setInt(_keyQuietHoursEndMinute, minute);
 
+  // Message Preview in Notifications (Privacy)
+  bool get showMessagePreview => prefs.getBool(_keyShowMessagePreview) ?? true;
+  Future<void> setShowMessagePreview(bool show) =>
+      prefs.setBool(_keyShowMessagePreview, show);
+
   // ============================
   // MEDIA PREFERENCES
   // ============================
@@ -226,6 +265,27 @@ class PreferencesService {
   Future<void> setDataSaverMode(bool enabled) =>
       prefs.setBool(_keyDataSaverMode, enabled);
 
+  // Auto-download modes per media type
+  String get autoDownloadImagesMode =>
+      prefs.getString(_keyAutoDownloadImagesMode) ?? 'always';
+  Future<void> setAutoDownloadImagesMode(String mode) =>
+      prefs.setString(_keyAutoDownloadImagesMode, mode);
+
+  String get autoDownloadAudioMode =>
+      prefs.getString(_keyAutoDownloadAudioMode) ?? 'always';
+  Future<void> setAutoDownloadAudioMode(String mode) =>
+      prefs.setString(_keyAutoDownloadAudioMode, mode);
+
+  String get autoDownloadVideoMode =>
+      prefs.getString(_keyAutoDownloadVideoMode) ?? 'wifi_only';
+  Future<void> setAutoDownloadVideoMode(String mode) =>
+      prefs.setString(_keyAutoDownloadVideoMode, mode);
+
+  String get autoDownloadFilesMode =>
+      prefs.getString(_keyAutoDownloadFilesMode) ?? 'wifi_only';
+  Future<void> setAutoDownloadFilesMode(String mode) =>
+      prefs.setString(_keyAutoDownloadFilesMode, mode);
+
   // ============================
   // PRIVACY & SECURITY
   // ============================
@@ -237,6 +297,38 @@ class PreferencesService {
   bool get analyticsOptOut => prefs.getBool(_keyAnalyticsOptOut) ?? false;
   Future<void> setAnalyticsOptOut(bool optOut) =>
       prefs.setBool(_keyAnalyticsOptOut, optOut);
+
+  /// Whether the "Nearby Members" feature is enabled.
+  /// Defaults to `false` (private mode by default): nearby members are hidden
+  /// on the home screen and the map, AND the user's own location is not
+  /// uploaded to Firestore until the user explicitly opts in.
+  bool get nearbyMembersEnabled =>
+      prefs.getBool(_keyNearbyMembersEnabled) ?? false;
+  Future<void> setNearbyMembersEnabled(bool enabled) =>
+      prefs.setBool(_keyNearbyMembersEnabled, enabled);
+
+  /// Whether the "businesses" layer is shown on the map (default: true).
+  bool get mapBusinessesLayerVisible =>
+      prefs.getBool(_keyMapBusinessesLayerVisible) ?? true;
+  Future<void> setMapBusinessesLayerVisible(bool visible) =>
+      prefs.setBool(_keyMapBusinessesLayerVisible, visible);
+
+  /// Whether the "Membres à proximité" panel is hidden on the map (default: false).
+  bool get mapMembersPanelHidden =>
+      prefs.getBool(_keyMapMembersPanelHidden) ?? false;
+  Future<void> setMapMembersPanelHidden(bool hidden) =>
+      prefs.setBool(_keyMapMembersPanelHidden, hidden);
+
+  // ============================
+  // CALL SETTINGS
+  // ============================
+
+  /// Whether noise suppression is enabled for calls (default: true)
+  /// Recommended for Sahel regions with variable audio environments
+  bool get noiseSuppressionEnabled =>
+      prefs.getBool(_keyNoiseSuppressionEnabled) ?? true;
+  Future<void> setNoiseSuppressionEnabled(bool enabled) =>
+      prefs.setBool(_keyNoiseSuppressionEnabled, enabled);
 
   // ============================
   // CHAT BACKGROUND CUSTOMIZATION
@@ -294,6 +386,57 @@ class PreferencesService {
   String? getConversationBackground(String conversationId) {
     final custom = customChatBackgrounds;
     return custom[conversationId];
+  }
+
+  // ============================
+  // MESSAGE DRAFTS
+  // ============================
+
+  /// Get all message drafts (`Map<conversationId, draftText>`)
+  Map<String, String> get _messageDrafts {
+    final jsonString = prefs.getString(_keyMessageDrafts);
+    if (jsonString == null || jsonString.isEmpty) return {};
+
+    try {
+      final Map<String, dynamic> decoded = Map<String, dynamic>.from(
+        jsonDecode(jsonString),
+      );
+      return decoded.map((key, value) => MapEntry(key, value.toString()));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Get draft for a specific conversation
+  String? getMessageDraft(String conversationId) {
+    return _messageDrafts[conversationId];
+  }
+
+  /// Save draft for a specific conversation
+  Future<void> saveMessageDraft(String conversationId, String draft) async {
+    if (draft.trim().isEmpty) {
+      await clearMessageDraft(conversationId);
+      return;
+    }
+    final current = _messageDrafts;
+    current[conversationId] = draft;
+    await prefs.setString(_keyMessageDrafts, jsonEncode(current));
+  }
+
+  /// Clear draft for a specific conversation
+  Future<void> clearMessageDraft(String conversationId) async {
+    final current = _messageDrafts;
+    current.remove(conversationId);
+    if (current.isEmpty) {
+      await prefs.remove(_keyMessageDrafts);
+    } else {
+      await prefs.setString(_keyMessageDrafts, jsonEncode(current));
+    }
+  }
+
+  /// Clear all drafts
+  Future<void> clearAllMessageDrafts() async {
+    await prefs.remove(_keyMessageDrafts);
   }
 
   // ============================

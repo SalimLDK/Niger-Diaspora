@@ -1,0 +1,545 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/theme/dn_colors.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
+import '../../../../core/utils/locale_helper.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../domain/entities/audio_room_entity.dart';
+import '../providers/audio_room_provider.dart';
+import '../widgets/_shared/collection_progress_bar.dart';
+import '../widgets/_shared/dn_tab_bar.dart';
+import '../widgets/_shared/live_dot.dart';
+import '../widgets/_shared/mode_chip.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/error_handler.dart';
+
+/// /audio-rooms — Live + Programmés list with Sahel design.
+class AudioRoomsListScreen extends ConsumerStatefulWidget {
+  const AudioRoomsListScreen({super.key});
+
+  @override
+  ConsumerState<AudioRoomsListScreen> createState() =>
+      _AudioRoomsListScreenState();
+}
+
+class _AudioRoomsListScreenState extends ConsumerState<AudioRoomsListScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs = TabController(length: 2, vsync: this);
+  String _selectedCategory = 'Tous';
+
+  static const _categories = [
+    'Tous', 'Discussion', 'Actualités', 'Culture', 'Griot/Conte',
+    'Business', 'Mentorat', 'Famille', 'Officiel', 'Spiritualité', 'Éducation',
+  ];
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final live = ref.watch(liveAudioRoomsProvider);
+    final scheduled = ref.watch(scheduledAudioRoomsProvider);
+    final liveCount = live.value?.length ?? 0;
+    final scheduledCount = scheduled.value?.length ?? 0;
+    final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+
+    return Scaffold(
+      backgroundColor: dn.surface,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                _ArHeader(liveCount: liveCount, scheduledCount: scheduledCount),
+                DnTabBar(
+                  controller: _tabs,
+                  labels: [
+                    l10n.audioRoomsLiveTabLabel(liveCount),
+                    l10n.audioRoomsScheduledTabLabel(scheduledCount),
+                  ],
+                ),
+                _CategoryFilters(
+                  selected: _selectedCategory,
+                  categories: _categories,
+                  onSelect: (c) => setState(() => _selectedCategory = c),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabs,
+                    children: [
+                      _LiveList(rooms: live, category: _selectedCategory),
+                      _ScheduledList(rooms: scheduled, category: _selectedCategory),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              right: 14,
+              bottom: 18,
+              child: _CreateFab(onTap: () => context.push('/audio-rooms/create')),
+            ),
+            Positioned(
+              right: 78,
+              bottom: 22,
+              child: _ScheduleButton(onTap: () => context.push('/audio-rooms/schedule')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+class _ArHeader extends StatelessWidget {
+  final int liveCount;
+  final int scheduledCount;
+
+  const _ArHeader({required this.liveCount, required this.scheduledCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 8, 4),
+      child: Row(
+        children: [
+          BackButton(
+            color: dn.onSurface,
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all(EdgeInsets.zero),
+              minimumSize: WidgetStateProperty.all(const Size(36, 36)),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppLocalizations.of(context)!.audioRoomsTitle,
+                    style: DNText.serif(size: 20, color: dn.onSurface),),
+                Text(
+                  AppLocalizations.of(context)!.audioRoomsAvailableCount(liveCount + scheduledCount),
+                  style: DNText.mono(size: 9, color: dn.onSurface3),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: AppIcon(AppIcon.search, color: dn.onSurface, size: 20),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Category filters ─────────────────────────────────────────────────────────
+
+class _CategoryFilters extends StatelessWidget {
+  final String selected;
+  final List<String> categories;
+  final ValueChanged<String> onSelect;
+
+  const _CategoryFilters({
+    required this.selected,
+    required this.categories,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final cat = categories[i];
+          final active = cat == selected;
+          return GestureDetector(
+            onTap: () => onSelect(cat),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: active ? dn.onSurface : dn.surface2,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                cat,
+                style: DNText.mono(
+                  size: 9,
+                  color: active ? dn.surface : dn.onSurface3,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─── Live list ────────────────────────────────────────────────────────────────
+
+class _LiveList extends ConsumerWidget {
+  final AsyncValue<List<AudioRoomEntity>> rooms;
+  final String category;
+
+  const _LiveList({required this.rooms, required this.category});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return rooms.when(
+      loading: () => const Center(
+          child: CircularProgressIndicator(color: DNColors.terra),),
+      error: (e, _) => Center(
+          child: Text(
+            ErrorHandler.instance.getShortMessage(
+              ErrorHandler.instance.handleException(e),
+            ),
+            style: DNText.sans(color: context.dn.onSurface),
+          ),),
+      data: (list) {
+        final filtered = category == 'Tous'
+            ? list
+            : list.where((r) => r.categoryLabel == category).toList();
+        if (filtered.isEmpty) {
+          final l10n = AppLocalizations.of(context)!;
+          return _EmptyState(
+              message: l10n.audioRoomsNoLiveRooms,
+              sub: '${l10n.audioRoomsNoLiveSubtitle} 🎙',);
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
+          itemCount: filtered.length,
+          itemBuilder: (_, i) => _LiveCard(room: filtered[i]),
+        );
+      },
+    );
+  }
+}
+
+class _LiveCard extends StatelessWidget {
+  final AudioRoomEntity room;
+
+  const _LiveCard({required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    final mode = roomModeFrom(room.mode.name);
+    return GestureDetector(
+      onTap: () =>
+          context.push('/audio-rooms/${room.id}', extra: {'title': room.title}),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: dn.surface,
+          border: Border.all(color: dn.surface2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const LiveDot(),
+                const SizedBox(width: 5),
+                Text(
+                  AppLocalizations.of(context)!.audioRoomsLiveListeners(room.listenerCount),
+                  style: DNText.mono(size: 9, color: DNColors.terra),
+                ),
+                const Spacer(),
+                ModeChip(mode: mode),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              room.title,
+              style: DNText.serif(size: 16, color: dn.onSurface),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _AvatarStack(names: [room.hostName]),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    room.hostName,
+                    style: DNText.sans(size: 11, color: dn.onSurface2),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (room.isPaid)
+                  _PricePill(price: (room.ticketPrice ?? 0) / 100),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Scheduled list ───────────────────────────────────────────────────────────
+
+class _ScheduledList extends ConsumerWidget {
+  final AsyncValue<List<AudioRoomEntity>> rooms;
+  final String category;
+
+  const _ScheduledList({required this.rooms, required this.category});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return rooms.when(
+      loading: () => const Center(
+          child: CircularProgressIndicator(color: DNColors.terra),),
+      error: (e, _) => Center(
+          child: Text(
+            ErrorHandler.instance.getShortMessage(
+              ErrorHandler.instance.handleException(e),
+            ),
+            style: DNText.sans(color: context.dn.onSurface),
+          ),),
+      data: (list) {
+        final filtered = category == 'Tous'
+            ? list
+            : list.where((r) => r.categoryLabel == category).toList();
+        if (filtered.isEmpty) {
+          final l10n = AppLocalizations.of(context)!;
+          return _EmptyState(
+              message: l10n.audioRoomsNoScheduledRooms,
+              sub: '${l10n.audioRoomsNoScheduledSubtitle} 📅',);
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
+          itemCount: filtered.length,
+          itemBuilder: (_, i) => _ScheduledCard(room: filtered[i]),
+        );
+      },
+    );
+  }
+}
+
+class _ScheduledCard extends StatelessWidget {
+  final AudioRoomEntity room;
+
+  const _ScheduledCard({required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    final mode = roomModeFrom(room.mode.name);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: dn.surface,
+        border: Border.all(color: dn.surface2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (room.scheduledAt != null)
+                Text(
+                  '📅 ${_fmtDate(context, room.scheduledAt!)}',
+                  style: DNText.mono(size: 9, color: dn.onSurface3),
+                ),
+              const Spacer(),
+              ModeChip(mode: mode),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            room.title,
+            style: DNText.serif(size: 16, color: dn.onSurface),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${room.hostName} · ${AppLocalizations.of(context)!.audioRoomsRegisteredCount(room.listenerCount)}',
+            style: DNText.sans(size: 11, color: dn.onSurface3),
+          ),
+          if (room.hasActiveCollection) ...[
+            const SizedBox(height: 8),
+            CollectionProgressBar(
+              current: room.collectionAmount / 100,
+              goal: (room.collectionGoal ?? 0) / 100,
+              beneficiary: room.collectionBeneficiary ?? '',
+              contributors: 0,
+            ),
+          ],
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Text('🔔', style: TextStyle(fontSize: 13)),
+            label: Text(AppLocalizations.of(context)!.remindLater,
+                style: DNText.sans(size: 12, color: dn.onSurface),),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: dn.onSurface,
+              side: BorderSide(color: dn.onSurface4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _fmtDate(BuildContext context, DateTime d) {
+    final month = DateFormat('MMM', LocaleHelper.getDateFormatLocale(context)).format(d);
+    return '${d.day} $month · '
+        '${d.hour.toString().padLeft(2, '0')}:'
+        '${d.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+// ─── FAB & schedule button ────────────────────────────────────────────────────
+
+class _CreateFab extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _CreateFab({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: const BoxDecoration(color: DNColors.terra, shape: BoxShape.circle),
+          child: const AppIcon(AppIcon.mic, color: Colors.white, size: 22),
+        ),
+      );
+}
+
+class _ScheduleButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ScheduleButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: dn.surface2,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: dn.onSurface4),
+        ),
+        child: Text(
+          '📅 ${AppLocalizations.of(context)!.audioRoomsScheduleButton}',
+          style: DNText.sans(size: 12, w: FontWeight.w500, color: dn.onSurface),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+class _AvatarStack extends StatelessWidget {
+  final List<String> names;
+
+  const _AvatarStack({required this.names});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    final visible = names.take(3).toList();
+    return SizedBox(
+      width: 20.0 + (visible.length - 1) * 14,
+      height: 20,
+      child: Stack(
+        children: visible.asMap().entries.map((e) {
+          return Positioned(
+            left: e.key * 14.0,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: dn.surfaceVariant,
+                shape: BoxShape.circle,
+                border: Border.all(color: dn.surface, width: 1.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                (e.value.isEmpty ? '?' : e.value[0]).toUpperCase(),
+                style: DNText.mono(size: 7, color: dn.onSurface2),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _PricePill extends StatelessWidget {
+  final double price;
+
+  const _PricePill({required this.price});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: DNColors.ochre,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          '€${price.toStringAsFixed(2)}',
+          style: DNText.mono(size: 9, color: DNColors.paper),
+        ),
+      );
+}
+
+class _EmptyState extends StatelessWidget {
+  final String message;
+  final String sub;
+
+  const _EmptyState({required this.message, required this.sub});
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🎙', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(message, style: DNText.serif(size: 18, color: dn.onSurface)),
+          const SizedBox(height: 4),
+          Text(sub, style: DNText.mono(size: 10, color: dn.onSurface3)),
+        ],
+      ),
+    );
+  }
+}
