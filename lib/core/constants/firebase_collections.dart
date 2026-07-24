@@ -31,6 +31,9 @@ class FirebaseCollections {
   static const String businessReviews = 'business_reviews';
   static const String businessPosts = 'business_posts';
 
+  // Calls
+  static const String calls = 'calls';
+
   // Admin Configuration
   static const String appConfig = 'app_config';
   static const String appSettings = 'settings'; // document under app_config

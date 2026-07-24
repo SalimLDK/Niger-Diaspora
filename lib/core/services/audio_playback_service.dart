@@ -136,6 +136,20 @@ class AudioPlaybackService {
     }
   }
 
+  /// Reads audio duration from a local file (seconds).
+  static Future<int?> getDurationFromFile(String filePath) async {
+    try {
+      final player = AudioPlayer();
+      await player.setFilePath(filePath);
+      final duration = player.duration;
+      await player.dispose();
+      return duration?.inSeconds;
+    } catch (e) {
+      debugPrint('getDurationFromFile error: $e');
+      return null;
+    }
+  }
+
   /// Dispose resources
   void dispose() {
     _player.dispose();

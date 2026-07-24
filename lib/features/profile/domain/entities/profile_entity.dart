@@ -25,6 +25,7 @@ class ProfileEntity with _$ProfileEntity {
     @Default(true) bool shareLocation,
     @Default('everyone') String phoneVisibility,
     @Default(false) bool isPhoneVerified,
+    @Default(false) bool isVerified,
     @Default([]) List<String> interests,
     @Default([]) List<String> skills,
     @Default([]) List<String> languages,

@@ -12,7 +12,11 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     return const AsyncValue.data(null);
   }
 
-  Future<bool> muteConversation(String conversationId, bool mute) async {
+  Future<bool> muteConversation(
+    String conversationId,
+    bool mute, {
+    Duration? duration,
+  }) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return false;
 
@@ -25,6 +29,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
                 .muteConversation(
                   conversationId: conversationId,
                   userId: currentUser.id,
+                  duration: duration,
                 )
             : await ref
                 .read(messageRepositoryProvider)
@@ -247,5 +252,28 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
       state = AsyncValue.error(e.toString(), StackTrace.current);
       return false;
     }
+  }
+
+  Future<bool> setAutoDeleteSettings(
+    String conversationId,
+    int? durationSeconds,
+  ) async {
+    state = const AsyncValue.loading();
+    final result = await ref
+        .read(messageRepositoryProvider)
+        .setAutoDeleteSettings(
+          conversationId: conversationId,
+          durationSeconds: durationSeconds,
+        );
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
   }
 }

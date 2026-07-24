@@ -51,4 +51,16 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> checkBlockStatus(String currentUserId, String targetUserId) async {
+    try {
+      final blocked = await dataSource.checkBlockStatus(currentUserId, targetUserId);
+      return Right(blocked);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

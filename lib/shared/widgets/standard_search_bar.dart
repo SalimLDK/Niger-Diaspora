@@ -1,22 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// A standardized, reusable search bar widget with consistent styling.
-///
-/// Features:
-/// - Consistent design across all screens
-/// - Theme-aware colors
-/// - Clear button when text is entered
-/// - Customizable hint text
-/// - Optional autofocus
-///
-/// Usage:
-/// ```dart
-/// StandardSearchBar(
-///   controller: _searchController,
-///   hintText: 'Rechercher...',
-///   onChanged: (value) => setState(() => _query = value),
-/// )
-/// ```
 class StandardSearchBar extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
@@ -25,6 +11,10 @@ class StandardSearchBar extends StatefulWidget {
   final bool autofocus;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final EdgeInsetsGeometry padding;
+  final Duration? debounceDuration;
+  final bool isLoading;
+  final bool showClearButton;
 
   const StandardSearchBar({
     super.key,
@@ -35,6 +25,10 @@ class StandardSearchBar extends StatefulWidget {
     this.autofocus = false,
     this.textInputAction,
     this.onSubmitted,
+    this.padding = const EdgeInsets.all(16),
+    this.debounceDuration,
+    this.isLoading = false,
+    this.showClearButton = true,
   });
 
   @override
@@ -42,31 +36,59 @@ class StandardSearchBar extends StatefulWidget {
 }
 
 class _StandardSearchBarState extends State<StandardSearchBar> {
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(() {
-      setState(() {}); // Rebuild when text changes to show/hide clear button
+    widget.controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _handleChanged(String value) {
+    if (widget.debounceDuration == null) {
+      widget.onChanged?.call(value);
+      return;
+    }
+    _debounce?.cancel();
+    _debounce = Timer(widget.debounceDuration!, () {
+      widget.onChanged?.call(value);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final showClear =
+        widget.showClearButton && widget.controller.text.isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: widget.padding,
       child: TextField(
         controller: widget.controller,
         autofocus: widget.autofocus,
         textInputAction: widget.textInputAction ?? TextInputAction.search,
-        onChanged: widget.onChanged,
+        onChanged: _handleChanged,
         onSubmitted: widget.onSubmitted,
         decoration: InputDecoration(
           hintText: widget.hintText,
           prefixIcon: const Icon(Icons.search),
           suffixIcon:
-              widget.controller.text.isNotEmpty
+              widget.isLoading
+                  ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                  : showClear
                   ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () {
@@ -92,15 +114,17 @@ class _StandardSearchBarState extends State<StandardSearchBar> {
   }
 }
 
-/// A compact search bar for use in app bars.
-///
-/// This variant is optimized for placement in AppBar actions or title.
-class CompactSearchBar extends StatelessWidget {
+/// Compact search bar for app bars and map overlays.
+class CompactSearchBar extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onClear;
   final bool autofocus;
+  final Duration? debounceDuration;
+  final bool isLoading;
+  final bool showClearButton;
 
   const CompactSearchBar({
     super.key,
@@ -108,20 +132,74 @@ class CompactSearchBar extends StatelessWidget {
     required this.hintText,
     this.onChanged,
     this.onSubmitted,
+    this.onClear,
     this.autofocus = false,
+    this.debounceDuration,
+    this.isLoading = false,
+    this.showClearButton = true,
   });
 
   @override
+  State<CompactSearchBar> createState() => _CompactSearchBarState();
+}
+
+class _CompactSearchBarState extends State<CompactSearchBar> {
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _handleChanged(String value) {
+    if (widget.debounceDuration == null) {
+      widget.onChanged?.call(value);
+      return;
+    }
+    _debounce?.cancel();
+    _debounce = Timer(widget.debounceDuration!, () {
+      widget.onChanged?.call(value);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final showClear =
+        widget.showClearButton && widget.controller.text.isNotEmpty;
+
     return TextField(
-      controller: controller,
-      autofocus: autofocus,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
+      controller: widget.controller,
+      autofocus: widget.autofocus,
+      onChanged: _handleChanged,
+      onSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
-        hintText: hintText,
+        hintText: widget.hintText,
         border: InputBorder.none,
         contentPadding: EdgeInsets.zero,
+        suffixIcon:
+            widget.isLoading
+                ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                : showClear
+                ? IconButton(
+                  icon: const Icon(Icons.clear, size: 20),
+                  onPressed: () {
+                    widget.controller.clear();
+                    widget.onClear?.call();
+                    widget.onChanged?.call('');
+                  },
+                )
+                : null,
       ),
       style: Theme.of(context).textTheme.titleLarge,
     );

@@ -60,10 +60,95 @@ class AppConfig {
         (key.startsWith('pk_test_') || key.startsWith('pk_live_'));
   }
 
+  // ============================================
+  // REVENUECAT CONFIGURATION
+  // ============================================
+
+  /// RevenueCat API key for Android from build arguments.
+  /// Set via --dart-define=REVENUECAT_API_KEY_ANDROID=xxx
+  static const String _revenueCatApiKeyAndroidFromEnv = String.fromEnvironment(
+    'REVENUECAT_API_KEY_ANDROID',
+    defaultValue: '',
+  );
+
+  /// RevenueCat API key for iOS from build arguments.
+  /// Set via --dart-define=REVENUECAT_API_KEY_IOS=xxx
+  static const String _revenueCatApiKeyIosFromEnv = String.fromEnvironment(
+    'REVENUECAT_API_KEY_IOS',
+    defaultValue: '',
+  );
+
+  /// Get the active RevenueCat API key for Android.
+  static String get revenueCatApiKeyAndroid => _revenueCatApiKeyAndroidFromEnv;
+
+  /// Get the active RevenueCat API key for iOS.
+  static String get revenueCatApiKeyIos => _revenueCatApiKeyIosFromEnv;
+
+  /// Validate that RevenueCat is properly configured.
+  static bool get isRevenueCatConfigured {
+    return revenueCatApiKeyAndroid.isNotEmpty || revenueCatApiKeyIos.isNotEmpty;
+  }
+
+  // ============================================
+  // GOOGLE SIGN-IN CONFIGURATION
+  // ============================================
+
+  /// OAuth 2.0 Web Client ID (client_type 3) from google-services.json.
+  /// Required as [GoogleSignIn.serverClientId] so Android returns an idToken
+  /// usable by Firebase Auth.
+  /// Override via --dart-define=GOOGLE_WEB_CLIENT_ID=xxx.apps.googleusercontent.com
+  static const String _googleWebClientIdFromEnv = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '',
+  );
+
+  static const String _defaultGoogleWebClientId =
+      '539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com';
+
+  static String get googleWebClientId =>
+      _googleWebClientIdFromEnv.isNotEmpty
+          ? _googleWebClientIdFromEnv
+          : _defaultGoogleWebClientId;
+
+  // ============================================
+  // GIPHY CONFIGURATION
+  // ============================================
+
+  /// Giphy API key from build arguments.
+  /// Set via --dart-define=GIPHY_API_KEY=xxx
+  static const String _giphyApiKeyFromEnv = String.fromEnvironment(
+    'GIPHY_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Get the active Giphy API key.
+  static String get giphyApiKey => _giphyApiKeyFromEnv;
+
+  /// Validate that Giphy is properly configured.
+  static bool get isGiphyConfigured => giphyApiKey.isNotEmpty;
+
+  // ============================================
+  // TENOR CONFIGURATION
+  // ============================================
+
+  /// Tenor API key from build arguments.
+  /// Set via --dart-define=TENOR_API_KEY=xxx
+  static const String _tenorApiKeyFromEnv = String.fromEnvironment(
+    'TENOR_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Get the active Tenor API key.
+  static String get tenorApiKey => _tenorApiKeyFromEnv;
+
+  /// Validate that Tenor is properly configured.
+  static bool get isTenorConfigured => tenorApiKey.isNotEmpty;
+
   /// Get configuration info for debugging
   static Map<String, dynamic> get configInfo => {
     'environment': isProduction ? 'production' : 'development',
     'stripeConfigured': isStripeConfigured,
+    'revenueCatConfigured': isRevenueCatConfigured,
     'stripeKeyType':
         stripePublishableKey.startsWith('pk_test_')
             ? 'test'

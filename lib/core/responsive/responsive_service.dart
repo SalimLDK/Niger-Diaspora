@@ -38,6 +38,7 @@ extension ResponsiveContext on BuildContext {
   bool get isLargeDevice => isTablet || isDesktop;
   int get gridColumns => ResponsiveService.getGridColumns(screenWidth);
   int get listColumns => ResponsiveService.getListColumns(screenWidth);
+  double get horizontalPadding => isMobile ? 16.0 : 24.0;
 
   T responsive<T>({required T mobile, T? tablet, T? desktop}) {
     switch (deviceType) {

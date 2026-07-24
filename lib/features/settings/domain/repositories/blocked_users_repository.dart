@@ -11,4 +11,5 @@ abstract class BlockedUsersRepository {
     String? targetPhotoUrl,
   );
   Future<Either<Failure, void>> unblockUser(String currentUserId, String targetUserId);
+  Future<Either<Failure, bool>> checkBlockStatus(String currentUserId, String targetUserId);
 }

@@ -332,6 +332,21 @@ class CacheService {
     await box.delete(key);
   }
 
+  Future<void> cacheMessagesLRU(
+    String conversationId,
+    List<Map<String, dynamic>> messages, {
+    int maxMessages = 500,
+  }) async {
+    if (messages.length > maxMessages) {
+      await cacheMessages(
+        conversationId,
+        messages.sublist(messages.length - maxMessages),
+      );
+      return;
+    }
+    await cacheMessages(conversationId, messages);
+  }
+
   Future<void> clearAllMessagesCache() async {
     await Hive.box<String>(_messagesBox).clear();
   }

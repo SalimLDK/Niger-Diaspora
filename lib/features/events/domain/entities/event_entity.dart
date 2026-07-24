@@ -29,6 +29,10 @@ class EventEntity with _$EventEntity {
     @Default([]) List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    @Default(false) bool isPublic,
   }) = _EventEntity;
 }
 

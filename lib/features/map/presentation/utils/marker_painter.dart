@@ -9,6 +9,7 @@ enum MarkerType {
   friend,
   member,
   embassy,
+  business,
 }
 
 /// Configuration pour le rendu d'un marqueur
@@ -59,6 +60,8 @@ class MarkerPainter {
         return [AppColors.primary, AppColors.primaryDark];
       case MarkerType.embassy:
         return [const Color(0xFF1976D2), const Color(0xFF0D47A1)];
+      case MarkerType.business:
+        return [const Color(0xFFFF9800), const Color(0xFFE65100)];
     }
   }
 

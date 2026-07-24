@@ -143,6 +143,11 @@ class PermissionService {
     }
   }
 
+  static String getCameraPermissionDeniedMessageLocalized(
+    PermissionResult result,
+  ) =>
+      getCameraPermissionDeniedMessage(result);
+
   /// Get a user-friendly message for photo library permission denial
   static String getPhotoLibraryPermissionDeniedMessage(PermissionResult result) {
     switch (result) {
