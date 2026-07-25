@@ -74,3 +74,4 @@ functions/node_modules/
 
 # Windows reserved names
 nul
+supabase/.temp/
