@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -116,12 +117,15 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(
-                    isArchived
-                        ? Icons.unarchive_outlined
-                        : Icons.archive_outlined,
-                    color: context.adaptivePrimaryColor,
-                  ),
+                  leading: isArchived
+                      ? Icon(
+                          Icons.unarchive_outlined,
+                          color: context.adaptivePrimaryColor,
+                        )
+                      : AppIcon(
+                          AppIcon.archive,
+                          color: context.adaptivePrimaryColor,
+                        ),
                   title: Text(
                     isArchived ? l10n.unarchive : l10n.archive,
                     style: TextStyle(color: context.textPrimaryColor),
@@ -152,7 +156,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  leading: const AppIcon(AppIcon.delete, color: Colors.red),
                   title: Text(
                     l10n.delete,
                     style: const TextStyle(color: Colors.red),
@@ -231,7 +235,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 : Text(_showArchived ? l10n.archives : l10n.messagesTitle),
         leading: _showArchived
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const AppIcon(AppIcon.arrowBack),
                 onPressed: () {
                   setState(() => _showArchived = false);
                 },
@@ -240,7 +244,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         actions: [
           if (_isSearching)
             IconButton(
-              icon: const Icon(Icons.close),
+              icon: const AppIcon(AppIcon.close),
               onPressed: () {
                 setState(() {
                   _isSearching = false;
@@ -257,7 +261,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   color: context.surfaceVariantColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.search, color: context.textPrimaryColor),
+                child: AppIcon(AppIcon.search, color: context.textPrimaryColor),
               ),
               onPressed: () {
                 setState(() => _isSearching = true);
@@ -282,10 +286,15 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   value: 'archives',
                   child: Row(
                     children: [
-                      Icon(
-                        _showArchived ? Icons.chat_bubble_outline : Icons.archive_outlined,
-                        color: context.textPrimaryColor,
-                      ),
+                      _showArchived
+                          ? AppIcon(
+                              AppIcon.chatBubble,
+                              color: context.textPrimaryColor,
+                            )
+                          : AppIcon(
+                              AppIcon.archive,
+                              color: context.textPrimaryColor,
+                            ),
                       const SizedBox(width: 12),
                       Text(_showArchived ? l10n.messagesTitle : l10n.archives),
                     ],
@@ -348,8 +357,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
+                  AppIcon(
+                    AppIcon.error,
                     size: 48,
                     color: context.textTertiaryColor,
                   ),
@@ -385,8 +394,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.chat_bubble_outline,
+            child: AppIcon(
+              AppIcon.chatBubble,
               size: 64,
               color: context.adaptivePrimaryColor,
             ),
@@ -412,7 +421,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () => context.push('/messages/new'),
-            icon: const Icon(Icons.add),
+            icon: const AppIcon(AppIcon.add),
             label: Text(l10n.newConversation),
             style: ElevatedButton.styleFrom(
               backgroundColor: context.adaptivePrimaryColor,
@@ -450,8 +459,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.search_off,
+              AppIcon(
+                AppIcon.searchOff,
                 size: 64,
                 color: context.textTertiaryColor.withValues(alpha: 0.5),
               ),
@@ -474,8 +483,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.archive_outlined,
+              AppIcon(
+                AppIcon.archive,
                 size: 64,
                 color: context.textTertiaryColor.withValues(alpha: 0.5),
               ),
@@ -502,7 +511,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       },
       color: context.adaptivePrimaryColor,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          10,
+          20,
+          10 + MediaQuery.of(context).padding.bottom,
+        ),
         itemCount: filtered.length,
         itemBuilder: (context, index) {
           final conversation = filtered[index];

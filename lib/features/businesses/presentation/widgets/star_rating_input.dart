@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class StarRatingInput extends StatelessWidget {
   final int rating;
@@ -28,8 +29,8 @@ class StarRatingInput extends StatelessWidget {
           onTap: readOnly ? null : () => onRatingChanged(starNumber),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              starNumber <= rating ? Icons.star : Icons.star_border,
+            child: AppIcon(
+              starNumber <= rating ? AppIcon.star : AppIcon.starBorder,
               size: size,
               color: starNumber <= rating ? activeColor : inactiveColor,
             ),
@@ -70,11 +71,11 @@ class StarRatingDisplay extends StatelessWidget {
           final starNumber = index + 1;
           // Support demi-etoiles
           if (rating >= starNumber) {
-            return Icon(Icons.star, size: size, color: activeColor);
+            return AppIcon(AppIcon.star, size: size, color: activeColor);
           } else if (rating >= starNumber - 0.5) {
             return Icon(Icons.star_half, size: size, color: activeColor);
           } else {
-            return Icon(Icons.star_border, size: size, color: inactiveColor);
+            return AppIcon(AppIcon.starBorder, size: size, color: inactiveColor);
           }
         }),
         if (showValue) ...[

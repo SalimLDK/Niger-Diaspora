@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 /// Cœur animé joué lors d'un double-tap « like » sur le média d'un post
 /// (sémantique Instagram). À placer dans un [Stack] au-dessus du média ;
@@ -55,11 +56,10 @@ class HeartBurstState extends State<HeartBurst>
           opacity: _opacity,
           child: ScaleTransition(
             scale: _scale,
-            child: const Icon(
-              Icons.favorite_rounded,
+            child: const AppIcon(
+              AppIcon.heart,
               color: Colors.white,
               size: 96,
-              shadows: [Shadow(color: Colors.black45, blurRadius: 12)],
             ),
           ),
         ),

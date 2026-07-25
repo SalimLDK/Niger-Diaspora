@@ -53,14 +53,60 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
     // Use stream for real-time updates
     final groupStream = ref.watch(groupStreamProvider(widget.groupId));
+    final detailState = ref.watch(groupDetailNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     final group = groupStream.when(
-      data: (streamGroup) => widget.initialGroup ?? streamGroup,
-      loading: () => widget.initialGroup,
-      error: (_, __) => widget.initialGroup,
+      data: (streamGroup) => widget.initialGroup ?? streamGroup ?? detailState.valueOrNull,
+      loading: () => widget.initialGroup ?? detailState.valueOrNull,
+      error: (_, __) => widget.initialGroup ?? detailState.valueOrNull,
     );
 
     if (group == null) {
+      // Le stream realtime ne remonte jamais d'erreur explicite (RLS refusé =
+      // simplement 0 ligne pour toujours) : on se fie donc à l'appel one-shot
+      // getGroupById du notifier pour détecter un échec réel (groupe supprimé,
+      // accès refusé, réseau) plutôt que de spinner indéfiniment sans jamais
+      // le signaler à l'utilisateur.
+      if (detailState.hasError) {
+        return Scaffold(
+          backgroundColor: context.backgroundColor,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: context.textSecondaryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.loadingError,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: context.textPrimaryColor),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref
+                        .read(groupDetailNotifierProvider.notifier)
+                        .loadGroup(widget.groupId),
+                    child: Text(l10n.retry),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
@@ -75,7 +121,6 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       );
     }
 
-    final l10n = AppLocalizations.of(context)!;
     final isMember = group.memberIds.contains(currentUser?.id);
     final isCreator = group.creatorId == currentUser?.id;
     final isAdmin = group.adminIds.contains(currentUser?.id);

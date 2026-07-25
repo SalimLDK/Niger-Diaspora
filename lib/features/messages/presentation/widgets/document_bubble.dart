@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 
@@ -178,8 +179,8 @@ class _DocumentBubbleState extends State<DocumentBubble>
                                     color: Colors.green,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Icon(
-                                    Icons.check_rounded,
+                                  child: const AppIcon(
+                                    AppIcon.check,
                                     color: Colors.white,
                                     size: 24,
                                   ),
@@ -324,18 +325,19 @@ class _DocumentBubbleState extends State<DocumentBubble>
                               ? Colors.white.withValues(alpha: 0.2)
                               : Colors.transparent,
                     ),
-                    child: Icon(
-                      _showSuccess
-                          ? Icons.check_circle_rounded
-                          : Icons.download_rounded,
-                      color:
-                          _showSuccess
-                              ? Colors.green
-                              : widget.isMe
-                                  ? Colors.white
-                                  : context.textSecondaryColor,
-                      size: 20,
-                    ),
+                    child: _showSuccess
+                        ? AppIcon(
+                            AppIcon.checkCircle,
+                            color: Colors.green,
+                            size: 20,
+                          )
+                        : Icon(
+                            Icons.download_rounded,
+                            color: widget.isMe
+                                ? Colors.white
+                                : context.textSecondaryColor,
+                            size: 20,
+                          ),
                   ),
                 ],
               ],
@@ -388,15 +390,15 @@ class _DocumentBubbleState extends State<DocumentBubble>
         );
 
       case MessageStatus.failed:
-        return const Icon(
-          Icons.warning_amber_rounded,
+        return const AppIcon(
+          AppIcon.warning,
           size: 14,
           color: Colors.red,
         );
 
       case MessageStatus.sent:
-        return Icon(
-          Icons.done_all,
+        return AppIcon(
+          AppIcon.doneAll,
           size: 14,
           color: color,
         );
@@ -510,8 +512,8 @@ class _DocumentBubbleState extends State<DocumentBubble>
               color: Colors.red.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.error_outline_rounded,
+            child: const AppIcon(
+              AppIcon.error,
               color: Colors.red,
               size: 24,
             ),

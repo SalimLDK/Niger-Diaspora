@@ -2,6 +2,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
@@ -56,7 +57,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                 : const Text('Annuaire Business'),
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            icon: AppIcon(_isSearching ? AppIcon.close : AppIcon.search),
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
@@ -189,8 +190,8 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error_outline,
+                          AppIcon(
+                            AppIcon.error,
                             size: 64,
                             color: theme.colorScheme.error,
                           ),
@@ -222,7 +223,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         onPressed: () {
           context.push('/businesses/create');
         },
-        icon: const Icon(Icons.add),
+        icon: const AppIcon(AppIcon.add),
         label: const Text('Ajouter'),
       ),
     );
@@ -247,8 +248,8 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.location_on_outlined,
+              AppIcon(
+                AppIcon.location,
                 size: 20,
                 color: theme.colorScheme.primary,
               ),
@@ -294,7 +295,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                         ),
                         inputDecoration: InputDecoration(
                           labelText: 'Rechercher un pays',
-                          prefixIcon: const Icon(Icons.search),
+                          prefixIcon: const AppIcon(AppIcon.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -307,7 +308,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.public, size: 18),
+                  icon: const AppIcon(AppIcon.public, size: 18),
                   label: Text(
                     locationFilter.country ?? 'Pays',
                     overflow: TextOverflow.ellipsis,

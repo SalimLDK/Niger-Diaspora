@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/permission_provider.dart';
@@ -124,8 +125,8 @@ class UnauthorizedScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.lock_outline,
+            const AppIcon(
+              AppIcon.lock,
               size: 64,
               color: Colors.grey,
             ),
@@ -138,7 +139,7 @@ class UnauthorizedScreen extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back),
+              icon: const AppIcon(AppIcon.arrowBack),
               label: const Text('Retour'),
             ),
           ],

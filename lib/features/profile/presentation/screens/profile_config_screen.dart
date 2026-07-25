@@ -8,6 +8,7 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../providers/profile_provider.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class ProfileConfigScreen extends ConsumerStatefulWidget {
   const ProfileConfigScreen({super.key});
@@ -441,7 +442,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              prefixIcon: const Icon(Icons.person),
+              prefixIcon: const AppIcon(AppIcon.person),
             ),
           ),
           const SizedBox(height: 16),
@@ -471,8 +472,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           ),
           const SizedBox(height: 24),
 
-          Icon(
-            Icons.location_on,
+          AppIcon(
+            AppIcon.location,
             size: 64,
             color: context.adaptivePrimaryColor,
           ),
@@ -743,7 +744,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 ),
                 const SizedBox(height: 24),
                 _ImagePickerOption(
-                  icon: Icons.camera_alt_outlined,
+                  icon: Icon(
+                    Icons.camera_alt_outlined,
+                    color: context.adaptivePrimaryColor,
+                  ),
                   title: 'Prendre une photo',
                   subtitle: 'Utiliser l\'appareil photo',
                   onTap: () {
@@ -752,7 +756,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   },
                 ),
                 _ImagePickerOption(
-                  icon: Icons.photo_library_outlined,
+                  icon: Icon(
+                    Icons.photo_library_outlined,
+                    color: context.adaptivePrimaryColor,
+                  ),
                   title: 'Choisir dans la galerie',
                   subtitle: 'Sélectionner une image existante',
                   onTap: () {
@@ -762,7 +769,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 ),
                 if (_photoUrl != null)
                   _ImagePickerOption(
-                    icon: Icons.delete_outline,
+                    icon: const AppIcon(AppIcon.delete, color: AppColors.error),
                     title: 'Supprimer la photo',
                     subtitle: 'Utiliser les initiales par défaut',
                     isDestructive: true,
@@ -812,7 +819,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       initialValue: _selectedCountry,
       decoration: InputDecoration(
         labelText: 'Pays actuel',
-        prefixIcon: const Icon(Icons.public_outlined),
+        prefixIcon: const AppIcon(AppIcon.public),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       hint: const Text('Sélectionnez votre pays'),
@@ -1014,7 +1021,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
 // Helper widgets
 class _ImagePickerOption extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -1051,13 +1058,7 @@ class _ImagePickerOption extends StatelessWidget {
                         : context.adaptivePrimaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color:
-                    isDestructive
-                        ? AppColors.error
-                        : context.adaptivePrimaryColor,
-              ),
+              child: icon,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1159,7 +1160,7 @@ class _ThemeModeOption extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: context.adaptivePrimaryColor),
+              AppIcon(AppIcon.checkCircle, color: context.adaptivePrimaryColor),
           ],
         ),
       ),
@@ -1203,7 +1204,7 @@ class _ThemeColorOption extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               child:
                   isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 32)
+                      ? const AppIcon(AppIcon.check, color: Colors.white, size: 32)
                       : null,
             ),
             const SizedBox(height: 12),

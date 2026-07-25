@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
@@ -23,8 +24,8 @@ import 'admin_role_management_screen.dart';
 class _NavDestination {
   final String id;
   final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+  final Widget icon;
+  final Widget selectedIcon;
   final AdminPermission? requiredPermission;
   final bool superAdminOnly;
   final Widget Function(BuildContext, WidgetRef) contentBuilder;
@@ -78,16 +79,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       _NavDestination(
         id: 'overview',
         label: 'Aperçu',
-        icon: Icons.dashboard_outlined,
-        selectedIcon: Icons.dashboard,
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard),
         requiredPermission: AdminPermission.viewDashboard,
         contentBuilder: (_, __) => _buildOverviewWidget(),
       ),
       _NavDestination(
         id: 'users',
         label: 'Utilisateurs',
-        icon: Icons.people_outline,
-        selectedIcon: Icons.people,
+        icon: const AppIcon(AppIcon.people),
+        selectedIcon: const AppIcon(AppIcon.people),
         requiredPermission: AdminPermission.viewUsers,
         contentBuilder: (_, __) => const AdminUsersManagementScreen(),
         badgeCount: (state) => state.pendingReports,
@@ -95,96 +96,96 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       _NavDestination(
         id: 'businesses',
         label: 'Commerces',
-        icon: Icons.store_outlined,
-        selectedIcon: Icons.store,
+        icon: const AppIcon(AppIcon.store),
+        selectedIcon: const AppIcon(AppIcon.store),
         requiredPermission: AdminPermission.viewBusinesses,
         contentBuilder: (_, __) => const AdminBusinessesScreen(),
       ),
       _NavDestination(
         id: 'content',
         label: 'Contenu',
-        icon: Icons.event_outlined,
-        selectedIcon: Icons.event,
+        icon: const Icon(Icons.event_outlined),
+        selectedIcon: const AppIcon(AppIcon.event),
         requiredPermission: AdminPermission.viewContent,
         contentBuilder: (_, __) => const AdminModerationScreen(),
       ),
       _NavDestination(
         id: 'reports',
         label: 'Signalements',
-        icon: Icons.report_outlined,
-        selectedIcon: Icons.report,
+        icon: const Icon(Icons.report_outlined),
+        selectedIcon: const Icon(Icons.report),
         requiredPermission: AdminPermission.viewReports,
         contentBuilder: (_, __) => const AdminReportsScreen(),
       ),
       _NavDestination(
         id: 'marketplace',
         label: 'Marketplace',
-        icon: Icons.shopping_bag_outlined,
-        selectedIcon: Icons.shopping_bag,
+        icon: const Icon(Icons.shopping_bag_outlined),
+        selectedIcon: const Icon(Icons.shopping_bag),
         requiredPermission: AdminPermission.viewMarketplace,
         contentBuilder: (_, __) => const AdminMarketplaceScreen(),
       ),
       _NavDestination(
         id: 'transactions',
         label: 'Transferts',
-        icon: Icons.payments_outlined,
-        selectedIcon: Icons.payments,
+        icon: const Icon(Icons.payments_outlined),
+        selectedIcon: const Icon(Icons.payments),
         requiredPermission: AdminPermission.viewTransactions,
         contentBuilder: (_, __) => const AdminTransactionsScreen(),
       ),
       _NavDestination(
         id: 'embassies',
         label: 'Ambassades',
-        icon: Icons.account_balance_outlined,
-        selectedIcon: Icons.account_balance,
+        icon: const AppIcon(AppIcon.bank),
+        selectedIcon: const AppIcon(AppIcon.bank),
         superAdminOnly: true,
         contentBuilder: (context, ref) => _buildEmbassiesPanel(),
       ),
       _NavDestination(
         id: 'analytics',
         label: 'Analytics',
-        icon: Icons.analytics_outlined,
-        selectedIcon: Icons.analytics,
+        icon: const Icon(Icons.analytics_outlined),
+        selectedIcon: const Icon(Icons.analytics),
         requiredPermission: AdminPermission.viewAnalytics,
         contentBuilder: (_, __) => const AdminAnalyticsScreen(),
       ),
       _NavDestination(
         id: 'notifications',
         label: 'Notifications',
-        icon: Icons.notifications_outlined,
-        selectedIcon: Icons.notifications,
+        icon: const Icon(Icons.notifications_outlined),
+        selectedIcon: const Icon(Icons.notifications),
         requiredPermission: AdminPermission.sendNotifications,
         contentBuilder: (_, __) => const AdminNotificationsScreen(),
       ),
       _NavDestination(
         id: 'settings',
         label: 'Configuration',
-        icon: Icons.settings_outlined,
-        selectedIcon: Icons.settings,
+        icon: const Icon(Icons.settings_outlined),
+        selectedIcon: const Icon(Icons.settings),
         requiredPermission: AdminPermission.viewSettings,
         contentBuilder: (_, __) => const AdminSettingsScreen(),
       ),
       _NavDestination(
         id: 'features',
         label: 'Features',
-        icon: Icons.toggle_on_outlined,
-        selectedIcon: Icons.toggle_on,
+        icon: const Icon(Icons.toggle_on_outlined),
+        selectedIcon: const Icon(Icons.toggle_on),
         requiredPermission: AdminPermission.viewFeatureFlags,
         contentBuilder: (_, __) => const AdminFeatureFlagsScreen(),
       ),
       _NavDestination(
         id: 'audit',
         label: 'Audit',
-        icon: Icons.history_outlined,
-        selectedIcon: Icons.history,
+        icon: const Icon(Icons.history_outlined),
+        selectedIcon: const Icon(Icons.history),
         requiredPermission: AdminPermission.viewAuditLogs,
         contentBuilder: (_, __) => const AdminAuditScreen(),
       ),
       _NavDestination(
         id: 'roles',
         label: 'Rôles Admin',
-        icon: Icons.admin_panel_settings_outlined,
-        selectedIcon: Icons.admin_panel_settings,
+        icon: const Icon(Icons.admin_panel_settings_outlined),
+        selectedIcon: const Icon(Icons.admin_panel_settings),
         superAdminOnly: true,
         contentBuilder: (_, __) => const AdminRoleManagementScreen(),
       ),
@@ -405,7 +406,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     ),
               destinations: destinations.map((dest) {
                 final badgeCount = dest.badgeCount?.call(adminState) ?? 0;
-                Widget iconWidget = Icon(dest.icon);
+                Widget iconWidget = dest.icon;
 
                 if (badgeCount > 0) {
                   iconWidget = Badge(
@@ -418,7 +419,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
                 return NavigationRailDestination(
                   icon: iconWidget,
-                  selectedIcon: Icon(dest.selectedIcon),
+                  selectedIcon: dest.selectedIcon,
                   label: Text(dest.label),
                 );
               }).toList(),
@@ -445,7 +446,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           subtitle: 'Créez et gérez les comptes ambassades',
           action: _buildGradientButton(
             label: 'Créer une ambassade',
-            icon: Icons.add_rounded,
+            icon: const AppIcon(AppIcon.add, color: Colors.white, size: 20),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -487,25 +488,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             _StatItem(
               title: 'Utilisateurs',
               value: state.totalUsers.toString(),
-              icon: Icons.people_rounded,
+              icon: const AppIcon(AppIcon.people, color: Colors.white, size: 24),
               gradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
             ),
             _StatItem(
               title: 'Sessions Actives',
               value: state.activeSessions.toString(),
-              icon: Icons.wifi_rounded,
+              icon: const Icon(Icons.wifi_rounded, color: Colors.white, size: 24),
               gradient: const [Color(0xFF10B981), Color(0xFF059669)],
             ),
             _StatItem(
               title: 'Événements',
               value: state.totalEvents.toString(),
-              icon: Icons.event_rounded,
+              icon: const AppIcon(AppIcon.event, color: Colors.white, size: 24),
               gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
             ),
             _StatItem(
               title: 'Groupes',
               value: state.totalGroups.toString(),
-              icon: Icons.group_rounded,
+              icon: const AppIcon(AppIcon.groups, color: Colors.white, size: 24),
               gradient: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
             ),
           ]),
@@ -518,25 +519,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             _StatItem(
               title: 'Commerces',
               value: state.totalBusinesses.toString(),
-              icon: Icons.store_rounded,
+              icon: const AppIcon(AppIcon.store, color: Colors.white, size: 24),
               gradient: const [Color(0xFF14B8A6), Color(0xFF0D9488)],
             ),
             _StatItem(
               title: 'Produits',
               value: state.totalProducts.toString(),
-              icon: Icons.shopping_bag_rounded,
+              icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 24),
               gradient: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
             ),
             _StatItem(
               title: 'Transactions',
               value: state.totalTransactions.toString(),
-              icon: Icons.payments_rounded,
+              icon: const Icon(Icons.payments_rounded, color: Colors.white, size: 24),
               gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
             ),
             _StatItem(
               title: 'Signalements',
               value: state.pendingReports.toString(),
-              icon: Icons.report_rounded,
+              icon: Icon(Icons.report_rounded, color: Colors.white, size: 24),
               gradient: state.pendingReports > 0
                   ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
                   : const [Color(0xFF9CA3AF), Color(0xFF6B7280)],
@@ -692,7 +693,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                   gradient: LinearGradient(colors: item.gradient),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(item.icon, color: Colors.white, size: 24),
+                child: item.icon,
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -781,7 +782,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
   Widget _buildGradientButton({
     required String label,
-    required IconData icon,
+    required Widget icon,
     required VoidCallback onPressed,
   }) {
     return Material(
@@ -805,7 +806,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 20),
+              icon,
               const SizedBox(width: 8),
               Text(
                 label,
@@ -881,8 +882,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 color: Colors.red.withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.error_outline_rounded,
+              child: const AppIcon(
+                AppIcon.error,
                 size: 48,
                 color: Color(0xFFEF4444),
               ),
@@ -908,7 +909,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             const SizedBox(height: 24),
             _buildGradientButton(
               label: 'Réessayer',
-              icon: Icons.refresh_rounded,
+              icon: const AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
               onPressed: () {
                 ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
               },
@@ -923,7 +924,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 class _StatItem {
   final String title;
   final String value;
-  final IconData icon;
+  final Widget icon;
   final List<Color> gradient;
 
   _StatItem({

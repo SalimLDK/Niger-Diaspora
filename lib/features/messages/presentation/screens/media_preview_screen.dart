@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/image_compressor_service.dart';
 
@@ -181,7 +182,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const AppIcon(AppIcon.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -319,7 +320,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
                       strokeWidth: 2,
                     ),
                   )
-                : const Icon(Icons.send, color: Colors.white),
+                : const AppIcon(AppIcon.send, color: Colors.white),
           ),
         ],
       ),

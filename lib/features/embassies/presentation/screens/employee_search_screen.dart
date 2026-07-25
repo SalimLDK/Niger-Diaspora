@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../data/models/embassy_employee_model.dart';
 import '../../data/datasources/embassy_remote_datasource.dart';
 import '../../domain/entities/embassy_entity.dart';
@@ -172,7 +173,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+            AppIcon(AppIcon.error, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Erreur de chargement',
@@ -187,7 +188,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _loadEmployees,
-              icon: const Icon(Icons.refresh),
+              icon: const AppIcon(AppIcon.refresh),
               label: const Text('Réessayer'),
             ),
           ],
@@ -200,7 +201,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
+            AppIcon(AppIcon.people, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Aucun employé trouvé',

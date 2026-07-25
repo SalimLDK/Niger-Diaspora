@@ -25,6 +25,7 @@ import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -383,7 +384,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             backgroundColor: AppColors.background,
             appBar: AppBar(
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const AppIcon(AppIcon.arrowBack),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -404,7 +405,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             backgroundColor: AppColors.background,
             appBar: AppBar(
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const AppIcon(AppIcon.arrowBack),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -430,7 +431,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       backgroundColor: AppColors.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIcon.arrowBack),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -530,8 +531,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                     color: context.surfaceColor.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.arrow_back,
+                  child: AppIcon(
+                    AppIcon.arrowBack,
                     color: context.textPrimaryColor,
                   ),
                 ),
@@ -552,8 +553,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         color: context.surfaceColor.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.share_outlined,
+                      child: AppIcon(
+                        AppIcon.share,
                         color: context.textPrimaryColor,
                       ),
                     ),
@@ -597,7 +598,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         value: 'report',
                         child: Row(
                           children: [
-                            Icon(Icons.flag_outlined, color: Colors.orange),
+                            AppIcon(AppIcon.flag, color: Colors.orange),
                             const SizedBox(width: 12),
                             Text(
                               'Signaler',
@@ -755,8 +756,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.location_on,
+                            AppIcon(
+                              AppIcon.location,
                               size: 18,
                               color: context.adaptivePrimaryColor,
                             ),
@@ -1103,14 +1104,14 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
             // Determine button configuration based on friendship status
             String buttonText = '';
-            IconData buttonIcon = Icons.help_outline;
+            Widget buttonIcon = const Icon(Icons.help_outline);
             VoidCallback? onPressed;
             Color backgroundColor = context.adaptivePrimaryColor;
 
             switch (status) {
               case FriendshipStatus.friends:
                 buttonText = 'Envoyer un message';
-                buttonIcon = Icons.chat;
+                buttonIcon = const AppIcon(AppIcon.chatBubble);
                 onPressed = _startConversation;
                 backgroundColor = context.adaptivePrimaryColor;
                 break;
@@ -1181,7 +1182,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         }
                       }
                     },
-                    icon: const Icon(Icons.close),
+                    icon: const AppIcon(AppIcon.close),
                     label: const Text('Annuler la demande'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
@@ -1264,7 +1265,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               }
                             }
                           },
-                          icon: const Icon(Icons.close),
+                          icon: const AppIcon(AppIcon.close),
                           label: const Text('Refuser'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.error,
@@ -1328,7 +1329,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               }
                             }
                           },
-                          icon: const Icon(Icons.check),
+                          icon: const AppIcon(AppIcon.check),
                           label: const Text('Accepter'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.successColor,
@@ -1343,7 +1344,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
               case FriendshipStatus.none:
                 buttonText = 'Envoyer une demande d\'ami';
-                buttonIcon = Icons.person_add;
+                buttonIcon = const AppIcon(AppIcon.personAdd);
                 onPressed = _isSendingRequest ? null : _sendFriendRequest;
                 backgroundColor = context.adaptivePrimaryColor;
                 break;
@@ -1377,7 +1378,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                           color: AppColors.white,
                         ),
                       )
-                    : Icon(buttonIcon),
+                    : buttonIcon,
                 label: Text(_isSendingRequest ? 'Envoi en cours...' : buttonText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: backgroundColor,

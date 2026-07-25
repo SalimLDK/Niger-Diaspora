@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,7 +40,7 @@ class _AdminCreateAdminScreenState
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+          icon: const AppIcon(AppIcon.arrowBack, color: Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -93,8 +94,8 @@ class _AdminCreateAdminScreenState
               color: Colors.white.withAlpha(30),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.person_add_alt_1,
+            child: const AppIcon(
+              AppIcon.personAdd,
               color: Colors.white,
               size: 32,
             ),
@@ -144,7 +145,7 @@ class _AdminCreateAdminScreenState
             children: [
               const Row(
                 children: [
-                  Icon(Icons.search, color: Color(0xFF6366F1)),
+                  AppIcon(AppIcon.search, color: Color(0xFF6366F1)),
                   SizedBox(width: 8),
                   Text(
                     'Rechercher un utilisateur',
@@ -182,7 +183,7 @@ class _AdminCreateAdminScreenState
                           ),
                         )
                       : IconButton(
-                          icon: const Icon(Icons.search),
+                          icon: const AppIcon(AppIcon.search),
                           onPressed: _searchUser,
                         ),
                   border: OutlineInputBorder(
@@ -214,7 +215,7 @@ class _AdminCreateAdminScreenState
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline,
+                      const AppIcon(AppIcon.error,
                           color: Colors.red, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
@@ -253,10 +254,10 @@ class _AdminCreateAdminScreenState
           children: [
             Row(
               children: [
-                Icon(
+                AppIcon(
                   _foundUser!.adminRole != AdminRole.none
-                      ? Icons.warning_amber_rounded
-                      : Icons.check_circle_outline,
+                      ? AppIcon.warning
+                      : AppIcon.checkCircle,
                   color: _foundUser!.adminRole != AdminRole.none
                       ? Colors.orange
                       : const Color(0xFF10B981),
@@ -532,8 +533,8 @@ class _AdminCreateAdminScreenState
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.check_circle,
+                      AppIcon(
+                        AppIcon.checkCircle,
                         size: 16,
                         color: _selectedRole.color,
                       ),
@@ -563,7 +564,7 @@ class _AdminCreateAdminScreenState
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close),
+            icon: const AppIcon(AppIcon.close),
             label: const Text('Annuler'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -589,7 +590,7 @@ class _AdminCreateAdminScreenState
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.person_add),
+                : const AppIcon(AppIcon.personAdd),
             label: Text(
               _foundUser?.adminRole != AdminRole.none
                   ? 'Modifier le rôle'
@@ -647,7 +648,7 @@ class _AdminCreateAdminScreenState
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.white),
+              const AppIcon(AppIcon.checkCircle, color: Colors.white),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

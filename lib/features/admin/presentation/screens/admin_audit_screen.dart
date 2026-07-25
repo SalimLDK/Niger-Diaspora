@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -118,7 +119,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
+              AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
               SizedBox(width: 8),
               Text(
                 'Actualiser',
@@ -160,7 +161,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
                     hintText: 'Rechercher par admin ou action...',
-                    prefixIcon: const Icon(Icons.search, color: _textSecondary),
+                    prefixIcon: const AppIcon(AppIcon.search, color: _textSecondary),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -303,7 +304,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.person_outline, size: 16, color: _textSecondary),
+                    const AppIcon(AppIcon.person, size: 16, color: _textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       log.adminName ?? 'Admin inconnu',
@@ -313,7 +314,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Icon(Icons.access_time, size: 16, color: _textSecondary),
+                    const AppIcon(AppIcon.clock, size: 16, color: _textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       log.timestamp != null
@@ -557,8 +558,8 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                 color: Colors.red.withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.error_outline_rounded,
+              child: const AppIcon(
+                AppIcon.error,
                 size: 48,
                 color: Colors.red,
               ),
@@ -583,7 +584,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
               onPressed: () {
                 ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs();
               },
-              icon: const Icon(Icons.refresh),
+              icon: const AppIcon(AppIcon.refresh),
               label: const Text('Réessayer'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,

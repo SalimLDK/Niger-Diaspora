@@ -7,6 +7,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../legal/presentation/providers/legal_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/support_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class CodeOfConductScreen extends ConsumerWidget {
   const CodeOfConductScreen({super.key});
@@ -22,7 +23,7 @@ class CodeOfConductScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.codeOfConduct),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIcon.arrowBack),
           onPressed: () => context.pop(),
         ),
       ),

@@ -57,13 +57,13 @@ class MyPostsScreen extends ConsumerWidget {
       body: postsAsync.when(
         loading: () => const PostCardListSkeleton(),
         error: (_, __) => _EmptyState(
-          icon: Icons.error_outline_rounded,
+          icon: AppIcon(AppIcon.error, size: 64, color: tokens.mutedText),
           message: l10n.feedError,
         ),
         data: (posts) {
           if (posts.isEmpty) {
             return _EmptyState(
-              icon: Icons.article_outlined,
+              icon: Icon(Icons.article_outlined, size: 64, color: tokens.mutedText),
               message: l10n.myPostsEmpty,
               actionLabel: l10n.createPost,
               onAction: () => context.push('/feed/create'),
@@ -84,7 +84,7 @@ class MyPostsScreen extends ConsumerWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -105,7 +105,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: tokens.mutedText),
+            icon,
             const SizedBox(height: 16),
             Text(
               message,

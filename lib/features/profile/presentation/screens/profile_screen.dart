@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/l10n/locale_provider.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -148,7 +149,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 context.responsive(mobile: 20.0, tablet: 32.0),
                 0,
                 context.responsive(mobile: 20.0, tablet: 32.0),
-                20,
+                20 + MediaQuery.of(context).padding.bottom,
               ),
               sliver: SliverToBoxAdapter(
                 child: Center(
@@ -179,32 +180,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.account, Icons.person_outline),
+              _buildSectionHeader(l10n.account, const AppIcon(AppIcon.person)),
               _SettingsCard(
                 children: [
                   _SettingsTile(
-                    icon: Icons.edit_outlined,
+                    icon: const Icon(Icons.edit_outlined),
                     title: l10n.editProfile,
                     subtitle: l10n.modifyYourInfo,
                     onTap: () => context.push('/profile/edit'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.people_outline,
+                    icon: const AppIcon(AppIcon.people),
                     title: l10n.myFriends,
                     subtitle: l10n.manageConnections,
                     onTap: () => context.push('/friends'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.share_outlined,
+                    icon: const AppIcon(AppIcon.share),
                     title: l10n.shareMyProfile,
                     subtitle: l10n.qrCodeAndShareLink,
                     onTap: () => _showShareProfileModal(),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.notifications_outlined,
+                    icon: const Icon(Icons.notifications_outlined),
                     title: l10n.notifications,
                     subtitle: l10n.manageAlerts,
                     onTap: () => context.push('/notifications'),
@@ -223,11 +224,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.privacy, Icons.shield_outlined),
+              _buildSectionHeader(l10n.privacy, const Icon(Icons.shield_outlined)),
               _SettingsCard(
                 children: [
                   _SettingsSwitchTile(
-                    icon: Icons.visibility_outlined,
+                    icon: const Icon(Icons.visibility_outlined),
                     title: l10n.visibleProfile,
                     subtitle: l10n.appearInSearchesDesc,
                     value: _profileVisible,
@@ -239,7 +240,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsSwitchTile(
-                    icon: Icons.location_on_outlined,
+                    icon: const AppIcon(AppIcon.location),
                     title: l10n.myLocation,
                     subtitle: l10n.appearOnMapDesc,
                     value: _locationEnabled,
@@ -251,7 +252,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsSwitchTile(
-                    icon: Icons.notifications_active_outlined,
+                    icon: const Icon(Icons.notifications_active_outlined),
                     title: l10n.pushNotifications,
                     subtitle: l10n.receiveNotificationsDesc,
                     value: _notificationsEnabled,
@@ -263,7 +264,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.block_outlined,
+                    icon: const Icon(Icons.block_outlined),
                     title: l10n.blockedUsers,
                     onTap: () => _showBlockedUsers(),
                   ),
@@ -281,11 +282,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.preferences, Icons.tune_outlined),
+              _buildSectionHeader(l10n.preferences, const Icon(Icons.tune_outlined)),
               _SettingsCard(
                 children: [
                   _SettingsTile(
-                    icon: Icons.palette_outlined,
+                    icon: const Icon(Icons.palette_outlined),
                     title: l10n.theme,
                     subtitle: _getThemeLabel(
                       ref.watch(themeModeNotifierProvider),
@@ -296,7 +297,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.translate_outlined,
+                    icon: const Icon(Icons.translate_outlined),
                     title: l10n.language,
                     subtitle:
                         ref
@@ -318,29 +319,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.helpAndSupport, Icons.help_outline),
+              _buildSectionHeader(l10n.helpAndSupport, const Icon(Icons.help_outline)),
               _SettingsCard(
                 children: [
                   _SettingsTile(
-                    icon: Icons.support_agent_outlined,
+                    icon: const Icon(Icons.support_agent_outlined),
                     title: l10n.helpFaq,
                     onTap: () => _showHelpSupport(l10n),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.article_outlined,
+                    icon: const Icon(Icons.article_outlined),
                     title: l10n.termsOfService,
                     onTap: () => context.push('/settings/terms'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.privacy_tip_outlined,
+                    icon: const Icon(Icons.privacy_tip_outlined),
                     title: l10n.privacyPolicy,
                     onTap: () => context.push('/settings/privacy'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.info_outline,
+                    icon: const AppIcon(AppIcon.info),
                     title: l10n.about,
                     subtitle: '${l10n.version} 1.2.0+10',
                     onTap: () => _showAbout(l10n),
@@ -361,14 +362,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: [
               _buildSectionHeader(
                 l10n.dangerZone,
-                Icons.warning_amber_outlined,
+                const AppIcon(AppIcon.warning),
                 isWarning: true,
               ),
               _SettingsCard(
                 isDanger: true,
                 children: [
                   _SettingsTile(
-                    icon: Icons.logout_outlined,
+                    icon: const Icon(Icons.logout_outlined),
                     title: l10n.logout,
                     iconColor: AppColors.warning,
                     titleColor: AppColors.warning,
@@ -376,7 +377,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: Icons.delete_outline,
+                    icon: const AppIcon(AppIcon.delete),
                     title: l10n.deleteAccount,
                     iconColor: AppColors.error,
                     titleColor: AppColors.error,
@@ -695,7 +696,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   Widget _buildSectionHeader(
     String title,
-    IconData icon, {
+    Widget icon, {
     bool isWarning = false,
   }) {
     return Padding(
@@ -711,13 +712,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              size: 16,
-              color:
-                  isWarning
-                      ? context.warningColor
-                      : context.adaptivePrimaryColor,
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: IconTheme.merge(
+                  data: IconThemeData(
+                    color:
+                        isWarning
+                            ? context.warningColor
+                            : context.adaptivePrimaryColor,
+                  ),
+                  child: icon,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -1848,7 +1857,7 @@ class _SettingsCard extends StatelessWidget {
 }
 
 class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
@@ -1897,10 +1906,18 @@ class _SettingsTile extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor ?? context.adaptivePrimaryColor,
-                  size: 20,
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: IconTheme.merge(
+                      data: IconThemeData(
+                        color: iconColor ?? context.adaptivePrimaryColor,
+                      ),
+                      child: icon,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -1951,7 +1968,7 @@ class _SettingsTile extends StatelessWidget {
 }
 
 class _SettingsSwitchTile extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String? subtitle;
   final bool value;
@@ -1991,13 +2008,21 @@ class _SettingsSwitchTile extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color:
-                  value
-                      ? context.adaptivePrimaryColor
-                      : context.textTertiaryColor,
-              size: 20,
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: IconTheme.merge(
+                  data: IconThemeData(
+                    color:
+                        value
+                            ? context.adaptivePrimaryColor
+                            : context.textTertiaryColor,
+                  ),
+                  child: icon,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 14),

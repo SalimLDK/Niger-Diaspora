@@ -5,6 +5,7 @@ import '../../data/datasources/embassy_remote_datasource.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class EmbassyMessageScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
@@ -125,8 +126,8 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                   children: [
                     CircleAvatar(
                       backgroundColor: theme.colorScheme.primary,
-                      child: const Icon(
-                        Icons.account_balance,
+                      child: const AppIcon(
+                        AppIcon.bank,
                         color: Colors.white,
                       ),
                     ),
@@ -268,8 +269,8 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.info_outline,
+                    AppIcon(
+                      AppIcon.info,
                       color: Colors.orange[700],
                       size: 20,
                     ),
@@ -302,7 +303,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                               color: Colors.white,
                             ),
                           )
-                          : const Icon(Icons.send),
+                          : const AppIcon(AppIcon.send),
                   label: Text(_isLoading ? 'Envoi...' : 'Envoyer le message'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,

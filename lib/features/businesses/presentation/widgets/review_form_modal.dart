@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/image_upload_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/review_entity.dart';
 import '../providers/review_provider.dart';
 import 'star_rating_input.dart';
@@ -406,8 +407,8 @@ class _ImageThumbnail extends StatelessWidget {
                   color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.close,
+                child: const AppIcon(
+                  AppIcon.close,
                   size: 14,
                   color: Colors.white,
                 ),

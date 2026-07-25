@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 
 class BusinessCard extends StatelessWidget {
@@ -63,8 +64,8 @@ class BusinessCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.star,
+                              AppIcon(
+                                AppIcon.star,
                                 size: 14,
                                 color: theme.colorScheme.onPrimary,
                               ),
@@ -170,8 +171,8 @@ class BusinessCard extends StatelessWidget {
                   Row(
                     children: [
                       if (business.city != null) ...[
-                        Icon(
-                          Icons.location_on_outlined,
+                        AppIcon(
+                          AppIcon.location,
                           size: 16,
                           color: theme.colorScheme.outline,
                         ),
@@ -189,8 +190,8 @@ class BusinessCard extends StatelessWidget {
                       ],
                       if (business.averageRating > 0) ...[
                         const Spacer(),
-                        Icon(
-                          Icons.star,
+                        AppIcon(
+                          AppIcon.star,
                           size: 16,
                           color: Colors.amber,
                         ),

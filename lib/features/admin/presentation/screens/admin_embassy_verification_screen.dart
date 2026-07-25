@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
@@ -377,7 +378,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const AppIcon(AppIcon.checkCircle, color: Colors.white),
                 const SizedBox(width: 12),
                 Text('Ambassade ${embassy.name} approuvee'),
               ],
@@ -396,7 +397,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.white),
+                const AppIcon(AppIcon.error, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(child: Text('Erreur: $e')),
               ],
@@ -540,7 +541,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const AppIcon(AppIcon.checkCircle, color: Colors.white),
                 const SizedBox(width: 12),
                 Text('Ambassade ${embassy.name} reactivee'),
               ],
@@ -635,8 +636,8 @@ class _EmbassyAdminCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.location_on_outlined,
+                  const AppIcon(
+                    AppIcon.location,
                     size: 14,
                     color: _textSecondary,
                   ),
@@ -650,8 +651,8 @@ class _EmbassyAdminCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
-                    Icons.public_outlined,
+                  const AppIcon(
+                    AppIcon.public,
                     size: 14,
                     color: _textSecondary,
                   ),
@@ -688,14 +689,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
               if (embassy.isSuspended) ...[
                 _buildActionButton(
                   label: 'Reactiver',
-                  icon: Icons.replay_rounded,
+                  icon: const Icon(Icons.replay_rounded, size: 18),
                   color: const Color(0xFF10B981),
                   onPressed: () => _reactivate(ref, context),
                 ),
               ] else if (!embassy.isVerified) ...[
                 _buildActionButton(
                   label: 'Rejeter',
-                  icon: Icons.close_rounded,
+                  icon: const AppIcon(AppIcon.close, size: 18),
                   color: const Color(0xFFEF4444),
                   isOutlined: true,
                   onPressed: () => _reject(ref, context),
@@ -703,14 +704,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 _buildActionButton(
                   label: 'Approuver',
-                  icon: Icons.check_rounded,
+                  icon: const AppIcon(AppIcon.check, size: 18),
                   color: const Color(0xFF10B981),
                   onPressed: () => _approve(ref, context),
                 ),
               ] else ...[
                 _buildActionButton(
                   label: 'Suspendre',
-                  icon: Icons.block_rounded,
+                  icon: const Icon(Icons.block_rounded, size: 18),
                   color: Colors.orange,
                   isOutlined: true,
                   onPressed: () => _suspend(ref, context),
@@ -753,7 +754,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
 
   Widget _buildActionButton({
     required String label,
-    required IconData icon,
+    required Widget icon,
     required Color color,
     required VoidCallback onPressed,
     bool isOutlined = false,
@@ -761,7 +762,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
     if (isOutlined) {
       return OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, size: 18),
+        icon: icon,
         label: Text(label),
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
@@ -773,7 +774,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
     }
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: 18),
+      icon: icon,
       label: Text(label),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,

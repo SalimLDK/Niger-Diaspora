@@ -10,6 +10,7 @@ import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 // Provider for bookmarked posts count
 final bookmarkedPostsCountProvider =
@@ -87,13 +88,13 @@ class SavedPostsScreen extends ConsumerWidget {
       body: postsAsync.when(
         loading: () => const PostCardListSkeleton(),
         error: (_, __) => _EmptyState(
-          icon: Icons.error_outline_rounded,
+          icon: AppIcon(AppIcon.error, size: 64, color: tokens.mutedText),
           message: l10n.feedError,
         ),
         data: (posts) {
           if (posts.isEmpty) {
             return _EmptyState(
-              icon: Icons.bookmark_outline_rounded,
+              icon: Icon(Icons.bookmark_outline_rounded, size: 64, color: tokens.mutedText),
               message: l10n.savedPostsEmpty,
               actionLabel: l10n.exploreFeed,
               onAction: () => context.push('/feed'),
@@ -139,7 +140,7 @@ class SavedPostsScreen extends ConsumerWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -160,7 +161,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: tokens.mutedText),
+            icon,
             const SizedBox(height: 16),
             Text(
               message,

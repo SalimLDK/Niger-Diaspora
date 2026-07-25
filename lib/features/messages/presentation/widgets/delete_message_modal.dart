@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
@@ -169,7 +170,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 
             // Delete for me option
             _OptionTile(
-              icon: Icons.delete_outline,
+              icon: AppIcon(AppIcon.delete, color: context.textPrimaryColor),
               title: 'Supprimer pour moi',
               subtitle: 'Le message sera supprimé uniquement de votre vue',
               onTap: _deleteForMe,
@@ -178,7 +179,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
             // Delete for everyone option (if allowed)
             if (_canDeleteForEveryone)
               _OptionTile(
-                icon: Icons.delete_forever,
+                icon: const Icon(Icons.delete_forever, color: Colors.red),
                 title: 'Supprimer pour tous',
                 subtitle:
                     'Le message sera supprimé pour tous les participants',
@@ -189,7 +190,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
             // Report message option (for messages not sent by current user)
             if (widget.message.senderId != widget.currentUserId)
               _OptionTile(
-                icon: Icons.flag_outlined,
+                icon: const AppIcon(AppIcon.flag, color: Colors.red),
                 title: 'Signaler le message',
                 subtitle: 'Signaler ce message aux administrateurs',
                 isDestructive: true,
@@ -234,7 +235,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 }
 
 class _OptionTile extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String subtitle;
   final bool isDestructive;
@@ -261,7 +262,7 @@ class _OptionTile extends StatelessWidget {
               .withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: color),
+        child: icon,
       ),
       title: Text(
         title,

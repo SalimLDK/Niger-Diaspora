@@ -559,7 +559,7 @@ class _ConversationOptionsModalState
               const Divider(),
             if (widget.onSearch != null)
               _buildOption(
-                icon: Icons.search,
+                iconWidget: AppIcon(AppIcon.search, color: context.adaptivePrimaryColor),
                 title: l10n.searchTitle,
                 onTap: () {
                   Navigator.pop(context);
@@ -588,7 +588,9 @@ class _ConversationOptionsModalState
               },
             ),
             _buildOption(
-              icon: widget.isArchived ? Icons.unarchive : Icons.archive,
+              iconWidget: widget.isArchived
+                  ? Icon(Icons.unarchive, color: context.adaptivePrimaryColor)
+                  : AppIcon(AppIcon.archive, color: context.adaptivePrimaryColor),
               title: widget.isArchived ? l10n.unarchive : l10n.archive,
               onTap: _archiveConversation,
             ),
@@ -615,7 +617,7 @@ class _ConversationOptionsModalState
               onTap: _exportConversation,
             ),
             _buildOption(
-              icon: Icons.delete_outline,
+              iconWidget: const AppIcon(AppIcon.delete, color: Colors.red),
               title: l10n.deleteConversation,
               onTap: _deleteConversation,
               isDestructive: true,
@@ -628,7 +630,9 @@ class _ConversationOptionsModalState
                   final isBlocked = blockedUsers.any((u) => u.id == widget.otherUserId);
 
                   return _buildOption(
-                    icon: isBlocked ? Icons.check_circle_outline : Icons.block,
+                    iconWidget: isBlocked
+                        ? AppIcon(AppIcon.checkCircle, color: context.adaptivePrimaryColor)
+                        : const Icon(Icons.block, color: Colors.red),
                     title: isBlocked ? l10n.unblockUser : l10n.blockUser,
                     onTap: isBlocked ? _unblockUser : _blockUser,
                     isDestructive: !isBlocked,
@@ -638,7 +642,7 @@ class _ConversationOptionsModalState
             ],
             const Divider(),
             _buildOption(
-              icon: Icons.flag_outlined,
+              iconWidget: AppIcon(AppIcon.flag, color: context.adaptivePrimaryColor),
               title: l10n.report,
               onTap: _reportConversation,
             ),

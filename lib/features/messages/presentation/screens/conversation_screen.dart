@@ -2518,7 +2518,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         // Star selected
         IconButton(
           onPressed: () => _starSelectedMessages(allMessages),
-          icon: const Icon(Icons.star_border, color: AppColors.white),
+          icon: const AppIcon(AppIcon.starBorder, color: AppColors.white),
           tooltip: AppLocalizations.of(context)!.favorites,
         ),
         // Forward selected
@@ -2622,8 +2622,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.search_off,
+                        AppIcon(
+                          AppIcon.searchOff,
                           size: 48,
                           color: context.textTertiaryColor.withValues(
                             alpha: 0.5,

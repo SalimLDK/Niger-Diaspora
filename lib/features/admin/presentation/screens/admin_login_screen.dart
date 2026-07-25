@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -208,7 +209,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
+                  prefixIcon: AppIcon(AppIcon.lock),
                 ),
               ),
               const SizedBox(height: 24),

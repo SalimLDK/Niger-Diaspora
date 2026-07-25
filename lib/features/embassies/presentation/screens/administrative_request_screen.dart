@@ -5,6 +5,7 @@ import '../../data/datasources/embassy_remote_datasource.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class AdministrativeRequestScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
@@ -247,7 +248,7 @@ class _AdministrativeRequestScreenState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.account_balance, size: 32),
+                    const AppIcon(AppIcon.bank, size: 32),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -288,8 +289,8 @@ class _AdministrativeRequestScreenState
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.check_circle,
+                      AppIcon(
+                        AppIcon.checkCircle,
                         color: Colors.green[700],
                         size: 20,
                       ),
@@ -467,8 +468,8 @@ class _AdministrativeRequestScreenState
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.warning_amber,
+                    AppIcon(
+                      AppIcon.warning,
                       color: Colors.orange[700],
                       size: 20,
                     ),
@@ -501,7 +502,7 @@ class _AdministrativeRequestScreenState
                               color: Colors.white,
                             ),
                           )
-                          : const Icon(Icons.send),
+                          : const AppIcon(AppIcon.send),
                   label: Text(_isLoading ? 'Envoi...' : 'Soumettre la demande'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,

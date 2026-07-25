@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_post_entity.dart';
@@ -101,8 +102,8 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline,
+                    AppIcon(
+                      AppIcon.error,
                       size: 64,
                       color: theme.colorScheme.error,
                     ),
@@ -266,8 +267,8 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.star,
+                            AppIcon(
+                              AppIcon.star,
                               size: 16,
                               color: theme.colorScheme.onPrimary,
                             ),
@@ -297,10 +298,10 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   Row(
                     children: [
                       ...List.generate(5, (index) {
-                        return Icon(
+                        return AppIcon(
                           index < business.averageRating.round()
-                              ? Icons.star
-                              : Icons.star_border,
+                              ? AppIcon.star
+                              : AppIcon.starBorder,
                           color: Colors.amber,
                           size: 20,
                         );
@@ -326,7 +327,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 const SizedBox(height: 12),
                 if (business.phone != null)
                   ListTile(
-                    leading: const Icon(Icons.phone),
+                    leading: const AppIcon(AppIcon.call),
                     title: Text(business.phone!),
                     onTap: () => _launchPhone(business.phone!),
                   ),
@@ -344,7 +345,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ),
                 if (business.address != null)
                   ListTile(
-                    leading: const Icon(Icons.location_on),
+                    leading: const AppIcon(AppIcon.location),
                     title: Text(business.address!),
                     subtitle:
                         business.city != null ? Text(business.city!) : null,
@@ -532,7 +533,7 @@ class _OffersSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: theme.colorScheme.outline),
+                    AppIcon(AppIcon.info, color: theme.colorScheme.outline),
                     const SizedBox(width: 12),
                     Text(
                       'Aucune offre en cours',
@@ -686,7 +687,7 @@ class _PostsSection extends ConsumerWidget {
                 onPressed: () {
                   _showCreatePostDialog(context, ref);
                 },
-                icon: const Icon(Icons.add, size: 18),
+                icon: const AppIcon(AppIcon.add, size: 18),
                 label: const Text('Ajouter'),
               ),
           ],
@@ -708,7 +709,7 @@ class _PostsSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: theme.colorScheme.outline),
+                    AppIcon(AppIcon.info, color: theme.colorScheme.outline),
                     const SizedBox(width: 12),
                     Text(
                       'Aucune actualite',
@@ -952,7 +953,7 @@ class _PostCard extends StatelessWidget {
                     const Spacer(),
                     if (isOwner)
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20),
+                        icon: const AppIcon(AppIcon.delete, size: 20),
                         onPressed: onDelete,
                         color: theme.colorScheme.error,
                       ),

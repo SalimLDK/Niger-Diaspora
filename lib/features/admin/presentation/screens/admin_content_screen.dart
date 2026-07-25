@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -40,7 +41,7 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const AppIcon(AppIcon.refresh),
               onPressed: () {
                 ref
                     .read(adminDashboardNotifierProvider.notifier)
@@ -74,7 +75,7 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen> {
             color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.event, color: Colors.blue),
+          child: const AppIcon(AppIcon.event, color: Colors.blue),
         ),
         title: Text(item.title),
         subtitle: Text('Événement par ${item.organizerId}'),
@@ -92,7 +93,7 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen> {
             color: Colors.green.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.group, color: Colors.green),
+          child: const AppIcon(AppIcon.groups, color: Colors.green),
         ),
         title: Text(item.name),
         subtitle: Text('Groupe • ${item.isPrivate ? "Privé" : "Public"}'),

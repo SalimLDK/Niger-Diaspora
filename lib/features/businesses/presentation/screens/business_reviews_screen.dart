@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/review_entity.dart';
@@ -159,8 +160,8 @@ class BusinessReviewsScreen extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.check_circle,
+                          AppIcon(
+                            AppIcon.checkCircle,
                             color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 12),
@@ -303,8 +304,8 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
+            AppIcon(
+              AppIcon.error,
               size: 64,
               color: theme.colorScheme.error,
             ),
@@ -324,7 +325,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
+              icon: const AppIcon(AppIcon.refresh),
               label: const Text('Reessayer'),
             ),
           ],
@@ -403,7 +404,7 @@ class _ReviewsHeader extends StatelessWidget {
                             '$starNum',
                             style: theme.textTheme.bodySmall,
                           ),
-                          const Icon(Icons.star, size: 12, color: Colors.amber),
+                          const AppIcon(AppIcon.star, size: 12, color: Colors.amber),
                           const SizedBox(width: 8),
                           Expanded(
                             child: ClipRRect(

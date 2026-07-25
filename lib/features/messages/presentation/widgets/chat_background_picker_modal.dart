@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/data/models/chat_background_model.dart';
@@ -144,7 +145,7 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close, color: context.textSecondaryColor),
+                    icon: AppIcon(AppIcon.close, color: context.textSecondaryColor),
                   ),
                 ],
               ),
@@ -372,8 +373,8 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
         ),
         child:
             isSelected
-                ? Icon(
-                  Icons.check,
+                ? AppIcon(
+                  AppIcon.check,
                   color: context.adaptivePrimaryColor,
                   size: 32,
                 )
@@ -402,8 +403,8 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.image_outlined,
+            AppIcon(
+              AppIcon.image,
               color:
                   isSelected
                       ? context.adaptivePrimaryColor

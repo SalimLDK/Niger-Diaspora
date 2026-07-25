@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
@@ -65,7 +66,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.refresh, color: _textSecondary),
+              icon: const AppIcon(AppIcon.refresh, color: _textSecondary),
               onPressed: () {
                 ref
                     .read(adminBusinessNotifierProvider.notifier)
@@ -203,7 +204,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               ),
               child:
                   business.logoUrl == null
-                      ? const Icon(Icons.store, color: _textSecondary, size: 28)
+                      ? const AppIcon(AppIcon.store, color: _textSecondary, size: 28)
                       : null,
             ),
             const SizedBox(width: 16),
@@ -287,8 +288,8 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         value: 'verify',
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.check_circle,
+                            AppIcon(
+                              AppIcon.checkCircle,
                               color: Colors.green,
                               size: 20,
                             ),
@@ -302,7 +303,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         value: 'unverify',
                         child: Row(
                           children: [
-                            Icon(Icons.cancel, color: Colors.orange, size: 20),
+                            AppIcon(AppIcon.cancel, color: Colors.orange, size: 20),
                             SizedBox(width: 12),
                             Text('Retirer vérification'),
                           ],
@@ -328,7 +329,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         value: 'unboost',
                         child: Row(
                           children: [
-                            Icon(Icons.cancel, color: Colors.grey, size: 20),
+                            AppIcon(AppIcon.cancel, color: Colors.grey, size: 20),
                             SizedBox(width: 12),
                             Text('Retirer boost'),
                           ],
@@ -339,7 +340,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red, size: 20),
+                          AppIcon(AppIcon.delete, color: Colors.red, size: 20),
                           SizedBox(width: 12),
                           Text(
                             'Supprimer',

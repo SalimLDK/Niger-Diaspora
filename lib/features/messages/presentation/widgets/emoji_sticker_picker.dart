@@ -373,7 +373,11 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
       data: (stickers) {
         if (stickers.isEmpty) {
           return _buildEmptyState(
-            icon: Icons.access_time,
+            icon: AppIcon(
+              AppIcon.clock,
+              size: 40,
+              color: context.textSecondaryColor.withValues(alpha: 0.5),
+            ),
             message: l10n.noRecentStickers,
           );
         }
@@ -381,7 +385,11 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => _buildEmptyState(
-        icon: Icons.error_outline,
+        icon: AppIcon(
+          AppIcon.error,
+          size: 40,
+          color: context.textSecondaryColor.withValues(alpha: 0.5),
+        ),
         message: l10n.errorLoadingRecentStickers,
       ),
     );
@@ -393,7 +401,11 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
       data: (stickers) {
         if (stickers.isEmpty) {
           return _buildEmptyState(
-            icon: Icons.favorite_border,
+            icon: AppIcon(
+              AppIcon.favoriteBorder,
+              size: 40,
+              color: context.textSecondaryColor.withValues(alpha: 0.5),
+            ),
             message: l10n.noFavoriteStickers,
             subtitle: l10n.addToFavoritesHint,
           );
@@ -402,7 +414,11 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => _buildEmptyState(
-        icon: Icons.error_outline,
+        icon: AppIcon(
+          AppIcon.error,
+          size: 40,
+          color: context.textSecondaryColor.withValues(alpha: 0.5),
+        ),
         message: l10n.errorLoadingFavorites,
       ),
     );
@@ -412,7 +428,11 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
     final l10n = AppLocalizations.of(context)!;
     if (pack.stickers.isEmpty) {
       return _buildEmptyState(
-        icon: Icons.emoji_emotions,
+        icon: Icon(
+          Icons.emoji_emotions,
+          size: 40,
+          color: context.textSecondaryColor.withValues(alpha: 0.5),
+        ),
         message: l10n.noStickersInPack,
       );
     }
@@ -471,7 +491,7 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
   }
 
   Widget _buildEmptyState({
-    required IconData icon,
+    required Widget icon,
     required String message,
     String? subtitle,
   }) {
@@ -479,11 +499,7 @@ class _StickerPickerContentState extends ConsumerState<_StickerPickerContent>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 40,
-            color: context.textSecondaryColor.withValues(alpha: 0.5),
-          ),
+          icon,
           const SizedBox(height: 12),
           Text(
             message,

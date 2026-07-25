@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/services/feature_flag_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 typedef _AdStringGetter = String Function(AppLocalizations);
 
@@ -19,7 +20,7 @@ class _InternalAd {
   final _AdStringGetter title;
   final _AdStringGetter subtitle;
   final _AdStringGetter ctaLabel;
-  final IconData icon;
+  final Widget icon;
   final Color color;
   final AppFeature? feature;
 }
@@ -29,7 +30,7 @@ final _kAds = [
     title: (l10n) => l10n.adTransferTitle,
     subtitle: (l10n) => l10n.adTransferSubtitle,
     ctaLabel: (l10n) => l10n.adTransferCta,
-    icon: Icons.send_rounded,
+    icon: const AppIcon(AppIcon.send, color: Color(0xFF1A7A4A), size: 24),
     color: const Color(0xFF1A7A4A),
     feature: AppFeature.moneyTransfer,
   ),
@@ -37,7 +38,7 @@ final _kAds = [
     title: (l10n) => l10n.adGroupTitle,
     subtitle: (l10n) => l10n.adGroupSubtitle,
     ctaLabel: (l10n) => l10n.adGroupCta,
-    icon: Icons.groups_rounded,
+    icon: const AppIcon(AppIcon.groups, color: Color(0xFF1565C0), size: 24),
     color: const Color(0xFF1565C0),
     feature: null,
   ),
@@ -45,7 +46,7 @@ final _kAds = [
     title: (l10n) => l10n.adMarketplaceTitle,
     subtitle: (l10n) => l10n.adMarketplaceSubtitle,
     ctaLabel: (l10n) => l10n.adMarketplaceCta,
-    icon: Icons.storefront_rounded,
+    icon: const Icon(Icons.storefront_rounded, color: Color(0xFFE65100), size: 24),
     color: const Color(0xFFE65100),
     feature: AppFeature.marketplace,
   ),
@@ -53,7 +54,7 @@ final _kAds = [
     title: (l10n) => l10n.adAudioRoomsTitle,
     subtitle: (l10n) => l10n.adAudioRoomsSubtitle,
     ctaLabel: (l10n) => l10n.adAudioRoomsCta,
-    icon: Icons.mic_rounded,
+    icon: const AppIcon(AppIcon.mic, color: Color(0xFF6A1B9A), size: 24),
     color: const Color(0xFF6A1B9A),
     feature: AppFeature.audioRooms,
   ),
@@ -128,7 +129,7 @@ class InternalAdCard extends ConsumerWidget {
                     color: ad.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(ad.icon, color: ad.color, size: 24),
+                  child: ad.icon,
                 ),
                 const SizedBox(width: 12),
                 Expanded(

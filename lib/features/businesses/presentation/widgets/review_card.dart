@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/review_entity.dart';
 import 'star_rating_input.dart';
 
@@ -99,7 +100,7 @@ class ReviewCard extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                            AppIcon(AppIcon.delete, size: 20, color: Colors.red),
                             const SizedBox(width: 8),
                             const Text('Supprimer', style: TextStyle(color: Colors.red)),
                           ],
@@ -109,7 +110,7 @@ class ReviewCard extends StatelessWidget {
                   )
                 else if (onReport != null)
                   IconButton(
-                    icon: const Icon(Icons.flag_outlined, size: 20),
+                    icon: const AppIcon(AppIcon.flag, size: 20),
                     onPressed: onReport,
                     tooltip: 'Signaler',
                   ),
@@ -174,7 +175,7 @@ class ReviewCard extends StatelessWidget {
                               width: 80,
                               height: 80,
                               color: theme.colorScheme.surfaceContainerHighest,
-                              child: const Icon(Icons.error),
+                              child: const AppIcon(AppIcon.error),
                             ),
                           ),
                         ),

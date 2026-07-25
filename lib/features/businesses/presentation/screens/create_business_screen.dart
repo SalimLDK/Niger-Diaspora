@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/image_upload_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
@@ -182,7 +183,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                                   color: Colors.red,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                child: const AppIcon(AppIcon.close, size: 16, color: Colors.white),
                               ),
                             ),
                           ),
@@ -264,7 +265,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
               decoration: InputDecoration(
                 labelText: 'Telephone',
                 border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.phone),
+                prefixIcon: const AppIcon(AppIcon.call),
                 prefixText: '$_phoneCode ',
               ),
               keyboardType: TextInputType.phone,
@@ -310,7 +311,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                     inputDecoration: InputDecoration(
                       labelText: 'Rechercher un pays',
                       hintText: 'Tapez le nom du pays',
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: const AppIcon(AppIcon.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -336,7 +337,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                             style: const TextStyle(fontSize: 20),
                           ),
                         )
-                      : const Icon(Icons.flag),
+                      : const AppIcon(AppIcon.flag),
                   suffixIcon: const Icon(Icons.arrow_drop_down),
                 ),
                 child: Text(
@@ -366,7 +367,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
               decoration: const InputDecoration(
                 labelText: 'Adresse',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+                prefixIcon: AppIcon(AppIcon.location),
               ),
             ),
             const SizedBox(height: 24),
@@ -389,7 +390,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                 const SizedBox(width: 8),
                 IconButton.filled(
                   onPressed: _addService,
-                  icon: const Icon(Icons.add),
+                  icon: const AppIcon(AppIcon.add),
                 ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -192,7 +193,7 @@ class _AdminCreateEmbassyScreenState
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue[700]),
+                    AppIcon(AppIcon.info, color: Colors.blue[700]),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
@@ -432,7 +433,7 @@ class _AdminCreateEmbassyScreenState
                     _jurisdictionCountries.map((country) {
                       return Chip(
                         label: Text(country),
-                        deleteIcon: const Icon(Icons.close, size: 18),
+                        deleteIcon: const AppIcon(AppIcon.close, size: 18),
                         onDeleted: () {
                           setState(() {
                             _jurisdictionCountries.remove(country);

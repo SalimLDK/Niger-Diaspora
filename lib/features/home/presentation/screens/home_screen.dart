@@ -1192,6 +1192,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ]),
               ),
             ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ),
           ],
         ),
       ),

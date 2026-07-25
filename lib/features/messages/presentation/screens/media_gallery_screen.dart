@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/media_gallery_provider.dart';
@@ -50,7 +52,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
+          icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
         ),
         title: Text(
           widget.title ?? 'Médias partagés',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class AdminMarketplaceScreen extends ConsumerStatefulWidget {
   const AdminMarketplaceScreen({super.key});
@@ -197,8 +198,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(
-            Icons.refresh_rounded,
+          child: const AppIcon(
+            AppIcon.refresh,
             color: _textSecondary,
             size: 20,
           ),
@@ -254,7 +255,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                     : null,
               ),
               child: product.imageUrls.isEmpty
-                  ? const Icon(Icons.image_rounded, color: _textSecondary, size: 24)
+                  ? const AppIcon(AppIcon.image, color: _textSecondary, size: 24)
                   : null,
             ),
             const SizedBox(width: 16),
@@ -342,7 +343,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                           color: const Color(0xFFEF4444).withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.delete_rounded, color: Color(0xFFEF4444), size: 16),
+                        child: const AppIcon(AppIcon.delete, color: Color(0xFFEF4444), size: 16),
                       ),
                       const SizedBox(width: 12),
                       const Text('Supprimer'),
@@ -506,8 +507,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                 color: const Color(0xFF10B981).withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check_circle_rounded,
+              child: const AppIcon(
+                AppIcon.checkCircle,
                 size: 48,
                 color: Color(0xFF10B981),
               ),
@@ -756,7 +757,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                 color: const Color(0xFFEF4444).withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.error_outline_rounded, size: 48, color: Color(0xFFEF4444)),
+              child: const AppIcon(AppIcon.error, size: 48, color: Color(0xFFEF4444)),
             ),
             const SizedBox(height: 24),
             const Text(

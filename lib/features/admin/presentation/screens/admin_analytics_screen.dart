@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
@@ -106,7 +107,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(12),
-                child: Icon(Icons.refresh_rounded, color: Colors.white),
+                child: AppIcon(AppIcon.refresh, color: Colors.white),
               ),
             ),
           ),
@@ -131,7 +132,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               color: Colors.red.shade100,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.error_outline, color: Colors.red.shade700, size: 28),
+            child: AppIcon(AppIcon.error, color: Colors.red.shade700, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
