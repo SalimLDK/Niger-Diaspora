@@ -14,8 +14,11 @@ class AudioRecordingService {
 
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
+  bool _isPaused = false;
   String? _currentPath;
   DateTime? _recordingStartTime;
+  // Durée déjà écoulée avant la pause en cours (chrono exact après reprise).
+  Duration _accumulated = Duration.zero;
   Timer? _durationTimer;
 
   final _durationController = StreamController<int>.broadcast();
@@ -24,16 +27,23 @@ class AudioRecordingService {
   /// Whether the recorder is currently recording
   bool get isRecording => _isRecording;
 
+  /// Whether the recording is currently paused (locked mode)
+  bool get isPaused => _isPaused;
+
   /// Stream of recording duration in seconds
   Stream<int> get durationStream => _durationController.stream;
 
   /// Stream of amplitude values for waveform visualization (0.0 to 1.0)
   Stream<double> get amplitudeStream => _amplitudeController.stream;
 
-  /// Current recording duration in seconds
+  /// Current recording duration in seconds (compte le temps cumulé avant les
+  /// pauses éventuelles).
   int get currentDuration {
-    if (_recordingStartTime == null) return 0;
-    return DateTime.now().difference(_recordingStartTime!).inSeconds;
+    var total = _accumulated;
+    if (_recordingStartTime != null && !_isPaused) {
+      total += DateTime.now().difference(_recordingStartTime!);
+    }
+    return total.inSeconds;
   }
 
   /// Request microphone permission
@@ -74,6 +84,8 @@ class AudioRecordingService {
       );
 
       _isRecording = true;
+      _isPaused = false;
+      _accumulated = Duration.zero;
       _recordingStartTime = DateTime.now();
 
       // Start duration timer
@@ -123,6 +135,8 @@ class AudioRecordingService {
       _durationTimer?.cancel();
       _durationTimer = null;
       _isRecording = false;
+      _isPaused = false;
+      _accumulated = Duration.zero;
 
       if (path == null || path.isEmpty) {
         return null;
@@ -157,6 +171,8 @@ class AudioRecordingService {
       _durationTimer?.cancel();
       _durationTimer = null;
       _isRecording = false;
+      _isPaused = false;
+      _accumulated = Duration.zero;
 
       // Delete the partial recording file
       if (_currentPath != null) {
@@ -171,6 +187,41 @@ class AudioRecordingService {
     } catch (e) {
       debugPrint('Error canceling recording: $e');
       _isRecording = false;
+    }
+  }
+
+  /// Met l'enregistrement en pause (mode verrouillé). Le chrono se fige et le
+  /// temps déjà écoulé est cumulé pour la reprise.
+  Future<void> pauseRecording() async {
+    if (!_isRecording || _isPaused) return;
+    try {
+      await _recorder.pause();
+      if (_recordingStartTime != null) {
+        _accumulated += DateTime.now().difference(_recordingStartTime!);
+      }
+      _isPaused = true;
+      _durationTimer?.cancel();
+      _durationTimer = null;
+      _durationController.add(currentDuration);
+      _amplitudeController.add(0.0);
+    } catch (e) {
+      debugPrint('Error pausing recording: $e');
+    }
+  }
+
+  /// Reprend un enregistrement mis en pause.
+  Future<void> resumeRecording() async {
+    if (!_isRecording || !_isPaused) return;
+    try {
+      await _recorder.resume();
+      _isPaused = false;
+      _recordingStartTime = DateTime.now();
+      _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _durationController.add(currentDuration);
+      });
+      _startAmplitudeMonitoring();
+    } catch (e) {
+      debugPrint('Error resuming recording: $e');
     }
   }
 
