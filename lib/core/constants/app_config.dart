@@ -158,8 +158,12 @@ class AppConfig {
     defaultValue: '',
   );
 
-  /// Get the active Giphy API key.
-  static String get giphyApiKey => _giphyApiKeyFromEnv;
+  /// Get the active Giphy API key. Dart-define wins ; sinon fallback `.env`
+  /// (comme Stripe/RevenueCat/Supabase) — sans lui, une clé posée dans .env
+  /// n'est jamais lue au runtime.
+  static String get giphyApiKey => _giphyApiKeyFromEnv.isNotEmpty
+      ? _giphyApiKeyFromEnv
+      : (dotenv.env['GIPHY_API_KEY'] ?? '');
 
   /// Validate that Giphy is properly configured.
   static bool get isGiphyConfigured => giphyApiKey.isNotEmpty;
@@ -175,8 +179,10 @@ class AppConfig {
     defaultValue: '',
   );
 
-  /// Get the active Tenor API key.
-  static String get tenorApiKey => _tenorApiKeyFromEnv;
+  /// Get the active Tenor API key. Dart-define wins ; sinon fallback `.env`.
+  static String get tenorApiKey => _tenorApiKeyFromEnv.isNotEmpty
+      ? _tenorApiKeyFromEnv
+      : (dotenv.env['TENOR_API_KEY'] ?? '');
 
   /// Validate that Tenor is properly configured.
   static bool get isTenorConfigured => tenorApiKey.isNotEmpty;

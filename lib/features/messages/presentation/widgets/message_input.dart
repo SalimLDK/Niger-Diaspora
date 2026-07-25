@@ -27,6 +27,33 @@ import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 import 'mention_suggestion_overlay.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// Hauteur du picker emoji/GIF, bornée à l'espace réellement libre.
+///
+/// Une fraction de la hauteur d'écran **totale** (sans réserver l'en-tête, le
+/// composer et le bandeau épinglé) débordait la `Column` de l'écran de
+/// conversation en paysage (écran court). On soustrait donc les zones système
+/// et une réserve chrome (~176 dp), et on ne dépasse jamais l'espace libre.
+/// Fonction pure (sans `BuildContext`) pour être testable directement.
+double computeMessagePickerHeight({
+  required double screenHeight,
+  required double systemInset,
+  required bool isLandscape,
+}) {
+  const chromeReserve = 176.0; // en-tête + composer + bandeau + marge
+  final available = screenHeight - systemInset - chromeReserve;
+
+  var height = screenHeight * (isLandscape ? 0.62 : 0.45);
+  final maxByScreen = isLandscape ? 260.0 : 300.0;
+  if (height > maxByScreen) height = maxByScreen;
+  if (height > available) height = available; // évite l'overflow paysage
+  // Viser ~150 dp min, mais jamais au-delà du disponible (petit écran = grille
+  // compacte plutôt qu'un overflow).
+  const minUsable = 150.0;
+  final floor = minUsable < available ? minUsable : available;
+  if (height < floor) height = floor;
+  return height;
+}
+
 class MessageInput extends StatefulWidget {
   final String conversationId;
   final Function(String, List<MentionedUser>) onSendText;
@@ -991,16 +1018,14 @@ class _MessageInputState extends State<MessageInput>
         // Combined emoji/sticker picker (uniquement si pas en enregistrement)
         if (_showPicker && !_isRecording)
           EmojiStickerPicker(
-            // Hauteur adaptative : 300 dp fixes débordaient en paysage
-            // (en-tête + composer + picker > écran ~390 dp). En paysage on
-            // prend une part plus large de l'écran : la conversation n'a pas
-            // besoin d'être lue pendant qu'on choisit, et sous ~240 dp la
-            // grille (44 onglets + 50 recherche) n'affiche plus de rangée.
-            height: MediaQuery.of(context).orientation == Orientation.landscape
-                ? (MediaQuery.of(context).size.height * 0.62)
-                    .clamp(160.0, 260.0)
-                : (MediaQuery.of(context).size.height * 0.45)
-                    .clamp(180.0, 300.0),
+            // Hauteur bornée à l'espace réellement libre (voir
+            // computeMessagePickerHeight) : évite l'overflow paysage.
+            height: computeMessagePickerHeight(
+              screenHeight: MediaQuery.of(context).size.height,
+              systemInset: MediaQuery.of(context).viewPadding.vertical,
+              isLandscape: MediaQuery.of(context).orientation ==
+                  Orientation.landscape,
+            ),
             initialTabIndex: _pickerTabIndex,
             onEmojiSelected: _onEmojiSelected,
             onBackspacePressed: _onBackspacePressed,

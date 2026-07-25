@@ -181,29 +181,34 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker>
   }
 
   Widget _buildEmojiPicker(BuildContext context) {
-    return emoji_picker.EmojiPicker(
-      onEmojiSelected: widget.onEmojiSelected,
-      onBackspacePressed: widget.onBackspacePressed,
-      config: emoji_picker.Config(
-        height: widget.height - 44,
-        checkPlatformCompatibility: true,
-        emojiViewConfig: emoji_picker.EmojiViewConfig(
-          columns: 8,
-          emojiSizeMax: 28 * (Platform.isIOS ? 1.30 : 1.0),
-          backgroundColor: context.surfaceColor,
-        ),
-        categoryViewConfig: emoji_picker.CategoryViewConfig(
-          backgroundColor: context.surfaceColor,
-          indicatorColor: context.adaptivePrimaryColor,
-          iconColorSelected: context.adaptivePrimaryColor,
-          iconColor: context.textTertiaryColor,
-        ),
-        bottomActionBarConfig: const emoji_picker.BottomActionBarConfig(
-          enabled: false,
-        ),
-        searchViewConfig: emoji_picker.SearchViewConfig(
-          backgroundColor: context.surfaceColor,
-          buttonIconColor: context.textSecondaryColor,
+    // On mesure la hauteur réelle du slot (LayoutBuilder) au lieu de supposer
+    // `widget.height - 44` : la barre d'onglets peut dépasser 44 dp quand la
+    // police système est agrandie, ce qui ferait déborder l'emoji picker.
+    return LayoutBuilder(
+      builder: (context, constraints) => emoji_picker.EmojiPicker(
+        onEmojiSelected: widget.onEmojiSelected,
+        onBackspacePressed: widget.onBackspacePressed,
+        config: emoji_picker.Config(
+          height: constraints.maxHeight,
+          checkPlatformCompatibility: true,
+          emojiViewConfig: emoji_picker.EmojiViewConfig(
+            columns: 8,
+            emojiSizeMax: 28 * (Platform.isIOS ? 1.30 : 1.0),
+            backgroundColor: context.surfaceColor,
+          ),
+          categoryViewConfig: emoji_picker.CategoryViewConfig(
+            backgroundColor: context.surfaceColor,
+            indicatorColor: context.adaptivePrimaryColor,
+            iconColorSelected: context.adaptivePrimaryColor,
+            iconColor: context.textTertiaryColor,
+          ),
+          bottomActionBarConfig: const emoji_picker.BottomActionBarConfig(
+            enabled: false,
+          ),
+          searchViewConfig: emoji_picker.SearchViewConfig(
+            backgroundColor: context.surfaceColor,
+            buttonIconColor: context.textSecondaryColor,
+          ),
         ),
       ),
     );
