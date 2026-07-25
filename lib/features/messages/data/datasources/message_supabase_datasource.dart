@@ -1334,14 +1334,26 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Session Supabase non établie – reconnectez-vous');
+      }
+      // RPC SECURITY DEFINER : localise la conversation du groupe SANS filtrer
+      // par participant_ids (sinon un membre ayant rejoint le groupe après sa
+      // création — le cas courant — ne la retrouvait jamais, et
+      // createGroupConversation en recréait une par-dessus, en double).
+      // La fonction vérifie l'appartenance réelle (group_members) puis
+      // (ré)ajoute userId aux participants si besoin.
+      final convId = await _supabase.rpc(
+        'join_group_conversation',
+        params: {'p_group_id': groupId},
+      ) as String?;
+      if (convId == null) return null;
+
       final rows = await _supabase
           .from('conversations')
           .select()
-          .eq('type', 'group')
-          .eq('group_id', groupId)
-          .contains('participant_ids', [userId])
+          .eq('id', convId)
           .limit(1);
-
       if (rows.isEmpty) return null;
       return _convFromRow(rows.first);
     } catch (e) {

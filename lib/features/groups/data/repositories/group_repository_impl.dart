@@ -173,6 +173,16 @@ class GroupRepositoryImpl implements GroupRepository {
       // Subscribe to group topic
       await NotificationService().subscribeToTopic('group_$groupId');
 
+      // Ajoute immédiatement userId aux participants de la conversation du
+      // groupe : sans cet appel, le groupe restait absent de l'onglet
+      // Messages jusqu'à ce qu'un autre déclencheur (galerie média du
+      // groupe, etc.) retrouve la conversation et rattrape le manque.
+      // Non-bloquant : un échec ici ne doit pas faire échouer le join.
+      await messageRepository.findGroupConversationByGroupId(
+        groupId: groupId,
+        userId: userId,
+      );
+
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
