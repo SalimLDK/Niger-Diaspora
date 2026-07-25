@@ -1067,6 +1067,25 @@ class _MessageInputState extends State<MessageInput>
                 padding: EdgeInsets.zero,
               ),
             ),
+            const SizedBox(width: 6),
+
+            // Caméra rapide (caméra unifiée photo/vidéo)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: context.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                onPressed: () => _openCamera(),
+                icon: const Icon(Icons.photo_camera_outlined),
+                color: context.textSecondaryColor,
+                padding: EdgeInsets.zero,
+              ),
+            ),
             const SizedBox(width: 10),
 
             // Text field
