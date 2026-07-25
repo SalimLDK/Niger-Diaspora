@@ -64,6 +64,24 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     });
   }
 
+  /// Union du `read_by`/`delivered_to` top-level (colonne mise à jour par le
+  /// RPC mark_messages_as_read) et de ceux du JSONB `data` (écrits à l'envoi).
+  /// Sans cette union, si le backend écrit le « lu » dans la colonne top-level,
+  /// la bulle (qui lisait seulement `data`) ne passait jamais au bleu.
+  Map<String, dynamic> _mergedReceipts(
+    Map<String, dynamic> row,
+    Map<String, dynamic> data,
+  ) {
+    List<String> uni(dynamic a, dynamic b) => {
+          ...((a as List?)?.map((e) => e.toString()) ?? const <String>[]),
+          ...((b as List?)?.map((e) => e.toString()) ?? const <String>[]),
+        }.toList();
+    return {
+      'readBy': uni(row['read_by'], data['readBy']),
+      'deliveredTo': uni(row['delivered_to'], data['deliveredTo']),
+    };
+  }
+
   /// Convert a `messages` row to a [MessageModel] (sync, no decryption).
   MessageModel _msgFromRow(Map<String, dynamic> row) {
     final data = Map<String, dynamic>.from(
@@ -71,6 +89,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     );
     return MessageModel.fromJson({
       ...data,
+      ..._mergedReceipts(row, data),
       'id': row['id'],
       'senderId': row['sender_id'],
       'type': row['type'],
@@ -105,6 +124,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     return MessageModel.fromJson({
       ...data,
+      ..._mergedReceipts(row, data),
       'id': row['id'],
       'senderId': row['sender_id'],
       'type': row['type'],
