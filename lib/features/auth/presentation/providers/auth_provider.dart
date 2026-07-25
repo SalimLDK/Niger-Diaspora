@@ -2,7 +2,6 @@ import 'dart:developer' as dev;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -27,8 +26,7 @@ const String _tag = 'AuthProvider';
 AuthRepository authRepository(Ref ref) {
   final remoteDataSource = AuthRemoteDataSourceImpl(
     firebaseAuth: FirebaseAuth.instance,
-    firestore: FirebaseFirestore.instance,
-    googleSignIn: GoogleSignIn(),
+    googleSignIn: GoogleSignIn.instance,
   );
 
   return AuthRepositoryImpl(remoteDataSource: remoteDataSource);

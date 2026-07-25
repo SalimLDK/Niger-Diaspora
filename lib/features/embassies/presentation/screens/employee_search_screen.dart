@@ -134,7 +134,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
 
                 // Department filter
                 DropdownButtonFormField<String>(
-                  value: _selectedDepartment,
+                  initialValue: _selectedDepartment,
                   decoration: InputDecoration(
                     labelText: 'Département',
                     border: OutlineInputBorder(

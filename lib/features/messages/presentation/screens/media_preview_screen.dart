@@ -1,9 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:pro_image_editor/pro_image_editor.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/image_compressor_service.dart';
 
 enum MediaType { image, video, document }
+
+enum _SubEditor { paint, crop, blur }
 
 class MediaPreviewResult {
   final File file;
@@ -13,7 +19,8 @@ class MediaPreviewResult {
   MediaPreviewResult({required this.file, required this.isImage, this.caption});
 }
 
-/// Écran de preview pour les médias avant envoi (style WhatsApp)
+/// Écran de preview pour les médias avant envoi (style Signal) : outils
+/// d'édition (dessiner, rogner, flouter), enregistrement galerie, légende.
 class MediaPreviewScreen extends StatefulWidget {
   final File file;
   final MediaType type;
@@ -36,6 +43,10 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   bool _isCompressing = false;
   String? _fileSize;
 
+  // Fichier édité (annotation/rognage/flou) qui remplace l'original si présent.
+  File? _editedFile;
+  File get _currentFile => _editedFile ?? widget.file;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +60,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   }
 
   Future<void> _loadFileInfo() async {
-    final size = await _compressor.getFileSize(widget.file);
+    final size = await _compressor.getFileSize(_currentFile);
     if (mounted) {
       setState(() {
         _fileSize = _compressor.formatFileSize(size);
@@ -57,44 +68,108 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     }
   }
 
+  /// Ouvre le sous-éditeur demandé (dessin, rognage/pivot, flou) sur l'image.
+  Future<void> _editWith(_SubEditor which) async {
+    if (!mounted) return;
+    final theme = Theme.of(context);
+    final bytes = await _currentFile.readAsBytes();
+    if (!mounted) return;
+    final callbacks = ProImageEditorCallbacks(
+      onImageEditingComplete: (edited) async {
+        final dir = await getTemporaryDirectory();
+        final path =
+            '${dir.path}/edit_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final f = await File(path).writeAsBytes(edited);
+        if (mounted) setState(() => _editedFile = f);
+      },
+      onCloseEditor: (_) => Navigator.of(context).pop(),
+    );
+    late final Widget editor;
+    switch (which) {
+      case _SubEditor.paint:
+        editor = PaintEditor.memory(
+          bytes,
+          initConfigs:
+              PaintEditorInitConfigs(theme: theme, callbacks: callbacks),
+        );
+      case _SubEditor.crop:
+        editor = CropRotateEditor.memory(
+          bytes,
+          initConfigs:
+              CropRotateEditorInitConfigs(theme: theme, callbacks: callbacks),
+        );
+      case _SubEditor.blur:
+        editor = BlurEditor.memory(
+          bytes,
+          initConfigs:
+              BlurEditorInitConfigs(theme: theme, callbacks: callbacks),
+        );
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => editor));
+    _loadFileInfo();
+  }
+
+  /// Enregistre le média (éventuellement édité) dans la galerie.
+  Future<void> _saveToGallery() async {
+    try {
+      final ps = await PhotoManager.requestPermissionExtend();
+      if (!ps.hasAccess) {
+        _snack('Autorisation galerie refusée');
+        return;
+      }
+      final name = 'diaspo_${DateTime.now().millisecondsSinceEpoch}';
+      if (widget.type == MediaType.video) {
+        await PhotoManager.editor.saveVideo(_currentFile, title: name);
+      } else {
+        await PhotoManager.editor
+            .saveImageWithPath(_currentFile.path, title: name);
+      }
+      _snack('Enregistré dans la galerie');
+    } catch (_) {
+      _snack('Échec de l\'enregistrement');
+    }
+  }
+
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+    );
+  }
+
   Future<void> _sendMedia() async {
-    File fileToSend = widget.file;
+    File fileToSend = _currentFile;
 
     // Compresser les images avant envoi
     if (widget.type == MediaType.image) {
       setState(() => _isCompressing = true);
-
       try {
         final needsCompression = await _compressor.needsCompression(
-          widget.file,
+          _currentFile,
           maxSizeInMB: 5,
         );
-
         if (needsCompression) {
-          fileToSend = await _compressor.compressImage(widget.file);
+          fileToSend = await _compressor.compressImage(_currentFile);
         }
       } catch (e) {
-        // debugPrint('Erreur de compression: $e');
         // Continue avec le fichier original en cas d'erreur
       }
-
       if (mounted) {
         setState(() => _isCompressing = false);
       }
     }
 
     if (!mounted) return;
-
-    // Retourner le résultat
+    HapticFeedback.mediumImpact();
     Navigator.pop(
       context,
       MediaPreviewResult(
         file: fileToSend,
         isImage: widget.type == MediaType.image,
-        caption:
-            _captionController.text.trim().isNotEmpty
-                ? _captionController.text.trim()
-                : null,
+        caption: _captionController.text.trim().isNotEmpty
+            ? _captionController.text.trim()
+            : null,
       ),
     );
   }
@@ -113,8 +188,8 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
           widget.type == MediaType.image
               ? 'Aperçu de l\'image'
               : widget.type == MediaType.video
-              ? 'Aperçu de la vidéo'
-              : 'Aperçu du document',
+                  ? 'Aperçu de la vidéo'
+                  : 'Aperçu du document',
           style: const TextStyle(color: Colors.white),
         ),
         actions: [
@@ -132,58 +207,119 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
       ),
       body: Column(
         children: [
-          // Preview du média
           Expanded(child: Center(child: _buildMediaPreview())),
+          _buildEditToolbar(),
+          _buildCaptionBar(),
+        ],
+      ),
+    );
+  }
 
-          // Zone de caption
+  /// Barre d'outils façon Signal : dessiner · rogner · flou · enregistrer.
+  Widget _buildEditToolbar() {
+    if (widget.type == MediaType.document) return const SizedBox.shrink();
+    if (widget.type == MediaType.video) {
+      return Container(
+        color: Colors.black87,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Row(
+          children: [
+            _toolButton(Icons.download_outlined, 'Enregistrer', _saveToGallery),
+          ],
+        ),
+      );
+    }
+    return Container(
+      color: Colors.black87,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _toolButton(
+              Icons.draw_outlined, 'Dessiner', () => _editWith(_SubEditor.paint)),
+          _toolButton(
+              Icons.crop_rotate, 'Rogner', () => _editWith(_SubEditor.crop)),
+          _toolButton(Icons.blur_on, 'Flou', () => _editWith(_SubEditor.blur)),
+          _toolButton(Icons.download_outlined, 'Enregistrer', _saveToGallery),
+        ],
+      ),
+    );
+  }
+
+  Widget _toolButton(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Container(
-            color: Colors.black87,
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 12,
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white10,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: TextField(
-                      controller: _captionController,
-                      style: const TextStyle(color: Colors.white),
-                      maxLines: 3,
-                      minLines: 1,
-                      decoration: const InputDecoration(
-                        hintText: 'Ajouter une légende...',
-                        hintStyle: TextStyle(color: Colors.white54),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FloatingActionButton(
-                  onPressed: _isCompressing ? null : _sendMedia,
-                  backgroundColor: context.adaptivePrimaryColor,
-                  child:
-                      _isCompressing
-                          ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                          : const Icon(Icons.send, color: Colors.white),
-                ),
-              ],
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCaptionBar() {
+    return Container(
+      color: Colors.black87,
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _captionController,
+              style: const TextStyle(color: Colors.white),
+              maxLines: 3,
+              minLines: 1,
+              decoration: const InputDecoration(
+                hintText: 'Ajouter une légende...',
+                hintStyle: TextStyle(color: Colors.white54),
+                // Pas d'encadré du thème : le texte coule sur la barre.
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              ),
             ),
+          ),
+          const SizedBox(width: 12),
+          FloatingActionButton(
+            onPressed: _isCompressing ? null : _sendMedia,
+            backgroundColor: context.adaptivePrimaryColor,
+            child: _isCompressing
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Icon(Icons.send, color: Colors.white),
           ),
         ],
       ),
@@ -194,7 +330,11 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     switch (widget.type) {
       case MediaType.image:
         return InteractiveViewer(
-          child: Image.file(widget.file, fit: BoxFit.contain),
+          child: Image.file(
+            _currentFile,
+            key: ValueKey(_currentFile.path),
+            fit: BoxFit.contain,
+          ),
         );
 
       case MediaType.video:
@@ -244,10 +384,15 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              widget.file.path.split('/').last,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                widget.file.path.split('/').last,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         );

@@ -27,6 +27,11 @@ class VideoBubble extends StatelessWidget {
   final VoidCallback? onForward;
   final VoidCallback? onSave;
   final VoidCallback? onDelete;
+  final VoidCallback? onShare;
+  final List<String>? readBy;
+  final List<String>? deliveredTo;
+  final String? messageId;
+  final String? blurhash;
 
   const VideoBubble({
     super.key,
@@ -44,6 +49,11 @@ class VideoBubble extends StatelessWidget {
     this.onForward,
     this.onSave,
     this.onDelete,
+    this.onShare,
+    this.readBy,
+    this.deliveredTo,
+    this.messageId,
+    this.blurhash,
   });
 
   void _showMediaContextMenu(BuildContext context) {

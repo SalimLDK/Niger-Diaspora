@@ -215,7 +215,6 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     }).eq('id', userId);
   }
 
-  @override
   Future<void> updateShowMessagePreview(String userId, bool show) async {
     await _supabase.from('users').update({
       'show_message_preview': show,

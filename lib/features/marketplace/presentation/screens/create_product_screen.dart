@@ -682,7 +682,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
             // Currency selector
             DropdownButtonFormField<Currency>(
-              value: _selectedCurrency,
+              initialValue: _selectedCurrency,
               decoration: const InputDecoration(
                 labelText: 'Devise',
                 border: OutlineInputBorder(),
@@ -699,7 +699,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
             // Category
             DropdownButtonFormField<ProductCategory>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Categorie',
                 border: OutlineInputBorder(),
@@ -727,7 +727,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
             // Condition
             DropdownButtonFormField<ProductCondition>(
-              value: _selectedCondition,
+              initialValue: _selectedCondition,
               decoration: const InputDecoration(
                 labelText: 'Etat',
                 border: OutlineInputBorder(),
@@ -749,7 +749,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
             // Country
             DropdownButtonFormField<Country>(
-              value: _selectedCountry,
+              initialValue: _selectedCountry,
               decoration: const InputDecoration(
                 labelText: 'Pays',
                 border: OutlineInputBorder(),

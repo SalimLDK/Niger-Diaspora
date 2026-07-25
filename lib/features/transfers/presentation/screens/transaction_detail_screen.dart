@@ -532,10 +532,13 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   void _shareTransaction(BuildContext context, TransactionEntity? transaction) {
     if (transaction != null) {
-      Share.share(
-        'Transfert vers ${transaction.recipientName ?? 'Inconnu'}\n'
-        'Montant: ${transaction.amount} ${transaction.currency}\n'
-        'Ref: ${transactionId.substring(0, 8).toUpperCase()}',
+      SharePlus.instance.share(
+        ShareParams(
+          text:
+              'Transfert vers ${transaction.recipientName ?? 'Inconnu'}\n'
+              'Montant: ${transaction.amount} ${transaction.currency}\n'
+              'Ref: ${transactionId.substring(0, 8).toUpperCase()}',
+        ),
       );
     }
   }

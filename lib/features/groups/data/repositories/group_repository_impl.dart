@@ -338,4 +338,25 @@ class GroupRepositoryImpl implements GroupRepository {
       return Stream.value(Left(ServerFailure(e.toString())));
     }
   }
+
+  @override
+  Future<Either<Failure, GroupEntity>> ensureOfficialGroup({
+    required String countryCode,
+    required String countryName,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      final model = await remoteDataSource.ensureOfficialGroup(
+        countryCode: countryCode,
+        countryName: countryName,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

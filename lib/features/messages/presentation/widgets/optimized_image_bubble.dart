@@ -25,6 +25,10 @@ class OptimizedImageBubble extends StatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onSave;
   final VoidCallback? onDelete;
+  final VoidCallback? onShare;
+  final List<String>? readBy;
+  final List<String>? deliveredTo;
+  final String? blurhash;
 
   const OptimizedImageBubble({
     super.key,
@@ -40,6 +44,10 @@ class OptimizedImageBubble extends StatefulWidget {
     this.onForward,
     this.onSave,
     this.onDelete,
+    this.onShare,
+    this.readBy,
+    this.deliveredTo,
+    this.blurhash,
   });
 
   @override

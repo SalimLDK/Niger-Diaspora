@@ -388,7 +388,17 @@ class _AdminCreateAdminScreenState
               ],
             ),
             const SizedBox(height: 20),
-            ...availableAdminRoles.map((role) => _buildRoleOption(role)),
+            RadioGroup<AdminRole>(
+              groupValue: _selectedRole,
+              onChanged: (value) {
+                if (value != null) setState(() => _selectedRole = value);
+              },
+              child: Column(
+                children: availableAdminRoles
+                    .map((role) => _buildRoleOption(role))
+                    .toList(),
+              ),
+            ),
           ],
         ),
       ),
@@ -447,9 +457,11 @@ class _AdminCreateAdminScreenState
             ),
             Radio<AdminRole>(
               value: role,
-              groupValue: _selectedRole,
-              onChanged: (value) => setState(() => _selectedRole = value!),
-              activeColor: role.color,
+              fillColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? role.color
+                    : null,
+              ),
             ),
           ],
         ),

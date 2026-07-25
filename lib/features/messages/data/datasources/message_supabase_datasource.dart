@@ -572,6 +572,35 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   // ═══════════════════════════════════════════════════════════════════════════
 
   @override
+  Future<MessageModel?> getMessageById({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Session Supabase non établie – reconnectez-vous');
+      }
+      final row = await _supabase
+          .from('messages')
+          .select()
+          .eq('id', messageId)
+          .eq('conversation_id', conversationId)
+          .maybeSingle();
+      if (row == null) return null;
+      final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
+      data['id'] = row['id'];
+      data['conversationId'] = row['conversation_id'];
+      data['senderId'] = row['sender_id'];
+      data['type'] = row['type'];
+      data['createdAt'] = row['created_at'];
+      return MessageModel.fromJson(data);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('getMessageById error: $e');
+    }
+  }
+
+  @override
   Future<MessageModel> sendTextMessage({
     required String conversationId,
     required String senderId,
@@ -583,6 +612,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
     Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
     List<String> sentWhileBlockedBy = const [],
     Map<String, dynamic>? linkPreviewData,
     bool isForwarded = false,
@@ -590,6 +620,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     String? clientMessageId,
     String? recipientId,
     List<String> participantIds = const [],
+    bool selfNote = false,
   }) async {
     try {
       final msgId = _uuid.v4();
@@ -618,11 +649,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
         if (productData != null) 'productData': productData,
         if (postData != null) 'postData': postData,
+        if (eventData != null) 'eventData': eventData,
         if (sentWhileBlockedBy.isNotEmpty) 'sentWhileBlockedBy': sentWhileBlockedBy,
         if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
         if (isForwarded) 'isForwarded': isForwarded,
         if (mentionedUsers.isNotEmpty) 'mentionedUsers': mentionedUsers,
         if (clientMessageId != null) 'clientMessageId': clientMessageId,
+        if (selfNote) 'selfNote': selfNote,
       };
 
       await _supabase.from('messages').insert({
@@ -1023,6 +1056,70 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       });
     } catch (e) {
       throw ServerException('createIndividualConversation error: $e');
+    }
+  }
+
+  @override
+  Future<ConversationModel> getOrCreateSelfConversation({
+    required String userId,
+  }) async {
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Supabase session introuvable');
+      }
+
+      // Cherche une conversation 1:1 dont le seul participant est l'utilisateur.
+      final rows = await _supabase
+          .from('conversations')
+          .select()
+          .eq('type', 'individual')
+          .contains('participant_ids', [userId])
+          .limit(20);
+
+      for (final row in rows as List) {
+        final participants = List<String>.from(row['participant_ids'] ?? []);
+        if (participants.length == 1 && participants.first == userId) {
+          final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
+          return ConversationModel.fromJson({
+            ...data,
+            'id': row['id'],
+            'type': row['type'],
+            'participantIds': participants,
+            'createdBy': row['created_by'],
+            'createdAt': row['created_at'],
+          });
+        }
+      }
+
+      final convId = _uuid.v4();
+      final now = DateTime.now().toUtc().toIso8601String();
+      final convData = <String, dynamic>{
+        'unreadCount': {userId: 0},
+        'name': 'Mes notes',
+        'requestStatus': 'none',
+      };
+
+      await _supabase.from('conversations').insert({
+        'id': convId,
+        'type': 'individual',
+        'participant_ids': [userId],
+        'created_by': userId,
+        'created_at': now,
+        'updated_at': now,
+        'data': convData,
+      });
+
+      return ConversationModel.fromJson({
+        ...convData,
+        'id': convId,
+        'type': 'individual',
+        'participantIds': [userId],
+        'createdBy': userId,
+        'createdAt': now,
+      });
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('getOrCreateSelfConversation error: $e');
     }
   }
 

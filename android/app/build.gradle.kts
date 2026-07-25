@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId = "com.diasponiger.diasponiger"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -448,7 +448,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
           // Profession dropdown
           DropdownButtonFormField<String>(
-            value: _selectedProfession,
+            initialValue: _selectedProfession,
             decoration: InputDecoration(
               labelText: 'Profession',
               prefixIcon: const Icon(Icons.work),
@@ -557,7 +557,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             ),
             value: _shareLocation,
             onChanged: (value) => setState(() => _shareLocation = value),
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
         ],
       ),
@@ -657,7 +657,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             subtitle: const Text('Recevoir toutes les notifications'),
             value: _enableNotifications,
             onChanged: (value) => setState(() => _enableNotifications = value),
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
           const Divider(),
 
@@ -670,7 +670,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     ? (value) =>
                         setState(() => _enableEventNotifications = value)
                     : null,
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
           const Divider(),
 
@@ -683,7 +683,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     ? (value) =>
                         setState(() => _enableMessageNotifications = value)
                     : null,
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
         ],
       ),
@@ -809,7 +809,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   // Dropdown builders
   Widget _buildCountryDropdown() {
     return DropdownButtonFormField<CountryOption>(
-      value: _selectedCountry,
+      initialValue: _selectedCountry,
       decoration: InputDecoration(
         labelText: 'Pays actuel',
         prefixIcon: const Icon(Icons.public_outlined),
@@ -832,7 +832,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   Widget _buildOriginRegionDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedOriginRegion,
+      initialValue: _selectedOriginRegion,
       decoration: InputDecoration(
         labelText: 'Région d\'origine',
         prefixIcon: const Icon(Icons.map_outlined),
@@ -861,7 +861,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             : <String>[];
 
     return DropdownButtonFormField<String>(
-      value: _selectedOriginCity,
+      initialValue: _selectedOriginCity,
       decoration: InputDecoration(
         labelText: 'Ville d\'origine',
         prefixIcon: const Icon(Icons.home_outlined),

@@ -25,6 +25,7 @@ import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../businesses/presentation/providers/business_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
+import '../../../../core/extensions/business_entity_extensions.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';

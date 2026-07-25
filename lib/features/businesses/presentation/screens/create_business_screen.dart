@@ -199,7 +199,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             Text('Categorie', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             DropdownButtonFormField<BusinessCategory>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
               ),

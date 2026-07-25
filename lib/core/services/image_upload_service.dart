@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'permission_service.dart';
 
-enum ImageUploadType { profile, event, group, message, product, business }
+enum ImageUploadType { profile, event, group, message, product, business, post }
 
 /// Result of an image pick operation
 class ImagePickResult {
@@ -414,6 +414,8 @@ class ImageUploadService {
         return 'products/$id/image_$timestamp.jpg';
       case ImageUploadType.business:
         return 'businesses/$id/image_$timestamp.jpg';
+      case ImageUploadType.post:
+        return 'posts/$id/image_$timestamp.jpg';
     }
   }
 }

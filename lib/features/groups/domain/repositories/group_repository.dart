@@ -39,4 +39,10 @@ abstract class GroupRepository {
   Stream<Either<Failure, List<GroupRequestEntity>>> getMyGroupRequests(
     String userId,
   );
+
+  /// Get or create the official country group and return it.
+  Future<Either<Failure, GroupEntity>> ensureOfficialGroup({
+    required String countryCode,
+    required String countryName,
+  });
 }

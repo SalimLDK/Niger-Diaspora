@@ -478,7 +478,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                   Switch(
                     value: _isPrivate,
                     onChanged: (value) => setState(() => _isPrivate = value),
-                    activeColor: context.adaptivePrimaryColor,
+                    activeThumbColor: context.adaptivePrimaryColor,
                   ),
                 ],
               ),

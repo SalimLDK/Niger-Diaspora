@@ -143,13 +143,13 @@ class MyEventsNotifier extends _$MyEventsNotifier {
     );
   }
 
-  Future<bool> createEvent(EventEntity event) async {
+  Future<EventEntity?> createEvent(EventEntity event) async {
     final repository = ref.read(eventRepositoryProvider);
     final result = await repository.createEvent(event);
-    return result.fold((failure) => false, (created) {
+    return result.fold((failure) => null, (created) {
       final currentEvents = state.valueOrNull ?? [];
       state = AsyncValue.data([created, ...currentEvents]);
-      return true;
+      return created;
     });
   }
 

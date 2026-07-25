@@ -37,6 +37,7 @@ mixin _$ProfileEntity {
   bool get shareLocation => throw _privateConstructorUsedError;
   String get phoneVisibility => throw _privateConstructorUsedError;
   bool get isPhoneVerified => throw _privateConstructorUsedError;
+  bool get isVerified => throw _privateConstructorUsedError;
   List<String> get interests => throw _privateConstructorUsedError;
   List<String> get skills => throw _privateConstructorUsedError;
   List<String> get languages => throw _privateConstructorUsedError;
@@ -86,6 +87,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
     bool shareLocation,
     String phoneVisibility,
     bool isPhoneVerified,
+    bool isVerified,
     List<String> interests,
     List<String> skills,
     List<String> languages,
@@ -137,6 +139,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? shareLocation = null,
     Object? phoneVisibility = null,
     Object? isPhoneVerified = null,
+    Object? isVerified = null,
     Object? interests = null,
     Object? skills = null,
     Object? languages = null,
@@ -253,6 +256,11 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     ? _value.isPhoneVerified
                     : isPhoneVerified // ignore: cast_nullable_to_non_nullable
                         as bool,
+            isVerified:
+                null == isVerified
+                    ? _value.isVerified
+                    : isVerified // ignore: cast_nullable_to_non_nullable
+                        as bool,
             interests:
                 null == interests
                     ? _value.interests
@@ -354,6 +362,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     bool shareLocation,
     String phoneVisibility,
     bool isPhoneVerified,
+    bool isVerified,
     List<String> interests,
     List<String> skills,
     List<String> languages,
@@ -404,6 +413,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? shareLocation = null,
     Object? phoneVisibility = null,
     Object? isPhoneVerified = null,
+    Object? isVerified = null,
     Object? interests = null,
     Object? skills = null,
     Object? languages = null,
@@ -520,6 +530,11 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 ? _value.isPhoneVerified
                 : isPhoneVerified // ignore: cast_nullable_to_non_nullable
                     as bool,
+        isVerified:
+            null == isVerified
+                ? _value.isVerified
+                : isVerified // ignore: cast_nullable_to_non_nullable
+                    as bool,
         interests:
             null == interests
                 ? _value._interests
@@ -614,6 +629,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     this.shareLocation = true,
     this.phoneVisibility = 'everyone',
     this.isPhoneVerified = false,
+    this.isVerified = false,
     final List<String> interests = const [],
     final List<String> skills = const [],
     final List<String> languages = const [],
@@ -677,6 +693,9 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   @override
   @JsonKey()
   final bool isPhoneVerified;
+  @override
+  @JsonKey()
+  final bool isVerified;
   final List<String> _interests;
   @override
   @JsonKey()
@@ -739,7 +758,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, isVerified: $isVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -784,6 +803,8 @@ class _$ProfileEntityImpl implements _ProfileEntity {
                 other.phoneVisibility == phoneVisibility) &&
             (identical(other.isPhoneVerified, isPhoneVerified) ||
                 other.isPhoneVerified == isPhoneVerified) &&
+            (identical(other.isVerified, isVerified) ||
+                other.isVerified == isVerified) &&
             const DeepCollectionEquality().equals(
               other._interests,
               _interests,
@@ -840,6 +861,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     shareLocation,
     phoneVisibility,
     isPhoneVerified,
+    isVerified,
     const DeepCollectionEquality().hash(_interests),
     const DeepCollectionEquality().hash(_skills),
     const DeepCollectionEquality().hash(_languages),
@@ -886,6 +908,7 @@ abstract class _ProfileEntity implements ProfileEntity {
     final bool shareLocation,
     final String phoneVisibility,
     final bool isPhoneVerified,
+    final bool isVerified,
     final List<String> interests,
     final List<String> skills,
     final List<String> languages,
@@ -941,6 +964,8 @@ abstract class _ProfileEntity implements ProfileEntity {
   String get phoneVisibility;
   @override
   bool get isPhoneVerified;
+  @override
+  bool get isVerified;
   @override
   List<String> get interests;
   @override

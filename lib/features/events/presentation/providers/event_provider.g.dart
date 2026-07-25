@@ -82,7 +82,7 @@ final eventDetailNotifierProvider = AutoDisposeNotifierProvider<
 );
 
 typedef _$EventDetailNotifier = AutoDisposeNotifier<AsyncValue<EventEntity?>>;
-String _$myEventsNotifierHash() => r'15de955b5f312e9be793cdc0b64f139a4d5dbb2b';
+String _$myEventsNotifierHash() => r'113ff3560513b1e4ad41c8d8a6c4324ebabd0f82';
 
 /// See also [MyEventsNotifier].
 @ProviderFor(MyEventsNotifier)

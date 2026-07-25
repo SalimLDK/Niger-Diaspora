@@ -91,7 +91,6 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     return GroupModel.fromJson(_mapGroup(patchedRow));
   }
 
-  @override
   Future<GroupModel?> getGroupByName(String name) async {
     final data = await _supabase
         .from('groups')
@@ -259,7 +258,6 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   @override
   Future<void> sendGroupRenamedSystemMessage(String groupId, String newName) async {}
 
-  @override
   Stream<List<GroupPinnedItemModel>> getPinnedItemsStream({
     String? groupId,
     String? conversationId,
@@ -278,7 +276,6 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .map((rows) => rows.map(GroupPinnedItemModel.fromJson).toList());
   }
 
-  @override
   Future<GroupPinnedItemModel> pinItem({
     String? groupId,
     String? conversationId,
@@ -322,7 +319,6 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     return GroupModel.fromJson(_mapGroup(row as Map<String, dynamic>));
   }
 
-  @override
   Future<void> unpinItem(String pinnedItemId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw ServerException('Session Supabase non établie – reconnectez-vous');

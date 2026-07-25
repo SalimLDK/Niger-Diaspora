@@ -374,8 +374,7 @@ class MessageRepositoryImpl implements MessageRepository {
         // Extract audio duration for audio files.
         int? audioDuration;
         if (type == MessageType.audio) {
-          final duration = await AudioPlaybackService.getDurationFromFile(file.path);
-          audioDuration = duration?.inSeconds;
+          audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
         }
 
         // Map app MessageType to DB type string.

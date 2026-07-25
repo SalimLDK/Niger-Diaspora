@@ -13,6 +13,7 @@ class FullScreenImageViewer extends StatefulWidget {
   final String? senderName;
   final DateTime? sentAt;
   final bool showActions;
+  final String? messageId;
 
   const FullScreenImageViewer({
     super.key,
@@ -21,6 +22,7 @@ class FullScreenImageViewer extends StatefulWidget {
     this.senderName,
     this.sentAt,
     this.showActions = true,
+    this.messageId,
   });
 
   /// Show the full screen image viewer
@@ -31,6 +33,7 @@ class FullScreenImageViewer extends StatefulWidget {
     String? senderName,
     DateTime? sentAt,
     bool showActions = true,
+    String? messageId,
   }) {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -43,6 +46,7 @@ class FullScreenImageViewer extends StatefulWidget {
             senderName: senderName,
             sentAt: sentAt,
             showActions: showActions,
+            messageId: messageId,
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -120,7 +124,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
 
   Future<void> _shareImage() async {
     try {
-      await Share.share(widget.imageUrl);
+      await SharePlus.instance.share(ShareParams(text: widget.imageUrl));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

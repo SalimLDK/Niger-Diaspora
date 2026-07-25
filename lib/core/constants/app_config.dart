@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Application configuration for API keys and environment settings.
 ///
 /// This file centralizes all configuration constants including Stripe keys,
@@ -19,6 +22,40 @@ class AppConfig {
 
   /// Whether the app is in debug mode
   static const bool isDebug = !isProduction;
+
+  // ============================================
+  // HELPER: read --dart-define first, then .env
+  // ============================================
+
+  static String _read(String dartDefineKey, {String fallback = ''}) {
+    final fromDartDefine = String.fromEnvironment(dartDefineKey);
+    if (fromDartDefine.isNotEmpty) {
+      return fromDartDefine;
+    }
+    try {
+      final fromDotEnv = dotenv.env[dartDefineKey];
+      if (fromDotEnv != null && fromDotEnv.isNotEmpty) {
+        return fromDotEnv;
+      }
+    } catch (_) {
+      // dotenv may not be loaded yet in some contexts
+    }
+    return fallback;
+  }
+
+  // ============================================
+  // SUPABASE CONFIGURATION
+  // ============================================
+
+  static String get supabaseUrl => _read('SUPABASE_URL');
+
+  static String get supabaseAnonKey => _read('SUPABASE_ANON_KEY');
+
+  static bool get isSupabaseConfigured {
+    return supabaseUrl.isNotEmpty &&
+        supabaseAnonKey.isNotEmpty &&
+        supabaseUrl.startsWith('https://');
+  }
 
   // ============================================
   // STRIPE CONFIGURATION
@@ -147,6 +184,7 @@ class AppConfig {
   /// Get configuration info for debugging
   static Map<String, dynamic> get configInfo => {
     'environment': isProduction ? 'production' : 'development',
+    'supabaseConfigured': isSupabaseConfigured,
     'stripeConfigured': isStripeConfigured,
     'revenueCatConfigured': isRevenueCatConfigured,
     'stripeKeyType':

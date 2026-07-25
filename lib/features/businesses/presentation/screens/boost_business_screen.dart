@@ -114,7 +114,13 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...BoostType.values.map((type) {
+          RadioGroup<BoostType>(
+            groupValue: _selectedType,
+            onChanged: (value) {
+              if (value != null) setState(() => _selectedType = value);
+            },
+            child: Column(
+              children: BoostType.values.map((type) {
             final isSelected = _selectedType == type;
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
@@ -135,15 +141,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Radio<BoostType>(
-                        value: type,
-                        groupValue: _selectedType,
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _selectedType = value);
-                          }
-                        },
-                      ),
+                      Radio<BoostType>(value: type),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +199,9 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 ),
               ),
             );
-          }),
+          }).toList(),
+            ),
+          ),
           const SizedBox(height: 24),
 
           // Duration selection

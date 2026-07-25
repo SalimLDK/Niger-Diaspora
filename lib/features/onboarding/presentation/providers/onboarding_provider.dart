@@ -32,8 +32,23 @@ Future<OnboardingRepository> onboardingRepository(Ref ref) async {
 class OnboardingNotifier extends _$OnboardingNotifier {
   @override
   OnboardingState build() {
-    _loadOnboardingStatus();
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      _loadOnboardingStatus();
+    }
+
+    _listenToAuthChanges();
+
     return const OnboardingState();
+  }
+
+  void _listenToAuthChanges() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        _loadOnboardingStatus();
+      }
+    });
   }
 
   Future<void> _loadOnboardingStatus() async {
@@ -50,6 +65,9 @@ class OnboardingNotifier extends _$OnboardingNotifier {
 
       final hasSeenOnboardingResult = await repository.hasSeenOnboarding();
       final hasSeenCoachMarksResult = await repository.hasSeenCoachMarks();
+      final hasGivenConsentResult = await repository.hasGivenConsent();
+      final hasCompletedProfileConfigResult =
+          await repository.hasCompletedProfileConfig();
 
       bool hasSeenOnboarding = false;
       bool hasSeenCoachMarks = false;
@@ -66,21 +84,15 @@ class OnboardingNotifier extends _$OnboardingNotifier {
         (value) => hasSeenCoachMarks = value,
       );
 
-      // Load consent and profile config status from Firestore
-      try {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
+      hasGivenConsentResult.fold(
+        (failure) => hasGivenConsent = false,
+        (value) => hasGivenConsent = value,
+      );
 
-        if (userDoc.exists) {
-          final data = userDoc.data();
-          hasGivenConsent = data?['hasGivenConsent'] == true;
-          profileConfigComplete = data?['profileConfigComplete'] == true;
-        }
-      } catch (_) {
-        // Silently fail, defaults remain false
-      }
+      hasCompletedProfileConfigResult.fold(
+        (failure) => profileConfigComplete = false,
+        (value) => profileConfigComplete = value,
+      );
 
       state = state.copyWith(
         hasSeenIntro: hasSeenOnboarding,
@@ -122,37 +134,20 @@ class OnboardingNotifier extends _$OnboardingNotifier {
 
   Future<void> markConsentGiven() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .set({
-          'hasGivenConsent': true,
-          'consentDate': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      }
+      final repository = await ref.read(onboardingRepositoryProvider.future);
+      await repository.markConsentGiven();
       state = state.copyWith(hasGivenConsent: true);
     } catch (e) {
-      // Still update local state
       state = state.copyWith(hasGivenConsent: true);
     }
   }
 
   Future<void> markProfileConfigComplete() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .set({
-          'profileConfigComplete': true,
-        }, SetOptions(merge: true));
-      }
+      final repository = await ref.read(onboardingRepositoryProvider.future);
+      await repository.markProfileConfigComplete();
       state = state.copyWith(profileConfigComplete: true);
     } catch (e) {
-      // Still update local state
       state = state.copyWith(profileConfigComplete: true);
     }
   }

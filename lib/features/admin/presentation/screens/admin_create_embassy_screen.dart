@@ -212,7 +212,7 @@ class _AdminCreateEmbassyScreenState
 
               // Type
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: _inputDecoration(
                   'Type *',
                   'Sélectionnez le type d\'établissement',

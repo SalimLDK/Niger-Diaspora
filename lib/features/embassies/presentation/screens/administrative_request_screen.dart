@@ -310,7 +310,7 @@ class _AdministrativeRequestScreenState
               _buildSectionTitle('Type de demande *'),
               const SizedBox(height: 8),
               DropdownButtonFormField<AdministrativeRequestType>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: _inputDecoration(''),
                 items:
                     AdministrativeRequestType.values.map((type) {

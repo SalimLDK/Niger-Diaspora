@@ -431,7 +431,7 @@ class _SettingsSwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
         ],
       ),

@@ -7,6 +7,10 @@ abstract class OnboardingRemoteDataSource {
   Future<void> setOnboardingComplete();
   Future<bool> hasSeenCoachMarks();
   Future<void> setCoachMarksComplete();
+  Future<bool> hasGivenConsent();
+  Future<void> setConsentGiven();
+  Future<bool> hasCompletedProfileConfig();
+  Future<void> setProfileConfigComplete();
 }
 
 class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
@@ -88,6 +92,81 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
       }, SetOptions(merge: true));
     } catch (e) {
       throw ServerException('Erreur lors de la mise a jour coach marks');
+    }
+  }
+
+  @override
+  Future<bool> hasGivenConsent() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) {
+        return false;
+      }
+
+      final data = doc.data();
+      return data?['hasGivenConsent'] ?? false;
+    } catch (e) {
+      throw ServerException('Erreur lors de la verification du consentement');
+    }
+  }
+
+  @override
+  Future<void> setConsentGiven() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw ServerException('Utilisateur non connecte');
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'hasGivenConsent': true,
+        'consentDate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw ServerException('Erreur lors de la mise a jour du consentement');
+    }
+  }
+
+  @override
+  Future<bool> hasCompletedProfileConfig() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) {
+        return false;
+      }
+
+      final data = doc.data();
+      return data?['profileConfigComplete'] ?? false;
+    } catch (e) {
+      throw ServerException(
+          'Erreur lors de la verification de la configuration du profil');
+    }
+  }
+
+  @override
+  Future<void> setProfileConfigComplete() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw ServerException('Utilisateur non connecte');
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'profileConfigComplete': true,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw ServerException(
+          'Erreur lors de la mise a jour de la configuration du profil');
     }
   }
 }

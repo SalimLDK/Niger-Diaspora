@@ -717,7 +717,9 @@ ${event.recapDescription}
 
 Voir plus de d\u00e9tails sur DiaspoNiger
 ''';
-                                await Share.share(shareText);
+                                await SharePlus.instance.share(
+                                  ShareParams(text: shareText),
+                                );
                               } catch (e) {
                                 scaffoldMessenger.showSnackBar(
                                   const SnackBar(
@@ -1051,6 +1053,8 @@ ${event.isOnline && event.onlineLink != null ? '🔗 ${event.onlineLink}' : ''}
 Niger Diaspora
 ''';
 
-    Share.share(shareText.trim(), subject: event.title);
+    SharePlus.instance.share(
+      ShareParams(text: shareText.trim(), subject: event.title),
+    );
   }
 }

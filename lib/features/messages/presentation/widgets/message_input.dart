@@ -474,7 +474,6 @@ class _MessageInputState extends State<MessageInput>
     final l10n = AppLocalizations.of(context)!;
     final isPermanent = result == PermissionResult.permanentlyDenied;
     final message = PermissionService.getCameraPermissionDeniedMessageLocalized(
-      context,
       result,
     );
 

@@ -125,4 +125,99 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> hasGivenConsent() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        return const Right(false);
+      }
+
+      final localResult = await _localDataSource.hasGivenConsent(user.uid);
+      if (localResult) {
+        return const Right(true);
+      }
+
+      final remoteResult = await _remoteDataSource.hasGivenConsent();
+      if (remoteResult) {
+        await _localDataSource.setConsentGiven(user.uid);
+      }
+      return Right(remoteResult);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> markConsentGiven() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+
+      final remoteFuture = _remoteDataSource.setConsentGiven();
+
+      Future<void> localFuture = Future.value();
+      if (user != null) {
+        localFuture = _localDataSource.setConsentGiven(user.uid);
+      }
+
+      await Future.wait([localFuture, remoteFuture]);
+
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> hasCompletedProfileConfig() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        return const Right(false);
+      }
+
+      final localResult =
+          await _localDataSource.hasCompletedProfileConfig(user.uid);
+      if (localResult) {
+        return const Right(true);
+      }
+
+      final remoteResult = await _remoteDataSource.hasCompletedProfileConfig();
+      if (remoteResult) {
+        await _localDataSource.setProfileConfigComplete(user.uid);
+      }
+      return Right(remoteResult);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> markProfileConfigComplete() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+
+      final remoteFuture = _remoteDataSource.setProfileConfigComplete();
+
+      Future<void> localFuture = Future.value();
+      if (user != null) {
+        localFuture = _localDataSource.setProfileConfigComplete(user.uid);
+      }
+
+      await Future.wait([localFuture, remoteFuture]);
+
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

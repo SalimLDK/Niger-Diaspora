@@ -66,9 +66,11 @@ class ProfileShareNotifier extends _$ProfileShareNotifier {
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       final message =
           customMessage ?? 'Découvrez mon profil sur Diaspo Niger: $link';
-      await Share.share(
-        message,
-        subject: 'Profil de ${currentUser?.displayName ?? "Utilisateur"}',
+      await SharePlus.instance.share(
+        ShareParams(
+          text: message,
+          subject: 'Profil de ${currentUser?.displayName ?? "Utilisateur"}',
+        ),
       );
     }
   }

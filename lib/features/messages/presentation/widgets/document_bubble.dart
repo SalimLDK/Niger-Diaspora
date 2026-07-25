@@ -18,6 +18,9 @@ class DocumentBubble extends StatefulWidget {
   // WhatsApp-style parameters
   final DateTime? timestamp;
   final MessageStatus? messageStatus;
+  final List<String>? readBy;
+  final List<String>? deliveredTo;
+  final VoidCallback? onShare;
 
   const DocumentBubble({
     super.key,
@@ -30,6 +33,9 @@ class DocumentBubble extends StatefulWidget {
     this.downloadProgress = 0.0,
     this.timestamp,
     this.messageStatus,
+    this.readBy,
+    this.deliveredTo,
+    this.onShare,
   });
 
   @override

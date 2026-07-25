@@ -130,6 +130,26 @@ final isEmbassiesEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsEmbassiesEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isFeedEnabledHash() => r'594212695149b94d4c50a4f1ab32c391a879ba91';
+
+/// Provider to check if social feed feature is enabled
+///
+/// Copied from [isFeedEnabled].
+@ProviderFor(isFeedEnabled)
+final isFeedEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isFeedEnabled,
+  name: r'isFeedEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isFeedEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsFeedEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isMaintenanceModeHash() => r'cf17e003455a0a28a66e3c615192920831316300';
 
 /// Provider to check if app is in maintenance mode
@@ -150,6 +170,27 @@ final isMaintenanceModeProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsMaintenanceModeRef = AutoDisposeProviderRef<bool>;
+String _$isAudioRoomsEnabledHash() =>
+    r'2bfba9e78954ce4b16891f74702a7438859f3929';
+
+/// Provider to check if audio rooms feature is enabled
+///
+/// Copied from [isAudioRoomsEnabled].
+@ProviderFor(isAudioRoomsEnabled)
+final isAudioRoomsEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isAudioRoomsEnabled,
+  name: r'isAudioRoomsEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isAudioRoomsEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsAudioRoomsEnabledRef = AutoDisposeProviderRef<bool>;
 String _$maintenanceMessageHash() =>
     r'2cdad47b26032ae796100660c74b5df35a4d3426';
 

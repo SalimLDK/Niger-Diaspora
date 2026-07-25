@@ -187,7 +187,7 @@
       }
     }
   },
-  "selectedCount": "{count} sélectionné(s)",
+  "selectedCount": "{count} sélectionné{count, plural, =1{} other{s}}",
   "@selectedCount": {
     "placeholders": {
       "count": {
@@ -205,7 +205,7 @@
   },
   "select": "Sélectionner",
   "deleteForMe": "Supprimer pour moi",
-  "deleteForEveryone": "Supprimer pour tout le monde",
+  "deleteForEveryone": "Supprimer pour tous",
   "conversationDeleted": "Conversation supprimée",
   "changeWallpaper": "Changer le fond d'écran",
   "blockUserTitle": "Bloquer l'utilisateur",
@@ -277,7 +277,7 @@
   "group": "Groupe",
   "conversation": "Conversation",
   "newConversationTitle": "Nouvelle conversation",
-  "start": "Démarrer",
+  "start": "Commencer",
   "searchMember": "Rechercher un membre...",
   "createGroupWith": "Créer un groupe avec {count} membres",
   "@createGroupWith": {
@@ -299,7 +299,6 @@
   "noPastEvents": "Aucun événement passé",
   "all": "Tous",
   "noUpcomingEvents": "Aucun événement à venir",
-  "online": "En ligne",
   "participants": "{count, plural, =0{Aucun participant} =1{1 participant} other{{count} participants}}",
   "@participants": {
     "placeholders": {
@@ -437,14 +436,10 @@
   "sentRequestsHint": "Les demandes d'amis envoyées apparaîtront ici",
   "sendMessage": "Envoyer un message",
   "cancelRequest": "Annuler la demande",
-  "acceptRequest": "Accepter",
-  "declineRequest": "Refuser",
   "removeFriend": "Retirer des amis",
   "removeFriendConfirm": "Voulez-vous vraiment retirer cette personne de vos amis ?",
   "friendRemoved": "Ami retiré",
   "requestCancelled": "Demande annulée",
-  "requestAccepted": "Demande acceptée",
-  "requestDeclined": "Demande refusée",
   "profileTitle": "Profil",
   "editProfileTitle": "Modifier le profil",
   "firstName": "Prénom",
@@ -462,7 +457,7 @@
   "fullName": "Nom complet",
   "enterYourName": "Veuillez entrer votre nom",
   "phone": "Téléphone",
-  "location": "Localisation",
+  "location": "Position",
   "currentCity": "Ville actuelle",
   "originCity": "Ville d'origine au Niger",
   "interests": "Centres d'intérêt",
@@ -496,7 +491,6 @@
   "notificationsTitle": "Notifications",
   "noNotifications": "Aucune notification",
   "noNotificationsHint": "Vous serez notifié des nouvelles activités",
-  "loadingError": "Erreur de chargement",
   "markAllAsRead": "Tout marquer comme lu",
   "deleteAll": "Tout supprimer",
   "deleteAllNotifications": "Supprimer toutes les notifications",
@@ -510,7 +504,7 @@
       }
     }
   },
-  "minutesAgo": "Il y a {count} min",
+  "minutesAgo": "Il y a {count} minute(s)",
   "@minutesAgo": {
     "placeholders": {
       "count": {
@@ -518,7 +512,7 @@
       }
     }
   },
-  "hoursAgo": "Il y a {count} h",
+  "hoursAgo": "Il y a {count} heure(s)",
   "@hoursAgo": {
     "placeholders": {
       "count": {
@@ -526,7 +520,7 @@
       }
     }
   },
-  "daysAgo": "Il y a {count} j",
+  "daysAgo": "Il y a {count} jour(s)",
   "@daysAgo": {
     "placeholders": {
       "count": {
@@ -582,9 +576,9 @@
   "eventTitleRequiredError": "Le titre est requis",
   "eventTitleTooShort": "Le titre doit contenir au moins 5 caractères",
   "description": "Description",
-  "descriptionRequired": "Description *",
+  "descriptionRequired": "La description est requise",
   "descriptionHint": "Décrivez votre événement...",
-  "descriptionRequiredError": "La description est requise",
+  "descriptionRequiredError": "Entrez une description",
   "descriptionTooShort": "La description doit contenir au moins 20 caractères",
   "category": "Catégorie",
   "startDateTime": "Date et heure de début *",
@@ -595,7 +589,7 @@
   "onlineEventDescription": "L'événement se déroule en visioconférence",
   "videoConferenceLink": "Lien de la visioconférence",
   "videoConferenceLinkHint": "Ex: https://zoom.us/j/...",
-  "locationRequired": "Lieu *",
+  "locationRequired": "Localisation requise",
   "locationHint": "Ex: Paris, France",
   "locationRequiredError": "Le lieu est requis",
   "addressOptional": "Adresse (optionnel)",
@@ -668,11 +662,10 @@
   "allRightsReserved": "© 2025 Diaspo Niger. Tous droits réservés.",
   "mobileAppDescription": "Plateforme mobile de mise en relation de la diaspora nigérienne.",
   "currentCountry": "Pays actuel",
-  "originRegion": "Région d'origine",
+  "originRegion": "Région d'origine au Niger (optionnel)",
   "skills": "Compétences",
   "languagesSpoken": "Langues",
-  "profileNotFound": "Profil non trouvé",
-  "deletedUser": "Utilisateur supprimé",
+  "profileNotFound": "Profil introuvable. Veuillez redémarrer l'application.",
   "deletedProfile": "Profil supprimé",
   "accountNoLongerExists": "Ce compte n'existe plus",
   "livingIn": "Vit à {city}, {country}",
@@ -707,7 +700,7 @@
   "scanQRCodeDescription": "Placez le QR code dans le cadre pour scanner",
   "qrCodeScanned": "QR code scanné avec succès",
   "invalidQRCode": "QR code invalide",
-  "cameraPermissionDenied": "Permission caméra refusée",
+  "cameraPermissionDenied": "L'accès à la caméra a été refusé. Veuillez l'activer dans les paramètres de l'application.",
   "enableFlash": "Activer le flash",
   "disableFlash": "Désactiver le flash",
   "switchCamera": "Changer de caméra",
@@ -773,7 +766,7 @@
   "audioRoomPrivateDesc": "Seules les personnes invitées peuvent rejoindre",
   "audioRoomRecording": "Enregistrer le salon",
   "audioRoomRecordingDesc": "Permettre l'enregistrement pour replay",
-  "audioRoomPaid": "Salon payant",
+  "audioRoomPaid": "PAYANT",
   "audioRoomPaidDesc": "Les participants doivent acheter un ticket",
   "audioRoomTags": "Tags",
   "audioRoomCreatedSuccess": "Salon créé avec succès !",
@@ -847,7 +840,7 @@
   "audioRoomCollectionDescription": "Description de la collecte",
   "audioRoomCollectionBeneficiary": "Bénéficiaire",
   "audioRoomHeritageContent": "Contenu patrimoine",
-  "audioRoomHeritageContentDesc": "Marquer comme contenu culturel à préserver",
+  "audioRoomHeritageContentDesc": "Enregistrement pour la préservation culturelle",
   "audioRoomHeritageLanguage": "Langue du contenu",
   "audioRoomHeritageRegion": "Région d'origine",
   "audioRoomLinkedContent": "Lier ce salon à :",
@@ -884,7 +877,6 @@
   "audioRoomHeritageCategories": "Catégories",
   "audioRoomHeritageSaved": "Enregistrés",
   "audioRoomBack": "Retour",
-  "audioRoomPaid": "PAYANT",
   "audioRoomAudioRoom": "Salon Audio",
   "audioRoomPromoteUser": "Promouvoir {userName}",
   "@audioRoomPromoteUser": {
@@ -913,7 +905,7 @@
   "audioRoomFundraising": "Collecte de fonds",
   "audioRoomCulturalHeritage": "Patrimoine culturel",
   "audioRoomLinks": "Liens",
-  "audioRoomSettingsLabel": "Paramètres",
+  "audioRoomSettingsLabel": "Réglages",
   "audioRoomPrivateRoom": "Salon privé",
   "audioRoomPrivateRoomDesc": "Seules les personnes invitées peuvent rejoindre",
   "audioRoomEnableRecording": "Activer l'enregistrement",
@@ -963,7 +955,6 @@
   "audioRoomCollectionBeneficiaryHint": "Nom du bénéficiaire",
   "audioRoomCollectionDescriptionLabel": "Description de la collecte",
   "audioRoomHeritageContentLabel": "Contenu patrimonial",
-  "audioRoomHeritageContentDesc": "Enregistrement pour la préservation culturelle",
   "audioRoomHeritageLanguageLabel": "Langue",
   "audioRoomHeritageRegionLabel": "Région d'origine",
   "audioRoomLinkTo": "Lier ce salon à :",
@@ -1039,7 +1030,7 @@
   "callUnmute": "Activer le micro",
   "callSpeaker": "Haut-parleur",
   "callCamera": "Caméra",
-  "callFlipCamera": "Retourner",
+  "callFlipCamera": "Inverser",
   "callHangUp": "Raccrocher",
   "callEnable": "Activer",
   "callEarpiece": "Écouteur",
@@ -1283,7 +1274,6 @@
   "noMissedCalls": "Aucun appel manqué",
   "noIncomingCalls": "Aucun appel entrant",
   "noOutgoingCalls": "Aucun appel sortant",
-  "all": "Tous",
   "busyCall": "Occupé",
   "today": "Aujourd'hui",
   "yesterday": "Hier",
@@ -1394,7 +1384,7 @@
   "dateLabel": "Date",
   "completedOn": "Complété le",
   "referenceLabel": "Référence",
-  "copied": "Copié",
+  "copied": "Copié!",
   "descriptionLabel": "Description",
   "paymentTypeTicket": "Ticket",
   "paymentTypeTip": "Tip",
@@ -1423,7 +1413,7 @@
   "ticketInProgress": "En cours",
   "ticketResolved": "Résolu",
   "ticketClosed": "Fermé",
-  "yourMessage": "Votre message",
+  "yourMessage": "Votre message...",
   "sendReply": "Envoyer",
   "supportTeam": "Équipe Support",
   "noSupportTickets": "Aucun ticket de support",
@@ -1451,16 +1441,6 @@
   "messageForwarded": "Message transféré",
   "messagesForwarded": "{count} messages transférés",
   "@messagesForwarded": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "openLink": "Ouvrir le lien",
-  "select": "Sélectionner",
-  "selectedCount": "{count} sélectionné{count, plural, =1{} other{s}}",
-  "@selectedCount": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -1506,7 +1486,7 @@
   "transferFavorites": "Favoris",
   "transferRecentlyUsed": "Récemment utilisés",
   "transferOtherRecipients": "Autres bénéficiaires",
-  "transferSelectPaymentMethod": "Sélectionnez votre mode de paiement",
+  "transferSelectPaymentMethod": "Sélectionnez un mode de paiement",
   "transferDebitAccountInfo": "Informations du compte à débiter",
   "transferCountryCode": "Indicatif",
   "transferMynitaNumber": "Numéro Mynita *",
@@ -1534,8 +1514,8 @@
   "transferMessageOptional": "Message (optionnel)",
   "transferMessageHint": "Ex: Pour les courses",
   "transferSummary": "Récapitulatif",
-  "transferAmountSent": "Montant envoyé",
-  "transferFees": "Frais ({percent}%)",
+  "transferAmountSent": "Montant :",
+  "transferFees": "Frais :",
   "@transferFees": {
     "placeholders": {
       "percent": {
@@ -1544,7 +1524,7 @@
     }
   },
   "transferTotalDebited": "Total débité",
-  "transferExchangeRate": "Taux: 1 {from} = {rate} XOF",
+  "transferExchangeRate": "Taux de change",
   "@transferExchangeRate": {
     "placeholders": {
       "from": {
@@ -1582,8 +1562,8 @@
   "transferFeeCalculationError": "Erreur lors du calcul des frais",
   "transferConfirmTitle": "Confirmer le transfert",
   "transferAboutToSend": "Vous êtes sur le point d'envoyer:",
-  "transferAmountLabel": "Montant:",
-  "transferFeesLabel": "Frais:",
+  "transferAmountLabel": "Montant à envoyer",
+  "transferFeesLabel": "Frais",
   "transferTotalLabel": "Total:",
   "transferFromLabel": "De: {method} ({account})",
   "@transferFromLabel": {
@@ -1691,13 +1671,13 @@
   "callResume": "Reprendre",
   "callOnHold": "En attente",
   "callReconnecting": "Reconnexion...",
-  "callError": "Erreur d'appel",
+  "callError": "Erreur lors de l'appel",
   "callQualityGood": "Bonne qualité",
   "callQualityFair": "Qualité moyenne",
   "callQualityPoor": "Mauvaise qualité",
-  "groupCallTitle": "Appel de groupe",
+  "groupCallTitle": "Group Call",
   "groupCallCreate": "Démarrer appel de groupe",
-  "groupCallJoin": "Rejoindre l'appel",
+  "groupCallJoin": "Join",
   "groupCallLeave": "Quitter l'appel",
   "groupCallEnd": "Terminer l'appel",
   "groupCallInvite": "Inviter des participants",
@@ -1791,7 +1771,6 @@
   "comingSoonInDevelopment": "En cours de développement",
   "comingSoonPodcastsTitle": "Podcasts",
   "comingSoonPodcastsDescription": "Écoutez et créez des podcasts sur la diaspora nigérienne. Partagez vos histoires, interviews et discussions. Cette fonctionnalité arrive bientôt.",
-  "locationRequired": "Localisation requise",
   "temporarilyClosed": "Temporairement fermé",
   "services": "Services",
   "viewFullDetails": "Voir les détails complets",
@@ -1808,12 +1787,12 @@
   "reminderCancelled": "Rappel supprimé",
   "reminderPast": "Passé",
   "audioRoomReminderTitle": "Salle audio à venir",
-  "podcastNewEpisodeTitle": "Nouvel épisode disponible",
+  "podcastNewEpisodeTitle": "Nouvel épisode",
   "transferReminderTitle": "Transfert à venir",
   "serviceMoneyTransfer": "transferts d'argent",
-  "serviceMarketplace": "boutique",
+  "serviceMarketplace": "Boutique",
   "serviceBusinessDirectory": "annuaire des entreprises",
-  "serviceEmbassies": "ambassades",
+  "serviceEmbassies": "Ambassades",
   "quickAccessToService": "Accès rapide au service : {service}.",
   "@quickAccessToService": {
     "placeholders": {
@@ -1911,16 +1890,16 @@
   "groupDeleted": "Groupe supprimé",
   "deletionError": "Erreur lors de la suppression",
   "editGroup": "Modifier le groupe",
-  "promoteAdmin": "Promouvoir administrateur",
+  "promoteAdmin": "Promouvoir Admin",
   "demoteAdmin": "Rétrograder administrateur",
   "joinRequests": "Demandes d'adhésion",
   "requestApproved": "Demande approuvée",
   "requestRejected": "Demande rejetée",
-  "accessDenied": "Accès refusé",
-  "errorWithDetails": "Erreur : {details}",
+  "accessDenied": "Accès Refusé",
+  "errorWithDetails": "Erreur : {error}",
   "@errorWithDetails": {
     "placeholders": {
-      "details": {
+      "error": {
         "type": "String"
       }
     }
@@ -1938,7 +1917,7 @@
     }
   },
   "deleteMessages": "Supprimer les messages",
-  "hostCountry": "Pays d'accueil",
+  "hostCountry": "Pays d'accueil (optionnel)",
   "creatorMustTransferOwnership": "Le créateur doit transférer la propriété avant de quitter",
   "transfers": "Transferts",
   "reset": "Réinitialiser",
@@ -1953,11 +1932,9 @@
   "coachMarkUpcomingEvents": "Événements à venir",
   "coachMarkUpcomingEventsDesc": "Participez aux rencontres et activités de la diaspora. Appuyez pour voir les détails.",
   "locationRequiredForNearby": "Pour voir les membres à proximité, vous devez activer votre localisation. C'est donnant-donnant !",
-  "enableLocation": "Activer la localisation",
+  "enableLocation": "ACTIVER",
   "serviceTransfer": "Transfert",
-  "serviceMarketplace": "Boutique",
   "serviceDirectory": "Annuaire",
-  "serviceEmbassies": "Ambassades",
   "serviceAudioRooms": "Salons Audio",
   "servicePodcasts": "Podcasts",
   "allServices": "Tous les services",
@@ -1972,7 +1949,7 @@
   "userNotConnected": "Utilisateur non connecté",
   "paidRoomsNotAllowed": "Les salons payants ne sont pas autorisés",
   "paidRoomsDisabled": "Les salons payants sont désactivés",
-  "cardSecurityInfo": "Vos informations de carte sont sécurisées par Stripe. Nous ne stockons jamais votre numéro de carte complet.",
+  "cardSecurityInfo": "Vos données de carte sont sécurisées par Stripe. Nous ne stockons jamais votre numéro de carte complet.",
   "cardTransferInfo": "Le transfert sera effectué directement sur la carte via Visa Direct ou Mastercard Send.",
   "registeredCard": "Carte enregistrée",
   "changeCard": "Changer",
@@ -1993,20 +1970,26 @@
   "minTicketPrice": "Le prix minimum du ticket est {price} XOF",
   "@minTicketPrice": {
     "placeholders": {
-      "price": {"type": "int"}
+      "price": {
+        "type": "int"
+      }
     }
   },
   "maxTicketPrice": "Le prix maximum du ticket est {price} XOF",
   "@maxTicketPrice": {
     "placeholders": {
-      "price": {"type": "int"}
+      "price": {
+        "type": "int"
+      }
     }
   },
   "defaultUserName": "Utilisateur",
   "errorCreating": "Erreur lors de la création: {error}",
   "@errorCreating": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "roomNotFound": "Salon introuvable",
@@ -2015,32 +1998,34 @@
   "errorConnecting": "Erreur lors de la connexion: {error}",
   "@errorConnecting": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "unauthorizedAccess": "Accès non autorisé",
-  "todayAt": "Aujourd'hui à {time}",
-  "@todayAt": {
-    "placeholders": {
-      "time": {"type": "String"}
-    }
-  },
   "tomorrowAt": "Demain à {time}",
   "@tomorrowAt": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "forBeneficiary": "Pour: {beneficiary}",
   "@forBeneficiary": {
     "placeholders": {
-      "beneficiary": {"type": "String"}
+      "beneficiary": {
+        "type": "String"
+      }
     }
   },
   "goalAmount": "Objectif: {amount}",
   "@goalAmount": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "contribute": "Contribuer",
@@ -2056,26 +2041,31 @@
   "moderatorRole": "Modérateur",
   "warnHost": "Avertir l'hôte",
   "warningSentToHost": "Avertissement envoyé à l'hôte",
-  "send": "Envoyer",
   "muteMicrophone": "Couper le micro",
   "userMuted": "{userName} a été mis en sourdine",
   "@userMuted": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "kickFromRoom": "Expulser du salon",
   "userKicked": "{userName} a été expulsé",
   "@userKicked": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "blockFromRoom": "Bloquer de ce salon",
   "userBlockedFromRoom": "{userName} a été bloqué",
   "@userBlockedFromRoom": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "videoEnabled": "Vidéo activée",
@@ -2084,7 +2074,9 @@
   "errorLabel": "Erreur: {error}",
   "@errorLabel": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "noEventFound": "Aucun événement trouvé",
@@ -2110,8 +2102,6 @@
   "explicitContentDesc": "Ce podcast contient du contenu pour adultes",
   "createThePodcast": "Créer le podcast",
   "episodeNotFound": "Épisode non trouvé",
-  "download": "Télécharger",
-  "report": "Signaler",
   "downloadInProgress": "Téléchargement en cours...",
   "sleepTimerDisabled": "Désactivé",
   "sleepTimer15min": "15 minutes",
@@ -2124,17 +2114,20 @@
   "sleepTimerMinutes": "Minuterie: {minutes} minutes",
   "@sleepTimerMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "myPodcasts": "Mes Podcasts",
-  "retry": "Réessayer",
   "newPodcast": "Nouveau podcast",
   "createMyFirstPodcast": "Créer mon premier podcast",
   "viewAllEpisodes": "Voir les {count} épisodes",
   "@viewAllEpisodes": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "newEpisode": "Nouvel épisode",
@@ -2144,8 +2137,12 @@
   "episodeListenInfo": "{duration} • {count} écoutes",
   "@episodeListenInfo": {
     "placeholders": {
-      "duration": {"type": "String"},
-      "count": {"type": "int"}
+      "duration": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "viewPodcast": "Voir le podcast",
@@ -2158,7 +2155,9 @@
   "deletePodcastWarning": "Êtes-vous sûr de vouloir supprimer \"{title}\" et tous ses épisodes ? Cette action est irréversible.",
   "@deletePodcastWarning": {
     "placeholders": {
-      "title": {"type": "String"}
+      "title": {
+        "type": "String"
+      }
     }
   },
   "podcastDeleted": "Podcast supprimé",
@@ -2173,15 +2172,8 @@
   "publish": "Publier",
   "createAPodcast": "Créer un podcast",
   "podcasts": "Podcasts",
-  "seeAll": "Voir tout",
   "noPodcastAvailable": "Aucun podcast disponible",
   "noRecentEpisode": "Aucun épisode récent",
-  "discover": "Découvrir",
-  "episodeNotFound": "Épisode non trouvé",
-  "download": "Télécharger",
-  "report": "Signaler",
-  "downloadInProgress": "Téléchargement en cours...",
-  "disabled": "Désactivé",
   "endOfEpisode": "Fin de l'épisode",
   "addChapter": "Ajouter un chapitre",
   "add": "Ajouter",
@@ -2189,7 +2181,6 @@
   "premiumEpisode": "Épisode premium",
   "subscribersOnly": "Réservé aux abonnés payants",
   "podcastNotFound": "Podcast non trouvé",
-  "back": "Retour",
   "trending": "Tendances",
   "newEpisodes": "Nouveaux épisodes",
   "categories": "Catégories",
@@ -2209,7 +2200,9 @@
   "taxRate": "Taxe ({rate}%)",
   "@taxRate": {
     "placeholders": {
-      "rate": {"type": "String"}
+      "rate": {
+        "type": "String"
+      }
     }
   },
   "myOrders": "Mes commandes",
@@ -2219,18 +2212,21 @@
   "paymentError": "Erreur de paiement : {error}",
   "@paymentError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "deliveryConfirmed": "Livraison confirmée",
   "orderMarkedAsShipped": "Commande marquée comme expédiée",
   "trackingNumber": "Numéro de suivi",
-  "confirm": "Confirmer",
   "cart": "Panier",
   "cartWithCount": "Panier ({count})",
   "@cartWithCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "emptyCart": "Vider",
@@ -2244,18 +2240,15 @@
   "noProductsYet": "Vous n'avez pas encore de produits",
   "emptyCartMessage": "Votre panier est vide",
   "businessDirectory": "Annuaire Business",
-  "all": "Tous",
   "boostYourBusiness": "Booster votre entreprise",
   "boostActivatedSuccess": "Boost activé avec succès !",
   "boostPurchaseError": "Erreur lors de l'achat du boost",
   "newBusiness": "Nouvelle entreprise",
   "photos": "Photos",
-  "category": "Catégorie",
   "contact": "Contact",
-  "location": "Localisation",
   "servicesOffered": "Services proposés",
   "createTheBusiness": "Créer l'entreprise",
-  "businessCreatedSuccess": "Entreprise créée avec succès !",
+  "businessCreatedSuccess": "Entreprise créée avec succès!",
   "creationError": "Erreur lors de la création",
   "boost": "Booster",
   "writeReview": "Écrire un avis",
@@ -2263,7 +2256,9 @@
   "viewAllReviews": "Voir les {count} autres avis",
   "@viewAllReviews": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "mustBeLoggedInToReview": "Vous devez être connecté pour laisser un avis",
@@ -2275,7 +2270,6 @@
   "reviewDeleted": "Avis supprimé",
   "reportReview": "Signaler cet avis",
   "pleaseIndicateReason": "Veuillez indiquer une raison",
-  "reset": "Réinitialiser",
   "useMyLocation": "Utiliser ma localisation",
   "enterCity": "Entrer la ville",
   "apply": "Appliquer",
@@ -2301,19 +2295,12 @@
   "groupCountryHint": "Le pays où se trouve la communauté du groupe",
   "memberRemoved": "Membre retiré avec succès",
   "memberRemovalError": "Erreur lors de la suppression du membre",
-  "filterAll": "Tous",
-  "filterUnread": "Non lus",
   "filterGroups": "Groupes",
   "muted": "En sourdine",
-  "unmute": "Réactiver les notifications",
-  "mute": "Mettre en sourdine",
-  "archive": "Archiver",
-  "unarchive": "Désarchiver",
   "pin": "Épingler",
   "unpin": "Désépingler",
   "pinLimitReached": "Vous ne pouvez pas épingler plus de 5 conversations",
   "conversationPinned": "Conversation épinglée",
-  "edit": "Modifier",
   "editMessage": "Modifier le message",
   "edited": "modifié",
   "editTimeExpired": "Le délai de modification est expiré (25 min)",
@@ -2337,7 +2324,6 @@
   "muteForever": "Toujours",
   "conversationMuted": "Conversation mise en sourdine",
   "mutedUntil": "En sourdine jusqu'à {time}",
-
   "emptyStateNoDataTitle": "Aucune donnée",
   "emptyStateNoDataMessage": "Il n'y a rien à afficher pour le moment.",
   "emptyStateNoResultsTitle": "Aucun résultat",
@@ -2374,16 +2360,15 @@
   "emptyStateErrorAction": "Réessayer",
   "emptyStateMaintenanceTitle": "Maintenance en cours",
   "emptyStateMaintenanceMessage": "L'application est en maintenance. Veuillez revenir plus tard.",
-
   "transferSelectRecipientFirst": "Veuillez sélectionner un bénéficiaire",
   "transferSelectPaymentMethodFirst": "Veuillez sélectionner un mode de paiement",
   "transferInitiated": "Transfert initié avec succès",
   "transferFailed": "Échec du transfert",
-  "businessCreationError": "Erreur lors de la création de l'entreprise",
+  "businessCreationError": "Erreur lors de la création",
   "reviewPleaseRate": "Veuillez donner une note",
   "reviewPleaseWrite": "Veuillez écrire un avis",
   "reviewSubmitted": "Avis soumis avec succès",
-  "reviewSubmissionError": "Erreur lors de la soumission de l'avis",
+  "reviewSubmissionError": "Erreur lors de la soumission",
   "mustBeLoggedIn": "Vous devez être connecté",
   "groupRequestSent": "Demande envoyée avec succès",
   "groupRequestApproved": "Demande approuvée",
@@ -2396,7 +2381,6 @@
   "selectAudioFile": "Veuillez sélectionner un fichier audio",
   "episodePublished": "Épisode publié avec succès",
   "downloadRemoved": "Téléchargement supprimé",
-
   "transactionStatusPending": "En attente",
   "transactionStatusDebiting": "Débit en cours",
   "transactionStatusProcessing": "Traitement",
@@ -2406,7 +2390,6 @@
   "transactionStatusRefunding": "Remboursement en cours",
   "transactionStatusRefunded": "Remboursé",
   "transactionStatusCancelled": "Annulé",
-
   "businessCategoryRestaurant": "Restaurant",
   "businessCategoryGrocery": "Épicerie",
   "businessCategoryBeauty": "Beauté",
@@ -2417,7 +2400,6 @@
   "businessCategoryTechnology": "Technologie",
   "businessCategoryTravel": "Voyage",
   "businessCategoryOther": "Autre",
-
   "callAudio": "Appel audio",
   "callVideo": "Appel vidéo",
   "callRinging": "Sonnerie",
@@ -2425,14 +2407,14 @@
   "callMissed": "Manqué",
   "callDeclined": "Refusé",
   "callFailed": "Échoué",
-
   "errorWithMessage": "Erreur : {message}",
   "@errorWithMessage": {
     "placeholders": {
-      "message": {"type": "String"}
+      "message": {
+        "type": "String"
+      }
     }
   },
-
   "consentWelcome": "Bienvenue !",
   "consentAcceptConditions": "Avant de continuer, veuillez accepter nos conditions.",
   "consentTermsAccept": "J'accepte les conditions générales d'utilisation de l'application Diaspo Niger.",
@@ -2440,7 +2422,6 @@
   "consentCodeOfConductAccept": "Je m'engage à respecter le code de conduite et les règles de la communauté.",
   "consentDataProtection": "Vos données sont protégées et ne seront jamais partagées sans votre consentement.",
   "readDetails": "Lire les détails →",
-
   "forgotPasswordTitle": "Mot de passe oublié ?",
   "forgotPasswordDescription": "Entrez votre adresse email pour recevoir un lien de réinitialisation.",
   "sendLink": "Envoyer le lien",
@@ -2449,52 +2430,43 @@
   "resetLinkSentTo": "Nous avons envoyé un lien de réinitialisation à {email}",
   "@resetLinkSentTo": {
     "placeholders": {
-      "email": {"type": "String"}
+      "email": {
+        "type": "String"
+      }
     }
   },
   "checkSpamFolder": "Vérifiez également votre dossier spam si vous ne trouvez pas l'email.",
   "resendLink": "Renvoyer le lien",
-
   "enableNotifications": "Activer les notifications",
   "notificationPromptMessage": "Recevez des alertes lorsque vous avez de nouveaux messages, appels entrants ou activités importantes.\n\nVous pouvez modifier ce paramètre à tout moment.",
   "later": "Plus tard",
-  "enable": "Activer",
-  "notificationsDisabled": "Notifications désactivées",
   "notificationsDisabledMessage": "Les notifications sont désactivées. Vous ne recevrez pas d'alertes pour les nouveaux messages et appels.\n\nPour les activer, allez dans les paramètres de l'application.",
   "openSettings": "Ouvrir les paramètres",
   "permissionBlocked": "Permission bloquée",
   "typeYourReply": "Tapez votre réponse...",
-
   "openPlayStore": "Ouvrir Play Store",
   "understood": "Compris",
-
   "connectedElsewhere": "Connecté ailleurs",
   "connectedElsewhereMessage": "Votre compte a été connecté sur un autre appareil. Vous avez été déconnecté de cet appareil pour sécurité.",
   "ok": "OK",
-
   "taxAutomatic": "Automatique",
   "taxExempt": "Exonéré",
   "taxStandard": "TVA Standard (19%)",
   "taxReduced": "TVA Réduite (10%)",
   "taxCustom": "Personnalisé",
-
   "views": "vues",
   "reviews": "Avis",
   "contactAction": "Contacter",
   "addAction": "Ajouter",
-  "publish": "Publier",
   "viewAll": "Voir tout",
   "modify": "Modifier",
   "retryAction": "Réessayer",
-
   "tooltipFavorites": "Favoris",
   "tooltipForward": "Transférer",
   "tooltipDelete": "Supprimer",
   "tooltipVoiceCall": "Appel vocal",
   "tooltipVideoCall": "Appel vidéo",
-
   "addCaption": "Ajouter une légende...",
-  "yourMessage": "Votre message...",
   "photosLabel": "Photos",
   "videosLabel": "Vidéos",
   "audioLabel": "Audio",
@@ -2503,22 +2475,15 @@
   "videoLabel": "Vidéo",
   "positionLabel": "Position",
   "microphonePermissionRequired": "Permission du microphone requise",
-
-  "messageCopied": "Message copié",
   "cannotDeleteAfter1Hour": "Impossible de supprimer le message après 1h",
   "sendAction": "Envoyer",
-
-  "searchConversation": "Rechercher une conversation...",
   "forwardError": "Erreur lors du transfert",
   "cannotStartCall": "Impossible de démarrer l'appel",
-
   "remindMeLater": "Me rappeler plus tard",
   "in1Hour": "Dans 1 heure",
   "tomorrowMorning": "Demain matin (9h)",
-
-  "flipCamera": "Inverser",
+  "flipCamera": "Flip",
   "permissionRequired": "Permission requise",
-
   "adminOverview": "Aperçu",
   "adminUsers": "Utilisateurs",
   "adminBusinesses": "Commerces",
@@ -2551,31 +2516,46 @@
   "adminNewAdmin": "Nouvel Admin",
   "adminChangeRole": "Changer le rôle",
   "adminRevokeAccess": "Révoquer l'accès admin",
-  "adminAccessDenied": "Accès refusé",
+  "adminAccessDenied": "Accès refusé. Compte administrateur requis.",
   "adminBack": "Retour",
-
   "adminAllTab": "Tous ({count})",
-  "@adminAllTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminAllTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminPendingTab": "En attente ({count})",
-  "@adminPendingTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminPendingTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBoostedTab": "Boostés ({count})",
-  "@adminBoostedTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminBoostedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminVerify": "Vérifier",
   "adminRemoveVerification": "Retirer vérification",
   "adminBoost30Days": "Booster (30 jours)",
   "adminRemoveBoost": "Retirer boost",
   "adminConfirmDeletion": "Confirmer la suppression",
-
-  "adminGroupPrivate": "Privé",
-  "adminGroupPublic": "Public",
+  "adminGroupPrivate": "Groupe rendu privé",
+  "adminGroupPublic": "Groupe rendu public",
   "makePublic": "Rendre public",
   "makePrivate": "Rendre privé",
-  "adminEmailLabel": "Adresse email",
+  "adminEmailLabel": "Email",
   "adminEmailHint": "utilisateur@exemple.com",
-  "adminEmbassyCreated": "Ambassade créée avec succès !",
+  "adminEmbassyCreated": "Ambassade créée avec succès!",
   "adminConnectionError": "Erreur lors de la connexion au salon",
-
-  "adminSearchPlaceholder": "Rechercher par admin ou action...",
+  "adminSearchPlaceholder": "Rechercher par nom, raison, ID...",
   "adminAllActions": "Toutes les actions",
   "adminActionUsers": "Utilisateurs",
   "adminActionBusinesses": "Commerces",
@@ -2583,28 +2563,47 @@
   "adminActionReports": "Signalements",
   "adminActionTransactions": "Transactions",
   "adminActionSettings": "Configuration",
-
   "adminFeatureFlagsUpdated": "Feature flags mis à jour",
   "adminMaintenanceHint": "Ex: Application en maintenance...",
-
-  "adminSignInWithGoogle": "Sign in with Google",
+  "adminSignInWithGoogle": "Se connecter avec Google",
   "adminEmailField": "Email",
   "adminPasswordField": "Password",
-  "adminLogin": "Login",
-
+  "adminLogin": "Connexion",
   "adminProductsTab": "Produits ({count})",
-  "@adminProductsTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProductsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminOrdersTab": "Commandes ({count})",
-  "@adminOrdersTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminOrdersTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDisputesTab": "Litiges ({count})",
-  "@adminDisputesTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminDisputesTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBuyer": "Acheteur",
   "adminSeller": "Vendeur",
   "adminRefund": "Rembourser",
-
   "adminGroupsTab": "Groupes ({count})",
-  "@adminGroupsTab": {"placeholders": {"count": {"type": "int"}}},
-
+  "@adminGroupsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminSendTab": "Envoyer",
   "adminHistoryTab": "Historique",
   "adminTitleLabel": "Titre",
@@ -2612,22 +2611,37 @@
   "adminClearAction": "Effacer",
   "adminConfirmSend": "Confirmer l'envoi",
   "adminSendingNotificationTo": "Vous êtes sur le point d'envoyer une notification à:",
-  "adminMessagePreview": "Message: {text}",
-  "@adminMessagePreview": {"placeholders": {"text": {"type": "String"}}},
-
+  "adminMessagePreview": "Message: {message}",
+  "@adminMessagePreview": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "adminSearchReportsPlaceholder": "Rechercher par nom, raison, ID...",
   "adminViewTarget": "Voir le {type}",
-  "@adminViewTarget": {"placeholders": {"type": {"type": "String"}}},
+  "@adminViewTarget": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminReject": "Rejeter",
   "adminProcess": "Traiter",
   "adminDeleteContent": "Supprimer contenu",
   "adminClearFilters": "Effacer les filtres",
   "adminRejectReasonHint": "Ex: Signalement non fondé, contenu conforme aux règles...",
   "adminProcessNoteHint": "Ex: Avertissement envoyé, contenu modifié...",
-
   "adminChangeToRole": "Changer en {role}",
-  "@adminChangeToRole": {"placeholders": {"role": {"type": "String"}}},
-
+  "@adminChangeToRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "adminFeesTab": "Frais",
   "adminBoostsTab": "Boosts",
   "adminTaxesTab": "Taxes",
@@ -2665,40 +2679,92 @@
   "adminTicketPrices": "Prix tickets (XOF)",
   "adminTipAmounts": "Montant pourboires (XOF)",
   "adminPriceHint": "Ex: 1, 2, 5, 10, 20",
-
   "adminComplete": "Compléter",
   "adminSearchUserPlaceholder": "Rechercher un utilisateur...",
   "adminLoadingText": "Chargement...",
   "adminNoUserFound": "Aucun utilisateur trouvé",
   "adminUserActivity": "Activité de {name}",
-  "@adminUserActivity": {"placeholders": {"name": {"type": "String"}}},
+  "@adminUserActivity": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminNoActivity": "Aucune activité enregistrée",
   "adminConfirmLogout": "Confirmer la déconnexion",
   "adminDisconnect": "Déconnecter",
-
   "adminReactivate": "Réactiver",
   "adminApprove": "Approuver",
   "adminSuspend": "Suspendre",
   "adminEmbassyApproved": "Ambassade {name} approuvée",
-  "@adminEmbassyApproved": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassyRejected": "Ambassade {name} rejetée",
-  "@adminEmbassyRejected": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassySuspended": "Ambassade {name} suspendue",
-  "@adminEmbassySuspended": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassySuspended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassyReactivated": "Ambassade {name} réactivée",
-  "@adminEmbassyReactivated": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyReactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminRejectRequest": "Rejeter la demande",
   "adminRejectReason": "Raison du rejet",
-
   "adminExportInProgress": "Export des {type} en cours...",
-  "@adminExportInProgress": {"placeholders": {"type": {"type": "String"}}},
-
+  "@adminExportInProgress": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "audioRoomWarnHost": "Avertir l'hôte",
   "audioRoomTicketHelper": "Min: {min} {currency} - Max: {max} {currency}",
-  "@audioRoomTicketHelper": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}, "currency": {"type": "String"}}},
+  "@audioRoomTicketHelper": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "audioRoomGoalHelper": "Min: {min} XOF - Max: {max} XOF",
-  "@audioRoomGoalHelper": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
-
+  "@audioRoomGoalHelper": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "heritageStories": "Contes",
   "heritageProverbs": "Proverbes",
   "heritageHistory": "Histoire",
@@ -2707,14 +2773,9 @@
   "heritageCraft": "Artisanat",
   "heritageRecipes": "Recettes",
   "heritageMedicine": "Médecine",
-
-  "boostActivatedSuccess": "Boost activé avec succès !",
-  "boostPurchaseError": "Erreur lors de l'achat du boost",
-  "boostYourBusiness": "Booster votre entreprise",
   "boostType": "Type :",
   "boostDuration": "Durée :",
   "boostTotal": "Total :",
-
   "businessViews": "Vues",
   "businessReviews": "Avis",
   "businessContact": "Contacter",
@@ -2727,30 +2788,29 @@
   "businessPostContentHint": "Décrivez votre actualité...",
   "businessDeletePost": "Supprimer",
   "businessSeeAllReviews": "Voir les {count} autres avis",
-  "@businessSeeAllReviews": {"placeholders": {"count": {"type": "int"}}},
-
+  "@businessSeeAllReviews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reviewMustBeLoggedIn": "Vous devez être connecté pour laisser un avis",
   "reviewDeleteTitle": "Supprimer l'avis",
   "reviewDeleteConfirm": "Voulez-vous vraiment supprimer cet avis ? Cette action est irréversible.",
-  "reviewDeleted": "Avis supprimé",
   "reviewReportTitle": "Signaler cet avis",
   "reviewReportReason": "Raison du signalement",
   "reviewReportHint": "Pourquoi signalez-vous cet avis ?",
   "reviewReportNoReason": "Veuillez indiquer une raison",
   "reviewModify": "Modifier",
   "reviewReport": "Signaler",
-  "reviewPleaseRate": "Veuillez donner une note",
-  "reviewPleaseWrite": "Veuillez écrire un avis",
   "reviewSubmitError": "Erreur lors de la soumission",
   "reviewTitleOptional": "Titre (optionnel)",
   "reviewTitleHint": "Ex: Excellent service",
   "reviewYourReview": "Votre avis",
   "reviewShareExperience": "Partagez votre expérience...",
-
   "businessSearchCountry": "Rechercher un pays",
   "businessCityHint": "Ex: Paris, Niamey, New York...",
-  "businessCreatedSuccess": "Entreprise créée avec succès !",
-  "businessCreationError": "Erreur lors de la création",
   "businessNewTitle": "Nouvelle entreprise",
   "businessPhotosSection": "Photos",
   "businessCategorySection": "Catégorie",
@@ -2768,14 +2828,18 @@
   "businessServicesSection": "Services proposés",
   "businessAddServiceHint": "Ajouter un service",
   "businessCreateButton": "Créer l'entreprise",
-
   "callPermissionTitle": "Permission requise",
   "callClose": "Fermer",
-
   "embassyRequestSubmitted": "Demande soumise avec succès !",
   "embassyNewRequest": "Nouvelle demande",
   "embassyReopenDate": "Réouverture prévue: {date}",
-  "@embassyReopenDate": {"placeholders": {"date": {"type": "String"}}},
+  "@embassyReopenDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "embassyContact": "Contacter",
   "embassyRequest": "Demande",
   "embassyStaff": "Personnel",
@@ -2783,7 +2847,7 @@
   "embassyEmail": "Email",
   "embassyWebsite": "Site Web",
   "embassyDirections": "Y aller",
-  "embassyMessageSent": "Message envoyé avec succès !",
+  "embassyMessageSent": "Message envoyé avec succès!",
   "embassyContactTitle": "Contacter l'ambassade",
   "embassySubjectHint": "Ex: Demande de renseignements sur le passeport",
   "embassyMessageHint": "Décrivez votre demande en détail...",
@@ -2791,9 +2855,14 @@
   "embassyCallAction": "Appeler",
   "embassyRoute": "Itinéraire",
   "embassyDetails": "Détails",
-
   "eventImageSelectionError": "Erreur lors de la sélection des images: {error}",
-  "@eventImageSelectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@eventImageSelectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventSelectImages": "Sélectionner des images",
   "eventPosterLimit": "Limite de 5 affiches atteinte",
   "eventShareRecap": "Partager le récapitulatif",
@@ -2801,11 +2870,15 @@
   "eventAddPhotoMin": "Veuillez ajouter au moins une photo",
   "eventSelectPhotos": "Sélectionner des photos",
   "eventAddPhotos": "Ajouter des photos ({count}/10)",
-  "@eventAddPhotos": {"placeholders": {"count": {"type": "int"}}},
-
+  "@eventAddPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "friendSendMessage": "Envoyer un message",
   "friendRemoveTitle": "Retirer des amis",
-  "friendRemoved": "Ami retiré",
   "friendRemoveAction": "Retirer",
   "friendRequestDeclined": "Demande refusée",
   "friendDecline": "Refuser",
@@ -2813,45 +2886,40 @@
   "friendAccept": "Accepter",
   "friendRequestCancelled": "Demande annulée",
   "friendCancelRequest": "Annuler la demande",
-
-  "groupCallJoin": "Join",
-  "groupCallTitle": "Group Call",
-
   "groupCreateTitle": "Créer un groupe",
   "groupEditTitle": "Modifier le groupe",
-  "groupRequestSent": "Demande envoyée avec succès",
   "groupPromoteAdmin": "Promouvoir Admin",
   "groupDemoteAdmin": "Retirer Admin",
   "groupConfirmAction": "Confirmer",
   "groupMembershipRequests": "Demandes d'adhésion",
-  "groupRequestApproved": "Demande approuvée",
-  "groupRequestDeclined": "Demande refusée",
   "groupRejectTooltip": "Refuser",
   "groupApproveTooltip": "Approuver",
   "groupFilterAll": "Tous",
   "groupFilterAllFeminine": "Toutes",
-
   "shareWhatsApp": "WhatsApp",
   "shareFacebook": "Facebook",
   "shareX": "X",
   "shareMore": "Plus",
-
   "homeMessages": "Messages",
   "homeGroups": "Groupes",
   "homeMarketplace": "Marketplace",
   "homeTransfers": "Transferts",
   "homeDirectory": "Annuaire",
-
   "mapEnable": "ACTIVER",
   "mapTestTitle": "Test Carte Simple",
-
   "marketplaceAddImageMin": "Ajoutez au moins une image",
   "marketplaceCustomTaxRate": "Taux personnalisé (%)",
   "marketplaceCustomTaxHint": "Ex: 15",
   "marketplacePriceTTC": "Prix TTC",
   "marketplaceSubtotal": "Sous-total",
   "marketplaceTaxRate": "Taxe ({rate}%)",
-  "@marketplaceTaxRate": {"placeholders": {"rate": {"type": "String"}}},
+  "@marketplaceTaxRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceTitleLabel": "Titre",
   "marketplaceTitleHint": "Ex: iPhone 13 Pro Max",
   "marketplaceDescriptionLabel": "Description",
@@ -2870,7 +2938,13 @@
   "marketplacePaymentSuccess": "Paiement effectué avec succès !",
   "marketplaceOrderUpdateError": "Erreur lors de la mise à jour de la commande",
   "marketplacePaymentError": "Erreur de paiement: {error}",
-  "@marketplacePaymentError": {"placeholders": {"error": {"type": "String"}}},
+  "@marketplacePaymentError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceDeliveryConfirmed": "Livraison confirmée",
   "marketplaceMarkedAsShipped": "Commande marquée comme expédiée",
   "marketplaceTrackingNumber": "Numéro de suivi",
@@ -2883,45 +2957,101 @@
   "marketplaceAddToCart": "Ajouter au panier",
   "marketplaceDeleteProduct": "Supprimer le produit",
   "marketplaceConversationError": "Erreur lors de la création de la conversation",
-
   "messageVideoPlayError": "Erreur de lecture de la vidéo",
   "messageVideoSaved": "Vidéo enregistrée dans la galerie",
   "messageVideoSaveError": "Erreur lors de l'enregistrement",
   "messageInfo": "Info",
   "messageBackgroundError": "Erreur lors de la sélection de l'image: {error}",
-  "@messageBackgroundError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageBackgroundError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messageBackgroundApplyError": "Erreur lors de l'application: {error}",
-  "@messageBackgroundApplyError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageBackgroundApplyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messagePhotosCount": "Photos ({count})",
-  "@messagePhotosCount": {"placeholders": {"count": {"type": "int"}}},
+  "@messagePhotosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageFilesCount": "Fichiers ({count})",
-  "@messageFilesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@messageFilesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageLocationSearchHint": "Rechercher un lieu...",
   "messageLocationError": "Impossible d'obtenir la position",
   "messageSendThisPosition": "Envoyer cette position",
   "fileLabel": "Fichier",
-  "messageTypeAudio": "Audio",
+  "messageTypeAudio": "🎵 Audio",
   "messageTypeVoiceNote": "Note vocale",
   "shareError": "Impossible de partager ce contenu",
   "shareDownloadingMedia": "Préparation du média...",
   "messageInfoTitle": "Infos du message",
   "messageSentAt": "Envoyé · {time}",
-  "@messageSentAt": {"placeholders": {"time": {"type": "String"}}},
+  "@messageSentAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "tabReadBy": "Lu · {n}",
-  "@tabReadBy": {"placeholders": {"n": {"type": "int"}}},
+  "@tabReadBy": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tabDeliveredTo": "Reçu · {n}",
-  "@tabDeliveredTo": {"placeholders": {"n": {"type": "int"}}},
+  "@tabDeliveredTo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tabReactions": "Réactions · {n}",
-  "@tabReactions": {"placeholders": {"n": {"type": "int"}}},
+  "@tabReactions": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "allReactions": "Tous",
   "noReactionsYet": "Aucune réaction pour l'instant",
   "notReadYet": "Aucun membre n'a encore lu ce message",
   "notDeliveredYet": "Pas encore reçu",
-  "today": "Aujourd'hui {time}",
-  "@today": {"placeholders": {"time": {"type": "String"}}},
-  "yesterday": "Hier {time}",
-  "@yesterday": {"placeholders": {"time": {"type": "String"}}},
-
+  "@today": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@yesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "documentPDF": "PDF",
   "documentDOC": "DOC",
   "documentXLS": "XLS",
@@ -2930,14 +3060,11 @@
   "documentTXT": "TXT",
   "documentCSV": "CSV",
   "documentJSON": "JSON",
-
   "notificationIn1Hour": "Dans 1 heure",
   "notificationTomorrowMorning": "Demain matin (9h)",
   "notificationReminderScheduled": "Rappel programmé",
-
   "paymentBankHint": "Ex: BCEAO, Ecobank...",
   "paymentIbanHint": "NEXX XXXX XXXX XXXX",
-
   "podcastTitleLabel": "Titre du podcast *",
   "podcastDescriptionLabel": "Description",
   "podcastCategoryLabel": "Catégorie *",
@@ -2951,8 +3078,13 @@
   "podcastSleepTimerEnabled": "Arrêt à la fin de l'épisode activé",
   "podcastSleepTimerEnded": "Minuterie de sommeil terminée",
   "podcastTimerMinutes": "Minuterie: {minutes} minutes",
-  "@podcastTimerMinutes": {"placeholders": {"minutes": {"type": "int"}}},
-  "podcastNotFound": "Podcast non trouvé",
+  "@podcastTimerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "podcastAddChapter": "Ajouter un chapitre",
   "podcastChapterTitle": "Titre du chapitre",
   "podcastMinutes": "Minutes",
@@ -2974,7 +3106,6 @@
   "podcastEpisodeDescriptionHint": "Description de l'épisode (optionnel)",
   "podcastPublish": "Publier",
   "podcastCreateNew": "Créer un podcast",
-
   "profileSpecifyProfession": "Précisez votre profession",
   "profileSpecifyCountry": "Ou saisissez votre pays",
   "profileRegion": "Région",
@@ -2982,7 +3113,13 @@
   "profileSpecifyOriginCity": "Précisez votre ville d'origine",
   "profilePhoneVerified": "Numéro vérifié avec succès !",
   "profileCodeSent": "Code envoyé au {phone}",
-  "@profileCodeSent": {"placeholders": {"phone": {"type": "String"}}},
+  "@profileCodeSent": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "profileConfigTitle": "Configuration du profil",
   "profilePrevious": "Précédent",
   "profileFullNameLabel": "Nom complet",
@@ -3019,11 +3156,9 @@
   "profileRequestAccepted": "Demande d'ami acceptée",
   "profileAcceptAction": "Accepter",
   "profileQRScanned": "QR code scanné avec succès",
-
   "reportMyReports": "Mes signalements",
   "reportDescribeIssue": "Décrivez le problème...",
   "reportSendReport": "Envoyer le signalement",
-
   "settingsRenameDevice": "Renommer l'appareil",
   "settingsDeviceName": "Nom de l'appareil",
   "settingsRenameAction": "Renommer",
@@ -3042,12 +3177,9 @@
   "settingsBugDescriptionLabel": "Description du bug",
   "settingsBugDescriptionHint": "Décrivez le problème rencontré...",
   "settingsCurrencySearchHint": "Rechercher une devise...",
-
   "transferFullNameLabel": "Nom complet *",
   "transferFullNameHint": "Ex: Amadou Boubacar",
-  "transferCountryCode": "Indicatif",
   "transferPhoneLabel": "Numéro de téléphone *",
-  "transferPhoneHint": "XX XX XX XX",
   "transferEmailOptional": "Email (optionnel)",
   "transferEmailHint": "exemple@email.com",
   "transferCardNameLabel": "Nom sur la carte *",
@@ -3063,37 +3195,35 @@
   "transferEnterCardInfo": "Veuillez saisir les informations de carte complètes",
   "transferDeleteRecipient": "Supprimer le bénéficiaire ?",
   "transferRecipientDeleted": "Bénéficiaire supprimé",
-  "transferAddRecipient": "Ajouter un bénéficiaire",
   "transferNewRecipient": "Nouveau",
   "transferAddManually": "Ajouter manuellement",
   "transferChooseRecipient": "Choisir un bénéficiaire",
   "transferAddRecipientTooltip": "Ajouter un bénéficiaire",
-  "transferSendMoney": "Envoyer de l'argent",
   "transferEditRecipient": "Modifier",
   "transferDeleteConfirm": "Supprimer {name} ?",
-  "@transferDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
-  "transferBankName": "Nom de la banque *",
+  "@transferDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "transferAccountNumber": "Numéro de compte / IBAN *",
   "transferAccountHint": "XXXX XXXX XXXX XXXX",
   "transferCurrencyLabel": "Devise",
-  "transferAmountLabel": "Montant à envoyer",
-  "transferMessageOptional": "Message (optionnel)",
-  "transferMessageHint": "Ex: Pour les courses",
   "transferMessageTitle": "Message",
   "transferSelectRecipient": "Sélectionnez un bénéficiaire",
-  "transferSelectPaymentMethod": "Sélectionnez un mode de paiement",
-  "transferFeeCalculationError": "Erreur lors du calcul des frais",
-  "transferConfirmTitle": "Confirmer le transfert",
-  "transferAmountSent": "Montant :",
-  "transferFees": "Frais :",
   "transferTotal": "Total :",
   "transferDebitInProgress": "Débit {provider} en cours...",
-  "@transferDebitInProgress": {"placeholders": {"provider": {"type": "String"}}},
-  "transferInitiatedSuccess": "Transfert initié avec succès",
+  "@transferDebitInProgress": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
   "transferDetails": "Détails du transfert",
   "transferAmountSentLabel": "Montant envoyé",
-  "transferFeesLabel": "Frais",
-  "transferExchangeRate": "Taux de change",
   "transferCopied": "Copié dans le presse-papiers",
   "transferRetry": "Réessayer le transfert",
   "transferContactSupport": "Contacter le support",
@@ -3108,7 +3238,6 @@
   "transferRecipientsTooltip": "Bénéficiaires",
   "transferHistoryTooltip": "Historique",
   "transferSendMoneyDescription": "Transférez de l'argent vers le Niger en quelques clics",
-  "start": "Commencer",
   "transferRecentTransactions": "Transactions récentes",
   "transferNoTransactions": "Aucune transaction",
   "transferTransactionsWillAppear": "Vos transferts apparaîtront ici",
@@ -3117,43 +3246,30 @@
   "recipientTypeTitle": "Mode de réception",
   "paymentDetailsTitle": "Détails de paiement",
   "locationTitle": "Localisation",
-  "registeredCard": "Carte enregistrée",
-  "cardSecurityInfo": "Vos données de carte sont sécurisées par Stripe. Nous ne stockons jamais votre numéro de carte complet.",
-  "cardTransferInfo": "Le transfert sera effectué directement sur la carte via Visa Direct ou Mastercard Send.",
   "mobileTransferInfo": "Le transfert sera effectué via {service} sur le numéro de téléphone du bénéficiaire.",
-  "@mobileTransferInfo": {"placeholders": {"service": {"type": "String"}}},
+  "@mobileTransferInfo": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
   "cashPickupInfo": "Le bénéficiaire pourra retirer l'argent dans un point de service NITA avec une pièce d'identité.",
-  "saveChanges": "Enregistrer les modifications",
   "addRecipientButton": "Ajouter le bénéficiaire",
   "recipientModified": "Bénéficiaire modifié avec succès",
   "recipientAdded": "Bénéficiaire ajouté avec succès",
-
   "supportEmailTitle": "Email",
   "supportLiveChat": "Chat en direct",
   "supportAvailable247": "Disponible 24/7",
   "supportChatUnavailable": "Chat non disponible pour le moment",
   "supportPhone": "Téléphone",
-
   "imagePickerCamera": "Caméra",
   "imagePickerGallery": "Galerie",
-
-  "enableNotifications": "Activer les notifications",
-  "later": "Plus tard",
-  "enable": "Activer",
-  "notificationsDisabled": "Notifications désactivées",
-  "permissionBlocked": "Permission bloquée",
-  "openSettings": "Ouvrir les paramètres",
-  "typeYourReply": "Tapez votre réponse...",
-  "reply": "Répondre",
   "notificationEnableDescription": "Recevez des alertes lorsque vous avez de nouveaux messages, appels entrants ou activités importantes.\n\nVous pouvez modifier ce paramètre à tout moment.",
   "notificationDisabledDescription": "Les notifications sont désactivées. Vous ne recevrez pas d'alertes pour les nouveaux messages et appels.\n\nPour les activer, allez dans les paramètres de l'application.",
   "notificationBlockedDescription": "Vous avez bloqué les notifications pour cette application.\n\nPour recevoir des notifications de nouveaux messages et appels, vous devez les activer manuellement dans les paramètres système.",
   "installFromPlayStore": "Pour accéder à cette fonctionnalité, veuillez installer l'application depuis Google Play Store.",
-
   "accessRestricted": "Accès restreint",
-  "unauthorizedAccess": "Accès non autorisé",
-  "understood": "Compris",
-  "openPlayStore": "Ouvrir Play Store",
   "securityCheckFailed": "Impossible de vérifier la sécurité: {error}",
   "@securityCheckFailed": {
     "placeholders": {
@@ -3166,26 +3282,19 @@
   "deviceSecurityFailed": "Cet appareil ne répond pas aux exigences de sécurité.",
   "playStoreRequired": "Cette fonctionnalité nécessite l'installation depuis Google Play Store.",
   "highSecurityFailed": "Cet appareil ne répond pas aux exigences de sécurité élevées.",
-
   "signedInElsewhere": "Connecté ailleurs",
   "signedInElsewhereDescription": "Votre compte a été connecté sur un autre appareil. Vous avez été déconnecté de cet appareil pour sécurité.",
-  "ok": "OK",
-
-  "cameraPermissionDenied": "L'accès à la caméra a été refusé. Veuillez l'activer dans les paramètres de l'application.",
   "cameraPermissionRestricted": "L'accès à la caméra est restreint sur cet appareil.",
   "cameraPermissionRequired": "L'accès à la caméra est nécessaire pour prendre des photos.",
   "photoLibraryPermissionDenied": "L'accès aux photos a été refusé. Veuillez l'activer dans les paramètres de l'application.",
   "photoLibraryPermissionRestricted": "L'accès aux photos est restreint sur cet appareil.",
   "photoLibraryPermissionRequired": "L'accès aux photos est nécessaire pour sélectionner des images.",
-
   "selectAnElement": "Sélectionnez un élément",
   "cameraPermissionRequiredTitle": "Permission caméra requise",
-
   "specifyYourProfession": "Précisez votre profession",
   "orEnterYourCountry": "Ou saisissez votre pays",
   "profileConfiguration": "Configuration du profil",
-  "locationPermissionDenied": "Permission de localisation refusée",
-  "locationPermissionDeniedForever": "Permission de localisation refusée définitivement. Veuillez l'activer dans les paramètres.",
+  "locationPermissionDeniedForever": "Permission de localisation refusée définitivement",
   "travelModeEnabled": "Mode Voyage activé (Localisation en arrière-plan)",
   "travelModeDisabled": "Mode Voyage désactivé",
   "cannotChatWithDeletedUser": "Impossible de discuter avec un utilisateur supprimé",
@@ -3197,7 +3306,6 @@
   "requestDeclinedMessage": "Demande refusée",
   "decline": "Refuser",
   "requestSentSuccess": "Demande envoyée avec succès",
-  "promoteAdmin": "Promouvoir Admin",
   "removeAdmin": "Retirer Admin",
   "membershipRequests": "Demandes d'adhésion",
   "errorPrefix": "Erreur: {error}",
@@ -3208,7 +3316,6 @@
       }
     }
   },
-  "cannotStartCall": "Impossible de démarrer l'appel",
   "favorites": "Favoris",
   "photosCount": "Photos ({count})",
   "@photosCount": {
@@ -3226,7 +3333,6 @@
       }
     }
   },
-  "addCaption": "Ajouter une légende...",
   "videoPlaybackError": "Erreur de lecture de la vidéo",
   "videoSavedToGallery": "Vidéo enregistrée dans la galerie",
   "info": "Info",
@@ -3241,28 +3347,25 @@
   "cannotDeleteMessageAfter1h": "Impossible de supprimer le message après 1h",
   "pdf": "PDF",
   "doc": "DOC",
-  "searchConversation": "Rechercher une conversation...",
-  "forwardError": "Erreur lors du transfert",
-  "joinCall": "Rejoindre",
+  "joinCall": "Join",
   "groupCall": "Appel de groupe",
   "cannotGetPosition": "Impossible d'obtenir la position",
   "searchPlace": "Rechercher un lieu...",
-  "messageCopied": "Message copié",
   "modifyGroup": "Modifier le groupe",
-
   "themeMode": "Mode",
   "themeAppearance": "Apparence",
   "themeGreenDefault": "Vert (Défaut)",
   "themeOrangeClassic": "Orange (Classique)",
   "scanProfile": "Scanner un profil",
-  "qrCodeScannedSuccess": "QR code scanné avec succès",
   "placeQrCodeInFrame": "Placez le QR code dans le cadre pour scanner",
   "flashActive": "Flash actif",
   "flash": "Flash",
   "cameraErrorCode": "Erreur caméra: {errorCode}",
   "@cameraErrorCode": {
     "placeholders": {
-      "errorCode": {"type": "String"}
+      "errorCode": {
+        "type": "String"
+      }
     }
   },
   "invalidQrCode": "QR code invalide",
@@ -3275,23 +3378,22 @@
   "oops": "Oups!",
   "errorOccurred": "Une erreur est survenue",
   "scanToFindMe": "Scannez pour me retrouver",
-  "copied": "Copié!",
-  "copy": "Copier",
-  "shareVia": "Partager via",
   "scanQrCode": "Scanner un QR code",
   "discoverMyProfile": "Découvrez mon profil sur Diaspo Niger: {url}",
   "@discoverMyProfile": {
     "placeholders": {
-      "url": {"type": "String"}
+      "url": {
+        "type": "String"
+      }
     }
   },
   "myProfileOnDiaspoNiger": "Mon profil Diaspo Niger",
-  "today": "Aujourd'hui",
-  "yesterday": "Hier",
   "atTime": "à {time}",
   "@atTime": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "saveVideoError": "Erreur lors de l'enregistrement",
@@ -3301,170 +3403,132 @@
   "live": "En direct",
   "waiting": "En attente",
   "endToEndEncrypted": "Chiffré de bout en bout",
-
   "noPhotos": "Aucune photo",
   "noFiles": "Aucun fichier",
   "loadingVideo": "Chargement de la vidéo...",
-  "loadingError": "Erreur de chargement",
   "playbackError": "Erreur de lecture",
   "deleteMessage": "Supprimer le message",
-  "deleteForMe": "Supprimer pour moi",
-  "deleteForEveryone": "Supprimer pour tous",
   "selectAction": "Sélectionner",
-  "noConversationFound": "Aucune conversation trouvée",
   "sendToConversations": "Envoyer à {count} conversation(s)",
   "@sendToConversations": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "cannotResendMessage": "Impossible de renvoyer ce type de message. Veuillez le renvoyer manuellement.",
-  "callError": "Erreur lors de l'appel",
   "searchError": "Erreur de recherche",
   "applyError": "Erreur lors de l'application: {error}",
   "@applyError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "deleteForMeSubtitle": "Le message sera supprimé uniquement de votre vue",
   "deleteForEveryoneSubtitle": "Le message sera supprimé pour tous les participants",
-
   "audioNotAvailable": "Audio non disponible",
   "invalidAudioUrl": "URL audio invalide",
   "audioPlaybackError": "Erreur de lecture",
-  "connectionError": "Erreur de connexion",
   "audioNotFound": "Audio introuvable",
-  "accessDenied": "Accès refusé",
-  "insufficientPermissionMessage": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
-
+  "insufficientPermissionMessage": "Vous n'avez pas la permission d'accéder à cette page.",
   "shareALocation": "Partager une position",
   "searchLocation": "Rechercher un lieu...",
-  "locationPermissionDenied": "Permission de localisation refusée",
-  "locationPermissionDeniedForever": "Permission de localisation refusée définitivement",
-  "unableToGetLocation": "Impossible d'obtenir la position",
   "selectedPosition": "Position sélectionnée",
   "gettingLocation": "Obtention de la position...",
   "myCurrentLocation": "Ma position actuelle",
   "orSelectOnMap": "ou sélectionnez sur la carte",
   "loadingMap": "Chargement de la carte...",
   "sendThisLocation": "Envoyer cette position",
-
-  "user": "Utilisateur",
-  "deletedUser": "Utilisateur supprimé",
-  "today": "Aujourd'hui",
-  "yesterday": "Hier",
-  "group": "Groupe",
   "thisGroupWasDeleted": "Ce groupe a été supprimé",
   "thisUserWasDeleted": "Cet utilisateur a été supprimé",
   "youBlockedThisUser": "Vous avez bloqué cet utilisateur",
   "messageResendFailed": "Échec du renvoi du message",
   "unableToStartCall": "Impossible de démarrer l'appel",
-  "favorites": "Favoris",
-  "forward": "Transférer",
-  "voiceCall": "Appel vocal",
-  "videoCall": "Appel vidéo",
   "encrypted": "Chiffré",
   "typeYourMessageBelow": "Tapez votre message ci-dessous",
   "sendFirstMessageGroup": "Soyez le premier à envoyer un message dans ce groupe !",
-
-  "requestDeclined": "Demande refusée",
-  "decline": "Refuser",
-  "requestAccepted": "Demande acceptée",
   "accept": "Accepter",
-  "requestCancelled": "Demande annulée",
-  "cancelRequest": "Annuler la demande",
-  "daysAgo": "Il y a {count} jour(s)",
-  "@daysAgo": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "hoursAgo": "Il y a {count} heure(s)",
-  "@hoursAgo": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "minutesAgo": "Il y a {count} minute(s)",
-  "@minutesAgo": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "justNow": "À l'instant",
-  "sendMessage": "Envoyer un message",
-  "removeFriend": "Retirer des amis",
   "confirmRemoveFriend": "Voulez-vous vraiment retirer {name} de vos amis ?",
   "@confirmRemoveFriend": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-  "friendRemoved": "Ami retiré",
-  "remove": "Retirer",
-
-  "createGroup": "Créer un groupe",
-  "editGroup": "Modifier le groupe",
   "groupCreatedSuccess": "Groupe créé avec succès",
-  "groupCreationError": "Erreur lors de la création du groupe",
   "groupUpdatedSuccess": "Groupe modifié avec succès",
   "groupUpdateError": "Erreur lors de la modification du groupe",
   "addPhoto": "Ajouter une photo",
-  "groupName": "Nom du groupe",
   "groupNamePlaceholder": "Ex: Entrepreneurs Niger",
-  "nameRequired": "Le nom est requis",
-  "nameMinLength": "Le nom doit contenir au moins 3 caractères",
-  "description": "Description",
   "describeYourGroup": "Décrivez votre groupe...",
-  "descriptionRequired": "La description est requise",
   "descriptionMinLength": "La description doit contenir au moins 10 caractères",
-  "hostCountry": "Pays d'accueil (optionnel)",
   "selectCountry": "Sélectionner un pays",
   "hostCountryHelp": "Le pays où se trouve la communauté du groupe",
-  "originRegion": "Région d'origine au Niger (optionnel)",
   "selectRegion": "Sélectionner une région",
   "originRegionHelp": "Pour regrouper les membres par région d'origine",
   "detailedLocation": "Localisation détaillée (optionnel)",
   "tagsHint": "Séparez les tags par des virgules",
-  "privateGroup": "Groupe privé",
   "membersNeedApproval": "Les membres doivent être approuvés",
-  "saveChanges": "Enregistrer les modifications",
   "createTheGroup": "Créer le groupe",
-
   "sendFileTitle": "Envoyer un fichier",
   "cameraSection": "Caméra",
   "locationSection": "Localisation",
   "originAtNiger": "Origine au Niger",
   "next": "Suivant",
   "finish": "Terminer",
-  "connectionErrorRetry": "Erreur de connexion. Vérifiez votre connexion internet.",
-  "userNotConnected": "Utilisateur non connecté. Veuillez vous reconnecter.",
-  "profileNotFound": "Profil introuvable. Veuillez redémarrer l'application.",
+  "connectionErrorRetry": "Erreur de connexion. Veuillez réessayer.",
   "errorGeneric": "Erreur: {error}",
-  "@errorGeneric": {"placeholders": {"error": {"type": "String"}}},
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "blockUserConfirmMessage": "Voulez-vous vraiment bloquer {name} ? Vous ne recevrez plus de messages de sa part.",
-  "@blockUserConfirmMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@blockUserConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "blockingError": "Erreur lors du blocage",
   "infoLabel": "Info",
-  "joinCall": "Join",
-  "flipCamera": "Flip",
-  "messageCopied": "Message copié",
-  "addedToCart": "Ajouté au panier",
   "viewCart": "Voir",
   "selectImages": "Sélectionner des images",
   "selectPhotos": "Sélectionner des photos",
   "addPhotosCount": "Ajouter des photos ({count}/10)",
-  "@addPhotosCount": {"placeholders": {"count": {"type": "int"}}},
+  "@addPhotosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "photosLimitReached": "Limite de {count} photos atteinte",
-  "@photosLimitReached": {"placeholders": {"count": {"type": "int"}}},
+  "@photosLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "selectionError": "Erreur lors de la sélection: {error}",
-  "@selectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@selectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "addAtLeastOnePhoto": "Veuillez ajouter au moins une photo",
   "shareRecap": "Partager le récapitulatif",
   "okButton": "OK",
-  "enableLocation": "ACTIVER",
-
   "profilePhotoTitle": "Photo de profil",
   "profilePhotoOptional": "Optionnel",
   "yourLocation": "Votre localisation",
@@ -3489,153 +3553,100 @@
   "gallerySubtitle": "Sélectionner une image existante",
   "deletePhotoTitle": "Supprimer la photo",
   "deletePhotoSubtitle": "Utiliser les initiales par défaut",
-
-  "adminOverview": "Aperçu",
-  "adminUsers": "Utilisateurs",
-  "adminBusinesses": "Commerces",
-  "adminContent": "Contenu",
-  "adminReports": "Signalements",
-  "adminSupport": "Support",
-  "adminLiveRooms": "Salons Live",
-  "adminMarketplace": "Marketplace",
-  "adminTransfers": "Transferts",
-  "adminEmbassies": "Ambassades",
-  "adminAnalytics": "Analytics",
-  "adminNotifications": "Notifications",
-  "adminConfiguration": "Configuration",
-  "adminFeatures": "Features",
-  "adminAudit": "Audit",
-  "adminRoles": "Rôles Admin",
-  "adminRefresh": "Actualiser",
-  "adminLogout": "Déconnexion",
-  "adminCreateEmbassy": "Créer une ambassade",
-  "adminModerate": "Modérer",
-  "adminModerationMode": "Mode Modération",
-  "adminJoin": "Rejoindre",
-  "adminViewReports": "Voir Signalements",
-  "adminManageUsers": "Gérer Utilisateurs",
-  "adminSendNotification": "Envoyer Notification",
-  "adminViewAnalytics": "Voir Analytics",
   "adminHistoryAudit": "Historique Audit",
-  "adminConfirmLogout": "Confirmer la déconnexion",
-  "adminDisconnect": "Déconnecter",
-  "adminAccessDenied": "Accès refusé",
   "adminGoBack": "Retour",
   "adminAll": "Tous",
   "adminPending": "En attente",
   "adminBoosted": "Boostés",
-  "adminVerify": "Vérifier",
-  "adminRemoveVerification": "Retirer vérification",
-  "adminBoost30Days": "Booster (30 jours)",
-  "adminRemoveBoost": "Retirer boost",
   "adminConfirmDelete": "Confirmer la suppression",
-  "adminNewAdmin": "Nouvel Admin",
-  "adminChangeRole": "Changer le rôle",
-  "adminRevokeAccess": "Révoquer l'accès admin",
   "adminRevoke": "Révoquer",
-  "adminChangeToRole": "Changer en {role}",
-  "@adminChangeToRole": {"placeholders": {"role": {"type": "String"}}},
-  "adminExportInProgress": "Export des {type} en cours...",
-  "@adminExportInProgress": {"placeholders": {"type": {"type": "String"}}},
-  "adminSearchPlaceholder": "Rechercher par admin ou action...",
-  "adminAllActions": "Toutes les actions",
   "adminTaxFees": "Frais",
   "adminTaxBoosts": "Boosts",
   "adminTaxes": "Taxes",
   "adminMedias": "Medias",
   "adminSystem": "Système",
   "adminAudio": "Audio",
-  "adminFeesUpdated": "Frais mis à jour",
-  "adminFeePercentage": "Pourcentage des frais",
   "adminFeeMinimum": "Frais minimum (XOF)",
   "adminFeeMaximum": "Frais maximum (XOF)",
-  "adminPlatformCommission": "Commission plateforme",
   "adminCommissionMin": "Commission min (XOF)",
   "adminCommissionMax": "Commission max (XOF)",
-  "adminBoostPricesUpdated": "Tarifs boost mis à jour",
   "adminVatRateUpdated": "Taux de TVA mis à jour",
-  "adminMediaLimitsUpdated": "Limites médias mises à jour",
-  "adminMaxDimension": "Dimension max (px)",
-  "adminCompressionQuality": "Qualité compression (%)",
-  "adminMaxImagesUpload": "Max images/upload",
-  "adminMaxImageSize": "Taille max image (MB)",
-  "adminMaxVideoSize": "Taille max vidéo (MB)",
-  "adminMaxMessageChars": "Caractères max par message",
-  "adminUrlsUpdated": "URLs mises à jour",
-  "adminIntervalsUpdated": "Intervalles mis à jour",
   "adminBaseShareUrl": "URL de base pour partage",
-  "adminSupportEmail": "Email support",
-  "adminPrivacyEmail": "Email confidentialité (RGPD)",
-  "adminBugReportEmail": "Email rapport de bugs",
-  "adminFeedbackEmail": "Email feedback",
-  "adminModerationEmail": "Email modération",
-  "adminLocationUpdateInterval": "Mise à jour localisation (min)",
-  "adminOnlineHeartbeat": "Heartbeat statut en ligne (min)",
-  "adminCacheDuration": "Durée cache (min)",
   "adminAudioUpdated": "Paramètres audio mis à jour",
-  "adminSendTab": "Envoyer",
-  "adminHistoryTab": "Historique",
-  "adminTitleLabel": "Titre",
-  "adminMessageLabel": "Message",
   "adminClear": "Effacer",
-  "adminConfirmSend": "Confirmer l'envoi",
   "adminAboutToSend": "Vous êtes sur le point d'envoyer une notification à:",
-  "adminMessagePreview": "Message: {text}",
-  "@adminMessagePreview": {"placeholders": {"text": {"type": "String"}}},
-  "adminRejectReason": "Raison du rejet",
-  "adminReactivate": "Réactiver",
-  "adminReject": "Rejeter",
-  "adminApprove": "Approuver",
-  "adminSuspend": "Suspendre",
-  "adminFeatureFlagsUpdated": "Feature flags mis à jour",
-  "adminMaintenanceHint": "Ex: Application en maintenance...",
   "adminLoginWithGoogle": "Sign in with Google",
-  "adminEmailLabel": "Email",
-  "adminPasswordLabel": "Password",
+  "adminPasswordLabel": "Mot de passe",
   "adminLoginButton": "Login",
   "adminProductsCount": "Produits ({count})",
-  "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProductsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminOrdersCount": "Commandes ({count})",
-  "@adminOrdersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminOrdersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDisputesCount": "Litiges ({count})",
-  "@adminDisputesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminDisputesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDelete": "Supprimer",
-  "adminBuyer": "Acheteur",
-  "adminSeller": "Vendeur",
-  "adminRefund": "Rembourser",
   "adminGroupsCount": "Groupes ({count})",
-  "@adminGroupsCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminComplete": "Compléter",
+  "@adminGroupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminSearchUser": "Rechercher un utilisateur...",
   "adminLoading": "Chargement...",
   "adminNoUsersFound": "Aucun utilisateur trouvé",
   "adminActivityOf": "Activité de {name}",
-  "@adminActivityOf": {"placeholders": {"name": {"type": "String"}}},
-  "adminNoActivity": "Aucune activité enregistrée",
+  "@adminActivityOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminSearchReports": "Rechercher par nom, raison, ID...",
   "adminViewType": "Voir le {type}",
-  "@adminViewType": {"placeholders": {"type": {"type": "String"}}},
-  "adminProcess": "Traiter",
-  "adminDeleteContent": "Supprimer contenu",
-  "adminClearFilters": "Effacer les filtres",
+  "@adminViewType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminRejectionHint": "Ex: Signalement non fondé, contenu conforme aux règles...",
   "adminResolutionHint": "Ex: Avertissement envoyé, contenu modifié...",
   "adminDeleteContentTitle": "Supprimer le contenu",
-  "adminEmbassyApproved": "Ambassade {name} approuvée",
-  "@adminEmbassyApproved": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyRejected": "Ambassade {name} rejetée",
-  "@adminEmbassyRejected": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassySuspended": "Ambassade {name} suspendue",
-  "@adminEmbassySuspended": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyReactivated": "Ambassade {name} réactivée",
-  "@adminEmbassyReactivated": {"placeholders": {"name": {"type": "String"}}},
-  "adminRejectRequest": "Rejeter la demande",
-  "adminEmbassyCreated": "Ambassade créée avec succès!",
   "adminCreateEmbassyTitle": "Créer une ambassade",
   "adminWarnHost": "Avertir l'hôte",
   "adminGoalHint": "Min: {min} XOF - Max: {max} XOF",
-  "@adminGoalHint": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
-
+  "@adminGoalHint": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "interestCulture": "Culture",
   "interestSport": "Sport",
   "interestBusiness": "Business",
@@ -3644,7 +3655,6 @@
   "interestArts": "Arts",
   "interestHealth": "Santé",
   "interestPolitics": "Politique",
-
   "noBusinessFound": "Aucune entreprise trouvée",
   "beFirstToAddBusiness": "Soyez le premier à ajouter votre entreprise !",
   "filterByLocation": "Filtrer par localisation",
@@ -3655,7 +3665,16 @@
   "verifiedBadge": "Vérifié",
   "premiumBadge": "Premium",
   "reviewsCountLabel": "{rating} ({count} avis)",
-  "@reviewsCountLabel": {"placeholders": {"rating": {"type": "String"}, "count": {"type": "int"}}},
+  "@reviewsCountLabel": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "contactSectionTitle": "Contact",
   "servicesSectionTitle": "Services",
   "viewsStatLabel": "Vues",
@@ -3672,7 +3691,13 @@
   "currentOffersTitle": "Offres en cours",
   "noCurrentOffersMessage": "Aucune offre en cours",
   "validUntilLabel": "Valable jusqu'au {date}",
-  "@validUntilLabel": {"placeholders": {"date": {"type": "String"}}},
+  "@validUntilLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "newsSectionTitle": "Actualités",
   "addActionButton": "Ajouter",
   "noNewsMessage": "Aucune actualité",
@@ -3691,18 +3716,21 @@
   "writeFirstReviewAction": "Écrire le premier avis",
   "writeReviewAction": "Écrire un avis",
   "seeOtherReviewsLabel": "Voir les {count} autres avis",
-  "@seeOtherReviewsLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@seeOtherReviewsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginRequiredForReview": "Vous devez être connecté pour laisser un avis",
-  "defaultUserName": "Utilisateur",
   "editAction": "Modifier",
   "boostAction": "Booster",
-  "contactAction": "Contacter",
   "alreadyLeftReviewMessage": "Vous avez déjà laissé un avis",
   "reviewDeletedMessage": "Avis supprimé",
   "reportReviewTitle": "Signaler cet avis",
   "reportReasonField": "Raison du signalement",
   "reportReasonHintText": "Pourquoi signalez-vous cet avis ?",
-  "pleaseIndicateReason": "Veuillez indiquer une raison",
   "reviewReportedMessage": "Avis signalé",
   "reportErrorOccurred": "Erreur lors du signalement",
   "deleteReviewDialogTitle": "Supprimer l'avis",
@@ -3712,29 +3740,70 @@
   "loadingErrorMessage": "Erreur de chargement",
   "retryButtonLabel": "Réessayer",
   "nReviewsLabel": "{count} avis",
-  "@nReviewsLabel": {"placeholders": {"count": {"type": "int"}}},
-
+  "@nReviewsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "allCountriesOption": "Tous les pays",
   "chooseCountryDialogTitle": "Choisir un pays",
   "noProductAvailableMessage": "Aucun produit disponible",
   "beFirstToSellMessage": "Soyez le premier à vendre !",
   "noSearchResultsForQuery": "Aucun résultat pour \"{query}\"",
-  "@noSearchResultsForQuery": {"placeholders": {"query": {"type": "String"}}},
+  "@noSearchResultsForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "myOrdersScreenTitle": "Mes commandes",
   "myPurchasesTabLabel": "Mes achats",
   "mySalesTabLabel": "Mes ventes",
   "noOrdersYetMessage": "Vous n'avez pas encore passé de commande",
   "noOrdersReceivedMessage": "Vous n'avez pas encore reçu de commande",
   "sellerWithNameLabel": "Vendeur: {name}",
-  "@sellerWithNameLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@sellerWithNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "buyerWithNameLabel": "Acheteur: {name}",
-  "@buyerWithNameLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@buyerWithNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "articlesCountLabel": "{count} article{count, plural, =1{} other{s}}",
-  "@articlesCountLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@articlesCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "quantityShortLabel": "Qté: {qty}",
-  "@quantityShortLabel": {"placeholders": {"qty": {"type": "int"}}},
+  "@quantityShortLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "payAmountLabel": "Payer {amount}",
-  "@payAmountLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "@payAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "confirmReceiptAction": "Confirmer la réception",
   "markAsShippedAction": "Marquer comme expédié",
   "trackingNumberDialogTitle": "Numéro de suivi",
@@ -3743,11 +3812,22 @@
   "paymentSuccessfulMessage": "Paiement effectué avec succès !",
   "orderUpdateErrorOccurred": "Erreur lors de la mise à jour de la commande",
   "paymentErrorWithDetails": "Erreur de paiement: {error}",
-  "@paymentErrorWithDetails": {"placeholders": {"error": {"type": "String"}}},
+  "@paymentErrorWithDetails": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deliveryConfirmedSuccess": "Livraison confirmée",
-  "orderMarkedAsShipped": "Commande marquée comme expédiée",
   "availableQuantityInfo": "{qty} disponible(s)",
-  "@availableQuantityInfo": {"placeholders": {"qty": {"type": "int"}}},
+  "@availableQuantityInfo": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "descriptionSectionTitle": "Description",
   "sellerSectionTitle": "Vendeur",
   "loadingLabel": "Chargement...",
@@ -3770,7 +3850,6 @@
   "titleRequiredError": "Entrez un titre",
   "descriptionFieldProduct": "Description",
   "descriptionHintProduct": "Décrivez votre produit...",
-  "descriptionRequiredError": "Entrez une description",
   "priceFieldProduct": "Prix",
   "priceRequiredError": "Entrez un prix",
   "priceInvalidError": "Prix invalide",
@@ -3787,7 +3866,13 @@
   "taxSettingsSectionTitle": "Paramètres de taxe",
   "taxExemptCategoryMessage": "Cette catégorie est exonérée de taxe par défaut",
   "defaultTaxForCategoryInfo": "Taxe par défaut pour cette catégorie: {rate}%",
-  "@defaultTaxForCategoryInfo": {"placeholders": {"rate": {"type": "String"}}},
+  "@defaultTaxForCategoryInfo": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "customRateField": "Taux personnalisé (%)",
   "customRateHintExample": "Ex: 15",
   "priceTtcToggle": "Prix TTC",
@@ -3796,7 +3881,13 @@
   "previewSectionTitle": "Aperçu",
   "subtotalLine": "Sous-total",
   "taxRateLine": "Taxe ({rate}%)",
-  "@taxRateLine": {"placeholders": {"rate": {"type": "String"}}},
+  "@taxRateLine": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "totalLine": "Total",
   "publishProductAction": "Publier",
   "saveProductAction": "Enregistrer",
@@ -3809,190 +3900,84 @@
   "securePurchaseDialogTitle": "Achat sécurisé",
   "purchaseSecurityNote": "Les achats sur le marketplace nécessitent l'installation de l'application depuis Google Play Store.",
   "publishedDateLabel": "publié",
-  "errorWithDetails": "Erreur: {error}",
-  "@errorWithDetails": {"placeholders": {"error": {"type": "String"}}},
   "unknownUserLabel": "Inconnu",
   "allCategoryFilter": "Tout",
-
-  "selectAnElement": "Sélectionnez un élément",
-  "typeYourReply": "Tapez votre réponse...",
   "replyAction": "Répondre",
   "readAction": "Lu",
-
-  "taxAutomatic": "Automatique",
   "taxAutomaticDesc": "Taxe calculée selon la catégorie du produit",
-  "taxExempt": "Exonéré",
   "taxExemptDesc": "Pas de taxe sur ce produit",
-  "taxStandard": "TVA Standard (19%)",
   "taxStandardDesc": "Taux standard de TVA",
-  "taxReduced": "TVA Réduite (10%)",
   "taxReducedDesc": "Taux réduit pour produits essentiels",
-  "taxCustom": "Personnalisé",
   "taxCustomDesc": "Définir un taux personnalisé",
-
-  "adminExportInProgress": "Export des {type} en cours...",
-  "@adminExportInProgress": {"placeholders": {"type": {"type": "String"}}},
   "adminSearchByAdminOrAction": "Rechercher par admin ou action...",
-  "adminAllActions": "Toutes les actions",
-  "adminUsers": "Utilisateurs",
-  "adminBusinesses": "Commerces",
-  "adminContent": "Contenu",
-  "adminReports": "Signalements",
   "adminTransactions": "Transactions",
-  "adminConfiguration": "Configuration",
-  "adminNotifications": "Notifications",
-
   "adminAllCount": "Tous ({count})",
-  "@adminAllCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminPendingCount": "En attente ({count})",
-  "@adminPendingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminPendingCount": "{count} en attente",
+  "@adminPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBoostedCount": "Boostés ({count})",
-  "@adminBoostedCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminVerify": "Vérifier",
-  "adminRemoveVerification": "Retirer vérification",
-  "adminBoost30Days": "Booster (30 jours)",
-  "adminRemoveBoost": "Retirer boost",
-  "adminConfirmDeletion": "Confirmer la suppression",
-
-  "adminGroupPrivate": "Privé",
-  "adminGroupPublic": "Public",
+  "@adminBoostedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminGroupType": "Groupe • {type}",
-  "@adminGroupType": {"placeholders": {"type": {"type": "String"}}},
-
+  "@adminGroupType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmailAddress": "Adresse email",
-  "adminEmailHint": "utilisateur@exemple.com",
-  "adminEmbassyCreated": "Ambassade créée avec succès!",
-  "adminCreateEmbassy": "Créer une ambassade",
-
-  "adminOverview": "Aperçu",
-  "adminLiveRooms": "Salons Live",
-  "adminAudit": "Audit",
-  "adminRoles": "Rôles Admin",
-  "adminRefresh": "Actualiser",
-  "adminLogout": "Déconnexion",
-  "adminModerate": "Modérer",
-  "adminModerationMode": "Mode Modération",
-  "adminViewReports": "Voir Signalements",
-  "adminManageUsers": "Gérer Utilisateurs",
-  "adminSendNotification": "Envoyer Notification",
-  "adminViewAnalytics": "Voir Analytics",
-  "adminFeatureFlags": "Feature Flags",
-  "adminAuditHistory": "Historique Audit",
   "adminRoomConnectionError": "Erreur lors de la connexion au salon",
-
-  "adminEmbassyApproved": "Ambassade {name} approuvée",
-  "@adminEmbassyApproved": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyRejected": "Ambassade {name} rejetée",
-  "@adminEmbassyRejected": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassySuspended": "Ambassade {name} suspendue",
-  "@adminEmbassySuspended": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyReactivated": "Ambassade {name} réactivée",
-  "@adminEmbassyReactivated": {"placeholders": {"name": {"type": "String"}}},
-  "adminRejectRequest": "Rejeter la demande",
-  "adminRejectReason": "Raison du rejet",
-  "adminReactivate": "Réactiver",
-  "adminReject": "Rejeter",
-  "adminApprove": "Approuver",
-  "adminSuspend": "Suspendre",
-
-  "adminFeatureFlagsUpdated": "Feature flags mis à jour",
-  "adminMaintenanceHint": "Ex: Application en maintenance...",
-
-  "adminSignInWithGoogle": "Se connecter avec Google",
-  "adminEmailLabel": "Email",
-  "adminPasswordLabel": "Mot de passe",
-  "adminLogin": "Connexion",
-
-  "adminProductsCount": "Produits ({count})",
-  "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminOrdersCount": "Commandes ({count})",
-  "@adminOrdersCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminDisputesCount": "Litiges ({count})",
-  "@adminDisputesCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminGroupsCount": "Groupes ({count})",
-  "@adminGroupsCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminBuyer": "Acheteur",
-  "adminSeller": "Vendeur",
-  "adminRefund": "Rembourser",
-
   "adminSend": "Envoyer",
   "adminHistory": "Historique",
   "adminTitle": "Titre",
   "adminMessage": "Message",
-  "adminClear": "Effacer",
-  "adminConfirmSend": "Confirmer l'envoi",
-  "adminAboutToSend": "Vous êtes sur le point d'envoyer une notification à:",
-  "adminMessagePreview": "Message: {message}",
-  "@adminMessagePreview": {"placeholders": {"message": {"type": "String"}}},
-
-  "adminSearchReports": "Rechercher par nom, raison, ID...",
-  "adminViewTarget": "Voir le {type}",
-  "@adminViewTarget": {"placeholders": {"type": {"type": "String"}}},
-  "adminProcess": "Traiter",
-  "adminDeleteContent": "Supprimer contenu",
-  "adminClearFilters": "Effacer les filtres",
   "adminRejectHint": "Ex: Signalement non fondé, contenu conforme aux règles...",
   "adminProcessHint": "Ex: Avertissement envoyé, contenu modifié...",
-  "adminDeleteContentTitle": "Supprimer le contenu",
-
-  "adminNewAdmin": "Nouvel Admin",
-  "adminChangeRole": "Changer en {role}",
-  "@adminChangeRole": {"placeholders": {"role": {"type": "String"}}},
+  "@adminChangeRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "adminChangeRoleTitle": "Changer le rôle",
-  "adminRevokeAccess": "Révoquer l'accès admin",
   "adminRevokeAction": "Révoquer",
-
   "adminFees": "Frais",
   "adminBoosts": "Boosts",
-  "adminTaxes": "Taxes",
   "adminMedia": "Médias",
-  "adminSystem": "Système",
-  "adminAudio": "Audio",
-  "adminFeesUpdated": "Frais mis à jour",
-  "adminFeePercentage": "Pourcentage des frais",
-  "adminMinFee": "Frais minimum (XOF)",
-  "adminMaxFee": "Frais maximum (XOF)",
-  "adminPlatformCommission": "Commission plateforme",
-  "adminMinCommission": "Commission min (XOF)",
-  "adminMaxCommission": "Commission max (XOF)",
-  "adminBoostPricesUpdated": "Tarifs boost mis à jour",
-  "adminVatRatesUpdated": "Taux de TVA mis à jour",
-  "adminMediaLimitsUpdated": "Limites médias mises à jour",
-  "adminMaxDimension": "Dimension max (px)",
-  "adminCompressionQuality": "Qualité compression (%)",
   "adminMaxImagesPerUpload": "Max images/upload",
-  "adminMaxImageSize": "Taille max image (MB)",
-  "adminMaxVideoSize": "Taille max vidéo (MB)",
   "adminMaxCharsPerMessage": "Caractères max par message",
-  "adminUrlsUpdated": "URLs mises à jour",
-  "adminIntervalsUpdated": "Intervalles mis à jour",
-  "adminShareBaseUrl": "URL de base pour partage",
-  "adminSupportEmail": "Email support",
-  "adminPrivacyEmail": "Email confidentialité (RGPD)",
-  "adminBugReportEmail": "Email rapport de bugs",
-  "adminFeedbackEmail": "Email feedback",
-  "adminModerationEmail": "Email modération",
-  "adminLocationUpdateInterval": "Mise à jour localisation (min)",
-  "adminOnlineHeartbeat": "Heartbeat statut en ligne (min)",
-  "adminCacheDuration": "Durée cache (min)",
-  "adminAudioSettingsUpdated": "Paramètres audio mis à jour",
   "adminCustomAmountsHint": "Ex: 1, 2, 5, 10, 20",
-
-  "adminComplete": "Compléter",
-  "adminConfirmLogout": "Confirmer la déconnexion",
-
-  "adminAccessDenied": "Accès refusé",
-  "adminGoBack": "Retour",
-  "adminSearchUser": "Rechercher un utilisateur...",
-  "adminLoadingText": "Chargement...",
-  "adminNoUsersFound": "Aucun utilisateur trouvé",
-  "adminUserActivity": "Activité de {name}",
-  "@adminUserActivity": {"placeholders": {"name": {"type": "String"}}},
   "adminNoActivityRecorded": "Aucune activité enregistrée",
-
-  "audioRoomWarnHost": "Avertir l'hôte",
   "audioRoomCollectionHelper": "Min: {min} XOF - Max: {max} XOF",
-  "@audioRoomCollectionHelper": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "@audioRoomCollectionHelper": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomStoriesLabel": "Contes",
   "audioRoomProverbsLabel": "Proverbes",
   "audioRoomHistoryLabel": "Histoire",
@@ -4001,30 +3986,19 @@
   "audioRoomCraftLabel": "Artisanat",
   "audioRoomRecipesLabel": "Recettes",
   "audioRoomMedicineLabel": "Médecine",
-
   "businessBoostActivated": "Boost activé avec succès!",
   "businessBoostError": "Erreur lors de l'achat du boost",
   "businessBoostTitle": "Booster votre entreprise",
   "businessTypeLabel": "Type:",
   "businessDurationLabel": "Durée:",
   "businessTotalLabel": "Total:",
-  "businessCreatedSuccess": "Entreprise créée avec succès!",
-  "businessCreationError": "Erreur lors de la création",
-  "businessNewTitle": "Nouvelle entreprise",
   "businessPhotosLabel": "Photos",
   "businessCategoryLabel": "Catégorie",
   "businessNameRequired": "Nom de l'entreprise *",
   "businessDescriptionRequired": "Description *",
   "businessContactLabel": "Contact",
-  "businessPhoneLabel": "Téléphone",
-  "businessEmailLabel": "Email",
-  "businessWebsiteLabel": "Site web",
   "businessLocationLabel": "Localisation",
-  "businessSearchCountry": "Rechercher un pays",
   "businessCountryHint": "Tapez le nom du pays",
-  "businessCountryLabel": "Pays",
-  "businessCityLabel": "Ville",
-  "businessAddressLabel": "Adresse",
   "businessServicesOffered": "Services proposés",
   "businessAddService": "Ajouter un service",
   "businessCreateAction": "Créer l'entreprise",
@@ -4038,38 +4012,37 @@
   "businessYourReview": "Votre avis",
   "businessShareExperience": "Partagez votre expérience...",
   "businessAddReview": "Ajouter",
-
   "callPermissionRequired": "Permission requise",
   "callSettings": "Paramètres",
   "callEnd": "Terminer",
-  "callFlipCamera": "Inverser",
-
-  "embassyReopenDate": "Réouverture prévue: {date}",
-  "@embassyReopenDate": {"placeholders": {"date": {"type": "String"}}},
-  "embassyContact": "Contacter",
-  "embassyRequest": "Demande",
-  "embassyStaff": "Personnel",
-  "embassyCall": "Appeler",
-  "embassyEmail": "Email",
-  "embassyWebsite": "Site Web",
-  "embassyDirections": "Y aller",
-  "embassyMessageSent": "Message envoyé avec succès!",
-  "embassyContactTitle": "Contacter l'ambassade",
-  "embassySubjectHint": "Ex: Demande de renseignements sur le passeport",
-  "embassyMessageHint": "Décrivez votre demande en détail...",
-  "embassyDepartment": "Département",
-
   "eventImageSelectionErrorMsg": "Erreur lors de la sélection des images: {error}",
-  "@eventImageSelectionErrorMsg": {"placeholders": {"error": {"type": "String"}}},
+  "@eventImageSelectionErrorMsg": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventPosterLimitReached": "Limite de 5 affiches atteinte",
   "eventSelectionError": "Erreur lors de la sélection: {error}",
-  "@eventSelectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@eventSelectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventPhotoLimitReached": "Limite de 10 photos atteinte",
   "eventAddAtLeastOnePhoto": "Veuillez ajouter au moins une photo",
   "eventRecapShareTooltip": "Partager le récapitulatif",
   "eventPhotosAddCount": "Ajouter des photos ({count}/10)",
-  "@eventPhotosAddCount": {"placeholders": {"count": {"type": "int"}}},
-
+  "@eventPhotosAddCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupRequestSentSuccess": "Demande envoyée avec succès",
   "groupPromoteAdminTitle": "Promouvoir Admin",
   "groupDemoteAdminTitle": "Retirer Admin",
@@ -4080,40 +4053,71 @@
   "groupRejectAction": "Refuser",
   "groupApproveAction": "Approuver",
   "groupAllFilter": "Tous",
-
   "mediaGalleryPhotos": "Photos ({count})",
-  "@mediaGalleryPhotos": {"placeholders": {"count": {"type": "int"}}},
+  "@mediaGalleryPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mediaGalleryFiles": "Fichiers ({count})",
-  "@mediaGalleryFiles": {"placeholders": {"count": {"type": "int"}}},
+  "@mediaGalleryFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mediaCaptionHint": "Ajouter une légende...",
   "messageConversationError": "Erreur: {error}",
-  "@messageConversationError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messageInfoLabel": "Info",
-  "messageCopied": "Message copié",
-
   "notificationRemindLater": "Me rappeler plus tard",
   "notificationIn1HourOption": "Dans 1 heure",
   "notificationScheduled": "Rappel programmé",
   "notificationTomorrowOption": "Demain matin (9h)",
-
   "podcastDisabledOption": "Désactivé",
   "podcastEndOfEpisodeOption": "Fin de l'épisode",
   "podcastSleepEndActivated": "Arrêt à la fin de l'épisode activé",
   "podcastSleepEnded": "Minuterie de sommeil terminée",
   "podcastTimerSet": "Minuterie: {minutes} minutes",
-  "@podcastTimerSet": {"placeholders": {"minutes": {"type": "int"}}},
+  "@podcastTimerSet": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "podcastNotFoundError": "Podcast non trouvé",
   "podcastAddEpisode": "Ajouter",
   "podcastErrorPrefix": "Erreur: {error}",
-  "@podcastErrorPrefix": {"placeholders": {"error": {"type": "String"}}},
+  "@podcastErrorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "podcastAddChapterTitle": "Ajouter un chapitre",
   "podcastChapterTitleLabel": "Titre du chapitre",
   "podcastMinutesLabel": "Minutes",
   "podcastSecondsLabel": "Secondes",
   "podcastSelectAudio": "Veuillez sélectionner un fichier audio",
   "podcastEpisodeError": "Erreur: {error}",
-  "@podcastEpisodeError": {"placeholders": {"error": {"type": "String"}}},
-  "podcastNewEpisodeTitle": "Nouvel épisode",
+  "@podcastEpisodeError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "podcastEpisodeTitleRequired": "Titre de l'épisode *",
   "podcastDescriptionNotes": "Description / Notes",
   "podcastSubscribersOnlyLabel": "Réservé aux abonnés payants",
@@ -4129,15 +4133,18 @@
   "podcastEpisodeDescInput": "Description de l'épisode (optionnel)",
   "podcastPublishAction": "Publier",
   "podcastCreateAction": "Créer un podcast",
-
   "profileCodeSentTo": "Code envoyé au {phone}",
-  "@profileCodeSentTo": {"placeholders": {"phone": {"type": "String"}}},
+  "@profileCodeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "profileTravelModeTitle": "Mode Voyage",
-
   "reportMyReportsTitle": "Mes signalements",
   "reportDescribeProblem": "Décrivez le problème...",
   "reportSendAction": "Envoyer le signalement",
-
   "settingsRenameDeviceTitle": "Renommer l'appareil",
   "settingsDeviceNameLabel": "Nom de l'appareil",
   "settingsRename": "Renommer",
@@ -4157,10 +4164,15 @@
   "settingsBugDescHint": "Décrivez le problème rencontré...",
   "settingsCurrencySearch": "Rechercher une devise...",
   "settingsOk": "OK",
-
   "transferAddRecipientTitle": "Ajouter un bénéficiaire",
   "transferErrorPrefix": "Erreur: {error}",
-  "@transferErrorPrefix": {"placeholders": {"error": {"type": "String"}}},
+  "@transferErrorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "transferNewAction": "Nouveau",
   "transferAddManuallyAction": "Ajouter manuellement",
   "transferChooseRecipientTitle": "Choisir un bénéficiaire",
@@ -4169,7 +4181,13 @@
   "transferEditAction": "Modifier",
   "transferDeleteTitle": "Supprimer ?",
   "transferDeleteMsg": "Supprimer {name} ?",
-  "@transferDeleteMsg": {"placeholders": {"name": {"type": "String"}}},
+  "@transferDeleteMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "transferDetailsTitle": "Détails du transfert",
   "transferAmountSentLine": "Montant envoyé",
   "transferFeesLine": "Frais",
@@ -4206,15 +4224,9 @@
   "transferClearAllAction": "Effacer tout",
   "transferChoosePeriodAction": "Choisir une période",
   "transferApplyFiltersAction": "Appliquer les filtres",
-
   "widgetRetryAction": "Réessayer",
   "widgetCameraOption": "Caméra",
   "widgetGalleryOption": "Galerie",
-
-  "errorGeneric": "Erreur: {error}",
-  "@errorGeneric": {"placeholders": {"error": {"type": "String"}}},
-  "connectionErrorRetry": "Erreur de connexion. Veuillez réessayer.",
-
   "adminDashboardTitle": "Tableau de Bord",
   "adminDashboardWelcome": "Bienvenue dans le panneau d'administration DiaspoNiger",
   "adminGeneralStats": "Statistiques Générales",
@@ -4235,78 +4247,41 @@
   "adminVideo": "Vidéo",
   "adminHost": "Hôte",
   "adminModerationDialogContent": "Vous allez rejoindre ce salon en mode invisible (ghost mode). Les participants ne pourront pas vous voir.\n\nVous pourrez:\n- Écouter les conversations\n- Voir les vidéos (si activées)\n- Avertir l'hôte\n- Fermer le salon si nécessaire",
-  "adminAnalytics": "Analytics",
-  "adminFeatures": "Features",
-  "adminSupport": "Support",
-  "adminEmbassies": "Ambassades",
-  "adminTransfers": "Transferts",
-  "adminMarketplace": "Marketplace",
-  "podcastTitleLabel": "Titre du podcast *",
-  "podcastDescriptionLabel": "Description",
-  "podcastCategoryLabel": "Catégorie *",
-  "podcastLanguageLabel": "Langue *",
-  "podcastFrequencyLabel": "Fréquence de publication",
-  "podcastTagsLabel": "Tags",
-  "podcastTagsHint": "Ajouter un tag",
-  "podcastLike": "J'aime",
-  "podcastDisabledOption": "Désactivé",
-  "podcastEndOfEpisodeOption": "Fin de l'épisode",
-  "podcastSleepEndActivated": "Arrêt à la fin de l'épisode activé",
-  "podcastSleepEnded": "Minuterie de sommeil terminée",
-  "podcastTimerSet": "Minuterie: {minutes} minutes",
-  "@podcastTimerSet": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
-  "podcastErrorPrefix": "Erreur: {error}",
-  "@podcastErrorPrefix": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "podcastNotFoundError": "Podcast non trouvé",
-  "podcastAddEpisode": "Ajouter",
-  "podcastAddChapterTitle": "Ajouter un chapitre",
-  "podcastChapterTitleLabel": "Titre du chapitre",
-  "podcastMinutesLabel": "Minutes",
-  "podcastSecondsLabel": "Secondes",
-  "podcastSelectAudio": "Veuillez sélectionner un fichier audio",
-  "podcastEpisodeError": "Erreur: {error}",
-  "@podcastEpisodeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "podcastNewEpisodeTitle": "Nouvel épisode",
-  "podcastEpisodeTitleRequired": "Titre de l'épisode *",
-  "podcastDescriptionNotes": "Description / Notes",
-  "podcastSubscribersOnlyLabel": "Réservé aux abonnés payants",
-  "add": "Ajouter",
-
   "eventPostersOptional": "Affiches de l'événement (optionnel)",
   "eventPostersLabel": "Affiches de l'événement",
   "eventPostersUpTo5": "Ajoutez jusqu'à 5 affiches pour votre événement",
   "eventManagePosters": "Gérer les affiches ({count}/5)",
-  "@eventManagePosters": {"placeholders": {"count": {"type": "int"}}},
+  "@eventManagePosters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventCurrentPosters": "Affiches actuelles",
   "eventNewPosters": "Nouvelles affiches",
   "eventAddImages": "Ajouter des images",
   "eventAddPosterCount": "Ajouter ({count}/5)",
-  "@eventAddPosterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@eventAddPosterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventRecapTitle": "Récapitulatif",
   "eventCreateRecap": "Créer un récapitulatif",
   "eventEditRecap": "Modifier le récapitulatif",
   "eventRecapInfo": "Partagez les meilleurs moments de votre événement avec des photos et une description.",
   "eventRecapPhotosLabel": "Photos du récapitulatif",
   "eventRecapUpTo10Photos": "Ajoutez jusqu'à 10 photos ({count}/10)",
-  "@eventRecapUpTo10Photos": {"placeholders": {"count": {"type": "int"}}},
+  "@eventRecapUpTo10Photos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventExistingPhotos": "Photos existantes",
   "eventNewPhotos": "Nouvelles photos",
   "eventRecapDescriptionHint": "Racontez comment s'est passé l'événement...",
@@ -4317,21 +4292,30 @@
   "eventRecapUpdatedSuccess": "Récapitulatif mis à jour avec succès",
   "eventRecapCreatedSuccess": "Récapitulatif créé avec succès",
   "eventRecapError": "Erreur: {error}",
-  "@eventRecapError": {"placeholders": {"error": {"type": "String"}}},
-
+  "@eventRecapError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "noConnection": "Pas de connexion",
   "weakConnection": "Connexion faible",
   "unstableConnection": "Connexion instable",
   "goodConnection": "Bonne connexion",
   "noInternetConnection": "Pas de connexion internet",
   "poorConnectionLimitedFunctions": "Connexion faible - certaines fonctions peuvent être limitées",
-
   "chooseAnImage": "Choisir une image",
   "chooseImages": "Choisir des images",
   "permissionDeniedGeneric": "Permission refusée",
   "maximumImages": "Maximum {count} images",
-  "@maximumImages": {"placeholders": {"count": {"type": "int"}}},
-
+  "@maximumImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "callPermissionMicrophone": "microphone",
   "callPermissionCamera": "caméra",
   "callPermissionDenied": "L'accès au {permissions} est nécessaire pour passer des appels. Veuillez l'autoriser dans les paramètres.",
@@ -4362,7 +4346,6 @@
   "callVideoLabel": "Vidéo",
   "callCloseButton": "Fermer",
   "callPermissionAnd": "et",
-
   "businessBoostVisibilityTitle": "Augmentez votre visibilité",
   "businessBoostVisibilityDesc": "Apparaissez en premier dans les résultats de recherche et attirez plus de clients.",
   "businessBoostTypeLabel": "Type de boost",
@@ -4378,19 +4361,49 @@
   "marketplaceTaxIncluded": "Le prix affiché inclut déjà la taxe",
   "marketplaceTaxAdded": "La taxe sera ajoutée au prix affiché",
   "marketplaceErrorWithMessage": "Erreur: {error}",
-  "@marketplaceErrorWithMessage": {"placeholders": {"error": {"type": "String"}}},
+  "@marketplaceErrorWithMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceNoResultFor": "Aucun résultat pour \"{query}\"",
-  "@marketplaceNoResultFor": {"placeholders": {"query": {"type": "String"}}},
+  "@marketplaceNoResultFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceNoProductAvailable": "Aucun produit disponible",
   "marketplaceBeFirstToSell": "Soyez le premier à vendre!",
   "marketplaceTodayLabel": "Aujourd'hui",
   "marketplaceYesterdayLabel": "Hier",
   "marketplaceDaysAgoLabel": "Il y a {days} jours",
-  "@marketplaceDaysAgoLabel": {"placeholders": {"days": {"type": "int"}}},
+  "@marketplaceDaysAgoLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceWeeksAgoLabel": "Il y a {weeks} semaine(s)",
-  "@marketplaceWeeksAgoLabel": {"placeholders": {"weeks": {"type": "int"}}},
+  "@marketplaceWeeksAgoLabel": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceMonthsAgoLabel": "Il y a {months} mois",
-  "@marketplaceMonthsAgoLabel": {"placeholders": {"months": {"type": "int"}}},
+  "@marketplaceMonthsAgoLabel": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceUserNotConnected": "Utilisateur non connecté",
   "marketplaceAllCountries": "Tous les pays",
   "mapSimpleTestTitle": "Test Carte Simple",
@@ -4407,36 +4420,40 @@
   "businessTypeCountryName": "Tapez le nom du pays",
   "reviewHelpful": "Utile",
   "reviewHelpfulCount": "Utile ({count})",
-  "@reviewHelpfulCount": {"placeholders": {"count": {"type": "int"}}},
-  "reviewPleaseRate": "Veuillez donner une note",
+  "@reviewHelpfulCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reviewPleaseWriteReview": "Veuillez écrire un avis",
   "reviewModifiedSuccess": "Avis modifié avec succès",
   "reviewPublishedSuccess": "Avis publié avec succès",
-  "reviewSubmissionError": "Erreur lors de la soumission",
   "reviewWriteTitle": "Écrire un avis",
   "reviewModifyTitle": "Modifier votre avis",
   "reviewYourRating": "Votre note",
   "reviewPublish": "Publier",
   "reviewPhotosCount": "Photos ({current}/{max})",
-  "@reviewPhotosCount": {"placeholders": {"current": {"type": "int"}, "max": {"type": "int"}}},
+  "@reviewPhotosCount": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "activateCamera": "Activer",
   "deactivateCamera": "Désactiver",
   "minAmountIs": "Le montant minimum est",
   "maxAmountIs": "Le montant maximum est",
-  "heritageStories": "Contes",
-  "heritageProverbs": "Proverbes",
-  "heritageHistory": "Histoire",
-  "heritageCeremonies": "Cérémonies",
   "heritageLanguageType": "Langue",
-  "heritageCraft": "Artisanat",
-  "heritageRecipes": "Recettes",
-  "heritageMedicine": "Médecine",
   "groupNameExample": "Ex: Entrepreneurs Niger",
-  "describeYourGroup": "Décrivez votre groupe...",
   "groupNameIsRequired": "Le nom est requis",
   "groupNameMinLength": "Le nom doit contenir au moins 3 caractères",
   "descriptionIsRequired": "La description est requise",
-  "descriptionMinLength": "La description doit contenir au moins 10 caractères",
   "hostCountryHint": "Le pays où se trouve la communauté du groupe",
   "none": "Aucun",
   "regionOriginHint": "Pour regrouper les membres par région d'origine",
@@ -4445,7 +4462,6 @@
   "tagsSeparatedByCommas": "Séparez les tags par des virgules",
   "privateGroupLabel": "Groupe privé",
   "membersMustBeApproved": "Les membres doivent être approuvés",
-  "saveModifications": "Enregistrer les modifications",
   "modifyTheGroup": "Modifier le groupe",
   "noPendingRequests": "Aucune demande en attente",
   "membershipRequestsTitle": "Demandes d'adhésion",
@@ -4454,7 +4470,6 @@
   "rejectAction": "Refuser",
   "approveAction": "Approuver",
   "promoteToAdmin": "Promouvoir Admin",
-  "removeAdmin": "Retirer Admin",
   "removeFromGroup": "Retirer du groupe",
   "confirmRemoveMember": "Voulez-vous vraiment retirer ce membre du groupe ?",
   "memberPromotedAdmin": "Membre promu admin",
@@ -4465,13 +4480,17 @@
   "removalError": "Erreur lors de la suppression",
   "confirmTitle": "Confirmer",
   "viewAllMembers": "Voir tous les {count} membres",
-  "@viewAllMembers": {"placeholders": {"count": {"type": "int"}}},
-  "requestPending": "Demande en attente",
+  "@viewAllMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "allFeminine": "Toutes",
   "originRegionLabel": "Région d'origine",
   "toutes": "Toutes",
   "groupCreationSuccess": "Groupe créé avec succès",
-  "groupCreationError": "Erreur lors de la création du groupe",
   "requester": "Demandeur",
   "podcastsAddCover": "Ajouter une couverture",
   "podcastsCategoryRequired": "Catégorie *",
@@ -4548,7 +4567,6 @@
   "podcastsSelectOrCreate": "Sélectionnez un podcast ou créez-en un nouveau",
   "podcastsRecordingSoon": "L'enregistrement du salon sera bientôt disponible",
   "podcastsAudioFileNotFound": "Fichier audio introuvable",
-  "podcastsPublishError": "Erreur lors de la publication",
   "podcastsEpisodeTitleInput": "Titre de l'épisode",
   "podcastsEpisodeDescriptionInput": "Description de l'épisode (optionnel)",
   "podcastsSourceRoom": "Salon source",
@@ -4557,7 +4575,6 @@
   "podcastsCreateFirstPodcast": "Créez votre premier podcast pour pouvoir y ajouter des épisodes",
   "podcastsCreateNewPodcast": "Créer un nouveau podcast",
   "podcastsStartSeries": "Commencez votre série de podcasts",
-
   "notificationReplySent": "Message envoyé",
   "notificationReplyConfirmation": "Votre réponse a été envoyée",
   "notificationPendingMessage": "Message en attente",
@@ -4591,29 +4608,32 @@
   "imageSelected": "Image sélectionnée",
   "chooseImage": "Choisir une image",
   "errorImageSelection": "Erreur lors de la sélection de l'image: {error}",
-  "@errorImageSelection": {"placeholders": {"error": {"type": "String"}}},
+  "@errorImageSelection": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "errorApplication": "Erreur lors de l'application: {error}",
-  "@errorApplication": {"placeholders": {"error": {"type": "String"}}},
+  "@errorApplication": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "receivedMessage": "Message reçu",
   "sentMessage": "Message envoyé",
-  "select": "Sélectionner",
-  "messageCopied": "Message copié",
   "messageDeleted": "Message supprimé",
-  "report": "Signaler",
   "photo": "Photo",
   "video": "Vidéo",
   "audio": "Audio",
   "document": "Document",
   "systemMessage": "Message système",
   "call": "Appel",
-  "location": "Position",
   "pending": "En attente",
   "sharedLocation": "Localisation partagée",
-  "callConfirmMessage": "Voulez-vous appeler",
-  "openLink": "Ouvrir le lien",
-  "openLinkConfirmMessage": "Voulez-vous ouvrir ce lien ?",
-  "open": "Ouvrir",
-
   "embassyTemporarilyClosed": "Temporairement Fermé",
   "embassyOfficialVerified": "Compte Officiel Vérifié",
   "embassyComingSoon": "Bientôt disponible",
@@ -4645,7 +4665,13 @@
   "embassyNotesSection": "Remarques / Informations complémentaires",
   "embassyNotesPlaceholder": "Ajoutez des détails supplémentaires si nécessaire...",
   "embassyCharacterCount": "{count} caractères",
-  "@embassyCharacterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@embassyCharacterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embassyWarningMessage": "Vous devrez peut-être vous rendre à l'ambassade avec les documents originaux. Conservez votre numéro de suivi.",
   "embassySending": "Envoi...",
   "embassySubmitRequest": "Soumettre la demande",
@@ -4653,7 +4679,13 @@
   "embassyFieldRequiredShort": "Obligatoire",
   "embassyUserNotConnected": "Utilisateur non connecté",
   "embassyErrorPrefix": "Erreur: {error}",
-  "@embassyErrorPrefix": {"placeholders": {"error": {"type": "String"}}},
+  "@embassyErrorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "embassyPassportRenewal": "Renouvellement de passeport",
   "embassyPassportNewRequest": "Nouvelle demande de passeport",
   "embassyVisaApplication": "Demande de visa",
@@ -4688,7 +4720,13 @@
   "embassyMessageRequired": "Le message est obligatoire",
   "embassyMessageMinLength": "Le message doit contenir au moins 20 caractères",
   "embassyMessageCharacterCount": "{count}/1000 caractères",
-  "@embassyMessageCharacterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@embassyMessageCharacterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embassyMessageGeneral": "Question générale",
   "embassyMessageRequest": "Demande de service",
   "embassyMessageComplaint": "Réclamation",
@@ -4696,7 +4734,13 @@
   "embassyMessageFollowUp": "Suivi de dossier",
   "embassySearchTitle": "Rechercher un employé",
   "embassyStaffTitle": "Personnel - {name}",
-  "@embassyStaffTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyStaffTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyAllDepartments": "Tous les départements",
   "embassyDepartmentDirection": "Direction",
   "embassyDepartmentConsular": "Services consulaires",
@@ -4710,7 +4754,6 @@
   "embassyRetry": "Réessayer",
   "embassyNoEmployeeFound": "Aucun employé trouvé",
   "embassyModifySearch": "Essayez de modifier vos critères de recherche",
-
   "adminAnalyticsAndReports": "Analytique & Rapports",
   "adminAnalyticsSubtitle": "Statistiques et métriques de l'application",
   "adminLoadingError": "Erreur de chargement",
@@ -4736,9 +4779,21 @@
   "adminContentModeration": "Modération de Contenu",
   "adminContentSubtitle": "Gérez les événements et groupes de la communauté",
   "adminEventsTabCount": "Événements ({count})",
-  "@adminEventsTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminEventsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminGroupsTabCount": "Groupes ({count})",
-  "@adminGroupsTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminGroupsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminLoadingContent": "Chargement du contenu...",
   "adminOrganizerLabel": "Organisateur",
   "adminMembersCount": "membres",
@@ -4759,7 +4814,6 @@
   "adminGroupDeleted": "Groupe supprimé",
   "adminNoEventsFound": "Aucun événement trouvé",
   "adminNoGroupsFound": "Aucun groupe trouvé",
-  "adminErrorOccurred": "Une erreur est survenue",
   "adminErrorNotConnected": "Erreur: Admin non connecté",
   "adminReportsManagement": "Gestion des Signalements",
   "adminReportsSubtitle": "Traitez les signalements de contenu inapproprié",
@@ -4767,13 +4821,16 @@
   "adminResolvedLabel": "Résolu",
   "adminDismissedLabel": "Rejeté",
   "adminTotalLabel": "Total",
-  "adminPendingCount": "{count} en attente",
-  "@adminPendingCount": {"placeholders": {"count": {"type": "int"}}},
   "adminProcessedTabCount": "Traités ({count})",
-  "@adminProcessedTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProcessedTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminTypeFilterLabel": "Type:",
   "adminAllTypesOption": "Tous",
-  "adminSearchPlaceholder": "Rechercher par nom, raison, ID...",
   "adminReportedOnLabel": "Signalé le:",
   "adminTargetNameLabel": "Nom",
   "adminCapturedContentLabel": "Contenu capturé (préservé)",
@@ -4789,10 +4846,15 @@
   "adminDismissReportPrompt": "Raison du rejet:",
   "adminProcessReportTitle": "Traiter le signalement",
   "adminProcessReportPrompt": "Note de résolution:",
-  "adminDeleteContentTitle": "Supprimer le contenu",
   "adminDeleteContentMsg": "Êtes-vous sûr de vouloir supprimer ce contenu ?",
   "adminDeleteIrreversibleMsg": "Cette action est irréversible et supprimera définitivement le {type}.",
-  "@adminDeleteIrreversibleMsg": {"placeholders": {"type": {"type": "String"}}},
+  "@adminDeleteIrreversibleMsg": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminNoResultsSearch": "Aucun résultat pour cette recherche",
   "adminNoReportsAvailable": "Aucun signalement",
   "adminTargetIdLabel": "ID cible",
@@ -4804,8 +4866,6 @@
   "adminDeleteContentAction": "Supprimer contenu",
   "adminClearFiltersAction": "Effacer les filtres",
   "adminViewTheLabel": "Voir le",
-  "adminDashboardTitle": "Tableau de Bord",
-  "adminDashboardWelcome": "Bienvenue dans le panneau d'administration DiaspoNiger",
   "adminGeneralStatsTitle": "Statistiques Générales",
   "adminActiveSessionsLabel": "Sessions Actives",
   "adminEventsLabel": "Événements",
@@ -4817,11 +4877,9 @@
   "adminReportsLabel": "Signalements",
   "adminQuickActionsTitle": "Actions Rapides",
   "adminActiveStatus": "actif",
-  "adminLoadingData": "Chargement des données...",
   "adminManageEmbassiesTitle": "Gestion des Ambassades",
   "adminManageEmbassiesDesc": "Créez et gérez les comptes ambassades",
   "adminLiveAudioRoomsTitle": "Salons Audio Live",
-  "adminLiveAudioRoomsDesc": "Surveillez et modérez les salons audio en direct",
   "adminNoLiveRoomsTitle": "Aucun salon en direct",
   "adminNoLiveRoomsMsg": "Il n'y a actuellement aucun salon audio en cours.",
   "adminLiveLabel": "LIVE",
@@ -4830,7 +4888,6 @@
   "adminModeratorModeTitle": "Mode Modération",
   "adminModeratorModeMsg": "Vous allez rejoindre ce salon en mode invisible (ghost mode). Les participants ne pourront pas vous voir.\n\nVous pourrez:\n• Écouter les conversations\n• Voir les vidéos (si activées)\n• Avertir l'hôte\n• Fermer le salon si nécessaire",
   "adminJoinAction": "Rejoindre",
-  "adminRoomConnectionError": "Erreur lors de la connexion au salon",
   "adminTransferFeesTitle": "Frais de Transfert",
   "adminTransferFeesDesc": "Configuration des frais sur les envois d'argent",
   "adminMarketplaceFeesTitle": "Frais Marketplace",
@@ -4858,7 +4915,6 @@
   "podcastsSubscribersLabel": "abonnés",
   "podcastsEpisodesLabel": "épisodes",
   "podcastsPlaysLabel": "écoutes",
-
   "securityDeleteBackupTitle": "Supprimer la sauvegarde ?",
   "securityDeleteBackupContent": "Cette action est irréversible. Si vous perdez vos clés et n'avez plus de sauvegarde, vous ne pourrez plus lire vos anciens messages.",
   "securityBackupDeleted": "Sauvegarde supprimée",
@@ -4870,9 +4926,13 @@
   "securityPassphraseMin": "Minimum 8 caractères",
   "securityConfirmPassphrase": "Confirmer la passphrase",
   "securityDeletionError": "Erreur lors de la suppression: {error}",
-  "@securityDeletionError": {"placeholders": {"error": {"type": "String"}}},
-
-  "bugReportTitle": "Signaler un bug",
+  "@securityDeletionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "bugReportDescription": "Description du bug",
   "bugReportDescriptionHint": "Décrivez le problème rencontré...",
   "bugReportDescriptionRequired": "Veuillez décrire le bug",
@@ -4880,10 +4940,7 @@
   "bugReportStepsHint": "1. Ouvrir l'application\n2. ...",
   "bugReportEmailOpened": "Application de messagerie ouverte",
   "bugReportEmailFailed": "Impossible d'ouvrir l'application de messagerie",
-  "adminGoogleError": "Erreur de connexion Google",
-  "adminAccessDenied": "Accès refusé. Compte administrateur requis.",
   "reminder": "Rappel",
-
   "confirmSend": "Confirmer l'envoi",
   "titleLabel": "Titre",
   "adminGlobalNotifications": "Notifications Globales",
@@ -4908,105 +4965,86 @@
   "adminNoNotificationsSent": "Aucune notification envoyée",
   "adminFillTitleAndMessage": "Veuillez remplir le titre et le message",
   "adminNotConnected": "Erreur: Admin non connecté",
-
   "typeLabel": "Type:",
-  "all": "Tous",
   "contentDeleted": "Contenu supprimé",
   "contentDeletedUserNotified": "Contenu supprimé (utilisateur notifié)",
-  "adminReactivate": "Réactiver",
-  "adminSuspend": "Suspendre",
-  "adminEmbassyApproved": "Ambassade {name} approuvée",
-  "@adminEmbassyApproved": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyRejected": "Ambassade {name} rejetée",
-  "@adminEmbassyRejected": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassySuspended": "Ambassade {name} suspendue",
-  "@adminEmbassySuspended": {"placeholders": {"name": {"type": "String"}}},
-  "adminEmbassyReactivated": "Ambassade {name} réactivée",
-  "@adminEmbassyReactivated": {"placeholders": {"name": {"type": "String"}}},
-  "adminRejectRequest": "Rejeter la demande",
   "adminRejectionReason": "Raison du rejet",
-  "adminBuyer": "Acheteur",
-  "adminSeller": "Vendeur",
-  "adminRefund": "Rembourser",
-  "adminProductsCount": "Produits ({count})",
-  "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminOrdersCount": "Commandes ({count})",
-  "@adminOrdersCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminDisputesCount": "Litiges ({count})",
-  "@adminDisputesCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminGroupsCount": "Groupes ({count})",
-  "@adminGroupsCount": {"placeholders": {"count": {"type": "int"}}},
-  "adminCreateEmbassy": "Créer une ambassade",
-  "adminEmbassyCreated": "Ambassade créée avec succès!",
-  "adminEmailAddress": "Adresse email",
-  "adminEmailHint": "utilisateur@exemple.com",
-  "adminNewAdmin": "Nouvel Admin",
-  "adminFeatureFlagsUpdated": "Feature flags mis à jour",
   "adminMaintenanceMessageHint": "Ex: Application en maintenance...",
-  "adminReportsManagement": "Gestion des Signalements",
   "adminReportRejected": "Signalement rejeté",
-  "adminReportProcessed": "Signalement traité",
   "adminReportProcessedUserNotified": "Signalement traité (utilisateur notifié)",
   "adminReportsManagementDesc": "Traitez les signalements de contenu inapproprié",
   "adminRejectReport": "Rejeter le signalement",
   "adminRejectionReasonLabel": "Raison du rejet:",
   "adminProcessReport": "Traiter le signalement",
   "adminResolutionNoteLabel": "Note de résolution:",
-
-  "adminFeesUpdated": "Frais mis à jour",
-  "adminFeePercentage": "Pourcentage des frais",
   "adminMinimumFee": "Frais minimum (XOF)",
   "adminMaximumFee": "Frais maximum (XOF)",
-  "adminPlatformCommission": "Commission plateforme",
-  "adminMinCommission": "Commission min (XOF)",
-  "adminMaxCommission": "Commission max (XOF)",
   "adminBoostRatesUpdated": "Tarifs boost mis à jour",
-  "adminVatRateUpdated": "Taux de TVA mis à jour",
-  "adminMediaLimitsUpdated": "Limites médias mises à jour",
-  "adminMaxDimension": "Dimension max (px)",
-  "adminCompressionQuality": "Qualité compression (%)",
-  "adminMaxImagesUpload": "Max images/upload",
-  "adminMaxImageSize": "Taille max image (MB)",
-  "adminMaxVideoSize": "Taille max vidéo (MB)",
-  "adminMaxCharsPerMessage": "Caractères max par message",
-  "adminUrlsUpdated": "URLs mises à jour",
-  "adminIntervalsUpdated": "Intervalles mis à jour",
-  "adminShareBaseUrl": "URL de base pour partage",
-  "adminSupportEmail": "Email support",
-  "adminPrivacyEmail": "Email confidentialité (RGPD)",
-  "adminBugReportEmail": "Email rapport de bugs",
-  "adminFeedbackEmail": "Email feedback",
-  "adminModerationEmail": "Email modération",
   "adminLocationUpdateMin": "Mise à jour localisation (min)",
   "adminOnlineHeartbeatMin": "Heartbeat statut en ligne (min)",
   "adminCacheDurationMin": "Durée cache (min)",
-  "adminAudioSettingsUpdated": "Paramètres audio mis à jour",
   "adminExampleValues": "Ex: 1, 2, 5, 10, 20",
-  "adminComplete": "Compléter",
   "adminSearchUserHint": "Rechercher un utilisateur...",
-  "adminNoActivityRecorded": "Aucune activité enregistrée",
   "adminUserActivityTitle": "Activité de {name}",
-  "@adminUserActivityTitle": {"placeholders": {"name": {"type": "String"}}},
-  "close": "Fermer",
-  "adminNoUsersFound": "Aucun utilisateur trouvé",
+  "@adminUserActivityTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminChangeTo": "Changer en {role}",
-  "@adminChangeTo": {"placeholders": {"role": {"type": "String"}}},
-  "adminChangeRole": "Changer le rôle",
-  "adminRevokeAccess": "Révoquer l'accès admin",
+  "@adminChangeTo": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "revoke": "Révoquer",
   "refresh": "Actualiser",
   "adminRoleManagementTitle": "Gestion des Rôles Admin",
   "adminRoleManagementSubtitle": "Attribuez et gérez les rôles des administrateurs",
   "adminNoAdminsConfigured": "Aucun administrateur configuré",
   "noName": "Sans nom",
-  "lastLoginAt": "Dernière connexion: {date}",
-  "@lastLoginAt": {"placeholders": {"date": {"type": "String"}}},
+  "lastLoginAt": "Dernière connexion: {lastLogin}",
+  "@lastLoginAt": {
+    "placeholders": {
+      "lastLogin": {
+        "type": "String"
+      }
+    }
+  },
   "adminChangeRoleConfirm": "Voulez-vous changer le rôle de {name} de {oldRole} à {newRole}?",
-  "@adminChangeRoleConfirm": {"placeholders": {"name": {"type": "String"}, "oldRole": {"type": "String"}, "newRole": {"type": "String"}}},
+  "@adminChangeRoleConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "oldRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
   "adminRevokeAccessConfirm": "Voulez-vous vraiment révoquer l'accès admin de {name}? Cette personne ne pourra plus accéder au panneau d'administration.",
-  "@adminRevokeAccessConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@adminRevokeAccessConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "groupsCount": "Groupes ({count})",
-  "@groupsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@groupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupLabel": "Groupe",
   "refund": "Rembourser",
   "adminFeesPercentageLabel": "Pourcentage des frais",
@@ -5017,7 +5055,13 @@
   "adminMaxCommissionLabel": "Commission max (XOF)",
   "adminMaxDimensionLabel": "Dimension max (px)",
   "adminUserActivityTitleParam": "Activité de {name}",
-  "@adminUserActivityTitleParam": {"placeholders": {"name": {"type": "String"}}},
+  "@adminUserActivityTitleParam": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "myReports": "Mes signalements",
   "myReportsSubtitle": "Voir l'historique de vos signalements",
   "calls": "Appels",
@@ -5046,9 +5090,7 @@
   "deviceNameLabel": "Nom de l'appareil",
   "renameDeviceTitle": "Renommer l'appareil",
   "searchCurrency": "Rechercher une devise...",
-  "delete": "Supprimer",
   "restoreKeys": "Restaurer les clés",
-  "ok": "OK",
   "tags": "Tags",
   "requestToJoin": "Demander à rejoindre",
   "podcastsCancel": "Annuler",
@@ -5063,9 +5105,21 @@
   "tryModifyingFilters": "Essayez de modifier les filtres",
   "addFirstRecipient": "Ajoutez votre premier bénéficiaire",
   "confirmDeleteRecipient": "Êtes-vous sûr de vouloir supprimer {name}?",
-  "@confirmDeleteRecipient": {"placeholders": {"name": {"type": "String"}}},
+  "@confirmDeleteRecipient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recipientDeletedSuccess": "{name} a été supprimé",
-  "@recipientDeletedSuccess": {"placeholders": {"name": {"type": "String"}}},
+  "@recipientDeletedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "removeFromFavorites": "Retirer des favoris",
   "confirmDeleteTitle": "Confirmer la suppression",
   "amountSent": "Montant envoyé",
@@ -5090,7 +5144,13 @@
   "clearAll": "Tout effacer",
   "unknownDate": "Date inconnue",
   "reviewedOn": "Traité le {date}",
-  "@reviewedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@reviewedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "unknownRecipient": "Bénéficiaire inconnu",
   "noTransferFound": "Aucun transfert trouvé",
   "noTransferCompleted": "Aucun transfert effectué",
@@ -5103,39 +5163,41 @@
   "last30Days": "30 derniers jours",
   "last3Months": "3 derniers mois",
   "choosePeriod": "Choisir la période",
-  "accessDenied": "Accès Refusé",
-  "insufficientPermissionMessage": "Vous n'avez pas la permission d'accéder à cette page.",
-  "goBack": "Retour",
   "applyFilters": "Appliquer les filtres",
   "statusDebiting": "Débit en cours",
   "statusSending": "Envoi en cours",
   "statusRefunding": "Remboursement",
-  "connectedDevices": "Appareils connectés",
   "noDeviceRegistered": "Aucun appareil enregistré",
   "devicesE2eeWillAppear": "Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.",
   "rename": "Renommer",
   "revokeDeviceQuestion": "Révoquer l'appareil ?",
   "revokeDeviceConfirmMessage": "Voulez-vous vraiment révoquer l'accès de \"{deviceName}\" ?",
-  "@revokeDeviceConfirmMessage": {"placeholders": {"deviceName": {"type": "String"}}},
+  "@revokeDeviceConfirmMessage": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
   "deviceRenameSuccess": "Appareil renommé",
   "deviceRenameError": "Erreur lors du renommage",
   "restoreOnThisDevice": "Restaurer sur cet appareil",
   "enterPassphraseToRestore": "Entrez votre passphrase pour restaurer vos clés:",
   "createABackup": "Créer une sauvegarde",
-  "createBackupButton": "Créer la sauvegarde",
+  "createBackupButton": "Créer une sauvegarde",
   "confirmPassphraseLabel": "Confirmer la passphrase",
   "passphraseCopied": "Passphrase copiée",
-  "whatsApp": "WhatsApp",
-  "facebook": "Facebook",
   "xTwitter": "X",
   "more": "Plus",
   "travelMode": "Mode Voyage",
   "codeSentTo": "Code envoyé au {phoneNumber}",
-  "@codeSentTo": {"placeholders": {"phoneNumber": {"type": "String"}}},
-  "selectionError": "Erreur lors de la sélection: {error}",
-  "@selectionError": {"placeholders": {"error": {"type": "String"}}},
-  "errorGeneric": "Erreur: {error}",
-  "@errorGeneric": {"placeholders": {"error": {"type": "String"}}},
+  "@codeSentTo": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
   "addParticipant": "Ajouter un participant",
   "addToCall": "Ajouter à l'appel",
   "convertingToGroupCall": "Conversion en appel de groupe...",
@@ -5145,18 +5207,28 @@
   "recentConversations": "Conversations récentes",
   "callConvertedToGroup": "Converti en appel de groupe",
   "participantBusy": "{name} est en appel",
-  "@participantBusy": {"placeholders": {"name": {"type": "String"}}},
+  "@participantBusy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "conversionFailed": "Échec de l'ajout du participant",
-
   "slideToCancel": "Annuler",
   "releaseToCancel": "Annuler",
   "recordingLocked": "Enregistrement verrouillé",
   "releaseToLock": "Relâchez pour verrouiller",
   "slideUpToLock": "Glissez vers le haut",
   "timeRemaining": "Temps restant: {time}",
-  "@timeRemaining": {"placeholders": {"time": {"type": "String"}}},
+  "@timeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "lock": "Verrouiller",
-
   "localEvents": "Événements locaux",
   "localEventsSubtitle": "Recevoir des notifications pour les nouveaux événements dans ma ville",
   "systemMessages": "Messages système",
@@ -5164,20 +5236,33 @@
   "confidentiality": "Confidentialité",
   "messagePreview": "Aperçu des messages",
   "messagePreviewSubtitle": "Afficher le contenu des messages dans les notifications",
-
   "onlineStatus": "En ligne",
   "seenAgo": "Vu {ago}",
-  "@seenAgo": {"placeholders": {"ago": {"type": "String"}}},
+  "@seenAgo": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
   "offline": "Hors ligne",
-  "userNotConnected": "Utilisateur non connecté",
   "discoverProfile": "Découvrez mon profil sur Diaspo Niger: {link}",
-  "@discoverProfile": {"placeholders": {"link": {"type": "String"}}},
+  "@discoverProfile": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
   "profileOf": "Profil de {name}",
-  "@profileOf": {"placeholders": {"name": {"type": "String"}}},
+  "@profileOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unableToGenerateLink": "Impossible de générer le lien de partage",
-  "profileNotFound": "Profil introuvable. Veuillez redémarrer l'application."
-,
-
   "profileSendFriendRequest": "Envoyer une demande d'ami",
   "profileFriendRequestSent": "Demande d'ami envoyée",
   "profileFriendRequestFailed": "Échec de l'envoi",
@@ -5188,21 +5273,27 @@
   "profileShowOnlineStatus": "Afficher mon statut en ligne",
   "profileReport": "Signaler",
   "profileSettings": "Paramètres",
-  "profileSendingRequest": "Envoi en cours..."
-,
-
+  "profileSendingRequest": "Envoi en cours...",
   "profileTravelModeSubtitle": "Permettre la localisation même quand l'application est fermée (Mise à jour toutes les 5 min)",
   "profileShowOnlineStatusSubtitle": "Permet de voir et d'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.",
   "profileUpdateError": "Erreur lors de la mise à jour: {error}",
-  "@profileUpdateError": {"placeholders": {"error": {"type": "String"}}},
+  "@profileUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "profileLoadingText": "Chargement...",
-  "profileLoadError": "Erreur de chargement"
-,
-
+  "profileLoadError": "Erreur de chargement",
   "conversationYouPrefix": "Vous: {message}",
-  "@conversationYouPrefix": {"placeholders": {"message": {"type": "String"}}}
-,
-
+  "@conversationYouPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "emojis": "Emojis",
   "gifs": "GIFs",
   "searchGifs": "Rechercher des GIFs",
@@ -5236,7 +5327,6 @@
   "noStickerPacks": "Aucun pack de stickers",
   "officialPacks": "Packs officiels",
   "communityPacks": "Packs de la communauté",
-
   "serviceFeed": "Fil d'actualité",
   "feedTitle": "Fil d'actualité",
   "feedEmpty": "Aucune publication pour le moment.\nSoyez le premier à partager !",
@@ -5303,26 +5393,56 @@
   "publishSuccess": "Publication créée avec succès",
   "publishError": "Erreur lors de la publication",
   "followers": "{count} abonnés",
-  "@followers": {"placeholders": {"count": {"type": "int"}}},
+  "@followers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "following": "{count} abonnements",
-  "@following": {"placeholders": {"count": {"type": "int"}}},
+  "@following": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "postLikes": "{count} j'aime",
-  "@postLikes": {"placeholders": {"count": {"type": "int"}}},
+  "@postLikes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "postComments": "{count} commentaire(s)",
-  "@postComments": {"placeholders": {"count": {"type": "int"}}},
+  "@postComments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mentionSuggestionHint": "Mentionner un membre",
   "mentionNotificationTitle": "Vous avez été mentionné",
   "mentionNotificationBody": "{senderName} vous a mentionné dans {groupName}",
   "@mentionNotificationBody": {
     "placeholders": {
-      "senderName": {"type": "String"},
-      "groupName": {"type": "String"}
+      "senderName": {
+        "type": "String"
+      },
+      "groupName": {
+        "type": "String"
+      }
     }
   },
   "mentionedBy": "Mentionné par {name}",
   "@mentionedBy": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "loadingEllipsis": "Chargement...",
@@ -5343,7 +5463,13 @@
   "changeRole": "Changer le rôle",
   "revokeAccess": "Révoquer l'accès",
   "exportInProgress": "Export de {type} en cours...",
-  "@exportInProgress": {"placeholders": {"type": {"type": "String"}}},
+  "@exportInProgress": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "embassyCreated": "Ambassade créée avec succès !",
   "createEmbassy": "Créer une ambassade",
   "joinAction": "Rejoindre",
@@ -5363,12 +5489,30 @@
   "confirmSending": "Confirmer l'envoi",
   "aboutToSend": "Vous êtes sur le point d'envoyer une notification à :",
   "messageLabel": "Message : {message}",
-  "@messageLabel": {"placeholders": {"message": {"type": "String"}}},
+  "@messageLabel": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "searchBy": "Rechercher par nom, raison, ID...",
   "viewTheItem": "Voir le {item}",
-  "@viewTheItem": {"placeholders": {"item": {"type": "String"}}},
+  "@viewTheItem": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "changeToRole": "Passer à {role}",
-  "@changeToRole": {"placeholders": {"role": {"type": "String"}}},
+  "@changeToRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "revokeAdminAccess": "Révoquer l'accès administrateur",
   "revokeAction": "Révoquer",
   "feesUpdated": "Frais mis à jour",
@@ -5403,29 +5547,77 @@
   "noUserFound": "Aucun utilisateur trouvé",
   "noActivityRecorded": "Aucune activité enregistrée",
   "activityOf": "Activité de {name}",
-  "@activityOf": {"placeholders": {"name": {"type": "String"}}},
+  "@activityOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "confirmLogoutTitle": "Confirmer la déconnexion",
   "disconnect": "Déconnecter",
   "publicGroup": "Public",
   "embassyApproved": "Ambassade {name} approuvée",
-  "@embassyApproved": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyRejected": "Ambassade {name} rejetée",
-  "@embassyRejected": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassySuspended": "Ambassade {name} suspendue",
-  "@embassySuspended": {"placeholders": {"name": {"type": "String"}}},
+  "@embassySuspended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyReactivated": "Ambassade {name} réactivée",
-  "@embassyReactivated": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyReactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rejectRequest": "Rejeter la demande",
   "featureFlagsUpdated": "Drapeaux de fonctionnalités mis à jour",
   "maintenanceMessage": "Ex : Application en maintenance...",
   "signInWithGoogle": "Se connecter avec Google",
   "loginButton": "Connexion",
   "products": "Produits ({count})",
-  "@products": {"placeholders": {"count": {"type": "int"}}},
+  "@products": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "orders": "Commandes ({count})",
-  "@orders": {"placeholders": {"count": {"type": "int"}}},
+  "@orders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "disputes": "Litiges ({count})",
-  "@disputes": {"placeholders": {"count": {"type": "int"}}},
+  "@disputes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendButton": "Envoyer",
   "emailAddress": "Adresse email",
   "emailPlaceholder": "utilisateur@example.com",
@@ -5450,7 +5642,16 @@
   "imageLimitReached": "Limite de 5 affiches atteinte",
   "photoLimitReached": "Limite de 10 photos atteinte",
   "addPhotos": "Ajouter des photos ({current}/{max})",
-  "@addPhotos": {"placeholders": {"current": {"type": "int"}, "max": {"type": "int"}}},
+  "@addPhotos": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "requestSubmitted": "Demande soumise avec succès !",
   "exampleRequest": "Ex : Demande concernant le passeport",
   "describeRequest": "Décrivez votre demande en détail...",
@@ -5472,7 +5673,13 @@
   "customRate": "Taux personnalisé (%)",
   "rateExample": "Ex : 15",
   "tax": "TVA ({rate}%)",
-  "@tax": {"placeholders": {"rate": {"type": "String"}}},
+  "@tax": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "titlePlaceholder": "Ex : iPhone 13 Pro Max",
   "descriptionPlaceholder": "Décrivez votre produit...",
   "quantity": "Quantité",
@@ -5502,7 +5709,13 @@
   "likes": "J'aime",
   "sleepTimerEnded": "Minuteur de sommeil terminé",
   "timerMinutes": "Minuteur : {minutes} minutes",
-  "@timerMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "@timerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "episodeTitle": "Titre de l'épisode *",
   "episodeDescription": "Description / Notes",
   "reservedForSubscribers": "Réservé aux abonnés payants",
@@ -5512,7 +5725,13 @@
   "episodeTitlePlaceholder": "Titre de l'épisode",
   "episodeDescriptionPlaceholder": "Description de l'épisode (optionnel)",
   "codeSent": "Code envoyé à {phone}",
-  "@codeSent": {"placeholders": {"phone": {"type": "String"}}},
+  "@codeSent": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "describeIssue": "Décrivez le problème...",
   "connectedDevicesTitle": "Appareils connectés",
   "backupKeys": "Sauvegarde des clés",
@@ -5526,11 +5745,23 @@
   "newRecipient": "Nouveau",
   "deleteRecipientQuestion": "Supprimer le destinataire ?",
   "deleteRecipientConfirm": "Voulez-vous supprimer {name} ?",
-  "@deleteRecipientConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteRecipientConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "deleteQuestion": "Supprimer ?",
   "sendMoney": "Envoyer de l'argent",
   "deleteConfirm": "Supprimer {name} ?",
-  "@deleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "retryTransfer": "Réessayer le transfert",
   "contactSupport": "Contacter le support",
   "debitInProgress": "Débit en cours",
@@ -5546,9 +5777,24 @@
   "chatNotAvailable": "Chat non disponible pour le moment",
   "sendMoneyButton": "Envoyer de l'argent",
   "applicationError": "Erreur lors de l'application : {error}",
-  "@applicationError": {"placeholders": {"error": {"type": "String"}}},
+  "@applicationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "helperText": "Min : {min} XOF - Max : {max} XOF",
-  "@helperText": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
+  "@helperText": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "tales": "Contes",
   "proverbs": "Proverbes",
   "ceremonies": "Cérémonies",
@@ -5564,33 +5810,88 @@
   "forYouTab": "Pour toi",
   "followingTab": "Suivis",
   "recentTab": "Récent",
-  "errorWithDetails": "Erreur : {error}",
-  "@errorWithDetails": {"placeholders": {"error": {"type": "String"}}},
   "audioRoomsAvailableCount": "{count} salons disponibles",
-  "@audioRoomsAvailableCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsLiveTabLabel": "Live ({count})",
-  "@audioRoomsLiveTabLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsLiveTabLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsScheduledTabLabel": "Programmés ({count})",
-  "@audioRoomsScheduledTabLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsScheduledTabLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsNoLiveRooms": "Aucun salon live",
   "audioRoomsNoLiveSubtitle": "Soyez le premier à démarrer",
   "audioRoomsNoScheduledRooms": "Aucun salon programmé",
   "audioRoomsNoScheduledSubtitle": "Planifiez une session",
   "audioRoomsLiveListeners": "LIVE · {count} auditeurs",
-  "@audioRoomsLiveListeners": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsLiveListeners": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsRegisteredCount": "{count} inscrits",
-  "@audioRoomsRegisteredCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsScheduleButton": "Programmer",
   "audioRoomConnecting": "Connexion en cours…",
   "audioRoomDefaultTitle": "Salon audio",
   "audioRoomParticipantsOnStage": "Sur scène · {count}/{max}",
-  "@audioRoomParticipantsOnStage": {"placeholders": {"count": {"type": "int"}, "max": {"type": "int"}}},
+  "@audioRoomParticipantsOnStage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomListenersCount": "Auditeurs · {count}",
-  "@audioRoomListenersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomListenersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomHandsRaisedCount": "{count} mains levées",
-  "@audioRoomHandsRaisedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomHandsRaisedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomHandsRaisedSection": "Mains levées · {count}",
-  "@audioRoomHandsRaisedSection": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomHandsRaisedSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomEndConfirmTitle": "Terminer le salon ?",
   "audioRoomEndConfirmMessage": "Tous les participants seront déconnectés.",
   "audioRoomGhostMode": "Mode fantôme · admin invisible",
@@ -5598,7 +5899,6 @@
   "audioRoomModerators": "Modérateurs",
   "audioRoomMuteLabel": "Muet",
   "audioRoomActiveLabel": "Activé",
-  "audioRoomSettingsLabel": "Réglages",
   "audioRoomStatsLabel": "Stats",
   "audioRoomCameraLabel": "Caméra",
   "audioRoomHandLabel": "Main",
@@ -5643,7 +5943,9 @@
   "adminDisconnectDevicesConfirm": "Voulez-vous vraiment déconnecter {userName} de tous ses appareils ?",
   "@adminDisconnectDevicesConfirm": {
     "placeholders": {
-      "userName": { "type": "String" }
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "adminNotConnectedError": "Erreur: Admin non connecté",
@@ -5651,12 +5953,6 @@
   "adminUsersDesc": "Gérez les comptes utilisateurs et les sessions",
   "neverConnected": "Jamais",
   "noEmail": "Pas d'email",
-  "lastLoginAt": "Dernière connexion: {lastLogin}",
-  "@lastLoginAt": {
-    "placeholders": {
-      "lastLogin": { "type": "String" }
-    }
-  },
   "adminRoleLabel": "Admin",
   "bannedLabel": "Banni",
   "userDefault": "Utilisateur",
@@ -5675,7 +5971,9 @@
   "adminMaxValueConstraint": "Max: {max}",
   "@adminMaxValueConstraint": {
     "placeholders": {
-      "max": { "type": "int" }
+      "max": {
+        "type": "int"
+      }
     }
   },
   "adminUrlsAndContactTitle": "URLs & Contact",
@@ -5716,7 +6014,6 @@
   "audioRoomEnableFundraising": "Activer une collecte",
   "audioRoomFundraisingGoal": "Objectif (€)",
   "audioRoomBeneficiary": "Bénéficiaire",
-  "audioRoomHeritageContent": "Contenu patrimoine",
   "audioRoomLinkedTo": "Lié à",
   "audioRoomEmbassyLink": "Ambassade",
   "selectVideoFirst": "Veuillez sélectionner une vidéo",
@@ -5748,7 +6045,6 @@
   "laterButton": "Plus tard",
   "bankNameHint": "Ex: BCEAO, Ecobank...",
   "ibanHint": "NEXX XXXX XXXX XXXX",
-
   "adTransferTitle": "Envoyez de l'argent au Niger",
   "adTransferSubtitle": "Transferts rapides et sécurisés vers vos proches",
   "adTransferCta": "Envoyer maintenant",
@@ -5761,7 +6057,6 @@
   "adAudioRoomsTitle": "Salons audio en direct",
   "adAudioRoomsSubtitle": "Rejoignez des discussions en temps réel",
   "adAudioRoomsCta": "Voir les salons",
-
   "notifGroupOrders": "Commandes",
   "notifGroupProximity": "Alertes proximité",
   "notifGroupCalls": "Appels",
@@ -5770,18 +6065,38 @@
   "notifGroupTransfers": "Transferts",
   "notifGroupAll": "Notifications",
   "notifNewMessagesCount": "{count} nouveaux messages",
+  "@notifNewMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notifMessagesFrom": "{count} messages de {conversations} conversations",
+  "@notifMessagesFrom": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "conversations": {
+        "type": "int"
+      }
+    }
+  },
   "notifFriendRequestsCount": "{count} demandes d'ami",
+  "@notifFriendRequestsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notifNow": "maintenant",
-
   "imageSaved": "Image enregistrée",
   "saveFailed": "Échec de l'enregistrement",
   "videoSaved": "Vidéo enregistrée",
-  "messageDeleted": "Message supprimé",
-
   "embassiesFoundCount": "{count} ambassade(s) trouvée(s)",
   "embassiesHelperText": "Les ambassades et consulats disponibles apparaîtront ici.",
-
   "startNowLabel": "Démarrer maintenant",
   "recipientReceives": "{name} reçoit",
   "configCompleteLabel": "configuration complète",
@@ -5790,8 +6105,6 @@
   "sessionRecorded": "Session enregistrée",
   "incompleteStripeConfig": "Configuration incomplète. Complétez votre profil Stripe.",
   "userNotLoggedIn": "Utilisateur non connecté",
-
-  "adminErrorNotConnected": "Erreur: Admin non connecté",
   "adminBanUserTitle": "Bannir l'utilisateur",
   "adminBanReasonLabel": "Raison du bannissement:",
   "adminUserBanned": "Utilisateur banni",
@@ -5826,19 +6139,11 @@
   "adminDeleteProductConfirm": "Êtes-vous sûr de vouloir supprimer ce produit ?",
   "adminProductDeleted": "Produit supprimé",
   "adminResolveDisputeTitle": "Résoudre le litige",
-  "adminResolutionNoteLabel": "Note de résolution:",
   "adminDisputeResolved": "Litige résolu",
-  "adminCancelEventTitle": "Annuler l'événement",
   "adminCancelEventConfirm": "Êtes-vous sûr de vouloir annuler cet événement ?",
-  "adminEventCancelled": "Événement annulé",
-  "adminDeleteEventTitle": "Supprimer l'événement",
   "adminDeleteEventConfirm": "Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.",
-  "adminEventDeleted": "Événement supprimé",
-  "adminGroupPublic": "Groupe rendu public",
-  "adminGroupPrivate": "Groupe rendu privé",
   "adminDeleteGroupTitle": "Supprimer le groupe",
   "adminDeleteGroupConfirm": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.",
-  "adminGroupDeleted": "Groupe supprimé",
   "adminTransactionFailReasonLabel": "Raison de l'échec:",
   "adminTransactionFailed": "Transaction marquée comme échouée",
   "adminMarkCompleteTitle": "Marquer comme complétée",
@@ -5848,7 +6153,6 @@
   "adminTransactionRefunded": "Transaction remboursée",
   "adminUnknownAdmin": "Admin inconnu",
   "adminUnknownDate": "Date inconnue",
-  "adminLoadingError": "Erreur de chargement",
   "adminEventByOrganizer": "Événement par {id}",
   "adminEventsTab": "Événements ({count})",
   "adminAvailable": "Disponible",
@@ -5858,7 +6162,6 @@
   "adminDisputeId": "Litige #{id}",
   "adminDisputeReasonLabel": "Raison: {reason}",
   "adminReasonUnspecified": "Non spécifiée",
-  "adminContentDeleted": "Contenu supprimé",
   "adminAmountHeader": "Montant",
   "adminAmountXofHeader": "Montant en XOF",
   "adminFailReasonHeader": "Raison échec",
@@ -5868,31 +6171,23 @@
   "adminMaxDurationLabel": "Duree max (minutes)",
   "adminPredefinedTipsTitle": "Montants de tips predefinis",
   "adminPredefinedTipsSubtitle": "Separes par virgule (en unites, pas en centimes)",
-
   "wifiAndMobileData": "WiFi et données mobiles",
   "wifiOnly": "WiFi uniquement",
   "autoDownloads": "Téléchargements automatiques",
-
   "passphraseMinLength": "La passphrase doit contenir au moins 8 caractères",
   "backupCreatedSuccess": "Sauvegarde créée avec succès",
   "backupCreateError": "Erreur lors de la création de la sauvegarde: {error}",
   "keysRestoredSuccess": "Clés restaurées avec succès",
-  "noBackupFound": "Aucune sauvegarde trouvée",
   "backupCreatedOn": "Créée le: {date}",
-  "createBackupButton": "Créer une sauvegarde",
-  "passphraseCopied": "Passphrase copiée",
   "passphraseRequiredNote": "Sans elle, vos clés ne pourront pas être restaurées.",
-
   "minTipAmountError": "Montant minimum: {amount} {currency}",
   "maxTipAmountError": "Montant maximum: {amount} {currency}",
-
   "ghostSuperAdminBadge": "GHOST · SuperAdmin",
   "ghostInvisibleNotice": "Vous êtes invisible. Actions loggées.",
   "ghostActionsTitle": "ACTIONS GHOST",
   "ghostMuteSilent": "Muet silencieux",
   "ghostExclude": "Exclure",
   "ghostBlockGlobal": "Bloquer global",
-
   "payoutHistoryTitle": "Historique des retraits",
   "noWithdrawalsYet": "Aucun retrait effectué",
   "availableBalance": "Solde disponible",
@@ -5905,7 +6200,6 @@
   "createStripePrompt": "Créez un compte Stripe Connect pour recevoir vos paiements.",
   "continueSetupButton": "Continuer la configuration",
   "createStripeButton": "Créer un compte Stripe",
-
   "podcastCoverLabel": "Couverture",
   "podcastVisibilityLabel": "Visibilité",
   "podcastFollowersVisibility": "Abonnés",
@@ -5914,11 +6208,8 @@
   "podcastVideoProcessing": "Traitement vidéo en cours…",
   "podcastEpisodeTitleLabel": "Titre de l'épisode",
   "podcastAiChaptersLabel": "Chapitres détectés par IA",
-
   "scheduleRoomCaveat": "Affiché à chaque membre dans son fuseau local lors du rappel.",
-
   "filesLabel": "Fichiers",
-
   "embassyFormIntro": "Remplissez ce formulaire pour créer une nouvelle ambassade. La demande sera vérifiée avant publication.",
   "embassyBasicInfoSection": "Informations de base",
   "embassySelectType": "Sélectionnez le type d'établissement",
@@ -5943,7 +6234,6 @@
   "embassyHoursHint": "Ex: 09:00 - 17:00 ou Fermé",
   "embassyCreateButton": "Créer l'ambassade",
   "emailInvalidError": "Email invalide",
-
   "adminDemoted": "Rétrogradé",
   "adminPrivacyChanged": "Confidentialité modifiée",
   "adminReportResolved": "Signalement résolu",
@@ -5954,7 +6244,6 @@
   "adminForceLogoutAction": "Déconnexion forcée",
   "adminAuditEmptyState": "Les actions des administrateurs apparaîtront ici",
   "adminDetailsLabel": "Détails:",
-
   "adminTransferMonitoringTitle": "Monitoring Transferts",
   "adminTransferMonitoringSubtitle": "Suivi des transactions et volumes en temps réel",
   "adminTransferVolume": "Volume des Transferts",
@@ -5975,7 +6264,6 @@
   "adminTransactionSending": "Envoi en cours",
   "adminTransactionCompletedLabel": "Complétée",
   "adminTransactionRefunding": "Remboursement",
-  "adminPendingLabel": "En attente",
   "adminActiveLabel": "Actives",
   "adminSuspendedLabel": "Suspendues",
   "adminSuspendedStatus": "Suspendue",
@@ -6022,7 +6310,6 @@
   "stickerFavoritesLoadError": "Erreur de chargement des favoris",
   "stickerPackEmpty": "Aucun sticker dans ce pack",
   "priceConvertedFrom": "Converti depuis {currency}",
-
   "onboardingWelcomeTitle": "Bienvenue sur\nDiaspo Niger",
   "onboardingWelcomeDesc": "Connectez-vous avec la diaspora nigérienne partout dans le monde. Retrouvez vos compatriotes et partagez ensemble.",
   "onboardingDiscoverTitle": "Découvrez les membres",
@@ -6058,7 +6345,6 @@
   "reportMessageSubtitle": "Signaler ce message aux administrateurs",
   "reportMotifLabel": "Motif du signalement :",
   "violenceThreats": "Violence ou menaces",
-
   "disable": "Désactiver",
   "noProductFound": "Aucun produit trouvé",
   "comingSoonShort": "Bientôt disponible",
@@ -6080,27 +6366,59 @@
   "categoryRealEstate": "Immobilier",
   "categoryOther": "Standard (autres)",
   "callDeleteError": "Erreur lors de la suppression",
-
   "typingOneName": "{name} écrit...",
-  "@typingOneName": { "placeholders": { "name": { "type": "String" } } },
+  "@typingOneName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "typingTwoNames": "{name1} et {name2} écrivent...",
-  "@typingTwoNames": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@typingTwoNames": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "typingManyNames": "{name} et {count} autres écrivent...",
-  "@typingManyNames": { "placeholders": { "name": { "type": "String" }, "count": { "type": "int" } } },
+  "@typingManyNames": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "typingSomeone": "Quelqu'un écrit...",
   "typingManyPeople": "{count} personnes écrivent...",
-  "@typingManyPeople": { "placeholders": { "count": { "type": "int" } } },
-
+  "@typingManyPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageTypePhoto": "📷 Photo",
   "messageTypeVideo": "🎥 Vidéo",
-  "messageTypeAudio": "🎵 Audio",
   "messageTypeFile": "📄 Document",
   "messageTypeCall": "📞 Appel",
   "messageTypeLocation": "📍 Position",
   "messageTypeSticker": "🎭 Sticker",
-
   "reportContentTitle": "Signaler {target}",
-  "@reportContentTitle": { "placeholders": { "target": { "type": "String" } } },
+  "@reportContentTitle": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "reportTargetUser": "cet utilisateur",
   "reportTargetMessage": "ce message",
   "reportTargetConversation": "cette conversation",
@@ -6123,21 +6441,37 @@
   "reportReasonScam": "Arnaque",
   "reportReasonImpersonation": "Usurpation d'identité",
   "reportReasonOther": "Autre",
-
   "maintenanceInProgress": "Maintenance en cours",
   "maintenanceDefaultMessage": "L'application est temporairement indisponible pour maintenance. Veuillez réessayer plus tard.",
   "maintenanceImprovingExperience": "Nous travaillons pour améliorer votre expérience.",
-
   "phoneVerifTitle": "Vérification du numéro",
   "phoneVerifEnterCodeHint": "Entrez le code envoyé au\n{phone}",
-  "@phoneVerifEnterCodeHint": { "placeholders": { "phone": { "type": "String" } } },
+  "@phoneVerifEnterCodeHint": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "phoneVerifSendCodeHint": "Nous allons envoyer un code de vérification au\n{phone}",
-  "@phoneVerifSendCodeHint": { "placeholders": { "phone": { "type": "String" } } },
+  "@phoneVerifSendCodeHint": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "sendCode": "Envoyer le code",
   "verify": "Vérifier",
   "resendCode": "Renvoyer le code",
   "resendCodeIn": "Renvoyer dans {seconds}s",
-  "@resendCodeIn": { "placeholders": { "seconds": { "type": "int" } } },
+  "@resendCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "phoneVerifSendError": "Erreur lors de l'envoi du code",
   "phoneVerifEnterComplete": "Veuillez entrer le code complet",
   "phoneVerifResendRequired": "Erreur de vérification. Veuillez renvoyer le code.",
@@ -6157,7 +6491,9 @@
   "invitedByName": "Invité par {name}",
   "@invitedByName": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "noInvitationsReceived": "Aucune invitation en attente",
@@ -6172,21 +6508,197 @@
   "exploreFeed": "Explorer le feed",
   "posts": "posts",
   "postSingle": "post",
-
   "shareToConversation": "Envoyer à...",
   "sharedFromAnotherApp": "Partagé depuis une autre app",
   "sharedContentSent": "Contenu partagé avec succès",
   "someSharedContentNotSent": "Certains éléments n'ont pas pu être partagés",
   "sharedFileCount": "+{count} fichier{count, plural, =1{} other{s}}",
   "@sharedFileCount": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "sharedTextCount": "1 texte",
-
   "exportConversation": "Exporter la conversation",
   "exportFormatTxt": "Texte (.txt)",
   "exportFormatJson": "JSON (.json)",
   "exportFormatHtml": "HTML (.html)",
   "noMessagesToExport": "Aucun message à exporter",
-  "exportError": "Erreur lors de l'export"
+  "exportError": "Erreur lors de l'export",
+  "@embassiesFoundCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@recipientReceives": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCertifyConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRevokeCertConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDisconnectedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminEventByOrganizer": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminEventsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminDisputeId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDisputeReasonLabel": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@backupCreateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@backupCreatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@minTipAmountError": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "@maxTipAmountError": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminFailedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCompletedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminProcessedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminAdminsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminBannedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminActiveTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminSuspendedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminLastLogin": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminBanReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@priceConvertedFrom": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "@deleteContentIrreversibleDesc": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

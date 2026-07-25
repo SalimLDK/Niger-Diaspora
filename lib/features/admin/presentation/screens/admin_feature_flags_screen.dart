@@ -326,7 +326,7 @@ class _AdminFeatureFlagsScreenState
                 scale: 1.2,
                 child: Switch(
                   value: _flags.maintenanceMode,
-                  activeColor: Colors.red,
+                  activeThumbColor: Colors.red,
                   activeTrackColor: Colors.red.shade200,
                   onChanged: (value) {
                     _updateFlag(_flags.copyWith(maintenanceMode: value));
@@ -563,7 +563,7 @@ class _AdminFeatureFlagsScreenState
             scale: 1.1,
             child: Switch(
               value: value,
-              activeColor: color,
+              activeThumbColor: color,
               activeTrackColor: color.withValues(alpha: 0.3),
               onChanged: onChanged,
             ),

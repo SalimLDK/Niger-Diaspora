@@ -7,6 +7,7 @@ abstract class BlockedUsersDataSource {
   Stream<List<BlockedUserModel>> getBlockedUsers(String userId);
   Future<void> blockUser(String currentUserId, String targetUserId, String targetDisplayName, String? targetPhotoUrl);
   Future<void> unblockUser(String currentUserId, String targetUserId);
+  Future<bool> checkBlockStatus(String currentUserId, String targetUserId);
 }
 
 class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
@@ -107,6 +108,21 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
       await batch.commit();
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du déblocage');
+    }
+  }
+
+  @override
+  Future<bool> checkBlockStatus(String currentUserId, String targetUserId) async {
+    try {
+      final doc = await _firestore
+          .collection(FirebaseCollections.users)
+          .doc(currentUserId)
+          .collection('blocked_users')
+          .doc(targetUserId)
+          .get();
+      return doc.exists;
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors de la vérification du blocage');
     }
   }
 }

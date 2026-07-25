@@ -166,7 +166,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<EmbassyMessageType>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -530,24 +530,21 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     );
 
     if (confirm == true) {
-      final result = await ref
+      final success = await ref
           .read(groupDetailNotifierProvider.notifier)
           .leaveGroup(groupId, currentUser.id);
 
-      if (result.isCreator) {
-        // Le créateur doit d'abord transférer la propriété
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.creatorMustTransferOwnership)),
-          );
-        }
-      } else if (result.success) {
+      if (success) {
         _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(l10n.groupLeft)));
         }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.creatorMustTransferOwnership)),
+        );
       }
     }
   }

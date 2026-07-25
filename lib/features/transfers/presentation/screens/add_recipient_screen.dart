@@ -314,7 +314,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
 
   Widget _buildMobileWalletFields() {
     return DropdownButtonFormField<String>(
-      value: _selectedMobileProvider,
+      initialValue: _selectedMobileProvider,
       decoration: const InputDecoration(
         labelText: 'Operateur mobile *',
         prefixIcon: Icon(Icons.sim_card_outlined),
@@ -341,7 +341,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     return Column(
       children: [
         DropdownButtonFormField<String>(
-          value:
+          initialValue:
               _bankNameController.text.isEmpty
                   ? null
                   : _bankNameController.text,
@@ -426,7 +426,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          value: _cityController.text.isEmpty ? null : _cityController.text,
+          initialValue: _cityController.text.isEmpty ? null : _cityController.text,
           decoration: const InputDecoration(
             labelText: 'Ville',
             prefixIcon: Icon(Icons.location_city_outlined),

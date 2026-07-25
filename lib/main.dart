@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -9,6 +11,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'core/constants/app_config.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/google_maps_service.dart';
@@ -24,6 +27,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
 
+  // Load .env file if present (development configuration)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // .env may be absent in CI or production builds using --dart-define
+  }
+
   // Initialize Firebase
   try {
     if (Firebase.apps.isEmpty) {
@@ -33,6 +43,22 @@ void main() async {
     }
   } catch (e) {
     // debugPrint('Firebase already initialized: $e');
+  }
+
+  // Initialize Supabase if configured
+  if (AppConfig.isSupabaseConfigured) {
+    try {
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        publishableKey: AppConfig.supabaseAnonKey,
+      );
+    } catch (e) {
+      debugPrint('Supabase initialization failed: $e');
+    }
+  } else {
+    debugPrint(
+      'Supabase not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY via .env or --dart-define.',
+    );
   }
 
   // Initialize preferences service FIRST

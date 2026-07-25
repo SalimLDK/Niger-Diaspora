@@ -41,6 +41,10 @@ mixin _$EventEntity {
   List<String> get recapPhotoUrls => throw _privateConstructorUsedError;
   String? get recapDescription => throw _privateConstructorUsedError;
   DateTime? get recapCreatedAt => throw _privateConstructorUsedError;
+  String? get groupId => throw _privateConstructorUsedError;
+  String? get groupName => throw _privateConstructorUsedError;
+  String? get conversationId => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
 
   /// Create a copy of EventEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -81,6 +85,10 @@ abstract class $EventEntityCopyWith<$Res> {
     List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    bool isPublic,
   });
 }
 
@@ -123,6 +131,10 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
     Object? recapPhotoUrls = null,
     Object? recapDescription = freezed,
     Object? recapCreatedAt = freezed,
+    Object? groupId = freezed,
+    Object? groupName = freezed,
+    Object? conversationId = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _value.copyWith(
@@ -246,6 +258,26 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
                     ? _value.recapCreatedAt
                     : recapCreatedAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            groupId:
+                freezed == groupId
+                    ? _value.groupId
+                    : groupId // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            groupName:
+                freezed == groupName
+                    ? _value.groupName
+                    : groupName // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            conversationId:
+                freezed == conversationId
+                    ? _value.conversationId
+                    : conversationId // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            isPublic:
+                null == isPublic
+                    ? _value.isPublic
+                    : isPublic // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -286,6 +318,10 @@ abstract class _$$EventEntityImplCopyWith<$Res>
     List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    bool isPublic,
   });
 }
 
@@ -327,6 +363,10 @@ class __$$EventEntityImplCopyWithImpl<$Res>
     Object? recapPhotoUrls = null,
     Object? recapDescription = freezed,
     Object? recapCreatedAt = freezed,
+    Object? groupId = freezed,
+    Object? groupName = freezed,
+    Object? conversationId = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _$EventEntityImpl(
@@ -450,6 +490,26 @@ class __$$EventEntityImplCopyWithImpl<$Res>
                 ? _value.recapCreatedAt
                 : recapCreatedAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        groupId:
+            freezed == groupId
+                ? _value.groupId
+                : groupId // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        groupName:
+            freezed == groupName
+                ? _value.groupName
+                : groupName // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        conversationId:
+            freezed == conversationId
+                ? _value.conversationId
+                : conversationId // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        isPublic:
+            null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -483,6 +543,10 @@ class _$EventEntityImpl implements _EventEntity {
     final List<String> recapPhotoUrls = const [],
     this.recapDescription,
     this.recapCreatedAt,
+    this.groupId,
+    this.groupName,
+    this.conversationId,
+    this.isPublic = false,
   }) : _posterUrls = posterUrls,
        _attendeeIds = attendeeIds,
        _recapPhotoUrls = recapPhotoUrls;
@@ -560,10 +624,19 @@ class _$EventEntityImpl implements _EventEntity {
   final String? recapDescription;
   @override
   final DateTime? recapCreatedAt;
+  @override
+  final String? groupId;
+  @override
+  final String? groupName;
+  @override
+  final String? conversationId;
+  @override
+  @JsonKey()
+  final bool isPublic;
 
   @override
   String toString() {
-    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
+    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt, groupId: $groupId, groupName: $groupName, conversationId: $conversationId, isPublic: $isPublic)';
   }
 
   @override
@@ -618,7 +691,14 @@ class _$EventEntityImpl implements _EventEntity {
             (identical(other.recapDescription, recapDescription) ||
                 other.recapDescription == recapDescription) &&
             (identical(other.recapCreatedAt, recapCreatedAt) ||
-                other.recapCreatedAt == recapCreatedAt));
+                other.recapCreatedAt == recapCreatedAt) &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.groupName, groupName) ||
+                other.groupName == groupName) &&
+            (identical(other.conversationId, conversationId) ||
+                other.conversationId == conversationId) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic));
   }
 
   @override
@@ -648,6 +728,10 @@ class _$EventEntityImpl implements _EventEntity {
     const DeepCollectionEquality().hash(_recapPhotoUrls),
     recapDescription,
     recapCreatedAt,
+    groupId,
+    groupName,
+    conversationId,
+    isPublic,
   ]);
 
   /// Create a copy of EventEntity
@@ -685,6 +769,10 @@ abstract class _EventEntity implements EventEntity {
     final List<String> recapPhotoUrls,
     final String? recapDescription,
     final DateTime? recapCreatedAt,
+    final String? groupId,
+    final String? groupName,
+    final String? conversationId,
+    final bool isPublic,
   }) = _$EventEntityImpl;
 
   @override
@@ -735,6 +823,14 @@ abstract class _EventEntity implements EventEntity {
   String? get recapDescription;
   @override
   DateTime? get recapCreatedAt;
+  @override
+  String? get groupId;
+  @override
+  String? get groupName;
+  @override
+  String? get conversationId;
+  @override
+  bool get isPublic;
 
   /// Create a copy of EventEntity
   /// with the given fields replaced by the non-null parameter values.

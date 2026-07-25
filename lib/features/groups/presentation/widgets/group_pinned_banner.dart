@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../events/presentation/providers/event_provider.dart';
 import '../../../messages/domain/entities/message_entity.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../polls/presentation/providers/poll_provider.dart';
 import '../../domain/entities/group_pinned_item_entity.dart';
-import '../providers/group_provider.dart';
+import '../providers/group_pinned_providers.dart';
+import '../../../events/presentation/providers/event_by_id_provider.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 const _pinAccent = Color(0xFF2F9E6E);

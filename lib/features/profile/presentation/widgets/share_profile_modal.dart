@@ -675,9 +675,11 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
   Future<void> _shareViaSystem() async {
     if (_shareUrl == null) return;
     HapticFeedback.lightImpact();
-    await Share.share(
-      'Découvrez mon profil sur Diaspo Niger: $_shareUrl',
-      subject: 'Mon profil Diaspo Niger',
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'Découvrez mon profil sur Diaspo Niger: $_shareUrl',
+        subject: 'Mon profil Diaspo Niger',
+      ),
     );
   }
 }

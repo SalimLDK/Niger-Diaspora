@@ -843,7 +843,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   Switch(
                     value: _isOnline,
                     onChanged: (value) => setState(() => _isOnline = value),
-                    activeColor: context.adaptivePrimaryColor,
+                    activeThumbColor: context.adaptivePrimaryColor,
                   ),
                 ],
               ),

@@ -468,7 +468,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
                   Switch(
                     value: _isPrivate,
                     onChanged: (value) => setState(() => _isPrivate = value),
-                    activeColor: context.adaptivePrimaryColor,
+                    activeThumbColor: context.adaptivePrimaryColor,
                   ),
                 ],
               ),

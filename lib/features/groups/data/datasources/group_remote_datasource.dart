@@ -21,6 +21,12 @@ abstract class GroupRemoteDataSource {
   Future<List<GroupModel>> getMyGroups(String userId);
   Future<List<GroupModel>> searchGroups(String query);
 
+  /// Get or create the official country group for auto-join.
+  Future<GroupModel> ensureOfficialGroup({
+    required String countryCode,
+    required String countryName,
+  });
+
   /// System message methods for group events
   Future<void> sendPromotedSystemMessage(String groupId, String userId);
   Future<void> sendDemotedSystemMessage(String groupId, String userId);
@@ -639,6 +645,16 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       if (filtered.isNotEmpty) return filtered;
       throw ServerException(e.message ?? 'Erreur lors de la recherche');
     }
+  }
+
+  @override
+  Future<GroupModel> ensureOfficialGroup({
+    required String countryCode,
+    required String countryName,
+  }) async {
+    throw UnimplementedError(
+      'ensureOfficialGroup is only available via GroupSupabaseDataSource',
+    );
   }
 
   Map<String, dynamic> _convertTimestamps(Map<String, dynamic> data) {

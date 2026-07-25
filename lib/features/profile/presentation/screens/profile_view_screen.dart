@@ -1003,7 +1003,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                 style: TextStyle(fontSize: 12),
                               ),
                               value: _isBackgroundLocationEnabled,
-                              activeColor: context.adaptivePrimaryColor,
+                              activeThumbColor: context.adaptivePrimaryColor,
                               onChanged: _toggleBackgroundLocation,
                             ),
                             Divider(
@@ -1029,7 +1029,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                         style: TextStyle(fontSize: 12),
                                       ),
                                       value: showStatus,
-                                      activeColor: context.adaptivePrimaryColor,
+                                      activeThumbColor: context.adaptivePrimaryColor,
                                       onChanged: (value) async {
                                         try {
                                           await ref

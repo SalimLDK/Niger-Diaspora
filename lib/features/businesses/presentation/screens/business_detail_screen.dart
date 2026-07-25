@@ -755,7 +755,7 @@ class _PostsSection extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         DropdownButtonFormField<BusinessPostType>(
-                          value: selectedType,
+                          initialValue: selectedType,
                           decoration: const InputDecoration(labelText: 'Type'),
                           items:
                               BusinessPostType.values.map((type) {

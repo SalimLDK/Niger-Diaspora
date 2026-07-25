@@ -2029,7 +2029,7 @@ class _SettingsSwitchTile extends StatelessWidget {
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: context.adaptivePrimaryColor,
+            activeThumbColor: context.adaptivePrimaryColor,
             activeTrackColor: context.adaptivePrimaryColor.withValues(
               alpha: 0.3,
             ),

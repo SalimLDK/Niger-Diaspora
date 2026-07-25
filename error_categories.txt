@@ -1,0 +1,53 @@
+# Total error entries categorized: 2981
+# Total files with errors: 114
+
+Missing Dart package dependency (uri_does_not_exist / depend_on_referenced_packages): 11
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/ringtone_service.dart:4 (exist)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_playback_service.dart:6 (exist)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_upload_service.dart:10 (exist)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/audio_rooms/presentation/screens/replay_player_screen.dart:5 (exist)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/feed/presentation/widgets/feed_video_player.dart:4 (exist)
+
+Missing AppLocalizations key: 0
+Examples:
+none
+
+Missing class/type/method/identifier (undefined_*): 1451
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/notification_service.dart:1095 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/notification_service.dart:1098 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/notification_service.dart:1102 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/notification_service.dart:1106 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/notification_service.dart:1169 (unknown)
+
+Type mismatch / argument type errors: 4
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/events/presentation/screens/create_event_screen.dart:338 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/groups/presentation/widgets/group_pinned_banner.dart:70 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/groups/presentation/widgets/group_pinned_banner.dart:64 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/messages/presentation/widgets/message_input.dart:332 (unknown)
+
+Theme Data class mismatches (CardTheme, TabBarTheme, DialogTheme): 9
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/theme/app_theme.dart:71 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/theme/app_theme.dart:259 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/theme/app_theme.dart:297 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/theme/app_theme.dart:485 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/theme/app_theme.dart:673 (unknown)
+
+Generated freezed file out of sync: 1379
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/admin/domain/entities/app_settings_entity.freezed.dart:21 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/admin/domain/entities/app_settings_entity.freezed.dart:23 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/admin/domain/entities/app_settings_entity.freezed.dart:25 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/admin/domain/entities/app_settings_entity.freezed.dart:27 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/features/admin/domain/entities/app_settings_entity.freezed.dart:29 (unknown)
+
+Other: 127
+Examples:
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_playback_service.dart:18 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_playback_service.dart:33 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_upload_service.dart:64 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_upload_service.dart:137 (unknown)
+- C:/Users/danko/StudioProjects/projet_perso/diaspo_niger/lib/core/services/video_upload_service.dart:154 (unknown)

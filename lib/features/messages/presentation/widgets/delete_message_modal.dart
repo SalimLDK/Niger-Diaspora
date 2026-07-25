@@ -313,16 +313,22 @@ class _ReportDialogState extends State<_ReportDialog> {
             style: TextStyle(color: context.textSecondaryColor),
           ),
           const SizedBox(height: 16),
-          ..._reasons.map(
-            (reason) => RadioListTile<String>(
-              title: Text(
-                reason['label']!,
-                style: TextStyle(color: context.textPrimaryColor),
-              ),
-              value: reason['value']!,
-              groupValue: _selectedReason,
-              onChanged: (value) => setState(() => _selectedReason = value),
-              activeColor: context.adaptivePrimaryColor,
+          RadioGroup<String>(
+            groupValue: _selectedReason,
+            onChanged: (value) => setState(() => _selectedReason = value),
+            child: Column(
+              children: _reasons
+                  .map(
+                    (reason) => RadioListTile<String>(
+                      title: Text(
+                        reason['label']!,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      value: reason['value']!,
+                      activeColor: context.adaptivePrimaryColor,
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],

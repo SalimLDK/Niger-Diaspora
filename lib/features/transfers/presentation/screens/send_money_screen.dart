@@ -343,7 +343,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       children: [
         // Currency selector
         DropdownButtonFormField<String>(
-          value: selectedCurrency,
+          initialValue: selectedCurrency,
           decoration: const InputDecoration(
             labelText: 'Devise',
             border: OutlineInputBorder(),
