@@ -17,6 +17,8 @@ import '../../../../core/services/preferences_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'location_picker_modal.dart';
+import '../screens/camera_capture_screen.dart';
+import '../screens/gallery_picker_screen.dart';
 import '../screens/media_preview_screen.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
@@ -351,33 +353,6 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-    );
-
-    if (image != null && mounted) {
-      // Navigate to preview screen
-      final result = await Navigator.push<MediaPreviewResult>(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => MediaPreviewScreen(
-                file: File(image.path),
-                type: MediaType.image,
-                conversationId: '',
-              ),
-        ),
-      );
-
-      if (result != null && mounted) {
-        widget.onSendFile(result.file, result.isImage, caption: result.caption);
-      }
-    }
-  }
-
   Future<void> _takePhoto() async {
     // Request camera permission first
     final permissionResult =
@@ -546,6 +521,57 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
+  /// Caméra unifiée (photo/vidéo dans le même écran). Renvoie une liste de
+  /// médias (1 = passé par l'aperçu, N = envoi groupé) via onSendFile.
+  Future<void> _openCamera() async {
+    final permissionResult =
+        await PermissionService().requestCameraPermission();
+    if (permissionResult != PermissionResult.granted) {
+      if (mounted) _showCameraPermissionError(permissionResult);
+      return;
+    }
+    if (!mounted) return;
+    final result = await Navigator.push<List<CameraMedia>>(
+      context,
+      MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
+    );
+    if (result == null || result.isEmpty || !mounted) return;
+    for (final m in result) {
+      widget.onSendFile(m.file, !m.isVideo);
+    }
+  }
+
+  /// Galerie intégrée (grille photo_manager, jamais le gestionnaire de
+  /// fichiers). 1 média passe par l'aperçu, plusieurs sont envoyés d'un coup.
+  Future<void> _pickFromGalleryUnified() async {
+    if (!mounted) return;
+    final picks = await Navigator.push<List<GalleryPick>>(
+      context,
+      MaterialPageRoute(builder: (_) => const GalleryPickerScreen()),
+    );
+    if (picks == null || picks.isEmpty || !mounted) return;
+    if (picks.length == 1) {
+      final p = picks.first;
+      final result = await Navigator.push<MediaPreviewResult>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MediaPreviewScreen(
+            file: p.file,
+            type: p.isVideo ? MediaType.video : MediaType.image,
+            conversationId: '',
+          ),
+        ),
+      );
+      if (result != null && mounted) {
+        widget.onSendFile(result.file, result.isImage, caption: result.caption);
+      }
+    } else {
+      for (final p in picks) {
+        widget.onSendFile(p.file, !p.isVideo);
+      }
+    }
+  }
+
   void _showAttachmentOptions() {
     // Unfocus to hide keyboard before showing attachment options
     _focusNode.unfocus();
@@ -585,17 +611,26 @@ class _MessageInputState extends State<MessageInput>
                   ),
                 ),
                 const SizedBox(height: 24),
-                // First row - Gallery options (Photos, Vidéos)
+                // First row - Caméra (unifiée photo/vidéo) + Galerie intégrée
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    _AttachmentOption(
+                      icon: Icons.camera_alt,
+                      label: l10n.cameraSection,
+                      color: context.adaptiveSecondaryColor,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _openCamera();
+                      },
+                    ),
                     _AttachmentOption(
                       icon: Icons.photo_library,
                       label: l10n.photosLabel,
                       color: context.adaptivePrimaryColor,
                       onTap: () {
                         Navigator.pop(context);
-                        _pickImage();
+                        _pickFromGalleryUnified();
                       },
                     ),
                     _AttachmentOption(
