@@ -115,6 +115,16 @@ class EncryptionService {
       return encryptedFullText;
     }
 
+    // Ancien format AES-GCM (« gcm:<iv>:<ciphertext> ») produit par un schéma
+    // client/serveur historique désormais absent du code. Ce service (AES-CBC)
+    // ne peut pas le déchiffrer : on renvoie un placeholder propre plutôt que
+    // d'exposer le texte chiffré brut. Le marqueur « 🔐 Message chiffré » est
+    // reconnu par la fusion des messages (message_provider) qui préserve alors
+    // le texte en clair connu localement pour nos propres messages.
+    if (encryptedFullText.startsWith('gcm:')) {
+      return '🔐 Message chiffré';
+    }
+
     // Vérifier si le texte ressemble vraiment à du contenu chiffré
     if (!_looksLikeEncryptedText(encryptedFullText)) {
       // Pas le bon format, c'est probablement un ancien message non chiffré
