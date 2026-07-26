@@ -17,6 +17,7 @@ import '../providers/group_provider.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../shared/widgets/app_icon.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -73,7 +74,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           backgroundColor: context.backgroundColor,
           appBar: AppBar(
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const AppIcon(AppIcon.arrowBack),
               onPressed: () => context.pop(),
             ),
           ),
@@ -83,8 +84,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.error_outline,
+                  AppIcon(
+                    AppIcon.error,
                     size: 48,
                     color: context.textSecondaryColor,
                   ),
@@ -111,7 +112,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const AppIcon(AppIcon.arrowBack),
             onPressed: () => context.pop(),
           ),
         ),
@@ -155,8 +156,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     color: context.surfaceColor.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.arrow_back,
+                  child: AppIcon(
+                    AppIcon.arrowBack,
                     color: context.textPrimaryColor,
                   ),
                 ),
@@ -221,7 +222,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       color: context.surfaceColor.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.share, color: context.textPrimaryColor),
+                    child: AppIcon(AppIcon.share, color: context.textPrimaryColor),
                   ),
                   onPressed: () => _shareGroup(group),
                 ),
@@ -234,8 +235,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                         color: context.surfaceColor.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.flag_outlined,
+                      child: AppIcon(
+                        AppIcon.flag,
                         color: Colors.orange,
                       ),
                     ),
@@ -260,16 +261,16 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                             fit: BoxFit.cover,
                             errorBuilder:
                                 (_, __, ___) => const Center(
-                                  child: Icon(
-                                    Icons.groups,
+                                  child: AppIcon(
+                                    AppIcon.groups,
                                     size: 80,
                                     color: Colors.white,
                                   ),
                                 ),
                           )
                           : const Center(
-                            child: Icon(
-                              Icons.groups,
+                            child: AppIcon(
+                              AppIcon.groups,
                               size: 80,
                               color: Colors.white,
                             ),
@@ -403,8 +404,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Icon(
-                            Icons.location_on,
+                          AppIcon(
+                            AppIcon.location,
                             size: 18,
                             color: context.adaptivePrimaryColor,
                           ),
@@ -466,8 +467,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     if (group.creatorName != null)
                       Row(
                         children: [
-                          Icon(
-                            Icons.person,
+                          AppIcon(
+                            AppIcon.person,
                             size: 16,
                             color: context.textTertiaryColor,
                           ),
@@ -528,10 +529,15 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
                             return OutlinedButton.icon(
                               onPressed: canLeave ? () => _leaveGroup(group.id) : null,
-                              icon: Icon(
-                                canLeave ? Icons.exit_to_app : Icons.star,
-                                color: canLeave ? Colors.red : context.adaptivePrimaryColor,
-                              ),
+                              icon: canLeave
+                                  ? Icon(
+                                      Icons.exit_to_app,
+                                      color: Colors.red,
+                                    )
+                                  : AppIcon(
+                                      AppIcon.star,
+                                      color: context.adaptivePrimaryColor,
+                                    ),
                               label: Text(
                                 canLeave ? l10n.leaveGroup : l10n.creator,
                                 style: TextStyle(
@@ -552,7 +558,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _startGroupConversation(group),
-                          icon: const Icon(Icons.chat),
+                          icon: const AppIcon(AppIcon.chatBubble),
                           label: Text(l10n.discussion),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.adaptivePrimaryColor,

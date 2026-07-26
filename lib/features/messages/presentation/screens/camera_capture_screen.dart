@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
 import 'gallery_picker_screen.dart';
 import 'media_preview_screen.dart';
 
@@ -410,7 +412,11 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                         Align(
                           alignment: Alignment.centerLeft,
                           child: _RoundIconButton(
-                            icon: Icons.close,
+                            icon: const AppIcon(
+                              AppIcon.close,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                             onTap: () => Navigator.pop(context),
                           ),
                         ),
@@ -454,15 +460,23 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 _RoundIconButton(
-                                  icon: _showGrid
-                                      ? Icons.grid_on
-                                      : Icons.grid_off,
+                                  icon: Icon(
+                                    _showGrid
+                                        ? Icons.grid_on
+                                        : Icons.grid_off,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                   onTap: () =>
                                       setState(() => _showGrid = !_showGrid),
                                 ),
                                 const SizedBox(width: 8),
                                 _RoundIconButton(
-                                  icon: _flashIcon,
+                                  icon: Icon(
+                                    _flashIcon,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                   onTap: _cycleFlash,
                                 ),
                               ],
@@ -543,7 +557,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                           Expanded(
                             child: Center(
                               child: _RoundIconButton(
-                                icon: Icons.cameraswitch,
+                                icon: Icon(
+                                  Icons.cameraswitch,
+                                  color: _isRecording
+                                      ? Colors.white38
+                                      : Colors.white,
+                                  size: 24,
+                                ),
                                 onTap: _isRecording ? null : _flipCamera,
                               ),
                             ),
@@ -563,7 +583,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
 }
 
 class _RoundIconButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final VoidCallback? onTap;
   const _RoundIconButton({required this.icon, this.onTap});
 
@@ -577,11 +597,7 @@ class _RoundIconButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(
-            icon,
-            color: onTap == null ? Colors.white38 : Colors.white,
-            size: 24,
-          ),
+          child: icon,
         ),
       ),
     );

@@ -412,7 +412,9 @@ class _ActionBar extends ConsumerWidget {
     return Row(
       children: [
         _ActionButton(
-          icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          icon: isLiked
+              ? AppIcon(AppIcon.heart, size: 18, color: tokens.accent)
+              : AppIcon(AppIcon.favoriteBorder, size: 18, color: tokens.mutedText),
           iconColor: isLiked ? tokens.accent : null,
           label: post.likeCount > 0 ? '${post.likeCount}' : '',
           onTap: () {
@@ -424,14 +426,18 @@ class _ActionBar extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         _ActionButton(
-          icon: Icons.chat_bubble_outline_rounded,
+          icon: AppIcon(AppIcon.chatBubble, size: 18, color: tokens.mutedText),
           label: post.commentCount > 0 ? '${post.commentCount}' : '',
           onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
         ),
         if (!isDetail) ...[
           const SizedBox(width: 8),
           _ActionButton(
-            icon: Icons.repeat_rounded,
+            icon: Icon(
+              Icons.repeat_rounded,
+              size: 18,
+              color: isReposted ? tokens.accent2 : tokens.mutedText,
+            ),
             iconColor: isReposted ? tokens.accent2 : null,
             label: post.shareCount > 0 ? '${post.shareCount}' : '',
             onTap: () => _showRepostSheet(context, ref, post, isReposted),
@@ -440,7 +446,7 @@ class _ActionBar extends ConsumerWidget {
         const Spacer(),
         if (!isDetail) ...[
           _ActionButton(
-            icon: Icons.send_outlined,
+            icon: AppIcon(AppIcon.send, size: 18, color: tokens.mutedText),
             label: '',
             onTap: () => showModalBottomSheet<void>(
               context: context,
@@ -455,7 +461,11 @@ class _ActionBar extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
         _ActionButton(
-          icon: isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+          icon: Icon(
+            isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+            size: 18,
+            color: isBookmarked ? tokens.accent : tokens.mutedText,
+          ),
           iconColor: isBookmarked ? tokens.accent : null,
           label: '',
           onTap: () {
@@ -577,7 +587,7 @@ void _showQuoteDialog(BuildContext context, WidgetRef ref, PostEntity post) {
 }
 
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String label;
   final VoidCallback? onTap;
   final Color? iconColor;
@@ -588,6 +598,12 @@ class _ActionButton extends StatelessWidget {
     required this.onTap,
     this.iconColor,
   });
+
+  static String _iconIdentity(Widget icon) {
+    if (icon is Icon) return 'icon_${icon.icon?.codePoint}';
+    if (icon is AppIcon) return 'app_${icon.asset}';
+    return icon.runtimeType.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -603,13 +619,11 @@ class _ActionButton extends StatelessWidget {
               duration: const Duration(milliseconds: 250),
               transitionBuilder: (child, anim) =>
                   ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                icon,
+              child: KeyedSubtree(
                 key: ValueKey<String>(
-                  '${icon.codePoint}_${color.toARGB32()}',
+                  '${_iconIdentity(icon)}_${color.toARGB32()}',
                 ),
-                size: 18,
-                color: color,
+                child: icon,
               ),
             ),
             if (label.isNotEmpty) ...[

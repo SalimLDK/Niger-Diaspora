@@ -67,8 +67,8 @@ class StarredMessagesScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.star_border,
+                  AppIcon(
+                    AppIcon.starBorder,
                     size: 64,
                     color: context.textTertiaryColor.withValues(alpha: 0.5),
                   ),
@@ -163,11 +163,7 @@ class _StarredMessageTile extends StatelessWidget {
         child: Row(
           children: [
             if (message.type != MessageType.text) ...[
-              Icon(
-                _getTypeIcon(message.type),
-                size: 14,
-                color: context.textTertiaryColor,
-              ),
+              _getTypeIcon(message.type, size: 14, color: context.textTertiaryColor),
               const SizedBox(width: 4),
             ],
             Expanded(
@@ -213,20 +209,20 @@ class _StarredMessageTile extends StatelessWidget {
     }
   }
 
-  IconData _getTypeIcon(MessageType type) {
+  Widget _getTypeIcon(MessageType type, {double size = 24, Color? color}) {
     switch (type) {
       case MessageType.image:
-        return Icons.image;
+        return AppIcon(AppIcon.image, size: size, color: color);
       case MessageType.video:
-        return Icons.videocam;
+        return AppIcon(AppIcon.video, size: size, color: color);
       case MessageType.voiceNote:
-        return Icons.mic;
+        return AppIcon(AppIcon.mic, size: size, color: color);
       case MessageType.audio:
-        return Icons.audiotrack;
+        return Icon(Icons.audiotrack, size: size, color: color);
       case MessageType.file:
-        return Icons.insert_drive_file;
+        return Icon(Icons.insert_drive_file, size: size, color: color);
       default:
-        return Icons.chat_bubble;
+        return AppIcon(AppIcon.chatBubble, size: size, color: color);
     }
   }
 

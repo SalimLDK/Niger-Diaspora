@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Overlay widget for recording audio messages
 /// Appears when user holds the microphone button
@@ -115,8 +116,8 @@ class _AudioRecorderOverlayState extends State<AudioRecorderOverlay>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.arrow_back,
+                AppIcon(
+                  AppIcon.arrowBack,
                   color: Colors.red.withValues(alpha: cancelProgress),
                   size: 20,
                 ),
@@ -206,8 +207,8 @@ class _AudioRecorderOverlayState extends State<AudioRecorderOverlay>
                         : context.adaptivePrimaryColor,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: Icon(
-                    widget.isCancelling ? Icons.delete : Icons.mic,
+                  child: AppIcon(
+                    widget.isCancelling ? AppIcon.delete : AppIcon.mic,
                     color: AppColors.white,
                     size: 24,
                   ),

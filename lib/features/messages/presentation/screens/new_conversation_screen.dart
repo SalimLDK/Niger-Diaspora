@@ -11,6 +11,7 @@ import '../../../profile/data/models/profile_model.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class NewConversationScreen extends ConsumerStatefulWidget {
   const NewConversationScreen({super.key});
@@ -259,8 +260,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
               onChanged: _searchUsers,
               decoration: InputDecoration(
                 hintText: l10n.searchMember,
-                prefixIcon: Icon(
-                  Icons.search,
+                prefixIcon: AppIcon(
+                  AppIcon.search,
                   color: context.textTertiaryColor,
                 ),
                 filled: true,
@@ -343,8 +344,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                                     color: context.surfaceColor,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
-                                    Icons.close,
+                                  child: AppIcon(
+                                    AppIcon.close,
                                     size: 16,
                                     color: context.textSecondaryColor,
                                   ),
@@ -380,8 +381,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                 color: context.surfaceColor,
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.groups,
+                    AppIcon(
+                      AppIcon.groups,
                       color: context.adaptiveSecondaryColor,
                       size: 20,
                     ),
@@ -419,8 +420,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.people,
+                                AppIcon(
+                                  AppIcon.people,
                                   size: 18,
                                   color: context.adaptivePrimaryColor,
                                 ),
@@ -497,8 +498,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search,
+          AppIcon(
+            AppIcon.search,
             size: 64,
             color: context.textTertiaryColor.withValues(alpha: 0.5),
           ),
@@ -632,8 +633,8 @@ class _UserListItem extends StatelessWidget {
                   color: context.adaptivePrimaryColor,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.check,
+                child: AppIcon(
+                  AppIcon.check,
                   color: context.textInverseColor,
                   size: 16,
                 ),

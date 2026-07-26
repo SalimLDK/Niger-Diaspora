@@ -208,7 +208,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Informations de base
-              _buildSectionHeader('Informations de base', Icons.business),
+              _buildSectionHeader('Informations de base', Icon(Icons.business, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               // Type
@@ -296,7 +296,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Contact
-              _buildSectionHeader('Contact', Icons.phone),
+              _buildSectionHeader('Contact', AppIcon(AppIcon.call, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               TextFormField(
@@ -340,7 +340,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Localisation
-              _buildSectionHeader('Localisation GPS (optionnel)', Icons.map),
+              _buildSectionHeader('Localisation GPS (optionnel)', Icon(Icons.map, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               Row(
@@ -369,7 +369,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Services
-              _buildSectionHeader('Services proposés', Icons.room_service),
+              _buildSectionHeader('Services proposés', Icon(Icons.room_service, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               Wrap(
@@ -396,7 +396,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Jurisdiction
-              _buildSectionHeader('Pays sous juridiction', Icons.public),
+              _buildSectionHeader('Pays sous juridiction', AppIcon(AppIcon.public, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 8),
               Text(
                 'Indiquez les pays dont les ressortissants peuvent contacter cette ambassade.',
@@ -445,7 +445,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Opening Hours
-              _buildSectionHeader('Horaires d\'ouverture', Icons.schedule),
+              _buildSectionHeader('Horaires d\'ouverture', Icon(Icons.schedule, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               ..._weekDays.map((day) {
@@ -521,10 +521,10 @@ class _AdminCreateEmbassyScreenState
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, Widget icon) {
     return Row(
       children: [
-        Icon(icon, color: Theme.of(context).primaryColor, size: 24),
+        icon,
         const SizedBox(width: 8),
         Text(
           title,

@@ -307,7 +307,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       actions: [
         _buildAppBarButton(
-          icon: Icons.refresh_rounded,
+          icon: const AppIcon(AppIcon.refresh, color: _textSecondary, size: 20),
           tooltip: 'Actualiser',
           onPressed: () {
             ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
@@ -315,7 +315,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         ),
         const SizedBox(width: 8),
         _buildAppBarButton(
-          icon: Icons.logout_rounded,
+          icon: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
           tooltip: 'Déconnexion',
           onPressed: () {
             Navigator.of(context).pushReplacementNamed('/login');
@@ -328,7 +328,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   }
 
   Widget _buildAppBarButton({
-    required IconData icon,
+    required Widget icon,
     required String tooltip,
     required VoidCallback onPressed,
     bool isDestructive = false,
@@ -348,11 +348,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                   : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: isDestructive ? Colors.red : _textSecondary,
-              size: 20,
-            ),
+            child: icon,
           ),
         ),
       ),
@@ -554,43 +550,43 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             children: [
               _buildQuickAction(
                 label: 'Voir Signalements',
-                icon: Icons.report_rounded,
+                icon: const Icon(Icons.report_rounded, color: Color(0xFFEF4444), size: 20),
                 color: const Color(0xFFEF4444),
                 onTap: () => setState(() => _selectedIndex = 4),
               ),
               _buildQuickAction(
                 label: 'Gérer Utilisateurs',
-                icon: Icons.people_rounded,
+                icon: const AppIcon(AppIcon.people, color: Color(0xFF3B82F6), size: 20),
                 color: const Color(0xFF3B82F6),
                 onTap: () => setState(() => _selectedIndex = 1),
               ),
               _buildQuickAction(
                 label: 'Envoyer Notification',
-                icon: Icons.notifications_rounded,
+                icon: const Icon(Icons.notifications_rounded, color: Color(0xFFF59E0B), size: 20),
                 color: const Color(0xFFF59E0B),
                 onTap: () => setState(() => _selectedIndex = 9),
               ),
               _buildQuickAction(
                 label: 'Voir Analytics',
-                icon: Icons.analytics_rounded,
+                icon: const Icon(Icons.analytics_rounded, color: Color(0xFF10B981), size: 20),
                 color: const Color(0xFF10B981),
                 onTap: () => setState(() => _selectedIndex = 8),
               ),
               _buildQuickAction(
                 label: 'Configuration',
-                icon: Icons.settings_rounded,
+                icon: const Icon(Icons.settings_rounded, color: Color(0xFF6366F1), size: 20),
                 color: const Color(0xFF6366F1),
                 onTap: () => setState(() => _selectedIndex = 10),
               ),
               _buildQuickAction(
                 label: 'Feature Flags',
-                icon: Icons.toggle_on_rounded,
+                icon: const Icon(Icons.toggle_on_rounded, color: Color(0xFF8B5CF6), size: 20),
                 color: const Color(0xFF8B5CF6),
                 onTap: () => setState(() => _selectedIndex = 11),
               ),
               _buildQuickAction(
                 label: 'Historique Audit',
-                icon: Icons.history_rounded,
+                icon: const Icon(Icons.history_rounded, color: Color(0xFF64748B), size: 20),
                 color: const Color(0xFF64748B),
                 onTap: () => setState(() => _selectedIndex = 12),
               ),
@@ -744,7 +740,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
   Widget _buildQuickAction({
     required String label,
-    required IconData icon,
+    required Widget icon,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -763,7 +759,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color, size: 20),
+              icon,
               const SizedBox(width: 10),
               Text(
                 label,

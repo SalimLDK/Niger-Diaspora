@@ -195,19 +195,19 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             _buildStatCard(
               'Aujourd\'hui',
               data.newUsersToday.toString(),
-              Icons.person_add_rounded,
+              const AppIcon(AppIcon.personAdd, color: Color(0xFF3B82F6), size: 24),
               const Color(0xFF3B82F6),
             ),
             _buildStatCard(
               'Cette semaine',
               data.newUsersThisWeek.toString(),
-              Icons.date_range_rounded,
+              const Icon(Icons.date_range_rounded, color: Color(0xFF10B981), size: 24),
               const Color(0xFF10B981),
             ),
             _buildStatCard(
               'Ce mois',
               data.newUsersThisMonth.toString(),
-              Icons.calendar_month_rounded,
+              const Icon(Icons.calendar_month_rounded, color: Color(0xFFF59E0B), size: 24),
               const Color(0xFFF59E0B),
             ),
           ],
@@ -216,7 +216,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, Widget icon, Color color) {
     return Container(
       width: 180,
       padding: const EdgeInsets.all(20),
@@ -240,7 +240,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: icon,
           ),
           const SizedBox(height: 16),
           Text(
@@ -428,7 +428,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         Expanded(
           child: _buildDistributionCard(
             'Evenements par Categorie',
-            Icons.event_rounded,
+            const Icon(Icons.event_rounded, color: Color(0xFF3B82F6), size: 18),
             const Color(0xFF3B82F6),
             data.eventsByCategory,
           ),
@@ -437,7 +437,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         Expanded(
           child: _buildDistributionCard(
             'Commerces par Categorie',
-            Icons.store_rounded,
+            const AppIcon(AppIcon.store, color: Color(0xFFF59E0B), size: 18),
             const Color(0xFFF59E0B),
             data.businessesByCategory,
           ),
@@ -448,7 +448,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
 
   Widget _buildDistributionCard(
     String title,
-    IconData icon,
+    Widget icon,
     Color color,
     Map<String, int> data,
   ) {
@@ -476,7 +476,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: icon,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -619,10 +619,10 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildExportButton('Utilisateurs', Icons.people_rounded, const Color(0xFF3B82F6), 'users'),
-              _buildExportButton('Evenements', Icons.event_rounded, const Color(0xFF10B981), 'events'),
-              _buildExportButton('Commerces', Icons.store_rounded, const Color(0xFFF59E0B), 'businesses'),
-              _buildExportButton('Transactions', Icons.payments_rounded, const Color(0xFF8B5CF6), 'transactions'),
+              _buildExportButton('Utilisateurs', const AppIcon(AppIcon.people, color: Colors.white, size: 20), const Color(0xFF3B82F6), 'users'),
+              _buildExportButton('Evenements', const Icon(Icons.event_rounded, color: Colors.white, size: 20), const Color(0xFF10B981), 'events'),
+              _buildExportButton('Commerces', const AppIcon(AppIcon.store, color: Colors.white, size: 20), const Color(0xFFF59E0B), 'businesses'),
+              _buildExportButton('Transactions', const Icon(Icons.payments_rounded, color: Colors.white, size: 20), const Color(0xFF8B5CF6), 'transactions'),
             ],
           ),
         ),
@@ -630,7 +630,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     );
   }
 
-  Widget _buildExportButton(String label, IconData icon, Color color, String type) {
+  Widget _buildExportButton(String label, Widget icon, Color color, String type) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -655,7 +655,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, color: Colors.white, size: 20),
+                icon,
                 const SizedBox(width: 10),
                 Text(
                   'Exporter $label',

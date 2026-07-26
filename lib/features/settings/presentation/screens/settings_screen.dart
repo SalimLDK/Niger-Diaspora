@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/services/currency_provider.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/support_service.dart';
@@ -110,14 +111,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: Icons.person,
+                icon: const AppIcon(AppIcon.person),
                 title: l10n.editProfile,
                 subtitle: currentUser?.displayName ?? l10n.myProfile,
                 onTap: () => context.push('/profile/edit'),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.email,
+                icon: const Icon(Icons.email),
                 title: l10n.email,
                 subtitle: currentUser?.email ?? l10n.notDefined,
                 showArrow: false,
@@ -143,7 +144,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.notifications_active,
+                icon: const Icon(Icons.notifications_active),
                 title: l10n.notificationPreferences,
                 onTap: () => _showNotificationPreferences(),
               ),
@@ -179,13 +180,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.block,
+                icon: const Icon(Icons.block),
                 title: l10n.blockedUsers,
                 onTap: () => _showBlockedUsers(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.flag_outlined,
+                icon: const AppIcon(AppIcon.flag),
                 title: 'Mes signalements',
                 subtitle: 'Voir l\'historique de vos signalements',
                 onTap: () => context.push('/settings/my-reports'),
@@ -200,7 +201,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: Icons.dark_mode,
+                icon: const Icon(Icons.dark_mode),
                 title: l10n.theme,
                 subtitle: _getThemeLabel(
                   ref.watch(themeModeNotifierProvider),
@@ -210,7 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.palette,
+                icon: const Icon(Icons.palette),
                 title: 'Couleur du thème',
                 subtitle: _getThemeColorLabel(
                   ref.watch(themeColorNotifierProvider),
@@ -219,7 +220,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.language,
+                icon: const Icon(Icons.language),
                 title: l10n.language,
                 subtitle:
                     ref
@@ -229,7 +230,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.attach_money,
+                icon: const Icon(Icons.attach_money),
                 title: 'Devise',
                 subtitle: _getCurrencyLabel(
                   ref.watch(selectedDisplayCurrencyProvider),
@@ -238,7 +239,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.wallpaper,
+                icon: const Icon(Icons.wallpaper),
                 title: 'Fond d\'écran des conversations',
                 subtitle:
                     _globalBackground?.isDefault ?? true
@@ -250,32 +251,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.help_outline,
+                icon: const Icon(Icons.help_outline),
                 title: l10n.helpAndSupport,
                 onTap: () => _showHelpSupport(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.info_outline,
+                icon: const AppIcon(AppIcon.info),
                 title: l10n.about,
                 subtitle: '${l10n.version} 1.2.0+10',
                 onTap: () => _showAbout(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.description,
+                icon: const Icon(Icons.description),
                 title: l10n.termsOfService,
                 onTap: () => _showTerms(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.privacy_tip,
+                icon: const Icon(Icons.privacy_tip),
                 title: l10n.privacyPolicy,
                 onTap: () => _showPrivacyPolicy(),
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.gavel,
+                icon: const Icon(Icons.gavel),
                 title: l10n.codeOfConduct,
                 onTap: () => context.push('/settings/code-of-conduct'),
               ),
@@ -289,7 +290,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: Icons.logout,
+                icon: const Icon(Icons.logout),
                 title: l10n.logout,
                 iconColor: Colors.orange,
                 titleColor: Colors.orange,
@@ -297,7 +298,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const _SettingsDivider(),
               _SettingsTile(
-                icon: Icons.delete_forever,
+                icon: const AppIcon(AppIcon.delete),
                 title: l10n.deleteAccount,
                 iconColor: Colors.red,
                 titleColor: Colors.red,
@@ -1099,7 +1100,7 @@ class _SettingsCard extends StatelessWidget {
 }
 
 class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
@@ -1135,7 +1136,12 @@ class _SettingsTile extends StatelessWidget {
                 color: effectiveIconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: effectiveIconColor, size: 20),
+              child: Center(
+                child: IconTheme.merge(
+                  data: IconThemeData(color: effectiveIconColor),
+                  child: icon,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(

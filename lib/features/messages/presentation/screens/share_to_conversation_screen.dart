@@ -393,17 +393,17 @@ class _FallbackIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon;
+    Widget icon;
     switch (type) {
       case SharedMediaType.video:
-        icon = Icons.videocam;
+        icon = AppIcon(AppIcon.video, color: context.adaptiveSecondaryColor);
       case SharedMediaType.file:
-        icon = Icons.insert_drive_file;
+        icon = Icon(Icons.insert_drive_file, color: context.adaptiveSecondaryColor);
       case SharedMediaType.image:
-        icon = Icons.image;
+        icon = AppIcon(AppIcon.image, color: context.adaptiveSecondaryColor);
       case SharedMediaType.text:
       case SharedMediaType.url:
-        icon = Icons.short_text;
+        icon = Icon(Icons.short_text, color: context.adaptiveSecondaryColor);
     }
 
     return Container(
@@ -413,7 +413,7 @@ class _FallbackIcon extends StatelessWidget {
         color: context.adaptiveSecondaryColor.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(icon, color: context.adaptiveSecondaryColor),
+      child: icon,
     );
   }
 }

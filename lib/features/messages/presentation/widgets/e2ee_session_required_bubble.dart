@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/sender_key_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Shown inside a message bubble when E2EE decryption failed because no
 /// Signal session (1:1) or Sender Key (group) exists on this device.
@@ -71,7 +72,7 @@ class _E2EESessionRequiredBubbleState
 
     if (_done) {
       return _InfoRow(
-        icon: Icons.check_circle_outline,
+        icon: AppIcon(AppIcon.checkCircle, size: 12, color: Colors.green.shade600),
         color: Colors.green.shade600,
         text: isGroup
             ? 'Clé de groupe récupérée — demandez à renvoyer le message.'
@@ -84,7 +85,7 @@ class _E2EESessionRequiredBubbleState
       mainAxisSize: MainAxisSize.min,
       children: [
         _InfoRow(
-          icon: Icons.lock_clock_outlined,
+          icon: Icon(Icons.lock_clock_outlined, size: 12, color: Colors.orange.shade700),
           color: Colors.orange.shade700,
           text: isGroup
               ? 'Message chiffré — clé de groupe introuvable'
@@ -131,7 +132,7 @@ class _E2EESessionRequiredBubbleState
 }
 
 class _InfoRow extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final Color color;
   final String text;
 
@@ -146,7 +147,7 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: color),
+        icon,
         const SizedBox(width: 4),
         Flexible(
           child: Text(

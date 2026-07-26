@@ -375,12 +375,20 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _StatItem(
-                      icon: Icons.visibility,
+                      icon: Icon(
+                        Icons.visibility,
+                        size: 32,
+                        color: theme.colorScheme.primary,
+                      ),
                       value: business.viewCount.toString(),
                       label: 'Vues',
                     ),
                     _StatItem(
-                      icon: Icons.star,
+                      icon: AppIcon(
+                        AppIcon.star,
+                        size: 32,
+                        color: theme.colorScheme.primary,
+                      ),
                       value: business.reviewCount.toString(),
                       label: 'Avis',
                     ),
@@ -986,7 +994,7 @@ class _PostCard extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String value;
   final String label;
 
@@ -1001,7 +1009,7 @@ class _StatItem extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Icon(icon, size: 32, color: theme.colorScheme.primary),
+        icon,
         const SizedBox(height: 4),
         Text(
           value,

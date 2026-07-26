@@ -559,8 +559,8 @@ class _FileListItem extends StatelessWidget {
             color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            _getFileIcon(message.mimeType),
+          child: _getFileIcon(
+            message.mimeType,
             color: context.adaptivePrimaryColor,
           ),
         ),
@@ -639,18 +639,24 @@ class _FileListItem extends StatelessWidget {
     );
   }
 
-  IconData _getFileIcon(String? mimeType) {
-    if (mimeType == null) return Icons.insert_drive_file;
+  Widget _getFileIcon(String? mimeType, {Color? color}) {
+    if (mimeType == null) {
+      return Icon(Icons.insert_drive_file, color: color);
+    }
 
-    if (mimeType.contains('pdf')) return Icons.picture_as_pdf;
+    if (mimeType.contains('pdf')) {
+      return Icon(Icons.picture_as_pdf, color: color);
+    }
     if (mimeType.contains('word') || mimeType.contains('document')) {
-      return Icons.description;
+      return Icon(Icons.description, color: color);
     }
     if (mimeType.contains('excel') || mimeType.contains('spreadsheet')) {
-      return Icons.table_chart;
+      return Icon(Icons.table_chart, color: color);
     }
-    if (mimeType.contains('image')) return Icons.image;
-    return Icons.insert_drive_file;
+    if (mimeType.contains('image')) {
+      return AppIcon(AppIcon.image, color: color);
+    }
+    return Icon(Icons.insert_drive_file, color: color);
   }
 
   Future<void> _openFile(String? url) async {

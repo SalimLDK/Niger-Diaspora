@@ -376,8 +376,8 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
                         color: Colors.red.withValues(alpha: 0.8),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.mic_off,
+                      child: const AppIcon(
+                        AppIcon.micOff,
                         color: Colors.white,
                         size: 12,
                       ),
@@ -461,27 +461,41 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
       // Video: Flip | Camera | HANGUP | Mute | ScreenShare
       return [
         _buildWhatsAppButton(
-          icon: Icons.cameraswitch_rounded,
+          icon: Icon(
+            Icons.cameraswitch_rounded,
+            color: Colors.white,
+            size: 24,
+          ),
           isActive: true,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).switchCamera(),
         ),
         _buildWhatsAppButton(
-          icon: callState.isCameraOff
-              ? Icons.videocam_off_rounded
-              : Icons.videocam_rounded,
+          icon: AppIcon(
+            callState.isCameraOff ? AppIcon.videocamOff : AppIcon.video,
+            color: !callState.isCameraOff ? Colors.white : Colors.white60,
+            size: 24,
+          ),
           isActive: !callState.isCameraOff,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).toggleCamera(),
         ),
         _buildWhatsAppHangupButton(),
         _buildWhatsAppButton(
-          icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+          icon: AppIcon(
+            callState.isMuted ? AppIcon.micOff : AppIcon.mic,
+            color: !callState.isMuted ? Colors.white : Colors.white60,
+            size: 24,
+          ),
           isActive: !callState.isMuted,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).toggleMute(),
         ),
         _buildWhatsAppButton(
-          icon: callState.isScreenSharing
-              ? Icons.stop_screen_share_rounded
-              : Icons.screen_share_rounded,
+          icon: Icon(
+            callState.isScreenSharing
+                ? Icons.stop_screen_share_rounded
+                : Icons.screen_share_rounded,
+            color: !callState.isScreenSharing ? Colors.white : Colors.white60,
+            size: 24,
+          ),
           isActive: !callState.isScreenSharing,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).toggleScreenShare(),
         ),
@@ -490,16 +504,24 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
       // Audio: ScreenShare | (placeholder) | HANGUP | Mute | (placeholder)
       return [
         _buildWhatsAppButton(
-          icon: callState.isScreenSharing
-              ? Icons.stop_screen_share_rounded
-              : Icons.screen_share_rounded,
+          icon: Icon(
+            callState.isScreenSharing
+                ? Icons.stop_screen_share_rounded
+                : Icons.screen_share_rounded,
+            color: !callState.isScreenSharing ? Colors.white : Colors.white60,
+            size: 24,
+          ),
           isActive: !callState.isScreenSharing,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).toggleScreenShare(),
         ),
         const SizedBox(width: 48),
         _buildWhatsAppHangupButton(),
         _buildWhatsAppButton(
-          icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+          icon: AppIcon(
+            callState.isMuted ? AppIcon.micOff : AppIcon.mic,
+            color: !callState.isMuted ? Colors.white : Colors.white60,
+            size: 24,
+          ),
           isActive: !callState.isMuted,
           onPressed: () => ref.read(currentGroupCallProvider.notifier).toggleMute(),
         ),
@@ -510,7 +532,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
 
   /// WhatsApp-style control button (48x48 circle)
   Widget _buildWhatsAppButton({
-    required IconData icon,
+    required Widget icon,
     required bool isActive,
     required VoidCallback onPressed,
   }) {
@@ -523,11 +545,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
           shape: BoxShape.circle,
           color: Colors.white.withValues(alpha: 0.15),
         ),
-        child: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.white60,
-          size: 24,
-        ),
+        child: icon,
       ),
     );
   }

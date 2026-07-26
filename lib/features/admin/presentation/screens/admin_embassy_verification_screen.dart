@@ -221,8 +221,8 @@ class _AdminEmbassyVerificationScreenState
                 color: const Color(0xFFF8FAFC),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.account_balance_rounded,
+              child: const AppIcon(
+                AppIcon.bank,
                 size: 48,
                 color: _textSecondary,
               ),
@@ -289,8 +289,8 @@ class _AdminEmbassyVerificationScreenState
                 color: const Color(0xFFEF4444).withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.error_outline_rounded,
+              child: const AppIcon(
+                AppIcon.error,
                 size: 48,
                 color: Color(0xFFEF4444),
               ),
@@ -313,7 +313,7 @@ class _AdminEmbassyVerificationScreenState
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => ref.invalidate(embassiesListProvider),
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const AppIcon(AppIcon.refresh),
               label: const Text('Reessayer'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,

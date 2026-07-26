@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
 /// Carte affichée dans une bulle de message pour un événement créé depuis
 /// une discussion ou un groupe.
 /// eventData structure: {eventId, title, startDate, location, isOnline}
@@ -100,11 +102,17 @@ class EventMessageCard extends StatelessWidget {
               const SizedBox(height: 2),
               Row(
                 children: [
-                  Icon(
-                    isOnline ? Icons.videocam_outlined : Icons.place_outlined,
-                    size: 12,
-                    color: onAccentSurface,
-                  ),
+                  isOnline
+                      ? AppIcon(
+                          AppIcon.video,
+                          size: 12,
+                          color: onAccentSurface,
+                        )
+                      : Icon(
+                          Icons.place_outlined,
+                          size: 12,
+                          color: onAccentSurface,
+                        ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(

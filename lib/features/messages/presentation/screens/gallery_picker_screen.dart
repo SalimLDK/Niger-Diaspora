@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Un média choisi dans la galerie intégrée.
 class GalleryPick {
@@ -141,7 +142,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
         foregroundColor: Colors.white,
         title: const Text('Galerie'),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const AppIcon(AppIcon.close),
           onPressed: () => Navigator.pop(context),
         ),
         bottom: PreferredSize(
@@ -183,7 +184,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
                   height: 48,
                   child: FilledButton.icon(
                     onPressed: _confirm,
-                    icon: const Icon(Icons.send),
+                    icon: const AppIcon(AppIcon.send),
                     label: Text('Envoyer (${_selected.length})'),
                   ),
                 ),
