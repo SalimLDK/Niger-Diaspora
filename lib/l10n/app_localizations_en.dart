@@ -424,6 +424,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'This action is irreversible. All your data will be permanently deleted.\n\nThis includes:\n• Your profile and personal information\n• Your conversations and messages\n• Your created events\n• Your group memberships';
 
   @override
+  String get exportMyData => 'Export my data';
+
+  @override
+  String get exportMyDataSubtitle => 'Download a copy of your data (GDPR)';
+
+  @override
+  String get exportMyDataPreparing => 'Preparing your export…';
+
+  @override
+  String get exportMyDataFailed => 'Export failed';
+
+  @override
   String get continueAction => 'Continue';
 
   @override

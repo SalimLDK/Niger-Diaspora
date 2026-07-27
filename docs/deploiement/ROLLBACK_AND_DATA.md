@@ -50,21 +50,34 @@ Statut : pré-prod 2026-07-15.
   et des fichiers Firebase Storage. Vérifier qu'aucune donnée résiduelle ne
   subsiste hors de la table `users`.
 
-### 2.2 Export des données — ❌ NON implémenté (à faire)
-Le droit à la portabilité (RGPD art. 20) n'est pas couvert : aucun
-`exportUserData`/`downloadMyData` dans le code.
+### 2.2 Export des données — ✅ implémenté (à déployer)
+Droit à la portabilité (RGPD art. 20) couvert par l'Edge Function
+`export-my-data` + `DataExportService` côté app.
 
-**Plan d'implémentation recommandé** (Edge Function `export-my-data`) :
-1. Fonction serveur authentifiée (vérifie le Firebase ID token, comme
-   `auth-firebase-exchange`), qui lit avec la service_role key **côté serveur
-   uniquement**.
-2. Agrège pour le `firebase_uid` courant : `users`, `transactions`,
-   `recipients`, `posts`, `post_comments`, `conversations`+`messages` (dont
-   l'utilisateur est participant), `orders`, `businesses`, `products`,
-   `events`, `notifications`, `legal_acceptances` + les nœuds RTDB résiduels.
-3. Retourne un JSON (ou ZIP) ; livraison par lien signé à durée limitée ou
-   email. Ne jamais passer de données perso en query string.
-4. Exposer dans `settings_screen` à côté de « Supprimer le compte ».
+- **Serveur** : `supabase/functions/export-my-data/index.ts`. Vérifie le
+  Firebase ID token via les clés publiques Google (même mécanique que
+  `auth-firebase-exchange`) ; la service_role key ne quitte jamais le serveur.
+  N'exporte que les lignes rattachées au `firebase_uid` du token.
+- **Client** : `lib/core/services/data_export_service.dart` → écrit le JSON
+  dans un fichier temporaire et ouvre la feuille de partage système. Aucune
+  donnée personnelle ne transite en query string.
+- **UI** : `settings_screen.dart`, entrée « Exporter mes données » juste
+  au-dessus de la zone de danger (clés l10n `exportMyData*`).
+
+**Deux limites assumées, écrites dans l'export lui-même (`_notes`) :**
+1. Le contenu des messages est chiffré de bout en bout — le serveur n'a pas les
+   clés et ne peut pas le déchiffrer. Il sort donc tel qu'il est stocké.
+2. Seuls les messages **dont l'utilisateur est l'auteur** sont exportés :
+   exporter toute la conversation ferait fuiter les données de tiers, ce que la
+   portabilité n'autorise pas.
+
+Les tables sont déclarées avec plusieurs colonnes candidates ; une table ou une
+colonne absente du schéma distant est reportée dans `_skipped` au lieu de faire
+échouer l'export (le schéma distant a dérivé du dépôt).
+
+**Reste à faire** : `supabase functions deploy export-my-data`, puis vérifier
+`_skipped` sur un compte réel pour corriger les colonnes mal devinées. Les
+nœuds RTDB résiduels ne sont pas encore inclus.
 
 ### 2.3 Base légale & information
 - Écran politique de confidentialité présent (`privacy_policy_screen.dart`),
@@ -80,5 +93,5 @@ Le droit à la portabilité (RGPD art. 20) n'est pas couvert : aucun
 - [ ] AAB + mapping R8 de la release archivés.
 - [ ] Remote Config kill-switch testé.
 - [ ] `deleteAccount` complété (RTDB + Storage) et testé bout en bout.
-- [ ] Edge Function `export-my-data` livrée et exposée dans les réglages.
+- [x] Edge Function `export-my-data` livrée et exposée dans les réglages (code) — reste `supabase functions deploy export-my-data`.
 - [ ] Base légale RGPD validée par le juridique.

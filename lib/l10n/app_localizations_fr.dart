@@ -427,6 +427,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette action est irréversible. Toutes vos données seront supprimées définitivement.\n\nCela inclut :\n• Votre profil et vos informations personnelles\n• Vos conversations et messages\n• Vos événements créés\n• Votre participation aux groupes';
 
   @override
+  String get exportMyData => 'Exporter mes données';
+
+  @override
+  String get exportMyDataSubtitle =>
+      'Télécharger une copie de vos données (RGPD)';
+
+  @override
+  String get exportMyDataPreparing => 'Préparation de votre export…';
+
+  @override
+  String get exportMyDataFailed => 'L\'export a échoué';
+
+  @override
   String get continueAction => 'Continuer';
 
   @override

@@ -10,6 +10,7 @@ import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/services/currency_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/data_export_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -36,12 +37,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _locationEnabled = true;
   bool _profileVisible = true;
   ChatBackgroundEntity? _globalBackground;
+  bool _isExportingData = false;
 
   @override
   void initState() {
     super.initState();
     // Profile loading and syncing is handled by ref.listen in build
     _loadGlobalBackground();
+  }
+
+  /// Export RGPD : l'Edge Function `export-my-data` agrège les données, le
+  /// service écrit le JSON et ouvre la feuille de partage du système.
+  Future<void> _exportMyData() async {
+    if (_isExportingData) return;
+    setState(() => _isExportingData = true);
+
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await DataExportService.instance.exportAndShare();
+    } on DataExportException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.exportMyDataFailed),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExportingData = false);
+    }
   }
 
   Future<void> _loadGlobalBackground() async {
@@ -279,6 +310,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 icon: const Icon(Icons.gavel),
                 title: l10n.codeOfConduct,
                 onTap: () => context.push('/settings/code-of-conduct'),
+              ),
+              const _SettingsDivider(),
+              // Droit à la portabilité (RGPD art. 20) : placé ici, juste
+              // au-dessus de la zone de danger, parce que c'est un droit et
+              // non une action destructive.
+              _SettingsTile(
+                icon:
+                    _isExportingData
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Icon(Icons.download_outlined),
+                title: l10n.exportMyData,
+                subtitle:
+                    _isExportingData
+                        ? l10n.exportMyDataPreparing
+                        : l10n.exportMyDataSubtitle,
+                onTap: _isExportingData ? null : () => _exportMyData(),
               ),
             ],
           ),

@@ -902,6 +902,30 @@ abstract class AppLocalizations {
   /// **'Cette action est irréversible. Toutes vos données seront supprimées définitivement.\n\nCela inclut :\n• Votre profil et vos informations personnelles\n• Vos conversations et messages\n• Vos événements créés\n• Votre participation aux groupes'**
   String get deleteAccountWarning;
 
+  /// No description provided for @exportMyData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter mes données'**
+  String get exportMyData;
+
+  /// No description provided for @exportMyDataSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Télécharger une copie de vos données (RGPD)'**
+  String get exportMyDataSubtitle;
+
+  /// No description provided for @exportMyDataPreparing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparation de votre export…'**
+  String get exportMyDataPreparing;
+
+  /// No description provided for @exportMyDataFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'export a échoué'**
+  String get exportMyDataFailed;
+
   /// No description provided for @continueAction.
   ///
   /// In fr, this message translates to:
