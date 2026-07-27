@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../../core/constants/ad_config.dart';
+import '../../../../core/services/tracking_consent_service.dart';
 import 'internal_ad_card.dart';
 
 class NativeAdWidget extends StatefulWidget {
@@ -27,7 +28,13 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   void _loadAd() {
     final ad = NativeAd(
       adUnitId: AdConfig.nativeAdUnitId,
-      request: const AdRequest(),
+      // Sans consentement ATT explicite (iOS) on demande des annonces non
+      // personnalisées : c'est ce qui rend le prompt ATT utile plutôt que
+      // décoratif.
+      request: AdRequest(
+        nonPersonalizedAds:
+            !TrackingConsentService.instance.isTrackingAuthorized,
+      ),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           if (!mounted) {

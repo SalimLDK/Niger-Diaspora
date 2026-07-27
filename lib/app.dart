@@ -8,6 +8,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
 
 class NigerDiasporaApp extends ConsumerStatefulWidget {
@@ -24,6 +25,10 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // Setup callback after first frame to ensure router is ready
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _setupNotificationCallback();
+      // ATT (iOS) + démarrage d'AdMob. Après la première frame : Apple exige
+      // que l'app soit visible pour présenter la boîte de dialogue de suivi,
+      // sinon elle est ignorée en silence.
+      TrackingConsentService.instance.initialize();
     });
   }
 
