@@ -6767,62 +6767,20 @@ exports.onNewPostCreated = functions.firestore
         return null;
     });
 
-exports.onCommentMention = functions.firestore
-    .document("post_comments/{commentId}")
-    .onCreate(async (snapshot) => {
-        const data = snapshot.data();
-        const { authorId: commentAuthorId, postId, mentionedUsers, mentionedGroups } = data;
-        const hasMentions = mentionedUsers && mentionedUsers.length > 0;
-        const hasGroupMentions = mentionedGroups && mentionedGroups.length > 0;
-        if (!hasMentions && !hasGroupMentions) return null;
-
-        const commenterSnap = await admin.firestore().collection("users").doc(commentAuthorId).get();
-        const commenterName = commenterSnap.exists
-            ? (commenterSnap.data().displayName || "Quelqu'un")
-            : "Quelqu'un";
-
-        const batch = admin.firestore().batch();
-
-        // Notify mentioned users
-        if (hasMentions) {
-            for (const mention of mentionedUsers) {
-                if (!mention.id || mention.id === commentAuthorId) continue;
-                const notifRef = admin.firestore().collection("notifications").doc();
-                batch.set(notifRef, {
-                    userId: mention.id,
-                    type: "mentioned",
-                    title: "Vous avez été mentionné(e)",
-                    body: `${commenterName} vous a mentionné(e) dans un commentaire`,
-                    data: { postId, commentAuthorId },
-                    isRead: false,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                });
-            }
-        }
-
-        // Notify group members
-        if (hasGroupMentions) {
-            for (const group of mentionedGroups) {
-                const memberIds = group.memberIds || [];
-                for (const memberId of memberIds) {
-                    if (!memberId || memberId === commentAuthorId) continue;
-                    const notifRef = admin.firestore().collection("notifications").doc();
-                    batch.set(notifRef, {
-                        userId: memberId,
-                        type: "group_mention",
-                        title: `${group.name || "Votre groupe"} a été mentionné`,
-                        body: `${commenterName} a mentionné ${group.name || "votre groupe"} dans un commentaire`,
-                        data: { postId, commentAuthorId, groupId: group.id },
-                        isRead: false,
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    });
-                }
-            }
-        }
-
-        await batch.commit();
-        return null;
-    });
+// ----------------------------------------------------------------------------
+// onCommentMention — SUPPRIMÉ (trigger mort).
+//
+// C'était un trigger Firestore sur `post_comments/{commentId}`, alors que les
+// commentaires ont migré vers Supabase (`post_comments` en Postgres) : il ne
+// pouvait plus se déclencher, et les notifications de mention en commentaire
+// n'arrivaient donc déjà plus à personne. Il écrivait de surcroît dans la
+// collection Firestore `notifications`, elle aussi migrée.
+//
+// Ne PAS le « réparer » à l'aveugle : les notifications de mention doivent
+// passer par la RPC `create_user_notification` (SECURITY DEFINER) côté app,
+// ou par un trigger Postgres sur `post_comments`. Le remettre ici ferait
+// doublon avec la création côté app.
+// ----------------------------------------------------------------------------
 
 // ============================================================================
 // LIVEKIT VIDEO — AUDIO ROOMS & LIVE PODCASTS
