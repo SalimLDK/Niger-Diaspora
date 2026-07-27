@@ -365,6 +365,29 @@ class ProfileOptions {
   }
 }
 
+/// Correspondance code ISO → pays.
+///
+/// Les groupes et les profils stockent tous deux le **code ISO**
+/// (`users.country_code`, `groups.country_code`) : c'est donc lui qui sert aux
+/// comparaisons. Mais un code brut (« NE », « FR ») n'a aucun sens à l'écran —
+/// d'où ces helpers, à utiliser pour l'affichage uniquement.
+extension CountryCodeLookup on ProfileOptions {
+  static CountryOption? byCode(String? code) {
+    if (code == null || code.isEmpty) return null;
+    final upper = code.toUpperCase();
+    for (final country in ProfileOptions.countries) {
+      if (country.code == upper) return country;
+    }
+    return null;
+  }
+
+  /// Libellé affichable pour un code ISO : « 🇳🇪 Niger ».
+  /// Retombe sur le code lui-même si le pays n'est pas répertorié, plutôt que
+  /// d'afficher du vide.
+  static String labelForCode(String? code) =>
+      byCode(code)?.displayName ?? (code ?? '');
+}
+
 /// Classe représentant un pays avec son drapeau
 class CountryOption {
   final String name;
