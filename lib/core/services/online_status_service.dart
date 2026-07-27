@@ -1,11 +1,27 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// `User` masqué : firebase_auth expose déjà ce nom, et c'est celui-là qu'on
+// utilise ici (l'identité vient de Firebase).
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'package:flutter/widgets.dart';
 
-/// Service to manage user online/offline status (presence) using Firebase Realtime Database
+import 'supabase_auth_bridge.dart';
+
+/// Service to manage user online/offline status (presence).
+///
+/// Deux datastores, chacun pour ce qu'il sait faire :
+/// - **RTDB** pour la présence temps réel — `onDisconnect()` est une capacité
+///   propre à Firebase : elle marque l'utilisateur hors ligne même si l'app est
+///   tuée sans prévenir. Rien d'équivalent côté Supabase.
+/// - **Supabase** pour la persistance (`users.is_online`, `last_seen_at`) et la
+///   préférence de visibilité (`show_online_status`).
+///
+/// Auparavant tout passait par la collection Firestore `users`, qui a migré :
+/// les écritures échouaient en silence et, surtout, `show_online_status` était
+/// toujours relu à `true` — un utilisateur ayant masqué son statut était donc
+/// quand même diffusé comme en ligne.
 class OnlineStatusService {
   static OnlineStatusService? _instance;
   static OnlineStatusService get instance {
@@ -16,8 +32,43 @@ class OnlineStatusService {
   OnlineStatusService._();
 
   final FirebaseDatabase _database = FirebaseDatabase.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  SupabaseClient get _supabase => Supabase.instance.client;
+
+  /// Lit la préférence de visibilité du statut en ligne.
+  ///
+  /// En cas d'échec (hors ligne, RLS, ligne absente) on retourne `true`, comme
+  /// avant : le défaut produit est « statut visible », qui est aussi la valeur
+  /// par défaut de la colonne.
+  Future<bool> _showOnlineStatus(String userId) async {
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return true;
+      final row = await _supabase
+          .from('users')
+          .select('show_online_status')
+          .eq('id', userId)
+          .maybeSingle();
+      return (row?['show_online_status'] as bool?) ?? true;
+    } catch (e) {
+      debugPrint('OnlineStatusService: lecture show_online_status échouée ($e)');
+      return true;
+    }
+  }
+
+  /// Persiste le statut dans Supabase. Best-effort : la présence temps réel
+  /// reste portée par RTDB, cette écriture n'est qu'un miroir consultable.
+  Future<void> _persistStatus(String userId, {required bool isOnline}) async {
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
+      await _supabase.from('users').update({
+        'is_online': isOnline,
+        'last_seen_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', userId);
+    } catch (e) {
+      debugPrint('OnlineStatusService: persistance du statut échouée ($e)');
+    }
+  }
 
   DatabaseReference? _presenceRef;
   DatabaseReference? _connectedRef;
@@ -96,8 +147,7 @@ class OnlineStatusService {
 
     try {
       // Check user's privacy preference
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
+      final showOnlineStatus = await _showOnlineStatus(userId);
 
       if (!showOnlineStatus) {
         // debugPrint(
@@ -202,8 +252,7 @@ class OnlineStatusService {
 
     try {
       // Check privacy preference
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      final showOnlineStatus = userDoc.data()?['showOnlineStatus'] ?? true;
+      final showOnlineStatus = await _showOnlineStatus(userId);
 
       if (!showOnlineStatus) {
         // debugPrint(
@@ -221,13 +270,10 @@ class OnlineStatusService {
         'lastSeen': ServerValue.timestamp,
       });
 
-      // Also update Firestore for persistence
-      await _firestore.collection('users').doc(userId).update({
-        'isOnline': true,
-        'lastSeen': FieldValue.serverTimestamp(),
-      });
+      // Also mirror into Supabase for persistence
+      await _persistStatus(userId, isOnline: true);
 
-      // Start heartbeat to keep lastSeen fresh in Firestore
+      // Start heartbeat to keep lastSeen fresh
       // (This fix preventing "ghosts" who crash and stay online in Firestore forever)
       _startHeartbeat(userId);
     } catch (e) {
@@ -251,14 +297,7 @@ class OnlineStatusService {
     _heartbeatTimer = Timer.periodic(const Duration(minutes: 10), (
       timer,
     ) async {
-      try {
-        await _firestore.collection('users').doc(userId).update({
-          'lastSeen': FieldValue.serverTimestamp(),
-        });
-        // debugPrint('💓 OnlineStatusService: Heartbeat sent for $userId');
-      } catch (e) {
-        // debugPrint('❌ OnlineStatusService: Heartbeat failed: $e');
-      }
+      await _persistStatus(userId, isOnline: true);
     });
   }
 
@@ -294,11 +333,8 @@ class OnlineStatusService {
         'lastSeen': ServerValue.timestamp,
       });
 
-      // Also update Firestore for persistence
-      await _firestore.collection('users').doc(userId).update({
-        'isOnline': false,
-        'lastSeen': FieldValue.serverTimestamp(),
-      });
+      // Also mirror into Supabase for persistence
+      await _persistStatus(userId, isOnline: false);
     } catch (e) {
       if (e is FirebaseException && e.code == 'permission-denied') {
         // debugPrint(
@@ -323,10 +359,11 @@ class OnlineStatusService {
     // );
 
     try {
-      // Update Firestore
-      await _firestore.collection('users').doc(_currentUserId).update({
-        'showOnlineStatus': showStatus,
-      });
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
+      await _supabase
+          .from('users')
+          .update({'show_online_status': showStatus})
+          .eq('id', _currentUserId!);
 
       if (showStatus) {
         // Re-setup presence tracking
