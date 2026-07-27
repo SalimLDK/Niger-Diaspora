@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/preferences_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -17,10 +19,17 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
+import '../../../feed/presentation/screens/my_posts_screen.dart'
+    show userPostsCountProvider;
+import '../../../feed/presentation/screens/saved_posts_screen.dart'
+    show bookmarkedPostsCountProvider;
+import '../../../settings/data/models/chat_background_model.dart';
+import '../../../settings/domain/entities/chat_background_entity.dart';
 import '../../../settings/presentation/widgets/blocked_users_modal.dart';
 import '../../../settings/presentation/widgets/bug_report_dialog.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
+import '../../../messages/presentation/widgets/chat_background_picker_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -35,6 +44,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   bool _notificationsEnabled = true;
   bool _locationEnabled = true;
   bool _profileVisible = true;
+  bool _noiseSuppressionEnabled = true;
+  ChatBackgroundEntity? _globalBackground;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -54,10 +65,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
 
+    _noiseSuppressionEnabled =
+        PreferencesService.instance.noiseSuppressionEnabled;
+    _loadGlobalBackground();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProfile();
       _animationController.forward();
     });
+  }
+
+  Future<void> _loadGlobalBackground() async {
+    try {
+      final bgJson = PreferencesService.instance.defaultChatBackground;
+      if (bgJson != null && bgJson.isNotEmpty) {
+        final model = ChatBackgroundModel.fromJson(jsonDecode(bgJson));
+        if (mounted) {
+          setState(() => _globalBackground = model.toEntity());
+        }
+      }
+    } catch (_) {
+      // Ignore : fond par défaut conservé.
+    }
+  }
+
+  Future<void> _showGlobalBackgroundPicker() async {
+    HapticFeedback.lightImpact();
+    final result = await ChatBackgroundPickerModal.show(
+      context,
+      currentBackground: _globalBackground,
+    );
+    if (result != null && mounted) {
+      setState(() => _globalBackground = result);
+    }
+  }
+
+  String _backgroundSubtitle(AppLocalizations l10n) {
+    final bg = _globalBackground;
+    if (bg == null || bg.isDefault) return l10n.defaultTheme;
+    if (bg.isColor) return 'Couleur personnalisée';
+    return 'Image personnalisée';
+  }
+
+  void _toggleNoiseSuppression(bool value) {
+    HapticFeedback.lightImpact();
+    setState(() => _noiseSuppressionEnabled = value);
+    PreferencesService.instance.setNoiseSuppressionEnabled(value);
   }
 
   @override
@@ -191,10 +244,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
+                    icon: const Icon(Icons.article_outlined),
+                    title: l10n.myPostsTitle,
+                    subtitle: '${ref.watch(userPostsCountProvider).valueOrNull ?? 0} ${l10n.posts}',
+                    onTap: () => context.push('/profile/my-posts'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const Icon(Icons.bookmark_outline),
+                    title: l10n.savedPostsTitle,
+                    subtitle: '${ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0} ${l10n.savedPostsCountLabel}',
+                    onTap: () => context.push('/profile/saved-posts'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
                     icon: const AppIcon(AppIcon.people),
                     title: l10n.myFriends,
                     subtitle: l10n.manageConnections,
                     onTap: () => context.push('/friends'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const Icon(Icons.people_alt_outlined),
+                    title: l10n.myFollowsTitle,
+                    subtitle: l10n.myFollowsSubtitle,
+                    onTap: () => context.push('/profile/follows'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
@@ -268,6 +342,67 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     title: l10n.blockedUsers,
                     onTap: () => _showBlockedUsers(),
                   ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const AppIcon(AppIcon.flag),
+                    title: l10n.myReports,
+                    subtitle: l10n.myReportsSubtitle,
+                    onTap: () => context.push('/settings/my-reports'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Section Sécurité
+        _buildAnimatedSection(
+          delay: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(l10n.security, const Icon(Icons.security)),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: const Icon(Icons.lock_outline),
+                    title: l10n.keyBackup,
+                    subtitle: l10n.keyBackupSubtitle,
+                    onTap: () => context.push('/settings/security/backup'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const Icon(Icons.devices_outlined),
+                    title: l10n.connectedDevices,
+                    subtitle: l10n.connectedDevicesSubtitle,
+                    onTap: () => context.push('/settings/security/devices'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Section Appels
+        _buildAnimatedSection(
+          delay: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(l10n.calls, const Icon(Icons.call_outlined)),
+              _SettingsCard(
+                children: [
+                  _SettingsSwitchTile(
+                    icon: const Icon(Icons.graphic_eq),
+                    title: l10n.noiseSuppression,
+                    subtitle: l10n.noiseSuppressionSubtitle,
+                    value: _noiseSuppressionEnabled,
+                    onChanged: _toggleNoiseSuppression,
+                  ),
                 ],
               ),
             ],
@@ -278,7 +413,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         // Section Préférences
         _buildAnimatedSection(
-          delay: 2,
+          delay: 4,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -305,6 +440,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                             .currentLocaleName,
                     onTap: () => _showLanguageSelector(l10n),
                   ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const Icon(Icons.wallpaper_outlined),
+                    title: l10n.chatBackground,
+                    subtitle: _backgroundSubtitle(l10n),
+                    onTap: () => _showGlobalBackgroundPicker(),
+                  ),
                 ],
               ),
             ],
@@ -315,7 +457,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         // Section Aide
         _buildAnimatedSection(
-          delay: 3,
+          delay: 5,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -341,6 +483,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
+                    icon: const Icon(Icons.gavel_outlined),
+                    title: l10n.codeOfConduct,
+                    onTap: () => context.push('/settings/code-of-conduct'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
                     icon: const AppIcon(AppIcon.info),
                     title: l10n.about,
                     subtitle: '${l10n.version} 1.2.0+10',
@@ -356,7 +504,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         // Zone de danger
         _buildAnimatedSection(
-          delay: 4,
+          delay: 6,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -608,6 +756,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       error: (_, __) => 0,
     );
 
+    final postsAsync = ref.watch(userPostsCountProvider);
+    final postsCount = postsAsync.when(
+      data: (count) => count,
+      loading: () => postsAsync.valueOrNull ?? 0,
+      error: (_, __) => 0,
+    );
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -664,6 +819,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               label: l10n.eventsTitle,
               icon: Icons.event_outlined,
               color: AppColors.info,
+            ),
+          ),
+          _buildStatDivider(),
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/profile/my-posts');
+            },
+            child: _AnimatedProfileStat(
+              value: postsCount.toString(),
+              label: l10n.posts,
+              icon: Icons.article_outlined,
+              color: context.adaptiveSecondaryColor,
             ),
           ),
         ],

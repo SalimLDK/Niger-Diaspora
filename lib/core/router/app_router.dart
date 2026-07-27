@@ -41,6 +41,7 @@ import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/feed/presentation/screens/my_posts_screen.dart';
 import '../../features/feed/presentation/screens/saved_posts_screen.dart';
+import '../../features/feed/presentation/screens/follows_screen.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
@@ -313,6 +314,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile/reposts',
         builder: (context, state) => const RepostsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/follows',
+        builder: (context, state) {
+          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return FollowsScreen(initialTab: tab);
+        },
       ),
       GoRoute(
         path: '/profile/:userId',

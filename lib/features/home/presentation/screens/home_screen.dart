@@ -638,26 +638,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
 
-                            // TODO: QR Scanner button - disabled temporarily
-                            // GestureDetector(
-                            //   key: _qrScannerKey,
-                            //   onTap: () => context.push('/qr-scanner'),
-                            //   child: Container(
-                            //     padding: const EdgeInsets.all(12),
-                            //     margin: const EdgeInsets.only(right: 8),
-                            //     decoration: BoxDecoration(
-                            //       color: AppColors.white.withValues(
-                            //         alpha: 0.15,
-                            //       ),
-                            //       borderRadius: BorderRadius.circular(14),
-                            //     ),
-                            //     child: const Icon(
-                            //       Icons.qr_code_scanner,
-                            //       color: AppColors.white,
-                            //       size: 24,
-                            //     ),
-                            //   ),
-                            // ),
+                            GestureDetector(
+                              onTap: () => context.push('/qr-scanner'),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.qr_code_scanner,
+                                  color: AppColors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
 
                             GestureDetector(
                               key: _notificationBellKey,
@@ -918,12 +916,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Quick Actions - Services (only show if at least one feature is enabled)
-                  if (ref.watch(isMoneyTransferEnabledProvider) ||
-                      ref.watch(isMarketplaceEnabledProvider) ||
-                      ref.watch(isBusinessDirectoryEnabledProvider) ||
-                      ref.watch(isEmbassiesEnabledProvider))
-                    Column(
+                  // Quick Actions - Services (le Fil d'actualité est toujours
+                  // disponible, la section est donc toujours affichée)
+                  Column(
                       key: _servicesKey,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -937,6 +932,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
+                              // Fil d'actualité (toujours disponible)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: QuickActionCard(
+                                  width: 110,
+                                  icon: Icons.dynamic_feed_rounded,
+                                  label: 'Fil d\'actualité',
+                                  color: context.adaptivePrimaryColor,
+                                  onTap: () => context.push('/feed'),
+                                ),
+                              ),
                               // Money Transfer
                               if (ref.watch(isMoneyTransferEnabledProvider))
                                 Padding(
