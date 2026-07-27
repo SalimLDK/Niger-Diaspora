@@ -101,6 +101,17 @@ class MessageCryptoService {
     );
   }
 
+  /// Chiffre une note « Mes notes » (self-chat).
+  ///
+  /// Il n'y a pas de destinataire : le Double Ratchet de Signal suppose deux
+  /// parties, on ne peut donc pas établir de session avec soi-même. La note est
+  /// chiffrée **au repos** avec la clé AES globale — le même repli que celui
+  /// déjà utilisé pour les aperçus, la localisation et les médias.
+  CryptoResult encryptSelfNote(String plaintext) => CryptoResult(
+        {'content': _aes.encryptText(plaintext), _levelKey: 'aes'},
+        'aes',
+      );
+
   // ── Group Encryption (Sender Keys) ─────────────────────────────────────────
 
   /// Encrypt for a group using Signal Sender Keys.

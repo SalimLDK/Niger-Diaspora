@@ -148,9 +148,27 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     String? recipientId,
     List<String> participantIds = const [],
     required String conversationId,
+    bool selfNote = false,
   }) async {
     if (_crypto == null) {
       throw E2EEException('Service de chiffrement non initialisé.');
+    }
+
+    // « Mes notes » : self-chat, donc aucun destinataire par construction — et
+    // aucune session Signal possible avec soi-même. On court-circuite AVANT les
+    // deux gardes ci-dessous : ni l'initialisation E2EE ni la présence d'un
+    // destinataire ne sont pertinentes ici. Chiffrement au repos, clé AES
+    // globale — le même repli que les aperçus, la localisation et les médias.
+    if (selfNote) {
+      final selfResult = _crypto.encryptSelfNote(plaintext);
+      unawaited(
+        AnalyticsService.instance.logMessageEncryption(
+          level: selfResult.encryptionLevel,
+          scope: 'self',
+          fallbackReason: null,
+        ),
+      );
+      return selfResult.fields;
     }
 
     if (!_crypto.isE2EEInitialized) {
@@ -652,6 +670,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         recipientId: recipientId,
         participantIds: participantIds,
         conversationId: conversationId,
+        selfNote: selfNote,
       );
 
       final msgData = <String, dynamic>{

@@ -927,6 +927,13 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     return result.fold(
       (failure) async {
+        // Sans cette trace, un échec d'envoi ne laisse qu'un triangle rouge à
+        // l'écran et rien dans les logs — indiagnosticable sur appareil.
+        debugPrint(
+          'sendText FAILED (selfNote=$selfNote, recipientId=$recipientId, '
+          'participants=${participantIds.length}, conv=${conversation != null}) '
+          ': ${failure.message}',
+        );
         if (attempt < maxAttempts && failure is! E2EEFailure) {
           await Future.delayed(Duration(seconds: attempt * 2));
           return await sendText(
