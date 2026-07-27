@@ -17,6 +17,12 @@ pluginManagement {
 }
 
 plugins {
+    // Permet à Gradle de télécharger lui-même le JDK réclamé par une toolchain.
+    // Certains plugins (flutter_callkit_incoming) exigent `languageVersion=17`,
+    // absent des JDK installés sur les postes (8 / 21 / 23). Sans ce résolveur,
+    // le build échoue sur « No locally installed toolchains match » dès que le
+    // JDK 17 auto-provisionné n'est plus dans le cache Gradle.
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.7.0" apply false
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
