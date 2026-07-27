@@ -12,6 +12,7 @@ import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/send_password_reset_email.dart';
+import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -79,6 +80,17 @@ class AuthNotifier extends _$AuthNotifier {
     await _loadUserData(firebaseUser.uid);
   }
 
+  /// Initialise le Signal Protocol pour [userId].
+  ///
+  /// Best-effort et non bloquant : en cas d'échec, les envois retombent sur le
+  /// repli AES prévu par l'architecture plutôt que d'empêcher la connexion.
+  void _initializeE2EE(String userId) {
+    ref
+        .read(messagingE2EEServiceProvider)
+        .initialize(userId)
+        .catchError((Object e) => dev.log('E2EE initialize failed: $e'));
+  }
+
   Future<void> _loadUserData(String userId) async {
     final repository = ref.read(authRepositoryProvider);
     final result = await repository.getCurrentUser();
@@ -88,6 +100,14 @@ class AuthNotifier extends _$AuthNotifier {
         state = AuthState.authenticated(user);
         // Resume session monitoring
         SessionService.instance.initialize(user.id, isNewLogin: false);
+
+        // Initialise le Signal Protocol pour cet utilisateur. SANS CET APPEL,
+        // `MessagingE2EEService.isInitialized` reste faux et _encryptContent
+        // rejette TOUT message texte avec « Chiffrement E2EE non disponible » :
+        // le service était construit par son provider mais jamais initialisé.
+        // Best-effort : un échec ne doit pas bloquer la connexion, les envois
+        // retomberont sur le repli AES prévu par l'architecture.
+        _initializeE2EE(user.id);
 
         // Mettre à jour lastLoginAt pour que l'utilisateur apparaisse en ligne
         ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
@@ -120,6 +140,7 @@ class AuthNotifier extends _$AuthNotifier {
     result.fold((failure) => state = AuthState.error(failure.message), (user) {
       state = AuthState.authenticated(user);
       SessionService.instance.initialize(user.id, isNewLogin: true);
+      _initializeE2EE(user.id);
       ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
       // Refresh onboarding status now that user is authenticated
       ref.read(onboardingNotifierProvider.notifier).refresh();
@@ -146,6 +167,7 @@ class AuthNotifier extends _$AuthNotifier {
           state = AuthState.authenticated(user);
           dev.log('AuthNotifier.signInWithGoogle: state = authenticated', name: _tag);
           SessionService.instance.initialize(user.id, isNewLogin: true);
+          _initializeE2EE(user.id);
           dev.log('AuthNotifier.signInWithGoogle: SessionService initialise', name: _tag);
           ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
           dev.log('AuthNotifier.signInWithGoogle: lastLogin mis a jour', name: _tag);
@@ -170,6 +192,7 @@ class AuthNotifier extends _$AuthNotifier {
     result.fold((failure) => state = AuthState.error(failure.message), (user) {
       state = AuthState.authenticated(user);
       SessionService.instance.initialize(user.id, isNewLogin: true);
+      _initializeE2EE(user.id);
     });
   }
 
