@@ -1072,46 +1072,7 @@ class _MessageInputState extends State<MessageInput>
                 padding: EdgeInsets.zero,
               ),
             ),
-            const SizedBox(width: 6),
-
-            // Attachment button
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color:
-                    context.isDarkMode
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                onPressed: () => _showAttachmentOptions(),
-                icon: const Icon(Icons.attach_file),
-                color: context.textSecondaryColor,
-                padding: EdgeInsets.zero,
-              ),
-            ),
-            const SizedBox(width: 6),
-
-            // Caméra rapide (caméra unifiée photo/vidéo)
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: context.isDarkMode
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                onPressed: () => _openCamera(),
-                icon: const Icon(Icons.photo_camera_outlined),
-                color: context.textSecondaryColor,
-                padding: EdgeInsets.zero,
-              ),
-            ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
 
             // Text field
             Expanded(
@@ -1168,6 +1129,28 @@ class _MessageInputState extends State<MessageInput>
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Bouton « + » : ouvre le sheet pièces jointes
+            // (caméra, galerie, vidéos, audio, documents).
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    context.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                onPressed: () => _showAttachmentOptions(),
+                icon: const Icon(Icons.add),
+                tooltip: AppLocalizations.of(context)!.sendFileTitle,
+                color: context.textSecondaryColor,
+                padding: EdgeInsets.zero,
               ),
             ),
           ],
@@ -1759,6 +1742,11 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
+  /// Bleu E2EE du bouton d'envoi : signale que le message part chiffré.
+  /// Même famille que l'accusé de lecture des bulles (#5B9BFF).
+  static const Color _kE2eeBlue = Color(0xFF2F6BE0);
+  static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
+
   /// Gradient du bouton selon l'état
   LinearGradient? _getButtonGradient(BuildContext context) {
     if (_isCancelling) {
@@ -1785,6 +1773,9 @@ class _MessageInputState extends State<MessageInput>
         colors:
             _isOverLimit
                 ? [Colors.red.shade400, Colors.red.shade600]
+                : _hasText
+                // Mode envoi : bleu E2EE. Mode micro : couleur du thème.
+                ? const [_kE2eeBlueLight, _kE2eeBlue]
                 : [
                   context.adaptivePrimaryColor,
                   context.adaptivePrimaryColor.withValues(alpha: 0.8),
@@ -1811,8 +1802,9 @@ class _MessageInputState extends State<MessageInput>
       return context.adaptivePrimaryColor.withValues(alpha: 0.4);
     }
     if (_hasText || widget.onSendAudio != null) {
-      return _isOverLimit
-          ? Colors.red.withValues(alpha: 0.35)
+      if (_isOverLimit) return Colors.red.withValues(alpha: 0.35);
+      return _hasText
+          ? _kE2eeBlue.withValues(alpha: 0.35)
           : context.adaptivePrimaryColor.withValues(alpha: 0.35);
     }
     return Colors.black.withValues(alpha: 0.1);
@@ -1863,6 +1855,7 @@ class _MessageInputState extends State<MessageInput>
     // Mode normal avec morphing mic <-> send
     return Stack(
       alignment: Alignment.center,
+      clipBehavior: Clip.none,
       children: [
         // Icône micro (disparaît quand il y a du texte)
         AnimatedOpacity(
@@ -1890,6 +1883,30 @@ class _MessageInputState extends State<MessageInput>
             ),
           ),
         ),
+        // Badge cadenas : le message part chiffré de bout en bout.
+        // Masqué hors mode envoi et au-delà de la limite de caractères
+        // (le bouton passe alors en rouge : l'envoi est bloqué, pas chiffré).
+        if (_hasText && !_isOverLimit)
+          Positioned(
+            right: -3,
+            bottom: -3,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: const AppIcon(AppIcon.lock, size: 10, color: _kE2eeBlue),
+            ),
+          ),
       ],
     );
   }
