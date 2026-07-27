@@ -5,8 +5,12 @@ void main() {
   group('EncryptionService', () {
     late EncryptionService encryptionService;
 
-    setUp(() {
+    setUp(() async {
       encryptionService = EncryptionService();
+      // Sans initialize(), encryptText retombe volontairement en passe-plat et
+      // renvoie le texte clair : les assertions de chiffrement échouaient donc
+      // sur un service jamais armé, pas sur un défaut de chiffrement.
+      await encryptionService.initialize();
     });
 
     test('should encrypt and decrypt text correctly', () {
