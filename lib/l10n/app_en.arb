@@ -151,6 +151,15 @@
   "confirmLogout": "Do you really want to log out?",
   "confirmDeleteAccount": "Delete account",
   "deleteAccountWarning": "This action is irreversible. All your data will be permanently deleted.\n\nThis includes:\n• Your profile and personal information\n• Your conversations and messages\n• Your created events\n• Your group memberships",
+  "unreadConversations": "{count, plural, =0{No unread} =1{1 unread} other{{count} unread}}",
+  "@unreadConversations": {
+    "description": "Unread conversation counter below the Messages screen title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "exportMyData": "Export my data",
   "exportMyDataSubtitle": "Download a copy of your data (GDPR)",
   "exportMyDataPreparing": "Preparing your export…",

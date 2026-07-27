@@ -14,6 +14,36 @@ import '../providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 
+/// Filtres rapides de la liste, en puces sous l'en-tête.
+enum _MessagesFilter { all, unread, groups }
+
+/// Pastille d'action de l'en-tête : carré arrondi sombre sur le dégradé.
+class _HeaderActionButton extends StatelessWidget {
+  const _HeaderActionButton({
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+  });
+
+  final Widget icon;
+  final VoidCallback onPressed;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = Material(
+      color: Colors.black.withValues(alpha: 0.22),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onPressed,
+        child: SizedBox(width: 46, height: 46, child: Center(child: icon)),
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
+  }
+}
+
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
 
@@ -26,6 +56,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   bool _showArchived = false;
+  _MessagesFilter _filter = _MessagesFilter.all;
 
   @override
   void dispose() {
@@ -52,6 +83,20 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     // on la retire d'ici, sinon elle apparaîtrait deux fois.
     filtered =
         filtered.where((conv) => !conv.isSelfNotesFor(currentUserId)).toList();
+
+    // Puces de filtre rapide (ne s'appliquent pas aux archives, qui ont déjà
+    // leur propre vue).
+    if (!showArchived) {
+      switch (_filter) {
+        case _MessagesFilter.all:
+          break;
+        case _MessagesFilter.unread:
+          filtered =
+              filtered.where((conv) => conv.hasUnreadFor(currentUserId)).toList();
+        case _MessagesFilter.groups:
+          filtered = filtered.where((conv) => conv.isGroup).toList();
+      }
+    }
 
     // Then filter by search query if any
     if (_searchQuery.isNotEmpty) {
@@ -219,6 +264,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
 
+    // Total de non-lus affiché sous le titre. Les archives en sont exclues :
+    // ce compteur décrit ce qui attend l'utilisateur dans sa liste courante.
+    final headerUserId = currentUser?.id ?? '';
+    final unreadTotal = (conversationsAsync.valueOrNull ?? [])
+        .where((conv) => !conv.isArchivedBy(headerUserId))
+        .fold<int>(
+          0,
+          (sum, conv) => sum + conv.getUnreadCountFor(headerUserId),
+        );
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
@@ -318,7 +373,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               backgroundColor: context.adaptivePrimaryColor,
               child: const Icon(Icons.message, color: AppColors.white),
             ),
-      body: conversationsAsync.when(
+      body: Column(
+        children: [
+          _buildGradientHeader(context, l10n, unreadTotal),
+          _buildFilterChips(context, l10n),
+          Expanded(
+            child: conversationsAsync.when(
         skipLoadingOnRefresh: true,
         skipLoadingOnReload: true,
         data: (conversations) {
@@ -383,6 +443,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ],
               ),
             ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -438,6 +501,174 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// En-tête façon « hero » : bandeau dégradé, grand titre, compteur de non-lus
+  /// et actions en pastilles. Aligné sur Accueil et Profil, qui utilisent déjà
+  /// `context.adaptivePrimaryGradient` — la messagerie était le seul onglet
+  /// resté sur une AppBar plate.
+  Widget _buildGradientHeader(
+    BuildContext context,
+    AppLocalizations l10n,
+    int unreadTotal,
+  ) {
+    return Container(
+      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_showArchived)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: IconButton(
+                    icon: AppIcon(AppIcon.arrowBack, color: context.onPrimaryColor),
+                    onPressed: () => setState(() => _showArchived = false),
+                  ),
+                ),
+              Expanded(
+                child:
+                    _isSearching
+                        ? TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          style: TextStyle(color: context.onPrimaryColor),
+                          decoration: InputDecoration(
+                            hintText: l10n.searchPlaceholder,
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(
+                              color: context.onPrimaryColor.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
+                        )
+                        : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _showArchived ? l10n.archives : l10n.messagesTitle,
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: context.onPrimaryColor,
+                              ),
+                            ),
+                            if (!_showArchived && unreadTotal > 0) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                l10n.unreadConversations(unreadTotal),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: context.onPrimaryColor.withValues(
+                                    alpha: 0.85,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+              ),
+              if (_isSearching)
+                _HeaderActionButton(
+                  icon: const AppIcon(AppIcon.close, color: AppColors.white),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = false;
+                      _searchQuery = '';
+                      _searchController.clear();
+                    });
+                  },
+                )
+              else ...[
+                _HeaderActionButton(
+                  icon: const AppIcon(AppIcon.search, color: AppColors.white),
+                  onPressed: () => setState(() => _isSearching = true),
+                ),
+                const SizedBox(width: 10),
+                _HeaderActionButton(
+                  icon: const Icon(Icons.more_vert, color: AppColors.white),
+                  onPressed: () => setState(() => _showArchived = !_showArchived),
+                  tooltip: _showArchived ? l10n.messagesTitle : l10n.archives,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Puces de filtre rapide. Masquées en recherche et dans les archives, où
+  /// elles n'auraient pas de sens.
+  Widget _buildFilterChips(BuildContext context, AppLocalizations l10n) {
+    if (_showArchived || _isSearching) return const SizedBox.shrink();
+
+    final entries = <(_MessagesFilter, String)>[
+      (_MessagesFilter.all, l10n.filterAll),
+      (_MessagesFilter.unread, l10n.filterUnread),
+      (_MessagesFilter.groups, l10n.filterGroups),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      child: SizedBox(
+        height: 40,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: entries.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (context, index) {
+            final (value, label) = entries[index];
+            final isSelected = _filter == value;
+            return GestureDetector(
+              onTap: () => setState(() => _filter = value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color:
+                      isSelected
+                          ? context.adaptivePrimaryColor.withValues(alpha: 0.18)
+                          : context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isSelected) ...[
+                      AppIcon(
+                        AppIcon.check,
+                        size: 16,
+                        color: context.adaptivePrimaryColor,
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color:
+                            isSelected
+                                ? context.adaptivePrimaryColor
+                                : context.textPrimaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

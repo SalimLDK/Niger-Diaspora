@@ -151,6 +151,15 @@
   "confirmLogout": "Voulez-vous vraiment vous déconnecter ?",
   "confirmDeleteAccount": "Supprimer le compte",
   "deleteAccountWarning": "Cette action est irréversible. Toutes vos données seront supprimées définitivement.\n\nCela inclut :\n• Votre profil et vos informations personnelles\n• Vos conversations et messages\n• Vos événements créés\n• Votre participation aux groupes",
+  "unreadConversations": "{count, plural, =0{Aucun non lu} =1{1 non lu} other{{count} non lus}}",
+  "@unreadConversations": {
+    "description": "Compteur de conversations non lues sous le titre de l'écran Messages",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "exportMyData": "Exporter mes données",
   "exportMyDataSubtitle": "Télécharger une copie de vos données (RGPD)",
   "exportMyDataPreparing": "Préparation de votre export…",

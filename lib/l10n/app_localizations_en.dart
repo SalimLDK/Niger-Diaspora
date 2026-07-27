@@ -424,6 +424,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'This action is irreversible. All your data will be permanently deleted.\n\nThis includes:\n• Your profile and personal information\n• Your conversations and messages\n• Your created events\n• Your group memberships';
 
   @override
+  String unreadConversations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread',
+      one: '1 unread',
+      zero: 'No unread',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get exportMyData => 'Export my data';
 
   @override

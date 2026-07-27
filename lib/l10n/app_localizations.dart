@@ -902,6 +902,12 @@ abstract class AppLocalizations {
   /// **'Cette action est irréversible. Toutes vos données seront supprimées définitivement.\n\nCela inclut :\n• Votre profil et vos informations personnelles\n• Vos conversations et messages\n• Vos événements créés\n• Votre participation aux groupes'**
   String get deleteAccountWarning;
 
+  /// Compteur de conversations non lues sous le titre de l'écran Messages
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucun non lu} =1{1 non lu} other{{count} non lus}}'**
+  String unreadConversations(int count);
+
   /// No description provided for @exportMyData.
   ///
   /// In fr, this message translates to:
