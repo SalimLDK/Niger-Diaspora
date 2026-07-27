@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
 import 'profile_remote_datasource.dart';
 
@@ -47,7 +48,29 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   SupabaseClient get _supabase => _clientOverride ?? Supabase.instance.client;
   final Map<String, ProfileModel> _cache = {};
 
-  ProfileSupabaseDataSource({SupabaseClient? supabase}) : _clientOverride = supabase;
+  /// Garde d'authentification, injectable pour les tests.
+  ///
+  /// Une callback plutôt qu'un [SupabaseAuthBridge] : son constructeur est
+  /// privé, donc un double de test ne pourrait pas en hériter.
+  final Future<bool> Function() _ensureAuth;
+
+  ProfileSupabaseDataSource({
+    SupabaseClient? supabase,
+    Future<bool> Function()? ensureAuth,
+  }) : _clientOverride = supabase,
+       _ensureAuth =
+           ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated;
+
+  /// Garde obligatoire avant toute écriture.
+  ///
+  /// Sans session Supabase valide, la RLS rejette l'UPDATE *silencieusement*
+  /// (204, 0 ligne modifiée, aucune exception) : le réglage semble enregistré
+  /// dans l'UI alors que rien n'a persisté.
+  Future<void> _requireAuth() async {
+    if (!await _ensureAuth()) {
+      throw ServerException('Session Supabase non établie – reconnectez-vous');
+    }
+  }
 
   // ═══════════════════════════════════════════
   // READ
@@ -131,6 +154,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<ProfileModel> updateProfile(ProfileModel profile) async {
+    await _requireAuth();
     // upsert instead of update: the Supabase users row may not exist yet
     // (user authenticated via Firebase, row created lazily on first profile save).
     final data = await _supabase
@@ -159,7 +183,11 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         })
         .select()
         .maybeSingle();
-    if (data == null) throw ServerException('Upsert returned no row for: ${profile.id}');
+    // La garde ci-dessus a déjà écarté la cause « pas de session ». Si l'upsert
+    // ne renvoie toujours rien, c'est la RLS qui refuse la ligne elle-même.
+    if (data == null) {
+      throw ServerException('Écriture refusée pour le profil ${profile.id}');
+    }
     return ProfileModel.fromJson(_mapProfile(data));
   }
 
@@ -175,6 +203,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     double latitude,
     double longitude,
   ) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'latitude': latitude,
       'longitude': longitude,
@@ -184,6 +213,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<void> updateLastLogin(String userId) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'last_active_at': DateTime.now().toIso8601String(),
     }).eq('id', userId);
@@ -195,6 +225,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     bool isOnline,
     DateTime lastSeen,
   ) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'is_online': isOnline,
       'last_seen_at': lastSeen.toIso8601String(),
@@ -203,6 +234,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<void> updateOnlineStatusVisibility(String userId, bool showStatus) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'show_online_status': showStatus,
     }).eq('id', userId);
@@ -210,12 +242,14 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<void> updateNotifyLocalEvents(String userId, bool enabled) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'notify_local_events': enabled,
     }).eq('id', userId);
   }
 
   Future<void> updateShowMessagePreview(String userId, bool show) async {
+    await _requireAuth();
     await _supabase.from('users').update({
       'show_message_preview': show,
     }).eq('id', userId);
