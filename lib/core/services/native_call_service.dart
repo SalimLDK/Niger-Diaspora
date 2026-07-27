@@ -96,18 +96,24 @@ class NativeCallService {
     String? handle,
   }) async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
-    if (!_isInitialized) {
-      await initialize();
-    }
 
-    // Déduplication : un même appel entrant peut déclencher showIncomingCall
-    // plusieurs fois (stream + push, push 2×). On n'affiche qu'UNE UI CallKit
-    // par callId — sinon les bannières/plein-écran s'empilent.
+    // Déduplication SYNCHRONE — AVANT tout `await`. Un même appel entrant arrive
+    // par plusieurs chemins (stream Firestore + callback push, parfois plusieurs
+    // fois dans le même tick). Si le garde est placé APRÈS `await initialize()`,
+    // des invocations concurrentes le franchissent TOUTES : l'init n'est pas
+    // finie, `_activeCallId` est encore null au moment où chacune vérifie
+    // → plusieurs bannières/plein-écran CallKit empilés (bug « plusieurs
+    // couches »). En vérifiant ET affectant ici, sans aucun await intercalé,
+    // seule la 1re invocation passe ; les suivantes sont ignorées.
     if (_activeCallId == callId) {
       debugPrint('NativeCallService: appel $callId déjà affiché, showIncomingCall ignoré');
       return;
     }
     _activeCallId = callId;
+
+    if (!_isInitialized) {
+      await initialize();
+    }
 
     // Generate a UUID for this call (required by CallKit)
     _activeCallUuid = _uuid.v4();
