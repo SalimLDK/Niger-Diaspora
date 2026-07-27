@@ -24,6 +24,7 @@ class MessagesRoutes {
           isGroup: extra?['isGroup'] as bool? ?? false,
           otherUserId: extra?['otherUserId'] as String?,
           groupId: extra?['groupId'] as String?,
+          isSelfNotes: extra?['isSelfNotes'] as bool? ?? false,
         );
       },
     ),

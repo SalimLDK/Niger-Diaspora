@@ -48,6 +48,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           return showArchived ? isArchived : !isArchived;
         }).toList();
 
+    // « Mes notes » (self-chat) a sa propre tuile épinglée en tête de liste :
+    // on la retire d'ici, sinon elle apparaîtrait deux fois.
+    filtered =
+        filtered.where((conv) => !conv.isSelfNotesFor(currentUserId)).toList();
+
     // Then filter by search query if any
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
@@ -437,6 +442,120 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
+  /// Ouvre « Mes notes » : récupère (ou crée à la volée) la conversation dont
+  /// l'utilisateur est l'unique participant, puis navigue avec le flag dédié
+  /// qui désactive les appels et bascule le menu « + » en brouillon de sondage.
+  Future<void> _openSelfNotes() async {
+    final conversation =
+        await ref.read(ensureSelfNotesProvider.notifier).ensure();
+    if (!mounted) return;
+
+    if (conversation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Impossible d'ouvrir Mes notes pour le moment"),
+        ),
+      );
+      return;
+    }
+
+    context.push(
+      '/messages/${conversation.id}',
+      extra: {
+        'name': 'Mes notes',
+        'isGroup': false,
+        'isSelfNotes': true,
+      },
+    );
+  }
+
+  /// Tuile épinglée « Mes notes », toujours en tête de liste (hors recherche
+  /// et hors archives). L'aperçu reprend le dernier contenu noté s'il existe.
+  Widget _buildSelfNotesTile(BuildContext context) {
+    final selfConversation = ref.watch(selfNotesConversationProvider);
+    final lastNote = selfConversation?.lastMessage?.trim();
+    final subtitle =
+        (lastNote != null && lastNote.isNotEmpty)
+            ? lastNote
+            : 'Notes, brouillons et sondages';
+    final isOpening = ref.watch(ensureSelfNotesProvider).isLoading;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: isOpening ? null : _openSelfNotes,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                  ),
+                  child: Center(
+                    child:
+                        isOpening
+                            ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                            )
+                            : AppIcon(
+                              AppIcon.pin,
+                              size: 24,
+                              color: context.adaptivePrimaryColor,
+                            ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Mes notes',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AppIcon(
+                  AppIcon.chevronRight,
+                  size: 18,
+                  color: context.textTertiaryColor,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildConversationList({
     required List<ConversationEntity> conversations,
     required String currentUserId,
@@ -452,6 +571,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       blockedUserIds: blockedUserIds,
       participantNames: participantNames,
     );
+
+    // La tuile « Mes notes » n'a de sens que sur la liste principale : ni dans
+    // les archives, ni au milieu de résultats de recherche.
+    final showSelfNotesTile = !showArchived && _searchQuery.isEmpty;
 
     if (filtered.isEmpty) {
       if (_searchQuery.isNotEmpty) {
@@ -501,8 +624,18 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         );
       }
 
-      // Empty state for messages - use _buildEmptyState
-      return _buildEmptyState(context);
+      // Empty state for messages - use _buildEmptyState. La tuile « Mes notes »
+      // reste accessible même si aucune conversation n'existe encore.
+      if (!showSelfNotesTile) return _buildEmptyState(context);
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+            child: _buildSelfNotesTile(context),
+          ),
+          Expanded(child: _buildEmptyState(context)),
+        ],
+      );
     }
 
     return RefreshIndicator(
@@ -517,9 +650,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           20,
           10 + MediaQuery.of(context).padding.bottom,
         ),
-        itemCount: filtered.length,
+        itemCount: filtered.length + (showSelfNotesTile ? 1 : 0),
         itemBuilder: (context, index) {
-          final conversation = filtered[index];
+          if (showSelfNotesTile && index == 0) {
+            return _buildSelfNotesTile(context);
+          }
+          final conversation =
+              filtered[showSelfNotesTile ? index - 1 : index];
 
           return ConversationItem(
             conversation: conversation,

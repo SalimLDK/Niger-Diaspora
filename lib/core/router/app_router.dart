@@ -741,6 +741,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             isGroup: extra?['isGroup'] as bool? ?? false,
             otherUserId: extra?['otherUserId'] as String?,
             groupId: extra?['groupId'] as String?, // Pass groupId
+            // « Mes notes » (self-chat) : posé par la tuile épinglée de
+            // MessagesScreen. Désactive les appels et bascule le menu « + »
+            // sur le brouillon de sondage.
+            isSelfNotes: extra?['isSelfNotes'] as bool? ?? false,
           );
         },
       ),
