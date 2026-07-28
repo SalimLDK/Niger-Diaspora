@@ -447,7 +447,11 @@ class _ActionBar extends ConsumerWidget {
                         color: tokens.actionLabel,
                       ),
               iconColor: likeColor,
-              label: post.likeCount > 0 ? '${post.likeCount}' : '',
+              // En détail, le compteur est nommé (« 24 J'aime ») ; en liste
+              // il reste compact.
+              label: isDetail
+                  ? '${post.likeCount} ${l10n.likes}'
+                  : (post.likeCount > 0 ? '${post.likeCount}' : ''),
               onTap: () {
                 ref.read(feedNotifierProvider.notifier).toggleLike(post.id);
                 if (post.hashtags.isNotEmpty) {
@@ -463,7 +467,9 @@ class _ActionBar extends ConsumerWidget {
                 color: tokens.actionLabel,
               ),
               iconColor: tokens.actionLabel,
-              label: post.commentCount > 0 ? '${post.commentCount}' : '',
+              label: isDetail
+                  ? l10n.postComments(post.commentCount)
+                  : (post.commentCount > 0 ? '${post.commentCount}' : ''),
               onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
             ),
             if (!isDetail) ...[

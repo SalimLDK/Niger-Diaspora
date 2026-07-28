@@ -10,6 +10,7 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/comment_tile.dart';
+import '../widgets/feed_avatar.dart';
 import '../widgets/mention_text_field.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
@@ -112,6 +113,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     final post = ref.watch(postDetailProvider(widget.postId));
     final commentsState = ref.watch(commentsProvider(widget.postId));
     final tokens = FeedTokens.of(context);
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: tokens.bg,
@@ -170,6 +172,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             controller: _commentController,
             isSending: _isSending,
             onSend: _sendComment,
+            avatarName: currentUser?.displayName ?? currentUser?.email ?? '',
+            avatarPhotoUrl: currentUser?.photoURL,
             onTagsChanged: (users, groups, hashtags) {
               _commentMentions = users;
               _commentGroups = groups;
@@ -267,6 +271,8 @@ class _CommentInput extends StatelessWidget {
   final TextEditingController controller;
   final bool isSending;
   final VoidCallback onSend;
+  final String avatarName;
+  final String? avatarPhotoUrl;
   final void Function(
     List<MentionedUser> users,
     List<MentionedGroup> groups,
@@ -278,6 +284,8 @@ class _CommentInput extends StatelessWidget {
     required this.controller,
     required this.isSending,
     required this.onSend,
+    required this.avatarName,
+    this.avatarPhotoUrl,
     this.onTagsChanged,
     required this.l10n,
   });
@@ -294,6 +302,13 @@ class _CommentInput extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
+            FeedAvatar(
+              name: avatarName,
+              photoUrl: avatarPhotoUrl,
+              radius: 16,
+              tokens: tokens,
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: MentionTextField(
                 controller: controller,

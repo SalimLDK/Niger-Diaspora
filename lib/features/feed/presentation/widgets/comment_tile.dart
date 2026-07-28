@@ -55,11 +55,12 @@ class CommentTile extends StatelessWidget {
     final theme = Theme.of(context);
     final tokens = FeedTokens.of(context);
     final isOwner = comment.authorId == currentUserId;
-    final avatarRadius = isReply ? 13.0 : 16.0;
+    // Réponse : avatar réduit à 30 px (r15), indentées à 42 px (§13).
+    final avatarRadius = isReply ? 15.0 : 16.0;
 
     return Padding(
       padding: EdgeInsets.only(
-        left: isReply ? 44 : 12,
+        left: isReply ? 42 : 12,
         right: 12,
         top: 8,
         bottom: 8,
@@ -219,13 +220,16 @@ class _ActionRow extends StatelessWidget {
                                 color: tokens.mutedText,
                               ),
                     ),
-                    if (likeCount > 0) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '$likeCount',
-                        style: TextStyle(color: tokens.mutedText, fontSize: 12),
+                    const SizedBox(width: 4),
+                    // Action nommée « J'aime · 4 » plutôt qu'un simple nombre.
+                    Text(
+                      likeCount > 0 ? '${l10n.likes} · $likeCount' : l10n.likes,
+                      style: TextStyle(
+                        color: isLiked ? tokens.accent : tokens.mutedText,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
