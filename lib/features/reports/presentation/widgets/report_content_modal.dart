@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../domain/entities/report_entity.dart';
 import '../providers/report_provider.dart';
@@ -270,17 +271,8 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle bar
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            // Poignée standardisée (§27/16).
+            const SheetHandle(),
             const SizedBox(height: 20),
 
             // Title
