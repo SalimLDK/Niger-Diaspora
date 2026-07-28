@@ -10552,6 +10552,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityBackupTitle => 'Key backup';
 
   @override
+  String get e2eeBackupNudgeMessage =>
+      'Back up your encryption keys so you don\'t lose access to your messages if you switch devices.';
+
+  @override
+  String get e2eeBackupNudgeAction => 'Back up';
+
+  @override
+  String get e2eeRestoreNudgeMessage =>
+      'Restore your encryption keys to read your encrypted messages on this device.';
+
+  @override
+  String get e2eeRestoreNudgeAction => 'Restore';
+
+  @override
   String get securityRestoreKeys => 'Restore keys';
 
   @override

@@ -5,7 +5,9 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../../features/messages/presentation/providers/message_provider.dart';
 import '../../features/messages/presentation/screens/share_to_conversation_screen.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
+import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/shared_media_service.dart';
 import '../utils/toast_utils.dart';
 
@@ -19,12 +21,19 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
+  /// Dernier prompt E2EE affiché, pour ne pas ré-afficher le même bandeau à
+  /// chaque rebuild.
+  E2EEBackupPrompt? _e2eePromptShown;
+
   @override
   void initState() {
     super.initState();
     // Handle shares received while the app was closed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkInitialSharedMedia();
+      // Le coordinateur peut avoir déjà décidé avant que ce shell soit monté :
+      // ref.listen ne rejoue pas l'état courant, on le lit donc une fois ici.
+      _handleE2EEPrompt(ref.read(e2eeBackupCoordinatorProvider));
     });
   }
 
@@ -61,6 +70,12 @@ class _MainShellState extends ConsumerState<MainShell> {
       },
     );
 
+    // Bandeau de sauvegarde/restauration des clés E2EE.
+    ref.listen<E2EEBackupPrompt>(
+      e2eeBackupCoordinatorProvider,
+      (_, next) => _handleE2EEPrompt(next),
+    );
+
     // extendBody: true keeps the glass/blur effect (nav bar floats over body).
     // MediaQuery.padding.bottom is inflated so every ListView/ScrollView that
     // reads it (default padding: null) automatically adds bottom clearance.
@@ -84,6 +99,49 @@ class _MainShellState extends ConsumerState<MainShell> {
         currentIndex: widget.navigationShell.currentIndex,
         onTap: (index) => _onTap(context, index),
         unreadMessagesCount: unreadMessagesCount,
+      ),
+    );
+  }
+
+  /// Affiche (ou masque) le bandeau invitant à sauvegarder ou restaurer les clés
+  /// E2EE, selon la décision du coordinateur. Non bloquant.
+  void _handleE2EEPrompt(E2EEBackupPrompt prompt) {
+    if (!mounted) return;
+    if (prompt == _e2eePromptShown) return;
+    _e2eePromptShown = prompt;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearMaterialBanners();
+    if (prompt == E2EEBackupPrompt.none) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final isRestore = prompt == E2EEBackupPrompt.needsRestore;
+
+    messenger.showMaterialBanner(
+      MaterialBanner(
+        content: Text(
+          isRestore ? l10n.e2eeRestoreNudgeMessage : l10n.e2eeBackupNudgeMessage,
+        ),
+        leading: const Icon(Icons.lock_outline),
+        actions: [
+          TextButton(
+            onPressed: () {
+              messenger.hideCurrentMaterialBanner();
+              ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
+            },
+            child: Text(l10n.notNow),
+          ),
+          TextButton(
+            onPressed: () {
+              messenger.hideCurrentMaterialBanner();
+              ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
+              context.push('/settings/security/backup');
+            },
+            child: Text(
+              isRestore ? l10n.e2eeRestoreNudgeAction : l10n.e2eeBackupNudgeAction,
+            ),
+          ),
+        ],
       ),
     );
   }

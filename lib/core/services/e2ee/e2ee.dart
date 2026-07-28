@@ -27,6 +27,7 @@ export 'device_sync_service.dart';
 
 // Backup & Recovery
 export 'key_backup_service.dart';
+export 'e2ee_backup_coordinator.dart';
 
 // Media Encryption
 export 'media_encryption_service.dart';

@@ -19790,6 +19790,30 @@ abstract class AppLocalizations {
   /// **'Sauvegarde des clés'**
   String get securityBackupTitle;
 
+  /// No description provided for @e2eeBackupNudgeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegardez vos clés de chiffrement pour ne pas perdre l\'accès à vos messages si vous changez d\'appareil.'**
+  String get e2eeBackupNudgeMessage;
+
+  /// No description provided for @e2eeBackupNudgeAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder'**
+  String get e2eeBackupNudgeAction;
+
+  /// No description provided for @e2eeRestoreNudgeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurez vos clés de chiffrement pour lire vos messages chiffrés sur cet appareil.'**
+  String get e2eeRestoreNudgeMessage;
+
+  /// No description provided for @e2eeRestoreNudgeAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get e2eeRestoreNudgeAction;
+
   /// No description provided for @securityRestoreKeys.
   ///
   /// In fr, this message translates to:

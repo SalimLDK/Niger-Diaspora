@@ -10661,6 +10661,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get securityBackupTitle => 'Sauvegarde des clés';
 
   @override
+  String get e2eeBackupNudgeMessage =>
+      'Sauvegardez vos clés de chiffrement pour ne pas perdre l\'accès à vos messages si vous changez d\'appareil.';
+
+  @override
+  String get e2eeBackupNudgeAction => 'Sauvegarder';
+
+  @override
+  String get e2eeRestoreNudgeMessage =>
+      'Restaurez vos clés de chiffrement pour lire vos messages chiffrés sur cet appareil.';
+
+  @override
+  String get e2eeRestoreNudgeAction => 'Restaurer';
+
+  @override
   String get securityRestoreKeys => 'Restaurer les clés';
 
   @override

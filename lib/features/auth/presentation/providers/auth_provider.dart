@@ -12,7 +12,7 @@ import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/send_password_reset_email.dart';
-import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
+import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -80,15 +80,18 @@ class AuthNotifier extends _$AuthNotifier {
     await _loadUserData(firebaseUser.uid);
   }
 
-  /// Initialise le Signal Protocol pour [userId].
+  /// Amorce le Signal Protocol pour [userId] via le coordinateur E2EE.
   ///
-  /// Best-effort et non bloquant : en cas d'échec, les envois retombent sur le
-  /// repli AES prévu par l'architecture plutôt que d'empêcher la connexion.
+  /// Le coordinateur décide s'il faut initialiser, proposer une sauvegarde
+  /// (clés neuves) ou une restauration (backup distant existant) — sans jamais
+  /// écraser une identité restaurable. Best-effort et non bloquant : en cas
+  /// d'échec, les envois retombent sur le repli AES prévu par l'architecture
+  /// plutôt que d'empêcher la connexion.
   void _initializeE2EE(String userId) {
     ref
-        .read(messagingE2EEServiceProvider)
-        .initialize(userId)
-        .catchError((Object e) => dev.log('E2EE initialize failed: $e'));
+        .read(e2eeBackupCoordinatorProvider.notifier)
+        .bootstrap(userId)
+        .catchError((Object e) => dev.log('E2EE bootstrap failed: $e'));
   }
 
   Future<void> _loadUserData(String userId) async {
