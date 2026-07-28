@@ -427,6 +427,8 @@ abstract class GroupRepository {
 
 ## Feature: Messages
 
+> ⚠️ **Section périmée (vérifié le 2026-07-25)** : décrite ici comme un `MessageRemoteDataSource` purement Firestore/RTDB, sans aucune mention de Supabase. Depuis la migration actée par l'[ADR messagerie](ADR-messaging-source-of-truth.md) (2026-07-15), Supabase est la source de vérité du stockage et du temps réel des messages ; Firebase RTDB ne joue plus qu'un rôle résiduel. Les signatures ci-dessous ne reflètent pas l'implémentation actuelle — se référer au code (`lib/features/messages/data/`) plutôt qu'à ce document.
+
 ### MessageRemoteDataSource
 
 ```dart

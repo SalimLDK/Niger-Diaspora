@@ -10,7 +10,7 @@ Sommaire de la documentation du projet. Les documents historiques (audits termin
 
 - [ADR-messaging-source-of-truth.md](architecture/ADR-messaging-source-of-truth.md) — **ADR (2026-07-15)** : Supabase = source de vérité de la messagerie, rôle résiduel de Firebase RTDB.
 - [CALL_FLOW.md](architecture/CALL_FLOW.md) — Flux complet des appels audio/vidéo (WebRTC, signaling, coturn).
-- [API_INTERNE.md](architecture/API_INTERNE.md) — Documentation des services et APIs internes. ⚠️ Rédigé en janv. 2026, avant la migration Supabase : vérifier au cas par cas.
+- [API_INTERNE.md](architecture/API_INTERNE.md) — Documentation des services et APIs internes. ⚠️ **Vérifié le 2026-07-25** : la section Messages est confirmée périmée (aucune mention de Supabase, décrit un `MessageRemoteDataSource` Firestore/RTDB obsolète) — bandeau ajouté dans le fichier. Le reste (Auth, Profile, autres features encore sur Firebase) n'a pas été vérifié.
 - [SHARED_COMPONENTS.md](architecture/SHARED_COMPONENTS.md) — Catalogue des widgets réutilisables (`lib/shared/widgets/`).
 
 ## Configuration
