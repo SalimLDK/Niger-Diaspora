@@ -11,6 +11,8 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../friends/domain/entities/friend_request_entity.dart';
+import '../../../friends/presentation/providers/friend_provider.dart';
 
 /// Trois filtres (refonte 12c) : Tout / Non lues / Mentions. « Mentions »
 /// regroupe les notifications qui vous concernent personnellement (demandes
@@ -576,7 +578,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 }
 
-class _NotificationItem extends StatelessWidget {
+class _NotificationItem extends ConsumerWidget {
   final NotificationEntity notification;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
@@ -592,7 +594,7 @@ class _NotificationItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final timeAgo = _formatTimeAgo(notification.createdAt, l10n);
 
@@ -756,6 +758,15 @@ class _NotificationItem extends StatelessWidget {
                         color: context.textTertiaryColor,
                       ),
                     ),
+                    // Actions en ligne pour une demande d'ami (§12c).
+                    if (notification.type == NotificationType.friendRequest &&
+                        notification.targetId != null) ...[
+                      const SizedBox(height: 10),
+                      _FriendRequestActions(
+                        requesterId: notification.targetId!,
+                        onResponded: onMarkAsRead,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1317,7 +1328,7 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
 }
 
 /// Widget compact pour les notifications dans un groupe (style WhatsApp)
-class _CompactNotificationItem extends StatelessWidget {
+class _CompactNotificationItem extends ConsumerWidget {
   final NotificationEntity notification;
   final VoidCallback onTap;
   final VoidCallback onDelete;
@@ -1331,7 +1342,7 @@ class _CompactNotificationItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Dismissible(
       key: ValueKey('compact_${notification.id}'),
       direction: DismissDirection.endToStart,
@@ -1406,6 +1417,15 @@ class _CompactNotificationItem extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // Actions en ligne pour une demande d'ami (§12c).
+                    if (notification.type == NotificationType.friendRequest &&
+                        notification.targetId != null) ...[
+                      const SizedBox(height: 8),
+                      _FriendRequestActions(
+                        requesterId: notification.targetId!,
+                        onResponded: onMarkAsRead,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1428,5 +1448,131 @@ class _CompactNotificationItem extends StatelessWidget {
   String _formatTime(DateTime? date) {
     if (date == null) return '';
     return DateFormat('HH:mm').format(date);
+  }
+}
+
+/// Boutons Accepter / Refuser en ligne sur une notification de demande d'ami
+/// (§12c). La notification ne porte que l'id de l'expéditeur ([requesterId]) —
+/// on retrouve la demande en attente correspondante dans
+/// [receivedFriendRequestsProvider] pour obtenir son id. Quand la demande est
+/// traitée, elle quitte le flux et les boutons disparaissent d'eux-mêmes.
+class _FriendRequestActions extends ConsumerStatefulWidget {
+  final String requesterId;
+  final VoidCallback onResponded;
+
+  const _FriendRequestActions({
+    required this.requesterId,
+    required this.onResponded,
+  });
+
+  @override
+  ConsumerState<_FriendRequestActions> createState() =>
+      _FriendRequestActionsState();
+}
+
+class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
+  bool _busy = false;
+
+  FriendRequestEntity? _pendingRequest(List<FriendRequestEntity> requests) {
+    for (final r in requests) {
+      if (r.senderId == widget.requesterId &&
+          r.status == FriendRequestStatus.pending) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _respond(FriendRequestEntity request, bool accept) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+
+    final notifier = ref.read(friendRequestNotifierProvider.notifier);
+    final ok =
+        accept
+            ? await notifier.acceptRequest(request.id, senderId: request.senderId)
+            : await notifier.declineRequest(
+              request.id,
+              senderId: request.senderId,
+            );
+
+    if (!mounted) return;
+    setState(() => _busy = false);
+
+    if (ok) {
+      widget.onResponded();
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(accept ? l10n.requestAccepted : l10n.requestDeclined),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final requests =
+        ref.watch(receivedFriendRequestsProvider).valueOrNull ?? [];
+    final request = _pendingRequest(requests);
+
+    // Plus de demande en attente (déjà traitée ailleurs) : rien à afficher.
+    if (request == null) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        SizedBox(
+          height: 34,
+          child: ElevatedButton(
+            onPressed: _busy ? null : () => _respond(request, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.adaptivePrimaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            child:
+                _busy
+                    ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : Text(
+                      l10n.acceptRequest,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          height: 34,
+          child: OutlinedButton(
+            onPressed: _busy ? null : () => _respond(request, false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.textSecondaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              side: BorderSide(color: context.borderColor),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            child: Text(
+              l10n.declineRequest,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
