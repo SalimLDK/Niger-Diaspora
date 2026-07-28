@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'eff_wordlist.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
 
@@ -22,7 +23,7 @@ final keyBackupServiceProvider = Provider<KeyBackupService>((ref) {
 /// déchiffrer les clés sans la passphrase.
 ///
 /// Sécurité:
-/// - PBKDF2 avec 100,000 itérations pour dériver la clé de chiffrement
+/// - PBKDF2 avec 200,000 itérations pour dériver la clé de chiffrement
 /// - AES-256-GCM pour le chiffrement authentifié
 /// - Salt aléatoire par backup
 class KeyBackupService {
@@ -400,23 +401,23 @@ class KeyBackupService {
     return PassphraseStrength.weak;
   }
 
-  /// Génère une passphrase aléatoire sécurisée
-  String generateSecurePassphrase({int wordCount = 4}) {
-    // Liste de mots simples pour créer une passphrase mémorisable
-    const words = [
-      'apple', 'banana', 'cherry', 'dragon', 'eagle', 'forest',
-      'garden', 'harbor', 'island', 'jungle', 'kingdom', 'lemon',
-      'mountain', 'nature', 'ocean', 'planet', 'quantum', 'river',
-      'sunset', 'thunder', 'umbrella', 'valley', 'winter', 'yellow',
-      'zebra', 'anchor', 'breeze', 'crystal', 'desert', 'eclipse',
-    ];
-
+  /// Génère une passphrase aléatoire sécurisée de style Diceware.
+  ///
+  /// Les mots sont tirés (avec `Random.secure`) dans la liste EFF « large »
+  /// de 7776 mots ([kEffLargeWordlist]), soit ~12.9 bits d'entropie par mot.
+  /// Le défaut de 6 mots donne ~77 bits, très au-dessus du seuil de force
+  /// brute exploitable — l'EFF recommande 6 mots minimum.
+  ///
+  /// Un chiffre à deux positions est ajouté à la fin pour satisfaire les
+  /// vérificateurs de complexité qui exigent un caractère numérique
+  /// ([evaluatePassphraseStrength]) ; il ne constitue pas la sécurité.
+  String generateSecurePassphrase({int wordCount = 6}) {
     final selectedWords = <String>[];
     for (var i = 0; i < wordCount; i++) {
-      selectedWords.add(words[_random.nextInt(words.length)]);
+      selectedWords.add(kEffLargeWordlist[_random.nextInt(kEffLargeWordlist.length)]);
     }
 
-    // Ajouter un chiffre aléatoire
+    // Ajouter un chiffre aléatoire (complexité, pas entropie principale)
     final number = _random.nextInt(100).toString().padLeft(2, '0');
 
     return '${selectedWords.join('-')}-$number';
