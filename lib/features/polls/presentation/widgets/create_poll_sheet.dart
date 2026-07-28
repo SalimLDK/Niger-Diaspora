@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
 
@@ -124,16 +125,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.dividerColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              const SheetHandle(),
               const SizedBox(height: 20),
               Row(
                 children: [

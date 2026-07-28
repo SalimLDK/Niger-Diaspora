@@ -13,6 +13,7 @@ import '../../../../core/services/preferences_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
@@ -1054,16 +1055,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: context.borderColor,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
+                    const SheetHandle(),
                     const SizedBox(height: 24),
                     Text(
                       l10n.theme,
@@ -1259,14 +1251,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ctx.borderColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -1405,14 +1390,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                  const SheetHandle(),
                   const SizedBox(height: 24),
                   Row(
                     children: [
