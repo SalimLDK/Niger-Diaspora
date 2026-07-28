@@ -79,6 +79,11 @@ class MessagingE2EEService {
 
     _currentUserId = userId;
 
+    // Le stockage sécurisé doit être ouvert AVANT toute manipulation de clés :
+    // il n'était initialisé nulle part non plus, et toute opération Signal
+    // échouait donc sur « SecureKeyStorage not initialized ». Idempotent.
+    await _storage.initialize();
+
     // Toujours passer par initializeKeys : il génère les clés si absentes, et
     // sinon vérifie qu'elles sont bien publiées sur Supabase (re-publie au
     // besoin). Indispensable pour rattraper un compte dont la publication
