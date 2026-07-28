@@ -308,23 +308,35 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          FloatingActionButton(
+          // CTA nommé (§16/27d : le bouton nomme son action).
+          FloatingActionButton.extended(
             onPressed: _isCompressing ? null : _sendMedia,
             backgroundColor: context.adaptivePrimaryColor,
-            child: _isCompressing
+            foregroundColor: Colors.white,
+            icon: _isCompressing
                 ? const SizedBox(
-                    width: 24,
-                    height: 24,
+                    width: 20,
+                    height: 20,
                     child: CircularProgressIndicator(
                       color: Colors.white,
                       strokeWidth: 2,
                     ),
                   )
                 : const AppIcon(AppIcon.send, color: Colors.white),
+            label: Text(
+              _sendLabel(),
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  String _sendLabel() {
+    if (widget.type == MediaType.image) return 'Envoyer la photo';
+    if (widget.type == MediaType.video) return 'Envoyer la vidéo';
+    return 'Envoyer le document';
   }
 
   Widget _buildMediaPreview() {
