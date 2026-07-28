@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/eligible_participants_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -80,14 +81,9 @@ class _AddParticipantModalState extends ConsumerState<AddParticipantModal> {
       child: Column(
         children: [
           // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.dividerColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: SheetHandle(),
           ),
 
           // Header

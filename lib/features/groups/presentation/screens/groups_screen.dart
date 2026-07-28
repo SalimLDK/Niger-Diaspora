@@ -15,6 +15,7 @@ import '../providers/group_provider.dart';
 import '../providers/group_request_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Dernière activité (dernier message) par groupe, dérivée des conversations
@@ -1562,16 +1563,9 @@ class _InviteCard extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: context.textTertiaryColor.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: SheetHandle(),
                   ),
                   Row(
                     children: [

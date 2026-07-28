@@ -18,6 +18,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../profile/data/datasources/profile_supabase_datasource.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../friends/domain/repositories/friend_repository.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
@@ -1166,18 +1167,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Handle bar
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 12, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: context.textSecondaryColor.withValues(
-                          alpha: 0.3,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12, bottom: 8),
+                    child: SheetHandle(),
                   ),
 
                   // Temporarily closed banner (if applicable)
@@ -1609,18 +1601,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Handle bar
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 12, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: context.textSecondaryColor.withValues(
-                          alpha: 0.3,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12, bottom: 8),
+                    child: SheetHandle(),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),

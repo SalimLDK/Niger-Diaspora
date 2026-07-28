@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/review_entity.dart';
 import '../providers/review_provider.dart';
 import 'star_rating_input.dart';
@@ -214,16 +215,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              const SheetHandle(),
               const SizedBox(height: 16),
 
               // Title
