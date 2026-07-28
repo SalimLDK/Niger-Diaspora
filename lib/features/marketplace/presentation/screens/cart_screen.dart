@@ -17,6 +17,8 @@ class CartScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final cartItems = ref.watch(cartNotifierProvider);
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
+    final sellerCount =
+        cartItems.map((e) => e.product.sellerId).toSet().length;
 
     if (cartItems.isEmpty) {
       return Scaffold(
@@ -63,127 +65,50 @@ class CartScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () {
-                      context.push('/marketplace/${item.product.id}');
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          // Image
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 80,
-                              height: 80,
-                              child:
-                                  item.product.imageUrls.isNotEmpty
-                                      ? CachedNetworkImage(
-                                        imageUrl: item.product.imageUrls.first,
-                                        fit: BoxFit.cover,
-                                      )
-                                      : Container(
-                                        color:
-                                            theme
-                                                .colorScheme
-                                                .surfaceContainerHighest,
-                                        child: const Icon(Icons.image_outlined),
-                                      ),
+            child: Builder(
+              builder: (context) {
+                // Regroupement par vendeur — une commande par vendeur (§16b).
+                final groupedBySeller = <String, List<CartItem>>{};
+                for (final item in cartItems) {
+                  (groupedBySeller[item.product.sellerId] ??= []).add(item);
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final entry in groupedBySeller.entries) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          bottom: 8,
+                          top: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.storefront_outlined,
+                              size: 18,
+                              color: theme.colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Details
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.product.title,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                entry.value.first.product.sellerName ??
+                                    'Vendeur',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                const SizedBox(height: 4),
-                                PriceText(
-                                  amount: item.product.price,
-                                  currency: item.product.currency,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                // Quantity controls
-                                Row(
-                                  children: [
-                                    IconButton.outlined(
-                                      onPressed:
-                                          item.quantity > 1
-                                              ? () =>
-                                                  cartNotifier.updateQuantity(
-                                                    item.product.id,
-                                                    item.quantity - 1,
-                                                  )
-                                              : null,
-                                      icon: const Icon(Icons.remove, size: 16),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 32,
-                                        minHeight: 32,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        '${item.quantity}',
-                                        style: theme.textTheme.titleSmall,
-                                      ),
-                                    ),
-                                    IconButton.outlined(
-                                      onPressed:
-                                          item.quantity < item.product.quantity
-                                              ? () =>
-                                                  cartNotifier.updateQuantity(
-                                                    item.product.id,
-                                                    item.quantity + 1,
-                                                  )
-                                              : null,
-                                      icon: const Icon(Icons.add, size: 16),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 32,
-                                        minHeight: 32,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      onPressed:
-                                          () => cartNotifier.removeFromCart(
-                                            item.product.id,
-                                          ),
-                                      icon: const Icon(Icons.delete_outline),
-                                      color: theme.colorScheme.error,
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                      ...entry.value.map((item) => _CartItemCard(item: item)),
+                      const SizedBox(height: 8),
+                    ],
+                  ],
                 );
               },
             ),
@@ -215,6 +140,13 @@ class CartScreen extends ConsumerWidget {
                           if (cartNotifier.hasMultipleCurrencies)
                             Text(
                               '(converti)',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          if (sellerCount > 1)
+                            Text(
+                              '$sellerCount commandes · une par vendeur',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.outline,
                               ),
@@ -359,6 +291,7 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final formattedTotal = ref.watch(formattedCartTotalProvider);
 
     return SizedBox(
       width: double.infinity,
@@ -379,10 +312,137 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
                     strokeWidth: 2,
                   ),
                 )
-                : const Text(
-                  'Commander',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                : Text(
+                  // Le bouton porte le total (§16b).
+                  'Commander · $formattedTotal',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+      ),
+    );
+  }
+}
+
+/// Ligne d'article du panier — extraite pour permettre le regroupement par
+/// vendeur (§16b). Sélecteur de quantité à 44 px (cible tactile).
+class _CartItemCard extends ConsumerWidget {
+  final CartItem item;
+
+  const _CartItemCard({required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final cartNotifier = ref.read(cartNotifierProvider.notifier);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {
+          context.push('/marketplace/${item.product.id}');
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child:
+                      item.product.imageUrls.isNotEmpty
+                          ? CachedNetworkImage(
+                            imageUrl: item.product.imageUrls.first,
+                            fit: BoxFit.cover,
+                          )
+                          : Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: const Icon(Icons.image_outlined),
+                          ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.product.title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    PriceText(
+                      amount: item.product.price,
+                      currency: item.product.currency,
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Quantity controls
+                    Row(
+                      children: [
+                        IconButton.outlined(
+                          onPressed:
+                              item.quantity > 1
+                                  ? () => cartNotifier.updateQuantity(
+                                    item.product.id,
+                                    item.quantity - 1,
+                                  )
+                                  : null,
+                          icon: const Icon(Icons.remove, size: 18),
+                          constraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            '${item.quantity}',
+                            style: theme.textTheme.titleSmall,
+                          ),
+                        ),
+                        IconButton.outlined(
+                          onPressed:
+                              item.quantity < item.product.quantity
+                                  ? () => cartNotifier.updateQuantity(
+                                    item.product.id,
+                                    item.quantity + 1,
+                                  )
+                                  : null,
+                          icon: const Icon(Icons.add, size: 18),
+                          constraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed:
+                              () => cartNotifier.removeFromCart(item.product.id),
+                          icon: const Icon(Icons.delete_outline),
+                          color: theme.colorScheme.error,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
