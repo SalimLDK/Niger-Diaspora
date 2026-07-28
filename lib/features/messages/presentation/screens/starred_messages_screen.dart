@@ -160,28 +160,88 @@ class _StarredMessageTile extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (message.type != MessageType.text) ...[
-              _getTypeIcon(message.type, size: 14, color: context.textTertiaryColor),
-              const SizedBox(width: 4),
-            ],
-            Expanded(
-              child: Text(
-                _getPreview(message),
+            Row(
+              children: [
+                Expanded(child: _buildExcerpt(context)),
+                const SizedBox(width: 8),
+                const AppIcon(AppIcon.star, size: 14, color: Colors.amber),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // Affordance explicite : le tap remonte au message dans la conv.
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Aller au message',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16,
+                  color: context.adaptivePrimaryColor,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Extrait typé : bloc « note vocale » distinct pour l'audio, sinon icône
+  /// de type + texte tronqué (§14).
+  Widget _buildExcerpt(BuildContext context) {
+    final isVoice = message.type == MessageType.voiceNote ||
+        message.type == MessageType.audio;
+    if (isVoice) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: context.surfaceVariantColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon(AppIcon.mic, size: 14, color: context.adaptivePrimaryColor),
+              const SizedBox(width: 6),
+              Text(
+                'Note vocale · ${message.audioDurationFormatted}',
                 style: TextStyle(
                   fontSize: 13,
                   color: context.textSecondaryColor,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(width: 8),
-            const AppIcon(AppIcon.star, size: 14, color: Colors.amber),
-          ],
+            ],
+          ),
         ),
-      ),
+      );
+    }
+    return Row(
+      children: [
+        if (message.type != MessageType.text) ...[
+          _getTypeIcon(message.type, size: 14, color: context.textTertiaryColor),
+          const SizedBox(width: 4),
+        ],
+        Expanded(
+          child: Text(
+            _getPreview(message),
+            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
