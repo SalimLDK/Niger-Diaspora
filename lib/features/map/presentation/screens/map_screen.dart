@@ -69,7 +69,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   bool _mapsInitialized = false;
   bool _isReciprocityRestricted = false;
-  bool _isMembersPanelHidden = false;
 
   String? _lightMapStyle;
   String? _darkMapStyle;
@@ -203,7 +202,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // debugPrint('🗺️ MapScreen: initState');
     _mapsInitialized = true; // Already initialized in main.dart
     _showBusinesses = PreferencesService.instance.mapBusinessesLayerVisible;
-    _isMembersPanelHidden = PreferencesService.instance.mapMembersPanelHidden;
     _loadUserCountry();
     _loadMapStyles();
   }
@@ -2529,47 +2527,87 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   /// Petit bouton flottant pour rouvrir le panneau "Membres à proximité"
   /// une fois masqué complètement.
-  Widget _buildMembersReopenChip(AppLocalizations l10n) {
-    return GestureDetector(
-      onTap: () {
-        setState(() => _isMembersPanelHidden = false);
-        PreferencesService.instance.setMapMembersPanelHidden(false);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+  /// Ligne de membre dans la feuille : avatar 44 + nom + « métier · ville »,
+  /// bouton d'action 40 px (ouvre la fiche membre).
+  Widget _buildMemberSheetItem(ProfileModel member, AppLocalizations l10n) {
+    final subtitle = [
+      member.profession,
+      member.currentCity,
+    ].where((e) => e != null && e.trim().isNotEmpty).join(' · ');
+
+    return InkWell(
+      onTap: () => _showMemberDetails(member),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            AppIcon(
-              AppIcon.groups,
-              size: 16,
-              color: context.adaptivePrimaryColor,
+            Container(
+              width: 44,
+              height: 44,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                gradient: context.adaptivePrimaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: member.photoUrl != null
+                  ? Image.network(
+                      member.photoUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const AppIcon(
+                        AppIcon.person,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : const AppIcon(AppIcon.person, color: AppColors.white),
             ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.members(_getFilteredMembers().length),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: context.textPrimaryColor,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    member.displayName ?? l10n.member,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: context.textSecondaryColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(width: 6),
-            Icon(
-              Icons.keyboard_arrow_up,
-              size: 18,
-              color: context.textTertiaryColor,
+            const SizedBox(width: 8),
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _showMemberDetails(member),
+                icon: AppIcon(
+                  AppIcon.chatBubble,
+                  size: 18,
+                  color: context.adaptivePrimaryColor,
+                ),
+              ),
             ),
           ],
         ),
@@ -2945,279 +2983,185 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   // (La légende flottante a migré vers le bouton « ? » de la
                   // barre d'actions — plus de calcul bottom: conditionnel.)
 
-                  // Bottom Sheet Preview
-                  // Posé juste au-dessus de la nav bar flottante : inset réel
-                  // (viewPadding, NON gonflé par le MainShell) + hauteur nav (~74)
-                  // + petit espace. padding.bottom serait gonflé de +110 → trop haut.
+                  // Panneau membres : feuille à trois positions (18/45/92 %)
+                  // — refonte 7d, remplace le panneau ancré + chip de réouverture.
                   if (!_isReciprocityRestricted)
-                    Positioned(
-                      bottom: MediaQuery.of(context).viewPadding.bottom + 78,
-                      left: 0,
-                      right: 0,
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: _isMembersPanelHidden
-                            ? Center(
-                                key: const ValueKey('members_panel_chip'),
-                                child: _buildMembersReopenChip(l10n),
-                              )
-                            : Container(
-                                key: const ValueKey('members_panel_full'),
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: context.surfaceColor,
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(24),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, -4),
-                                    ),
-                                  ],
-                                ),
+                    DraggableScrollableSheet(
+                      initialChildSize: 0.18,
+                      minChildSize: 0.18,
+                      maxChildSize: 0.92,
+                      snap: true,
+                      snapSizes: const [0.18, 0.45, 0.92],
+                      builder: (context, scrollController) {
+                        final members = _getFilteredMembers();
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 20,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // Poignée + en-tête (fixes).
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 10, 20, 10),
                                 child: Column(
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () {
-                                        setState(
-                                          () => _isMembersPanelHidden = true,
-                                        );
-                                        PreferencesService.instance
-                                            .setMapMembersPanelHidden(true);
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            width: 40,
-                                            height: 4,
-                                            decoration: BoxDecoration(
-                                              color: context.borderColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(2),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceBetween,
+                                    Center(
+                                      child: Container(
+                                        width: 40,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: context.borderColor,
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      l10n.membersNearby,
-                                                      style:
-                                                          Theme.of(
-                                                            context,
-                                                          ).textTheme.titleMedium,
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    // Indicateur de dernière mise à jour
-                                                    Row(
-                                                      children: [
-                                                        AppIcon(
-                                                          AppIcon.groups,
-                                                          size: 12,
-                                                          color: context
-                                                              .textTertiaryColor,
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 4,
-                                                        ),
-                                                        Text(
-                                                          _formatRelativeTime(
-                                                            _lastMembersUpdate,
-                                                            l10n,
-                                                          ),
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: context
-                                                                .textTertiaryColor,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 12,
-                                                        ),
-                                                        Icon(
-                                                          Icons.my_location,
-                                                          size: 12,
-                                                          color: context
-                                                              .textTertiaryColor,
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 4,
-                                                        ),
-                                                        Text(
-                                                          _formatRelativeTime(
-                                                            _lastPositionUpdate,
-                                                            l10n,
-                                                          ),
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: context
-                                                                .textTertiaryColor,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
+                                              Text(
+                                                l10n.membersNearby,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium,
                                               ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: context
-                                                      .surfaceVariantColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  l10n.members(
-                                                    _getFilteredMembers()
-                                                        .length,
-                                                  ),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.w600,
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  AppIcon(
+                                                    AppIcon.groups,
+                                                    size: 12,
                                                     color: context
-                                                        .adaptivePrimaryColor,
+                                                        .textTertiaryColor,
                                                   ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.keyboard_arrow_down,
-                                                color:
-                                                    context.textTertiaryColor,
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _formatRelativeTime(
+                                                      _lastMembersUpdate,
+                                                      l10n,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: context
+                                                          .textTertiaryColor,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Icon(
+                                                    Icons.my_location,
+                                                    size: 12,
+                                                    color: context
+                                                        .textTertiaryColor,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _formatRelativeTime(
+                                                      _lastPositionUpdate,
+                                                      l10n,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: context
+                                                          .textTertiaryColor,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    if (_getFilteredMembers().isEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                            ),
-                                            child: Text(
-                                              l10n.noMembersNearby,
-                                              style: TextStyle(
-                                                color:
-                                                    context.textTertiaryColor,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          )
-                                        else
-                                          SizedBox(
-                                            height: 80,
-                                            child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount:
-                                                  _getFilteredMembers().length,
-                                              itemBuilder: (context, index) {
-                                                final member =
-                                                    _getFilteredMembers()[index];
-                                                return GestureDetector(
-                                                  onTap: () =>
-                                                      _showMemberDetails(
-                                                        member,
-                                                      ),
-                                                  child: Container(
-                                                    width: 60,
-                                                    margin: EdgeInsets.only(
-                                                      left: index == 0 ? 0 : 12,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        Container(
-                                                          width: 50,
-                                                          height: 50,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                                gradient: context
-                                                                    .adaptivePrimaryGradient,
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      14,
-                                                                    ),
-                                                              ),
-                                                          child:
-                                                              member.photoUrl !=
-                                                                      null
-                                                                  ? ClipRRect(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                          14,
-                                                                        ),
-                                                                    child: Image.network(
-                                                                      member
-                                                                          .photoUrl!,
-                                                                      fit: BoxFit
-                                                                          .cover,
-                                                                      errorBuilder:
-                                                                          (
-                                                                            _,
-                                                                            __,
-                                                                            ___,
-                                                                          ) => const AppIcon(
-                                                                            AppIcon.person,
-                                                                            color:
-                                                                                AppColors.white,
-                                                                          ),
-                                                                    ),
-                                                                  )
-                                                                  : const AppIcon(
-                                                                    AppIcon
-                                                                        .person,
-                                                                    color: AppColors
-                                                                        .white,
-                                                                  ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
-                                                        Text(
-                                                          member.displayName ??
-                                                              l10n.member,
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: context
-                                                                .textSecondaryColor,
-                                                          ),
-                                                          maxLines: 1,
-                                                          overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                );
-                                              },
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: context.surfaceVariantColor,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            l10n.members(members.length),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  context.adaptivePrimaryColor,
                                             ),
                                           ),
+                                        ),
                                       ],
                                     ),
-                            ),
-                        ),
-                      ),
+                                  ],
+                                ),
+                              ),
+                              Divider(height: 1, color: context.borderColor),
+                              // Liste verticale : la faire défiler redimensionne
+                              // la feuille (scrollController de la sheet).
+                              Expanded(
+                                child: members.isEmpty
+                                    ? ListView(
+                                        controller: scrollController,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 40,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                l10n.noMembersNearby,
+                                                style: TextStyle(
+                                                  color: context
+                                                      .textTertiaryColor,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : ListView.separated(
+                                        controller: scrollController,
+                                        padding: EdgeInsets.only(
+                                          bottom: MediaQuery.of(context)
+                                                  .viewPadding
+                                                  .bottom +
+                                              90,
+                                        ),
+                                        itemCount: members.length,
+                                        separatorBuilder: (_, __) => Divider(
+                                          height: 1,
+                                          indent: 76,
+                                          color: context.borderColor,
+                                        ),
+                                        itemBuilder: (context, index) =>
+                                            _buildMemberSheetItem(
+                                          members[index],
+                                          l10n,
+                                        ),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
     );
