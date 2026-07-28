@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/place_search_service.dart';
 import '../../../map/presentation/utils/location_pin_generator.dart';
@@ -247,14 +248,9 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
       child: Column(
         children: [
           // Handle
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.textTertiaryColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: SheetHandle(),
           ),
 
           // Title

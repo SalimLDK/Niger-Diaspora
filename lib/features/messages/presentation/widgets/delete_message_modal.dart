@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
 import '../providers/conversation_actions_provider.dart';
@@ -152,14 +153,9 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.textTertiaryColor.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: SheetHandle(),
             ),
 
             // Titre + rappel du délai (§27b).
