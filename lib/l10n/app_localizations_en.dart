@@ -875,6 +875,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registrationConfirmed => 'Registration confirmed!';
 
   @override
+  String get registered => 'Registered';
+
+  @override
   String get cancelParticipation => 'Cancel participation';
 
   @override

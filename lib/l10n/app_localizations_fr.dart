@@ -886,6 +886,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get registrationConfirmed => 'Inscription confirmée !';
 
   @override
+  String get registered => 'Inscrit';
+
+  @override
   String get cancelParticipation => 'Annuler la participation';
 
   @override

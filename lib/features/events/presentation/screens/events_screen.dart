@@ -8,6 +8,7 @@ import '../../../../shared/widgets/loading_indicator.dart';
 import '../../../../shared/widgets/error_widget.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
@@ -315,7 +316,7 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-class _EventCard extends StatelessWidget {
+class _EventCard extends ConsumerStatefulWidget {
   final EventEntity event;
   final VoidCallback onTap;
   final bool isPast;
@@ -327,7 +328,157 @@ class _EventCard extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_EventCard> createState() => _EventCardState();
+}
+
+class _EventCardState extends ConsumerState<_EventCard> {
+  bool _isJoining = false;
+
+  bool _canAttend(EventEntity event) {
+    if (event.maxAttendees == 0) return true;
+    return event.attendeeIds.length < event.maxAttendees;
+  }
+
+  Future<void> _join(EventEntity event, String userId) async {
+    if (_isJoining) return;
+    setState(() => _isJoining = true);
+
+    final result = await ref
+        .read(eventRepositoryProvider)
+        .attendEvent(event.id, userId);
+
+    if (!mounted) return;
+    setState(() => _isJoining = false);
+
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+      },
+      (_) {
+        // Rafraîchit la liste pour mettre à jour le compteur et l'état du bouton.
+        ref.read(eventsNotifierProvider.notifier).refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.registrationConfirmed),
+            backgroundColor: context.adaptiveSecondaryColor,
+          ),
+        );
+      },
+    );
+  }
+
+  // Bouton d'action par carte (§13a) : Participer / Complet / Inscrit,
+  // au lieu d'un « Voir plus » générique. Le tap de la carte reste la
+  // navigation vers le détail.
+  Widget _buildCardAction(
+    BuildContext context,
+    EventEntity event,
+    bool isPast,
+    String? currentUserId,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+
+    Widget pill({
+      required String label,
+      required Color background,
+      required Color foreground,
+      IconData? icon,
+      VoidCallback? onTap,
+    }) {
+      return Material(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_isJoining)
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: foreground,
+                    ),
+                  )
+                else if (icon != null) ...[
+                  Icon(icon, size: 15, color: foreground),
+                  const SizedBox(width: 6),
+                ],
+                if (!_isJoining)
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: foreground,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Événement passé : on garde une simple entrée vers le détail.
+    if (isPast) {
+      return pill(
+        label: l10n.seeMore,
+        background: context.adaptivePrimaryColor,
+        foreground: context.onPrimaryColor,
+        onTap: widget.onTap,
+      );
+    }
+
+    final isAttending =
+        currentUserId != null && event.attendeeIds.contains(currentUserId);
+
+    if (isAttending) {
+      // Déjà inscrit : état confirmé, tap → détail pour gérer.
+      return pill(
+        label: l10n.registered,
+        background: context.adaptiveSecondaryColor.withValues(alpha: 0.15),
+        foreground: context.adaptiveSecondaryColor,
+        icon: Icons.check_circle,
+        onTap: widget.onTap,
+      );
+    }
+
+    if (!_canAttend(event)) {
+      // Complet : bouton désactivé, pas d'action inline.
+      return pill(
+        label: l10n.full,
+        background: context.textTertiaryColor.withValues(alpha: 0.15),
+        foreground: context.textTertiaryColor,
+      );
+    }
+
+    // Peut participer : inscription directe depuis la carte.
+    return pill(
+      label: l10n.participate,
+      background: context.adaptivePrimaryColor,
+      foreground: context.onPrimaryColor,
+      icon: Icons.check,
+      onTap:
+          currentUserId == null
+              ? widget.onTap
+              : () => _join(event, currentUserId),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final event = widget.event;
+    final onTap = widget.onTap;
+    final isPast = widget.isPast;
+    final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
     final dateFormat = DateFormat('dd MMM yyyy', 'fr_FR');
     final timeFormat = DateFormat('HH:mm', 'fr_FR');
 
@@ -632,24 +783,7 @@ class _EventCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.adaptivePrimaryColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context)!.seeMore,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: context.onPrimaryColor,
-                          ),
-                        ),
-                      ),
+                      _buildCardAction(context, event, isPast, currentUserId),
                     ],
                   ),
                 ],

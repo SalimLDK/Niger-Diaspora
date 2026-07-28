@@ -1724,6 +1724,12 @@ abstract class AppLocalizations {
   /// **'Inscription confirmée !'**
   String get registrationConfirmed;
 
+  /// No description provided for @registered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrit'**
+  String get registered;
+
   /// No description provided for @cancelParticipation.
   ///
   /// In fr, this message translates to:
