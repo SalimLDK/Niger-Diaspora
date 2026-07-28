@@ -14190,6 +14190,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get messagesUnreadTitle => 'Messages non lus';
 
   @override
+  String get mentions => 'Mentions';
+
+  @override
   String get posts => 'posts';
 
   @override

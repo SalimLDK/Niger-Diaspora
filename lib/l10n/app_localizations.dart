@@ -26282,6 +26282,12 @@ abstract class AppLocalizations {
   /// **'Messages non lus'**
   String get messagesUnreadTitle;
 
+  /// No description provided for @mentions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mentions'**
+  String get mentions;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:

@@ -6545,6 +6545,7 @@
   "noPostsForFilter": "Aucune publication chargée pour ce filtre.",
   "todayTitle": "Aujourd'hui",
   "messagesUnreadTitle": "Messages non lus",
+  "mentions": "Mentions",
   "posts": "posts",
   "postSingle": "post",
   "shareToConversation": "Envoyer à...",

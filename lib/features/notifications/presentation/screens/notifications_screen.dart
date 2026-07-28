@@ -12,7 +12,11 @@ import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
-enum NotificationFilter { all, unread, messages, events, friends, groups }
+/// Trois filtres (refonte 12c) : Tout / Non lues / Mentions. « Mentions »
+/// regroupe les notifications qui vous concernent personnellement (demandes
+/// d'ami, abonnements, invitations, présence) — faute d'un type « mention »
+/// dédié dans [NotificationType].
+enum NotificationFilter { all, unread, mentions }
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -22,24 +26,13 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final ScrollController _scrollController = ScrollController();
   NotificationFilter _currentFilter = NotificationFilter.all;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        setState(() {
-          _currentFilter = NotificationFilter.values[_tabController.index];
-        });
-      }
-    });
-
     _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -136,7 +129,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -145,6 +137,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final notificationsAsync = ref.watch(notificationsNotifierProvider);
+    final unreadCount =
+        notificationsAsync.valueOrNull?.where((n) => !n.isRead).length ?? 0;
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -206,22 +200,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                 ],
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          indicatorColor: context.adaptivePrimaryColor,
-          labelColor: context.adaptivePrimaryColor,
-          unselectedLabelColor: context.textSecondaryColor,
-          tabs: [
-            Tab(text: l10n.all),
-            Tab(text: l10n.filterUnread),
-            Tab(text: l10n.messagesTitle),
-            Tab(text: l10n.eventsTitle),
-            Tab(text: l10n.filterFriends),
-            Tab(text: l10n.groupsTitle),
-          ],
-        ),
+        bottom: _buildFilterBar(context, l10n, unreadCount),
       ),
       body: _buildNotificationsList(context, ref, notificationsAsync, l10n),
     );
@@ -390,6 +369,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
       );
   }
 
+  /// Types « qui vous concernent » regroupés sous le filtre Mentions.
+  static const _mentionTypes = {
+    NotificationType.friendRequest,
+    NotificationType.friendRequestAccepted,
+    NotificationType.friendAccepted,
+    NotificationType.newFollower,
+    NotificationType.newMember,
+    NotificationType.groupInvite,
+    NotificationType.groupJoinRequest,
+    NotificationType.eventAttendance,
+    NotificationType.nearbyMember,
+    NotificationType.proximityAlert,
+  };
+
   List<NotificationEntity> _filterNotifications(
     List<NotificationEntity> notifications,
   ) {
@@ -398,39 +391,95 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         return notifications;
       case NotificationFilter.unread:
         return notifications.where((n) => !n.isRead).toList();
-      case NotificationFilter.messages:
+      case NotificationFilter.mentions:
         return notifications
-            .where((n) => n.type == NotificationType.message)
-            .toList();
-      case NotificationFilter.events:
-        return notifications
-            .where(
-              (n) =>
-                  n.type == NotificationType.eventReminder ||
-                  n.type == NotificationType.eventUpdate,
-            )
-            .toList();
-      case NotificationFilter.friends:
-        return notifications
-            .where(
-              (n) =>
-                  n.type == NotificationType.friendRequest ||
-                  n.type == NotificationType.friendRequestAccepted ||
-                  n.type == NotificationType.newFollower,
-            )
-            .toList();
-      case NotificationFilter.groups:
-        return notifications
-            .where(
-              (n) =>
-                  n.type == NotificationType.groupInvite ||
-                  n.type == NotificationType.groupJoinRequest ||
-                  n.type == NotificationType.groupRequestApproved ||
-                  n.type == NotificationType.groupRequestRejected ||
-                  n.type == NotificationType.newMember,
-            )
+            .where((n) => _mentionTypes.contains(n.type))
             .toList();
     }
+  }
+
+  /// Barre de trois filtres en puces (remplace les six onglets — refonte 12c).
+  PreferredSizeWidget _buildFilterBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    int unreadCount,
+  ) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(52),
+      child: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        child: Row(
+          children: [
+            _filterChip(context, l10n.all, NotificationFilter.all),
+            const SizedBox(width: 8),
+            _filterChip(
+              context,
+              l10n.filterUnread,
+              NotificationFilter.unread,
+              badge: unreadCount,
+            ),
+            const SizedBox(width: 8),
+            _filterChip(context, l10n.mentions, NotificationFilter.mentions),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _filterChip(
+    BuildContext context,
+    String label,
+    NotificationFilter filter, {
+    int badge = 0,
+  }) {
+    final active = _currentFilter == filter;
+    return GestureDetector(
+      onTap: () => setState(() => _currentFilter = filter),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active
+              ? context.adaptivePrimaryColor
+              : context.surfaceVariantColor,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                color: active ? Colors.white : context.textSecondaryColor,
+              ),
+            ),
+            if (badge > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                constraints: const BoxConstraints(minWidth: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: active ? Colors.white : context.adaptivePrimaryColor,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Text(
+                  badge > 99 ? '99+' : '$badge',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color:
+                        active ? context.adaptivePrimaryColor : Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   void _handleNotificationTap(

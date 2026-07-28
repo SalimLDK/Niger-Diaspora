@@ -14057,6 +14057,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messagesUnreadTitle => 'Unread messages';
 
   @override
+  String get mentions => 'Mentions';
+
+  @override
   String get posts => 'posts';
 
   @override

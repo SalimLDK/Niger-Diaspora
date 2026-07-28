@@ -6233,6 +6233,7 @@
   "noPostsForFilter": "No loaded posts match this filter.",
   "todayTitle": "Today",
   "messagesUnreadTitle": "Unread messages",
+  "mentions": "Mentions",
   "posts": "posts",
   "postSingle": "post",
 
