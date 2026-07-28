@@ -17,6 +17,7 @@ import '../../../../core/widgets/verification_badge.dart';
 import '../../../../core/services/auto_download_service.dart';
 import '../../../../core/services/file_download_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/user_color_utils.dart';
@@ -1066,14 +1067,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: context.textTertiaryColor.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                  const SheetHandle(),
                   const SizedBox(height: 20),
 
                   // Reply option
@@ -1329,6 +1323,16 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                         Navigator.pop(ctx);
                         _showEditDialog(context);
                       },
+                    ),
+
+                  // Filet : actions destructives isolées en bas (§16).
+                  if (_canShowDeleteOption() ||
+                      (!widget.isMe && !widget.message.deletedForEveryone))
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: context.borderColor,
                     ),
 
                   // Delete option

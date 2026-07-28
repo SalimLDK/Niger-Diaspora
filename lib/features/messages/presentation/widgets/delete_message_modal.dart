@@ -377,7 +377,7 @@ class _ReportDialogState extends State<_ReportDialog> {
           style: ElevatedButton.styleFrom(
             backgroundColor: context.adaptivePrimaryColor,
           ),
-          child: const Text('Envoyer'),
+          child: const Text('Envoyer le signalement'),
         ),
       ],
     );
