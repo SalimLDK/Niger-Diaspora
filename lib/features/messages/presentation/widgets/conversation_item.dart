@@ -636,6 +636,30 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       );
     }
 
+    // Note vocale : icône micro + libellé (§9a).
+    final msgType = conversation.lastMessageType;
+    if (msgType == MessageType.audio || msgType == MessageType.voiceNote) {
+      final youPrefix = conversation.lastMessageSenderId == currentUserId;
+      return Row(
+        children: [
+          AppIcon(AppIcon.mic, size: 14, color: textColor),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              youPrefix ? l10n.conversationYouPrefix('Note vocale') : 'Note vocale',
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor,
+                fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Text(
       formattedMessage,
       style: TextStyle(
@@ -653,13 +677,41 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     String currentUserId,
     AppLocalizations l10n,
   ) {
+    final youPrefix = conversation.lastMessageSenderId == currentUserId;
+
+    // L'aperçu dit son type (§9a) — les notes vocales sont gérées à part
+    // (icône micro) dans _buildLastMessageText.
+    String? typeLabel;
+    switch (conversation.lastMessageType) {
+      case MessageType.image:
+        typeLabel = '📎 Photo';
+        break;
+      case MessageType.video:
+        typeLabel = '🎥 Vidéo';
+        break;
+      case MessageType.file:
+        typeLabel = '📎 Document';
+        break;
+      case MessageType.location:
+        typeLabel = '📍 Position';
+        break;
+      case MessageType.sticker:
+        typeLabel = '🎨 Sticker';
+        break;
+      default:
+        typeLabel = null;
+    }
+    if (typeLabel != null) {
+      return youPrefix ? l10n.conversationYouPrefix(typeLabel) : typeLabel;
+    }
+
     final lastMessage = conversation.lastMessage;
     if (lastMessage == null || lastMessage.isEmpty) {
       return l10n.newConversation;
     }
 
     // Ajouter le préfixe "Vous:" si le message a été envoyé par l'utilisateur courant
-    if (conversation.lastMessageSenderId == currentUserId) {
+    if (youPrefix) {
       return l10n.conversationYouPrefix(lastMessage);
     }
 
