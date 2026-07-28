@@ -55,6 +55,15 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
       widget.isAdmin ||
       widget.message.canDeleteForEveryone(widget.currentUserId);
 
+  /// Délai depuis l'envoi, rappelé dans le titre (§27b).
+  String _sentAgo() {
+    final d = DateTime.now().difference(widget.message.createdAt);
+    if (d.inMinutes < 1) return 'à l\'instant';
+    if (d.inMinutes < 60) return 'il y a ${d.inMinutes} min';
+    if (d.inHours < 24) return 'il y a ${d.inHours} h';
+    return 'il y a ${d.inDays} j';
+  }
+
   Future<void> _deleteForMe() async {
     // Unfocus to prevent keyboard from appearing
     FocusScope.of(context).unfocus();
@@ -153,36 +162,58 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
               ),
             ),
 
-            // Title
+            // Titre + rappel du délai (§27b).
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Supprimer le message',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: context.textPrimaryColor,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Supprimer le message',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Envoyé ${_sentAgo()}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(height: 8),
 
-            // Delete for me option
+            // Delete for me option (portée la moins destructive : reste en haut).
             _OptionTile(
               icon: AppIcon(AppIcon.delete, color: context.textPrimaryColor),
               title: 'Supprimer pour moi',
-              subtitle: 'Le message sera supprimé uniquement de votre vue',
+              subtitle: 'Reste visible chez les autres participants',
               onTap: _deleteForMe,
             ),
+
+            // Actions destructives isolées sous un filet (§16).
+            if (_canDeleteForEveryone ||
+                widget.message.senderId != widget.currentUserId)
+              Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: context.borderColor,
+              ),
 
             // Delete for everyone option (if allowed)
             if (_canDeleteForEveryone)
               _OptionTile(
                 icon: const Icon(Icons.delete_forever, color: Colors.red),
                 title: 'Supprimer pour tous',
-                subtitle:
-                    'Le message sera supprimé pour tous les participants',
+                subtitle: 'Chacun verra « message supprimé »',
                 isDestructive: true,
                 onTap: _deleteForEveryone,
               ),
