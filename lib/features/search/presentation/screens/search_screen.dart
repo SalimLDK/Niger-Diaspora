@@ -59,6 +59,25 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
+  /// Nombre de résultats bruts pour une catégorie (compteurs des puces 12d).
+  int _resultCountFor(SearchState state, SearchFilter filter) {
+    switch (filter) {
+      case SearchFilter.all:
+        return state.profiles.length +
+            state.groups.length +
+            state.friends.length +
+            state.conversations.length;
+      case SearchFilter.members:
+        return state.profiles.length;
+      case SearchFilter.groups:
+        return state.groups.length;
+      case SearchFilter.friends:
+        return state.friends.length;
+      case SearchFilter.conversations:
+        return state.conversations.length;
+    }
+  }
+
   String _getTitle() {
     if (widget.restrictToFilter && widget.initialFilter != null) {
       switch (widget.initialFilter!) {
@@ -130,6 +149,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 children:
                     SearchFilter.values.map((filter) {
                       final isSelected = searchState.filter == filter;
+                      // Compteur par catégorie (refonte 12d) — brut, indépendant
+                      // du filtre actif ; masqué tant qu'il n'y a pas de requête.
+                      final count = searchState.query.isEmpty
+                          ? 0
+                          : _resultCountFor(searchState, filter);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: GestureDetector(
@@ -157,7 +181,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                               ),
                             ),
                             child: Text(
-                              filter.label,
+                              count > 0
+                                  ? '${filter.label}  $count'
+                                  : filter.label,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
