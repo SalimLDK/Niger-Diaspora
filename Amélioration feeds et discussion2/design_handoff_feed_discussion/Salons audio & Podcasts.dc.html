@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Caprasimo&amp;family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #E7E1D6; }
+  a { color: #C85A3A; text-decoration: none; }
+  a:hover { color: #9A3A20; }
+  .ms { font-family: 'Material Symbols Rounded'; font-weight: 400; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; }
+  .dv-turn { padding: 34px 40px 44px; border-bottom: 1px solid #D3CABA; }
+  .dv-thd { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .dv-tid { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 9px; border-radius: 9px; background: #1A1410; color: #FAF6EF; font: 700 14px Inter, sans-serif; }
+  .dv-tname { font: 700 21px Inter, sans-serif; color: #1A1410; letter-spacing: -.3px; }
+  .dv-intro { max-width: 108ch; margin: 0 0 22px; font: 400 14.5px/1.6 Inter, sans-serif; color: #3D342B; text-wrap: pretty; }
+  .dv-intro b { color: #1A1410; }
+  .dv-intro code { font: 500 13px ui-monospace, Menlo, monospace; background: #F0E8D8; border-radius: 5px; padding: 1px 5px; }
+  .dv-opts { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+  .dv-opt { display: flex; flex-direction: column; gap: 9px; }
+  .dv-olabel { display: flex; align-items: center; gap: 9px; font: 600 13px Inter, sans-serif; color: #3D342B; }
+  .dv-oid { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 7px; background: #C85A3A; color: #FAF6EF; font: 700 11.5px ui-monospace, Menlo, monospace; }
+  .dv-card { border-radius: 26px; overflow: hidden; box-shadow: 0 18px 44px rgba(26, 20, 16, .16); }
+  .dv-next { max-width: 108ch; margin: 24px 0 0; font: 400 13.5px/1.6 Inter, sans-serif; color: #7A6F64; }
+</style>
+</helmet>
+
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Lecteur &amp; patrimoine en Nocturne, statistiques d'un podcast</span></div>
+<p class="dv-intro">Déclinaison sombre du lecteur et de la bibliothèque du patrimoine (tokens AppColors dark : fond #0F0D0A, surfaces #1A1714 / #252119, texte #F5F2EE / #C4BDB3 / #8A8177, accent #F4A574), plus l'écran de statistiques atteint depuis le menu de <code>my_podcasts_screen</code> (route <code>/podcasts/:id/stats</code>). <b>Le fichier de statistiques n'a pas été relu</b> : les indicateurs affichés (rétention, source d'écoute, villes) sont des <b>propositions</b> ; seuls <code>totalPlayCount</code>, <code>subscriberCount</code> et <code>totalEpisodes</code> sont confirmés par le code.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="4a"><div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Statistiques d'un podcast</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+    <div style="flex:1;min-width:0"><div style="font:700 17px Inter,sans-serif;color:#1A1410">Statistiques</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Diaspo Business</div></div>
+  </div>
+  <div style="padding:0 20px 12px;flex:none;display:flex;gap:8px">
+    <div style="padding:7px 13px;border-radius:999px;background:#1A1410;color:#FAF6EF;font:600 12.5px Inter,sans-serif">30 jours</div>
+    <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif">90 jours</div>
+    <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif">Tout</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1;background:#fff;border:1px solid #F0E8D8;border-radius:16px;padding:12px 13px"><div style="font:700 19px Inter,sans-serif;color:#1A1410">1 240</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">écoutes</div><div style="margin-top:4px;font:600 10.5px Inter,sans-serif;color:#5A7A3A">+18 %</div></div>
+      <div style="flex:1;background:#fff;border:1px solid #F0E8D8;border-radius:16px;padding:12px 13px"><div style="font:700 19px Inter,sans-serif;color:#1A1410">86</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">abonnés</div><div style="margin-top:4px;font:600 10.5px Inter,sans-serif;color:#5A7A3A">+9</div></div>
+      <div style="flex:1;background:#fff;border:1px solid #F0E8D8;border-radius:16px;padding:12px 13px"><div style="font:700 19px Inter,sans-serif;color:#1A1410">24</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">épisodes</div><div style="margin-top:4px;font:600 10.5px Inter,sans-serif;color:#7A6F64">+2</div></div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:14px">
+      <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:12px">Écoutes par semaine</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:96px">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:44px;border-radius:6px 6px 0 0;background:#E8DCC4"></div><span style="font:500 9.5px ui-monospace,Menlo,monospace;color:#7A6F64">S27</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:58px;border-radius:6px 6px 0 0;background:#E8DCC4"></div><span style="font:500 9.5px ui-monospace,Menlo,monospace;color:#7A6F64">S28</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:52px;border-radius:6px 6px 0 0;background:#E8DCC4"></div><span style="font:500 9.5px ui-monospace,Menlo,monospace;color:#7A6F64">S29</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:74px;border-radius:6px 6px 0 0;background:#C85A3A"></div><span style="font:600 9.5px ui-monospace,Menlo,monospace;color:#1A1410">S30</span></div>
+      </div>
+      <div style="margin-top:10px;font:400 11.5px Inter,sans-serif;color:#7A6F64">Pic après la publication de l'épisode 12.</div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Épisodes les plus écoutés</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="padding:11px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="flex:1;min-width:0;font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">12 · Envoyer de l'argent…</span><span style="font:700 13px Inter,sans-serif;color:#1A1410;flex:none">412</span></div>
+        <div style="height:6px;border-radius:3px;background:#F0E8D8;overflow:hidden"><div style="width:100%;height:6px;background:#C85A3A"></div></div>
+      </div>
+      <div style="padding:11px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="flex:1;min-width:0;font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">11 · Ouvrir un commerce…</span><span style="font:700 13px Inter,sans-serif;color:#1A1410;flex:none">388</span></div>
+        <div style="height:6px;border-radius:3px;background:#F0E8D8;overflow:hidden"><div style="width:94%;height:6px;background:#D9A441"></div></div>
+      </div>
+      <div style="padding:11px 14px">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="flex:1;min-width:0;font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">10 · Papiers : la carte…</span><span style="font:700 13px Inter,sans-serif;color:#1A1410;flex:none">204</span></div>
+        <div style="height:6px;border-radius:3px;background:#F0E8D8;overflow:hidden"><div style="width:50%;height:6px;background:#E8DCC4"></div></div>
+      </div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Où l'on vous écoute</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 13px Inter,sans-serif;color:#1A1410;flex:1">🇫🇷 Paris</span><span style="font:600 12.5px ui-monospace,Menlo,monospace;color:#3D342B">38 %</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 13px Inter,sans-serif;color:#1A1410;flex:1">🇳🇪 Niamey</span><span style="font:600 12.5px ui-monospace,Menlo,monospace;color:#3D342B">27 %</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px"><span style="font:600 13px Inter,sans-serif;color:#1A1410;flex:1">🇨🇦 Montréal</span><span style="font:600 12.5px ui-monospace,Menlo,monospace;color:#3D342B">14 %</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="4b"><div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Lecteur — Nocturne</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#0F0D0A;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#F5F2EE;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#8A8177">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span class="ms" style="font-size:24px;color:#F5F2EE">expand_more</span>
+    <div style="flex:1;text-align:center;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#8A8177">DIASPO BUSINESS</div>
+    <span class="ms" style="font-size:22px;color:#F5F2EE">more_horiz</span>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:8px 28px 0;display:flex;flex-direction:column">
+    <div style="width:100%;aspect-ratio:1;border-radius:26px;background:repeating-linear-gradient(45deg,#252119 0 10px,#1A1714 10px 20px);margin-bottom:18px"></div>
+    <div style="font:700 20px/1.3 Inter,sans-serif;color:#F5F2EE;letter-spacing:-.2px">Envoyer de l'argent sans se faire avoir</div>
+    <div style="margin-top:6px;font:400 13.5px Inter,sans-serif;color:#8A8177">Épisode 12 · avec Salim B. et Aïcha M.</div>
+    <div style="margin-top:12px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none">
+      <div style="padding:6px 11px;border-radius:999px;background:#252119;font:500 11.5px Inter,sans-serif;color:#8A8177;white-space:nowrap;flex:none">Introduction</div>
+      <div style="padding:6px 11px;border-radius:999px;background:#F4A574;font:600 11.5px Inter,sans-serif;color:#1C1815;white-space:nowrap;flex:none">Actualités</div>
+      <div style="padding:6px 11px;border-radius:999px;background:#252119;font:500 11.5px Inter,sans-serif;color:#8A8177;white-space:nowrap;flex:none">Diaspora &amp; politique</div>
+      <div style="padding:6px 11px;border-radius:999px;background:#252119;font:500 11.5px Inter,sans-serif;color:#8A8177;white-space:nowrap;flex:none">Q&amp;R</div>
+    </div>
+    <div style="margin-top:18px">
+      <div style="height:5px;border-radius:3px;background:#2A241E;overflow:hidden;position:relative"><div style="width:38%;height:5px;background:#F4A574"></div><div style="position:absolute;left:38%;top:-4px;width:13px;height:13px;border-radius:7px;background:#F4A574;margin-left:-6px"></div></div>
+      <div style="margin-top:9px;display:flex"><span style="flex:1;font:500 11.5px ui-monospace,Menlo,monospace;color:#C4BDB3">12:04</span><span style="font:500 11.5px ui-monospace,Menlo,monospace;color:#7C7367">-19:56</span></div>
+    </div>
+    <div style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:22px">
+      <div style="font:600 12.5px ui-monospace,Menlo,monospace;color:#C4BDB3">1×</div>
+      <span class="ms" style="font-size:32px;color:#F5F2EE">replay_10</span>
+      <div style="width:76px;height:76px;border-radius:38px;background:#F4A574;display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:38px;color:#1C1815">pause</span></div>
+      <span class="ms" style="font-size:32px;color:#F5F2EE">forward_30</span>
+      <span class="ms" style="font-size:26px;color:#C4BDB3">bedtime</span>
+    </div>
+  </div>
+  <div style="padding:20px 20px 30px;flex:none;display:flex;gap:10px">
+    <div style="flex:1;height:48px;border-radius:24px;background:#1A1714;border:1px solid #2A241E;display:flex;align-items:center;justify-content:center;gap:8px"><span class="ms" style="font-size:20px;color:#F5F2EE">download</span><span style="font:600 13px Inter,sans-serif;color:#F5F2EE">Hors ligne</span></div>
+    <div style="flex:1;height:48px;border-radius:24px;background:#1A1714;border:1px solid #2A241E;display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:19px;height:19px;background:#F5F2EE;-webkit-mask:url(assets/icons/icon_share.svg) center/contain no-repeat;mask:url(assets/icons/icon_share.svg) center/contain no-repeat"></span><span style="font:600 13px Inter,sans-serif;color:#F5F2EE">Partager</span></div>
+    <div style="width:48px;height:48px;border-radius:24px;background:#1A1714;border:1px solid #2A241E;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:20px;color:#F5F2EE">format_list_bulleted</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="4c"><div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>Patrimoine oral — Nocturne</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#0F0D0A;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#F5F2EE;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#8A8177">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:24px;height:24px;flex:none;background:#F5F2EE;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+      <div style="flex:1;min-width:0"><div style="font-family:Caprasimo,serif;font-size:21px;line-height:1.15;color:#F5F2EE">Patrimoine oral</div></div>
+    </div>
+    <div style="margin-top:10px;font:400 13.5px/1.5 Inter,sans-serif;color:#C4BDB3;text-wrap:pretty">Les salons marqués « patrimoine » sont archivés et réécoutables, classés par langue et par région.</div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <div style="flex:1;display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;background:#F5F2EE"><span style="font:600 12.5px Inter,sans-serif;color:#1C1815;flex:1">Zarma</span><span class="ms" style="font-size:17px;color:#7C7367">expand_more</span></div>
+      <div style="flex:1;display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;border:1px solid #3D352C"><span style="font:500 12.5px Inter,sans-serif;color:#C4BDB3;flex:1">Toutes régions</span><span class="ms" style="font-size:17px;color:#8A8177">expand_more</span></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#C08A5A;text-transform:uppercase;padding:2px 0 8px">24 enregistrements</div>
+    <div style="background:#1A1714;border:1px solid #2A241E;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:54px;height:54px;border-radius:16px;background:#252119;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#F4A574">play_arrow</span></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir en zarma</div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#8A8177">Hadjara Souley · Tillabéri</div>
+        </div>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+        <span style="padding:4px 9px;border-radius:8px;background:#1B2A1F;font:600 10.5px ui-monospace,Menlo,monospace;color:#5BA674">ZARMA</span>
+        <span style="flex:1;min-width:0;font:400 11.5px ui-monospace,Menlo,monospace;color:#8A8177">42:18 · 312 écoutes</span>
+        <span class="ms" style="font-size:19px;color:#7C7367;flex:none">download</span>
+      </div>
+    </div>
+    <div style="background:#1A1714;border:1px solid #2A241E;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:54px;height:54px;border-radius:16px;background:#252119;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#F4A574">play_arrow</span></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Proverbes et devinettes</div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#8A8177">Oumar Boubacar · Dosso</div>
+        </div>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+        <span style="padding:4px 9px;border-radius:8px;background:#1B2A1F;font:600 10.5px ui-monospace,Menlo,monospace;color:#5BA674">ZARMA</span>
+        <span style="flex:1;min-width:0;font:400 11.5px ui-monospace,Menlo,monospace;color:#8A8177">28:04 · 96 écoutes</span>
+        <span class="ms" style="font-size:19px;color:#5BA674;flex:none">download_done</span>
+      </div>
+    </div>
+    <div style="background:#1A1714;border:1px solid #2A241E;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:54px;height:54px;border-radius:16px;background:#252119;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#F4A574">play_arrow</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Chants de mariage</div>
+        <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#8A8177">Mariama Sani · Niamey</div>
+        <div style="margin-top:7px;font:400 11.5px ui-monospace,Menlo,monospace;color:#8A8177">51:32 · 204 écoutes</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:11px;background:#252119;border-radius:16px;padding:12px 14px">
+      <span style="width:18px;height:18px;flex:none;background:#F4A574;-webkit-mask:url(assets/icons/icon_info.svg) center/contain no-repeat;mask:url(assets/icons/icon_info.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:400 11.5px/1.45 Inter,sans-serif;color:#C4BDB3">Téléchargez avant un trajet : l'écoute hors ligne ne consomme aucune donnée.</span>
+    </div>
+  </div>
+</div>
+</div></div>
+
+</div>
+<p class="dv-next">Suite : le back-office admin (19 écrans) est traité dans un troisième document.</p>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Mes podcasts, fiche de podcast, modération fantôme</span></div>
+<p class="dv-intro">Trois écrans lus. <b><code>my_podcasts_screen</code></b> : par podcast, trois statistiques (<code>totalPlayCount</code>, <code>subscriberCount</code>, <code>totalEpisodes</code>), les derniers épisodes numérotés, un menu contextuel <b>Voir / Modifier / Statistiques / Mettre en pause ou Publier / Supprimer</b>, et un raccourci d'enregistrement par podcast. <b><code>podcast_detail_screen</code></b> : abonnement payant au format <code>« prix devise/mois »</code>, enregistrement d'un nouvel épisode et <b>« Restaurer mes achats »</b>. <b><code>episode_tile</code></b> (lu, appliqué en <a class="dv-oid" href="#3a">3a</a> et <a class="dv-oid" href="#3b">3b</a>) : pochette avec le numéro en repli, badge <b>Épisode N</b>, badge <b>Premium</b> (et cadenas à la place du bouton quand l'accès manque), titre, description sur deux lignes, durée, <code>playCount</code> précédé d'une flèche de lecture, icône casque quand l'épisode <b>vient d'un salon</b> (<code>sourceRoomId</code>), et état de téléchargement (<code>download_for_offline</code> → <code>download_done</code> en vert). <b><code>ghost_moderator_screen</code></b> : vue admin invisible avec compteurs <b>auditeurs visibles</b> et <b>intervenants visibles</b>, chrono, et quatre actions — <b>🔇 Rendre muet en silence</b>, <b>👢 Exclure</b>, <b>🚫 Bloquer globalement</b>, <b>⚠ Avertir l'hôte</b> — plus la fermeture forcée du salon. <b>Propositions à valider</b> : les chiffres d'exemple et les libellés de statuts de podcast.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a"><div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Mes podcasts (créateur)</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Mes podcasts</div>
+    <div style="width:38px;height:38px;border-radius:12px;background:#C85A3A;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#fff;-webkit-mask:url(assets/icons/icon_add.svg) center/contain no-repeat;mask:url(assets/icons/icon_add.svg) center/contain no-repeat"></span></div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:56px;height:56px;border-radius:16px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="min-width:0;font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Diaspo Business</span><span style="padding:3px 7px;border-radius:7px;background:#F0F4EA;font:600 9.5px ui-monospace,Menlo,monospace;color:#3D472B;flex:none">PUBLIÉ</span></div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Hebdo · 2,00 EUR/mois</div>
+        </div>
+        <span class="ms" style="font-size:20px;color:#7A6F64;flex:none">more_vert</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <div style="flex:1;background:#FAF6EF;border-radius:12px;padding:9px 11px"><div style="font:700 15px Inter,sans-serif;color:#1A1410">1 240</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">écoutes</div></div>
+        <div style="flex:1;background:#FAF6EF;border-radius:12px;padding:9px 11px"><div style="font:700 15px Inter,sans-serif;color:#1A1410">86</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">abonnés</div></div>
+        <div style="flex:1;background:#FAF6EF;border-radius:12px;padding:9px 11px"><div style="font:700 15px Inter,sans-serif;color:#1A1410">24</div><div style="font:500 10.5px Inter,sans-serif;color:#7A6F64">épisodes</div></div>
+      </div>
+      <div style="margin-top:12px;background:#FAF6EF;border-radius:14px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-bottom:1px solid #F0E8D8">
+          <div style="width:34px;height:34px;border-radius:10px;background:#E8DCC4;display:flex;align-items:center;justify-content:center;font:700 13px Inter,sans-serif;color:#3D342B;flex:none">12</div>
+          <div style="flex:1;min-width:0"><div style="font:500 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Envoyer de l'argent sans se faire avoir</div><div style="margin-top:2px;display:flex;align-items:center;gap:8px"><span style="font:400 10.5px ui-monospace,Menlo,monospace;color:#7A6F64">32:10</span><span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:12px;color:#7A6F64">play_arrow</span><span style="font:400 10.5px Inter,sans-serif;color:#7A6F64">412</span></span></div></div>
+          <span class="ms" style="font-size:20px;color:#C85A3A;flex:none">play_circle</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;padding:10px 12px">
+          <div style="width:34px;height:34px;border-radius:10px;background:#E8DCC4;display:flex;align-items:center;justify-content:center;font:700 13px Inter,sans-serif;color:#3D342B;flex:none">11</div>
+          <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="min-width:0;font:500 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ouvrir un commerce à Niamey</span><span style="padding:2px 6px;border-radius:6px;background:#F7EBD6;font:700 8.5px ui-monospace,Menlo,monospace;color:#8A6410;flex:none">PREMIUM</span></div><div style="margin-top:2px;display:flex;align-items:center;gap:8px"><span style="font:400 10.5px ui-monospace,Menlo,monospace;color:#7A6F64">28:04</span><span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:12px;color:#7A6F64">play_arrow</span><span style="font:400 10.5px Inter,sans-serif;color:#7A6F64">388</span></span><span class="ms" style="font-size:12px;color:#7A6F64">headphones</span></div></div>
+          <span class="ms" style="font-size:20px;color:#C85A3A;flex:none">play_circle</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;border:1px solid #E8DCC4;font:600 12.5px Inter,sans-serif;color:#3D342B">Voir la fiche</div>
+        <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#1A1410;font:600 12.5px Inter,sans-serif;color:#FAF6EF">Nouvel épisode</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:56px;height:56px;border-radius:16px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="min-width:0;font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir</span><span style="padding:3px 7px;border-radius:7px;background:#F0E8D8;font:600 9.5px ui-monospace,Menlo,monospace;color:#7A6F64;flex:none">EN PAUSE</span></div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Irrégulier · gratuit</div>
+        </div>
+        <span class="ms" style="font-size:20px;color:#7A6F64;flex:none">more_vert</span>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+        <span style="flex:1;min-width:0;font:400 12px Inter,sans-serif;color:#7A6F64">6 épisodes · dernier il y a 3 mois</span>
+        <div style="padding:8px 14px;border-radius:11px;border:1px solid #E8DCC4;font:600 12.5px Inter,sans-serif;color:#3D342B;flex:none">Reprendre</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px dashed #E8DCC4;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:38px;height:38px;border-radius:12px;background:#F7EBD6;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#C85A3A;-webkit-mask:url(assets/icons/icon_add.svg) center/contain no-repeat;mask:url(assets/icons/icon_add.svg) center/contain no-repeat"></span></div>
+      <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Créer un podcast</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Gratuit ou par abonnement</div></div>
+      <span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">chevron_right</span>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="3b"><div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Fiche d'un podcast</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:210px;flex:none;position:relative;background:#1A1410;display:flex;align-items:flex-end;padding:16px">
+    <div style="position:absolute;top:52px;left:16px;width:40px;height:40px;border-radius:20px;background:rgba(250,246,239,.14);display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;background:#FAF6EF;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span></div>
+    <div style="position:absolute;top:52px;right:16px;width:40px;height:40px;border-radius:20px;background:rgba(250,246,239,.14);display:flex;align-items:center;justify-content:center"><span style="width:19px;height:19px;background:#FAF6EF;-webkit-mask:url(assets/icons/icon_share.svg) center/contain no-repeat;mask:url(assets/icons/icon_share.svg) center/contain no-repeat"></span></div>
+    <div style="display:flex;align-items:flex-end;gap:13px">
+      <div style="width:88px;height:88px;border-radius:18px;background:repeating-linear-gradient(45deg,#3d342b 0 8px,#2c251f 8px 16px);flex:none"></div>
+      <div style="flex:1;min-width:0;padding-bottom:4px">
+        <div style="font:700 19px Inter,sans-serif;color:#FAF6EF;letter-spacing:-.2px">Diaspo Business</div>
+        <div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#B8AC9D">Fatouma Ali · Hebdo · 24 épisodes</div>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:14px 20px 0">
+    <div style="font:400 13.5px/1.55 Inter,sans-serif;color:#3D342B;margin-bottom:14px;text-wrap:pretty">Entreprendre entre le Niger et l'Europe : transferts, papiers, import-export, témoignages de la diaspora.</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:48px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center"><span style="font:600 14px Inter,sans-serif;color:#fff">S'abonner · 2,00 EUR/mois</span></div>
+      <div style="width:48px;height:48px;border-radius:14px;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:21px;color:#3D342B">notifications</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:#F0E8D8;border-radius:14px;padding:11px 13px;margin-bottom:16px">
+      <span style="width:17px;height:17px;flex:none;background:#3D342B;-webkit-mask:url(assets/icons/icon_info.svg) center/contain no-repeat;mask:url(assets/icons/icon_info.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:400 11.5px Inter,sans-serif;color:#3D342B">Déjà abonné sur un autre appareil ?</span>
+      <span style="font:600 12px Inter,sans-serif;color:#9A3A20;flex:none">Restaurer mes achats</span>
+    </div>
+    <div style="display:flex;align-items:baseline;margin-bottom:10px"><span style="flex:1;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Épisodes · 24</span><span style="font:600 12.5px Inter,sans-serif;color:#C85A3A">Plus récents</span></div>
+    <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #F0E8D8">
+      <div style="width:56px;height:56px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:inline-block;padding:2px 7px;border-radius:6px;background:#F0E8D8;font:700 9.5px ui-monospace,Menlo,monospace;color:#3D342B">ÉPISODE 12</div>
+        <div style="margin-top:4px;font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Envoyer de l'argent sans se faire avoir</div>
+        <div style="margin-top:2px;font:400 11.5px/1.35 Inter,sans-serif;color:#7A6F64;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Frais réels, taux, arnaques courantes : ce qu'il faut vérifier avant d'envoyer.</div>
+        <div style="margin-top:5px;display:flex;align-items:center;gap:10px"><span style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">32:10</span><span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:13px;color:#7A6F64">play_arrow</span><span style="font:400 11px Inter,sans-serif;color:#7A6F64">412</span></span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;padding-top:6px"><span class="ms" style="font-size:30px;color:#C85A3A">play_circle</span><span class="ms" style="font-size:17px;color:#5A7A3A">download_done</span></div>
+    </div>
+    <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #F0E8D8">
+      <div style="width:56px;height:56px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;padding:2px 7px;border-radius:6px;background:#F0E8D8;font:700 9.5px ui-monospace,Menlo,monospace;color:#3D342B">ÉPISODE 11</span><span style="display:flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;background:#F7EBD6"><span style="width:11px;height:11px;background:#8A6410;-webkit-mask:url(assets/icons/icon_star.svg) center/contain no-repeat;mask:url(assets/icons/icon_star.svg) center/contain no-repeat"></span><span style="font:700 9.5px ui-monospace,Menlo,monospace;color:#8A6410">PREMIUM</span></span></div>
+        <div style="margin-top:4px;font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ouvrir un commerce à Niamey</div>
+        <div style="margin-top:2px;font:400 11.5px/1.35 Inter,sans-serif;color:#7A6F64;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Statut, patente, local : le parcours complet raconté par deux commerçantes.</div>
+        <div style="margin-top:5px;display:flex;align-items:center;gap:10px"><span style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">28:04</span><span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:13px;color:#7A6F64">play_arrow</span><span style="font:400 11px Inter,sans-serif;color:#7A6F64">388</span></span><span class="ms" style="font-size:13px;color:#7A6F64">headphones</span></div>
+      </div>
+      <div style="flex:none;padding-top:6px"><span style="width:30px;height:30px;display:block;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_lock.svg) center/contain no-repeat;mask:url(assets/icons/icon_lock.svg) center/contain no-repeat"></span></div>
+    </div>
+    <div style="display:flex;gap:12px;padding:11px 0">
+      <div style="width:56px;height:56px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:inline-block;padding:2px 7px;border-radius:6px;background:#F0E8D8;font:700 9.5px ui-monospace,Menlo,monospace;color:#3D342B">ÉPISODE 10</div>
+        <div style="margin-top:4px;font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Papiers : la carte consulaire</div>
+        <div style="margin-top:5px;display:flex;align-items:center;gap:10px"><span style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">41:32</span><span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:13px;color:#7A6F64">play_arrow</span><span style="font:400 11px Inter,sans-serif;color:#7A6F64">204</span></span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;padding-top:6px"><span class="ms" style="font-size:30px;color:#C85A3A">play_circle</span><span class="ms" style="font-size:17px;color:#B8AC9D">download_for_offline</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="3c"><div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Modération fantôme (admin)</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#151210;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#FAF6EF;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#B8AC9D">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#FAF6EF;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+    <div style="flex:1;min-width:0"><div style="font:700 16px Inter,sans-serif;color:#FAF6EF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir en zarma</div><div style="font:500 10.5px ui-monospace,Menlo,monospace;color:#B8AC9D">MODÉRATION · 42:18</div></div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(196,62,45,.16);border:1px solid rgba(194,62,45,.5);border-radius:14px;padding:11px 13px;margin-bottom:16px">
+      <span class="ms" style="font-size:19px;color:#F87171;flex:none">visibility_off</span>
+      <span style="flex:1;min-width:0;font:500 12px/1.4 Inter,sans-serif;color:#F87171">Vous êtes invisible : ni l'hôte ni les participants ne voient votre présence.</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:18px">
+      <div style="flex:1;background:#221C17;border-radius:16px;padding:13px 14px"><div style="font:700 22px Inter,sans-serif;color:#FAF6EF">125</div><div style="font:500 10.5px Inter,sans-serif;color:#B8AC9D">auditeurs visibles</div></div>
+      <div style="flex:1;background:#221C17;border-radius:16px;padding:13px 14px"><div style="font:700 22px Inter,sans-serif;color:#FAF6EF">3</div><div style="font:500 10.5px Inter,sans-serif;color:#B8AC9D">intervenants visibles</div></div>
+      <div style="flex:1;background:#221C17;border-radius:16px;padding:13px 14px"><div style="font:700 22px ui-monospace,Menlo,monospace;color:#D9A441">42:18</div><div style="font:500 10.5px Inter,sans-serif;color:#B8AC9D">durée</div></div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#B8AC9D;text-transform:uppercase;margin-bottom:10px">Participant sélectionné</div>
+    <div style="background:#221C17;border-radius:18px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:24px;background:#2D6E6A;color:#fff;display:flex;align-items:center;justify-content:center;font:700 17px Inter,sans-serif;flex:none">ID</div>
+        <div style="flex:1;min-width:0"><div style="font:600 14.5px Inter,sans-serif;color:#FAF6EF">Ibrahim Diallo</div><div style="font:400 11.5px Inter,sans-serif;color:#B8AC9D">Speaker · 🎙 actif · rejoint à 09:12</div></div>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-radius:13px;background:#1A1410;border:1px solid #3D342B"><span style="font-size:15px">🔇</span><span style="flex:1;min-width:0;font:600 12.5px Inter,sans-serif;color:#FAF6EF">Muet en silence</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-radius:13px;background:#1A1410;border:1px solid #3D342B"><span style="font-size:15px">👢</span><span style="flex:1;min-width:0;font:600 12.5px Inter,sans-serif;color:#FAF6EF">Exclure</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-radius:13px;background:#1A1410;border:1px solid #4A2620"><span style="font-size:15px">🚫</span><span style="flex:1;min-width:0;font:600 12.5px Inter,sans-serif;color:#F87171">Bloquer partout</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-radius:13px;background:#1A1410;border:1px solid #3D342B"><span style="font-size:15px">⚠</span><span style="flex:1;min-width:0;font:600 12.5px Inter,sans-serif;color:#D9A441">Avertir l'hôte</span></div>
+      </div>
+      <div style="margin-top:10px;font:400 11px/1.4 Inter,sans-serif;color:#7A6F64">« Muet en silence » ne prévient pas la personne : son micro cesse d'être diffusé sans message d'erreur.</div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#B8AC9D;text-transform:uppercase;margin-bottom:10px">Autres participants</div>
+    <div style="background:#221C17;border-radius:18px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #1A1410"><div style="width:34px;height:34px;border-radius:17px;background:#C85A3A;color:#fff;display:flex;align-items:center;justify-content:center;font:700 12.5px Inter,sans-serif;flex:none">HS</div><div style="flex:1;min-width:0"><div style="font:600 13px Inter,sans-serif;color:#FAF6EF">Hadjara Souley</div><div style="font:400 10.5px Inter,sans-serif;color:#B8AC9D">Hôte · 🎙 actif</div></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px"><div style="width:34px;height:34px;border-radius:17px;background:#3D342B;color:#B8AC9D;display:flex;align-items:center;justify-content:center;font:700 12.5px Inter,sans-serif;flex:none">FA</div><div style="flex:1;min-width:0"><div style="font:600 13px Inter,sans-serif;color:#FAF6EF">Fatouma Ali</div><div style="font:400 10.5px Inter,sans-serif;color:#B8AC9D">Auditrice · main levée</div></div></div>
+    </div>
+  </div>
+  <div style="padding:14px 20px 30px;flex:none">
+    <div style="height:52px;border-radius:14px;background:#C23E2D;display:flex;align-items:center;justify-content:center;gap:9px"><span class="ms" style="font-size:21px;color:#fff">gavel</span><span style="font:600 14.5px Inter,sans-serif;color:#fff">Fermer le salon de force</span></div>
+    <div style="margin-top:10px;text-align:center;font:400 11px Inter,sans-serif;color:#7A6F64">Action tracée dans le journal d'audit.</div>
+  </div>
+</div>
+</div></div>
+
+</div>
+<p class="dv-next">Suites : « lecteur et patrimoine en Nocturne » · « statistiques d'un podcast » · « back-office admin, dans un troisième document ».</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Création de salon, salon programmé, enregistrement d'épisode</span></div>
+<p class="dv-intro">Trois fichiers désormais lus. <b><code>create_audio_room_screen</code></b> : catégories, <b>modes Normal / Cérémonie / Radio / Patrimoine</b>, salon payant avec prix du billet (« Estimation reversée : ~95 % après commission »), <b>collecte</b> (Aide urgence, Projet communautaire, Autre) avec objectif et bénéficiaire, bascule <b>contenu patrimoine</b> ouvrant les langues Zarma, Hausa, Tamasheq, Kanouri, Peul, Arabe, Français, capacité « 10 speakers · 1 000 listeners », bouton « 🎙 Commencer maintenant » et sortie « plus tard » vers la programmation. <b><code>save_as_podcast_screen</code></b> : chapitres horodatés (0:00 Introduction, 8:00 Actualités Niger, 22:00 Diaspora &amp; politique, 45:00 Questions / Réponses, 68:00 Conclusion), durée et poids (« 1h 14min · ~142 MB »), visibilité <b>Public / Abonnés / Privé</b>, bouton « 📤 Publier ». <b><code>record_episode_screen</code></b> : mode audio ou vidéo (« Sélectionner une vidéo (max 100 Mo) »), durée estimée, chapitres numérotés ajoutables et supprimables, état vide « aucun chapitre ajouté ». <b>Propositions à valider</b> : les paliers de collecte et les libellés d'état vide des listes.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Ouvrir un salon</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_close.svg) center/contain no-repeat;mask:url(assets/icons/icon_close.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Ouvrir un salon</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="font:600 12.5px Inter,sans-serif;color:#3D342B;margin-bottom:7px">Titre du salon</div>
+    <div style="height:50px;border-radius:14px;background:#fff;border:1px solid #F0E8D8;display:flex;align-items:center;padding:0 14px;margin-bottom:14px"><span style="font:500 14.5px Inter,sans-serif;color:#1A1410">Contes du soir en zarma</span></div>
+    <div style="font:600 12.5px Inter,sans-serif;color:#3D342B;margin-bottom:8px">Catégorie</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+      <div style="padding:8px 12px;border-radius:999px;background:#1A1410;color:#FAF6EF;font:600 12.5px Inter,sans-serif">Griot/Conte</div>
+      <div style="padding:8px 12px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif">Culture</div>
+      <div style="padding:8px 12px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif">Famille</div>
+      <div style="padding:8px 12px;border-radius:999px;border:1px solid #E8DCC4;color:#7A6F64;font:500 12.5px Inter,sans-serif">+7</div>
+    </div>
+    <div style="font:600 12.5px Inter,sans-serif;color:#3D342B;margin-bottom:8px">Mode</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px">
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;border:1px solid #E8DCC4;font:500 12.5px Inter,sans-serif;color:#3D342B">Normal</div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;border:1px solid #E8DCC4;font:500 12.5px Inter,sans-serif;color:#3D342B">Cérémonie</div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;border:1px solid #E8DCC4;font:500 12.5px Inter,sans-serif;color:#3D342B">Radio</div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#C85A3A;font:600 12.5px Inter,sans-serif;color:#fff">Patrimoine</div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Contenu patrimoine</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Le salon sera archivé et réécoutable</div></div>
+        <div style="width:46px;height:27px;border-radius:14px;background:#5A7A3A;display:flex;align-items:center;justify-content:flex-end;padding:0 3px;flex:none"><div style="width:21px;height:21px;border-radius:11px;background:#fff"></div></div>
+      </div>
+      <div style="padding:12px 14px">
+        <div style="font:600 11.5px Inter,sans-serif;color:#3D342B;margin-bottom:8px">Langue du patrimoine</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <div style="padding:7px 11px;border-radius:999px;background:#5A7A3A;color:#fff;font:600 12px Inter,sans-serif">Zarma</div>
+          <div style="padding:7px 11px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12px Inter,sans-serif">Hausa</div>
+          <div style="padding:7px 11px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12px Inter,sans-serif">Tamasheq</div>
+          <div style="padding:7px 11px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12px Inter,sans-serif">Kanouri</div>
+          <div style="padding:7px 11px;border-radius:999px;border:1px solid #E8DCC4;color:#7A6F64;font:500 12px Inter,sans-serif">+3</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Salon payant</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Billet d'entrée obligatoire</div></div>
+        <div style="width:46px;height:27px;border-radius:14px;background:#5A7A3A;display:flex;align-items:center;justify-content:flex-end;padding:0 3px;flex:none"><div style="width:21px;height:21px;border-radius:11px;background:#fff"></div></div>
+      </div>
+      <div style="padding:10px 14px 12px;display:flex;align-items:center;gap:10px">
+        <div style="height:44px;border-radius:12px;background:#FAF6EF;border:1px solid #E8DCC4;display:flex;align-items:center;padding:0 13px;gap:7px;flex:none"><span style="font:600 15px Inter,sans-serif;color:#1A1410">5.00</span><span style="font:500 12.5px Inter,sans-serif;color:#7A6F64">EUR</span></div>
+        <div style="flex:1;min-width:0;font:400 11.5px/1.35 Inter,sans-serif;color:#5A7A3A">Reversé : <b>~95 %</b> après commission</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;background:#F0E8D8;border-radius:14px;padding:9px 14px;margin-bottom:6px">
+      <span style="width:17px;height:17px;flex:none;background:#3D342B;-webkit-mask:url(assets/icons/icon_people.svg) center/contain no-repeat;mask:url(assets/icons/icon_people.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:500 12px Inter,sans-serif;color:#3D342B">Capacité : 10 intervenants · 1 000 auditeurs</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #F0E8D8;border-radius:16px;padding:11px 14px">
+      <div style="width:34px;height:34px;border-radius:11px;background:#F7EBD6;display:flex;align-items:center;justify-content:center;flex:none;font-size:16px">🤲</div>
+      <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Ouvrir une collecte</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Aide urgence · projet commun. · autre</div></div>
+      <div style="width:46px;height:27px;border-radius:14px;background:#E8DCC4;display:flex;align-items:center;padding:0 3px;flex:none"><div style="width:21px;height:21px;border-radius:11px;background:#fff"></div></div>
+    </div>
+  </div>
+  <div style="padding:14px 20px 28px;flex:none;background:#fff;border-top:1px solid #F0E8D8;display:flex;gap:10px">
+    <div style="padding:15px 18px;border-radius:14px;border:1px solid #E8DCC4;font:600 14px Inter,sans-serif;color:#3D342B;flex:none">Programmer</div>
+    <div style="flex:1;height:52px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:17px">🎙</span><span style="font:600 15px Inter,sans-serif;color:#fff">Commencer maintenant</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2b"><div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Programmer un salon — multi-fuseaux</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Programmer</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="font:400 13.5px/1.55 Inter,sans-serif;color:#3D342B;margin-bottom:16px;text-wrap:pretty">La diaspora est répartie sur quatre fuseaux : choisissez une heure qui convient au plus grand nombre.</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:14px">
+      <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Août 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center">
+        <span style="font:600 10px Inter,sans-serif;color:#7A6F64">L</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">M</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">M</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">J</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">V</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">S</span><span style="font:600 10px Inter,sans-serif;color:#7A6F64">D</span>
+        <span style="font:400 12.5px Inter,sans-serif;color:#B8AC9D;padding:6px 0">28</span><span style="font:400 12.5px Inter,sans-serif;color:#B8AC9D;padding:6px 0">29</span><span style="font:400 12.5px Inter,sans-serif;color:#B8AC9D;padding:6px 0">30</span><span style="font:400 12.5px Inter,sans-serif;color:#B8AC9D;padding:6px 0">31</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">1</span><span style="display:flex;align-items:center;justify-content:center;height:29px;border-radius:10px;background:#C85A3A;font:700 12.5px Inter,sans-serif;color:#fff">2</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">3</span>
+        <span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">4</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">5</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">6</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">7</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">8</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">9</span><span style="font:500 12.5px Inter,sans-serif;color:#1A1410;padding:6px 0">10</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #F0E8D8;display:flex;align-items:center;justify-content:center;gap:9px"><span style="width:17px;height:17px;background:#7A6F64;-webkit-mask:url(assets/icons/icon_clock.svg) center/contain no-repeat;mask:url(assets/icons/icon_clock.svg) center/contain no-repeat"></span><span style="font:600 15px Inter,sans-serif;color:#1A1410">18:30</span></div>
+      <div style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #F0E8D8;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font:500 13px Inter,sans-serif;color:#1A1410">Paris</span><span class="ms" style="font-size:18px;color:#7A6F64">expand_more</span></div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Heure locale des membres</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F5EFE3"><span style="width:10px;height:10px;border-radius:5px;background:#C85A3A;flex:none"></span><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Niamey</div><div style="font:400 11px Inter,sans-serif;color:#5A7A3A">Bonne heure · soirée</div></div><span style="font:700 15px ui-monospace,Menlo,monospace;color:#1A1410">17:30</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F5EFE3"><span style="width:10px;height:10px;border-radius:5px;background:#2D6E6A;flex:none"></span><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Paris</div><div style="font:400 11px Inter,sans-serif;color:#5A7A3A">Bonne heure · soirée</div></div><span style="font:700 15px ui-monospace,Menlo,monospace;color:#1A1410">18:30</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F5EFE3"><span style="width:10px;height:10px;border-radius:5px;background:#D9A441;flex:none"></span><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">New York</div><div style="font:400 11px Inter,sans-serif;color:#8A6410">Midi · en journée</div></div><span style="font:700 15px ui-monospace,Menlo,monospace;color:#3D342B">12:30</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px"><span style="width:10px;height:10px;border-radius:5px;background:#5A7A3A;flex:none"></span><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Montréal</div><div style="font:400 11px Inter,sans-serif;color:#8A6410">Midi · en journée</div></div><span style="font:700 15px ui-monospace,Menlo,monospace;color:#3D342B">12:30</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #F0E8D8;border-radius:16px;padding:12px 14px">
+      <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Prévenir mes abonnés</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Rappel 15 min avant l'ouverture</div></div>
+      <div style="width:46px;height:27px;border-radius:14px;background:#5A7A3A;display:flex;align-items:center;justify-content:flex-end;padding:0 3px;flex:none"><div style="width:21px;height:21px;border-radius:11px;background:#fff"></div></div>
+    </div>
+  </div>
+  <div style="padding:14px 20px 28px;flex:none;background:#fff;border-top:1px solid #F0E8D8">
+    <div style="height:52px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center"><span style="font:600 15px Inter,sans-serif;color:#fff">Programmer le 2 août à 18:30</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2c"><div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Publier en podcast</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_close.svg) center/contain no-repeat;mask:url(assets/icons/icon_close.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Publier en podcast</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="display:flex;align-items:center;gap:12px;background:#1A1410;border-radius:18px;padding:14px;margin-bottom:16px">
+      <div style="width:52px;height:52px;border-radius:14px;background:repeating-linear-gradient(45deg,#3d342b 0 6px,#2c251f 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0"><div style="font:600 14.5px Inter,sans-serif;color:#FAF6EF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir en zarma</div><div style="margin-top:3px;font:400 11.5px ui-monospace,Menlo,monospace;color:#B8AC9D">1H 14MIN · ~142 MB</div></div>
+    </div>
+    <div style="font:600 12.5px Inter,sans-serif;color:#3D342B;margin-bottom:7px">Titre de l'épisode</div>
+    <div style="height:50px;border-radius:14px;background:#fff;border:1px solid #F0E8D8;display:flex;align-items:center;padding:0 14px;margin-bottom:14px"><span style="font:500 14.5px Inter,sans-serif;color:#1A1410">Contes du soir · 20 juillet</span></div>
+    <div style="display:flex;align-items:baseline;margin-bottom:10px"><span style="flex:1;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Chapitres · 5</span><span style="font:600 12px Inter,sans-serif;color:#C85A3A">Modifier</span></div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 12px ui-monospace,Menlo,monospace;color:#C85A3A;flex:none;width:42px">0:00</span><span style="flex:1;font:500 13.5px Inter,sans-serif;color:#1A1410">Introduction</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 12px ui-monospace,Menlo,monospace;color:#C85A3A;flex:none;width:42px">8:00</span><span style="flex:1;font:500 13.5px Inter,sans-serif;color:#1A1410">Actualités Niger</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 12px ui-monospace,Menlo,monospace;color:#C85A3A;flex:none;width:42px">22:00</span><span style="flex:1;font:500 13.5px Inter,sans-serif;color:#1A1410">Diaspora &amp; politique</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><span style="font:600 12px ui-monospace,Menlo,monospace;color:#C85A3A;flex:none;width:42px">45:00</span><span style="flex:1;font:500 13.5px Inter,sans-serif;color:#1A1410">Questions / Réponses</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px"><span style="font:600 12px ui-monospace,Menlo,monospace;color:#C85A3A;flex:none;width:42px">68:00</span><span style="flex:1;font:500 13.5px Inter,sans-serif;color:#1A1410">Conclusion</span></div>
+    </div>
+    <div style="font:600 12.5px Inter,sans-serif;color:#3D342B;margin-bottom:8px">Visibilité</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1;text-align:center;padding:11px 0;border-radius:12px;background:#1A1410;font:600 13px Inter,sans-serif;color:#FAF6EF">Public</div>
+      <div style="flex:1;text-align:center;padding:11px 0;border-radius:12px;border:1px solid #E8DCC4;font:500 13px Inter,sans-serif;color:#3D342B">Abonnés</div>
+      <div style="flex:1;text-align:center;padding:11px 0;border-radius:12px;border:1px solid #E8DCC4;font:500 13px Inter,sans-serif;color:#3D342B">Privé</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;background:#F0E8D8;border-radius:16px;padding:12px 14px">
+      <span style="width:18px;height:18px;flex:none;background:#9A3A20;-webkit-mask:url(assets/icons/icon_info.svg) center/contain no-repeat;mask:url(assets/icons/icon_info.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:400 11.5px/1.45 Inter,sans-serif;color:#3D342B">Un salon patrimoine reste aussi dans la bibliothèque, même publié en podcast.</span>
+    </div>
+  </div>
+  <div style="padding:14px 20px 28px;flex:none;background:#fff;border-top:1px solid #F0E8D8">
+    <div style="height:52px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:16px">📤</span><span style="font:600 15px Inter,sans-serif;color:#fff">Publier</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2d"><div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Enregistrer un épisode</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_close.svg) center/contain no-repeat;mask:url(assets/icons/icon_close.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Nouvel épisode</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="flex:1;text-align:center;padding:11px 0;border-radius:13px;background:#1A1410;font:600 13px Inter,sans-serif;color:#FAF6EF">Audio</div>
+      <div style="flex:1;text-align:center;padding:11px 0;border-radius:13px;border:1px solid #E8DCC4;font:500 13px Inter,sans-serif;color:#3D342B">Vidéo</div>
+    </div>
+    <div style="background:#1A1410;border-radius:22px;padding:20px;margin-bottom:16px;text-align:center">
+      <div style="font:500 11px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#D9A441">ENREGISTREMENT</div>
+      <div style="margin-top:10px;font:700 34px ui-monospace,Menlo,monospace;color:#FAF6EF;letter-spacing:-1px">12:04</div>
+      <div style="margin-top:14px;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:40px">
+        <div style="width:4px;height:40%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:70%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:100%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:55%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:85%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:45%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:75%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:35%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:90%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:60%;background:#D9A441;border-radius:2px"></div><div style="width:4px;height:50%;background:#3D342B;border-radius:2px"></div><div style="width:4px;height:30%;background:#3D342B;border-radius:2px"></div>
+      </div>
+      <div style="margin-top:18px;display:flex;align-items:center;justify-content:center;gap:20px">
+        <div style="width:52px;height:52px;border-radius:26px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:24px;color:#FAF6EF">bookmark_add</span></div>
+        <div style="width:72px;height:72px;border-radius:36px;background:#C23E2D;display:flex;align-items:center;justify-content:center"><div style="width:24px;height:24px;border-radius:5px;background:#fff"></div></div>
+        <div style="width:52px;height:52px;border-radius:26px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:24px;color:#FAF6EF">play_arrow</span></div>
+      </div>
+      <div style="margin-top:12px;font:400 11.5px Inter,sans-serif;color:#B8AC9D">Durée estimée : 12min 4s</div>
+    </div>
+    <div style="display:flex;align-items:baseline;margin-bottom:10px"><span style="flex:1;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Chapitres · 2</span><span style="font:600 12px Inter,sans-serif;color:#C85A3A">+ Ajouter ici</span></div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #F5EFE3"><div style="width:26px;height:26px;border-radius:13px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;font:700 12px Inter,sans-serif;color:#3D342B;flex:none">1</div><div style="flex:1;min-width:0"><div style="font:500 13.5px Inter,sans-serif;color:#1A1410">Introduction</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">0:00</div></div><span style="width:17px;height:17px;flex:none;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_delete.svg) center/contain no-repeat;mask:url(assets/icons/icon_delete.svg) center/contain no-repeat"></span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px"><div style="width:26px;height:26px;border-radius:13px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;font:700 12px Inter,sans-serif;color:#3D342B;flex:none">2</div><div style="flex:1;min-width:0"><div style="font:500 13.5px Inter,sans-serif;color:#1A1410">Le marché de Katako</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">7:20</div></div><span style="width:17px;height:17px;flex:none;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_delete.svg) center/contain no-repeat;mask:url(assets/icons/icon_delete.svg) center/contain no-repeat"></span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px dashed #E8DCC4;border-radius:16px;padding:12px 14px">
+      <span style="width:18px;height:18px;flex:none;background:#7A6F64;-webkit-mask:url(assets/icons/icon_add.svg) center/contain no-repeat;mask:url(assets/icons/icon_add.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:500 12.5px Inter,sans-serif;color:#3D342B">Importer un fichier existant</span>
+      <span style="font:400 11px Inter,sans-serif;color:#7A6F64">max 100 Mo</span>
+    </div>
+  </div>
+  <div style="padding:14px 20px 28px;flex:none;background:#fff;border-top:1px solid #F0E8D8;display:flex;gap:10px">
+    <div style="padding:15px 18px;border-radius:14px;border:1px solid #E8DCC4;font:600 14px Inter,sans-serif;color:#3D342B;flex:none">Brouillon</div>
+    <div style="flex:1;height:52px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center"><span style="font:600 15px Inter,sans-serif;color:#fff">Terminer et publier</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2e"><div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Aucun salon en direct</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:#1A1410">Salons audio</div>
+    <div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#7A6F64">Aucun salon en direct</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 36px;text-align:center">
+    <div style="width:100px;height:100px;border-radius:50px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:40px">🎙</div>
+    <div style="font:700 18.5px Inter,sans-serif;color:#1A1410;letter-spacing:-.2px">C'est calme pour l'instant</div>
+    <div style="margin-top:9px;font:400 14px/1.55 Inter,sans-serif;color:#3D342B;text-wrap:pretty">Les salons se remplissent surtout en soirée, quand Niamey et Paris se rejoignent. Ouvrez le vôtre ou réécoutez le patrimoine.</div>
+    <div style="margin-top:20px;width:100%;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #F0E8D8;border-radius:14px;padding:12px 14px;text-align:left"><div style="width:34px;height:34px;border-radius:11px;background:#F7EBD6;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:17px;height:17px;background:#C85A3A;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span></div><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Ouvrir un salon</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Gratuit · jusqu'à 1 000 auditeurs</div></div><span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">chevron_right</span></div>
+      <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #F0E8D8;border-radius:14px;padding:12px 14px;text-align:left"><div style="width:34px;height:34px;border-radius:11px;background:#F0F4EA;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:17px;height:17px;background:#5A7A3A;-webkit-mask:url(assets/icons/icon_star.svg) center/contain no-repeat;mask:url(assets/icons/icon_star.svg) center/contain no-repeat"></span></div><div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Patrimoine oral</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">24 enregistrements à réécouter</div></div><span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">chevron_right</span></div>
+    </div>
+  </div>
+  <div style="padding:0 20px 28px;flex:none">
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Programmés cette semaine</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;padding:13px 14px;display:flex;gap:12px;align-items:center">
+      <div style="width:46px;height:50px;border-radius:13px;background:#F0E8D8;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none"><span style="font:700 16px Inter,sans-serif;color:#C85A3A">02</span><span style="font:600 9px Inter,sans-serif;color:#7A6F64">AOÛT</span></div>
+      <div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Démarches consulaires</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">18:30 Paris · 17:30 Niamey</div></div>
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:11px;border:1px solid #E8DCC4;flex:none"><span style="font-size:12px">🔔</span><span style="font:600 12px Inter,sans-serif;color:#3D342B">Rappel</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2f"><div class="dv-olabel"><a class="dv-oid" href="#2f">2f</a>Podcasts — aucun abonnement</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:#1A1410">Podcasts</div>
+    <div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#7A6F64">Aucun abonnement</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="text-align:center;padding:16px 12px 22px">
+      <div style="width:92px;height:92px;border-radius:46px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;margin:0 auto 18px"><span class="ms" style="font-size:40px;color:#C85A3A">headphones</span></div>
+      <div style="font:700 18.5px Inter,sans-serif;color:#1A1410;letter-spacing:-.2px">Des voix de la diaspora</div>
+      <div style="margin-top:9px;font:400 14px/1.55 Inter,sans-serif;color:#3D342B;text-wrap:pretty">Abonnez-vous à une émission : les nouveaux épisodes se téléchargent tout seuls en Wi-Fi.</div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Populaires dans la diaspora</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="width:52px;height:52px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+        <div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">Diaspo Business</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Hebdo · 24 épisodes</div></div>
+        <div style="padding:8px 14px;border-radius:11px;background:#C85A3A;font:600 12.5px Inter,sans-serif;color:#fff;flex:none">S'abonner</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #F5EFE3">
+        <div style="width:52px;height:52px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+        <div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">Voix du Sahel</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Hebdo · 61 épisodes</div></div>
+        <div style="padding:8px 14px;border-radius:11px;background:#C85A3A;font:600 12.5px Inter,sans-serif;color:#fff;flex:none">S'abonner</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px">
+        <div style="width:52px;height:52px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+        <div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">Papiers</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Mensuel · 12 épisodes</div></div>
+        <div style="padding:8px 14px;border-radius:11px;background:#C85A3A;font:600 12.5px Inter,sans-serif;color:#fff;flex:none">S'abonner</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px dashed #E8DCC4;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:38px;height:38px;border-radius:12px;background:#F7EBD6;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#C85A3A;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span></div>
+      <div style="flex:1;min-width:0"><div style="font:600 13.5px Inter,sans-serif;color:#1A1410">Créer mon podcast</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Enregistrer ou importer un épisode</div></div>
+      <span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">chevron_right</span>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="2g"><div class="dv-olabel"><a class="dv-oid" href="#2g">2g</a>Salons — Nocturne</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#0F0D0A;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#F5F2EE;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#8A8177">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="display:flex;align-items:flex-end;gap:12px">
+      <div style="flex:1;min-width:0"><div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:#F5F2EE">Salons audio</div><div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#8A8177">6 en direct · 2 programmés</div></div>
+      <div style="width:42px;height:42px;border-radius:14px;background:#1A1714;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;background:#C4BDB3;-webkit-mask:url(assets/icons/icon_search.svg) center/contain no-repeat;mask:url(assets/icons/icon_search.svg) center/contain no-repeat"></span></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+      <div style="padding:7px 13px;border-radius:999px;background:#F5F2EE;color:#1C1815;font:600 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Tous</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #3D352C;color:#C4BDB3;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Griot/Conte</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #3D352C;color:#C4BDB3;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Actualités</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #3D352C;color:#C4BDB3;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Mentorat</div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="background:#1A1714;border:1px solid #4A3524;border-radius:22px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+        <span style="display:flex;align-items:center;gap:6px;background:#C85A3A;border-radius:8px;padding:4px 9px"><span style="width:6px;height:6px;border-radius:3px;background:#fff"></span><span style="font:700 10px ui-monospace,Menlo,monospace;color:#fff">EN DIRECT</span></span>
+        <span style="padding:4px 9px;border-radius:8px;background:#2B2019;font:600 10px ui-monospace,Menlo,monospace;color:#F4A574">GRIOT/CONTE</span>
+        <div style="flex:1"></div>
+        <span style="font:500 11.5px ui-monospace,Menlo,monospace;color:#8A8177">42 min</span>
+      </div>
+      <div style="font:700 16px/1.3 Inter,sans-serif;color:#F5F2EE">Contes du soir en zarma</div>
+      <div style="margin-top:4px;font:400 13px Inter,sans-serif;color:#8A8177">Patrimoine · Zarma · Tillabéri</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:14px;background:#C85A3A;color:#fff;display:flex;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;flex:none">HS</div>
+        <span style="flex:1;min-width:0;font:400 13px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hadjara Souley</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:7px">
+        <span style="padding:4px 10px;border-radius:12px;background:#252119;font:500 11px Inter,sans-serif;color:#F4A574">#griot</span>
+        <span style="padding:4px 10px;border-radius:12px;background:#252119;font:500 11px Inter,sans-serif;color:#F4A574">#zarma</span>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:14px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#8A8177;-webkit-mask:url(assets/icons/icon_people.svg) center/contain no-repeat;mask:url(assets/icons/icon_people.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#8A8177">128 participants</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#8A8177;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#8A8177">3/8</span></div>
+        <div style="flex:1"></div>
+        <div style="padding:9px 15px;border-radius:12px;background:#F4A574;font:600 12.5px Inter,sans-serif;color:#1C1815;flex:none">Rejoindre</div>
+      </div>
+    </div>
+    <div style="background:#1A1714;border:1px solid #2A241E;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+        <span style="display:flex;align-items:center;gap:6px;background:#3A1D18;border-radius:8px;padding:4px 9px"><span style="width:6px;height:6px;border-radius:3px;background:#F87171"></span><span style="font:700 10px ui-monospace,Menlo,monospace;color:#F87171">EN DIRECT</span></span>
+        <span style="padding:4px 9px;border-radius:8px;background:#252119;font:600 10px ui-monospace,Menlo,monospace;color:#C4BDB3">MENTORAT</span>
+      </div>
+      <div style="font:700 16px Inter,sans-serif;color:#F5F2EE">Trouver un premier emploi en France</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:14px;background:#2D6E6A;color:#fff;display:flex;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;flex:none">SB</div>
+        <span style="flex:1;min-width:0;font:400 13px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Salim Boubacar</span>
+        <span style="display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:8px;background:#2B2019;flex:none"><span style="width:14px;height:14px;background:#F4A574;-webkit-mask:url(assets/icons/icon_star.svg) center/contain no-repeat;mask:url(assets/icons/icon_star.svg) center/contain no-repeat"></span><span style="font:600 12px Inter,sans-serif;color:#F4A574">2,00 EUR</span></span>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:14px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#8A8177;-webkit-mask:url(assets/icons/icon_people.svg) center/contain no-repeat;mask:url(assets/icons/icon_people.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#8A8177">46 participants</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#8A8177;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#8A8177">2/6</span></div>
+        <div style="flex:1"></div>
+        <div style="padding:8px 14px;border-radius:12px;background:#F4A574;font:600 12.5px Inter,sans-serif;color:#1C1815;flex:none">Billet</div>
+      </div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#C08A5A;text-transform:uppercase;margin-bottom:10px">Programmés</div>
+    <div style="background:#1A1714;border:1px solid #2A241E;border-radius:20px;padding:14px;display:flex;gap:13px">
+      <div style="width:50px;height:54px;border-radius:14px;background:#252119;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none"><span style="font:700 17px Inter,sans-serif;color:#F4A574">02</span><span style="font:600 9.5px Inter,sans-serif;color:#8A8177">AOÛT</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Inter,sans-serif;color:#F5F2EE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Démarches consulaires · questions</div>
+        <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#8A8177">Officiel · 18:30 Paris · 17:30 Niamey</div>
+        <div style="margin-top:9px;display:flex;align-items:center;gap:9px"><span style="flex:1;min-width:0;font:400 11.5px Inter,sans-serif;color:#8A8177">18 inscrits</span><div style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:11px;border:1px solid #3D352C;flex:none"><span style="font-size:12px">🔔</span><span style="font:600 12px Inter,sans-serif;color:#C4BDB3">Me le rappeler</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:26px;display:flex;align-items:center;gap:9px;height:52px;padding:0 20px;border-radius:26px;background:#F4A574;box-shadow:0 16px 40px rgba(0,0,0,.6)"><span style="width:20px;height:20px;background:#1C1815;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:600 14px Inter,sans-serif;color:#1C1815">Ouvrir un salon</span></div>
+</div>
+</div></div>
+
+</div>
+<p class="dv-next">Suites : « lecteur et patrimoine en Nocturne » · « écrans Mes podcasts et fiche de podcast » · « ghost_moderator_screen ».</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Salons audio &amp; Podcasts</span></div>
+<p class="dv-intro">Document séparé pour les deux features audio, afin de garder le document principal fluide. <b>Lu dans le code</b> : <code>audio_rooms_list_screen</code> (catégories Tous, Discussion, Actualités, Culture, Griot/Conte, Business, Mentorat, Famille, Officiel, Spiritualité, Éducation ; rappel « Me le rappeler »), <code>audio_room_screen</code> (pastilles de rôle <b>SPEAKER</b> et <b>GHOST</b>, ligne « Patrimoine · langue · région », partage « Rejoins … sur Diaspo Niger ! », état muet/actif par participant), <code>heritage_library_screen</code> (filtres par langue et par région), <code>podcast_detail_screen</code> (« Restaurer mes achats »), <code>creator_earnings_screen</code> (ventilation <code>tips</code> / <code>tickets</code> / <code>subscriptions</code> / <code>replays</code> / <code>total</code>, montants en centimes avec devise, historique des versements et <code>PayoutStatus</code> : en attente, en traitement, terminé, échoué, annulé), <code>replay_player_screen</code> (chapitres Introduction, Actualités, Diaspora &amp; politique, Q&amp;R, Conclusion ; co-hôtes) et <code>schedule_room_screen</code> (heure affichée dans quatre fuseaux : Niamey, Paris, New York, Montréal). <code>audio_room_card</code> (badge EN DIRECT, titre 16, sous-titre 13, hôte en avatar r14 + nom 13, tags <code>#tag</code>, « N participants », <code>speakerCount/maxSpeakers</code>, prix du billet avec devise — repris tel quel en <a class="dv-oid" href="#1a">1a</a>), <code>send_tip_bottom_sheet</code> (paliers 1 / 2 / 5 / 10 / 20 / 50 €, <b>95 % reversés au bénéficiaire</b>, bouton « 🪙 Envoyer €x » — <a class="dv-oid" href="#1g">1g</a>) et <code>buy_ticket_bottom_sheet</code> (prix, commission, reversement à l'hôte, moyens <b>Carte bancaire / Wave Mobile Money / Mynita</b> avec « Code PIN demandé pour confirmer » — <a class="dv-oid" href="#1h">1h</a>). <b>Non relus</b>, donc hors de ces maquettes : <code>save_as_podcast_screen</code>, <code>record_episode_screen</code>, <code>create_audio_room_screen</code>, <code>ghost_moderator_screen</code>, <code>timezone_display_widget</code>. Palette <b>DNColors</b> (Sahel) : encre #1A1410, papier #FAF6EF / #F0E8D8, sable #E8DCC4, terracotta #C85A3A, ocre #D9A441, teal #2D6E6A, feuille #5A7A3A. <b>Propositions à valider</b> : les montants de revenus créateur, la tarification des épisodes payants, les libellés de niveaux de don — et le montant exact de la commission hors dons (le code ne fixe explicitement que les <b>95 %</b> reversés sur un don).</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Salons audio — liste</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="display:flex;align-items:flex-end;gap:12px">
+      <div style="flex:1;min-width:0"><div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:#1A1410">Salons audio</div><div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#7A6F64">6 en direct · 2 programmés</div></div>
+      <div style="width:42px;height:42px;border-radius:14px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;background:#3D342B;-webkit-mask:url(assets/icons/icon_search.svg) center/contain no-repeat;mask:url(assets/icons/icon_search.svg) center/contain no-repeat"></span></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+      <div style="padding:7px 13px;border-radius:999px;background:#1A1410;color:#FAF6EF;font:600 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Tous</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Griot/Conte</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Actualités</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Mentorat</div>
+      <div style="padding:7px 13px;border-radius:999px;border:1px solid #E8DCC4;color:#3D342B;font:500 12.5px Inter,sans-serif;white-space:nowrap;flex:none">Famille</div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="background:#1A1410;border-radius:22px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+        <span style="display:flex;align-items:center;gap:6px;background:#C85A3A;border-radius:8px;padding:4px 9px"><span style="width:6px;height:6px;border-radius:3px;background:#FAF6EF"></span><span style="font:700 10px ui-monospace,Menlo,monospace;color:#FAF6EF">EN DIRECT</span></span>
+        <span style="padding:4px 9px;border-radius:8px;background:rgba(250,246,239,.12);font:600 10px ui-monospace,Menlo,monospace;color:#D9A441">GRIOT/CONTE</span>
+        <div style="flex:1"></div>
+        <span style="font:500 11.5px ui-monospace,Menlo,monospace;color:#B8AC9D">42 min</span>
+      </div>
+      <div style="font:700 16px/1.3 Inter,sans-serif;color:#FAF6EF">Contes du soir en zarma</div>
+      <div style="margin-top:4px;font:400 13px Inter,sans-serif;color:#B8AC9D">Patrimoine · Zarma · Tillabéri</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:14px;background:#C85A3A;color:#fff;display:flex;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;flex:none">HS</div>
+        <span style="flex:1;min-width:0;font:400 13px Inter,sans-serif;color:#FAF6EF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hadjara Souley</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:7px">
+        <span style="padding:4px 10px;border-radius:12px;background:rgba(250,246,239,.1);font:500 11px Inter,sans-serif;color:#D9A441">#griot</span>
+        <span style="padding:4px 10px;border-radius:12px;background:rgba(250,246,239,.1);font:500 11px Inter,sans-serif;color:#D9A441">#zarma</span>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:14px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_people.svg) center/contain no-repeat;mask:url(assets/icons/icon_people.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#B8AC9D">128 participants</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#B8AC9D">3/8</span></div>
+        <div style="flex:1"></div>
+        <div style="padding:9px 15px;border-radius:12px;background:#D9A441;font:600 12.5px Inter,sans-serif;color:#1A1410;flex:none">Rejoindre</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+        <span style="display:flex;align-items:center;gap:6px;background:#FBEAE4;border-radius:8px;padding:4px 9px"><span style="width:6px;height:6px;border-radius:3px;background:#C85A3A"></span><span style="font:700 10px ui-monospace,Menlo,monospace;color:#9A3A20">EN DIRECT</span></span>
+        <span style="padding:4px 9px;border-radius:8px;background:#F0E8D8;font:600 10px ui-monospace,Menlo,monospace;color:#3D342B">MENTORAT</span>
+      </div>
+      <div style="font:700 16px Inter,sans-serif;color:#1A1410">Trouver un premier emploi en France</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:14px;background:#2D6E6A;color:#fff;display:flex;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;flex:none">SB</div>
+        <span style="flex:1;min-width:0;font:400 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Salim Boubacar</span>
+        <span style="display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:8px;background:#F7EBD6;flex:none"><span style="width:14px;height:14px;background:#8A6410;-webkit-mask:url(assets/icons/icon_star.svg) center/contain no-repeat;mask:url(assets/icons/icon_star.svg) center/contain no-repeat"></span><span style="font:600 12px Inter,sans-serif;color:#8A6410">2,00 EUR</span></span>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:14px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#7A6F64;-webkit-mask:url(assets/icons/icon_people.svg) center/contain no-repeat;mask:url(assets/icons/icon_people.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#7A6F64">46 participants</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:16px;background:#7A6F64;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:400 12px Inter,sans-serif;color:#7A6F64">2/6</span></div>
+        <div style="flex:1"></div>
+        <div style="padding:8px 14px;border-radius:12px;background:#C85A3A;font:600 12.5px Inter,sans-serif;color:#fff;flex:none">Billet</div>
+      </div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Programmés</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;display:flex;gap:13px">
+      <div style="width:50px;height:54px;border-radius:14px;background:#F0E8D8;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none"><span style="font:700 17px Inter,sans-serif;color:#C85A3A">02</span><span style="font:600 9.5px Inter,sans-serif;color:#7A6F64">AOÛT</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Démarches consulaires · questions</div>
+        <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Officiel · 18:30 Paris · 17:30 Niamey</div>
+        <div style="margin-top:9px;display:flex;align-items:center;gap:9px"><span style="flex:1;min-width:0;font:400 11.5px Inter,sans-serif;color:#7A6F64">18 inscrits</span><div style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:11px;border:1px solid #E8DCC4;flex:none"><span style="font-size:12px">🔔</span><span style="font:600 12px Inter,sans-serif;color:#3D342B">Me le rappeler</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:26px;display:flex;align-items:center;gap:9px;height:52px;padding:0 20px;border-radius:26px;background:#C85A3A;box-shadow:0 14px 34px rgba(26,20,16,.3)"><span style="width:20px;height:20px;background:#fff;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span><span style="font:600 14px Inter,sans-serif;color:#fff">Ouvrir un salon</span></div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Salon en direct</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#1A1410;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#FAF6EF;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#B8AC9D">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:2px 16px 12px;flex:none;display:flex;align-items:center;gap:10px">
+    <span class="ms" style="font-size:24px;color:#FAF6EF">expand_more</span>
+    <div style="flex:1;min-width:0"><div style="font:700 15px Inter,sans-serif;color:#FAF6EF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir en zarma</div><div style="font:500 11px ui-monospace,Menlo,monospace;color:#D9A441">EN DIRECT · 42 MIN · 128 AUDITEURS</div></div>
+    <span style="width:21px;height:21px;flex:none;background:#B8AC9D;-webkit-mask:url(assets/icons/icon_share.svg) center/contain no-repeat;mask:url(assets/icons/icon_share.svg) center/contain no-repeat"></span>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 16px">
+    <div style="display:flex;align-items:center;gap:9px;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.4);border-radius:14px;padding:10px 13px;margin-bottom:16px">
+      <span style="width:16px;height:16px;flex:none;background:#D9A441;-webkit-mask:url(assets/icons/icon_star.svg) center/contain no-repeat;mask:url(assets/icons/icon_star.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:500 12px Inter,sans-serif;color:#D9A441">Patrimoine · Zarma · Tillabéri — ce salon sera archivé</span>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#B8AC9D;text-transform:uppercase;margin-bottom:12px">Sur scène · 3</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="text-align:center">
+        <div style="position:relative;width:76px;margin:0 auto"><div style="width:76px;height:76px;border-radius:38px;background:#C85A3A;color:#fff;display:flex;align-items:center;justify-content:center;font:700 26px Inter,sans-serif;box-shadow:0 0 0 3px #5A7A3A">HA</div><div style="position:absolute;right:0;bottom:0;width:24px;height:24px;border-radius:12px;background:#5A7A3A;border:2px solid #1A1410;display:flex;align-items:center;justify-content:center"><span style="width:12px;height:12px;background:#FAF6EF;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span></div></div>
+        <div style="margin-top:8px;font:600 12px Inter,sans-serif;color:#FAF6EF">Hadjara</div>
+        <div style="margin-top:3px;display:inline-block;padding:2px 7px;border-radius:6px;background:#5A7A3A;font:700 9px ui-monospace,Menlo,monospace;color:#FAF6EF">SPEAKER</div>
+      </div>
+      <div style="text-align:center">
+        <div style="position:relative;width:76px;margin:0 auto"><div style="width:76px;height:76px;border-radius:38px;background:#2D6E6A;color:#fff;display:flex;align-items:center;justify-content:center;font:700 26px Inter,sans-serif">ID</div><div style="position:absolute;right:0;bottom:0;width:24px;height:24px;border-radius:12px;background:#3D342B;border:2px solid #1A1410;display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:13px;color:#B8AC9D">mic_off</span></div></div>
+        <div style="margin-top:8px;font:600 12px Inter,sans-serif;color:#FAF6EF">Ibrahim</div>
+        <div style="margin-top:3px;font:400 10.5px Inter,sans-serif;color:#7A6F64">muet</div>
+      </div>
+      <div style="text-align:center">
+        <div style="position:relative;width:76px;margin:0 auto"><div style="width:76px;height:76px;border-radius:38px;background:#3D342B;color:#B8AC9D;display:flex;align-items:center;justify-content:center;font:700 26px Inter,sans-serif">MA</div></div>
+        <div style="margin-top:8px;font:600 12px Inter,sans-serif;color:#FAF6EF">Vous</div>
+        <div style="margin-top:3px;display:inline-block;padding:2px 7px;border-radius:6px;background:#C85A3A;font:700 9px ui-monospace,Menlo,monospace;color:#FAF6EF">GHOST</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:baseline;margin-bottom:12px"><span style="flex:1;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#B8AC9D;text-transform:uppercase">Auditeurs · 125</span><span style="font:600 12px Inter,sans-serif;color:#D9A441">Voir tout</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <div style="width:52px;text-align:center"><div style="width:48px;height:48px;border-radius:24px;background:#3D342B;color:#B8AC9D;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;margin:0 auto">AM</div><div style="margin-top:5px;font:400 10.5px Inter,sans-serif;color:#B8AC9D">Aïcha</div></div>
+      <div style="width:52px;text-align:center"><div style="position:relative;width:48px;margin:0 auto"><div style="width:48px;height:48px;border-radius:24px;background:#3D342B;color:#B8AC9D;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif">FA</div><div style="position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:9px;background:#D9A441;border:2px solid #1A1410;display:flex;align-items:center;justify-content:center;font-size:9px">✋</div></div><div style="margin-top:5px;font:400 10.5px Inter,sans-serif;color:#D9A441">Fatouma</div></div>
+      <div style="width:52px;text-align:center"><div style="width:48px;height:48px;border-radius:24px;background:#3D342B;color:#B8AC9D;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;margin:0 auto">OB</div><div style="margin-top:5px;font:400 10.5px Inter,sans-serif;color:#B8AC9D">Oumar</div></div>
+      <div style="width:52px;text-align:center"><div style="width:48px;height:48px;border-radius:24px;background:#221C17;border:1px dashed #3D342B;color:#7A6F64;display:flex;align-items:center;justify-content:center;font:600 13px Inter,sans-serif;margin:0 auto">+122</div></div>
+    </div>
+  </div>
+  <div style="padding:14px 16px 30px;flex:none;display:flex;align-items:center;gap:10px">
+    <div style="flex:1;height:54px;border-radius:27px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center;gap:9px"><span style="font-size:18px">✋</span><span style="font:600 14px Inter,sans-serif;color:#FAF6EF">Demander la parole</span></div>
+    <div style="width:54px;height:54px;border-radius:27px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center;flex:none"><span style="font-size:19px">🪙</span></div>
+    <div style="width:54px;height:54px;border-radius:27px;background:#C23E2D;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:24px;color:#fff">logout</span></div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Bibliothèque du patrimoine</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+      <div style="flex:1;min-width:0"><div style="font-family:Caprasimo,serif;font-size:21px;line-height:1.15;color:#1A1410">Patrimoine oral</div></div>
+    </div>
+    <div style="margin-top:10px;font:400 13.5px/1.5 Inter,sans-serif;color:#3D342B;text-wrap:pretty">Les salons marqués « patrimoine » sont archivés et réécoutables, classés par langue et par région.</div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <div style="flex:1;display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;background:#1A1410"><span style="font:600 12.5px Inter,sans-serif;color:#FAF6EF;flex:1">Zarma</span><span class="ms" style="font-size:17px;color:#B8AC9D">expand_more</span></div>
+      <div style="flex:1;display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;border:1px solid #E8DCC4"><span style="font:500 12.5px Inter,sans-serif;color:#3D342B;flex:1">Toutes régions</span><span class="ms" style="font-size:17px;color:#7A6F64">expand_more</span></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;padding:2px 0 8px">24 enregistrements</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:54px;height:54px;border-radius:16px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#C85A3A">play_arrow</span></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Contes du soir en zarma</div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Hadjara Souley · Tillabéri</div>
+        </div>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+        <span style="padding:4px 9px;border-radius:8px;background:#F0F4EA;font:600 10.5px ui-monospace,Menlo,monospace;color:#3D472B">ZARMA</span>
+        <span style="flex:1;min-width:0;font:400 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">42:18 · 312 écoutes</span>
+        <span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">download</span>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:54px;height:54px;border-radius:16px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#C85A3A">play_arrow</span></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Proverbes et devinettes</div>
+          <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Oumar Boubacar · Dosso</div>
+        </div>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+        <span style="padding:4px 9px;border-radius:8px;background:#F0F4EA;font:600 10.5px ui-monospace,Menlo,monospace;color:#3D472B">ZARMA</span>
+        <span style="flex:1;min-width:0;font:400 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">28:04 · 96 écoutes</span>
+        <span class="ms" style="font-size:19px;color:#B8AC9D;flex:none">download</span>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:54px;height:54px;border-radius:16px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:26px;color:#C85A3A">play_arrow</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Chants de mariage</div>
+        <div style="margin-top:3px;font:400 12px Inter,sans-serif;color:#7A6F64">Mariama Sani · Niamey</div>
+        <div style="margin-top:7px;font:400 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">51:32 · 204 écoutes</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:11px;background:#F0E8D8;border-radius:16px;padding:12px 14px">
+      <span style="width:18px;height:18px;flex:none;background:#9A3A20;-webkit-mask:url(assets/icons/icon_info.svg) center/contain no-repeat;mask:url(assets/icons/icon_info.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font:400 11.5px/1.45 Inter,sans-serif;color:#3D342B">Téléchargez avant un trajet : l'écoute hors ligne ne consomme aucune donnée.</span>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Podcasts — accueil</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="padding:4px 20px 12px;flex:none">
+    <div style="display:flex;align-items:flex-end;gap:12px">
+      <div style="flex:1;min-width:0"><div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:#1A1410">Podcasts</div><div style="margin-top:4px;font:400 12.5px Inter,sans-serif;color:#7A6F64">3 abonnements · 1 en cours d'écoute</div></div>
+      <div style="width:42px;height:42px;border-radius:14px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;background:#3D342B;-webkit-mask:url(assets/icons/icon_search.svg) center/contain no-repeat;mask:url(assets/icons/icon_search.svg) center/contain no-repeat"></span></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="background:#1A1410;border-radius:22px;padding:14px;margin-bottom:18px;display:flex;gap:13px;align-items:center">
+      <div style="width:64px;height:64px;border-radius:16px;background:repeating-linear-gradient(45deg,#3d342b 0 6px,#2c251f 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#D9A441">REPRENDRE</div>
+        <div style="margin-top:4px;font:700 14.5px Inter,sans-serif;color:#FAF6EF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Épisode 12 · Ouvrir un commerce</div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:9px">
+          <div style="flex:1;height:4px;border-radius:2px;background:rgba(250,246,239,.18);overflow:hidden"><div style="width:38%;height:4px;background:#D9A441"></div></div>
+          <span style="font:500 10.5px ui-monospace,Menlo,monospace;color:#B8AC9D;flex:none">14:02</span>
+        </div>
+      </div>
+      <div style="width:44px;height:44px;border-radius:22px;background:#D9A441;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:24px;color:#1A1410">play_arrow</span></div>
+    </div>
+    <div style="display:flex;align-items:baseline;margin-bottom:12px"><span style="flex:1;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Mes abonnements</span><span style="font:600 12.5px Inter,sans-serif;color:#C85A3A">Tout voir</span></div>
+    <div style="display:flex;gap:12px;margin-bottom:20px">
+      <div style="flex:1"><div style="aspect-ratio:1;border-radius:18px;background:repeating-linear-gradient(45deg,#e6dbcb 0 8px,#dfd2be 8px 16px);margin-bottom:8px"></div><div style="font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Diaspo Business</div><div style="font:400 11px Inter,sans-serif;color:#7A6F64">2 nouveaux</div></div>
+      <div style="flex:1"><div style="aspect-ratio:1;border-radius:18px;background:repeating-linear-gradient(45deg,#e6dbcb 0 8px,#dfd2be 8px 16px);margin-bottom:8px"></div><div style="font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Voix du Sahel</div><div style="font:400 11px Inter,sans-serif;color:#7A6F64">Hebdo</div></div>
+      <div style="flex:1"><div style="aspect-ratio:1;border-radius:18px;background:repeating-linear-gradient(45deg,#e6dbcb 0 8px,#dfd2be 8px 16px);margin-bottom:8px"></div><div style="font:600 13px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Papiers</div><div style="font:400 11px Inter,sans-serif;color:#7A6F64">Mensuel</div></div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Nouveaux épisodes</div>
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #F0E8D8">
+      <div style="width:54px;height:54px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Envoyer de l'argent sans se faire avoir</div><div style="margin-top:3px;font:400 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">DIASPO BUSINESS · 32 MIN · HIER</div></div>
+      <div style="width:38px;height:38px;border-radius:19px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:21px;color:#C85A3A">play_arrow</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0">
+      <div style="width:54px;height:54px;border-radius:14px;background:repeating-linear-gradient(45deg,#e6dbcb 0 6px,#dfd2be 6px 12px);flex:none"></div>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="min-width:0;font:600 14px Inter,sans-serif;color:#1A1410;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Grandir entre deux pays</span><span style="padding:2px 6px;border-radius:6px;background:#F7EBD6;font:700 9px ui-monospace,Menlo,monospace;color:#8A6410;flex:none">2 €</span></div><div style="margin-top:3px;font:400 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">VOIX DU SAHEL · 45 MIN · 2 J</div></div>
+      <div style="width:38px;height:38px;border-radius:19px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:18px;height:18px;background:#7A6F64;-webkit-mask:url(assets/icons/icon_lock.svg) center/contain no-repeat;mask:url(assets/icons/icon_lock.svg) center/contain no-repeat"></span></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:26px;width:56px;height:56px;border-radius:28px;background:#C85A3A;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(26,20,16,.3)"><span style="width:24px;height:24px;background:#fff;-webkit-mask:url(assets/icons/icon_mic.svg) center/contain no-repeat;mask:url(assets/icons/icon_mic.svg) center/contain no-repeat"></span></div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Lecteur d'épisode</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#1A1410;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#FAF6EF;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#B8AC9D">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span class="ms" style="font-size:24px;color:#FAF6EF">expand_more</span>
+    <div style="flex:1;text-align:center;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#B8AC9D">DIASPO BUSINESS</div>
+    <span class="ms" style="font-size:22px;color:#FAF6EF">more_horiz</span>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:8px 28px 0;display:flex;flex-direction:column">
+    <div style="width:100%;aspect-ratio:1;border-radius:26px;background:repeating-linear-gradient(45deg,#3d342b 0 10px,#2c251f 10px 20px);margin-bottom:18px"></div>
+    <div style="font:700 20px/1.3 Inter,sans-serif;color:#FAF6EF;letter-spacing:-.2px">Envoyer de l'argent sans se faire avoir</div>
+    <div style="margin-top:6px;font:400 13.5px Inter,sans-serif;color:#B8AC9D">Épisode 12 · avec Salim B. et Aïcha M.</div>
+    <div style="margin-top:12px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none">
+      <div style="padding:6px 11px;border-radius:999px;background:rgba(250,246,239,.1);font:500 11.5px Inter,sans-serif;color:#B8AC9D;white-space:nowrap;flex:none">Introduction</div>
+      <div style="padding:6px 11px;border-radius:999px;background:#D9A441;font:600 11.5px Inter,sans-serif;color:#1A1410;white-space:nowrap;flex:none">Actualités</div>
+      <div style="padding:6px 11px;border-radius:999px;background:rgba(250,246,239,.1);font:500 11.5px Inter,sans-serif;color:#B8AC9D;white-space:nowrap;flex:none">Diaspora &amp; politique</div>
+      <div style="padding:6px 11px;border-radius:999px;background:rgba(250,246,239,.1);font:500 11.5px Inter,sans-serif;color:#B8AC9D;white-space:nowrap;flex:none">Q&amp;R</div>
+    </div>
+    <div style="margin-top:18px">
+      <div style="height:5px;border-radius:3px;background:rgba(250,246,239,.16);overflow:hidden;position:relative"><div style="width:38%;height:5px;background:#D9A441"></div><div style="position:absolute;left:38%;top:-4px;width:13px;height:13px;border-radius:7px;background:#D9A441;margin-left:-6px"></div></div>
+      <div style="margin-top:9px;display:flex"><span style="flex:1;font:500 11.5px ui-monospace,Menlo,monospace;color:#B8AC9D">12:04</span><span style="font:500 11.5px ui-monospace,Menlo,monospace;color:#7A6F64">-19:56</span></div>
+    </div>
+    <div style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:22px">
+      <div style="font:600 12.5px ui-monospace,Menlo,monospace;color:#B8AC9D">1×</div>
+      <span class="ms" style="font-size:32px;color:#FAF6EF">replay_10</span>
+      <div style="width:76px;height:76px;border-radius:38px;background:#D9A441;display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:38px;color:#1A1410">pause</span></div>
+      <span class="ms" style="font-size:32px;color:#FAF6EF">forward_30</span>
+      <span class="ms" style="font-size:26px;color:#B8AC9D">bedtime</span>
+    </div>
+  </div>
+  <div style="padding:20px 20px 30px;flex:none">
+    <div style="display:flex;gap:10px">
+      <div style="flex:1;height:48px;border-radius:24px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center;gap:8px"><span class="ms" style="font-size:20px;color:#FAF6EF">download</span><span style="font:600 13px Inter,sans-serif;color:#FAF6EF">Hors ligne</span></div>
+      <div style="flex:1;height:48px;border-radius:24px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:19px;height:19px;background:#FAF6EF;-webkit-mask:url(assets/icons/icon_share.svg) center/contain no-repeat;mask:url(assets/icons/icon_share.svg) center/contain no-repeat"></span><span style="font:600 13px Inter,sans-serif;color:#FAF6EF">Partager</span></div>
+      <div style="width:48px;height:48px;border-radius:24px;background:rgba(250,246,239,.1);display:flex;align-items:center;justify-content:center;flex:none"><span class="ms" style="font-size:20px;color:#FAF6EF">format_list_bulleted</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1f"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Revenus créateur</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+  <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:600 12px Inter,sans-serif;color:#1A1410;flex:none"><span>9:41</span><span style="font:500 11px Inter,sans-serif;color:#7A6F64">5G&nbsp;·&nbsp;78%</span></div>
+  <div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;flex:none">
+    <span style="width:24px;height:24px;flex:none;background:#1A1410;-webkit-mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat;mask:url(assets/icons/icon_arrow_back.svg) center/contain no-repeat"></span>
+    <div style="flex:1;font:700 18px Inter,sans-serif;color:#1A1410">Mes revenus</div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:0 20px">
+    <div style="background:#1A1410;border-radius:22px;padding:18px;margin-bottom:14px">
+      <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#D9A441;text-transform:uppercase">Solde disponible</div>
+      <div style="margin-top:8px;font:700 34px Inter,sans-serif;color:#FAF6EF;letter-spacing:-1px">148,20 €</div>
+      <div style="margin-top:4px;font:400 12px Inter,sans-serif;color:#B8AC9D">Prochain versement le 5 août</div>
+      <div style="margin-top:14px;height:48px;border-radius:24px;background:#D9A441;display:flex;align-items:center;justify-content:center"><span style="font:600 14.5px Inter,sans-serif;color:#1A1410">Retirer mes gains</span></div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Répartition</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;padding:5px 0"><span style="width:9px;height:9px;border-radius:5px;background:#D9A441;margin-right:10px;flex:none"></span><span style="flex:1;font:400 13.5px Inter,sans-serif;color:#3D342B">Dons</span><span style="font:600 13.5px Inter,sans-serif;color:#1A1410">62,00 €</span></div>
+      <div style="display:flex;align-items:center;padding:5px 0"><span style="width:9px;height:9px;border-radius:5px;background:#C85A3A;margin-right:10px;flex:none"></span><span style="flex:1;font:400 13.5px Inter,sans-serif;color:#3D342B">Billets</span><span style="font:600 13.5px Inter,sans-serif;color:#1A1410">48,00 €</span></div>
+      <div style="display:flex;align-items:center;padding:5px 0"><span style="width:9px;height:9px;border-radius:5px;background:#2D6E6A;margin-right:10px;flex:none"></span><span style="flex:1;font:400 13.5px Inter,sans-serif;color:#3D342B">Abonnements</span><span style="font:600 13.5px Inter,sans-serif;color:#1A1410">120,00 €</span></div>
+      <div style="display:flex;align-items:center;padding:5px 0"><span style="width:9px;height:9px;border-radius:5px;background:#5A7A3A;margin-right:10px;flex:none"></span><span style="flex:1;font:400 13.5px Inter,sans-serif;color:#3D342B">Replays</span><span style="font:600 13.5px Inter,sans-serif;color:#1A1410">38,20 €</span></div>
+      <div style="height:1px;background:#F0E8D8;margin:8px 0"></div>
+      <div style="display:flex;align-items:center"><span style="flex:1;font:700 14px Inter,sans-serif;color:#1A1410">Total perçu</span><span style="font:700 16px Inter,sans-serif;color:#1A1410">268,20 €</span></div>
+    </div>
+    <div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase;margin-bottom:10px">Historique des versements</div>
+    <div style="background:#fff;border:1px solid #F0E8D8;border-radius:18px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #F5EFE3"><div style="width:38px;height:38px;border-radius:12px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#3D342B;-webkit-mask:url(assets/icons/icon_bank.svg) center/contain no-repeat;mask:url(assets/icons/icon_bank.svg) center/contain no-repeat"></span></div><div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">120,00 €</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">5/7/2026 · FR76 ···· 3021</div></div><span style="padding:4px 9px;border-radius:8px;background:#F0F4EA;font:600 10.5px ui-monospace,Menlo,monospace;color:#3D472B;flex:none">TERMINÉ</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #F5EFE3"><div style="width:38px;height:38px;border-radius:12px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#3D342B;-webkit-mask:url(assets/icons/icon_bank.svg) center/contain no-repeat;mask:url(assets/icons/icon_bank.svg) center/contain no-repeat"></span></div><div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">60,00 €</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">2/6/2026 · FR76 ···· 3021</div></div><span style="padding:4px 9px;border-radius:8px;background:#E4EEF7;font:600 10.5px ui-monospace,Menlo,monospace;color:#1B5E8A;flex:none">EN TRAITEMENT</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px"><div style="width:38px;height:38px;border-radius:12px;background:#F0E8D8;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:19px;height:19px;background:#3D342B;-webkit-mask:url(assets/icons/icon_bank.svg) center/contain no-repeat;mask:url(assets/icons/icon_bank.svg) center/contain no-repeat"></span></div><div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">40,00 €</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#7A6F64">12/5/2026 · coordonnées invalides</div></div><span style="padding:4px 9px;border-radius:8px;background:#FBEAE4;font:600 10.5px ui-monospace,Menlo,monospace;color:#9A3A20;flex:none">ÉCHOUÉ</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1g"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Envoyer un don (send_tip_bottom_sheet)</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#1A1410;font-family:Inter,sans-serif">
+  <div style="position:absolute;inset:0;background:#1A1410;padding:60px 16px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;opacity:.5">
+      <div style="text-align:center"><div style="width:70px;height:70px;border-radius:35px;background:#C85A3A;margin:0 auto"></div></div>
+      <div style="text-align:center"><div style="width:70px;height:70px;border-radius:35px;background:#2D6E6A;margin:0 auto"></div></div>
+      <div style="text-align:center"><div style="width:70px;height:70px;border-radius:35px;background:#3D342B;margin:0 auto"></div></div>
+    </div>
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.5)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF6EF;border-radius:26px 26px 0 0;padding:10px 0 26px">
+    <div style="width:40px;height:4px;border-radius:2px;background:#E8DCC4;margin:0 auto 14px"></div>
+    <div style="padding:0 20px 14px;display:flex;align-items:center;gap:12px">
+      <div style="width:48px;height:48px;border-radius:24px;background:#C85A3A;color:#fff;display:flex;align-items:center;justify-content:center;font:700 18px Inter,sans-serif;flex:none">HS</div>
+      <div style="flex:1;min-width:0"><div style="font:700 16px Inter,sans-serif;color:#1A1410">Hadjara Souley</div><div style="font:400 12px Inter,sans-serif;color:#7A6F64">Speaker · Contes du soir en zarma</div></div>
+    </div>
+    <div style="padding:0 20px 6px"><div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Montant du don</div></div>
+    <div style="padding:10px 20px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+      <div style="height:52px;border-radius:14px;background:#fff;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:#3D342B">€1</div>
+      <div style="height:52px;border-radius:14px;background:#fff;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:#3D342B">€2</div>
+      <div style="height:52px;border-radius:14px;background:#1A1410;display:flex;align-items:center;justify-content:center;font:700 16px Inter,sans-serif;color:#FAF6EF">€5</div>
+      <div style="height:52px;border-radius:14px;background:#fff;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:#3D342B">€10</div>
+      <div style="height:52px;border-radius:14px;background:#fff;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:#3D342B">€20</div>
+      <div style="height:52px;border-radius:14px;background:#fff;border:1px solid #E8DCC4;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:#3D342B">€50</div>
+    </div>
+    <div style="padding:14px 20px 0">
+      <div style="background:#F0E8D8;border-radius:16px;padding:13px 15px">
+        <div style="display:flex;align-items:center;padding:3px 0"><span style="flex:1;font:400 13px Inter,sans-serif;color:#3D342B">Vous envoyez</span><span style="font:600 13px Inter,sans-serif;color:#1A1410">€5,00</span></div>
+        <div style="display:flex;align-items:center;padding:3px 0"><span style="flex:1;font:400 13px Inter,sans-serif;color:#3D342B">Hadjara reçoit</span><span style="font:700 13.5px Inter,sans-serif;color:#5A7A3A">€4,75 (95 %)</span></div>
+      </div>
+    </div>
+    <div style="padding:12px 20px 0">
+      <div style="background:#fff;border:1px solid #F0E8D8;border-radius:14px;padding:12px 14px;font:400 13.5px Inter,sans-serif;color:#7A6F64">Un mot pour Hadjara… (optionnel)</div>
+    </div>
+    <div style="padding:16px 20px 0"><div style="height:54px;border-radius:27px;background:#C85A3A;display:flex;align-items:center;justify-content:center;gap:9px"><span style="font-size:19px">🪙</span><span style="font:600 15.5px Inter,sans-serif;color:#fff">Envoyer €5,00</span></div></div>
+    <div style="margin-top:12px;text-align:center;font:400 11.5px Inter,sans-serif;color:#7A6F64">Le don s'affiche dans le salon avec votre nom.</div>
+  </div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1h"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Acheter un billet (buy_ticket_bottom_sheet)</div>
+<div class="dv-card" style="width:390px">
+<div style="width:390px;height:844px;overflow:hidden;position:relative;background:#FAF6EF;font-family:Inter,sans-serif">
+  <div style="position:absolute;inset:0;background:#FAF6EF;padding:60px 20px 0">
+    <div style="font:700 20px Inter,sans-serif;color:#E4DCD1">Trouver un premier emploi…</div>
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(26,20,16,.5)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF6EF;border-radius:26px 26px 0 0;padding:10px 0 26px">
+    <div style="width:40px;height:4px;border-radius:2px;background:#E8DCC4;margin:0 auto 14px"></div>
+    <div style="padding:0 20px 4px"><div style="font:700 19px Inter,sans-serif;color:#1A1410;letter-spacing:-.2px">Billet d'entrée</div><div style="margin-top:5px;font:400 13.5px Inter,sans-serif;color:#3D342B">Trouver un premier emploi en France · Salim Boubacar</div></div>
+    <div style="padding:14px 20px 0">
+      <div style="background:#1A1410;border-radius:20px;padding:16px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="flex:1;font:600 12.5px Inter,sans-serif;color:#B8AC9D">Prix du billet</span><span style="font:700 26px Inter,sans-serif;color:#FAF6EF;letter-spacing:-.6px">€2,00</span></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(250,246,239,.14)">
+          <div style="display:flex;align-items:center;padding:3px 0"><span style="flex:1;font:400 12.5px Inter,sans-serif;color:#B8AC9D">Commission Diaspo</span><span style="font:600 12.5px Inter,sans-serif;color:#B8AC9D">−€0,10</span></div>
+          <div style="display:flex;align-items:center;padding:3px 0"><span style="flex:1;font:400 12.5px Inter,sans-serif;color:#B8AC9D">Reversé à l'hôte</span><span style="font:700 13px Inter,sans-serif;color:#D9A441">+€1,90</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px 20px 6px"><div style="font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#9A3A20;text-transform:uppercase">Moyen de paiement</div></div>
+    <div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #C85A3A;border-radius:14px;padding:13px 14px"><span style="font-size:19px;flex:none">💳</span><span style="flex:1;font:600 14px Inter,sans-serif;color:#1A1410">Carte bancaire</span><div style="width:20px;height:20px;border-radius:10px;border:2px solid #C85A3A;display:flex;align-items:center;justify-content:center;flex:none"><div style="width:10px;height:10px;border-radius:5px;background:#C85A3A"></div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #F0E8D8;border-radius:14px;padding:13px 14px"><span style="font-size:19px;flex:none">📱</span><div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">Wave Mobile Money</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Code PIN demandé pour confirmer</div></div><div style="width:20px;height:20px;border-radius:10px;border:2px solid #E8DCC4;flex:none"></div></div>
+      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #F0E8D8;border-radius:14px;padding:13px 14px"><span style="font-size:19px;flex:none">🌍</span><div style="flex:1;min-width:0"><div style="font:600 14px Inter,sans-serif;color:#1A1410">Mynita</div><div style="font:400 11.5px Inter,sans-serif;color:#7A6F64">Code PIN demandé pour confirmer</div></div><div style="width:20px;height:20px;border-radius:10px;border:2px solid #E8DCC4;flex:none"></div></div>
+    </div>
+    <div style="padding:16px 20px 0"><div style="height:54px;border-radius:14px;background:#C85A3A;display:flex;align-items:center;justify-content:center"><span style="font:600 15.5px Inter,sans-serif;color:#fff">Payer €2,00 et rejoindre</span></div></div>
+    <div style="margin-top:12px;text-align:center;font:400 11.5px Inter,sans-serif;color:#7A6F64">Le billet donne accès au salon et à son replay.</div>
+  </div>
+</div>
+</div></div>
+</div>
+<p class="dv-next">Suites : « lire create_audio_room_screen, save_as_podcast_screen et record_episode_screen puis maquetter la création de salon et l'enregistrement d'épisode » · « écran de salon programmé multi-fuseaux » · « décline ce tour en Nocturne » · « états vides des salons et des podcasts ».</p>
+</section>
+</x-dc>
+</body>
+</html>
