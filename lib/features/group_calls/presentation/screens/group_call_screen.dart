@@ -286,7 +286,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        childAspectRatio: 1,
+        childAspectRatio: 0.82,
       ),
       itemCount: participants.length,
       itemBuilder: (context, index) {
@@ -315,8 +315,9 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
         decoration: BoxDecoration(
           color: Colors.grey[900],
           borderRadius: BorderRadius.circular(12),
+          // Orateur actif encadré 2 px #5BA674 (§12).
           border: isSpeaking
-              ? Border.all(color: Colors.green, width: 3)
+              ? Border.all(color: const Color(0xFF5BA674), width: 2)
               : null,
         ),
         child: Stack(
@@ -368,6 +369,28 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
                       ),
                     ),
                   ),
+                  // Badge VIDÉO quand la caméra du participant est active.
+                  if (isVideo && !participant.isCameraOff)
+                    Container(
+                      margin: const EdgeInsets.only(left: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF5BA674),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'VIDÉO',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
                   if (participant.isMuted)
                     Container(
                       margin: const EdgeInsets.only(left: 4),
