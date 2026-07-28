@@ -276,96 +276,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title:
-            _isSearching
-                ? TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: l10n.searchPlaceholder,
-                    border: InputBorder.none,
-                    hintStyle: TextStyle(color: context.textTertiaryColor),
-                  ),
-                  style: TextStyle(color: context.textPrimaryColor),
-                  onChanged: (value) {
-                    setState(() => _searchQuery = value);
-                  },
-                )
-                : Text(_showArchived ? l10n.archives : l10n.messagesTitle),
-        leading: _showArchived
-            ? IconButton(
-                icon: const AppIcon(AppIcon.arrowBack),
-                onPressed: () {
-                  setState(() => _showArchived = false);
-                },
-              )
-            : null,
-        actions: [
-          if (_isSearching)
-            IconButton(
-              icon: const AppIcon(AppIcon.close),
-              onPressed: () {
-                setState(() {
-                  _isSearching = false;
-                  _searchQuery = '';
-                  _searchController.clear();
-                });
-              },
-            )
-          else ...[
-            IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: AppIcon(AppIcon.search, color: context.textPrimaryColor),
-              ),
-              onPressed: () {
-                setState(() => _isSearching = true);
-              },
-            ),
-            PopupMenuButton<String>(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.more_vert, color: context.textPrimaryColor),
-              ),
-              onSelected: (value) {
-                if (value == 'archives') {
-                  setState(() => _showArchived = !_showArchived);
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'archives',
-                  child: Row(
-                    children: [
-                      _showArchived
-                          ? AppIcon(
-                              AppIcon.chatBubble,
-                              color: context.textPrimaryColor,
-                            )
-                          : AppIcon(
-                              AppIcon.archive,
-                              color: context.textPrimaryColor,
-                            ),
-                      const SizedBox(width: 12),
-                      Text(_showArchived ? l10n.messagesTitle : l10n.archives),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(width: 8),
-        ],
-      ),
+      // Pas d'AppBar : l'en-tête dégradé est rendu en tête du body, pour que le
+      // dégradé remonte jusque sous la barre d'état comme sur Accueil et Profil.
       floatingActionButton: _showArchived
           ? null
           : FloatingActionButton(
@@ -527,7 +439,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: IconButton(
-                    icon: AppIcon(AppIcon.arrowBack, color: context.onPrimaryColor),
+                    icon: AppIcon(AppIcon.arrowBack, color: AppColors.white),
                     onPressed: () => setState(() => _showArchived = false),
                   ),
                 ),
@@ -537,12 +449,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         ? TextField(
                           controller: _searchController,
                           autofocus: true,
-                          style: TextStyle(color: context.onPrimaryColor),
+                          style: TextStyle(color: AppColors.white),
                           decoration: InputDecoration(
                             hintText: l10n.searchPlaceholder,
                             border: InputBorder.none,
                             hintStyle: TextStyle(
-                              color: context.onPrimaryColor.withValues(alpha: 0.7),
+                              color: AppColors.white.withValues(alpha: 0.7),
                             ),
                           ),
                           onChanged: (value) =>
@@ -557,7 +469,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: context.onPrimaryColor,
+                                color: AppColors.white,
                               ),
                             ),
                             if (!_showArchived && unreadTotal > 0) ...[
@@ -566,7 +478,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                 l10n.unreadConversations(unreadTotal),
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: context.onPrimaryColor.withValues(
+                                  color: AppColors.white.withValues(
                                     alpha: 0.85,
                                   ),
                                 ),
