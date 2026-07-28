@@ -58,9 +58,7 @@ class PostCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: isDetail
-            ? null
-            : () => context.push('/feed/${post.id}'),
+        onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -72,14 +70,19 @@ class PostCard extends ConsumerWidget {
                 const SizedBox(height: 10),
                 RichTextWidget(
                   text: post.content,
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 15.5,
+                    height: 1.6,
+                    color: tokens.textStrong,
+                  ),
                   mentionColor: tokens.hashtagColor,
                   hashtagColor: tokens.hashtagColor,
                   onMentionTap: (handle, _) {
-                    final uid = post.mentionedUsers
-                        .where((m) => m.name == handle)
-                        .map((m) => m.id)
-                        .firstOrNull;
+                    final uid =
+                        post.mentionedUsers
+                            .where((m) => m.name == handle)
+                            .map((m) => m.id)
+                            .firstOrNull;
                     if (uid != null) context.push('/profile/$uid');
                   },
                   onHashtagTap: (tag) => context.push('/feed?hashtag=$tag'),
@@ -89,11 +92,7 @@ class PostCard extends ConsumerWidget {
                 const SizedBox(height: 10),
                 _MediaGrid(post: post),
               ],
-              if (isDetail) ...[
-                const SizedBox(height: 8),
-                Divider(height: 1, color: tokens.divider),
-              ],
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               _ActionBar(post: post, l10n: l10n, isDetail: isDetail),
               if (isDetail) ...[
                 const SizedBox(height: 4),
@@ -162,16 +161,18 @@ class _PostHeader extends StatelessWidget {
       children: [
         Expanded(
           child: InkWell(
-            onTap: isDeletedAuthor
-                ? null
-                : () => context.push('/profile/${post.authorId}'),
+            onTap:
+                isDeletedAuthor
+                    ? null
+                    : () => context.push('/profile/${post.authorId}'),
             borderRadius: BorderRadius.circular(8),
             child: Row(
               children: [
                 FeedAvatar(
-                    name: isDeletedAuthor ? '?' : post.authorName,
-                    photoUrl: post.authorPhotoUrl,
-                    tokens: tokens),
+                  name: isDeletedAuthor ? '?' : post.authorName,
+                  photoUrl: post.authorPhotoUrl,
+                  tokens: tokens,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -179,17 +180,18 @@ class _PostHeader extends StatelessWidget {
                     children: [
                       Text(
                         isDeletedAuthor ? l10n.deletedUser : post.authorName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.text,
+                        ),
                       ),
                       Text(
                         _formatTimeAgo(post.createdAt, context),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: tokens.mutedText),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: tokens.mutedText,
+                        ),
                       ),
                     ],
                   ),
@@ -200,7 +202,10 @@ class _PostHeader extends StatelessWidget {
         ),
         if (!isAuthor && !isDeletedAuthor) ...[
           const SizedBox(width: 8),
-          FollowButton(targetUserId: post.authorId),
+          FollowButton(
+            targetUserId: post.authorId,
+            variant: FollowButtonVariant.text,
+          ),
         ],
         _PostMenu(post: post, l10n: l10n),
       ],
@@ -228,23 +233,24 @@ class _PostMenu extends ConsumerWidget {
         if (value == 'delete') {
           final confirmed = await showDialog<bool>(
             context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(l10n.deletePost),
-              content: Text(l10n.confirmDeletePost),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(l10n.cancel),
+            builder:
+                (ctx) => AlertDialog(
+                  title: Text(l10n.deletePost),
+                  content: Text(l10n.confirmDeletePost),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text(l10n.cancel),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: Text(
+                        l10n.delete,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: Text(
-                    l10n.delete,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
           );
           if (confirmed == true && context.mounted) {
             await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
@@ -256,46 +262,48 @@ class _PostMenu extends ConsumerWidget {
           context.push('/feed/${post.id}/edit', extra: post);
         }
       },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'bookmark',
-          child: Row(
-            children: [
-              Icon(
-                isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
-                color: isBookmarked ? FeedTokens.of(context).accent : null,
-                size: 18,
+      itemBuilder:
+          (_) => [
+            PopupMenuItem(
+              value: 'bookmark',
+              child: Row(
+                children: [
+                  Icon(
+                    isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
+                    color: isBookmarked ? FeedTokens.of(context).accent : null,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isBookmarked ? 'Retirer le signet' : 'Sauvegarder'),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                isBookmarked ? 'Retirer le signet' : 'Sauvegarder',
+            ),
+            if (isAuthor)
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.editPost),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-        if (isAuthor)
-          PopupMenuItem(
-            value: 'edit',
-            child: Row(
-              children: [
-                const Icon(Icons.edit_outlined, size: 18),
-                const SizedBox(width: 8),
-                Text(l10n.editPost),
-              ],
-            ),
-          ),
-        if (isAuthor)
-          PopupMenuItem(
-            value: 'delete',
-            child: Row(
-              children: [
-                const AppIcon(AppIcon.delete, color: Colors.red, size: 18),
-                const SizedBox(width: 8),
-                Text(l10n.deletePost, style: const TextStyle(color: Colors.red)),
-              ],
-            ),
-          ),
-      ],
+            if (isAuthor)
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    const AppIcon(AppIcon.delete, color: Colors.red, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.deletePost,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+          ],
     );
   }
 }
@@ -340,7 +348,7 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
       alignment: Alignment.center,
       children: [
         if (mediaUrls.length == 1)
-          _image(mediaUrls, 0, height: 200, width: double.infinity)
+          _image(mediaUrls, 0, height: 205, width: double.infinity)
         else
           GridView.count(
             crossAxisCount: 2,
@@ -365,17 +373,21 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
     double? width,
   }) {
     return GestureDetector(
-      onTap: () => FeedImageViewer.show(
-        context,
-        mediaUrls: mediaUrls,
-        initialIndex: index,
-        heroTagPrefix: widget.post.id,
-      ),
+      onTap:
+          () => FeedImageViewer.show(
+            context,
+            mediaUrls: mediaUrls,
+            initialIndex: index,
+            heroTagPrefix: widget.post.id,
+          ),
       onDoubleTap: _handleDoubleTap,
       child: Hero(
         tag: '${widget.post.id}_$index',
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(FeedTokens.of(context).radiusMd),
+          // Média : rayon 20 (clair) / 8 (sombre) — cf. handoff tour 4.
+          borderRadius: BorderRadius.circular(
+            FeedTokens.of(context).isDark ? 8 : 20,
+          ),
           child: CachedNetworkImage(
             imageUrl: mediaUrls[index],
             height: height,
@@ -394,7 +406,11 @@ class _ActionBar extends ConsumerWidget {
   final AppLocalizations l10n;
   final bool isDetail;
 
-  const _ActionBar({required this.post, required this.l10n, this.isDetail = false});
+  const _ActionBar({
+    required this.post,
+    required this.l10n,
+    this.isDetail = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -409,73 +425,103 @@ class _ActionBar extends ConsumerWidget {
       feedNotifierProvider.select((s) => s.repostedPostIds.contains(post.id)),
     );
 
-    return Row(
+    // Actions primaires (gauche) en `actionLabel`, secondaires (droite) en
+    // `actionMuted` ; les compteurs actifs passent en couleur d'accent.
+    final likeColor = isLiked ? tokens.accent : tokens.actionLabel;
+    final repostColor = isReposted ? tokens.accent2 : tokens.actionLabel;
+
+    return Column(
       children: [
-        _ActionButton(
-          icon: isLiked
-              ? AppIcon(AppIcon.heart, size: 18, color: tokens.accent)
-              : AppIcon(AppIcon.favoriteBorder, size: 18, color: tokens.mutedText),
-          iconColor: isLiked ? tokens.accent : null,
-          label: post.likeCount > 0 ? '${post.likeCount}' : '',
-          onTap: () {
-            ref.read(feedNotifierProvider.notifier).toggleLike(post.id);
-            if (post.hashtags.isNotEmpty) {
-              recordHashtagInteraction(post.hashtags);
-            }
-          },
-        ),
-        const SizedBox(width: 8),
-        _ActionButton(
-          icon: AppIcon(AppIcon.chatBubble, size: 18, color: tokens.mutedText),
-          label: post.commentCount > 0 ? '${post.commentCount}' : '',
-          onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
-        ),
-        if (!isDetail) ...[
-          const SizedBox(width: 8),
-          _ActionButton(
-            icon: Icon(
-              Icons.repeat_rounded,
-              size: 18,
-              color: isReposted ? tokens.accent2 : tokens.mutedText,
+        // Filet séparateur au-dessus de la barre d'actions.
+        Container(height: 1, color: tokens.hairline),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _ActionButton(
+              icon:
+                  isLiked
+                      ? AppIcon(AppIcon.heart, size: 19, color: tokens.accent)
+                      : AppIcon(
+                        AppIcon.favoriteBorder,
+                        size: 19,
+                        color: tokens.actionLabel,
+                      ),
+              iconColor: likeColor,
+              label: post.likeCount > 0 ? '${post.likeCount}' : '',
+              onTap: () {
+                ref.read(feedNotifierProvider.notifier).toggleLike(post.id);
+                if (post.hashtags.isNotEmpty) {
+                  recordHashtagInteraction(post.hashtags);
+                }
+              },
             ),
-            iconColor: isReposted ? tokens.accent2 : null,
-            label: post.shareCount > 0 ? '${post.shareCount}' : '',
-            onTap: () => _showRepostSheet(context, ref, post, isReposted),
-          ),
-        ],
-        const Spacer(),
-        if (!isDetail) ...[
-          _ActionButton(
-            icon: AppIcon(AppIcon.send, size: 18, color: tokens.mutedText),
-            label: '',
-            onTap: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            const SizedBox(width: 14),
+            _ActionButton(
+              icon: AppIcon(
+                AppIcon.chatBubble,
+                size: 19,
+                color: tokens.actionLabel,
               ),
-              builder: (_) => SharePostSheet(post: post),
+              iconColor: tokens.actionLabel,
+              label: post.commentCount > 0 ? '${post.commentCount}' : '',
+              onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
             ),
-          ),
-          const SizedBox(width: 8),
-        ],
-        _ActionButton(
-          icon: Icon(
-            isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-            size: 18,
-            color: isBookmarked ? tokens.accent : tokens.mutedText,
-          ),
-          iconColor: isBookmarked ? tokens.accent : null,
-          label: '',
-          onTap: () {
-            final willBeSaved = !isBookmarked;
-            ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
-            showFeedToast(
-              context,
-              willBeSaved ? 'Publication enregistrée' : 'Retiré des enregistrements',
-            );
-          },
+            if (!isDetail) ...[
+              const SizedBox(width: 14),
+              _ActionButton(
+                icon: Icon(Icons.repeat_rounded, size: 19, color: repostColor),
+                iconColor: repostColor,
+                label: post.shareCount > 0 ? '${post.shareCount}' : '',
+                onTap: () => _showRepostSheet(context, ref, post, isReposted),
+              ),
+            ],
+            const Spacer(),
+            _ActionButton(
+              icon: Icon(
+                isBookmarked
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_outline_rounded,
+                size: 19,
+                color: isBookmarked ? tokens.accent : tokens.actionMuted,
+              ),
+              iconColor: isBookmarked ? tokens.accent : tokens.actionMuted,
+              label: '',
+              onTap: () {
+                final willBeSaved = !isBookmarked;
+                ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
+                showFeedToast(
+                  context,
+                  willBeSaved
+                      ? 'Publication enregistrée'
+                      : 'Retiré des enregistrements',
+                );
+              },
+            ),
+            if (!isDetail) ...[
+              const SizedBox(width: 14),
+              _ActionButton(
+                icon: AppIcon(
+                  AppIcon.share,
+                  size: 19,
+                  color: tokens.actionMuted,
+                ),
+                iconColor: tokens.actionMuted,
+                label: '',
+                onTap:
+                    () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      ),
+                      builder: (_) => SharePostSheet(post: post),
+                    ),
+              ),
+            ],
+          ],
         ),
       ],
     );
@@ -617,8 +663,8 @@ class _ActionButton extends StatelessWidget {
           children: [
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: child),
+              transitionBuilder:
+                  (child, anim) => ScaleTransition(scale: anim, child: child),
               child: KeyedSubtree(
                 key: ValueKey<String>(
                   '${_iconIdentity(icon)}_${color.toARGB32()}',

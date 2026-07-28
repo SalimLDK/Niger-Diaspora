@@ -39,6 +39,7 @@ import '../../features/profile/presentation/screens/profile_view_screen.dart';
 import '../../features/profile/presentation/screens/qr_scanner_screen.dart';
 import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
+import '../../features/feed/presentation/screens/mon_espace_screen.dart';
 import '../../features/feed/presentation/screens/my_posts_screen.dart';
 import '../../features/feed/presentation/screens/saved_posts_screen.dart';
 import '../../features/feed/presentation/screens/follows_screen.dart';
@@ -132,8 +133,14 @@ final routerProvider = Provider<GoRouter>((ref) {
   // Re-register all listeners under the new ref so they are properly disposed.
   if (_cachedRouter != null && _cachedAuthNotifier != null) {
     ref.listen(authNotifierProvider, (_, __) => _cachedAuthNotifier!.notify());
-    ref.listen(onboardingNotifierProvider, (_, __) => _cachedAuthNotifier!.notify());
-    ref.listen(isMaintenanceModeProvider, (_, __) => _cachedAuthNotifier!.notify());
+    ref.listen(
+      onboardingNotifierProvider,
+      (_, __) => _cachedAuthNotifier!.notify(),
+    );
+    ref.listen(
+      isMaintenanceModeProvider,
+      (_, __) => _cachedAuthNotifier!.notify(),
+    );
     return _cachedRouter!;
   }
 
@@ -230,13 +237,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 9. PHASE 2 FEATURE FLAGS — protect routes for transfers, marketplace, businesses, podcasts
       // Using static flag checks (not Riverpod) to avoid lifecycle issues in redirect
       final phase2Paths = <String, bool>{
-        '/transfers': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
-        '/marketplace': FeatureFlagService.isFeatureEnabled(AppFeature.marketplace),
-        '/businesses': FeatureFlagService.isFeatureEnabled(AppFeature.businessDirectory),
+        '/transfers': FeatureFlagService.isFeatureEnabled(
+          AppFeature.moneyTransfer,
+        ),
+        '/marketplace': FeatureFlagService.isFeatureEnabled(
+          AppFeature.marketplace,
+        ),
+        '/businesses': FeatureFlagService.isFeatureEnabled(
+          AppFeature.businessDirectory,
+        ),
         '/podcasts': FeatureFlagService.isFeatureEnabled(AppFeature.podcasts),
-        '/payment-accounts': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
-        '/payment-history': FeatureFlagService.isFeatureEnabled(AppFeature.moneyTransfer),
-        '/audio-rooms': FeatureFlagService.isFeatureEnabled(AppFeature.audioRooms),
+        '/payment-accounts': FeatureFlagService.isFeatureEnabled(
+          AppFeature.moneyTransfer,
+        ),
+        '/payment-history': FeatureFlagService.isFeatureEnabled(
+          AppFeature.moneyTransfer,
+        ),
+        '/audio-rooms': FeatureFlagService.isFeatureEnabled(
+          AppFeature.audioRooms,
+        ),
       };
       for (final entry in phase2Paths.entries) {
         if (state.matchedLocation.startsWith(entry.key) && !entry.value) {
@@ -337,7 +356,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Deep link support for profile shares
       GoRoute(
         path: '/p/u/:userId',
-        redirect: (context, state) => '/profile/${state.pathParameters['userId']!}',
+        redirect:
+            (context, state) => '/profile/${state.pathParameters['userId']!}',
       ),
       GoRoute(
         path: '/qr-scanner',
@@ -779,13 +799,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Feed routes
       GoRoute(
         path: '/feed',
-        builder: (context, state) => FeedScreen(
-          hashtagFilter: state.uri.queryParameters['hashtag'],
-        ),
+        builder:
+            (context, state) =>
+                FeedScreen(hashtagFilter: state.uri.queryParameters['hashtag']),
       ),
       GoRoute(
         path: '/feed/create',
         builder: (context, state) => const CreatePostScreen(),
+      ),
+      // Hub « Mon espace » — doit précéder '/feed/:postId' (sinon « space »
+      // serait interprété comme un postId).
+      GoRoute(
+        path: '/feed/space',
+        builder: (context, state) => const MonEspaceScreen(),
       ),
       GoRoute(
         path: '/feed/:postId/edit',

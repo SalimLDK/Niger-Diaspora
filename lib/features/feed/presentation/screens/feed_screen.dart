@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +54,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       20,
       (_) =>
           AdConfig.adFrequencyMin +
-          _random.nextInt(AdConfig.adFrequencyMax - AdConfig.adFrequencyMin + 1),
+          _random.nextInt(
+            AdConfig.adFrequencyMax - AdConfig.adFrequencyMin + 1,
+          ),
     );
     _scrollController.addListener(_onScroll);
     if (widget.hashtagFilter != null) {
@@ -109,9 +113,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final postIds = posts.map((p) => p.id).toSet();
     final fresh = reposts.where((e) => !postIds.contains(e.post.id));
     final rows = <Object>[...posts, ...fresh.map((e) => _RepostItem(e))];
-    DateTime keyOf(Object o) => o is _RepostItem
-        ? o.entry.ref.repostedAt
-        : (o as PostEntity).createdAt;
+    DateTime keyOf(Object o) =>
+        o is _RepostItem ? o.entry.ref.repostedAt : (o as PostEntity).createdAt;
     rows.sort((a, b) => keyOf(b).compareTo(keyOf(a)));
     return rows;
   }
@@ -127,43 +130,55 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     return Scaffold(
       backgroundColor: tokens.bg,
-      appBar: AppBar(
-        backgroundColor: tokens.bg,
-        // Repli vers l'accueil quand la pile est vide (entrée par deep link).
-        leading: IconButton(
-          icon: AppIcon(AppIcon.arrowBack, color: tokens.text),
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go('/home'),
-        ),
-        title: Text(l10n.feedTitle, style: FeedText.heading(tokens, size: 20)),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      floatingActionButton: filter == null
-          ? Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: tokens.fabBg,
-                shape: BoxShape.circle,
-                border: tokens.fabBorder != null
-                    ? Border.all(color: tokens.fabBorder!, width: 1.5)
-                    : null,
-                boxShadow: tokens.fabShadow,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: () => context.push('/feed/create'),
-                  child: Icon(Icons.edit_rounded, color: tokens.fabFg),
+      appBar:
+          filter != null
+              ? AppBar(
+                backgroundColor: tokens.bg,
+                // Repli vers l'accueil quand la pile est vide (entrée deep link).
+                leading: IconButton(
+                  icon: AppIcon(AppIcon.arrowBack, color: tokens.text),
+                  onPressed:
+                      () =>
+                          context.canPop()
+                              ? context.pop()
+                              : context.go('/home'),
                 ),
-              ),
-            )
-          : null,
+                title: Text(
+                  l10n.feedTitle,
+                  style: FeedText.heading(tokens, size: 20),
+                ),
+                centerTitle: true,
+                elevation: 0,
+              )
+              : null,
+      floatingActionButton:
+          filter == null
+              ? Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: tokens.fabBg,
+                  shape: BoxShape.circle,
+                  border:
+                      tokens.fabBorder != null
+                          ? Border.all(color: tokens.fabBorder!, width: 1.5)
+                          : null,
+                  boxShadow: tokens.fabShadow,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => context.push('/feed/create'),
+                    child: Icon(Icons.edit_rounded, color: tokens.fabFg),
+                  ),
+                ),
+              )
+              : null,
       body: Column(
         children: [
+          if (filter == null) const _FeedHeader(),
           if (filter == null) _ModeSelector(mode: feedState.mode),
           if (filter != null) _HashtagBanner(hashtag: filter),
           Expanded(child: _buildBody(context, l10n, feedState, reposts)),
@@ -197,8 +212,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             const SizedBox(height: 12),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: tokens.accent),
-              onPressed: () =>
-                  ref.read(feedNotifierProvider.notifier).refresh(),
+              onPressed:
+                  () => ref.read(feedNotifierProvider.notifier).refresh(),
               child: Text(l10n.retry),
             ),
           ],
@@ -220,15 +235,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // (following / recent) et hors filtre hashtag — on ne perturbe pas le tri forYou.
     final useReposts =
         state.mode != FeedMode.forYou && state.hashtagFilter == null;
-    final rows = useReposts
-        ? _mergeRows(state.posts, reposts)
-        : List<Object>.from(state.posts);
+    final rows =
+        useReposts
+            ? _mergeRows(state.posts, reposts)
+            : List<Object>.from(state.posts);
     final mixedItems = _buildMixedItems(rows);
     final list = RefreshIndicator(
       onRefresh: () => ref.read(feedNotifierProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        // Réserve basse de 100 px : le FAB flotte au-dessus du dernier post.
+        padding: const EdgeInsets.only(top: 8, bottom: 100),
         itemCount: mixedItems.length + (state.isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= mixedItems.length) {
@@ -254,13 +271,27 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       ),
     );
 
+    // Tablette / desktop : colonne centrale de largeur bornée (le fil ne
+    // s'étire pas sur toute la largeur). Le rail de navigation et la colonne
+    // droite (hashtags / à suivre) restent à câbler côté données.
+    final wide = MediaQuery.of(context).size.width >= 700;
+    final content =
+        wide
+            ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: list,
+              ),
+            )
+            : list;
+
     final showPill =
         state.pendingPosts.isNotEmpty && state.hashtagFilter == null;
-    if (!showPill) return list;
+    if (!showPill) return content;
 
     return Stack(
       children: [
-        list,
+        content,
         Positioned(
           top: 8,
           left: 0,
@@ -295,6 +326,166 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 }
 
+/// En-tête du fil (remplace l'AppBar centrée) : sur-titre daté, titre
+/// « Le fil. », recherche et avatar « Mon espace ».
+class _FeedHeader extends StatelessWidget {
+  const _FeedHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FeedTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
+
+    // Date du jour, localisée et en majuscules (sur-titre monospace).
+    final dateLabel = MaterialLocalizations.of(
+      context,
+    ).formatFullDate(DateTime.now());
+    final overColor =
+        tokens.isDark ? const Color(0xFF8E86C4) : const Color(0xFF9A6A3A);
+
+    // Titre « Le fil. » : le point prend la couleur d'accent.
+    final baseTitle = lang == 'en' ? 'The feed' : 'Le fil';
+    final titleStyle = FeedText.heading(tokens, size: tokens.isDark ? 24 : 26);
+
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    dateLabel.toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 10.5,
+                      letterSpacing: 1.05,
+                      fontWeight: FontWeight.w600,
+                      color: overColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text.rich(
+                    TextSpan(
+                      style: titleStyle,
+                      children: [
+                        TextSpan(text: baseTitle),
+                        TextSpan(
+                          text: '.',
+                          style: titleStyle.copyWith(color: tokens.accent),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _HeaderCircleButton(
+              tokens: tokens,
+              onTap: () => context.push('/search'),
+              tooltip: l10n.searchLabel,
+              child: AppIcon(AppIcon.search, size: 20, color: tokens.text),
+            ),
+            const SizedBox(width: 10),
+            _MySpaceAvatar(tokens: tokens),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderCircleButton extends StatelessWidget {
+  final FeedTokens tokens;
+  final Widget child;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  const _HeaderCircleButton({
+    required this.tokens,
+    required this.child,
+    required this.onTap,
+    this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final button = Material(
+      color: tokens.surface,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(width: 40, height: 40, child: Center(child: child)),
+      ),
+    );
+    return tooltip != null ? Tooltip(message: tooltip!, child: button) : button;
+  }
+}
+
+/// Avatar « Mon espace » (anneau accent) → route `/feed/space`.
+class _MySpaceAvatar extends StatelessWidget {
+  final FeedTokens tokens;
+
+  const _MySpaceAvatar({required this.tokens});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final photoUrl = user?.photoURL;
+    final initial =
+        (user?.displayName?.trim().isNotEmpty ?? false)
+            ? user!.displayName!.trim()[0].toUpperCase()
+            : '?';
+
+    return GestureDetector(
+      onTap: () => context.push('/feed/space'),
+      child: Container(
+        width: 40,
+        height: 40,
+        padding: const EdgeInsets.all(1.5),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: tokens.accent, width: 1.5),
+        ),
+        child: ClipOval(
+          child:
+              (photoUrl != null && photoUrl.isNotEmpty)
+                  ? CachedNetworkImage(
+                    imageUrl: photoUrl,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => _initialAvatar(initial),
+                  )
+                  : _initialAvatar(initial),
+        ),
+      ),
+    );
+  }
+
+  Widget _initialAvatar(String initial) {
+    return Container(
+      color: tokens.avatarBg,
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: tokens.avatarFg,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+      ),
+    );
+  }
+}
+
 class _ModeSelector extends ConsumerWidget {
   final FeedMode mode;
 
@@ -308,6 +499,7 @@ class _ModeSelector extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: FeedSegmentedControl<FeedMode>(
         tokens: tokens,
+        fullWidth: true,
         selected: mode,
         onChanged: (m) => ref.read(feedNotifierProvider.notifier).setMode(m),
         segments: [
@@ -350,10 +542,7 @@ class _HashtagBanner extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             hashtag,
-            style: TextStyle(
-              color: tokens.accent,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: tokens.accent, fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           GestureDetector(

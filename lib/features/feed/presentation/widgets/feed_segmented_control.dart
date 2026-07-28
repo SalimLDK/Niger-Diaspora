@@ -25,12 +25,17 @@ class FeedSegmentedControl<T> extends StatelessWidget {
   final ValueChanged<T> onChanged;
   final FeedTokens tokens;
 
+  /// Segments de largeur égale occupant toute la largeur disponible
+  /// (refonte tour 4 : `Expanded` au lieu d'un groupe compact à gauche).
+  final bool fullWidth;
+
   const FeedSegmentedControl({
     super.key,
     required this.segments,
     required this.selected,
     required this.onChanged,
     required this.tokens,
+    this.fullWidth = false,
   });
 
   @override
@@ -43,16 +48,27 @@ class FeedSegmentedControl<T> extends StatelessWidget {
           borderRadius: BorderRadius.circular(tokens.radiusMd),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
           children: [
             for (var i = 0; i < segments.length; i++) ...[
               if (i > 0) Container(width: 1, height: 32, color: tokens.divider),
-              _SegmentOption<T>(
-                segment: segments[i],
-                isActive: segments[i].value == selected,
-                tokens: tokens,
-                onTap: () => onChanged(segments[i].value),
-              ),
+              if (fullWidth)
+                Expanded(
+                  child: _SegmentOption<T>(
+                    segment: segments[i],
+                    isActive: segments[i].value == selected,
+                    tokens: tokens,
+                    fill: true,
+                    onTap: () => onChanged(segments[i].value),
+                  ),
+                )
+              else
+                _SegmentOption<T>(
+                  segment: segments[i],
+                  isActive: segments[i].value == selected,
+                  tokens: tokens,
+                  onTap: () => onChanged(segments[i].value),
+                ),
             ],
           ],
         ),
@@ -67,11 +83,15 @@ class _SegmentOption<T> extends StatelessWidget {
   final FeedTokens tokens;
   final VoidCallback onTap;
 
+  /// Occupe toute la largeur du segment (mode `fullWidth` : contenu centré).
+  final bool fill;
+
   const _SegmentOption({
     required this.segment,
     required this.isActive,
     required this.tokens,
     required this.onTap,
+    this.fill = false,
   });
 
   @override
@@ -80,15 +100,19 @@ class _SegmentOption<T> extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        width: fill ? double.infinity : null,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive ? tokens.segmentActiveBg : Colors.transparent,
-          border: isActive && tokens.segmentActiveBorder != null
-              ? Border.all(color: tokens.segmentActiveBorder!)
-              : null,
+          border:
+              isActive && tokens.segmentActiveBorder != null
+                  ? Border.all(color: tokens.segmentActiveBorder!)
+                  : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment:
+              fill ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             SizedBox(width: 16, height: 16, child: segment.icon(fg)),
             const SizedBox(width: 6),

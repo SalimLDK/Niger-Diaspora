@@ -44,6 +44,10 @@ class FeedTokens {
     required this.segmentActiveBg,
     required this.segmentActiveFg,
     required this.segmentActiveBorder,
+    required this.textStrong,
+    required this.actionLabel,
+    required this.actionMuted,
+    required this.hairline,
   });
 
   final bool isDark;
@@ -55,6 +59,20 @@ class FeedTokens {
   final Color accent;
   final Color accent2;
   final Color divider;
+
+  /// Corps de post — même valeur que [text] mais nommé pour la refonte (le
+  /// corps passe de `#4A443C` à `#201E1D` en clair / de `#C4BDB3` à `#E9E9ED`
+  /// en sombre, pour un contraste AA).
+  final Color textStrong;
+
+  /// Icônes + libellés d'action de gauche (cœur, commentaire, repartage).
+  final Color actionLabel;
+
+  /// Actions secondaires de droite (signet, partage).
+  final Color actionMuted;
+
+  /// Filet fin au-dessus de la barre d'actions (plus discret que [divider]).
+  final Color hairline;
 
   /// Text/icon color to use on top of a solid [accent] fill.
   final Color onAccent;
@@ -140,6 +158,10 @@ class FeedTokens {
     segmentActiveBg: Colors.transparent,
     segmentActiveFg: Color(0xFF9184D9),
     segmentActiveBorder: Color(0xFF9184D9),
+    textStrong: Color(0xFFE9E9ED),
+    actionLabel: Color(0xFFC3C6D4),
+    actionMuted: Color(0xFF9397AB),
+    hairline: Color(0x1FE9E9ED),
   );
 
   static const organic = FeedTokens(
@@ -184,6 +206,10 @@ class FeedTokens {
     segmentActiveBg: Color(0xFFC67139),
     segmentActiveFg: Color(0xFFF5EAD8),
     segmentActiveBorder: null,
+    textStrong: Color(0xFF201E1D),
+    actionLabel: Color(0xFF5E564A),
+    actionMuted: Color(0xFF9C9384),
+    hairline: Color(0x1A201E1D),
   );
 
   static FeedTokens of(BuildContext context) =>
