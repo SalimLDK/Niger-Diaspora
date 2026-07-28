@@ -80,7 +80,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                                 ),
                               )
                               : Text(
-                                _currentStep == 2 ? 'Confirmer' : 'Continuer',
+                                _continueLabel(transferState, selectedCurrency),
                               ),
                     ),
                   ),
@@ -131,6 +131,16 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         ),
       ),
     );
+  }
+
+  /// Libellé du bouton principal portant le total débité (« Continuer · 51,50 €
+  /// » / « Confirmer · … ») — refonte 12a : les frais/total se lisent avant et
+  /// sur le bouton, jamais découverts dans une boîte de dialogue finale.
+  String _continueLabel(TransferState state, String currency) {
+    final total = state.totalCharged;
+    final suffix =
+        total > 0 ? ' · ${total.toStringAsFixed(2)} $currency' : '';
+    return _currentStep == 2 ? 'Confirmer$suffix' : 'Continuer$suffix';
   }
 
   Widget _buildRecipientStep(ThemeData theme, TransferState transferState) {
