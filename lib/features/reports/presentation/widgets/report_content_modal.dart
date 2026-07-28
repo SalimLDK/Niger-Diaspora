@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../domain/entities/report_entity.dart';
 import '../providers/report_provider.dart';
 
@@ -158,6 +159,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
   bool _hasAlreadyReported = false;
+  bool _alsoBlock = false;
 
   @override
   void initState() {
@@ -222,6 +224,16 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
           contentSnapshot: widget.contentSnapshot,
           reportedUserId: widget.reportedUserId,
         );
+
+    // Bloquer aussi l'auteur si demandé (§27c).
+    if (success && _alsoBlock && widget.reportedUserId != null) {
+      await ref
+          .read(blockUserNotifierProvider.notifier)
+          .blockUser(
+            targetUserId: widget.reportedUserId!,
+            targetDisplayName: widget.targetName ?? 'Utilisateur',
+          );
+    }
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -418,7 +430,39 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+
+              // Bascule « bloquer aussi cet auteur » (§27c) — même modale.
+              if (widget.reportedUserId != null)
+                Container(
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SwitchListTile(
+                    value: _alsoBlock,
+                    onChanged: (v) => setState(() => _alsoBlock = v),
+                    activeThumbColor: context.adaptivePrimaryColor,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    title: Text(
+                      'Bloquer aussi cet auteur',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Vous ne verrez plus ses messages ni sa position',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ),
+                ),
+              if (widget.reportedUserId != null) const SizedBox(height: 16),
 
               // Submit button
               SizedBox(
@@ -439,10 +483,11 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
               ),
               const SizedBox(height: 12),
 
-              // Info text
+              // Info text : anonymat + délai d'examen annoncés (§27c).
               Text(
-                'Les signalements sont examinés par notre équipe de modération. '
-                'Les faux signalements répétés peuvent entraîner des sanctions.',
+                'Votre signalement est anonyme et examiné par notre équipe sous '
+                '48 h. Les faux signalements répétés peuvent entraîner des '
+                'sanctions.',
                 style: TextStyle(
                   fontSize: 12,
                   color: context.textSecondaryColor,
