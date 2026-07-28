@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import '../widgets/feed_empty_state.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 
@@ -15,6 +17,7 @@ class RepostsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final postsAsync = ref.watch(myRepostsProvider);
     final tokens = FeedTokens.of(context);
 
@@ -22,18 +25,28 @@ class RepostsScreen extends ConsumerWidget {
       backgroundColor: tokens.bg,
       appBar: AppBar(
         backgroundColor: tokens.bg,
-        title: Text('Mes repartages', style: FeedText.heading(tokens, size: 18)),
+        title: Text(l10n.repostsTitle, style: FeedText.heading(tokens, size: 18)),
         elevation: 0,
       ),
       body: postsAsync.when(
         loading: () => const PostCardListSkeleton(),
-        error: (_, __) => const _EmptyReposts(
-          message: 'Impossible de charger vos repartages.',
+        error: (_, __) => FeedEmptyState(
+          icon: Icons.error_outline_rounded,
+          title: l10n.repostsError,
+          body: l10n.repostsEmptyBody,
+          ctaLabel: l10n.retry,
+          ctaIcon: Icons.refresh_rounded,
+          onCta: () => ref.invalidate(myRepostsProvider),
         ),
         data: (posts) {
           if (posts.isEmpty) {
-            return const _EmptyReposts(
-              message: 'Vous n\'avez encore rien repartagé.',
+            return FeedEmptyState(
+              icon: Icons.repeat_rounded,
+              title: l10n.repostsEmptyTitle,
+              body: l10n.repostsEmptyBody,
+              ctaLabel: l10n.exploreFeed,
+              ctaIcon: Icons.explore_outlined,
+              onCta: () => context.push('/feed'),
             );
           }
           return RefreshIndicator(
@@ -50,40 +63,3 @@ class RepostsScreen extends ConsumerWidget {
   }
 }
 
-class _EmptyReposts extends StatelessWidget {
-  final String message;
-
-  const _EmptyReposts({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = FeedTokens.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.repeat_rounded, size: 64, color: tokens.mutedText),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: tokens.mutedText),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: tokens.accent),
-              onPressed: () => context.push('/feed'),
-              icon: Icon(Icons.explore_outlined, color: tokens.onAccent),
-              label: const Text('Explorer le fil'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

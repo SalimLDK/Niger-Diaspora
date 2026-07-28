@@ -14118,6 +14118,72 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exploreFeed => 'Explorer le feed';
 
   @override
+  String get videos => 'Vidéos';
+
+  @override
+  String get texts => 'Textes';
+
+  @override
+  String get myPostsEmptyTitle => 'Votre première\npublication vous attend';
+
+  @override
+  String get myPostsEmptyBody =>
+      'Partagez une nouvelle, une photo ou une question avec la diaspora.';
+
+  @override
+  String get savedPostsEmptyTitle => 'Rien d\'enregistré\npour l\'instant';
+
+  @override
+  String get savedPostsEmptyBody =>
+      'Touchez le signet d\'une publication pour la garder ici.';
+
+  @override
+  String get savedPostsNote =>
+      'Vos enregistrements ne sont visibles que par vous.';
+
+  @override
+  String get repostsTitle => 'Mes repartages';
+
+  @override
+  String get repostsError => 'Impossible de charger vos repartages.';
+
+  @override
+  String get repostsEmptyTitle => 'Aucun repartage';
+
+  @override
+  String get repostsEmptyBody =>
+      'Repartagez une publication pour la faire découvrir à vos abonnés.';
+
+  @override
+  String get followersEmptyTitle => 'Pas encore\nd\'abonnés';
+
+  @override
+  String get followersEmptyBody =>
+      'Publiez et participez pour vous faire connaître de la diaspora.';
+
+  @override
+  String get followingEmptyTitle => 'Vous ne suivez\npersonne';
+
+  @override
+  String get followingEmptyBody =>
+      'Suivez des membres pour voir leurs publications dans votre fil.';
+
+  @override
+  String get searchPeopleHint => 'Rechercher une personne';
+
+  @override
+  String get suggestionsTitle => 'Suggestions';
+
+  @override
+  String get older => 'Plus ancien';
+
+  @override
+  String get trendingHashtags => 'Hashtags du moment';
+
+  @override
+  String get noPostsForFilter => 'Aucune publication chargée pour ce filtre.';
+
+  @override
   String get posts => 'posts';
 
   @override

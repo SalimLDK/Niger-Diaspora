@@ -8,9 +8,9 @@ import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import '../widgets/feed_empty_state.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
-import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 // Provider for user's own posts
 final myPostsProvider =
@@ -56,17 +56,23 @@ class MyPostsScreen extends ConsumerWidget {
       ),
       body: postsAsync.when(
         loading: () => const PostCardListSkeleton(),
-        error: (_, __) => _EmptyState(
-          icon: AppIcon(AppIcon.error, size: 64, color: tokens.mutedText),
-          message: l10n.feedError,
+        error: (_, __) => FeedEmptyState(
+          icon: Icons.error_outline_rounded,
+          title: l10n.feedError,
+          body: l10n.myPostsEmptyBody,
+          ctaLabel: l10n.retry,
+          ctaIcon: Icons.refresh_rounded,
+          onCta: () => ref.invalidate(myPostsProvider),
         ),
         data: (posts) {
           if (posts.isEmpty) {
-            return _EmptyState(
-              icon: Icon(Icons.article_outlined, size: 64, color: tokens.mutedText),
-              message: l10n.myPostsEmpty,
-              actionLabel: l10n.createPost,
-              onAction: () => context.push('/feed/create'),
+            return FeedEmptyState(
+              icon: Icons.article_outlined,
+              title: l10n.myPostsEmptyTitle,
+              body: l10n.myPostsEmptyBody,
+              ctaLabel: l10n.createPost,
+              ctaIcon: Icons.edit_note_rounded,
+              onCta: () => context.push('/feed/create'),
             );
           }
           return RefreshIndicator(
@@ -83,49 +89,3 @@ class MyPostsScreen extends ConsumerWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final Widget icon;
-  final String message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  const _EmptyState({
-    required this.icon,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = FeedTokens.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: tokens.mutedText,
-                  ),
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: tokens.accent),
-                onPressed: onAction,
-                icon: AppIcon(AppIcon.add, color: tokens.onAccent),
-                label: Text(actionLabel!),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}

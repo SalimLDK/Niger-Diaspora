@@ -13986,6 +13986,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exploreFeed => 'Explore the feed';
 
   @override
+  String get videos => 'Videos';
+
+  @override
+  String get texts => 'Text';
+
+  @override
+  String get myPostsEmptyTitle => 'Your first post\nawaits';
+
+  @override
+  String get myPostsEmptyBody =>
+      'Share news, a photo, or a question with the diaspora.';
+
+  @override
+  String get savedPostsEmptyTitle => 'Nothing saved\nyet';
+
+  @override
+  String get savedPostsEmptyBody =>
+      'Tap the bookmark on any post to keep it here.';
+
+  @override
+  String get savedPostsNote => 'Your saved items are visible only to you.';
+
+  @override
+  String get repostsTitle => 'My reposts';
+
+  @override
+  String get repostsError => 'Couldn\'t load your reposts.';
+
+  @override
+  String get repostsEmptyTitle => 'No reposts yet';
+
+  @override
+  String get repostsEmptyBody =>
+      'Repost something to share it with your followers.';
+
+  @override
+  String get followersEmptyTitle => 'No followers\nyet';
+
+  @override
+  String get followersEmptyBody =>
+      'Post and engage to get noticed by the diaspora.';
+
+  @override
+  String get followingEmptyTitle => 'You\'re not\nfollowing anyone';
+
+  @override
+  String get followingEmptyBody =>
+      'Follow members to see their posts in your feed.';
+
+  @override
+  String get searchPeopleHint => 'Search people';
+
+  @override
+  String get suggestionsTitle => 'Suggestions';
+
+  @override
+  String get older => 'Older';
+
+  @override
+  String get trendingHashtags => 'Trending hashtags';
+
+  @override
+  String get noPostsForFilter => 'No loaded posts match this filter.';
+
+  @override
   String get posts => 'posts';
 
   @override

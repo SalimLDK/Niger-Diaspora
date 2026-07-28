@@ -46,6 +46,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   final _random = Random();
   late final List<int> _adIntervals;
 
+  /// Filtre géographique actif (pays de l'auteur). `null` = tous.
+  ///
+  /// La maquette parle de « filtres villes », mais le modèle `PostEntity` ne
+  /// porte que [PostEntity.authorCountry] (pas la ville) : on filtre donc par
+  /// pays, sur les posts déjà chargés. Le rail d'actus/stories de la maquette
+  /// n'a pas de modèle de données côté app et n'est pas repris.
+  String? _countryFilter;
+
   @override
   void initState() {
     super.initState();
@@ -119,6 +127,38 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return rows;
   }
 
+  /// Pays de l'auteur d'une ligne de fil (post ou repartage), ou `null`.
+  String? _countryOf(Object row) => row is _RepostItem
+      ? row.entry.post.authorCountry
+      : (row is PostEntity ? row.authorCountry : null);
+
+  /// Pays distincts présents dans les posts chargés (pour les chips de filtre),
+  /// triés par ordre alphabétique. Vide s'il n'y a pas de quoi filtrer.
+  List<String> _distinctCountries(List<PostEntity> posts) {
+    final set = <String>{};
+    for (final p in posts) {
+      final c = p.authorCountry;
+      if (c != null && c.trim().isNotEmpty) set.add(c.trim());
+    }
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  /// Hashtags les plus fréquents parmi les posts chargés (rail droit tablette).
+  List<String> _topHashtags(List<PostEntity> posts, {int max = 8}) {
+    final counts = <String, int>{};
+    for (final p in posts) {
+      for (final tag in p.hashtags) {
+        final t = tag.trim();
+        if (t.isEmpty) continue;
+        counts[t] = (counts[t] ?? 0) + 1;
+      }
+    }
+    final entries = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return entries.take(max).map((e) => e.key).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -127,6 +167,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final reposts =
         ref.watch(feedRepostsProvider).valueOrNull ?? const <RepostFeedEntry>[];
     final tokens = FeedTokens.of(context);
+    final wide = MediaQuery.of(context).size.width >= 700;
+    // Le rail droit (tablette) héberge les filtres pays ; sur téléphone ils
+    // s'affichent en rangée de chips sous le sélecteur de mode.
+    final countries =
+        filter == null ? _distinctCountries(feedState.posts) : const <String>[];
+    // FAB 64 px sur tablette (52 sur téléphone), cf. handoff tour 4b.
+    final fabSize = wide ? 64.0 : 52.0;
 
     return Scaffold(
       backgroundColor: tokens.bg,
@@ -154,8 +201,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       floatingActionButton:
           filter == null
               ? Container(
-                width: 52,
-                height: 52,
+                width: fabSize,
+                height: fabSize,
                 decoration: BoxDecoration(
                   color: tokens.fabBg,
                   shape: BoxShape.circle,
@@ -180,8 +227,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         children: [
           if (filter == null) const _FeedHeader(),
           if (filter == null) _ModeSelector(mode: feedState.mode),
+          // Filtres pays (téléphone) : rangée de chips scrollable.
+          if (filter == null && !wide && countries.length >= 2)
+            _CountryFilterChips(
+              countries: countries,
+              selected: _countryFilter,
+              onChanged: (c) => setState(() => _countryFilter = c),
+            ),
           if (filter != null) _HashtagBanner(hashtag: filter),
-          Expanded(child: _buildBody(context, l10n, feedState, reposts)),
+          Expanded(
+            child: _buildBody(context, l10n, feedState, reposts, wide),
+          ),
         ],
       ),
     );
@@ -192,6 +248,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     AppLocalizations l10n,
     FeedState state,
     List<RepostFeedEntry> reposts,
+    bool wide,
   ) {
     if (state.isLoading && state.posts.isEmpty) {
       return const PostCardListSkeleton();
@@ -235,10 +292,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // (following / recent) et hors filtre hashtag — on ne perturbe pas le tri forYou.
     final useReposts =
         state.mode != FeedMode.forYou && state.hashtagFilter == null;
-    final rows =
+    var rows =
         useReposts
             ? _mergeRows(state.posts, reposts)
             : List<Object>.from(state.posts);
+    // Filtre pays (posts chargés uniquement — pas de filtre serveur).
+    if (_countryFilter != null) {
+      rows = rows.where((o) => _countryOf(o) == _countryFilter).toList();
+    }
     final mixedItems = _buildMixedItems(rows);
     final list = RefreshIndicator(
       onRefresh: () => ref.read(feedNotifierProvider.notifier).refresh(),
@@ -271,19 +332,45 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       ),
     );
 
-    // Tablette / desktop : colonne centrale de largeur bornée (le fil ne
-    // s'étire pas sur toute la largeur). Le rail de navigation et la colonne
-    // droite (hashtags / à suivre) restent à câbler côté données.
-    final wide = MediaQuery.of(context).size.width >= 700;
-    final content =
-        wide
-            ? Center(
+    // Filtre pays actif mais aucun post chargé ne correspond : notice claire
+    // avec action pour lever le filtre (plutôt qu'un écran vide).
+    if (_countryFilter != null && rows.isEmpty) {
+      return _CountryFilterEmpty(
+        country: _countryFilter!,
+        onClear: () => setState(() => _countryFilter = null),
+      );
+    }
+
+    // Tablette / desktop : colonne centrale bornée + rail droit (filtres pays
+    // + hashtags du moment, dérivés des posts chargés). Le rail de navigation
+    // gauche reste géré par le shell de l'app (pas de double navigation).
+    final Widget content;
+    if (wide) {
+      content = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: list,
               ),
-            )
-            : list;
+            ),
+          ),
+          SizedBox(
+            width: 330,
+            child: _FeedRightRail(
+              countries: _distinctCountries(state.posts),
+              selectedCountry: _countryFilter,
+              onCountryChanged: (c) => setState(() => _countryFilter = c),
+              hashtags: _topHashtags(state.posts),
+            ),
+          ),
+        ],
+      );
+    } else {
+      content = list;
+    }
 
     final showPill =
         state.pendingPosts.isNotEmpty && state.hashtagFilter == null;
@@ -518,6 +605,273 @@ class _ModeSelector extends ConsumerWidget {
             icon: (c) => Icon(Icons.schedule_rounded, size: 16, color: c),
             label: l10n.recentTab,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rangée scrollable de chips de filtre pays (téléphone). Le premier chip
+/// « Tous » réinitialise le filtre ; le chip actif est plein avec l'icône
+/// de localisation.
+class _CountryFilterChips extends StatelessWidget {
+  final List<String> countries;
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+
+  const _CountryFilterChips({
+    required this.countries,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FeedTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: [
+          _CountryChip(
+            label: l10n.all,
+            active: selected == null,
+            tokens: tokens,
+            onTap: () => onChanged(null),
+          ),
+          const SizedBox(width: 8),
+          for (final c in countries) ...[
+            _CountryChip(
+              label: c,
+              active: selected == c,
+              tokens: tokens,
+              showLocationIcon: true,
+              onTap: () => onChanged(c),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CountryChip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final FeedTokens tokens;
+  final VoidCallback onTap;
+  final bool showLocationIcon;
+
+  const _CountryChip({
+    required this.label,
+    required this.active,
+    required this.tokens,
+    required this.onTap,
+    this.showLocationIcon = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = active ? tokens.bg : tokens.mutedText;
+    return Center(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: active ? tokens.text : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: active ? tokens.text : tokens.divider),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (active && showLocationIcon) ...[
+                AppIcon(AppIcon.location, size: 14, color: fg),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                label,
+                style: FeedText.body(
+                  tokens,
+                  size: 13,
+                  weight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Notice affichée quand un filtre pays ne correspond à aucun post chargé.
+class _CountryFilterEmpty extends StatelessWidget {
+  final String country;
+  final VoidCallback onClear;
+
+  const _CountryFilterEmpty({required this.country, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FeedTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppIcon(AppIcon.location, size: 40, color: tokens.mutedText),
+            const SizedBox(height: 12),
+            Text(
+              l10n.noPostsForFilter,
+              textAlign: TextAlign.center,
+              style: FeedText.body(tokens, size: 14, color: tokens.mutedText),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: tokens.accent,
+                side: BorderSide(color: tokens.accent),
+              ),
+              onPressed: onClear,
+              child: Text(l10n.seeAll),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Rail droit (tablette) : filtres pays + hashtags du moment, dérivés des
+/// posts chargés. Les panneaux « à suivre »/suggestions n'ont pas de provider
+/// et ne sont pas repris.
+class _FeedRightRail extends StatelessWidget {
+  final List<String> countries;
+  final String? selectedCountry;
+  final ValueChanged<String?> onCountryChanged;
+  final List<String> hashtags;
+
+  const _FeedRightRail({
+    required this.countries,
+    required this.selectedCountry,
+    required this.onCountryChanged,
+    required this.hashtags,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FeedTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 100),
+      children: [
+        if (countries.length >= 2)
+          _RailCard(
+            tokens: tokens,
+            title: l10n.country,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _CountryChip(
+                  label: l10n.all,
+                  active: selectedCountry == null,
+                  tokens: tokens,
+                  onTap: () => onCountryChanged(null),
+                ),
+                for (final c in countries)
+                  _CountryChip(
+                    label: c,
+                    active: selectedCountry == c,
+                    tokens: tokens,
+                    showLocationIcon: true,
+                    onTap: () => onCountryChanged(c),
+                  ),
+              ],
+            ),
+          ),
+        if (hashtags.isNotEmpty)
+          _RailCard(
+            tokens: tokens,
+            title: l10n.trendingHashtags,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final tag in hashtags)
+                  GestureDetector(
+                    onTap: () => context.push('/feed?hashtag=$tag'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: tokens.accent.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: FeedText.body(
+                          tokens,
+                          size: 13,
+                          weight: FontWeight.w600,
+                          color: tokens.hashtagColor,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RailCard extends StatelessWidget {
+  final FeedTokens tokens;
+  final String title;
+  final Widget child;
+
+  const _RailCard({
+    required this.tokens,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        border: Border.all(color: tokens.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: FeedText.body(
+              tokens,
+              size: 11,
+              weight: FontWeight.w700,
+              color: tokens.mutedText,
+            ).copyWith(letterSpacing: 1.0),
+          ),
+          const SizedBox(height: 12),
+          child,
         ],
       ),
     );

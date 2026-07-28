@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_playback_service.dart';
+import '../../../../core/services/file_download_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
@@ -48,6 +49,12 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
   double _playbackSpeed = 1.0;
   static const List<double> _speedOptions = [1.0, 1.5, 2.0];
 
+  // Téléchargement hors ligne (notes reçues) — cf. handoff « téléchargement à
+  // droite » sous la waveform.
+  final FileDownloadService _downloadService = FileDownloadService();
+  bool _isDownloading = false;
+  bool _isDownloaded = false;
+
   // Animations
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -66,6 +73,36 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
     _setupListeners();
     _totalDuration = Duration(seconds: widget.message.audioDuration ?? 0);
     _setupAnimations();
+    _loadDownloadState();
+  }
+
+  /// Reflète l'état « déjà téléchargé » au montage (coche verte au lieu de la
+  /// flèche). Ne concerne que les notes reçues avec une URL distante.
+  Future<void> _loadDownloadState() async {
+    if (widget.isMe || widget.message.fileUrl == null) return;
+    final path = await _downloadService.getDownloadedPath(widget.message.id);
+    if (!mounted) return;
+    if (path != null) {
+      setState(() => _isDownloaded = true);
+    }
+  }
+
+  Future<void> _downloadAudio() async {
+    final url = widget.message.fileUrl;
+    if (url == null || _isDownloading || _isDownloaded) return;
+
+    HapticFeedback.selectionClick();
+    setState(() => _isDownloading = true);
+    final file = await _downloadService.downloadToAppDirectory(
+      url,
+      fileName: 'voice_note_${widget.message.id}.m4a',
+      messageId: widget.message.id,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isDownloading = false;
+      _isDownloaded = file != null;
+    });
   }
 
   void _setupAnimations() {
@@ -430,7 +467,40 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
             style: const TextStyle(fontSize: 11, color: Colors.red),
           ),
         ],
+        // Téléchargement hors ligne à droite (notes reçues uniquement).
+        if (!widget.isMe && widget.message.fileUrl != null) ...[
+          const Spacer(),
+          _buildDownloadButton(textColor, accentColor),
+        ],
       ],
+    );
+  }
+
+  Widget _buildDownloadButton(Color idleColor, Color doneColor) {
+    if (_isDownloading) {
+      return SizedBox(
+        width: 20,
+        height: 20,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: CircularProgressIndicator(strokeWidth: 2, color: idleColor),
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: _isDownloaded ? null : _downloadAudio,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 4, top: 2, bottom: 2),
+        child: Icon(
+          _isDownloaded
+              ? Icons.download_done_rounded
+              : Icons.download_rounded,
+          size: 18,
+          // Coche verte une fois enregistré (cf. podcasts « download_done »).
+          color: _isDownloaded ? doneColor : idleColor,
+        ),
+      ),
     );
   }
 }

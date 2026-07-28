@@ -26150,6 +26150,126 @@ abstract class AppLocalizations {
   /// **'Explorer le feed'**
   String get exploreFeed;
 
+  /// No description provided for @videos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéos'**
+  String get videos;
+
+  /// No description provided for @texts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Textes'**
+  String get texts;
+
+  /// No description provided for @myPostsEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre première\npublication vous attend'**
+  String get myPostsEmptyTitle;
+
+  /// No description provided for @myPostsEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez une nouvelle, une photo ou une question avec la diaspora.'**
+  String get myPostsEmptyBody;
+
+  /// No description provided for @savedPostsEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien d\'enregistré\npour l\'instant'**
+  String get savedPostsEmptyTitle;
+
+  /// No description provided for @savedPostsEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touchez le signet d\'une publication pour la garder ici.'**
+  String get savedPostsEmptyBody;
+
+  /// No description provided for @savedPostsNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos enregistrements ne sont visibles que par vous.'**
+  String get savedPostsNote;
+
+  /// No description provided for @repostsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes repartages'**
+  String get repostsTitle;
+
+  /// No description provided for @repostsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger vos repartages.'**
+  String get repostsError;
+
+  /// No description provided for @repostsEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun repartage'**
+  String get repostsEmptyTitle;
+
+  /// No description provided for @repostsEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repartagez une publication pour la faire découvrir à vos abonnés.'**
+  String get repostsEmptyBody;
+
+  /// No description provided for @followersEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore\nd\'abonnés'**
+  String get followersEmptyTitle;
+
+  /// No description provided for @followersEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiez et participez pour vous faire connaître de la diaspora.'**
+  String get followersEmptyBody;
+
+  /// No description provided for @followingEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous ne suivez\npersonne'**
+  String get followingEmptyTitle;
+
+  /// No description provided for @followingEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez des membres pour voir leurs publications dans votre fil.'**
+  String get followingEmptyBody;
+
+  /// No description provided for @searchPeopleHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une personne'**
+  String get searchPeopleHint;
+
+  /// No description provided for @suggestionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions'**
+  String get suggestionsTitle;
+
+  /// No description provided for @older.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus ancien'**
+  String get older;
+
+  /// No description provided for @trendingHashtags.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hashtags du moment'**
+  String get trendingHashtags;
+
+  /// No description provided for @noPostsForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune publication chargée pour ce filtre.'**
+  String get noPostsForFilter;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:
