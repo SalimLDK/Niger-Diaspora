@@ -1856,6 +1856,18 @@ abstract class AppLocalizations {
   /// **'Vous n\'avez rejoint aucun groupe'**
   String get noJoinedGroups;
 
+  /// No description provided for @emptyMessagesJoinGroup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejoindre un groupe de votre ville'**
+  String get emptyMessagesJoinGroup;
+
+  /// No description provided for @emptyGroupsUsage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les groupes réunissent la diaspora par ville, centre d\'intérêt ou projet. Rejoignez-en un ou créez le vôtre.'**
+  String get emptyGroupsUsage;
+
   /// No description provided for @noGroupsToDiscover.
   ///
   /// In fr, this message translates to:

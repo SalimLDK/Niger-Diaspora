@@ -588,7 +588,48 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           const SizedBox(height: 12),
           Text(
             l10n.noJoinedGroups,
-            style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
+            style: TextStyle(
+              color: context.textPrimaryColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          // Explication d'usage (§9f).
+          Text(
+            l10n.emptyGroupsUsage,
+            style: TextStyle(color: context.textSecondaryColor, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          // « Créer votre groupe » en carte pointillée.
+          InkWell(
+            onTap: () => context.push('/groups/create'),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 18, color: context.adaptivePrimaryColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.createGroup,
+                    style: TextStyle(
+                      color: context.adaptivePrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

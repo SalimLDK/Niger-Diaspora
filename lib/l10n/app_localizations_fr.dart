@@ -954,6 +954,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noJoinedGroups => 'Vous n\'avez rejoint aucun groupe';
 
   @override
+  String get emptyMessagesJoinGroup => 'Rejoindre un groupe de votre ville';
+
+  @override
+  String get emptyGroupsUsage =>
+      'Les groupes réunissent la diaspora par ville, centre d\'intérêt ou projet. Rejoignez-en un ou créez le vôtre.';
+
+  @override
   String get noGroupsToDiscover => 'Aucun nouveau groupe à découvrir';
 
   @override

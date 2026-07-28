@@ -471,7 +471,36 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          // Rappel du chiffrement (§9e).
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AppIcon(
+                  AppIcon.lock,
+                  size: 14,
+                  color: context.textTertiaryColor,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    l10n.e2eeDescription,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textTertiaryColor,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+          // Amorce 1 : écrire à un membre (l'écran « nouvelle conversation »
+          // met en avant « Proches de vous »).
           ElevatedButton.icon(
             onPressed: () => context.push('/messages/new'),
             icon: const AppIcon(AppIcon.add),
@@ -484,6 +513,17 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
+          ),
+          const SizedBox(height: 8),
+          // Amorce 2 : rejoindre un groupe de sa ville.
+          TextButton.icon(
+            onPressed: () => context.push('/groups'),
+            icon: AppIcon(
+              AppIcon.groups,
+              size: 18,
+              color: context.adaptivePrimaryColor,
+            ),
+            label: Text(l10n.emptyMessagesJoinGroup),
           ),
         ],
       ),

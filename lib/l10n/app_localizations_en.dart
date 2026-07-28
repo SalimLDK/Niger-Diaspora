@@ -943,6 +943,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noJoinedGroups => 'You haven\'t joined any group';
 
   @override
+  String get emptyMessagesJoinGroup => 'Join a group in your city';
+
+  @override
+  String get emptyGroupsUsage =>
+      'Groups bring the diaspora together by city, interest or project. Join one or create your own.';
+
+  @override
   String get noGroupsToDiscover => 'No new groups to discover';
 
   @override
