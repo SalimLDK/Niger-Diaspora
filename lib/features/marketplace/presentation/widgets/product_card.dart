@@ -111,10 +111,21 @@ class ProductCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Prix en premier (refonte 12b : sur une place de marché on
+                    // compare d'abord des prix).
+                    PriceText(
+                      amount: product.price,
+                      currency: product.currency,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
                     Text(
                       product.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -138,15 +149,6 @@ class ProductCard extends ConsumerWidget {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    PriceText(
-                      amount: product.price,
-                      currency: product.currency,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ],
                 ),
