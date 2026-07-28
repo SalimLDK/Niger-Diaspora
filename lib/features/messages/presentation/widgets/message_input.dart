@@ -976,43 +976,67 @@ class _MessageInputState extends State<MessageInput>
         // Panneau ancré de pièces jointes (grille 3×2), au-dessus du composer.
         if (_showAttachPanel && !_isRecording) _buildAttachPanel(context),
 
-        // Zone principale : composer opaque (en-tête/composer = #FFFFFF / #1A1714).
-        Container(
-          decoration: BoxDecoration(
-            color:
-                context.isDarkMode
-                    ? const Color(0xFF1A1714)
-                    : const Color(0xFFFFFFFF),
-            border: Border(
-              top: BorderSide(
-                color:
-                    context.isDarkMode
-                        ? const Color(0xFF2A241E)
-                        : const Color(0xFFEFE7DB),
-                width: 1,
-              ),
-            ),
-          ),
+        // Zone principale : barre flottante (« + » + champ) et le bouton
+        // vocal/envoi **hors de la barre** (cercle séparé à droite).
+        Padding(
           padding: EdgeInsets.fromLTRB(
             10,
             6,
             10,
-            MediaQuery.of(context).padding.bottom + 6,
+            MediaQuery.of(context).padding.bottom + 8,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // « + » hors du champ (repli : appui long = panneau complet).
-              if (!_isRecording) ...[
-                _buildPlusButton(context),
-                const SizedBox(width: 8),
-              ],
               Expanded(
-                child:
-                    _isRecording
-                        ? _buildRecordingBanner(context)
-                        : _buildPillField(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        context.isDarkMode
+                            ? const Color(0xFF1A1714)
+                            : const Color(0xFFFFFFFF),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color:
+                          context.isDarkMode
+                              ? const Color(0xFF2A241E)
+                              : const Color(0xFFEFE7DB),
+                      width: 1,
+                    ),
+                    boxShadow:
+                        context.isDarkMode
+                            ? null
+                            : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // « + » (repli : appui long = panneau complet).
+                      if (!_isRecording) ...[
+                        _buildPlusButton(context),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child:
+                            _isRecording
+                                ? _buildRecordingBanner(context)
+                                : _buildPillField(context),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+              // Bouton vocal / envoi HORS de la barre flottante.
               if (!_isLocked) ...[
                 const SizedBox(width: 8),
                 _buildPersistentActionButton(context),
@@ -1045,55 +1069,48 @@ class _MessageInputState extends State<MessageInput>
   }
 
   /// Bouton « + » hors du champ : ouvre le panneau ancré (grille 3×2).
+  /// Pastille circulaire teintée accent (le « + » pivote en « × » à l'ouverture).
   /// Appui long = ancien sheet complet (repli avec audio/vidéo dédiés).
   Widget _buildPlusButton(BuildContext context) {
     final active = _showAttachPanel;
+    final accent = context.adaptivePrimaryColor;
     return GestureDetector(
       onLongPress: _showAttachmentOptions,
-      child: Container(
-        width: 40,
-        height: 40,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        width: 42,
+        height: 42,
         decoration: BoxDecoration(
-          color:
-              active
-                  ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
-                  : context.surfaceVariantColor,
-          borderRadius: BorderRadius.circular(20),
+          color: accent.withValues(alpha: active ? 0.20 : 0.12),
+          shape: BoxShape.circle,
         ),
         child: IconButton(
           onPressed: _toggleAttachPanel,
-          icon: Icon(active ? Icons.close : Icons.add),
+          // Le même glyphe « + » pivote de 45° pour devenir une croix.
+          icon: AnimatedRotation(
+            turns: active ? 0.125 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            child: const Icon(Icons.add_rounded, size: 24),
+          ),
           tooltip: AppLocalizations.of(context)!.sendFileTitle,
-          color:
-              active
-                  ? context.adaptivePrimaryColor
-                  : context.textSecondaryColor,
+          color: accent,
           padding: EdgeInsets.zero,
         ),
       ),
     );
   }
 
-  /// Champ pilule avec l'emoji **à l'intérieur** (32 px, à droite du texte).
+  /// Champ pilule avec l'emoji **à l'intérieur** (à droite du texte).
   Widget _buildPillField(BuildContext context) {
+    final accent = context.adaptivePrimaryColor;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(maxHeight: 120),
-          decoration: BoxDecoration(
-            // Champ de saisie : #F5F0E8 (clair) / #2D2820 (sombre).
-            color: context.surfaceVariantColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color:
-                  _focusNode.hasFocus
-                      ? context.adaptivePrimaryColor.withValues(alpha: 0.3)
-                      : Colors.transparent,
-              width: 1.5,
-            ),
-          ),
+        Container(
+          // Aucun cadre ni fond : la saisie se fond dans la barre flottante.
+          constraints: const BoxConstraints(maxHeight: 120, minHeight: 44),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -1102,8 +1119,13 @@ class _MessageInputState extends State<MessageInput>
                   controller: _controller,
                   focusNode: _focusNode,
                   enabled: !widget.isLoading,
-                  maxLines: null,
+                  // Champ sur une seule ligne (le texte défile horizontalement).
+                  maxLines: 1,
                   maxLength: _maxCharCount,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    color: context.textPrimaryColor,
+                  ),
                   buildCounter:
                       (
                         context, {
@@ -1114,37 +1136,45 @@ class _MessageInputState extends State<MessageInput>
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context)!.yourMessage,
-                    hintStyle: TextStyle(color: context.textTertiaryColor),
+                    hintStyle: TextStyle(
+                      color: context.textTertiaryColor,
+                      fontSize: 15.5,
+                    ),
+                    isCollapsed: true,
+                    // Le thème global impose un OutlineInputBorder : on neutralise
+                    // TOUS les états (sinon le cadre reste malgré `border: none`).
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    filled: false,
                     contentPadding: const EdgeInsets.only(
                       left: 18,
-                      right: 4,
-                      top: 10,
-                      bottom: 10,
+                      right: 6,
+                      top: 12,
+                      bottom: 12,
                     ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
               ),
-              // Emoji à l'intérieur du champ (32 px).
+              // Emoji à l'intérieur du champ, centré verticalement.
               Padding(
-                padding: const EdgeInsets.only(right: 4, bottom: 2),
-                child: SizedBox(
-                  width: 34,
-                  height: 34,
-                  child: IconButton(
-                    onPressed: () => _togglePicker(),
-                    icon: Icon(
+                padding: const EdgeInsets.only(right: 6, bottom: 5),
+                child: InkWell(
+                  onTap: () => _togglePicker(),
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Icon(
                       _showPicker
-                          ? Icons.keyboard
+                          ? Icons.keyboard_rounded
                           : Icons.emoji_emotions_outlined,
-                      size: 22,
+                      size: 23,
+                      color: _showPicker ? accent : context.textSecondaryColor,
                     ),
-                    color:
-                        _showPicker
-                            ? context.adaptivePrimaryColor
-                            : context.textSecondaryColor,
-                    padding: EdgeInsets.zero,
                   ),
                 ),
               ),
@@ -1883,8 +1913,8 @@ class _MessageInputState extends State<MessageInput>
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              // Pilule « MAINTENIR » à vide (micro dispo) ; rond sinon.
-              width: _isRecording ? 56 : (_isVoicePill ? 128 : 44),
+              // Bouton rond : micro à vide, envoi dès qu'il y a du texte.
+              width: _isRecording ? 56 : 44,
               height: _isRecording ? 56 : 44,
               decoration: BoxDecoration(
                 gradient: _getButtonGradient(context),
@@ -1916,20 +1946,9 @@ class _MessageInputState extends State<MessageInput>
   static const Color _kE2eeBlue = Color(0xFF2F6BE0);
   static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
 
-  /// Vert de la pilule vocale (#1B5E32 / #2D7D46), indépendant du thème
-  /// (le composer veut une « pilule verte », pas la couleur primaire).
+  /// Vert du bouton vocal (#1B5E32 / #2D7D46), indépendant du thème.
   static const Color _kVoiceGreen = Color(0xFF1B5E32);
   static const Color _kVoiceGreenLight = Color(0xFF2D7D46);
-
-  /// État « pilule MAINTENIR » : à vide, micro disponible, hors enregistrement.
-  bool get _isVoicePill =>
-      !_isRecording && !_hasText && widget.onSendAudio != null;
-
-  /// Libellé « maintenir » du bouton vocal (pas de clé l10n dédiée).
-  String _holdLabel(BuildContext context) {
-    final lang = Localizations.localeOf(context).languageCode;
-    return lang == 'en' ? 'HOLD' : 'MAINTENIR';
-  }
 
   /// Gradient du bouton selon l'état
   LinearGradient? _getButtonGradient(BuildContext context) {
@@ -2030,27 +2049,6 @@ class _MessageInputState extends State<MessageInput>
                 ),
               ),
             ),
-        ],
-      );
-    }
-
-    // État vide avec micro : pilule verte libellée « MAINTENIR ».
-    if (_isVoicePill) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppIcon(AppIcon.mic, color: AppColors.white, size: 20),
-          const SizedBox(width: 6),
-          Text(
-            _holdLabel(context),
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
         ],
       );
     }
