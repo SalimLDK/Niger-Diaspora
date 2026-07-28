@@ -13,7 +13,6 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/feed_avatar.dart';
-import '../widgets/feed_tag.dart';
 import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -221,6 +220,64 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     }
   }
 
+  /// Feuille d'audience : les publications sont toujours publiques (aucune
+  /// portée privée au modèle), la feuille explique donc la conséquence.
+  void _showAudienceSheet(BuildContext context, FeedTokens tokens) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: tokens.bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: tokens.divider,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  AppIcon(AppIcon.public, size: 20, color: tokens.accent),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Public',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: tokens.text,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Cette publication sera visible par toute la diaspora sur '
+                'Diaspo Niger.',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: tokens.mutedText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -291,10 +348,46 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          FeedTag(
-                            label: 'Public',
-                            tokens: tokens,
-                            variant: FeedTagVariant.neutral,
+                          // Puce d'audience : icône + « Public » + chevron.
+                          // Les posts sont toujours publics ; le tap explique
+                          // la portée (aucune audience privée au modèle).
+                          GestureDetector(
+                            onTap: () => _showAudienceSheet(context, tokens),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: tokens.tagNeutralBg,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AppIcon(
+                                    AppIcon.public,
+                                    size: 13,
+                                    color: tokens.tagNeutralFg,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Public',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: tokens.tagNeutralFg,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 16,
+                                    color: tokens.tagNeutralFg,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -317,6 +410,19 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                       _hashtags = hashtags;
                     },
                   ),
+                  if (!_isVideoPost &&
+                      (_existingMediaUrls.length + _selectedFiles.length) > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '${_existingMediaUrls.length + _selectedFiles.length}/5',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.mutedText,
+                        ),
+                      ),
+                    ),
                   if (_existingMediaUrls.isNotEmpty && !_isVideoPost) ...[
                     const SizedBox(height: 12),
                     SizedBox(
@@ -453,6 +559,24 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppIcon(AppIcon.public, size: 14, color: tokens.mutedText),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Les publications publiques sont visibles par toute la diaspora.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: tokens.mutedText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
