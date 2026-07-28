@@ -278,13 +278,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       backgroundColor: context.backgroundColor,
       // Pas d'AppBar : l'en-tête dégradé est rendu en tête du body, pour que le
       // dégradé remonte jusque sous la barre d'état comme sur Accueil et Profil.
-      floatingActionButton: _showArchived
-          ? null
-          : FloatingActionButton(
-              onPressed: () => context.push('/messages/new'),
-              backgroundColor: context.adaptivePrimaryColor,
-              child: const Icon(Icons.message, color: AppColors.white),
-            ),
+      // Plus de FAB : « nouvelle conversation » est désormais une action de
+      // l'en-tête (bouton compose), pour un rendu épuré aligné sur Profil.
       body: Column(
         children: [
           _buildGradientHeader(context, l10n, unreadTotal),
@@ -426,95 +421,146 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     AppLocalizations l10n,
     int unreadTotal,
   ) {
-    return Container(
-      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_showArchived)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: IconButton(
-                    icon: AppIcon(AppIcon.arrowBack, color: AppColors.white),
-                    onPressed: () => setState(() => _showArchived = false),
-                  ),
-                ),
-              Expanded(
-                child:
-                    _isSearching
-                        ? TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          style: TextStyle(color: AppColors.white),
-                          decoration: InputDecoration(
-                            hintText: l10n.searchPlaceholder,
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(
-                              color: AppColors.white.withValues(alpha: 0.7),
-                            ),
+    return ClipRect(
+      child: Container(
+        decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
+        child: Stack(
+          children: [
+            ..._buildHeaderDecorations(),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_showArchived)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: IconButton(
+                          icon: AppIcon(
+                            AppIcon.arrowBack,
+                            color: AppColors.white,
                           ),
-                          onChanged: (value) =>
-                              setState(() => _searchQuery = value),
-                        )
-                        : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _showArchived ? l10n.archives : l10n.messagesTitle,
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.white,
-                              ),
-                            ),
-                            if (!_showArchived && unreadTotal > 0) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                l10n.unreadConversations(unreadTotal),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: AppColors.white.withValues(
-                                    alpha: 0.85,
-                                  ),
+                          onPressed: () =>
+                              setState(() => _showArchived = false),
+                        ),
+                      ),
+                    Expanded(
+                      child: _isSearching
+                          ? TextField(
+                              controller: _searchController,
+                              autofocus: true,
+                              style: const TextStyle(color: AppColors.white),
+                              decoration: InputDecoration(
+                                hintText: l10n.searchPlaceholder,
+                                border: InputBorder.none,
+                                hintStyle: TextStyle(
+                                  color: AppColors.white.withValues(alpha: 0.7),
                                 ),
                               ),
-                            ],
-                          ],
+                              onChanged: (value) =>
+                                  setState(() => _searchQuery = value),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _showArchived
+                                      ? l10n.archives
+                                      : l10n.messagesTitle,
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                                if (!_showArchived && unreadTotal > 0) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    l10n.unreadConversations(unreadTotal),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: AppColors.white.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                    ),
+                    if (_isSearching)
+                      _HeaderActionButton(
+                        icon: const AppIcon(
+                          AppIcon.close,
+                          color: AppColors.white,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isSearching = false;
+                            _searchQuery = '';
+                            _searchController.clear();
+                          });
+                        },
+                      )
+                    else ...[
+                      _HeaderActionButton(
+                        icon: const Icon(
+                          Icons.add_comment_outlined,
+                          color: AppColors.white,
+                        ),
+                        onPressed: () => context.push('/messages/new'),
+                        tooltip: l10n.newConversation,
+                      ),
+                      const SizedBox(width: 10),
+                      _HeaderActionButton(
+                        icon: const AppIcon(
+                          AppIcon.search,
+                          color: AppColors.white,
+                        ),
+                        onPressed: () => setState(() => _isSearching = true),
+                      ),
+                      const SizedBox(width: 10),
+                      _HeaderActionButton(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: AppColors.white,
+                        ),
+                        onPressed: () =>
+                            setState(() => _showArchived = !_showArchived),
+                        tooltip: _showArchived
+                            ? l10n.messagesTitle
+                            : l10n.archives,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              if (_isSearching)
-                _HeaderActionButton(
-                  icon: const AppIcon(AppIcon.close, color: AppColors.white),
-                  onPressed: () {
-                    setState(() {
-                      _isSearching = false;
-                      _searchQuery = '';
-                      _searchController.clear();
-                    });
-                  },
-                )
-              else ...[
-                _HeaderActionButton(
-                  icon: const AppIcon(AppIcon.search, color: AppColors.white),
-                  onPressed: () => setState(() => _isSearching = true),
-                ),
-                const SizedBox(width: 10),
-                _HeaderActionButton(
-                  icon: const Icon(Icons.more_vert, color: AppColors.white),
-                  onPressed: () => setState(() => _showArchived = !_showArchived),
-                  tooltip: _showArchived ? l10n.messagesTitle : l10n.archives,
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  /// Motifs décoratifs (cercles blancs translucides) en fond de l'en-tête,
+  /// repris du style de l'écran Profil. Clippés au bandeau par le ClipRect.
+  List<Widget> _buildHeaderDecorations() {
+    Widget circle(double size, double alpha) => Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.white.withValues(alpha: alpha),
+          ),
+        );
+    return [
+      Positioned(top: -45, right: -35, child: circle(170, 0.06)),
+      Positioned(top: 25, right: 55, child: circle(90, 0.05)),
+      Positioned(bottom: -35, left: -25, child: circle(120, 0.04)),
+    ];
   }
 
   /// Puces de filtre rapide. Masquées en recherche et dans les archives, où
@@ -623,40 +669,46 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             : 'Notes, brouillons et sondages';
     final isOpening = ref.watch(ensureSelfNotesProvider).isLoading;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.adaptivePrimaryColor.withValues(alpha: 0.25),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
           onTap: isOpening ? null : _openSelfNotes,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 Container(
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                    gradient: context.adaptivePrimaryGradient,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
-                    child:
-                        isOpening
-                            ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: context.adaptivePrimaryColor,
-                              ),
-                            )
-                            : AppIcon(
-                              AppIcon.pin,
-                              size: 24,
-                              color: context.adaptivePrimaryColor,
+                    child: isOpening
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
                             ),
+                          )
+                        : const Icon(
+                            Icons.push_pin,
+                            size: 24,
+                            color: AppColors.white,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -665,15 +717,55 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Mes notes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: context.textPrimaryColor,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Mes notes',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: context.textPrimaryColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.adaptivePrimaryColor.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.push_pin,
+                                  size: 11,
+                                  color: context.adaptivePrimaryColor,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'Épinglé',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.adaptivePrimaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         subtitle,
                         maxLines: 1,
@@ -686,9 +778,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ],
                   ),
                 ),
-                AppIcon(
-                  AppIcon.chevronRight,
-                  size: 18,
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
                   color: context.textTertiaryColor,
                 ),
               ],
