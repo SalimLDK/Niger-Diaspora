@@ -45,6 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   bool _profileVisible = true;
   bool _noiseSuppressionEnabled = true;
   ChatBackgroundEntity? _globalBackground;
+  bool _headerCollapsed = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -156,70 +157,144 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: context.backgroundColor,
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Header avec design moderne
-            SliverAppBar(
-              expandedHeight: context.responsive(mobile: 180.0, tablet: 220.0),
-              pinned: true,
-              stretch: true,
-              backgroundColor: context.adaptivePrimaryColor,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const [
-                  StretchMode.zoomBackground,
-                  StretchMode.blurBackground,
-                ],
-                background: _buildHeader(user, l10n),
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            final expanded = context.responsive(mobile: 180.0, tablet: 220.0);
+            final collapsed = n.metrics.pixels > (expanded - kToolbarHeight);
+            if (collapsed != _headerCollapsed) {
+              setState(() => _headerCollapsed = collapsed);
+            }
+            return false;
+          },
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Header avec design moderne
+              SliverAppBar(
+                expandedHeight: context.responsive(
+                  mobile: 180.0,
+                  tablet: 220.0,
+                ),
+                pinned: true,
+                stretch: true,
+                backgroundColor: context.adaptivePrimaryColor,
+                automaticallyImplyLeading: false,
+                title:
+                    _headerCollapsed ? _buildCollapsedHeaderTitle(user) : null,
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const [
+                    StretchMode.zoomBackground,
+                    StretchMode.blurBackground,
+                  ],
+                  background: _buildHeader(user, l10n),
+                ),
               ),
-            ),
 
-            // Statistiques
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
+              // Statistiques
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth:
+                              context.isTablet
+                                  ? AppSpacing.tabletMaxContentWidth + 100
+                                  : double.infinity,
+                        ),
+                        child: _buildStatsCard(l10n),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Contenu avec animations - centré sur tablette
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  context.responsive(mobile: 20.0, tablet: 32.0),
+                  0,
+                  context.responsive(mobile: 20.0, tablet: 32.0),
+                  20 + MediaQuery.of(context).padding.bottom,
+                ),
+                sliver: SliverToBoxAdapter(
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth:
                             context.isTablet
-                                ? AppSpacing.tabletMaxContentWidth + 100
+                                ? AppSpacing.tabletMaxContentWidth
                                 : double.infinity,
                       ),
-                      child: _buildStatsCard(l10n),
+                      child: _buildProfileContent(l10n),
                     ),
                   ),
                 ),
               ),
-            ),
-
-            // Contenu avec animations - centré sur tablette
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                context.responsive(mobile: 20.0, tablet: 32.0),
-                0,
-                context.responsive(mobile: 20.0, tablet: 32.0),
-                20 + MediaQuery.of(context).padding.bottom,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth:
-                          context.isTablet
-                              ? AppSpacing.tabletMaxContentWidth
-                              : double.infinity,
-                    ),
-                    child: _buildProfileContent(l10n),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// Titre compact affiché dans la SliverAppBar une fois l'en-tête replié :
+  /// petit avatar + nom, façon barre pinned (comme l'onglet Groupes).
+  Widget _buildCollapsedHeaderTitle(dynamic user) {
+    final profile =
+        user != null
+            ? ref.watch(profileNotifierProvider(user.id)).valueOrNull
+            : null;
+    final displayName = profile?.displayName ?? user?.displayName;
+    final photoUrl = profile?.photoUrl ?? user?.photoUrl;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.white.withValues(alpha: 0.2),
+            border: Border.all(color: AppColors.white, width: 1.5),
+            image:
+                photoUrl != null
+                    ? DecorationImage(
+                      image: NetworkImage(photoUrl),
+                      fit: BoxFit.cover,
+                    )
+                    : null,
+          ),
+          child:
+              photoUrl == null
+                  ? Center(
+                    child: Text(
+                      _getInitials(displayName ?? 'U'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  )
+                  : null,
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            displayName ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -232,7 +307,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.account, const Icon(Icons.person_outline)),
+              _buildSectionHeader(
+                l10n.account,
+                const Icon(Icons.person_outline),
+              ),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -245,14 +323,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _SettingsTile(
                     icon: const Icon(Icons.article_outlined),
                     title: l10n.myPostsTitle,
-                    subtitle: '${ref.watch(userPostsCountProvider).valueOrNull ?? 0} ${l10n.posts}',
+                    subtitle:
+                        '${ref.watch(userPostsCountProvider).valueOrNull ?? 0} ${l10n.posts}',
                     onTap: () => context.push('/profile/my-posts'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
                     icon: const Icon(Icons.bookmark_outline),
                     title: l10n.savedPostsTitle,
-                    subtitle: '${ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0} ${l10n.savedPostsCountLabel}',
+                    subtitle:
+                        '${ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0} ${l10n.savedPostsCountLabel}',
                     onTap: () => context.push('/profile/saved-posts'),
                   ),
                   const _SettingsDivider(),
@@ -297,7 +377,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.privacy, const Icon(Icons.shield_outlined)),
+              _buildSectionHeader(
+                l10n.privacy,
+                const Icon(Icons.shield_outlined),
+              ),
               _SettingsCard(
                 children: [
                   _SettingsSwitchTile(
@@ -416,7 +499,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.preferences, const Icon(Icons.tune_outlined)),
+              _buildSectionHeader(
+                l10n.preferences,
+                const Icon(Icons.tune_outlined),
+              ),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -460,7 +546,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.helpAndSupport, const Icon(Icons.help_outline)),
+              _buildSectionHeader(
+                l10n.helpAndSupport,
+                const Icon(Icons.help_outline),
+              ),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -2073,17 +2162,13 @@ class _SettingsTile extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconTheme.merge(
-                      data: IconThemeData(
-                        color: iconColor ?? context.adaptivePrimaryColor,
-                      ),
-                      child: icon,
+                child: Center(
+                  child: IconTheme.merge(
+                    data: IconThemeData(
+                      size: 18,
+                      color: iconColor ?? context.adaptivePrimaryColor,
                     ),
+                    child: icon,
                   ),
                 ),
               ),
@@ -2175,20 +2260,16 @@ class _SettingsSwitchTile extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: IconTheme.merge(
-                  data: IconThemeData(
-                    color:
-                        value
-                            ? context.adaptivePrimaryColor
-                            : context.textTertiaryColor,
-                  ),
-                  child: icon,
+            child: Center(
+              child: IconTheme.merge(
+                data: IconThemeData(
+                  size: 18,
+                  color:
+                      value
+                          ? context.adaptivePrimaryColor
+                          : context.textTertiaryColor,
                 ),
+                child: icon,
               ),
             ),
           ),
