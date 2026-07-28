@@ -22,9 +22,11 @@ import 'message_remote_datasource.dart';
 /// in a JSONB `data` column. This lets us reuse [ConversationModel.fromJson]
 /// and [MessageModel.fromJson] directly with minor key remapping.
 class MessageSupabaseDataSource implements MessageRemoteDataSource {
-  MessageSupabaseDataSource({SupabaseClient? client, MessageCryptoService? cryptoService})
-      : _supabase = client ?? Supabase.instance.client,
-        _crypto = cryptoService;
+  MessageSupabaseDataSource({
+    SupabaseClient? client,
+    MessageCryptoService? cryptoService,
+  }) : _supabase = client ?? Supabase.instance.client,
+       _crypto = cryptoService;
 
   final SupabaseClient _supabase;
   final MessageCryptoService? _crypto;
@@ -72,7 +74,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     Map<String, dynamic> row,
     Map<String, dynamic> data,
   ) {
-    List<String> uni(dynamic a, dynamic b) => {
+    List<String> uni(dynamic a, dynamic b) =>
+        {
           ...((a as List?)?.map((e) => e.toString()) ?? const <String>[]),
           ...((b as List?)?.map((e) => e.toString()) ?? const <String>[]),
         }.toList();
@@ -208,7 +211,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
                   .preEstablishSessions([recipientId])
                   .timeout(const Duration(seconds: 10));
             } on TimeoutException {
-              debugPrint('MessageSupabaseDataSource: Signal session setup timed out');
+              debugPrint(
+                'MessageSupabaseDataSource: Signal session setup timed out',
+              );
             }
           }
         }
@@ -237,9 +242,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final isDirect = recipientId != null;
       String? fallbackReason;
       if (result.encryptionLevel == 'aes') {
-        fallbackReason = isDirect
-            ? (recipientHadKeys ? 'session_failed' : 'recipient_no_keys')
-            : 'sender_key_failed';
+        fallbackReason =
+            isDirect
+                ? (recipientHadKeys ? 'session_failed' : 'recipient_no_keys')
+                : 'sender_key_failed';
       }
       unawaited(
         AnalyticsService.instance.logMessageEncryption(
@@ -285,12 +291,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final current = Map<String, dynamic>.from(
         (rows.first['data'] as Map<String, dynamic>?) ?? {},
       );
-      final participantIds =
-          List<String>.from(rows.first['participant_ids'] as List? ?? []);
+      final participantIds = List<String>.from(
+        rows.first['participant_ids'] as List? ?? [],
+      );
 
       // 2. Increment unread counts for everyone except the sender
-      final unreadCount =
-          Map<String, dynamic>.from(current['unreadCount'] as Map? ?? {});
+      final unreadCount = Map<String, dynamic>.from(
+        current['unreadCount'] as Map? ?? {},
+      );
       for (final pid in participantIds) {
         if (pid != senderId) {
           final cur = (unreadCount[pid] as int?) ?? 0;
@@ -310,13 +318,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'lastMessageDeliveredTo': [senderId],
       };
 
-      await _supabase.from('conversations').update({
-        'last_message_at': at,
-        'data': updated,
-      }).eq('id', convId);
+      await _supabase
+          .from('conversations')
+          .update({'last_message_at': at, 'data': updated})
+          .eq('id', convId);
     } catch (e) {
       // Non-critical: message is already persisted
-      debugPrint('MessageSupabaseDataSource: _updateConversationLastMessage error: $e');
+      debugPrint(
+        'MessageSupabaseDataSource: _updateConversationLastMessage error: $e',
+      );
     }
   }
 
@@ -425,10 +435,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     return query.map((rows) {
       var models = rows.map(_msgFromRow).toList();
       if (filterAfterDate != null) {
-        models = models
-            .where((m) =>
-                m.createdAt != null && m.createdAt!.isAfter(filterAfterDate),)
-            .toList();
+        models =
+            models
+                .where(
+                  (m) =>
+                      m.createdAt != null &&
+                      m.createdAt!.isAfter(filterAfterDate),
+                )
+                .toList();
       }
       return models;
     });
@@ -441,23 +455,21 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     final controller = StreamController<Map<String, bool>>.broadcast();
 
-    ch
-        .onPresenceSync((_) {
-          final presenceList = ch.presenceState();
-          final result = <String, bool>{};
-          for (final singleState in presenceList) {
-            for (final presence in singleState.presences) {
-              final payload = presence.payload;
-              final userId = payload['user_id'] as String?;
-              final isTyping = payload['is_typing'] as bool? ?? false;
-              if (userId != null) {
-                result[userId] = isTyping;
-              }
-            }
+    ch.onPresenceSync((_) {
+      final presenceList = ch.presenceState();
+      final result = <String, bool>{};
+      for (final singleState in presenceList) {
+        for (final presence in singleState.presences) {
+          final payload = presence.payload;
+          final userId = payload['user_id'] as String?;
+          final isTyping = payload['is_typing'] as bool? ?? false;
+          if (userId != null) {
+            result[userId] = isTyping;
           }
-          if (!controller.isClosed) controller.add(result);
-        })
-        .subscribe();
+        }
+      }
+      if (!controller.isClosed) controller.add(result);
+    }).subscribe();
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -480,11 +492,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
             .eq('type', 'request')
             .order('created_at', ascending: false);
 
-        final requests = rows
-            .map(_convFromRow)
-            .where((c) =>
-                c.requestStatus == 'pending' && c.requesterId != userId,)
-            .toList();
+        final requests =
+            rows
+                .map(_convFromRow)
+                .where(
+                  (c) =>
+                      c.requestStatus == 'pending' && c.requesterId != userId,
+                )
+                .toList();
 
         if (!controller.isClosed) controller.add(requests);
       } catch (e) {
@@ -623,22 +638,22 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Session Supabase non établie – reconnectez-vous');
+        throw ServerException(
+          'Session Supabase non établie – reconnectez-vous',
+        );
       }
-      final row = await _supabase
-          .from('messages')
-          .select()
-          .eq('id', messageId)
-          .eq('conversation_id', conversationId)
-          .maybeSingle();
+      final row =
+          await _supabase
+              .from('messages')
+              .select()
+              .eq('id', messageId)
+              .eq('conversation_id', conversationId)
+              .maybeSingle();
       if (row == null) return null;
-      final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
-      data['id'] = row['id'];
-      data['conversationId'] = row['conversation_id'];
-      data['senderId'] = row['sender_id'];
-      data['type'] = row['type'];
-      data['createdAt'] = row['created_at'];
-      return MessageModel.fromJson(data);
+      // Déchiffre le contenu (E2EE / AES) comme le flux de pagination : sans
+      // ça, un message épinglé résolu hors de la fenêtre chargée renvoyait du
+      // texte chiffré brut (affiché tel quel dans le bandeau épinglé).
+      return await _msgFromRowAsync(Map<String, dynamic>.from(row));
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('getMessageById error: $e');
@@ -683,20 +698,22 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
-        'content': content,          // base (overridden by cryptoFields)
-        'encryptionLevel': 'aes',    // base (overridden by cryptoFields)
-        ...cryptoFields,             // encrypted content + encryptionLevel + e2ee payload
+        'content': content, // base (overridden by cryptoFields)
+        'encryptionLevel': 'aes', // base (overridden by cryptoFields)
+        ...cryptoFields, // encrypted content + encryptionLevel + e2ee payload
         'status': 'sent',
         'readBy': [senderId],
         'readAt': {senderId: now},
         'deliveredTo': [senderId],
         'deliveredAt': {senderId: now},
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
+        if (replyToMessageData != null)
+          'replyToMessageData': replyToMessageData,
         if (productData != null) 'productData': productData,
         if (postData != null) 'postData': postData,
         if (eventData != null) 'eventData': eventData,
-        if (sentWhileBlockedBy.isNotEmpty) 'sentWhileBlockedBy': sentWhileBlockedBy,
+        if (sentWhileBlockedBy.isNotEmpty)
+          'sentWhileBlockedBy': sentWhileBlockedBy,
         if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
         if (isForwarded) 'isForwarded': isForwarded,
         if (mentionedUsers.isNotEmpty) 'mentionedUsers': mentionedUsers,
@@ -713,9 +730,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'data': msgData,
       });
 
-      final displayText = postData != null
-          ? '📌 ${postData['authorName'] ?? 'Post partagé'}'
-          : productData != null
+      final displayText =
+          postData != null
+              ? '📌 ${postData['authorName'] ?? 'Post partagé'}'
+              : productData != null
               ? '🛒 ${productData['title'] ?? 'Produit'}'
               : content;
 
@@ -781,7 +799,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
+        if (replyToMessageData != null)
+          'replyToMessageData': replyToMessageData,
         if (isForwarded) 'isForwarded': isForwarded,
         if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
         if (videoDuration != null) 'videoDuration': videoDuration,
@@ -882,7 +901,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
+        if (replyToMessageData != null)
+          'replyToMessageData': replyToMessageData,
       };
 
       await _supabase.from('messages').insert({
@@ -946,7 +966,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
+        if (replyToMessageData != null)
+          'replyToMessageData': replyToMessageData,
       };
 
       await _supabase.from('messages').insert({
@@ -1315,9 +1336,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       ConversationModel? requestMatch;
       for (final row in rows) {
         final ids = List<String>.from(row['participant_ids'] as List? ?? []);
-        if (ids.length == 2 &&
-            ids.contains(userId1) &&
-            ids.contains(userId2)) {
+        if (ids.length == 2 && ids.contains(userId1) && ids.contains(userId2)) {
           // Une vraie conversation 'individual' est prioritaire ; sinon on
           // réutilise la ligne 'request' au lieu d'en créer une nouvelle.
           if (row['type'] == 'individual') {
@@ -1361,7 +1380,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Session Supabase non établie – reconnectez-vous');
+        throw ServerException(
+          'Session Supabase non établie – reconnectez-vous',
+        );
       }
       // RPC SECURITY DEFINER : localise la conversation du groupe SANS filtrer
       // par participant_ids (sinon un membre ayant rejoint le groupe après sa
@@ -1369,10 +1390,12 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // createGroupConversation en recréait une par-dessus, en double).
       // La fonction vérifie l'appartenance réelle (group_members) puis
       // (ré)ajoute userId aux participants si besoin.
-      final convId = await _supabase.rpc(
-        'join_group_conversation',
-        params: {'p_group_id': groupId},
-      ) as String?;
+      final convId =
+          await _supabase.rpc(
+                'join_group_conversation',
+                params: {'p_group_id': groupId},
+              )
+              as String?;
       if (convId == null) return null;
 
       final rows = await _supabase
@@ -1413,10 +1436,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      await _supabase.rpc('mark_messages_as_delivered', params: {
-        'p_conversation_id': conversationId,
-        'p_user_id': userId,
-      },);
+      await _supabase.rpc(
+        'mark_messages_as_delivered',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
 
       // Also update lastMessageDeliveredTo on the conversation
       final rows = await _supabase
@@ -1425,14 +1448,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       final current = Map<String, dynamic>.from(
-        (rows.isNotEmpty ? rows.first['data'] as Map<String, dynamic>? : null) ?? {},
+        (rows.isNotEmpty
+                ? rows.first['data'] as Map<String, dynamic>?
+                : null) ??
+            {},
       );
-      final deliveredTo = List<String>.from(current['lastMessageDeliveredTo'] as List? ?? []);
+      final deliveredTo = List<String>.from(
+        current['lastMessageDeliveredTo'] as List? ?? [],
+      );
       if (!deliveredTo.contains(userId)) {
         deliveredTo.add(userId);
         await _mergeConvData(conversationId, {
           'lastMessageDeliveredTo': deliveredTo,
-        }, merge: true,);
+        }, merge: true);
       }
     } catch (e) {
       // Non-critical: delivery tracking best-effort
@@ -1454,15 +1482,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .limit(1);
 
       final current = Map<String, dynamic>.from(
-        (rows.isNotEmpty ? rows.first['data'] as Map<String, dynamic>? : null) ?? {},
+        (rows.isNotEmpty
+                ? rows.first['data'] as Map<String, dynamic>?
+                : null) ??
+            {},
       );
-      final readBy = List<String>.from(current['lastMessageReadBy'] as List? ?? []);
+      final readBy = List<String>.from(
+        current['lastMessageReadBy'] as List? ?? [],
+      );
       if (!readBy.contains(userId)) readBy.add(userId);
 
       await _mergeConvData(conversationId, {
         'unreadCount': {userId: 0},
         'lastMessageReadBy': readBy,
-      }, merge: true,);
+      }, merge: true);
     } catch (e) {
       throw ServerException('markAsRead error: $e');
     }
@@ -1474,11 +1507,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      await _mergeConvData(
-        conversationId,
-        {'unreadMentions': {userId: 0}},
-        merge: true,
-      );
+      await _mergeConvData(conversationId, {
+        'unreadMentions': {userId: 0},
+      }, merge: true);
     } catch (e) {
       throw ServerException('clearUnreadMentions error: $e');
     }
@@ -1493,11 +1524,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String conversationId,
     required String userId,
   }) async {
-    await _mergeConvData(
-      conversationId,
-      {'archivedBy': {userId: true}},
-      merge: true,
-    );
+    await _mergeConvData(conversationId, {
+      'archivedBy': {userId: true},
+    }, merge: true);
   }
 
   @override
@@ -1514,14 +1543,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
     Duration? duration,
   }) async {
-    final muteValue = duration == null
-        ? 'forever'
-        : DateTime.now().add(duration).toIso8601String();
-    await _mergeConvData(
-      conversationId,
-      {'mutedBy': {userId: muteValue}},
-      merge: true,
-    );
+    final muteValue =
+        duration == null
+            ? 'forever'
+            : DateTime.now().add(duration).toIso8601String();
+    await _mergeConvData(conversationId, {
+      'mutedBy': {userId: muteValue},
+    }, merge: true);
   }
 
   @override
@@ -1539,13 +1567,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     final count = await getPinnedConversationCount(userId);
     if (count >= 5) {
-      throw ServerException('Vous ne pouvez pas épingler plus de 5 conversations');
+      throw ServerException(
+        'Vous ne pouvez pas épingler plus de 5 conversations',
+      );
     }
-    await _mergeConvData(
-      conversationId,
-      {'pinnedBy': {userId: DateTime.now().toUtc().toIso8601String()}},
-      merge: true,
-    );
+    await _mergeConvData(conversationId, {
+      'pinnedBy': {userId: DateTime.now().toUtc().toIso8601String()},
+    }, merge: true);
   }
 
   @override
@@ -1594,20 +1622,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         }
 
         // Hard delete (cascade deletes messages)
-        await _supabase
-            .from('conversations')
-            .delete()
-            .eq('id', conversationId);
+        await _supabase.from('conversations').delete().eq('id', conversationId);
       } else {
         final now = DateTime.now().toUtc().toIso8601String();
-        await _mergeConvData(
-          conversationId,
-          {
-            'deletedBy': {userId: now},
-            'unreadCount': {userId: 0},
-          },
-          merge: true,
-        );
+        await _mergeConvData(conversationId, {
+          'deletedBy': {userId: now},
+          'unreadCount': {userId: 0},
+        }, merge: true);
       }
     } catch (e) {
       if (e is ServerException) rethrow;
@@ -1639,8 +1660,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
       if (!adminIds.contains(userId)) adminIds.add(userId);
       data['adminIds'] = adminIds;
@@ -1665,8 +1687,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
       adminIds.remove(userId);
       data['adminIds'] = adminIds;
@@ -1699,19 +1722,21 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       if (rows.isEmpty) return;
 
       final ids = List<String>.from(
-          rows.first['participant_ids'] as List? ?? [],);
+        rows.first['participant_ids'] as List? ?? [],
+      );
       ids.remove(userId);
 
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
       adminIds.remove(userId);
       data['adminIds'] = adminIds;
 
-      await _supabase.from('conversations').update({
-        'participant_ids': ids,
-        'data': data,
-      }).eq('id', conversationId);
+      await _supabase
+          .from('conversations')
+          .update({'participant_ids': ids, 'data': data})
+          .eq('id', conversationId);
     } catch (e) {
       throw ServerException('removeUserFromGroup error: $e');
     }
@@ -1728,11 +1753,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      await _mergeMsgData(
-        messageId,
-        {'deletedFor': userId},
-        appendToList: true,
-      );
+      await _mergeMsgData(messageId, {
+        'deletedFor': userId,
+      }, appendToList: true);
     } catch (e) {
       throw ServerException('deleteMessageForMe error: $e');
     }
@@ -1752,18 +1775,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       data['deletedForEveryone'] = true;
       data['deletedAt'] = now;
       data['content'] = '';
       data.remove('fileUrl');
       data.remove('thumbnailUrl');
 
-      await _supabase.from('messages').update({
-        'is_deleted': true,
-        'data': data,
-      }).eq('id', messageId);
+      await _supabase
+          .from('messages')
+          .update({'is_deleted': true, 'data': data})
+          .eq('id', messageId);
 
       // Retire l'épingle éventuelle : sans ça le bandeau garde une entrée
       // fantôme (« Appuyez pour voir ») vers un message qui n'existe plus.
@@ -1800,8 +1824,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       final reactions = List<String>.from(data['reactions'] as List? ?? []);
       reactions.remove(emoji);
       data['reactions'] = reactions;
@@ -1827,8 +1852,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       final starredBy = List<String>.from(data['starredBy'] as List? ?? []);
       if (starredBy.contains(userId)) {
         starredBy.remove(userId);
@@ -1861,11 +1887,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
 
-      final editHistory =
-          List<Map<String, dynamic>>.from(data['editHistory'] as List? ?? []);
+      final editHistory = List<Map<String, dynamic>>.from(
+        data['editHistory'] as List? ?? [],
+      );
       editHistory.add({'content': oldContent, 'editedAt': now});
 
       data['content'] = newContent;
@@ -1904,10 +1932,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       if (rows.isEmpty) return;
-      final data =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
-      final reportedBy =
-          List<String>.from(data['reportedBy'] as List? ?? []);
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
+      final reportedBy = List<String>.from(data['reportedBy'] as List? ?? []);
       if (!reportedBy.contains(userId)) reportedBy.add(userId);
       data['reportedBy'] = reportedBy;
       await _supabase
@@ -1937,9 +1965,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .select()
           .eq('conversation_id', conversationId);
 
-      final filteredQuery = lastMessageKey != null
-          ? baseQuery.lt('created_at', lastMessageKey.toString())
-          : baseQuery;
+      final filteredQuery =
+          lastMessageKey != null
+              ? baseQuery.lt('created_at', lastMessageKey.toString())
+              : baseQuery;
 
       final rows = await filteredQuery
           .order('created_at', ascending: false)
@@ -1948,10 +1977,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       var messages = await Future.wait(rows.map(_msgFromRowAsync));
 
       if (filterAfterDate != null) {
-        messages = messages
-            .where((m) =>
-                m.createdAt != null && m.createdAt!.isAfter(filterAfterDate),)
-            .toList();
+        messages =
+            messages
+                .where(
+                  (m) =>
+                      m.createdAt != null &&
+                      m.createdAt!.isAfter(filterAfterDate),
+                )
+                .toList();
       }
 
       final hasMore = messages.length > limit;
@@ -1959,7 +1992,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       // Return oldest message's createdAt as cursor for next page
       final newCursor =
-          messages.isNotEmpty ? messages.last.createdAt?.toIso8601String() : null;
+          messages.isNotEmpty
+              ? messages.last.createdAt?.toIso8601String()
+              : null;
 
       // Reverse to oldest-first for display
       return (messages.reversed.toList(), newCursor);
@@ -1990,9 +2025,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final lowerQuery = query.toLowerCase();
       return rows
           .map(_convFromRow)
-          .where((c) =>
-              (c.name ?? '').toLowerCase().contains(lowerQuery) ||
-              (c.lastMessage ?? '').toLowerCase().contains(lowerQuery),)
+          .where(
+            (c) =>
+                (c.name ?? '').toLowerCase().contains(lowerQuery) ||
+                (c.lastMessage ?? '').toLowerCase().contains(lowerQuery),
+          )
           .take(20)
           .toList();
     } catch (e) {
@@ -2016,10 +2053,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .limit(limit);
 
       final rows = await query;
-      return rows
-          .map(_msgFromRow)
-          .where((m) => m.fileUrl != null)
-          .toList();
+      return rows.map(_msgFromRow).where((m) => m.fileUrl != null).toList();
     } catch (e) {
       throw ServerException('getMediaMessages error: $e');
     }
@@ -2160,8 +2194,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       if (rows.isEmpty) return;
-      final current =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final current = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
 
       if (merge) {
         for (final entry in partial.entries) {
@@ -2200,11 +2235,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', conversationId)
           .limit(1);
       if (rows.isEmpty) return;
-      final current =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final current = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
       if (current[parentKey] is Map) {
-        final nested =
-            Map<String, dynamic>.from(current[parentKey] as Map);
+        final nested = Map<String, dynamic>.from(current[parentKey] as Map);
         nested.remove(childKey);
         current[parentKey] = nested;
       }
@@ -2233,13 +2268,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
-      final current =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
+      final current = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
 
       if (appendToList) {
         for (final entry in partial.entries) {
-          final existing =
-              List<dynamic>.from(current[entry.key] as List? ?? []);
+          final existing = List<dynamic>.from(
+            current[entry.key] as List? ?? [],
+          );
           if (!existing.contains(entry.value)) {
             existing.add(entry.value);
           }
