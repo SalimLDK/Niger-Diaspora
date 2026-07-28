@@ -14208,6 +14208,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsHelpAbout => 'Aide et à propos';
 
   @override
+  String get locationReciprocity =>
+      'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.';
+
+  @override
+  String get locationGuarantee1 =>
+      'Position approximative, jamais votre adresse exacte';
+
+  @override
+  String get locationGuarantee2 => 'Désactivable à tout moment';
+
+  @override
+  String get locationGuarantee3 =>
+      'Invisible pour les comptes que vous bloquez';
+
+  @override
+  String get exploreOtherwise => 'Explorer autrement';
+
+  @override
   String get posts => 'posts';
 
   @override

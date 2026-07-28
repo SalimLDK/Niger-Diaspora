@@ -2527,6 +2527,170 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   /// Petit bouton flottant pour rouvrir le panneau "Membres à proximité"
   /// une fois masqué complètement.
+  /// Écran assumé sans localisation (8c) : réciprocité expliquée, trois
+  /// garanties, CTA d'activation, puis repli « explorer autrement ».
+  Widget _buildNoLocationScreen(AppLocalizations l10n, bool nearbyEnabled) {
+    final accent = context.adaptivePrimaryColor;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        24,
+        24,
+        MediaQuery.of(context).viewPadding.bottom + 100,
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              nearbyEnabled
+                  ? Icons.location_off_outlined
+                  : Icons.visibility_off_outlined,
+              size: 46,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            nearbyEnabled
+                ? l10n.locationRequiredToSeeMembers
+                : l10n.nearbyMembersDisabled,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.locationReciprocity,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14.5,
+              height: 1.5,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _guaranteeRow(Icons.my_location, l10n.locationGuarantee1),
+          _guaranteeRow(Icons.toggle_off_outlined, l10n.locationGuarantee2),
+          _guaranteeRow(Icons.block_outlined, l10n.locationGuarantee3),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: accent,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: nearbyEnabled
+                  ? _initializeLocation
+                  : () => ref
+                      .read(nearbyMembersEnabledProvider.notifier)
+                      .setEnabled(true),
+              icon: const Icon(Icons.my_location, size: 20),
+              label: Text(
+                l10n.mapEnable,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.exploreOtherwise.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
+                color: context.textTertiaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _exploreCard(
+                  Icons.account_balance,
+                  l10n.embassies,
+                  () => context.push('/embassies'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _exploreCard(
+                  Icons.groups_outlined,
+                  l10n.groupsTitle,
+                  () => context.go('/groups'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _guaranteeRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: context.adaptivePrimaryColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: context.textPrimaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _exploreCard(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.borderColor),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 26, color: context.adaptivePrimaryColor),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Ligne de membre dans la feuille : avatar 44 + nom + « métier · ville »,
   /// bouton d'action 40 px (ouvre la fiche membre).
   Widget _buildMemberSheetItem(ProfileModel member, AppLocalizations l10n) {
@@ -2819,6 +2983,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
       body:
           !_mapsInitialized
               ? const Center(child: CircularProgressIndicator())
+              // 8c : écran dédié sans localisation (réciprocité + garanties +
+              // repli « explorer autrement »), au lieu d'un bandeau sur une
+              // carte inutilisable.
+              : _isReciprocityRestricted
+              ? _buildNoLocationScreen(l10n, nearbyEnabled)
               : Stack(
                 children: [
                   // Google Map

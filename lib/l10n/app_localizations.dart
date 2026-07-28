@@ -26318,6 +26318,36 @@ abstract class AppLocalizations {
   /// **'Aide et à propos'**
   String get settingsHelpAbout;
 
+  /// No description provided for @locationReciprocity.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.'**
+  String get locationReciprocity;
+
+  /// No description provided for @locationGuarantee1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position approximative, jamais votre adresse exacte'**
+  String get locationGuarantee1;
+
+  /// No description provided for @locationGuarantee2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivable à tout moment'**
+  String get locationGuarantee2;
+
+  /// No description provided for @locationGuarantee3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invisible pour les comptes que vous bloquez'**
+  String get locationGuarantee3;
+
+  /// No description provided for @exploreOtherwise.
+  ///
+  /// In fr, this message translates to:
+  /// **'Explorer autrement'**
+  String get exploreOtherwise;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:

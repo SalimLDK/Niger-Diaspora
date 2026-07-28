@@ -6239,6 +6239,11 @@
   "settingsPrivacySecurity": "Privacy & security",
   "settingsAppearanceLanguage": "Appearance & language",
   "settingsHelpAbout": "Help & about",
+  "locationReciprocity": "It's mutual: share your approximate location to see members near you.",
+  "locationGuarantee1": "Approximate position, never your exact address",
+  "locationGuarantee2": "Can be turned off anytime",
+  "locationGuarantee3": "Hidden from accounts you block",
+  "exploreOtherwise": "Explore another way",
   "posts": "posts",
   "postSingle": "post",
 

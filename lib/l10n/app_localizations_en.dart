@@ -14075,6 +14075,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHelpAbout => 'Help & about';
 
   @override
+  String get locationReciprocity =>
+      'It\'s mutual: share your approximate location to see members near you.';
+
+  @override
+  String get locationGuarantee1 =>
+      'Approximate position, never your exact address';
+
+  @override
+  String get locationGuarantee2 => 'Can be turned off anytime';
+
+  @override
+  String get locationGuarantee3 => 'Hidden from accounts you block';
+
+  @override
+  String get exploreOtherwise => 'Explore another way';
+
+  @override
   String get posts => 'posts';
 
   @override
