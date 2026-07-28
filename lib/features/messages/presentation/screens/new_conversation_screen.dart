@@ -9,6 +9,7 @@ import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -24,6 +25,9 @@ class NewConversationScreen extends ConsumerStatefulWidget {
 class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _groupNameController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+
+  bool get _hasQuery => _searchController.text.trim().isNotEmpty;
 
   List<ProfileModel> _friendResults = [];
   List<ProfileModel> _otherResults = [];
@@ -35,7 +39,28 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   void dispose() {
     _searchController.dispose();
     _groupNameController.dispose();
+    _searchFocus.dispose();
     super.dispose();
+  }
+
+  /// Ouvre « Mes notes » (self-chat), en réutilisant l'éventuelle conversation
+  /// déjà chargée. Même flux que la tuile épinglée de MessagesScreen.
+  Future<void> _openSelfNotes() async {
+    final conversation =
+        await ref.read(ensureSelfNotesProvider.notifier).ensure();
+    if (!mounted) return;
+    if (conversation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Impossible d'ouvrir Mes notes pour le moment"),
+        ),
+      );
+      return;
+    }
+    context.push(
+      '/messages/${conversation.id}',
+      extra: {'name': 'Mes notes', 'isGroup': false, 'isSelfNotes': true},
+    );
   }
 
   /// Obtenir les initiales du nom
@@ -257,6 +282,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
             color: context.surfaceColor,
             child: TextField(
               controller: _searchController,
+              focusNode: _searchFocus,
               onChanged: _searchUsers,
               decoration: InputDecoration(
                 hintText: l10n.searchMember,
@@ -409,6 +435,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                         color: context.adaptivePrimaryColor,
                       ),
                     )
+                    : !_hasQuery
+                    ? _buildIdleContent()
                     : (_friendResults.isEmpty && _otherResults.isEmpty)
                     ? _buildEmptyState()
                     : ListView(
@@ -492,8 +520,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     );
   }
 
+  /// Recherche active mais sans résultat.
   Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -505,10 +533,191 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.searchAMember,
+            'Aucun résultat',
             style: TextStyle(fontSize: 16, color: context.textSecondaryColor),
           ),
         ],
+      ),
+    );
+  }
+
+  /// État au repos (aucune recherche) : raccourcis + contacts récents.
+  /// « Proches de vous » (distance/présence) reste à câbler — pas de provider
+  /// de membres proches dans la feature messages.
+  Widget _buildIdleContent() {
+    final myId = ref.watch(currentUserProvider).valueOrNull?.id ?? '';
+    final recents = (ref.watch(conversationsProvider).valueOrNull ?? [])
+        .where((c) => c.isIndividual && !c.isSelfNotesFor(myId))
+        .take(12)
+        .toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildShortcut(
+          icon: AppIcon(AppIcon.groups, size: 22, color: context.adaptivePrimaryColor),
+          title: 'Nouveau groupe',
+          subtitle: 'Sélectionnez des membres, puis nommez le groupe',
+          onTap: () {
+            _searchFocus.requestFocus();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Recherchez et sélectionnez plusieurs membres pour créer un groupe.',
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        _buildShortcut(
+          icon: Icon(Icons.edit_note_rounded, size: 24, color: context.adaptivePrimaryColor),
+          title: 'Mes notes',
+          subtitle: 'Vos brouillons, visibles de vous seul',
+          onTap: _openSelfNotes,
+        ),
+        if (recents.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            'Contacts récents',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...recents.map((c) => _buildRecentTile(c, myId)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildShortcut({
+    required Widget icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(child: icon),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: context.textTertiaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentTile(ConversationEntity conversation, String myId) {
+    final name = conversation.name ?? 'Utilisateur';
+    final photoUrl = conversation.imageUrl;
+    return GestureDetector(
+      onTap: () => context.push(
+        '/messages/${conversation.id}',
+        extra: {
+          'name': name,
+          'imageUrl': photoUrl,
+          'isGroup': false,
+          'otherUserId': conversation.getOtherParticipantId(myId),
+        },
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: context.adaptivePrimaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: photoUrl != null
+                  ? Image.network(
+                      photoUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Text(
+                          _getInitials(name),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        _getInitials(name),
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: context.textPrimaryColor,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
