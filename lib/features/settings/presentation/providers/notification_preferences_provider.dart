@@ -7,6 +7,7 @@ part 'notification_preferences_provider.g.dart';
 
 /// State class for notification preferences
 class NotificationPreferences {
+  final bool masterEnabled;
   final bool messagesEnabled;
   final bool eventsEnabled;
   final bool friendRequestsEnabled;
@@ -23,6 +24,7 @@ class NotificationPreferences {
   final int quietHoursEndMinute;
 
   const NotificationPreferences({
+    required this.masterEnabled,
     required this.messagesEnabled,
     required this.eventsEnabled,
     required this.friendRequestsEnabled,
@@ -40,6 +42,7 @@ class NotificationPreferences {
   });
 
   NotificationPreferences copyWith({
+    bool? masterEnabled,
     bool? messagesEnabled,
     bool? eventsEnabled,
     bool? friendRequestsEnabled,
@@ -56,6 +59,7 @@ class NotificationPreferences {
     int? quietHoursEndMinute,
   }) {
     return NotificationPreferences(
+      masterEnabled: masterEnabled ?? this.masterEnabled,
       messagesEnabled: messagesEnabled ?? this.messagesEnabled,
       eventsEnabled: eventsEnabled ?? this.eventsEnabled,
       friendRequestsEnabled:
@@ -86,6 +90,7 @@ class NotificationPreferencesNotifier
   @override
   NotificationPreferences build() {
     return NotificationPreferences(
+      masterEnabled: _prefs.notificationsEnabled,
       messagesEnabled: _prefs.notifyMessages,
       eventsEnabled: _prefs.notifyEvents,
       friendRequestsEnabled: _prefs.notifyFriendRequests,
@@ -101,6 +106,11 @@ class NotificationPreferencesNotifier
       quietHoursEndHour: _prefs.quietHoursEndHour,
       quietHoursEndMinute: _prefs.quietHoursEndMinute,
     );
+  }
+
+  Future<void> setMasterEnabled(bool enabled) async {
+    await _prefs.setNotificationsEnabled(enabled);
+    state = state.copyWith(masterEnabled: enabled);
   }
 
   Future<void> setMessagesEnabled(bool enabled) async {

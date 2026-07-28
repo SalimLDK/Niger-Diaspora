@@ -2467,6 +2467,8 @@
   "checkSpamFolder": "Vérifiez également votre dossier spam si vous ne trouvez pas l'email.",
   "resendLink": "Renvoyer le lien",
   "enableNotifications": "Activer les notifications",
+  "notificationsMasterOnDesc": "Vous recevez les notifications de l'application",
+  "notificationsMasterOffDesc": "Toutes les notifications sont coupées",
   "notificationPromptMessage": "Recevez des alertes lorsque vous avez de nouveaux messages, appels entrants ou activités importantes.\n\nVous pouvez modifier ce paramètre à tout moment.",
   "later": "Plus tard",
   "notificationsDisabledMessage": "Les notifications sont désactivées. Vous ne recevrez pas d'alertes pour les nouveaux messages et appels.\n\nPour les activer, allez dans les paramètres de l'application.",

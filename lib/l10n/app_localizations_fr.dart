@@ -5503,6 +5503,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enableNotifications => 'Activer les notifications';
 
   @override
+  String get notificationsMasterOnDesc =>
+      'Vous recevez les notifications de l\'application';
+
+  @override
+  String get notificationsMasterOffDesc =>
+      'Toutes les notifications sont coupées';
+
+  @override
   String get notificationPromptMessage =>
       'Recevez des alertes lorsque vous avez de nouveaux messages, appels entrants ou activités importantes.\n\nVous pouvez modifier ce paramètre à tout moment.';
 

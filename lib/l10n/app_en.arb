@@ -2446,6 +2446,8 @@
   "resendLink": "Resend link",
 
   "enableNotifications": "Enable notifications",
+  "notificationsMasterOnDesc": "You receive the app's notifications",
+  "notificationsMasterOffDesc": "All notifications are turned off",
   "notificationPromptMessage": "Receive alerts when you have new messages, incoming calls or important activities.\n\nYou can change this setting at any time.",
   "later": "Later",
   "enable": "Enable",

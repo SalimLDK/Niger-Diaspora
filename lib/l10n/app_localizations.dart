@@ -10250,6 +10250,18 @@ abstract class AppLocalizations {
   /// **'Activer les notifications'**
   String get enableNotifications;
 
+  /// No description provided for @notificationsMasterOnDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous recevez les notifications de l\'application'**
+  String get notificationsMasterOnDesc;
+
+  /// No description provided for @notificationsMasterOffDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les notifications sont coupées'**
+  String get notificationsMasterOffDesc;
+
   /// No description provided for @notificationPromptMessage.
   ///
   /// In fr, this message translates to:

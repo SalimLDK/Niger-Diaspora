@@ -1552,6 +1552,9 @@ class NotificationService {
     try {
       final prefs = await SharedPreferences.getInstance();
 
+      // Interrupteur maître : coupe toutes les notifications.
+      if (!(prefs.getBool('notifications_enabled') ?? true)) return false;
+
       if (type == null) return true;
 
       switch (type) {
