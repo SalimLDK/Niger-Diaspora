@@ -171,9 +171,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return l10n.enterEmail;
                     }
-                    if (!value.contains('@')) {
+                    // Erreurs en langage clair (§15a).
+                    final v = value.trim();
+                    if (!v.contains('@')) return l10n.emailMissingAt;
+                    final parts = v.split('@');
+                    if (parts.length != 2 ||
+                        parts[0].isEmpty ||
+                        parts[1].isEmpty) {
                       return l10n.invalidEmail;
                     }
+                    if (!parts[1].contains('.')) return l10n.emailMissingDomain;
                     return null;
                   },
                 ),

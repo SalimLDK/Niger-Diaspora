@@ -31,6 +31,8 @@
   "joinCommunity": "Join the Nigerien community",
   "enterEmail": "Please enter your email",
   "invalidEmail": "Invalid email",
+  "emailMissingAt": "Add the @, e.g. name@example.com",
+  "emailMissingDomain": "The address ending is missing, e.g. .com",
   "enterPassword": "Please enter your password",
   "enterAPassword": "Please enter a password",
   "passwordTooShort": "Password must be at least 6 characters",

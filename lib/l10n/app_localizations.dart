@@ -284,6 +284,18 @@ abstract class AppLocalizations {
   /// **'Email invalide'**
   String get invalidEmail;
 
+  /// No description provided for @emailMissingAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez le @, par exemple nom@exemple.com'**
+  String get emailMissingAt;
+
+  /// No description provided for @emailMissingDomain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il manque la fin de l\'adresse, par exemple .com'**
+  String get emailMissingDomain;
+
   /// No description provided for @enterPassword.
   ///
   /// In fr, this message translates to:

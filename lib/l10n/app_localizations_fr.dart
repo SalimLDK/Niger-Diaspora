@@ -102,6 +102,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get invalidEmail => 'Email invalide';
 
   @override
+  String get emailMissingAt => 'Ajoutez le @, par exemple nom@exemple.com';
+
+  @override
+  String get emailMissingDomain =>
+      'Il manque la fin de l\'adresse, par exemple .com';
+
+  @override
   String get enterPassword => 'Veuillez entrer votre mot de passe';
 
   @override
