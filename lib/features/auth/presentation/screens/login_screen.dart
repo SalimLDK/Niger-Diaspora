@@ -187,10 +187,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 16),
 
+                // Libellé + « Oublié ? » sur la même ligne (§15a).
+                Row(
+                  children: [
+                    Text(
+                      l10n.password,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => context.push('/auth/forgot-password'),
+                      child: Text(
+                        'Oublié ?',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
                 // Password Field
                 CustomTextField(
                   controller: _passwordController,
                   label: l10n.password,
+                  showLabel: false,
                   obscureText: true,
                   enabled: !isLoading,
                   validator: (value) {
@@ -202,23 +228,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     }
                     return null;
                   },
-                ),
-
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      context.push('/auth/forgot-password');
-                    },
-                    child: Text(
-                      'Mot de passe oublié ?',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ),
 
                 const SizedBox(height: 24),
