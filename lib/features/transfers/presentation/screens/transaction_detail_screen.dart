@@ -582,6 +582,18 @@ class TransactionDetailScreen extends ConsumerWidget {
     context.push('/transfers/send');
   }
 
+  /// Pré-remplit la description du ticket avec le contexte du transfert.
+  String _supportPrefill(TransactionEntity transaction) {
+    final recipient = transaction.recipientName ??
+        transaction.recipientPhone ??
+        'bénéficiaire inconnu';
+    return 'Concernant le transfert #${transaction.id}\n'
+        'Bénéficiaire : $recipient\n'
+        'Montant : ${transaction.amount.toStringAsFixed(2)} ${transaction.currency}\n'
+        'Statut : ${transaction.status.label}\n\n'
+        'Décrivez votre problème : ';
+  }
+
   void _contactSupport(BuildContext context, TransactionEntity transaction, WidgetRef ref) {
     final supportService = ref.read(supportServiceProvider);
     showModalBottomSheet(
@@ -598,6 +610,24 @@ class TransactionDetailScreen extends ConsumerWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
+                // Ticket in-app qui embarque le transfert concerné (§11) :
+                // la demande arrive au support avec la transaction liée.
+                ListTile(
+                  leading: const Icon(Icons.support_agent),
+                  title: const Text('Ouvrir un ticket'),
+                  subtitle: const Text('Le transfert est joint · réponse dans l\'app'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(
+                      '/support/new',
+                      extra: {
+                        'transactionId': transaction.id,
+                        'subject': 'Souci avec un transfert',
+                        'description': _supportPrefill(transaction),
+                      },
+                    );
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
                   title: const Text('Email'),
@@ -610,19 +640,6 @@ class TransactionDetailScreen extends ConsumerWidget {
                       query: 'subject=Support Transaction ${transaction.id}',
                     );
                     launchUrl(emailLaunchUri);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.chat_outlined),
-                  title: const Text('Chat en direct'),
-                  subtitle: const Text('Disponible 24/7'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Chat non disponible pour le moment'),
-                      ),
-                    );
                   },
                 ),
                 ListTile(
