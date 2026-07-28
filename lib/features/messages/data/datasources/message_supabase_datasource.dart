@@ -2048,7 +2048,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .from('messages')
           .select()
           .eq('conversation_id', conversationId)
-          .inFilter('type', ['image', 'file'])
+          .inFilter('type', ['image', 'video', 'file'])
           .order('created_at', ascending: false)
           .limit(limit);
 

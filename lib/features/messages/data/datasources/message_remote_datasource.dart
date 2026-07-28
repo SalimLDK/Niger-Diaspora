@@ -2288,9 +2288,11 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
         final message = MessageModel.fromJson(data);
 
-        // Filter: only images and files (not text, not audio)
+        // Filter: only images, videos and files (not text, not audio)
         // Also ensure fileUrl is present
-        if ((message.type == 'image' || message.type == 'file') &&
+        if ((message.type == 'image' ||
+                message.type == 'video' ||
+                message.type == 'file') &&
             message.fileUrl != null) {
           messages.add(message);
         }

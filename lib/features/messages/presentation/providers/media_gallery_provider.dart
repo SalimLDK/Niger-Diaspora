@@ -10,6 +10,7 @@ part 'media_gallery_provider.g.dart';
 /// State for media gallery pagination
 class MediaGalleryState {
   final List<MessageEntity> images;
+  final List<MessageEntity> videos;
   final List<MessageEntity> files;
   final bool isLoading;
   final bool hasMore;
@@ -18,6 +19,7 @@ class MediaGalleryState {
 
   const MediaGalleryState({
     this.images = const [],
+    this.videos = const [],
     this.files = const [],
     this.isLoading = false,
     this.hasMore = true,
@@ -27,6 +29,7 @@ class MediaGalleryState {
 
   MediaGalleryState copyWith({
     List<MessageEntity>? images,
+    List<MessageEntity>? videos,
     List<MessageEntity>? files,
     bool? isLoading,
     bool? hasMore,
@@ -35,6 +38,7 @@ class MediaGalleryState {
   }) {
     return MediaGalleryState(
       images: images ?? this.images,
+      videos: videos ?? this.videos,
       files: files ?? this.files,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
@@ -43,8 +47,8 @@ class MediaGalleryState {
     );
   }
 
-  int get totalCount => images.length + files.length;
-  bool get isEmpty => images.isEmpty && files.isEmpty;
+  int get totalCount => images.length + videos.length + files.length;
+  bool get isEmpty => images.isEmpty && videos.isEmpty && files.isEmpty;
 }
 
 /// Provider for fetching media (images and files) from a conversation
@@ -75,12 +79,16 @@ class ConversationMedia extends _$ConversationMedia {
           final images = messages
               .where((m) => m.type == MessageType.image)
               .toList();
+          final videos = messages
+              .where((m) => m.type == MessageType.video)
+              .toList();
           final files = messages
               .where((m) => m.type == MessageType.file)
               .toList();
 
           state = MediaGalleryState(
             images: images,
+            videos: videos,
             files: files,
             hasMore: messages.length >= _pageSize,
             lastMessageId: messages.isNotEmpty ? messages.last.id : null,
@@ -113,12 +121,16 @@ class ConversationMedia extends _$ConversationMedia {
           final newImages = messages
               .where((m) => m.type == MessageType.image)
               .toList();
+          final newVideos = messages
+              .where((m) => m.type == MessageType.video)
+              .toList();
           final newFiles = messages
               .where((m) => m.type == MessageType.file)
               .toList();
 
           state = state.copyWith(
             images: [...state.images, ...newImages],
+            videos: [...state.videos, ...newVideos],
             files: [...state.files, ...newFiles],
             hasMore: messages.length >= _pageSize,
             lastMessageId: messages.isNotEmpty ? messages.last.id : null,

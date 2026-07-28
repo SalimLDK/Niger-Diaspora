@@ -32,7 +32,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -67,6 +67,8 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
           indicatorColor: context.adaptivePrimaryColor,
           labelColor: context.adaptivePrimaryColor,
           unselectedLabelColor: context.textSecondaryColor,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: [
             Tab(
               child: Row(
@@ -74,7 +76,17 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
                 children: [
                   const Icon(Icons.photo, size: 18),
                   const SizedBox(width: 8),
-                  Text('Photos (${mediaState.images.length})'),
+                  Text('Photos · ${mediaState.images.length}'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.videocam, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Vidéos · ${mediaState.videos.length}'),
                 ],
               ),
             ),
@@ -84,26 +96,67 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
                 children: [
                   const Icon(Icons.insert_drive_file, size: 18),
                   const SizedBox(width: 8),
-                  Text('Fichiers (${mediaState.files.length})'),
+                  Text('Documents · ${mediaState.files.length}'),
                 ],
               ),
             ),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _PhotosTab(
-            images: mediaState.images,
-            isLoading: mediaState.isLoading,
-            onLoadMore: () {
-              ref.read(conversationMediaProvider(widget.conversationId).notifier).loadMore();
-            },
+          const _RetentionNote(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _PhotosTab(
+                  images: mediaState.images,
+                  isLoading: mediaState.isLoading,
+                  onLoadMore: () {
+                    ref
+                        .read(conversationMediaProvider(widget.conversationId)
+                            .notifier)
+                        .loadMore();
+                  },
+                ),
+                _VideosTab(
+                  videos: mediaState.videos,
+                  isLoading: mediaState.isLoading,
+                ),
+                _FilesTab(
+                  files: mediaState.files,
+                  isLoading: mediaState.isLoading,
+                ),
+              ],
+            ),
           ),
-          _FilesTab(
-            files: mediaState.files,
-            isLoading: mediaState.isLoading,
+        ],
+      ),
+    );
+  }
+}
+
+/// Rappel de rétention serveur (mode données réduites) : les médias ne sont
+/// pas conservés indéfiniment côté serveur.
+class _RetentionNote extends StatelessWidget {
+  const _RetentionNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: context.surfaceColor,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, size: 14, color: context.textTertiaryColor),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              'Les médias sont conservés 15 jours sur le serveur.',
+              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+            ),
           ),
         ],
       ),
@@ -399,6 +452,179 @@ class _PhotoGridItem extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VideosTab extends StatelessWidget {
+  final List<MessageEntity> videos;
+  final bool isLoading;
+
+  const _VideosTab({required this.videos, required this.isLoading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (videos.isEmpty && !isLoading) {
+      return _buildEmptyState(context);
+    }
+
+    final grouped = _groupImagesByDate(videos);
+    final sortedKeys = grouped.keys.toList();
+
+    return CustomScrollView(
+      slivers: [
+        ...sortedKeys.expand((dateKey) {
+          final dateVideos = grouped[dateKey]!;
+          return [
+            SliverToBoxAdapter(
+              child: _DateSectionHeader(
+                title: dateKey,
+                count: dateVideos.length,
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) =>
+                      _VideoGridItem(message: dateVideos[index]),
+                  childCount: dateVideos.length,
+                ),
+              ),
+            ),
+          ];
+        }),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.videocam_outlined,
+              size: 48,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Aucune vidéo',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Les vidéos partagées apparaîtront ici',
+            style: TextStyle(fontSize: 14, color: context.textTertiaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoGridItem extends StatelessWidget {
+  final MessageEntity message;
+
+  const _VideoGridItem({required this.message});
+
+  String _formatDuration(int? seconds) {
+    if (seconds == null || seconds <= 0) return '';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _openVideo(BuildContext context) async {
+    final url = message.fileUrl;
+    if (url == null) return;
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = _formatDuration(message.videoDuration);
+    final thumb = message.thumbnailUrl ?? message.fileUrl ?? '';
+
+    return GestureDetector(
+      onTap: () => _openVideo(context),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (thumb.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: thumb,
+                fit: BoxFit.cover,
+                memCacheWidth: 400,
+                placeholder: (context, url) =>
+                    Container(color: context.surfaceVariantColor),
+                errorWidget: (context, url, error) => Container(
+                  color: context.surfaceVariantColor,
+                  child: Icon(
+                    Icons.videocam_off_rounded,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+              )
+            else
+              Container(color: context.surfaceVariantColor),
+            // Voile + icône de lecture centrée.
+            Container(color: Colors.black.withValues(alpha: 0.12)),
+            const Center(
+              child: Icon(
+                Icons.play_circle_fill_rounded,
+                color: Colors.white,
+                size: 34,
+              ),
+            ),
+            // Pastille de durée en bas à droite.
+            if (duration.isNotEmpty)
+              Positioned(
+                right: 4,
+                bottom: 4,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    duration,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
