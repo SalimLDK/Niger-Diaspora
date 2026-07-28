@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
 
 class ShareProfileDialog extends ConsumerStatefulWidget {
@@ -311,6 +312,31 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          // Métier · ville, si le profil est disponible (§21a).
+          if (widget.userId != null)
+            Builder(
+              builder: (context) {
+                final profile = ref
+                    .watch(profileNotifierProvider(widget.userId!))
+                    .valueOrNull;
+                final parts = [
+                  profile?.profession,
+                  profile?.currentCity,
+                ].where((e) => e != null && e.trim().isNotEmpty).cast<String>();
+                if (parts.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    parts.join(' · '),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
             ),
         ],
       ),
