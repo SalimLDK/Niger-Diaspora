@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/support_ticket_entity.dart';
@@ -104,6 +105,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
       ),
       body: Column(
         children: [
+          _buildContextCard(l10n, theme),
           // Messages list
           Expanded(
             child: messagesAsync.when(
@@ -214,6 +216,108 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
       TicketStatus.closed => const Color(0xFF9E9E9E),
     };
   }
+
+  /// Carte de contexte en tête : le ticket est une conversation, mais garde
+  /// sous les yeux la catégorie, l'état, le transfert lié et la date (§11).
+  Widget _buildContextCard(AppLocalizations l10n, ThemeData theme) {
+    final ticket = widget.ticket;
+    final statusColor = _statusColor(ticket.status);
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderColor.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _categoryIcon(ticket.category),
+                size: 16,
+                color: context.textSecondaryColor,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _categoryLabel(ticket.category, l10n),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _statusLabel(ticket.status, l10n),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (ticket.relatedTransactionId != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.receipt_long_outlined,
+                  size: 14,
+                  color: context.textTertiaryColor,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${l10n.ticketCategoryTransaction} · #${ticket.relatedTransactionId!}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 6),
+          Text(
+            dateFormat.format(ticket.createdAt),
+            style: TextStyle(fontSize: 11, color: context.textTertiaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _categoryIcon(TicketCategory category) {
+    return switch (category) {
+      TicketCategory.transaction => Icons.receipt_long_outlined,
+      TicketCategory.account => Icons.person_outline,
+      TicketCategory.technical => Icons.build_outlined,
+      TicketCategory.other => Icons.help_outline,
+    };
+  }
+
+  String _categoryLabel(TicketCategory category, AppLocalizations l10n) {
+    return switch (category) {
+      TicketCategory.transaction => l10n.ticketCategoryTransaction,
+      TicketCategory.account => l10n.ticketCategoryAccount,
+      TicketCategory.technical => l10n.ticketCategoryTechnical,
+      TicketCategory.other => l10n.ticketCategoryOther,
+    };
+  }
 }
 
 class _MessageBubble extends StatelessWidget {
@@ -230,6 +334,9 @@ class _MessageBubble extends StatelessWidget {
     final theme = Theme.of(context);
     final isSupport = message.isFromSupport;
     final dateFormat = DateFormat('dd/MM HH:mm');
+    // Bulle envoyée = vert plein (comme la messagerie), texte blanc.
+    final sentColor =
+        context.isDarkMode ? AppColors.secondary : AppColors.secondaryDark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -273,7 +380,7 @@ class _MessageBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSupport
                         ? theme.colorScheme.primary.withValues(alpha: 0.08)
-                        : context.surfaceColor,
+                        : sentColor,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(isSupport ? 4 : 16),
                       topRight: Radius.circular(isSupport ? 16 : 4),
@@ -291,7 +398,7 @@ class _MessageBubble extends StatelessWidget {
                     message.content,
                     style: TextStyle(
                       fontSize: 14,
-                      color: context.textPrimaryColor,
+                      color: isSupport ? context.textPrimaryColor : Colors.white,
                     ),
                   ),
                 ),
