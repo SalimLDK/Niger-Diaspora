@@ -9,7 +9,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/l10n/locale_provider.dart';
-import '../../../../shared/widgets/app_icon.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../core/services/support_service.dart';
@@ -233,7 +232,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(l10n.account, const AppIcon(AppIcon.person)),
+              _buildSectionHeader(l10n.account, const Icon(Icons.person_outline)),
               _SettingsCard(
                 children: [
                   _SettingsTile(
@@ -258,7 +257,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: const AppIcon(AppIcon.people),
+                    icon: const Icon(Icons.people_outline),
                     title: l10n.myFriends,
                     subtitle: l10n.manageConnections,
                     onTap: () => context.push('/friends'),
@@ -272,7 +271,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: const AppIcon(AppIcon.share),
+                    icon: const Icon(Icons.share_outlined),
                     title: l10n.shareMyProfile,
                     subtitle: l10n.qrCodeAndShareLink,
                     onTap: () => _showShareProfileModal(),
@@ -314,7 +313,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsSwitchTile(
-                    icon: const AppIcon(AppIcon.location),
+                    icon: const Icon(Icons.location_on_outlined),
                     title: l10n.myLocation,
                     subtitle: l10n.appearOnMapDesc,
                     value: _locationEnabled,
@@ -344,7 +343,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: const AppIcon(AppIcon.flag),
+                    icon: const Icon(Icons.flag_outlined),
                     title: l10n.myReports,
                     subtitle: l10n.myReportsSubtitle,
                     onTap: () => context.push('/settings/my-reports'),
@@ -489,9 +488,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: const AppIcon(AppIcon.info),
+                    icon: const Icon(Icons.info_outline),
                     title: l10n.about,
-                    subtitle: '${l10n.version} 1.2.0+10',
+                    subtitle: '${l10n.version} 1.2.0',
                     onTap: () => _showAbout(l10n),
                   ),
                 ],
@@ -510,7 +509,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: [
               _buildSectionHeader(
                 l10n.dangerZone,
-                const AppIcon(AppIcon.warning),
+                const Icon(Icons.warning_amber_rounded),
                 isWarning: true,
               ),
               _SettingsCard(
@@ -525,7 +524,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
-                    icon: const AppIcon(AppIcon.delete),
+                    icon: const Icon(Icons.delete_outline),
                     title: l10n.deleteAccount,
                     iconColor: AppColors.error,
                     titleColor: AppColors.error,
@@ -1484,7 +1483,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         ),
                       ),
                       Text(
-                        '${l10n.version} 1.2.0+10',
+                        '${l10n.version} 1.2.0',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,
