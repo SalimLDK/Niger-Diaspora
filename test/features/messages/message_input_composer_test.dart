@@ -10,11 +10,11 @@ import 'package:diaspo_niger/features/messages/presentation/widgets/message_inpu
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
-/// Non-régression de la mise en page du composer.
+/// Non-régression de la mise en page du composer flottant.
 ///
-/// Ces deux points ont déjà été annulés par une session parallèle : la barre
-/// doit rester « emoji · champ texte · + », et le bouton d'envoi doit porter
-/// le badge cadenas E2EE dès qu'il y a du texte.
+/// Layout actuel (composer flottant, §4a) : « + » hors du champ à gauche ·
+/// champ texte · emoji à l'intérieur de la pilule à droite. Le bouton d'envoi
+/// porte le badge cadenas E2EE dès qu'il y a du texte.
 
 /// Monte le composer seul, localisé en FR.
 Future<void> _pump(WidgetTester tester) async {
@@ -51,14 +51,14 @@ void main() {
     await PreferencesService.instance.initialize();
   });
 
-  testWidgets('la barre expose emoji, champ texte, puis le bouton « + »', (
+  testWidgets('la barre expose le « + », le champ texte et l\'emoji', (
     tester,
   ) async {
     await _pump(tester);
 
-    expect(find.byIcon(Icons.emoji_emotions_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byIcon(Icons.emoji_emotions_outlined), findsOneWidget);
 
     // Trombone et caméra rapide sont fusionnés dans le « + » : le sheet
     // pièces jointes propose déjà Caméra, donc rien n'est perdu.
@@ -66,15 +66,19 @@ void main() {
     expect(find.byIcon(Icons.photo_camera_outlined), findsNothing);
   });
 
-  testWidgets('le « + » vient après le champ texte, pas avant', (tester) async {
+  testWidgets('le « + » précède le champ, l\'emoji est à l\'intérieur à droite', (
+    tester,
+  ) async {
     await _pump(tester);
 
-    final emojiX = tester.getCenter(find.byIcon(Icons.emoji_emotions_outlined)).dx;
+    final plusX = tester.getCenter(find.byIcon(Icons.add_rounded)).dx;
     final fieldX = tester.getCenter(find.byType(TextField)).dx;
-    final plusX = tester.getCenter(find.byIcon(Icons.add)).dx;
+    final emojiX =
+        tester.getCenter(find.byIcon(Icons.emoji_emotions_outlined)).dx;
 
-    expect(emojiX, lessThan(fieldX));
-    expect(plusX, greaterThan(fieldX));
+    // « + » hors du champ, à gauche ; emoji dans la pilule, à droite du texte.
+    expect(plusX, lessThan(fieldX));
+    expect(emojiX, greaterThan(fieldX));
   });
 
   testWidgets('le badge cadenas E2EE apparaît seulement en mode envoi', (
