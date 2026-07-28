@@ -1217,6 +1217,31 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                       },
                     ),
 
+                  // Enregistrer (photo/vidéo) — le menu complet remplace
+                  // désormais le petit menu média, on y remet donc « Enregistrer ».
+                  if (!widget.message.deletedForEveryone &&
+                      widget.message.fileUrl != null &&
+                      (widget.message.type == MessageType.image ||
+                          widget.message.type == MessageType.video))
+                    ListTile(
+                      leading: Icon(
+                        Icons.download_rounded,
+                        color: context.textPrimaryColor,
+                      ),
+                      title: Text(
+                        'Enregistrer',
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        if (widget.message.type == MessageType.image) {
+                          _saveImageToGallery(widget.message.fileUrl!);
+                        } else {
+                          _saveVideoToDevice(widget.message.fileUrl!);
+                        }
+                      },
+                    ),
+
                   // Share to external apps
                   if (!widget.message.deletedForEveryone &&
                       (widget.message.type == MessageType.text ||
@@ -1811,6 +1836,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               ),
           onSave: () => _saveImageToGallery(widget.message.fileUrl!),
           onShare: () => _shareMessage(),
+          // Appui long = menu complet (permet d'épingler une photo, etc.).
+          onLongPress: _onLongPress,
         );
 
       case MessageType.file:
@@ -1856,6 +1883,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ? () => _saveVideoToDevice(widget.message.fileUrl!)
                   : null,
           onShare: () => _shareMessage(),
+          // Appui long = menu complet (permet d'épingler une vidéo, etc.).
+          onLongPress: _onLongPress,
         );
 
       case MessageType.audio:
@@ -1900,6 +1929,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           messageStatus: widget.message.status,
           readBy: widget.message.readBy,
           deliveredTo: widget.message.deliveredTo,
+          onLongPress: _onLongPress,
         );
     }
   }

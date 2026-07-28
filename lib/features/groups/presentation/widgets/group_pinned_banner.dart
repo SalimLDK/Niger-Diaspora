@@ -13,6 +13,12 @@ import '../../../events/presentation/providers/event_by_id_provider.dart';
 const _pollAccent = Color(0xFF6B5CE0);
 const _pinAccent = Color(0xFF2F9E6E);
 
+/// Filet de sécurité : un contenu chiffré « iv:ciphertext » en base64 ne doit
+/// jamais être affiché tel quel dans le bandeau (repli sur un libellé générique).
+final _kCiphertextPattern = RegExp(
+  r'^[A-Za-z0-9+/]{16,}={0,2}:[A-Za-z0-9+/]{16,}={0,2}$',
+);
+
 /// Bandeau des éléments épinglés en tête d'un groupe OU d'une conversation
 /// 1-à-1, façon Telegram : une seule ligne fine fixée sous l'en-tête,
 /// toujours visible. Quand plusieurs éléments sont épinglés, un compteur
@@ -44,6 +50,13 @@ class GroupPinnedBanner extends ConsumerStatefulWidget {
 class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
   int _index = 0;
 
+  /// Dernière liste d'épingles connue. Le stream Supabase repasse en « loading »
+  /// à chaque re-souscription (rebuild clavier, `ensureAuthenticated`, auto-
+  /// dispose…), ce qui faisait **clignoter / disparaître** le bandeau. On
+  /// conserve donc le dernier état affiché tant qu'aucune nouvelle donnée
+  /// (y compris une liste vide = désépinglé) n'arrive.
+  List<GroupPinnedItemEntity> _lastItems = const [];
+
   @override
   Widget build(BuildContext context) {
     final itemsAsync =
@@ -53,24 +66,23 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
               conversationPinnedItemsProvider(widget.conversationId!),
             );
 
-    return itemsAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
-        final index = _index % items.length;
-        return _PinnedRow(
-          item: items[index],
-          index: index,
-          total: items.length,
-          messageConversationId: widget.messageConversationId,
-          onOpenMessage: widget.onOpenMessage,
-          onCycle:
-              items.length > 1
-                  ? () => setState(() => _index = (index + 1) % items.length)
-                  : null,
-        );
-      },
+    // Met à jour le cache dès qu'une vraie valeur arrive (data), sinon garde
+    // la dernière connue pendant loading/error.
+    if (itemsAsync.hasValue) _lastItems = itemsAsync.value!;
+    final items = itemsAsync.valueOrNull ?? _lastItems;
+
+    if (items.isEmpty) return const SizedBox.shrink();
+    final index = _index % items.length;
+    return _PinnedRow(
+      item: items[index],
+      index: index,
+      total: items.length,
+      messageConversationId: widget.messageConversationId,
+      onOpenMessage: widget.onOpenMessage,
+      onCycle:
+          items.length > 1
+              ? () => setState(() => _index = (index + 1) % items.length)
+              : null,
     );
   }
 }
@@ -137,28 +149,32 @@ class _PinnedRow extends ConsumerWidget {
         // ciblé (déchiffré) — un message épinglé ancien hors fenêtre doit
         // quand même s'afficher (sinon le bandeau disparaissait dès qu'une
         // seule épingle sortait de la pagination).
-        final loaded = ref
-            .watch(messagesProvider(messageConversationId!))
-            .valueOrNull
-            ?.where((m) => m.id == item.itemId)
-            .firstOrNull;
-        final msg = loaded ??
+        final loaded =
             ref
-                .watch(messageByIdProvider((
-                  conversationId: messageConversationId!,
-                  messageId: item.itemId,
-                )))
+                .watch(messagesProvider(messageConversationId!))
+                .valueOrNull
+                ?.where((m) => m.id == item.itemId)
+                .firstOrNull;
+        final msg =
+            loaded ??
+            ref
+                .watch(
+                  messageByIdProvider((
+                    conversationId: messageConversationId!,
+                    messageId: item.itemId,
+                  )),
+                )
                 .valueOrNull;
         if (msg == null || msg.deletedForEveryone) {
           return _unresolvedRow(context);
         }
-        // Jamais de contenu chiffré dans le bandeau : libellé générique.
+        // Aperçu selon le type — un message épinglé peut être de TOUT type :
+        // texte, média, ou porteur d'un sondage / événement / publication /
+        // produit. On affiche le libellé le plus parlant.
         final text = msg.content.trim();
         final looksEncrypted =
-            text.startsWith('🔐') || text.startsWith('gcm:');
-        final preview = msg.isText && text.isNotEmpty && !looksEncrypted
-            ? text
-            : _mediaLabel(msg.type);
+            text.startsWith('gcm:') || _kCiphertextPattern.hasMatch(text);
+        final preview = _messagePreview(msg, text, looksEncrypted);
         return _row(
           context,
           accent: _pinAccent,
@@ -166,12 +182,13 @@ class _PinnedRow extends ConsumerWidget {
           title: preview,
           // Tap : navigue vers le message épinglé, et passe à l'épingle
           // suivante s'il y en a plusieurs (comportement Telegram).
-          onOpen: onOpenMessage == null
-              ? onCycle
-              : () {
-                  onOpenMessage!(item.itemId);
-                  onCycle?.call();
-                },
+          onOpen:
+              onOpenMessage == null
+                  ? onCycle
+                  : () {
+                    onOpenMessage!(item.itemId);
+                    onCycle?.call();
+                  },
         );
     }
   }
@@ -189,6 +206,27 @@ class _PinnedRow extends ConsumerWidget {
       title: 'Élément indisponible',
       onOpen: onCycle,
     );
+  }
+
+  /// Aperçu le plus parlant pour un message épinglé, quel que soit son type.
+  String _messagePreview(MessageEntity msg, String text, bool looksEncrypted) {
+    // Contenus interactifs attachés (prioritaires sur le type brut).
+    if (msg.hasEvent) {
+      final t = (msg.eventData?['title'] as String?)?.trim();
+      return '📅 ${t != null && t.isNotEmpty ? t : 'Événement'}';
+    }
+    if (msg.hasProduct) {
+      final t = (msg.productData?['title'] as String?)?.trim();
+      return '🛍️ ${t != null && t.isNotEmpty ? t : 'Produit'}';
+    }
+    if (msg.hasPost) {
+      final c = (msg.postData?['content'] as String?)?.trim();
+      return '🔗 ${c != null && c.isNotEmpty ? c : 'Publication'}';
+    }
+    // Texte lisible (déchiffré) : on l'affiche tel quel.
+    if (msg.isText && text.isNotEmpty && !looksEncrypted) return text;
+    // Sinon, libellé par type de média.
+    return _mediaLabel(msg.type);
   }
 
   String _mediaLabel(MessageType type) {

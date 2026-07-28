@@ -28,6 +28,10 @@ class VideoBubble extends StatelessWidget {
   final VoidCallback? onSave;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
+
+  /// Si fourni, l'appui long ouvre le menu complet du message (Épingler,
+  /// Répondre…) au lieu du petit menu média.
+  final VoidCallback? onLongPress;
   final List<String>? readBy;
   final List<String>? deliveredTo;
   final String? messageId;
@@ -50,6 +54,7 @@ class VideoBubble extends StatelessWidget {
     this.onSave,
     this.onDelete,
     this.onShare,
+    this.onLongPress,
     this.readBy,
     this.deliveredTo,
     this.messageId,
@@ -142,9 +147,10 @@ class VideoBubble extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       onLongPress:
-          (onForward != null || onSave != null || onDelete != null)
+          onLongPress ??
+          ((onForward != null || onSave != null || onDelete != null)
               ? () => _showMediaContextMenu(context)
-              : null,
+              : null),
       child: Container(
         padding: const EdgeInsets.all(4),
         constraints: const BoxConstraints(maxWidth: 280),

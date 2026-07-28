@@ -26,6 +26,11 @@ class OptimizedImageBubble extends StatefulWidget {
   final VoidCallback? onSave;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
+
+  /// Si fourni, l'appui long ouvre le menu complet du message (Répondre,
+  /// Épingler, Transférer…) au lieu du petit menu média — un message photo
+  /// est ainsi épinglable comme n'importe quel autre type.
+  final VoidCallback? onLongPress;
   final List<String>? readBy;
   final List<String>? deliveredTo;
   final String? blurhash;
@@ -45,6 +50,7 @@ class OptimizedImageBubble extends StatefulWidget {
     this.onSave,
     this.onDelete,
     this.onShare,
+    this.onLongPress,
     this.readBy,
     this.deliveredTo,
     this.blurhash,
@@ -210,12 +216,15 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
               ),
             );
           },
+      // Priorité au menu complet du message (épinglage, réponse…) s'il est
+      // fourni ; sinon repli sur le petit menu média (transférer/enregistrer).
       onLongPress:
-          (widget.onForward != null ||
+          widget.onLongPress ??
+          ((widget.onForward != null ||
                   widget.onSave != null ||
                   widget.onDelete != null)
               ? () => _showMediaContextMenu(context)
-              : null,
+              : null),
       child: Hero(
         tag: widget.heroTag,
         child: Container(

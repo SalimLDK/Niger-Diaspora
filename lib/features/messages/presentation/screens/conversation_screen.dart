@@ -476,6 +476,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           pinnedBy: currentUserId,
         );
 
+    // Rafraîchit le bandeau immédiatement : le stream Supabase ne reçoit pas
+    // toujours l'insert en temps réel (réplication realtime pas garantie sur
+    // `group_pinned_items`), donc sans ça le bandeau ne s'affichait qu'au
+    // prochain ouverture de la conversation.
+    if (success) _refreshPinnedBanner(effectiveGroupId);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -484,6 +490,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           ),
         ),
       );
+    }
+  }
+
+  /// Force le re-fetch de la liste des épingles (auto-dispose StreamProvider),
+  /// pour un affichage immédiat après épinglage/désépinglage local.
+  void _refreshPinnedBanner(String? effectiveGroupId) {
+    if (widget.isGroup && effectiveGroupId != null) {
+      ref.invalidate(groupPinnedItemsProvider(effectiveGroupId));
+    } else {
+      ref.invalidate(conversationPinnedItemsProvider(widget.conversationId));
     }
   }
 
@@ -526,6 +542,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final success = await ref
         .read(groupPinActionsNotifierProvider.notifier)
         .unpinItem(pin.id);
+
+    // Idem épinglage : rafraîchit le bandeau immédiatement (le retrait n'est
+    // pas garanti en temps réel via le stream Supabase).
+    if (success) _refreshPinnedBanner(effectiveGroupId);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
