@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_page.dart';
@@ -70,6 +71,8 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
     ref.read(onboardingNotifierProvider.notifier).setCurrentPage(page);
   }
 
+  bool _requestingPermissions = false;
+
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
@@ -77,8 +80,25 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _completeIntro();
+      _completeWithPermissions();
     }
+  }
+
+  /// Dernier écran (§14) : demande notifications + localisation (réciprocité
+  /// expliquée dans le contenu de l'écran), puis termine. Les refus ne bloquent
+  /// pas l'entrée dans l'app.
+  Future<void> _completeWithPermissions() async {
+    if (_requestingPermissions) return;
+    setState(() => _requestingPermissions = true);
+    try {
+      await LocationService.instance.requestNotificationPermission();
+    } catch (_) {}
+    try {
+      await LocationService.instance.requestLocationPermission();
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _requestingPermissions = false);
+    _completeIntro();
   }
 
   void _completeIntro() {
@@ -166,7 +186,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _nextPage,
+                      onPressed: _requestingPermissions ? null : _nextPage,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
@@ -175,17 +195,41 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                         ),
                         elevation: 0,
                       ),
+                      child:
+                          _requestingPermissions
+                              ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.white,
+                                ),
+                              )
+                              : Text(
+                                _currentPage == _pages.length - 1
+                                    ? 'Commencer'
+                                    : 'Suivant',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                    ),
+                  ),
+                  // Entrer sans accorder les autorisations (§14).
+                  if (_currentPage == _pages.length - 1) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _requestingPermissions ? null : _completeIntro,
                       child: Text(
-                        _currentPage == _pages.length - 1
-                            ? 'Commencer'
-                            : 'Suivant',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                        'Plus tard, sans autorisations',
+                        style: TextStyle(
+                          color: context.textTertiaryColor,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

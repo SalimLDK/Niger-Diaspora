@@ -55,6 +55,17 @@ class LocationService {
     );
   }
 
+  /// Demande la permission de localisation au premier plan (sans récupérer la
+  /// position). Utilisé par l'onboarding (§14). Renvoie true si accordée.
+  Future<bool> requestLocationPermission() async {
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
   /// Request background location permission (required for Android 10+)
   /// Must be called AFTER foreground location permission is granted.
   Future<bool> requestBackgroundLocationPermission() async {
