@@ -18,4 +18,4 @@
 - [project_supabase_over_firebase.md](project_supabase_over_firebase.md) — Direction : Supabase préféré à Firebase ; 37 fonctions HTTPS portables tout de suite, 33 triggers Firestore suivent leur donnée
 - [project_feed_discussion_redesign.md](project_feed_discussion_redesign.md) — Refonte design Fil & Discussion + tours 7-28 : quasi tout l'ordre d'implémentation fait (23 commits sur branche wip-jules) ; reste = données/modèles absents (ville, stories, filtre serveur), passe modales complète, WIP user message_input
 
-> Note : deux mémoires sécurité-sensibles (`project_coturn_vps`, `project_firebase_functions_deploy_blocked`) sont volontairement **hors dépôt** — elles restent dans le store de mémoire local de Claude.
+> Note : deux mémoires sécurité-sensibles (`project_coturn_vps`, `project_firebase_functions_deploy_blocked`) sont volontairement **hors dépôt** — instantané généré par scripts/sync-memory-docs.sh.
