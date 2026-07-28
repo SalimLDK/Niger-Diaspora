@@ -1632,8 +1632,11 @@ class _CallScreenState extends ConsumerState<CallScreen>
     );
   }
 
-  /// Build WhatsApp-style call controls - single row with hangup in center
+  /// Barre de contrôles (§12) : quatre contrôles nommés de 64 px sur une
+  /// rangée, puis « Raccrocher » pleine largeur — le libellé sous chaque
+  /// icône lève l'ambiguïté du pictogramme seul.
   Widget _buildModernCallControls(CurrentCallState callState, bool isVideoActive) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1648,139 +1651,168 @@ class _CallScreenState extends ConsumerState<CallScreen>
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 40, 20, 32),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _buildWhatsAppControls(callState, isVideoActive),
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildNamedControls(callState, isVideoActive, l10n),
+              ),
+              const SizedBox(height: 20),
+              _buildFullWidthHangup(l10n),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// Build WhatsApp-style controls: [left controls] [HANGUP] [right controls]
-  List<Widget> _buildWhatsAppControls(CurrentCallState callState, bool isVideoActive) {
-    // Video call: Flip | Camera | HANGUP | Mute | Speaker
-    // Audio call: Video | Hold | HANGUP | Mute | Speaker
-
+  /// Les quatre contrôles nommés (hors « Raccrocher », désormais séparé).
+  List<Widget> _buildNamedControls(
+    CurrentCallState callState,
+    bool isVideoActive,
+    AppLocalizations l10n,
+  ) {
     if (isVideoActive) {
+      // Retourner | Caméra | Micro | Haut-parleur
       return [
-        // Flip camera
-        _buildWhatsAppButton(
+        _buildNamedControl(
           icon: Icons.cameraswitch_rounded,
+          label: l10n.callControlFlip,
           isActive: true,
           onPressed: _switchCamera,
         ),
-        // Camera on/off
-        _buildWhatsAppButton(
+        _buildNamedControl(
           icon: callState.isCameraOff
               ? Icons.videocam_off_rounded
               : Icons.videocam_rounded,
+          label: l10n.callControlCamera,
           isActive: !callState.isCameraOff,
           onPressed: _toggleCamera,
         ),
-        // HANGUP (center)
-        _buildWhatsAppHangupButton(),
-        // Mute
-        _buildWhatsAppButton(
+        _buildNamedControl(
           icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+          label: callState.isMuted ? l10n.callControlMicOff : l10n.callControlMic,
           isActive: !callState.isMuted,
           onPressed: _toggleMute,
         ),
-        // Speaker
-        _buildWhatsAppButton(
+        _buildNamedControl(
           icon: callState.isSpeakerOn
               ? Icons.volume_up_rounded
               : Icons.volume_off_rounded,
-          isActive: callState.isSpeakerOn,
-          onPressed: _toggleSpeaker,
-        ),
-      ];
-    } else {
-      // Audio call
-      return [
-        // Video upgrade (or placeholder)
-        if (callState.isConnected)
-          _buildWhatsAppButton(
-            icon: Icons.videocam_rounded,
-            isActive: callState.videoUpgradeStatus == VideoUpgradeStatus.none,
-            onPressed: callState.videoUpgradeStatus == VideoUpgradeStatus.none
-                ? _requestVideoUpgrade
-                : () {},
-          )
-        else
-          const SizedBox(width: 48),
-        // Hold (or placeholder)
-        if (callState.isConnected)
-          _buildWhatsAppButton(
-            icon: callState.isOnHold
-                ? Icons.play_arrow_rounded
-                : Icons.pause_rounded,
-            isActive: !callState.isOnHold,
-            onPressed: _toggleHold,
-          )
-        else
-          const SizedBox(width: 48),
-        // HANGUP (center)
-        _buildWhatsAppHangupButton(),
-        // Mute
-        _buildWhatsAppButton(
-          icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-          isActive: !callState.isMuted,
-          onPressed: _toggleMute,
-        ),
-        // Speaker
-        _buildWhatsAppButton(
-          icon: callState.isSpeakerOn
-              ? Icons.volume_up_rounded
-              : Icons.volume_off_rounded,
+          label: callState.isSpeakerOn
+              ? l10n.callControlSpeaker
+              : l10n.callControlEarpiece,
           isActive: callState.isSpeakerOn,
           onPressed: _toggleSpeaker,
         ),
       ];
     }
+    // Appel audio : Vidéo | Pause | Micro | Haut-parleur
+    return [
+      if (callState.isConnected)
+        _buildNamedControl(
+          icon: Icons.videocam_rounded,
+          label: l10n.callControlVideo,
+          isActive: callState.videoUpgradeStatus == VideoUpgradeStatus.none,
+          onPressed: callState.videoUpgradeStatus == VideoUpgradeStatus.none
+              ? _requestVideoUpgrade
+              : () {},
+        )
+      else
+        const SizedBox(width: 64),
+      if (callState.isConnected)
+        _buildNamedControl(
+          icon: callState.isOnHold
+              ? Icons.play_arrow_rounded
+              : Icons.pause_rounded,
+          label: callState.isOnHold
+              ? l10n.callControlResume
+              : l10n.callControlHold,
+          isActive: !callState.isOnHold,
+          onPressed: _toggleHold,
+        )
+      else
+        const SizedBox(width: 64),
+      _buildNamedControl(
+        icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+        label: callState.isMuted ? l10n.callControlMicOff : l10n.callControlMic,
+        isActive: !callState.isMuted,
+        onPressed: _toggleMute,
+      ),
+      _buildNamedControl(
+        icon: callState.isSpeakerOn
+            ? Icons.volume_up_rounded
+            : Icons.volume_off_rounded,
+        label: callState.isSpeakerOn
+            ? l10n.callControlSpeaker
+            : l10n.callControlEarpiece,
+        isActive: callState.isSpeakerOn,
+        onPressed: _toggleSpeaker,
+      ),
+    ];
   }
 
-  /// WhatsApp-style control button (48x48 circle)
-  Widget _buildWhatsAppButton({
+  /// Contrôle nommé : pastille 64 px + libellé dessous.
+  Widget _buildNamedControl({
     required IconData icon,
+    required String label,
     required bool isActive,
     required VoidCallback onPressed,
   }) {
     return GestureDetector(
       onTap: onPressed,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.15),
-        ),
-        child: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.white60,
-          size: 24,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: isActive ? 0.22 : 0.12),
+            ),
+            child: Icon(
+              icon,
+              color: isActive ? Colors.white : Colors.white60,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  /// WhatsApp-style hangup button (64x64, red, center position)
-  Widget _buildWhatsAppHangupButton() {
-    return GestureDetector(
-      onTap: _endCall,
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.red,
+  /// « Raccrocher » pleine largeur, 68 px.
+  Widget _buildFullWidthHangup(AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 68,
+      child: ElevatedButton.icon(
+        onPressed: _endCall,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(34),
+          ),
         ),
-        child: const Icon(
-          Icons.call_end_rounded,
-          color: Colors.white,
-          size: 30,
+        icon: const Icon(Icons.call_end_rounded, size: 26),
+        label: Text(
+          l10n.hangUp,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

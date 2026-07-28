@@ -98,6 +98,66 @@ abstract class AppLocalizations {
     Locale('fr'),
   ];
 
+  /// No description provided for @callControlMic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Micro'**
+  String get callControlMic;
+
+  /// No description provided for @callControlMicOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Micro coupé'**
+  String get callControlMicOff;
+
+  /// No description provided for @callControlSpeaker.
+  ///
+  /// In fr, this message translates to:
+  /// **'Haut-parleur'**
+  String get callControlSpeaker;
+
+  /// No description provided for @callControlEarpiece.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écouteur'**
+  String get callControlEarpiece;
+
+  /// No description provided for @callControlCamera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caméra'**
+  String get callControlCamera;
+
+  /// No description provided for @callControlVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéo'**
+  String get callControlVideo;
+
+  /// No description provided for @callControlFlip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retourner'**
+  String get callControlFlip;
+
+  /// No description provided for @callControlHold.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pause'**
+  String get callControlHold;
+
+  /// No description provided for @callControlResume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get callControlResume;
+
+  /// No description provided for @hangUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Raccrocher'**
+  String get hangUp;
+
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:

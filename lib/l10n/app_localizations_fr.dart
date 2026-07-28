@@ -9,6 +9,36 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get callControlMic => 'Micro';
+
+  @override
+  String get callControlMicOff => 'Micro coupé';
+
+  @override
+  String get callControlSpeaker => 'Haut-parleur';
+
+  @override
+  String get callControlEarpiece => 'Écouteur';
+
+  @override
+  String get callControlCamera => 'Caméra';
+
+  @override
+  String get callControlVideo => 'Vidéo';
+
+  @override
+  String get callControlFlip => 'Retourner';
+
+  @override
+  String get callControlHold => 'Pause';
+
+  @override
+  String get callControlResume => 'Reprendre';
+
+  @override
+  String get hangUp => 'Raccrocher';
+
+  @override
   String get appTitle => 'Diaspo Niger';
 
   @override
