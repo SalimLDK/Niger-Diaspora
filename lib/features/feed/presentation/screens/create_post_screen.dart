@@ -13,6 +13,7 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/feed_avatar.dart';
+import '../widgets/hashtag_highlighting_controller.dart';
 import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -28,7 +29,7 @@ class CreatePostScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
-  final _contentController = TextEditingController();
+  final _contentController = HashtagHighlightingController();
   final _uploadService = ImageUploadService();
   final _videoUploadService = VideoUploadService();
 
@@ -283,6 +284,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
     final tokens = FeedTokens.of(context);
+    // Coloration live des #hashtags / @mentions dans la saisie (§13).
+    _contentController.highlightColor = tokens.hashtagColor;
 
     return Scaffold(
       backgroundColor: tokens.bg,

@@ -11,6 +11,7 @@ import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/comment_tile.dart';
 import '../widgets/feed_avatar.dart';
+import '../widgets/hashtag_highlighting_controller.dart';
 import '../widgets/mention_text_field.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
@@ -26,7 +27,7 @@ class PostDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
-  final _commentController = TextEditingController();
+  final _commentController = HashtagHighlightingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
   List<MentionedUser> _commentMentions = [];
@@ -114,6 +115,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     final commentsState = ref.watch(commentsProvider(widget.postId));
     final tokens = FeedTokens.of(context);
     final currentUser = FirebaseAuth.instance.currentUser;
+    // Coloration live des #hashtags / @mentions dans le composer (§13).
+    _commentController.highlightColor = tokens.hashtagColor;
 
     return Scaffold(
       backgroundColor: tokens.bg,
