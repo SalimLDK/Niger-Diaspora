@@ -449,7 +449,7 @@ class _OpeningHoursSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final days = [
+    const allDays = [
       'lundi',
       'mardi',
       'mercredi',
@@ -468,6 +468,14 @@ class _OpeningHoursSection extends StatelessWidget {
       'dimanche': 'Dimanche',
     };
 
+    // Jour courant en tête (§17d), le reste dans l'ordre de la semaine.
+    final todayIndex = DateTime.now().weekday - 1;
+    final todayKey = allDays[todayIndex];
+    final days = [
+      ...allDays.sublist(todayIndex),
+      ...allDays.sublist(0, todayIndex),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -480,17 +488,49 @@ class _OpeningHoursSection extends StatelessWidget {
         const SizedBox(height: 12),
         ...days.where((day) => openingHours.containsKey(day)).map((day) {
           final hours = openingHours[day]!;
+          final isToday = day == todayKey;
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(dayLabels[day] ?? day, style: theme.textTheme.bodyMedium),
+                Row(
+                  children: [
+                    Text(
+                      dayLabels[day] ?? day,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: isToday ? FontWeight.w700 : null,
+                      ),
+                    ),
+                    if (isToday) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          "Aujourd'hui",
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 Text(
-                  hours.isClosed ? 'Ferme' : '${hours.open} - ${hours.close}',
+                  hours.isClosed ? 'Fermé' : '${hours.open} - ${hours.close}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: hours.isClosed ? theme.colorScheme.error : null,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ],
