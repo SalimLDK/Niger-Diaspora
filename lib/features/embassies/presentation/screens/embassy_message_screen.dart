@@ -166,29 +166,32 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<EmbassyMessageType>(
-                initialValue: _selectedType,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-                items:
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
                     EmbassyMessageType.values.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(_getTypeLabel(type)),
+                      final isSelected = type == _selectedType;
+                      return ChoiceChip(
+                        label: Text(_getTypeLabel(type)),
+                        selected: isSelected,
+                        onSelected:
+                            (_) => setState(() => _selectedType = type),
+                        selectedColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.15,
+                        ),
+                        labelStyle: TextStyle(
+                          color:
+                              isSelected
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                          fontWeight:
+                              isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                        ),
                       );
                     }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedType = value);
-                  }
-                },
               ),
               const SizedBox(height: 20),
 
@@ -204,6 +207,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                 controller: _subjectController,
                 decoration: InputDecoration(
                   hintText: 'Ex: Demande de renseignements sur le passeport',
+                  helperText: 'Au moins 5 caractères',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -236,6 +240,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                 controller: _contentController,
                 decoration: InputDecoration(
                   hintText: 'Décrivez votre demande en détail...',
+                  helperText: 'Au moins 20 caractères',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
