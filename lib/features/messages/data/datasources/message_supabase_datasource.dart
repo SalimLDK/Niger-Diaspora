@@ -171,11 +171,18 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       return selfResult.fields;
     }
 
-    if (!_crypto.isE2EEInitialized) {
-      throw E2EEException(
-        'Chiffrement E2EE non disponible. Reconnectez-vous et réessayez.',
-      );
-    }
+    // Volontairement PAS de garde sur `isE2EEInitialized` ici.
+    //
+    // `encrypt1to1()` et `encryptGroup()` retombent déjà d'eux-mêmes sur l'AES
+    // global quand Signal n'est pas disponible — c'est le repli prévu par
+    // l'architecture, celui-là même qui sert quand le destinataire n'a jamais
+    // publié ses clés. Une garde qui lève ici contredisait ce design et rendait
+    // l'envoi de texte totalement impossible tant que l'initialisation Signal
+    // n'était pas terminée (soit, avant le correctif d'initialisation : à vie).
+    //
+    // Le niveau réellement obtenu ('e2ee' ou 'aes') est remonté dans
+    // `encryptionLevel` et tracé dans l'analytics : on dégrade en le sachant,
+    // on ne bloque pas l'utilisateur.
 
     if (recipientId == null && participantIds.isEmpty) {
       throw E2EEException('Destinataire manquant — chiffrement impossible.');

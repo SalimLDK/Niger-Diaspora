@@ -33,6 +33,16 @@ class KeyManagerService {
 
   // Configuration
   static const int _oneTimePreKeyBatchSize = 100;
+
+  /// Lot généré au TOUT PREMIER lancement, plus petit que [_oneTimePreKeyBatchSize].
+  ///
+  /// Chaque clé est une paire X25519 générée séquentiellement sur l'isolate
+  /// principal : sur un appareil d'entrée de gamme, 100 clés retardent la fin
+  /// de l'initialisation de plusieurs dizaines de secondes (bien plus en debug,
+  /// où la crypto Dart n'est pas optimisée). 50 suffisent largement à démarrer —
+  /// le rechargement automatique complète le stock ensuite, en arrière-plan.
+  static const int _initialOneTimePreKeyBatchSize = 50;
+
   static const int _oneTimePreKeyMinThreshold = 20;
   static const Duration _signedPreKeyRotationPeriod = Duration(days: 7);
 
@@ -126,8 +136,11 @@ class KeyManagerService {
     // 4. Générer Signed Pre-Key
     await _generateAndStoreSignedPreKey(userId, identityKeyPair);
 
-    // 5. Générer batch de One-Time Pre-Keys
-    await _generateAndStoreOneTimePreKeys(userId, _oneTimePreKeyBatchSize);
+    // 5. Générer batch de One-Time Pre-Keys (lot initial réduit — cf. constante)
+    await _generateAndStoreOneTimePreKeys(
+      userId,
+      _initialOneTimePreKeyBatchSize,
+    );
 
     // 6. Publier les clés publiques sur Supabase (avec retry + garde d'auth)
     await _publishWithRetry(userId);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
@@ -85,12 +86,27 @@ class MessagingE2EEService {
     // injoignable en E2EE à vie.
     await _keyManager.initializeKeys(userId);
 
-    // Vérifier et effectuer la maintenance des clés
-    await _keyManager.checkAndRotateSignedPreKey(userId);
-    await _keyManager.checkAndRefillOneTimePreKeys(userId);
-
+    // Le service est utilisable dès que les clés existent : on lève le drapeau
+    // ICI, avant la maintenance. Celle-ci (rotation de la signed pre-key,
+    // recharge des one-time pre-keys) régénère des dizaines de paires X25519 et
+    // prenait des dizaines de secondes sur un appareil modeste — pendant
+    // lesquelles `isInitialized` restait faux et tout envoi de texte échouait.
     _isInitialized = true;
     debugPrint('MessagingE2EEService: Initialized for user $userId');
+
+    // Maintenance en arrière-plan : ne doit jamais retarder l'usage ni faire
+    // échouer l'initialisation.
+    unawaited(
+      Future(() async {
+        try {
+          await _keyManager.checkAndRotateSignedPreKey(userId);
+          await _keyManager.checkAndRefillOneTimePreKeys(userId);
+          debugPrint('MessagingE2EEService: key maintenance done for $userId');
+        } catch (e) {
+          debugPrint('MessagingE2EEService: key maintenance failed: $e');
+        }
+      }),
+    );
   }
 
   // ============================================================
