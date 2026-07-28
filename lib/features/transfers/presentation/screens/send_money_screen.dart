@@ -457,7 +457,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 controller: _amountController,
                 textAlign: TextAlign.right,
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 44,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -1.5,
                   color: theme.colorScheme.onSurface,
@@ -683,38 +683,50 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(
-                      alpha: 0.3,
+              Builder(
+                builder: (context) {
+                  // Carte verte « recevra » (§12a).
+                  final isDark = theme.brightness == Brightness.dark;
+                  final bg =
+                      isDark ? const Color(0xFF16241A) : const Color(0xFFF0F4EA);
+                  final border =
+                      isDark
+                          ? const Color(0xFF2D7D46).withValues(alpha: 0.4)
+                          : const Color(0xFFDCE6CE);
+                  final amountColor =
+                      isDark ? const Color(0xFF5BA674) : const Color(0xFF1B5E32);
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: border),
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Le bénéficiaire recevra',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: amountColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${transferState.amountInXof.toStringAsFixed(0)} XOF',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                            color: amountColor,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Le bénéficiaire recevra',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${transferState.amountInXof.toStringAsFixed(0)} XOF',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ],
