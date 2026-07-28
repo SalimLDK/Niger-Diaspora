@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +8,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_shadows.dart';
 import 'emoji_sticker_picker.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/services/permission_service.dart';
@@ -114,6 +112,7 @@ class _MessageInputState extends State<MessageInput>
   bool _isOverLimit = false;
   bool _isRecording = false;
   bool _showPicker = false;
+  bool _showAttachPanel = false; // panneau grille 3×2 ancré (pièces jointes)
   int _pickerTabIndex = 0; // 0 = emojis, 1 = stickers
   double _dragOffset = 0;
   bool _isCancelling = false;
@@ -257,9 +256,10 @@ class _MessageInputState extends State<MessageInput>
       return;
     }
 
-    final filtered = widget.groupMembers
-        .where((m) => m.name.toLowerCase().startsWith(query.toLowerCase()))
-        .toList();
+    final filtered =
+        widget.groupMembers
+            .where((m) => m.name.toLowerCase().startsWith(query.toLowerCase()))
+            .toList();
 
     if (_activeMentionQuery != query ||
         _mentionTriggerOffset != atIndex ||
@@ -303,9 +303,8 @@ class _MessageInputState extends State<MessageInput>
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    final finalMentions = _pendingMentions
-        .where((m) => text.contains('@${m.name}'))
-        .toList();
+    final finalMentions =
+        _pendingMentions.where((m) => text.contains('@${m.name}')).toList();
 
     widget.onSendText(text, finalMentions);
     _pendingMentions = [];
@@ -325,7 +324,22 @@ class _MessageInputState extends State<MessageInput>
       _focusNode.unfocus();
       setState(() {
         _showPicker = true;
+        _showAttachPanel = false;
         _pickerTabIndex = tabIndex;
+      });
+    }
+  }
+
+  /// Ouvre/ferme le panneau ancré de pièces jointes (grille 3×2). Remplace
+  /// l'ancien `showModalBottomSheet` (accessible en repli via appui long sur « + »).
+  void _toggleAttachPanel() {
+    if (_showAttachPanel) {
+      setState(() => _showAttachPanel = false);
+    } else {
+      _focusNode.unfocus();
+      setState(() {
+        _showAttachPanel = true;
+        _showPicker = false;
       });
     }
   }
@@ -514,7 +528,10 @@ class _MessageInputState extends State<MessageInput>
       final file = File(result.files.single.path!);
       final caption = _controller.text.trim();
       if (widget.onSendAudioFile != null) {
-        widget.onSendAudioFile!(file, caption: caption.isEmpty ? null : caption);
+        widget.onSendAudioFile!(
+          file,
+          caption: caption.isEmpty ? null : caption,
+        );
       } else {
         // Fallback for legacy callers.
         widget.onSendFile(file, false);
@@ -582,11 +599,12 @@ class _MessageInputState extends State<MessageInput>
       final result = await Navigator.push<MediaPreviewResult>(
         context,
         MaterialPageRoute(
-          builder: (_) => MediaPreviewScreen(
-            file: p.file,
-            type: p.isVideo ? MediaType.video : MediaType.image,
-            conversationId: '',
-          ),
+          builder:
+              (_) => MediaPreviewScreen(
+                file: p.file,
+                type: p.isVideo ? MediaType.video : MediaType.image,
+                conversationId: '',
+              ),
         ),
       );
       if (result != null && mounted) {
@@ -955,63 +973,51 @@ class _MessageInputState extends State<MessageInput>
         if (widget.replyToMessage != null && !_isRecording)
           _buildReplyPreview(context),
 
-        // Zone principale avec input OU overlay d'enregistrement
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            12,
-            4,
-            12,
-            MediaQuery.of(context).padding.bottom + 8,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 56, sigmaY: 56),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _isRecording
-                      ? (_isCancelling
-                          ? Colors.red.withValues(alpha: 0.15)
-                          : _isLocked
-                              ? context.adaptivePrimaryColor
-                                  .withValues(alpha: 0.12)
-                              : (context.isDarkMode
-                                  ? AppColors.surfaceDark.withValues(alpha: 0.4)
-                                  : AppColors.surface.withValues(alpha: 0.5)))
-                      : (context.isDarkMode
-                          ? AppColors.surfaceDark.withValues(alpha: 0.35)
-                          : AppColors.surface.withValues(alpha: 0.4)),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: context.isDarkMode
-                        ? Colors.white.withValues(alpha: 0.12)
-                        : Colors.white.withValues(alpha: 0.5),
-                    width: 1,
-                  ),
-                  boxShadow: context.isDarkMode
-                      ? AppShadows.shadowBottomNavDark
-                      : AppShadows.shadowBottomNav,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: _isRecording
-                          ? _buildInlineRecordingUI(context)
-                          : _buildInputContent(context),
-                    ),
-                    if (!_isLocked) ...[
-                      const SizedBox(width: 8),
-                      _buildPersistentActionButton(context),
-                    ],
-                  ],
-                ),
+        // Panneau ancré de pièces jointes (grille 3×2), au-dessus du composer.
+        if (_showAttachPanel && !_isRecording) _buildAttachPanel(context),
+
+        // Zone principale : composer opaque (en-tête/composer = #FFFFFF / #1A1714).
+        Container(
+          decoration: BoxDecoration(
+            color:
+                context.isDarkMode
+                    ? const Color(0xFF1A1714)
+                    : const Color(0xFFFFFFFF),
+            border: Border(
+              top: BorderSide(
+                color:
+                    context.isDarkMode
+                        ? const Color(0xFF2A241E)
+                        : const Color(0xFFEFE7DB),
+                width: 1,
               ),
             ),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            10,
+            6,
+            10,
+            MediaQuery.of(context).padding.bottom + 6,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // « + » hors du champ (repli : appui long = panneau complet).
+              if (!_isRecording) ...[
+                _buildPlusButton(context),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child:
+                    _isRecording
+                        ? _buildRecordingBanner(context)
+                        : _buildPillField(context),
+              ),
+              if (!_isLocked) ...[
+                const SizedBox(width: 8),
+                _buildPersistentActionButton(context),
+              ],
+            ],
           ),
         ),
 
@@ -1023,13 +1029,14 @@ class _MessageInputState extends State<MessageInput>
             height: computeMessagePickerHeight(
               screenHeight: MediaQuery.of(context).size.height,
               systemInset: MediaQuery.of(context).viewPadding.vertical,
-              isLandscape: MediaQuery.of(context).orientation ==
-                  Orientation.landscape,
+              isLandscape:
+                  MediaQuery.of(context).orientation == Orientation.landscape,
             ),
             initialTabIndex: _pickerTabIndex,
             onEmojiSelected: _onEmojiSelected,
             onBackspacePressed: _onBackspacePressed,
-            onStickerSelected: widget.onSendSticker != null ? _onStickerSelected : null,
+            onStickerSelected:
+                widget.onSendSticker != null ? _onStickerSelected : null,
             onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
             onClose: _hidePicker,
           ),
@@ -1037,73 +1044,60 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
-  /// Contenu de l'input (emoji, attachment, text field)
-  Widget _buildInputContent(BuildContext context) {
+  /// Bouton « + » hors du champ : ouvre le panneau ancré (grille 3×2).
+  /// Appui long = ancien sheet complet (repli avec audio/vidéo dédiés).
+  Widget _buildPlusButton(BuildContext context) {
+    final active = _showAttachPanel;
+    return GestureDetector(
+      onLongPress: _showAttachmentOptions,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color:
+              active
+                  ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
+                  : context.surfaceVariantColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: IconButton(
+          onPressed: _toggleAttachPanel,
+          icon: Icon(active ? Icons.close : Icons.add),
+          tooltip: AppLocalizations.of(context)!.sendFileTitle,
+          color:
+              active
+                  ? context.adaptivePrimaryColor
+                  : context.textSecondaryColor,
+          padding: EdgeInsets.zero,
+        ),
+      ),
+    );
+  }
+
+  /// Champ pilule avec l'emoji **à l'intérieur** (32 px, à droite du texte).
+  Widget _buildPillField(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Emoji/Sticker picker button
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color:
-                    _showPicker
-                        ? context.adaptivePrimaryColor.withValues(alpha: 0.15)
-                        : context.isDarkMode
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                onPressed: () => _togglePicker(),
-                icon: Icon(
-                  _showPicker
-                      ? Icons.keyboard
-                      : Icons.emoji_emotions_outlined,
-                ),
-                color:
-                    _showPicker
-                        ? context.adaptivePrimaryColor
-                        : context.textSecondaryColor,
-                padding: EdgeInsets.zero,
-              ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          constraints: const BoxConstraints(maxHeight: 120),
+          decoration: BoxDecoration(
+            // Champ de saisie : #F5F0E8 (clair) / #2D2820 (sombre).
+            color: context.surfaceVariantColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color:
+                  _focusNode.hasFocus
+                      ? context.adaptivePrimaryColor.withValues(alpha: 0.3)
+                      : Colors.transparent,
+              width: 1.5,
             ),
-            const SizedBox(width: 8),
-
-            // Text field
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                constraints: const BoxConstraints(maxHeight: 120),
-                decoration: BoxDecoration(
-                  color: context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color:
-                        _focusNode.hasFocus
-                            ? context.adaptivePrimaryColor.withValues(
-                              alpha: 0.3,
-                            )
-                            : Colors.transparent,
-                    width: 2,
-                  ),
-                  boxShadow:
-                      _focusNode.hasFocus
-                          ? [
-                            BoxShadow(
-                              color: context.adaptivePrimaryColor.withValues(
-                                alpha: 0.15,
-                              ),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                            ),
-                          ]
-                          : null,
-                ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
                 child: TextField(
                   controller: _controller,
                   focusNode: _focusNode,
@@ -1122,43 +1116,207 @@ class _MessageInputState extends State<MessageInput>
                     hintText: AppLocalizations.of(context)!.yourMessage,
                     hintStyle: TextStyle(color: context.textTertiaryColor),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
+                    contentPadding: const EdgeInsets.only(
+                      left: 18,
+                      right: 4,
+                      top: 10,
+                      bottom: 10,
                     ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-
-            // Bouton « + » : ouvre le sheet pièces jointes
-            // (caméra, galerie, vidéos, audio, documents).
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color:
-                    context.isDarkMode
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
+              // Emoji à l'intérieur du champ (32 px).
+              Padding(
+                padding: const EdgeInsets.only(right: 4, bottom: 2),
+                child: SizedBox(
+                  width: 34,
+                  height: 34,
+                  child: IconButton(
+                    onPressed: () => _togglePicker(),
+                    icon: Icon(
+                      _showPicker
+                          ? Icons.keyboard
+                          : Icons.emoji_emotions_outlined,
+                      size: 22,
+                    ),
+                    color:
+                        _showPicker
+                            ? context.adaptivePrimaryColor
+                            : context.textSecondaryColor,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
               ),
-              child: IconButton(
-                onPressed: () => _showAttachmentOptions(),
-                icon: const Icon(Icons.add),
-                tooltip: AppLocalizations.of(context)!.sendFileTitle,
-                color: context.textSecondaryColor,
-                padding: EdgeInsets.zero,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-        // Character counter
         if (_controller.text.length >= _charCountThreshold)
           _buildCharacterCounter(context),
       ],
+    );
+  }
+
+  /// Panneau ancré (grille 3×2) : Caméra, Galerie, Document, Position,
+  /// Sondage, Événement.
+  Widget _buildAttachPanel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final tiles = <Widget>[
+      _buildAttachTile(
+        icon: Icons.photo_camera,
+        label: l10n.cameraSection,
+        color: context.adaptiveSecondaryColor,
+        onTap: () {
+          _toggleAttachPanel();
+          _openCamera();
+        },
+      ),
+      _buildAttachTile(
+        icon: Icons.photo_library,
+        label: l10n.photosLabel,
+        color: context.adaptivePrimaryColor,
+        onTap: () {
+          _toggleAttachPanel();
+          _pickFromGalleryUnified();
+        },
+      ),
+      _buildAttachTile(
+        icon: Icons.description,
+        label: l10n.documentsLabel,
+        color: Colors.blue,
+        onTap: () {
+          _toggleAttachPanel();
+          _pickFile();
+        },
+      ),
+      if (widget.onSendLocation != null)
+        _buildAttachTile(
+          icon: Icons.location_on,
+          label: l10n.positionLabel,
+          color: Colors.green,
+          onTap: () {
+            _toggleAttachPanel();
+            _showLocationPicker();
+          },
+        ),
+      if (widget.onCreatePoll != null)
+        _buildAttachTile(
+          icon: Icons.poll,
+          label: 'Sondage',
+          color: const Color(0xFF6B5CE0),
+          onTap: () {
+            _toggleAttachPanel();
+            widget.onCreatePoll!();
+          },
+        ),
+      if (widget.onCreateEvent != null)
+        _buildAttachTile(
+          icon: Icons.event,
+          label: 'Événement',
+          color: Colors.teal,
+          onTap: () {
+            _toggleAttachPanel();
+            widget.onCreateEvent!();
+          },
+        ),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border:
+            context.isDarkMode ? Border.all(color: AppColors.borderDark) : null,
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+      ),
+      child: GridView.count(
+        crossAxisCount: 3,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.95,
+        children: tiles,
+      ),
+    );
+  }
+
+  Widget _buildAttachTile({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: context.textSecondaryColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bandeau d'enregistrement (fond selon l'état : en cours / annulation armée).
+  Widget _buildRecordingBanner(BuildContext context) {
+    final bg =
+        _isCancelling
+            ? (context.isDarkMode
+                ? Colors.red.withValues(alpha: 0.15)
+                : const Color(0xFFFBE9E5))
+            : (context.isDarkMode
+                ? context.surfaceVariantColor
+                : const Color(0xFFFDF3EF));
+    final borderColor =
+        _isCancelling
+            ? (context.isDarkMode
+                ? Colors.red.withValues(alpha: 0.4)
+                : const Color(0xFFF0C7BC))
+            : (context.isDarkMode
+                ? AppColors.borderDark
+                : const Color(0xFFF0D9CE));
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: _buildInlineRecordingUI(context),
     );
   }
 
@@ -1241,19 +1399,19 @@ class _MessageInputState extends State<MessageInput>
         children: [
           isNearLock
               ? AppIcon(
-                  AppIcon.lock,
-                  color: context.adaptivePrimaryColor.withValues(
-                    alpha: 0.5 + progress * 0.5,
-                  ),
-                  size: 20,
-                )
-              : AppIcon(
-                  AppIcon.lockOpen,
-                  color: context.adaptivePrimaryColor.withValues(
-                    alpha: 0.5 + progress * 0.5,
-                  ),
-                  size: 20,
+                AppIcon.lock,
+                color: context.adaptivePrimaryColor.withValues(
+                  alpha: 0.5 + progress * 0.5,
                 ),
+                size: 20,
+              )
+              : AppIcon(
+                AppIcon.lockOpen,
+                color: context.adaptivePrimaryColor.withValues(
+                  alpha: 0.5 + progress * 0.5,
+                ),
+                size: 20,
+              ),
           const SizedBox(width: 8),
           Text(
             isNearLock
@@ -1413,7 +1571,11 @@ class _MessageInputState extends State<MessageInput>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppIcon(AppIcon.lock, color: context.adaptivePrimaryColor, size: 14),
+              AppIcon(
+                AppIcon.lock,
+                color: context.adaptivePrimaryColor,
+                size: 14,
+              ),
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context)!.recordingLocked,
@@ -1443,7 +1605,8 @@ class _MessageInputState extends State<MessageInput>
                   color: Colors.red.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(22),
                 ),
-                child: const AppIcon(AppIcon.delete,
+                child: const AppIcon(
+                  AppIcon.delete,
                   color: Colors.red,
                   size: 22,
                 ),
@@ -1488,7 +1651,11 @@ class _MessageInputState extends State<MessageInput>
                     ),
                   ],
                 ),
-                child: const AppIcon(AppIcon.send, color: Colors.white, size: 20),
+                child: const AppIcon(
+                  AppIcon.send,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ],
@@ -1561,7 +1728,8 @@ class _MessageInputState extends State<MessageInput>
           ),
           IconButton(
             onPressed: widget.onCancelReply,
-            icon: AppIcon(AppIcon.close,
+            icon: AppIcon(
+              AppIcon.close,
               size: 20,
               color: context.textSecondaryColor,
             ),
@@ -1715,7 +1883,8 @@ class _MessageInputState extends State<MessageInput>
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              width: _isRecording ? 56 : 44,
+              // Pilule « MAINTENIR » à vide (micro dispo) ; rond sinon.
+              width: _isRecording ? 56 : (_isVoicePill ? 128 : 44),
               height: _isRecording ? 56 : 44,
               decoration: BoxDecoration(
                 gradient: _getButtonGradient(context),
@@ -1747,6 +1916,21 @@ class _MessageInputState extends State<MessageInput>
   static const Color _kE2eeBlue = Color(0xFF2F6BE0);
   static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
 
+  /// Vert de la pilule vocale (#1B5E32 / #2D7D46), indépendant du thème
+  /// (le composer veut une « pilule verte », pas la couleur primaire).
+  static const Color _kVoiceGreen = Color(0xFF1B5E32);
+  static const Color _kVoiceGreenLight = Color(0xFF2D7D46);
+
+  /// État « pilule MAINTENIR » : à vide, micro disponible, hors enregistrement.
+  bool get _isVoicePill =>
+      !_isRecording && !_hasText && widget.onSendAudio != null;
+
+  /// Libellé « maintenir » du bouton vocal (pas de clé l10n dédiée).
+  String _holdLabel(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
+    return lang == 'en' ? 'HOLD' : 'MAINTENIR';
+  }
+
   /// Gradient du bouton selon l'état
   LinearGradient? _getButtonGradient(BuildContext context) {
     if (_isCancelling) {
@@ -1774,12 +1958,9 @@ class _MessageInputState extends State<MessageInput>
             _isOverLimit
                 ? [Colors.red.shade400, Colors.red.shade600]
                 : _hasText
-                // Mode envoi : bleu E2EE. Mode micro : couleur du thème.
+                // Mode envoi : bleu E2EE. Mode micro : pilule verte.
                 ? const [_kE2eeBlueLight, _kE2eeBlue]
-                : [
-                  context.adaptivePrimaryColor,
-                  context.adaptivePrimaryColor.withValues(alpha: 0.8),
-                ],
+                : const [_kVoiceGreenLight, _kVoiceGreen],
       );
     }
     return null;
@@ -1805,7 +1986,7 @@ class _MessageInputState extends State<MessageInput>
       if (_isOverLimit) return Colors.red.withValues(alpha: 0.35);
       return _hasText
           ? _kE2eeBlue.withValues(alpha: 0.35)
-          : context.adaptivePrimaryColor.withValues(alpha: 0.35);
+          : _kVoiceGreen.withValues(alpha: 0.35);
     }
     return Colors.black.withValues(alpha: 0.1);
   }
@@ -1842,12 +2023,34 @@ class _MessageInputState extends State<MessageInput>
                     ),
                   ],
                 ),
-                child: AppIcon(AppIcon.lock,
+                child: AppIcon(
+                  AppIcon.lock,
                   size: 24,
                   color: context.adaptivePrimaryColor,
                 ),
               ),
             ),
+        ],
+      );
+    }
+
+    // État vide avec micro : pilule verte libellée « MAINTENIR ».
+    if (_isVoicePill) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AppIcon(AppIcon.mic, color: AppColors.white, size: 20),
+          const SizedBox(width: 6),
+          Text(
+            _holdLabel(context),
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       );
     }
@@ -1863,7 +2066,8 @@ class _MessageInputState extends State<MessageInput>
           duration: const Duration(milliseconds: 200),
           child: Transform.scale(
             scale: 1 - (_morphAnimation.value * 0.3),
-            child: AppIcon(AppIcon.mic,
+            child: AppIcon(
+              AppIcon.mic,
               color:
                   widget.onSendAudio != null
                       ? AppColors.white

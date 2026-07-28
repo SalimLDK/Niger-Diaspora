@@ -1,6 +1,5 @@
 import 'dart:async' show unawaited;
 import 'dart:io';
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -184,6 +183,47 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Accusé de lecture « lu » : double coche + cercle en bleu.
   static const Color _kReadReceiptBlue = Color(0xFF5B9BFF);
 
+  // ── Bulles opaques (refonte Discussion — contraste AA) ────────────────────
+  /// Bulle envoyée : `#1B5E32` (clair) / `#2D7D46` (sombre).
+  static const Color _kSentBubbleLight = Color(0xFF1B5E32);
+  static const Color _kSentBubbleDark = Color(0xFF2D7D46);
+
+  /// Bulle reçue : `#FFFFFF` (clair) / `#252119` (sombre).
+  static const Color _kRecvBubbleLight = Color(0xFFFFFFFF);
+  static const Color _kRecvBubbleDark = Color(0xFF252119);
+
+  /// Bordure de bulle reçue : `#EFE7DB` (clair) / `#3D352C` (sombre).
+  static const Color _kRecvBorderLight = Color(0xFFEFE7DB);
+  static const Color _kRecvBorderDark = Color(0xFF3D352C);
+
+  /// Décoration opaque de la bulle (remplace le glassmorphism).
+  BoxDecoration _bubbleDecoration(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final Color bubbleColor =
+        widget.isMe
+            ? (isDark ? _kSentBubbleDark : _kSentBubbleLight)
+            : (isDark ? _kRecvBubbleDark : _kRecvBubbleLight);
+    return BoxDecoration(
+      color: bubbleColor,
+      borderRadius: _getBorderRadius(),
+      // Bordure uniquement sur les bulles reçues (les envoyées sont pleines).
+      // Pas d'ombre : la bulle est enveloppée d'un ClipRRect qui la rognerait
+      // de toute façon — la définition vient de la bordure et du contraste.
+      border:
+          widget.isMe
+              ? null
+              : Border.all(
+                color: isDark ? _kRecvBorderDark : _kRecvBorderLight,
+                width: 1,
+              ),
+    );
+  }
+
+  /// Dernier message d'un groupe (ou message isolé) : porte l'horodatage.
+  bool get _isLastInGroup =>
+      widget.groupPosition == MessageGroupPosition.last ||
+      widget.groupPosition == MessageGroupPosition.single;
+
   @override
   void initState() {
     super.initState();
@@ -239,10 +279,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
   BorderRadius _getBorderRadius() {
-    // Modern increased radii for a more contemporary look
-    const double largeRadius = 28;
-    const double smallRadius = 8;
-    const double tinyRadius = 4;
+    // Rayons 18 avec coin de queue 6 (cf. handoff Discussion).
+    const double largeRadius = 18;
+    const double smallRadius = 6;
+    const double tinyRadius = 6;
 
     switch (widget.groupPosition) {
       case MessageGroupPosition.first:
@@ -334,38 +374,39 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             ),
           // Large emoji
           Text(widget.message.content, style: const TextStyle(fontSize: 42)),
-          // Time and status below emoji
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.currentUserId != null &&
-                    widget.message.isStarredBy(widget.currentUserId!)) ...[
-                  AppIcon(
-                    AppIcon.star,
-                    size: 12,
-                    color: context.textTertiaryColor,
-                  ),
+          // Time and status below emoji (groupage : dernier du groupe seulement)
+          if (_isLastInGroup)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.currentUserId != null &&
+                      widget.message.isStarredBy(widget.currentUserId!)) ...[
+                    AppIcon(
+                      AppIcon.star,
+                      size: 12,
+                      color: context.textTertiaryColor,
+                    ),
+                    const SizedBox(width: 2),
+                  ],
+                  _buildEncryptionIcon(context),
                   const SizedBox(width: 2),
-                ],
-                _buildEncryptionIcon(context),
-                const SizedBox(width: 2),
-                Text(
-                  _formatTime(widget.message.createdAt),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: context.textTertiaryColor,
+                  Text(
+                    _formatTime(widget.message.createdAt),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: context.textTertiaryColor,
+                    ),
                   ),
-                ),
-                if (widget.isMe) ...[
-                  const SizedBox(width: 3),
-                  _buildStatusIcon(context, inline: false),
-                  _buildReadReceiptDot(),
+                  if (widget.isMe) ...[
+                    const SizedBox(width: 3),
+                    _buildStatusIcon(context, inline: false),
+                    _buildReadReceiptDot(),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -448,9 +489,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
     if (widget.message.deletedForEveryone) return const SizedBox.shrink();
 
-    final otherReadersCount = widget.message.readBy
-        .where((id) => id != widget.message.senderId)
-        .length;
+    final otherReadersCount =
+        widget.message.readBy
+            .where((id) => id != widget.message.senderId)
+            .length;
     final isRead = otherReadersCount > 0;
 
     if (!isRead) return const SizedBox.shrink();
@@ -491,7 +533,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 bottom: 0,
                 child: Center(
                   child: AnimatedOpacity(
-                    opacity: _swipeOffset.abs() > 40 ? 1 : 0.5,
+                    opacity: _swipeOffset.abs() > 52 ? 1 : 0.5,
                     duration: const Duration(milliseconds: 100),
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -594,240 +636,157 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                                 onDoubleTap: _onDoubleTap,
                                 child: ClipRRect(
                                   borderRadius: _getBorderRadius(),
-                                  child: BackdropFilter(
-                                    // Glass morphism effect - more blur for incoming messages
-                                    filter: ImageFilter.blur(
-                                      sigmaX: widget.isMe ? 0 : 12,
-                                      sigmaY: widget.isMe ? 0 : 12,
-                                    ),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        // Modern glass effect with gradients
-                                        gradient:
-                                            widget.isMe
-                                                ? LinearGradient(
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                  colors: [
-                                                    context
-                                                        .adaptiveSecondaryColor
-                                                        .withValues(alpha: 0.9),
-                                                    context
-                                                        .adaptiveSecondaryColor
-                                                        .withValues(alpha: 0.8),
-                                                  ],
-                                                )
-                                                : LinearGradient(
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                  colors:
-                                                      context.isDarkMode
-                                                          ? [
-                                                            context
-                                                                .adaptivePrimaryColor
-                                                                .withValues(
-                                                                  alpha: 0.7,
-                                                                ),
-                                                            context
-                                                                .adaptivePrimaryColor
-                                                                .withValues(
-                                                                  alpha: 0.6,
-                                                                ),
-                                                          ]
-                                                          : [
-                                                            context
-                                                                .adaptivePrimaryColor
-                                                                .withValues(
-                                                                  alpha: 0.65,
-                                                                ),
-                                                            context
-                                                                .adaptivePrimaryColor
-                                                                .withValues(
-                                                                  alpha: 0.55,
-                                                                ),
-                                                          ],
-                                                ),
+                                  child: Container(
+                                    // Surface opaque : plus de BackdropFilter ni
+                                    // de dégradé (coûteux sur entrée de gamme) —
+                                    // contraste texte AA garanti.
+                                    decoration: _bubbleDecoration(context),
+                                    child: GestureDetector(
+                                      onTap:
+                                          widget.message.status ==
+                                                      MessageStatus.failed &&
+                                                  widget.onRetry != null
+                                              ? widget.onRetry
+                                              : null,
+                                      child: ClipRRect(
                                         borderRadius: _getBorderRadius(),
-                                        // Modern softer shadows
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                context.isDarkMode
-                                                    ? Colors.black.withValues(
-                                                      alpha: 0.35,
-                                                    )
-                                                    : Colors.black.withValues(
-                                                      alpha: 0.12,
-                                                    ),
-                                            blurRadius: 16,
-                                            offset: const Offset(0, 4),
-                                            spreadRadius: -4,
-                                          ),
-                                        ],
-                                        // Subtle glass border
-                                        border: Border.all(
-                                          color:
-                                              widget.isMe
-                                                  ? Colors.white.withValues(
-                                                    alpha: 0.15,
-                                                  )
-                                                  : Colors.white.withValues(
-                                                    alpha: 0.25,
-                                                  ),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: GestureDetector(
-                                        onTap:
-                                            widget.message.status ==
-                                                        MessageStatus.failed &&
-                                                    widget.onRetry != null
-                                                ? widget.onRetry
-                                                : null,
-                                        child: ClipRRect(
-                                          borderRadius: _getBorderRadius(),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              // Forwarded label
-                                              if (widget.message.isForwarded)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 12,
-                                                        right: 12,
-                                                        top: 8,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Forwarded label
+                                            if (widget.message.isForwarded)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12,
+                                                  right: 12,
+                                                  top: 8,
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Transform.flip(
+                                                      flipX: true,
+                                                      child: Icon(
+                                                        Icons.reply,
+                                                        size: 16,
+                                                        color:
+                                                            widget.isMe
+                                                                ? AppColors
+                                                                    .white
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.6,
+                                                                    )
+                                                                : context
+                                                                    .textTertiaryColor
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.8,
+                                                                    ),
                                                       ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.forwarded,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                        color:
+                                                            widget.isMe
+                                                                ? AppColors
+                                                                    .white
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.6,
+                                                                    )
+                                                                : context
+                                                                    .textTertiaryColor
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.8,
+                                                                    ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            // Sender name inside bubble for groups
+                                            if (widget.showSenderInfo &&
+                                                !widget.isMe)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12,
+                                                  right: 12,
+                                                  top: 8,
+                                                ),
+                                                child: InkWell(
+                                                  onTap:
+                                                      () => widget.onSenderTap
+                                                          ?.call(
+                                                            widget
+                                                                .message
+                                                                .senderId,
+                                                          ),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     children: [
-                                                      Transform.flip(
-                                                        flipX: true,
-                                                        child: Icon(
-                                                          Icons.reply,
-                                                          size: 16,
-                                                          color:
-                                                              widget.isMe
-                                                                  ? AppColors
-                                                                      .white
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.6,
-                                                                      )
-                                                                  : context
-                                                                      .textTertiaryColor
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.8,
-                                                                      ),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 4),
                                                       Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!.forwarded,
+                                                        widget
+                                                            .message
+                                                            .senderName,
                                                         style: TextStyle(
-                                                          fontSize: 12,
-                                                          fontStyle:
-                                                              FontStyle.italic,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                           color:
-                                                              widget.isMe
-                                                                  ? AppColors
-                                                                      .white
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.6,
-                                                                      )
-                                                                  : context
-                                                                      .textTertiaryColor
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.8,
-                                                                      ),
+                                                              UserColorUtils.getUserColor(
+                                                                widget
+                                                                    .message
+                                                                    .senderId,
+                                                              ),
                                                         ),
                                                       ),
+                                                      if (widget
+                                                          .message
+                                                          .senderIsVerified) ...[
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
+                                                        const VerificationBadge(
+                                                          size:
+                                                              VerificationBadgeSize
+                                                                  .small,
+                                                        ),
+                                                      ],
+                                                      if (widget
+                                                          .senderIsAdmin) ...[
+                                                        const SizedBox(
+                                                          width: 6,
+                                                        ),
+                                                        _buildAdminBadge(
+                                                          context,
+                                                        ),
+                                                      ],
                                                     ],
                                                   ),
                                                 ),
-                                              // Sender name inside bubble for groups
-                                              if (widget.showSenderInfo &&
-                                                  !widget.isMe)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 12,
-                                                        right: 12,
-                                                        top: 8,
-                                                      ),
-                                                  child: InkWell(
-                                                    onTap:
-                                                        () => widget.onSenderTap
-                                                            ?.call(
-                                                              widget
-                                                                  .message
-                                                                  .senderId,
-                                                            ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          widget
-                                                              .message
-                                                              .senderName,
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                UserColorUtils.getUserColor(
-                                                                  widget
-                                                                      .message
-                                                                      .senderId,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                        if (widget
-                                                            .message
-                                                            .senderIsVerified) ...[
-                                                          const SizedBox(
-                                                            width: 4,
-                                                          ),
-                                                          const VerificationBadge(
-                                                            size:
-                                                                VerificationBadgeSize
-                                                                    .small,
-                                                          ),
-                                                        ],
-                                                        if (widget
-                                                            .senderIsAdmin) ...[
-                                                          const SizedBox(
-                                                            width: 6,
-                                                          ),
-                                                          _buildAdminBadge(
-                                                            context,
-                                                          ),
-                                                        ],
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              // Reply preview
-                                              if (widget.replyToMessage != null)
-                                                _buildReplyPreview(context),
+                                              ),
+                                            // Reply preview
+                                            if (widget.replyToMessage != null)
+                                              _buildReplyPreview(context),
 
-                                              // Message content
-                                              widget.message.deletedForEveryone
-                                                  ? _buildDeletedContent(
-                                                    context,
-                                                  )
-                                                  : _buildContent(context),
-                                            ],
-                                          ),
+                                            // Message content
+                                            widget.message.deletedForEveryone
+                                                ? _buildDeletedContent(context)
+                                                : _buildContent(context),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -868,31 +827,31 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   void _onSwipeUpdate(DragUpdateDetails details) {
     final newOffset = _swipeOffset + details.delta.dx;
 
-    // Only allow swipe in the correct direction
+    // Only allow swipe in the correct direction, borné à 90 px.
     if (widget.isMe) {
       // Swipe left for "isMe" messages
-      if (newOffset <= 0 && newOffset >= -80) {
+      if (newOffset <= 0 && newOffset >= -90) {
         setState(() {
           _swipeOffset = newOffset;
         });
       }
     } else {
       // Swipe right for other's messages
-      if (newOffset >= 0 && newOffset <= 80) {
+      if (newOffset >= 0 && newOffset <= 90) {
         setState(() {
           _swipeOffset = newOffset;
         });
       }
     }
 
-    // Haptic feedback when threshold is reached
-    if (_swipeOffset.abs() > 60 && _swipeOffset.abs() < 65) {
+    // Haptic feedback au franchissement du seuil (52 px).
+    if (_swipeOffset.abs() > 52 && _swipeOffset.abs() < 57) {
       HapticFeedback.lightImpact();
     }
   }
 
   void _onSwipeEnd(DragEndDetails details) {
-    if (_swipeOffset.abs() > 60) {
+    if (_swipeOffset.abs() > 52) {
       // Trigger reply
       HapticFeedback.mediumImpact();
       widget.onReply?.call(widget.message);
@@ -974,15 +933,18 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             reactionCounts.entries.map((entry) {
               // Re-tap sur une réaction = toggle → retire l'emoji déjà posé.
               return GestureDetector(
-                onTap: widget.onReact == null
-                    ? null
-                    : () {
-                        HapticFeedback.lightImpact();
-                        widget.onReact?.call(widget.message, entry.key);
-                      },
+                onTap:
+                    widget.onReact == null
+                        ? null
+                        : () {
+                          HapticFeedback.lightImpact();
+                          widget.onReact?.call(widget.message, entry.key);
+                        },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: context.surfaceVariantColor,
                     borderRadius: BorderRadius.circular(12),
@@ -1025,11 +987,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppIcon(
-            AppIcon.star,
-            size: 9,
-            color: context.adaptivePrimaryColor,
-          ),
+          AppIcon(AppIcon.star, size: 9, color: context.adaptivePrimaryColor),
           const SizedBox(width: 3),
           Text(
             'Admin',
@@ -2329,8 +2287,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(widget.message.content, style: const TextStyle(fontSize: 42)),
-            const SizedBox(height: 4),
-            _buildInlineTimeStatus(context),
+            // Groupage : un seul horodatage sous le dernier message du groupe.
+            if (_isLastInGroup) ...[
+              const SizedBox(height: 4),
+              _buildInlineTimeStatus(context),
+            ],
           ],
         ),
       );
@@ -2351,7 +2312,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           // Event card if attached
           if (eventData != null)
             EventMessageCard(eventData: eventData, isMe: widget.isMe),
-          // Message content with inline time
+          // Message content with inline time (groupage : horodatage seulement
+          // sous le dernier message d'un groupe consécutif).
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -2359,9 +2321,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               Flexible(
                 child: _buildRichTextWithLinks(context, widget.message.content),
               ),
-              const SizedBox(width: 8),
-              // Time and status inline
-              _buildInlineTimeStatus(context),
+              if (_isLastInGroup) ...[
+                const SizedBox(width: 8),
+                _buildInlineTimeStatus(context),
+              ],
             ],
           ),
           // Link preview card
@@ -2378,12 +2341,21 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         widget.message.isStarredBy(widget.currentUserId!);
     final l10n = AppLocalizations.of(context)!;
 
+    // Sur bulle envoyée (fond vert) : texte clair. Sur bulle reçue (fond
+    // clair opaque) : gris tertiaire, sinon le blanc serait invisible.
+    final metaColor =
+        widget.isMe
+            ? AppColors.white.withValues(alpha: 0.7)
+            : context.textTertiaryColor;
+
     // « Vu par N » : sur MES messages de groupe lus par au moins un autre
     // membre (info spécifique aux groupes, en plus de la double coche).
-    final groupReadCount = widget.message.readBy
-        .where((id) => id != widget.message.senderId)
-        .length;
-    final showGroupReadCount = widget.isMe &&
+    final groupReadCount =
+        widget.message.readBy
+            .where((id) => id != widget.message.senderId)
+            .length;
+    final showGroupReadCount =
+        widget.isMe &&
         widget.groupId != null &&
         !widget.message.deletedForEveryone &&
         groupReadCount > 0;
@@ -2403,11 +2375,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           const SizedBox(width: 6),
         ],
         if (isStarred) ...[
-          AppIcon(
-            AppIcon.star,
-            size: 12,
-            color: AppColors.white.withValues(alpha: 0.7),
-          ),
+          AppIcon(AppIcon.star, size: 12, color: metaColor),
           const SizedBox(width: 2),
         ],
         // Edited indicator
@@ -2417,27 +2385,21 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             style: TextStyle(
               fontSize: 11,
               fontStyle: FontStyle.italic,
-              color: AppColors.white.withValues(alpha: 0.7),
+              color: metaColor,
             ),
           ),
           const SizedBox(width: 4),
         ],
         // Ephemeral indicator
         if (widget.message.isEphemeral) ...[
-          Icon(
-            Icons.timer_outlined,
-            size: 12,
-            color: AppColors.white.withValues(alpha: 0.7),
-          ),
+          Icon(Icons.timer_outlined, size: 12, color: metaColor),
           const SizedBox(width: 2),
         ],
         Text(
           _formatTime(widget.message.createdAt),
           style: TextStyle(
             fontSize: 11,
-            color: widget.isMe
-                ? _kTimestampBlue
-                : AppColors.white.withValues(alpha: 0.7),
+            color: widget.isMe ? _kTimestampBlue : context.textTertiaryColor,
           ),
         ),
         if (widget.isMe && !widget.message.deletedForEveryone) ...[
