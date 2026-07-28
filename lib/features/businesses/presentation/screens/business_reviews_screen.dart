@@ -69,6 +69,56 @@ class BusinessReviewsScreen extends ConsumerWidget {
     );
   }
 
+  /// Réponse du gérant à un avis (§18c) — réutilise updateReview.
+  void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
+    final controller = TextEditingController(text: review.ownerReply ?? '');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Répondre à l\'avis'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 4,
+          maxLength: 500,
+          decoration: const InputDecoration(
+            hintText: 'Votre réponse en tant que gérant…',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              Navigator.pop(ctx);
+              final updated = review.copyWith(
+                ownerReply: text.isEmpty ? null : text,
+                ownerReplyAt: text.isEmpty ? null : DateTime.now(),
+              );
+              final ok = await ref
+                  .read(reviewActionsNotifierProvider.notifier)
+                  .updateReview(updated);
+              if (ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      text.isEmpty ? 'Réponse supprimée' : 'Réponse publiée',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: const Text('Publier'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showReportDialog(BuildContext context, WidgetRef ref, String reviewId) {
     final reasonController = TextEditingController();
     showDialog(
@@ -193,6 +243,8 @@ class BusinessReviewsScreen extends ConsumerWidget {
                         final review = reviews[index];
                         final isOwner = currentUser?.id == review.userId;
                         final hasMarkedHelpful = review.helpfulByUserIds.contains(currentUser?.id);
+                        final isBusinessOwner = business != null &&
+                            currentUser?.id == business!.ownerId;
 
                         return ReviewCard(
                           review: review,
@@ -211,6 +263,11 @@ class BusinessReviewsScreen extends ConsumerWidget {
                               : null,
                           onReport: currentUser != null && !isOwner
                               ? () => _showReportDialog(context, ref, review.id)
+                              : null,
+                          // Le gérant de l'entreprise peut répondre (§18c).
+                          canReply: isBusinessOwner,
+                          onReply: isBusinessOwner
+                              ? () => _showReplyDialog(context, ref, review)
                               : null,
                         );
                       },

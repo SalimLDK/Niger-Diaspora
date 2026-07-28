@@ -33,6 +33,8 @@ mixin _$ReviewModel {
   int get helpfulCount => throw _privateConstructorUsedError;
   List<String> get helpfulByUserIds => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  String? get ownerReply => throw _privateConstructorUsedError;
+  String? get ownerReplyAt => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
   String? get updatedAt => throw _privateConstructorUsedError;
 
@@ -66,6 +68,8 @@ abstract class $ReviewModelCopyWith<$Res> {
     int helpfulCount,
     List<String> helpfulByUserIds,
     String status,
+    String? ownerReply,
+    String? ownerReplyAt,
     String? createdAt,
     String? updatedAt,
   });
@@ -98,6 +102,8 @@ class _$ReviewModelCopyWithImpl<$Res, $Val extends ReviewModel>
     Object? helpfulCount = null,
     Object? helpfulByUserIds = null,
     Object? status = null,
+    Object? ownerReply = freezed,
+    Object? ownerReplyAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -163,6 +169,16 @@ class _$ReviewModelCopyWithImpl<$Res, $Val extends ReviewModel>
                     ? _value.status
                     : status // ignore: cast_nullable_to_non_nullable
                         as String,
+            ownerReply:
+                freezed == ownerReply
+                    ? _value.ownerReply
+                    : ownerReply // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            ownerReplyAt:
+                freezed == ownerReplyAt
+                    ? _value.ownerReplyAt
+                    : ownerReplyAt // ignore: cast_nullable_to_non_nullable
+                        as String?,
             createdAt:
                 freezed == createdAt
                     ? _value.createdAt
@@ -201,6 +217,8 @@ abstract class _$$ReviewModelImplCopyWith<$Res>
     int helpfulCount,
     List<String> helpfulByUserIds,
     String status,
+    String? ownerReply,
+    String? ownerReplyAt,
     String? createdAt,
     String? updatedAt,
   });
@@ -232,6 +250,8 @@ class __$$ReviewModelImplCopyWithImpl<$Res>
     Object? helpfulCount = null,
     Object? helpfulByUserIds = null,
     Object? status = null,
+    Object? ownerReply = freezed,
+    Object? ownerReplyAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -297,6 +317,16 @@ class __$$ReviewModelImplCopyWithImpl<$Res>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                     as String,
+        ownerReply:
+            freezed == ownerReply
+                ? _value.ownerReply
+                : ownerReply // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        ownerReplyAt:
+            freezed == ownerReplyAt
+                ? _value.ownerReplyAt
+                : ownerReplyAt // ignore: cast_nullable_to_non_nullable
+                    as String?,
         createdAt:
             freezed == createdAt
                 ? _value.createdAt
@@ -328,6 +358,8 @@ class _$ReviewModelImpl extends _ReviewModel {
     this.helpfulCount = 0,
     final List<String> helpfulByUserIds = const [],
     this.status = 'published',
+    this.ownerReply,
+    this.ownerReplyAt,
     this.createdAt,
     this.updatedAt,
   }) : _imageUrls = imageUrls,
@@ -379,13 +411,17 @@ class _$ReviewModelImpl extends _ReviewModel {
   @JsonKey()
   final String status;
   @override
+  final String? ownerReply;
+  @override
+  final String? ownerReplyAt;
+  @override
   final String? createdAt;
   @override
   final String? updatedAt;
 
   @override
   String toString() {
-    return 'ReviewModel(id: $id, businessId: $businessId, userId: $userId, userDisplayName: $userDisplayName, userPhotoUrl: $userPhotoUrl, rating: $rating, title: $title, content: $content, imageUrls: $imageUrls, helpfulCount: $helpfulCount, helpfulByUserIds: $helpfulByUserIds, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ReviewModel(id: $id, businessId: $businessId, userId: $userId, userDisplayName: $userDisplayName, userPhotoUrl: $userPhotoUrl, rating: $rating, title: $title, content: $content, imageUrls: $imageUrls, helpfulCount: $helpfulCount, helpfulByUserIds: $helpfulByUserIds, status: $status, ownerReply: $ownerReply, ownerReplyAt: $ownerReplyAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -415,6 +451,10 @@ class _$ReviewModelImpl extends _ReviewModel {
               _helpfulByUserIds,
             ) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.ownerReply, ownerReply) ||
+                other.ownerReply == ownerReply) &&
+            (identical(other.ownerReplyAt, ownerReplyAt) ||
+                other.ownerReplyAt == ownerReplyAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -437,6 +477,8 @@ class _$ReviewModelImpl extends _ReviewModel {
     helpfulCount,
     const DeepCollectionEquality().hash(_helpfulByUserIds),
     status,
+    ownerReply,
+    ownerReplyAt,
     createdAt,
     updatedAt,
   );
@@ -469,6 +511,8 @@ abstract class _ReviewModel extends ReviewModel {
     final int helpfulCount,
     final List<String> helpfulByUserIds,
     final String status,
+    final String? ownerReply,
+    final String? ownerReplyAt,
     final String? createdAt,
     final String? updatedAt,
   }) = _$ReviewModelImpl;
@@ -501,6 +545,10 @@ abstract class _ReviewModel extends ReviewModel {
   List<String> get helpfulByUserIds;
   @override
   String get status;
+  @override
+  String? get ownerReply;
+  @override
+  String? get ownerReplyAt;
   @override
   String? get createdAt;
   @override

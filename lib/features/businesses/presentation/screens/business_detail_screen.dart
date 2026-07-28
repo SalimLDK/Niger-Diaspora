@@ -1098,6 +1098,57 @@ class _ReviewsPreviewSection extends ConsumerWidget {
     );
   }
 
+  /// Réponse du gérant à un avis (§18c). Réutilise le chemin d'écriture
+  /// existant `updateReview` en posant `ownerReply`/`ownerReplyAt` sur l'avis.
+  void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
+    final controller = TextEditingController(text: review.ownerReply ?? '');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Répondre à l\'avis'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 4,
+          maxLength: 500,
+          decoration: const InputDecoration(
+            hintText: 'Votre réponse en tant que gérant…',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              Navigator.pop(ctx);
+              final updated = review.copyWith(
+                ownerReply: text.isEmpty ? null : text,
+                ownerReplyAt: text.isEmpty ? null : DateTime.now(),
+              );
+              final ok = await ref
+                  .read(reviewActionsNotifierProvider.notifier)
+                  .updateReview(updated);
+              if (ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      text.isEmpty ? 'Réponse supprimée' : 'Réponse publiée',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: const Text('Publier'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -1223,6 +1274,10 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                             .read(reviewActionsNotifierProvider.notifier)
                             .toggleHelpful(review.id, businessId, hasMarkedHelpful)
                         : null,
+                    // Le gérant de l'entreprise peut répondre à l'avis (§18c).
+                    canReply: isOwner,
+                    onReply:
+                        isOwner ? () => _showReplyDialog(context, ref, review) : null,
                   );
                 }),
                 if (!isOwner && userReviewAsync.valueOrNull == null)

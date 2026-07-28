@@ -22,6 +22,8 @@ class ReviewModel with _$ReviewModel {
     @Default(0) int helpfulCount,
     @Default([]) List<String> helpfulByUserIds,
     @Default('published') String status,
+    String? ownerReply,
+    String? ownerReplyAt,
     String? createdAt,
     String? updatedAt,
   }) = _ReviewModel;
@@ -45,6 +47,10 @@ class ReviewModel with _$ReviewModel {
     if (data['updatedAt'] is Timestamp) {
       processedData['updatedAt'] =
           (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+    }
+    if (data['ownerReplyAt'] is Timestamp) {
+      processedData['ownerReplyAt'] =
+          (data['ownerReplyAt'] as Timestamp).toDate().toIso8601String();
     }
 
     // Assurer que les listes sont bien des List<String>
@@ -73,6 +79,9 @@ class ReviewModel with _$ReviewModel {
         helpfulCount: helpfulCount,
         helpfulByUserIds: helpfulByUserIds,
         status: _parseStatus(status),
+        ownerReply: ownerReply,
+        ownerReplyAt:
+            ownerReplyAt != null ? DateTime.tryParse(ownerReplyAt!) : null,
         createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
         updatedAt: updatedAt != null ? DateTime.tryParse(updatedAt!) : null,
       );
@@ -97,6 +106,8 @@ class ReviewModel with _$ReviewModel {
         helpfulCount: entity.helpfulCount,
         helpfulByUserIds: entity.helpfulByUserIds,
         status: entity.status.name,
+        ownerReply: entity.ownerReply,
+        ownerReplyAt: entity.ownerReplyAt?.toIso8601String(),
         createdAt: entity.createdAt?.toIso8601String(),
         updatedAt: entity.updatedAt?.toIso8601String(),
       );

@@ -28,6 +28,8 @@ _$ReviewModelImpl _$$ReviewModelImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       status: json['status'] as String? ?? 'published',
+      ownerReply: json['ownerReply'] as String?,
+      ownerReplyAt: json['ownerReplyAt'] as String?,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
     );
@@ -46,6 +48,8 @@ Map<String, dynamic> _$$ReviewModelImplToJson(_$ReviewModelImpl instance) =>
       'helpfulCount': instance.helpfulCount,
       'helpfulByUserIds': instance.helpfulByUserIds,
       'status': instance.status,
+      'ownerReply': instance.ownerReply,
+      'ownerReplyAt': instance.ownerReplyAt,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };

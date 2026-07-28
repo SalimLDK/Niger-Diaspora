@@ -15,6 +15,11 @@ class ReviewCard extends StatelessWidget {
   final VoidCallback? onReport;
   final VoidCallback? onImageTap;
 
+  /// Vrai si l'utilisateur courant est le gérant de l'entreprise : il peut
+  /// alors répondre à l'avis (§18c).
+  final bool canReply;
+  final VoidCallback? onReply;
+
   const ReviewCard({
     super.key,
     required this.review,
@@ -25,6 +30,8 @@ class ReviewCard extends StatelessWidget {
     this.onMarkHelpful,
     this.onReport,
     this.onImageTap,
+    this.canReply = false,
+    this.onReply,
   });
 
   @override
@@ -182,6 +189,82 @@ class ReviewCard extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+              ),
+            ],
+
+            // Réponse du gérant en encart bordé à gauche (§18c)
+            if (review.ownerReply != null &&
+                review.ownerReply!.trim().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border(
+                    left: BorderSide(color: theme.colorScheme.primary, width: 3),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.storefront_outlined,
+                          size: 15,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Réponse du gérant',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (review.ownerReplyAt != null) ...[
+                          const Spacer(),
+                          Text(
+                            dateFormat.format(review.ownerReplyAt!),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(review.ownerReply!, style: theme.textTheme.bodyMedium),
+                    if (canReply && onReply != null) ...[
+                      const SizedBox(height: 2),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: onReply,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 32),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text('Modifier la réponse'),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ] else if (canReply && onReply != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: onReply,
+                  icon: const Icon(Icons.reply, size: 18),
+                  label: const Text('Répondre'),
                 ),
               ),
             ],

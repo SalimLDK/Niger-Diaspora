@@ -28,7 +28,10 @@ mixin _$ReviewEntity {
   List<String> get imageUrls => throw _privateConstructorUsedError;
   int get helpfulCount => throw _privateConstructorUsedError;
   List<String> get helpfulByUserIds => throw _privateConstructorUsedError;
-  ReviewStatus get status => throw _privateConstructorUsedError;
+  ReviewStatus get status =>
+      throw _privateConstructorUsedError; // Réponse du gérant de l'entreprise à cet avis (§18c).
+  String? get ownerReply => throw _privateConstructorUsedError;
+  DateTime? get ownerReplyAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
@@ -59,6 +62,8 @@ abstract class $ReviewEntityCopyWith<$Res> {
     int helpfulCount,
     List<String> helpfulByUserIds,
     ReviewStatus status,
+    String? ownerReply,
+    DateTime? ownerReplyAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -91,6 +96,8 @@ class _$ReviewEntityCopyWithImpl<$Res, $Val extends ReviewEntity>
     Object? helpfulCount = null,
     Object? helpfulByUserIds = null,
     Object? status = null,
+    Object? ownerReply = freezed,
+    Object? ownerReplyAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -156,6 +163,16 @@ class _$ReviewEntityCopyWithImpl<$Res, $Val extends ReviewEntity>
                     ? _value.status
                     : status // ignore: cast_nullable_to_non_nullable
                         as ReviewStatus,
+            ownerReply:
+                freezed == ownerReply
+                    ? _value.ownerReply
+                    : ownerReply // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            ownerReplyAt:
+                freezed == ownerReplyAt
+                    ? _value.ownerReplyAt
+                    : ownerReplyAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
             createdAt:
                 freezed == createdAt
                     ? _value.createdAt
@@ -194,6 +211,8 @@ abstract class _$$ReviewEntityImplCopyWith<$Res>
     int helpfulCount,
     List<String> helpfulByUserIds,
     ReviewStatus status,
+    String? ownerReply,
+    DateTime? ownerReplyAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -225,6 +244,8 @@ class __$$ReviewEntityImplCopyWithImpl<$Res>
     Object? helpfulCount = null,
     Object? helpfulByUserIds = null,
     Object? status = null,
+    Object? ownerReply = freezed,
+    Object? ownerReplyAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -290,6 +311,16 @@ class __$$ReviewEntityImplCopyWithImpl<$Res>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                     as ReviewStatus,
+        ownerReply:
+            freezed == ownerReply
+                ? _value.ownerReply
+                : ownerReply // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        ownerReplyAt:
+            freezed == ownerReplyAt
+                ? _value.ownerReplyAt
+                : ownerReplyAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
         createdAt:
             freezed == createdAt
                 ? _value.createdAt
@@ -321,6 +352,8 @@ class _$ReviewEntityImpl implements _ReviewEntity {
     this.helpfulCount = 0,
     final List<String> helpfulByUserIds = const [],
     this.status = ReviewStatus.published,
+    this.ownerReply,
+    this.ownerReplyAt,
     this.createdAt,
     this.updatedAt,
   }) : _imageUrls = imageUrls,
@@ -368,6 +401,11 @@ class _$ReviewEntityImpl implements _ReviewEntity {
   @override
   @JsonKey()
   final ReviewStatus status;
+  // Réponse du gérant de l'entreprise à cet avis (§18c).
+  @override
+  final String? ownerReply;
+  @override
+  final DateTime? ownerReplyAt;
   @override
   final DateTime? createdAt;
   @override
@@ -375,7 +413,7 @@ class _$ReviewEntityImpl implements _ReviewEntity {
 
   @override
   String toString() {
-    return 'ReviewEntity(id: $id, businessId: $businessId, userId: $userId, userDisplayName: $userDisplayName, userPhotoUrl: $userPhotoUrl, rating: $rating, title: $title, content: $content, imageUrls: $imageUrls, helpfulCount: $helpfulCount, helpfulByUserIds: $helpfulByUserIds, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ReviewEntity(id: $id, businessId: $businessId, userId: $userId, userDisplayName: $userDisplayName, userPhotoUrl: $userPhotoUrl, rating: $rating, title: $title, content: $content, imageUrls: $imageUrls, helpfulCount: $helpfulCount, helpfulByUserIds: $helpfulByUserIds, status: $status, ownerReply: $ownerReply, ownerReplyAt: $ownerReplyAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -405,6 +443,10 @@ class _$ReviewEntityImpl implements _ReviewEntity {
               _helpfulByUserIds,
             ) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.ownerReply, ownerReply) ||
+                other.ownerReply == ownerReply) &&
+            (identical(other.ownerReplyAt, ownerReplyAt) ||
+                other.ownerReplyAt == ownerReplyAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -426,6 +468,8 @@ class _$ReviewEntityImpl implements _ReviewEntity {
     helpfulCount,
     const DeepCollectionEquality().hash(_helpfulByUserIds),
     status,
+    ownerReply,
+    ownerReplyAt,
     createdAt,
     updatedAt,
   );
@@ -453,6 +497,8 @@ abstract class _ReviewEntity implements ReviewEntity {
     final int helpfulCount,
     final List<String> helpfulByUserIds,
     final ReviewStatus status,
+    final String? ownerReply,
+    final DateTime? ownerReplyAt,
     final DateTime? createdAt,
     final DateTime? updatedAt,
   }) = _$ReviewEntityImpl;
@@ -480,7 +526,11 @@ abstract class _ReviewEntity implements ReviewEntity {
   @override
   List<String> get helpfulByUserIds;
   @override
-  ReviewStatus get status;
+  ReviewStatus get status; // Réponse du gérant de l'entreprise à cet avis (§18c).
+  @override
+  String? get ownerReply;
+  @override
+  DateTime? get ownerReplyAt;
   @override
   DateTime? get createdAt;
   @override

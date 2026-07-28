@@ -18,6 +18,9 @@ class ReviewEntity with _$ReviewEntity {
     @Default(0) int helpfulCount,
     @Default([]) List<String> helpfulByUserIds,
     @Default(ReviewStatus.published) ReviewStatus status,
+    // Réponse du gérant de l'entreprise à cet avis (§18c).
+    String? ownerReply,
+    DateTime? ownerReplyAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ReviewEntity;
