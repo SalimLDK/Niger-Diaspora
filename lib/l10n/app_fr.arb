@@ -6543,6 +6543,8 @@
   "older": "Plus ancien",
   "trendingHashtags": "Hashtags du moment",
   "noPostsForFilter": "Aucune publication chargée pour ce filtre.",
+  "todayTitle": "Aujourd'hui",
+  "messagesUnreadTitle": "Messages non lus",
   "posts": "posts",
   "postSingle": "post",
   "shareToConversation": "Envoyer à...",

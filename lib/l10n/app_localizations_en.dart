@@ -14051,6 +14051,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPostsForFilter => 'No loaded posts match this filter.';
 
   @override
+  String get todayTitle => 'Today';
+
+  @override
+  String get messagesUnreadTitle => 'Unread messages';
+
+  @override
   String get posts => 'posts';
 
   @override

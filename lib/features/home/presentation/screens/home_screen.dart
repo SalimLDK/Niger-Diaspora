@@ -17,13 +17,13 @@ import '../../../events/presentation/providers/event_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../../../onboarding/presentation/widgets/coach_mark_content.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../events/domain/entities/event_entity.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/home_provider.dart';
 
-import '../widgets/quick_action_card.dart';
 import '../widgets/home_section_header.dart';
 import '../widgets/home_empty_state_card.dart';
-import '../widgets/home_stat_card.dart';
 import '../widgets/home_member_card.dart';
 import '../widgets/home_event_card.dart';
 
@@ -558,16 +558,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Hero Header avec gradient
+            // En-tête plat (le dégradé orange disparaît — refonte 8a).
             SliverToBoxAdapter(
               child: Container(
-                decoration: BoxDecoration(
-                  gradient: context.adaptivePrimaryGradient,
-                ),
+                color: context.backgroundColor,
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                     child: Column(
                       children: [
                         Row(
@@ -581,9 +579,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: context.surfaceColor.withValues(
-                                      alpha: 0.3,
-                                    ),
+                                    color: context.borderColor,
                                     width: 2,
                                   ),
                                 ),
@@ -620,19 +616,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   Text(
                                     '${l10n.hello},',
                                     style: TextStyle(
-                                      fontSize: 14,
-                                      color: context.onPrimaryColor.withValues(
-                                        alpha: 0.8,
-                                      ),
+                                      fontSize: 13.5,
+                                      color: context.textSecondaryColor,
                                     ),
                                   ),
                                   Text(
-                                    userName,
-                                    style: const TextStyle(
+                                    userName.split(' ').first,
+                                    style: TextStyle(
                                       fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.white,
+                                      fontWeight: FontWeight.w700,
+                                      color: context.textPrimaryColor,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
@@ -641,18 +637,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             GestureDetector(
                               onTap: () => context.push('/qr-scanner'),
                               child: Container(
-                                padding: const EdgeInsets.all(12),
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
                                 margin: const EdgeInsets.only(right: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white.withValues(
-                                    alpha: 0.15,
-                                  ),
+                                  color: context.surfaceVariantColor,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.qr_code_scanner,
-                                  color: AppColors.white,
-                                  size: 24,
+                                  color: context.textSecondaryColor,
+                                  size: 22,
                                 ),
                               ),
                             ),
@@ -664,17 +660,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
+                                    width: 44,
+                                    height: 44,
+                                    alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: AppColors.white.withValues(
-                                        alpha: 0.15,
-                                      ),
+                                      color: context.surfaceVariantColor,
                                       borderRadius: BorderRadius.circular(14),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.notifications_outlined,
-                                      color: AppColors.white,
-                                      size: 24,
+                                      color: context.textSecondaryColor,
+                                      size: 22,
                                     ),
                                   ),
                                   if (ref.watch(
@@ -734,13 +730,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             decoration: BoxDecoration(
                               color: context.surfaceColor,
                               borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
+                              border: Border.all(color: context.borderColor),
                             ),
                             child: Row(
                               children: [
@@ -794,124 +784,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Stats Header with country
-                  if (profile?.currentCountry != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            profile!.currentCountry!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  // Stats Row
+                  // Ligne de contexte : ville + compteurs (remplace les trois
+                  // cartes de stats — refonte 8a).
                   Container(
                     key: _statsRowKey,
-                    child: homeStats.when(
-                      skipLoadingOnRefresh: true,
-                      data:
-                          (stats) => Row(
-                            children: [
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.people,
-                                  value: formatCount(stats.membersCount),
-                                  label: l10n.membersLabel,
-                                  color: context.adaptivePrimaryColor,
-                                  bgColor: context.adaptivePrimaryColor
-                                      .withValues(alpha: 0.1),
-                                  onTap: () => context.push('/search'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.groups,
-                                  value: formatCount(stats.groupsCount),
-                                  label: l10n.groupsTitle,
-                                  color: context.adaptiveSecondaryColor,
-                                  bgColor: context.adaptiveSecondaryColor
-                                      .withValues(alpha: 0.1),
-                                  onTap: () => context.go('/groups'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.event,
-                                  value: formatCount(stats.eventsCount),
-                                  label: l10n.eventsTitle,
-                                  color: AppColors.primaryDark,
-                                  bgColor: AppColors.primaryLighter,
-                                  onTap: () => context.push('/events'),
-                                ),
-                              ),
-                            ],
-                          ),
-                      loading:
-                          () => Row(
-                            children: [
-                              Expanded(child: HomeStatCardLoading()),
-                              const SizedBox(width: 12),
-                              Expanded(child: HomeStatCardLoading()),
-                              const SizedBox(width: 12),
-                              Expanded(child: HomeStatCardLoading()),
-                            ],
-                          ),
-                      error:
-                          (_, __) => Row(
-                            children: [
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.people,
-                                  value: '--',
-                                  label: l10n.membersLabel,
-                                  color: AppColors.primary,
-                                  bgColor:
-                                      AppColors
-                                          .primaryLighter, // Restore original color logic if needed, or use context colors
-                                  onTap: () => context.push('/search'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.groups,
-                                  value: '--',
-                                  label: l10n.groupsTitle,
-                                  color: context.adaptiveSecondaryColor,
-                                  bgColor: context.adaptiveSecondaryColor
-                                      .withValues(alpha: 0.1),
-                                  onTap: () => context.go('/groups'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: HomeStatCard(
-                                  icon: Icons.event,
-                                  value: '--',
-                                  label: l10n.eventsTitle,
-                                  color: AppColors.primaryDark,
-                                  bgColor: AppColors.primaryLighter,
-                                  onTap: () => context.push('/events'),
-                                ),
-                              ),
-                            ],
-                          ),
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _ContextLine(
+                      city: profile?.currentCity,
+                      country: profile?.currentCountry,
+                      members: homeStats.valueOrNull?.membersCount,
+                      groups: homeStats.valueOrNull?.groupsCount,
                     ),
+                  ),
+
+                  // Bloc « Aujourd'hui » : messages non lus, prochain
+                  // événement, membres proches.
+                  _TodayCard(
+                    unread: ref.watch(totalUnreadCountProvider),
+                    nextEvent: _nextEvent(upcomingEvents.valueOrNull),
+                    nearbyCount: _locationError != null
+                        ? null
+                        : nearbyProfiles.valueOrNull?.length,
                   ),
 
                   const SizedBox(height: 28),
@@ -928,72 +821,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           seeAllText: l10n.seeAll,
                         ),
                         const SizedBox(height: 16),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // Fil d'actualité (toujours disponible)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: QuickActionCard(
-                                  width: 110,
-                                  icon: Icons.dynamic_feed_rounded,
-                                  label: 'Fil d\'actualité',
-                                  color: context.adaptivePrimaryColor,
-                                  onTap: () => context.push('/feed'),
-                                ),
-                              ),
-                              // Money Transfer
-                              if (ref.watch(isMoneyTransferEnabledProvider))
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12),
-                                  child: QuickActionCard(
-                                    width: 110,
-                                    icon: Icons.send_rounded,
-                                    label: 'Transfert',
-                                    color: context.adaptivePrimaryColor,
-                                    onTap: () => context.push('/transfers'),
-                                  ),
-                                ),
-                              // Marketplace
-                              if (ref.watch(isMarketplaceEnabledProvider))
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12),
-                                  child: QuickActionCard(
-                                    width: 110,
-                                    icon: Icons.storefront_rounded,
-                                    label: 'Boutique',
-                                    color: context.adaptiveSecondaryColor,
-                                    onTap: () => context.push('/marketplace'),
-                                  ),
-                                ),
-                              // Business Directory
-                              if (ref.watch(isBusinessDirectoryEnabledProvider))
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12),
-                                  child: QuickActionCard(
-                                    width: 110,
-                                    icon: Icons.business_rounded,
-                                    label: 'Annuaire',
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimaryContainer,
-                                    onTap: () => context.push('/businesses'),
-                                  ),
-                                ),
-                              // Embassies
-                              if (ref.watch(isEmbassiesEnabledProvider))
-                                QuickActionCard(
-                                  width: 110,
-                                  icon: Icons.account_balance,
-                                  label: 'Ambassades',
-                                  color: Colors.indigo,
-                                  onTap: () => context.push('/embassies'),
-                                ),
-                            ],
-                          ),
-                        ),
+                        // Grille 4 colonnes (remplace le carrousel horizontal
+                        // qui masquait la moitié des services).
+                        const _ServicesGrid(),
                       ],
                     ),
 
@@ -1207,6 +1037,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Prochain événement à venir (le plus proche dans le futur) parmi la liste
+  /// chargée, ou `null`.
+  EventEntity? _nextEvent(List<EventEntity>? events) {
+    if (events == null || events.isEmpty) return null;
+    final now = DateTime.now();
+    final upcoming =
+        events.where((e) => e.startDate.isAfter(now)).toList()
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    return upcoming.isNotEmpty ? upcoming.first : null;
+  }
+
   String _formatEventDate(DateTime date) {
     final months = [
       'jan',
@@ -1223,5 +1064,439 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       'déc',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+// ── Refonte 8a : ligne de contexte, bloc « Aujourd'hui », grille services ────
+
+const _homeLocation = Color(0xFFB85E24);
+const _homeGreen = Color(0xFF2D7D46);
+const _homeOrange = Color(0xFFB85E24);
+const _homeBadgeRed = Color(0xFFC23E2D);
+
+String _eventDateLabel(DateTime date) {
+  const months = [
+    'jan',
+    'fév',
+    'mar',
+    'avr',
+    'mai',
+    'juin',
+    'juil',
+    'aoû',
+    'sep',
+    'oct',
+    'nov',
+    'déc',
+  ];
+  return '${date.day} ${months[date.month - 1]}';
+}
+
+/// Ligne « Paris, France · 318 membres · 12 groupes » qui remplace les trois
+/// cartes de stats. La ville reste toujours lisible ; le reste s'ellipse.
+class _ContextLine extends StatelessWidget {
+  final String? city;
+  final String? country;
+  final int? members;
+  final int? groups;
+
+  const _ContextLine({this.city, this.country, this.members, this.groups});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final place = [
+      city,
+      country,
+    ].where((e) => e != null && e.trim().isNotEmpty).join(', ');
+
+    final parts = <String>[];
+    if (members != null) {
+      parts.add('${formatCount(members!)} ${l10n.membersLabel.toLowerCase()}');
+    }
+    if (groups != null) {
+      parts.add('${formatCount(groups!)} ${l10n.groupsTitle.toLowerCase()}');
+    }
+    final trailing = parts.isEmpty ? '' : '· ${parts.join(' · ')}';
+
+    if (place.isEmpty && trailing.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        const Icon(Icons.location_on, size: 15, color: _homeLocation),
+        const SizedBox(width: 6),
+        if (place.isNotEmpty)
+          Text(
+            place,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: context.textPrimaryColor,
+            ),
+          ),
+        if (place.isNotEmpty && trailing.isNotEmpty) const SizedBox(width: 6),
+        if (trailing.isNotEmpty)
+          Expanded(
+            child: Text(
+              trailing,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, color: context.textTertiaryColor),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Bloc « Aujourd'hui » : jusqu'à trois lignes actionnables (messages non lus,
+/// prochain événement, membres proches). Masqué si aucune ligne ne s'applique.
+class _TodayCard extends StatelessWidget {
+  final int unread;
+  final EventEntity? nextEvent;
+  final int? nearbyCount;
+
+  const _TodayCard({
+    required this.unread,
+    required this.nextEvent,
+    required this.nearbyCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final rows = <Widget>[];
+    if (unread > 0) {
+      rows.add(
+        _TodayRow(
+          bg: _homeGreen.withValues(alpha: 0.12),
+          iconColor: _homeGreen,
+          icon: Icons.chat_bubble_outline_rounded,
+          title: l10n.messagesUnreadTitle,
+          trailing: _CountBadge(count: unread, color: _homeBadgeRed),
+          onTap: () => context.go('/messages'),
+        ),
+      );
+    }
+    if (nextEvent != null) {
+      final e = nextEvent!;
+      final subtitle = e.location.trim().isEmpty
+          ? _eventDateLabel(e.startDate)
+          : '${_eventDateLabel(e.startDate)} · ${e.location}';
+      rows.add(
+        _TodayRow(
+          bg: _homeOrange.withValues(alpha: 0.12),
+          iconColor: _homeOrange,
+          icon: Icons.event_rounded,
+          title: e.title,
+          subtitle: subtitle,
+          trailing: _PillButton(
+            label: l10n.participate,
+            onTap: () => context.push('/events/${e.id}', extra: e),
+          ),
+          onTap: () => context.push('/events/${e.id}', extra: e),
+        ),
+      );
+    }
+    if (nearbyCount != null && nearbyCount! > 0) {
+      rows.add(
+        _TodayRow(
+          bg: context.adaptivePrimaryColor.withValues(alpha: 0.10),
+          iconColor: context.adaptivePrimaryColor,
+          icon: Icons.people_alt_outlined,
+          title: l10n.membersNearby,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _CountBadge(
+                count: nearbyCount!,
+                color: context.textTertiaryColor,
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: context.textTertiaryColor,
+              ),
+            ],
+          ),
+          onTap: () => context.go('/map'),
+        ),
+      );
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.todayTitle.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 10.5,
+              letterSpacing: 1.05,
+              fontWeight: FontWeight.w700,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: context.borderColor),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TodayRow extends StatelessWidget {
+  final Color bg;
+  final Color iconColor;
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  const _TodayRow({
+    required this.bg,
+    required this.iconColor,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(icon, size: 18, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 8),
+              trailing!,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CountBadge extends StatelessWidget {
+  final int count;
+  final Color color;
+
+  const _CountBadge({required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 22),
+      height: 22,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _PillButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _PillButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: _homeOrange,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Grille 4 colonnes des services (remplace le carrousel horizontal). Chaque
+/// tuile est conditionnée par son feature flag ; le Fil est toujours présent.
+class _ServicesGrid extends ConsumerWidget {
+  const _ServicesGrid();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = <Widget>[
+      _ServiceTile(
+        icon: Icons.dynamic_feed_rounded,
+        label: 'Fil',
+        color: context.adaptivePrimaryColor,
+        onTap: () => context.push('/feed'),
+      ),
+      if (ref.watch(isMoneyTransferEnabledProvider))
+        _ServiceTile(
+          icon: Icons.send_rounded,
+          label: 'Transfert',
+          color: context.adaptivePrimaryColor,
+          onTap: () => context.push('/transfers'),
+        ),
+      if (ref.watch(isMarketplaceEnabledProvider))
+        _ServiceTile(
+          icon: Icons.storefront_rounded,
+          label: 'Boutique',
+          color: context.adaptiveSecondaryColor,
+          onTap: () => context.push('/marketplace'),
+        ),
+      if (ref.watch(isBusinessDirectoryEnabledProvider))
+        _ServiceTile(
+          icon: Icons.business_rounded,
+          label: 'Annuaire',
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+          onTap: () => context.push('/businesses'),
+        ),
+      if (ref.watch(isEmbassiesEnabledProvider))
+        _ServiceTile(
+          icon: Icons.account_balance,
+          label: 'Ambassades',
+          color: Colors.indigo,
+          onTap: () => context.push('/embassies'),
+        ),
+    ];
+
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 0.8,
+      children: items,
+    );
+  }
+}
+
+class _ServiceTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ServiceTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(icon, size: 24, color: color),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: context.textSecondaryColor,
+              height: 1.1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

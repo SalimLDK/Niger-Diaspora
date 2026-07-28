@@ -26270,6 +26270,18 @@ abstract class AppLocalizations {
   /// **'Aucune publication chargée pour ce filtre.'**
   String get noPostsForFilter;
 
+  /// No description provided for @todayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get todayTitle;
+
+  /// No description provided for @messagesUnreadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages non lus'**
+  String get messagesUnreadTitle;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:

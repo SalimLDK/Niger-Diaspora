@@ -14184,6 +14184,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noPostsForFilter => 'Aucune publication chargée pour ce filtre.';
 
   @override
+  String get todayTitle => 'Aujourd\'hui';
+
+  @override
+  String get messagesUnreadTitle => 'Messages non lus';
+
+  @override
   String get posts => 'posts';
 
   @override
