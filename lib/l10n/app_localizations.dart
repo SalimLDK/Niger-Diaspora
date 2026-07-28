@@ -1868,6 +1868,54 @@ abstract class AppLocalizations {
   /// **'Vous n\'avez rejoint aucun groupe'**
   String get noJoinedGroups;
 
+  /// No description provided for @faqEncryptionQ.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes messages sont-ils protégés ?'**
+  String get faqEncryptionQ;
+
+  /// No description provided for @faqEncryptionA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui. Vos conversations sont chiffrées de bout en bout : seuls vous et vos correspondants peuvent les lire.'**
+  String get faqEncryptionA;
+
+  /// No description provided for @faqLocationQ.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui voit ma position sur la carte ?'**
+  String get faqLocationQ;
+
+  /// No description provided for @faqLocationA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Uniquement les membres dont vous voyez aussi la position (réciprocité). Vous pouvez la désactiver à tout moment, et les comptes bloqués ne vous voient jamais.'**
+  String get faqLocationA;
+
+  /// No description provided for @faqReportQ.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment signaler un contenu ?'**
+  String get faqReportQ;
+
+  /// No description provided for @faqReportA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrez le menu d\'un message ou d\'une publication, puis « Signaler ». Votre signalement est anonyme.'**
+  String get faqReportA;
+
+  /// No description provided for @faqTransferQ.
+  ///
+  /// In fr, this message translates to:
+  /// **'Combien de temps prend un transfert ?'**
+  String get faqTransferQ;
+
+  /// No description provided for @faqTransferA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les transferts sont généralement disponibles sous 24 h. Les frais sont annoncés avant confirmation.'**
+  String get faqTransferA;
+
   /// No description provided for @pinnedSection.
   ///
   /// In fr, this message translates to:

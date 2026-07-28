@@ -1586,7 +1586,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  // FAQ en accordéon, première réponse dépliée (§21d).
+                  Theme(
+                    data: Theme.of(ctx).copyWith(
+                      dividerColor: Colors.transparent,
+                    ),
+                    child: Column(
+                      children: [
+                        _FaqItem(
+                          question: l10n.faqEncryptionQ,
+                          answer: l10n.faqEncryptionA,
+                          initiallyExpanded: true,
+                        ),
+                        _FaqItem(
+                          question: l10n.faqLocationQ,
+                          answer: l10n.faqLocationA,
+                        ),
+                        _FaqItem(
+                          question: l10n.faqReportQ,
+                          answer: l10n.faqReportA,
+                        ),
+                        _FaqItem(
+                          question: l10n.faqTransferQ,
+                          answer: l10n.faqTransferA,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 28),
                   _HelpOption(
                     ctx: ctx,
                     icon: Icons.email_outlined,
@@ -2470,6 +2498,51 @@ class _AnimatedProfileStat extends StatelessWidget {
             fontSize: 12,
             color: context.textTertiaryColor,
             fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Entrée de FAQ en accordéon (§21d).
+class _FaqItem extends StatelessWidget {
+  final String question;
+  final String answer;
+  final bool initiallyExpanded;
+
+  const _FaqItem({
+    required this.question,
+    required this.answer,
+    this.initiallyExpanded = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      initiallyExpanded: initiallyExpanded,
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: 12),
+      title: Text(
+        question,
+        style: TextStyle(
+          fontSize: 14.5,
+          fontWeight: FontWeight.w600,
+          color: context.textPrimaryColor,
+        ),
+      ),
+      iconColor: context.adaptivePrimaryColor,
+      collapsedIconColor: context.textTertiaryColor,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            answer,
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.5,
+              color: context.textSecondaryColor,
+            ),
           ),
         ),
       ],

@@ -961,6 +961,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noJoinedGroups => 'Vous n\'avez rejoint aucun groupe';
 
   @override
+  String get faqEncryptionQ => 'Mes messages sont-ils protégés ?';
+
+  @override
+  String get faqEncryptionA =>
+      'Oui. Vos conversations sont chiffrées de bout en bout : seuls vous et vos correspondants peuvent les lire.';
+
+  @override
+  String get faqLocationQ => 'Qui voit ma position sur la carte ?';
+
+  @override
+  String get faqLocationA =>
+      'Uniquement les membres dont vous voyez aussi la position (réciprocité). Vous pouvez la désactiver à tout moment, et les comptes bloqués ne vous voient jamais.';
+
+  @override
+  String get faqReportQ => 'Comment signaler un contenu ?';
+
+  @override
+  String get faqReportA =>
+      'Ouvrez le menu d\'un message ou d\'une publication, puis « Signaler ». Votre signalement est anonyme.';
+
+  @override
+  String get faqTransferQ => 'Combien de temps prend un transfert ?';
+
+  @override
+  String get faqTransferA =>
+      'Les transferts sont généralement disponibles sous 24 h. Les frais sont annoncés avant confirmation.';
+
+  @override
   String get pinnedSection => 'Épinglées';
 
   @override

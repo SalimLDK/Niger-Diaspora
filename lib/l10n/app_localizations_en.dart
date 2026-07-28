@@ -949,6 +949,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noJoinedGroups => 'You haven\'t joined any group';
 
   @override
+  String get faqEncryptionQ => 'Are my messages protected?';
+
+  @override
+  String get faqEncryptionA =>
+      'Yes. Your conversations are end-to-end encrypted: only you and your correspondents can read them.';
+
+  @override
+  String get faqLocationQ => 'Who sees my location on the map?';
+
+  @override
+  String get faqLocationA =>
+      'Only members whose location you also see (reciprocity). You can turn it off at any time, and blocked accounts never see you.';
+
+  @override
+  String get faqReportQ => 'How do I report content?';
+
+  @override
+  String get faqReportA =>
+      'Open the menu of a message or post, then \"Report\". Your report is anonymous.';
+
+  @override
+  String get faqTransferQ => 'How long does a transfer take?';
+
+  @override
+  String get faqTransferA =>
+      'Transfers are usually available within 24h. Fees are shown before you confirm.';
+
+  @override
   String get pinnedSection => 'Pinned';
 
   @override
