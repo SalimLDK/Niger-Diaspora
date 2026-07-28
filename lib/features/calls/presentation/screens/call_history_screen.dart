@@ -353,18 +353,42 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
             ),
           ),
         ),
-        ...calls.map(
-          (call) => _SwipeableCallHistoryItem(
-            key: ValueKey(call.id),
-            call: call,
+        // Regroupe les appels consécutifs avec le même correspondant (§13c).
+        ..._collapseConsecutive(calls, currentUserId).map(
+          (group) => _SwipeableCallHistoryItem(
+            key: ValueKey(group.call.id),
+            call: group.call,
             currentUserId: currentUserId,
-            onTap: () => _onCallTap(context, ref, call, currentUserId),
-            onCallBack: () => _onCallBack(context, ref, call, currentUserId),
-            onDelete: () => _onDeleteCall(context, ref, call, l10n),
+            repeatCount: group.count,
+            onTap: () => _onCallTap(context, ref, group.call, currentUserId),
+            onCallBack:
+                () => _onCallBack(context, ref, group.call, currentUserId),
+            onDelete: () => _onDeleteCall(context, ref, group.call, l10n),
           ),
         ),
       ],
     );
+  }
+
+  /// Fusionne les appels consécutifs partageant le même correspondant en une
+  /// seule entrée portant le nombre d'appels (§13c). L'appel le plus récent du
+  /// groupe sert de représentant.
+  List<({CallEntity call, int count})> _collapseConsecutive(
+    List<CallEntity> calls,
+    String currentUserId,
+  ) {
+    final result = <({CallEntity call, int count})>[];
+    for (final call in calls) {
+      final party = call.getOtherPartyId(currentUserId);
+      if (result.isNotEmpty &&
+          result.last.call.getOtherPartyId(currentUserId) == party) {
+        final prev = result.removeLast();
+        result.add((call: prev.call, count: prev.count + 1));
+      } else {
+        result.add((call: call, count: 1));
+      }
+    }
+    return result;
   }
 
   Future<void> _onDeleteCall(
@@ -493,12 +517,14 @@ class _CallHistoryItem extends StatelessWidget {
   final String currentUserId;
   final VoidCallback onTap;
   final VoidCallback onCallBack;
+  final int repeatCount;
 
   const _CallHistoryItem({
     required this.call,
     required this.currentUserId,
     required this.onTap,
     required this.onCallBack,
+    this.repeatCount = 1,
   });
 
   @override
@@ -543,7 +569,7 @@ class _CallHistoryItem extends StatelessWidget {
         ],
       ),
       title: Text(
-        otherPartyName,
+        repeatCount > 1 ? '$otherPartyName ($repeatCount)' : otherPartyName,
         style: TextStyle(
           fontWeight: FontWeight.w600,
           color:
@@ -645,6 +671,7 @@ class _SwipeableCallHistoryItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onCallBack;
   final VoidCallback onDelete;
+  final int repeatCount;
 
   const _SwipeableCallHistoryItem({
     super.key,
@@ -653,6 +680,7 @@ class _SwipeableCallHistoryItem extends StatelessWidget {
     required this.onTap,
     required this.onCallBack,
     required this.onDelete,
+    this.repeatCount = 1,
   });
 
   @override
@@ -713,6 +741,7 @@ class _SwipeableCallHistoryItem extends StatelessWidget {
         currentUserId: currentUserId,
         onTap: onTap,
         onCallBack: onCallBack,
+        repeatCount: repeatCount,
       ),
     );
   }
