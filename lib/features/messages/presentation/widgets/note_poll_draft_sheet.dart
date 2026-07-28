@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
@@ -98,16 +99,9 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: context.textTertiaryColor.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: SheetHandle(),
                 ),
                 Row(
                   children: [

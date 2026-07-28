@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/conversation_actions_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -149,14 +150,9 @@ class _MuteDurationSheetState extends ConsumerState<MuteDurationSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.textTertiaryColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: SheetHandle(),
             ),
             // Header
             Padding(
