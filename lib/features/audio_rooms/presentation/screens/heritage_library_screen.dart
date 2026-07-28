@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/services/file_download_service.dart';
 import '../../domain/entities/heritage_recording_entity.dart';
 import '../providers/heritage_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -866,6 +867,8 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                       }
                     },
                   ),
+                  // Téléchargement hors ligne (§1c).
+                  _HeritageDownloadButton(recording: recording),
                 ],
               ),
             ],
@@ -1239,6 +1242,85 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Bouton de téléchargement hors ligne d'un enregistrement patrimonial (§1c) :
+/// icône de téléchargement → spinner pendant le transfert → coche verte une
+/// fois disponible hors ligne.
+class _HeritageDownloadButton extends StatefulWidget {
+  final HeritageRecordingEntity recording;
+
+  const _HeritageDownloadButton({required this.recording});
+
+  @override
+  State<_HeritageDownloadButton> createState() =>
+      _HeritageDownloadButtonState();
+}
+
+class _HeritageDownloadButtonState extends State<_HeritageDownloadButton> {
+  bool _downloading = false;
+  bool _downloaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDownloaded();
+  }
+
+  Future<void> _checkDownloaded() async {
+    final path =
+        await FileDownloadService().getDownloadedPath(widget.recording.id);
+    if (mounted && path != null) setState(() => _downloaded = true);
+  }
+
+  Future<void> _download() async {
+    if (_downloading || _downloaded) return;
+    if (widget.recording.audioUrl.isEmpty) return;
+    setState(() => _downloading = true);
+    final file = await FileDownloadService().downloadToAppDirectory(
+      widget.recording.audioUrl,
+      fileName: 'heritage_${widget.recording.id}.m4a',
+      messageId: widget.recording.id,
+    );
+    if (!mounted) return;
+    setState(() {
+      _downloading = false;
+      _downloaded = file != null;
+    });
+    if (file != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Disponible hors ligne')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_downloading) {
+      return const SizedBox(
+        width: 40,
+        height: 40,
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return IconButton(
+      icon: Icon(
+        _downloaded
+            ? Icons.download_done_rounded
+            : Icons.download_for_offline_outlined,
+        color: _downloaded ? Colors.green : Colors.grey[400],
+        size: 22,
+      ),
+      tooltip: _downloaded ? 'Disponible hors ligne' : 'Télécharger',
+      onPressed: _downloaded ? null : _download,
     );
   }
 }
