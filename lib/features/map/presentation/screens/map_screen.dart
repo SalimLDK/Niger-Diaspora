@@ -2486,6 +2486,47 @@ class _MapScreenState extends ConsumerState<MapScreen>
     return 2;
   }
 
+  /// Feuille de légende ouverte par le bouton « ? » de la barre d'actions
+  /// (remplace la légende flottante et son calcul de position conditionnel).
+  void _showLegendSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ctx.borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.information,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 16),
+              const MapLegend(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Petit bouton flottant pour rouvrir le panneau "Membres à proximité"
   /// une fois masqué complètement.
   Widget _buildMembersReopenChip(AppLocalizations l10n) {
@@ -2717,6 +2758,23 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ),
             onPressed: _initializeLocation,
           ),
+          // Légende dans un bouton « ? » (supprime le calcul bottom: conditionnel
+          // de la légende flottante — refonte 7d).
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: context.surfaceVariantColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.help_outline_rounded,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            tooltip: l10n.information,
+            onPressed: () => _showLegendSheet(context),
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -2884,17 +2942,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     ),
                   ),
 
-                  // Légende flottante — ancrée au-dessus du panneau membres
-                  // (qui part de viewPadding.bottom + 78 et fait ~195 px déplié,
-                  // ~40 px replié en chip) pour ne jamais être recouverte.
-                  if (!_isReciprocityRestricted)
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 200),
-                      bottom: MediaQuery.of(context).viewPadding.bottom +
-                          (_isMembersPanelHidden ? 130 : 290),
-                      left: 16,
-                      child: const MapLegend(),
-                    ),
+                  // (La légende flottante a migré vers le bouton « ? » de la
+                  // barre d'actions — plus de calcul bottom: conditionnel.)
 
                   // Bottom Sheet Preview
                   // Posé juste au-dessus de la nav bar flottante : inset réel
