@@ -61,8 +61,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool _showArchived = false;
   _MessagesFilter _filter = _MessagesFilter.all;
 
-  /// Hauteur déployée de l'en-tête rétractable (comme l'onglet Groupes).
-  static const double _expandedHeaderHeight = 130;
+  /// Hauteur du CONTENU de l'en-tête sous la barre de statut. La hauteur
+  /// déployée réelle = padding.top + cette valeur, pour rester valide même sur
+  /// les appareils à grande encoche (sinon l'en-tête serait plus court que la
+  /// barre repliée → « toujours replié » + débordement).
+  static const double _headerContentHeight = 80;
 
   @override
   void dispose() {
@@ -295,7 +298,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             (context, _) => [
               SliverAppBar(
                 pinned: true,
-                expandedHeight: _expandedHeaderHeight,
+                expandedHeight:
+                    MediaQuery.of(context).padding.top + _headerContentHeight,
                 backgroundColor: context.adaptivePrimaryColor,
                 automaticallyImplyLeading: false,
                 // LayoutBuilder + FlexibleSpaceBar : la barre gère le clip du fond
@@ -308,30 +312,48 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     final collapsed =
                         constraints.maxHeight <=
                         kToolbarHeight + MediaQuery.of(context).padding.top + 8;
-                    return FlexibleSpaceBar(
-                      collapseMode: CollapseMode.pin,
-                      titlePadding: const EdgeInsetsDirectional.only(
-                        start: 20,
-                        bottom: 16,
-                      ),
-                      title:
-                          collapsed
-                              ? Text(
-                                _showArchived
-                                    ? l10n.archives
-                                    : l10n.messagesTitle,
-                                style: GoogleFonts.playfairDisplay(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.white,
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Le fond passe par FlexibleSpaceBar : il gère le clip du
+                        // grand titre au repli et évite tout débordement (le fond
+                        // garde sa hauteur déployée, seul l'affichage est rogné).
+                        FlexibleSpaceBar(
+                          collapseMode: CollapseMode.pin,
+                          background: _buildGradientHeader(
+                            context,
+                            l10n,
+                            unreadTotal,
+                          ),
+                        ),
+                        // Petit titre affiché seulement une fois replié (le grand
+                        // titre est alors déjà rogné) — pas de double titre.
+                        if (collapsed)
+                          SafeArea(
+                            bottom: false,
+                            child: SizedBox(
+                              height: kToolbarHeight,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                  ),
+                                  child: Text(
+                                    _showArchived
+                                        ? l10n.archives
+                                        : l10n.messagesTitle,
+                                    style: GoogleFonts.playfairDisplay(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
                                 ),
-                              )
-                              : null,
-                      background: _buildGradientHeader(
-                        context,
-                        l10n,
-                        unreadTotal,
-                      ),
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   },
                 ),
