@@ -7,6 +7,7 @@ import 'package:pro_image_editor/pro_image_editor.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/image_compressor_service.dart';
+import '../../../../core/services/preferences_service.dart';
 
 enum MediaType { image, video, document }
 
@@ -43,6 +44,9 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   final ImageCompressorService _compressor = ImageCompressorService();
   bool _isCompressing = false;
   String? _fileSize;
+  // Bascule « qualité réduite » (§27d) — activée par défaut en mode données
+  // réduites. Envoie l'image en résolution/qualité moindre.
+  bool _reduceQuality = false;
 
   // Fichier édité (annotation/rognage/flou) qui remplace l'original si présent.
   File? _editedFile;
@@ -51,6 +55,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   @override
   void initState() {
     super.initState();
+    _reduceQuality = PreferencesService.instance.dataSaverMode;
     _loadFileInfo();
   }
 
@@ -146,12 +151,22 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     if (widget.type == MediaType.image) {
       setState(() => _isCompressing = true);
       try {
-        final needsCompression = await _compressor.needsCompression(
-          _currentFile,
-          maxSizeInMB: 5,
-        );
-        if (needsCompression) {
-          fileToSend = await _compressor.compressImage(_currentFile);
+        if (_reduceQuality) {
+          // Qualité réduite (§27d) : résolution + qualité moindres.
+          fileToSend = await _compressor.compressImage(
+            _currentFile,
+            maxWidth: 1280,
+            maxHeight: 1280,
+            quality: 55,
+          );
+        } else {
+          final needsCompression = await _compressor.needsCompression(
+            _currentFile,
+            maxSizeInMB: 5,
+          );
+          if (needsCompression) {
+            fileToSend = await _compressor.compressImage(_currentFile);
+          }
         }
       } catch (e) {
         // Continue avec le fichier original en cas d'erreur
@@ -210,7 +225,42 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
         children: [
           Expanded(child: Center(child: _buildMediaPreview())),
           _buildEditToolbar(),
+          if (widget.type == MediaType.image) _buildQualityToggle(),
           _buildCaptionBar(),
+        ],
+      ),
+    );
+  }
+
+  /// Bascule « Qualité réduite » (§27d) — envoi plus léger en données réduites.
+  Widget _buildQualityToggle() {
+    return Container(
+      color: Colors.black87,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.data_saver_on, color: Colors.white70, size: 20),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Qualité réduite',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                Text(
+                  'Envoi plus léger, idéal en données réduites',
+                  style: TextStyle(color: Colors.white54, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _reduceQuality,
+            onChanged: (v) => setState(() => _reduceQuality = v),
+            activeThumbColor: context.adaptivePrimaryColor,
+          ),
         ],
       ),
     );
