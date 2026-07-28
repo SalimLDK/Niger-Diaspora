@@ -700,6 +700,52 @@ class _EventCardState extends ConsumerState<_EventCard> {
                         color: context.onPrimaryColor,
                       ),
                     ),
+                  // Pastille de date flottante (§13a).
+                  Positioned(
+                    left: 12,
+                    bottom: 12,
+                    child: Container(
+                      width: 52,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            DateFormat('dd').format(event.startDate),
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w700,
+                              height: 1,
+                              color: const Color(0xFFB85E24),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('MMM', 'fr_FR')
+                                .format(event.startDate)
+                                .toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
