@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../domain/entities/embassy_entity.dart';
 import 'embassy_message_screen.dart';
 import 'administrative_request_screen.dart';
@@ -161,6 +162,101 @@ class EmbassyDetailScreen extends StatelessWidget {
     ); // Close PopScope
   }
 
+  /// Horaires du jour, au mieux : on tente de faire correspondre le jour
+  /// courant (français ou anglais) aux clés de [EmbassyEntity.openingHours],
+  /// dont le format vient du back. `null` si aucune clé ne correspond.
+  String? _todayHours() {
+    if (embassy.openingHours.isEmpty) return null;
+    final now = DateTime.now();
+    final frDay = DateFormat('EEEE', 'fr_FR').format(now).toLowerCase();
+    final enDay = DateFormat('EEEE', 'en_US').format(now).toLowerCase();
+    for (final e in embassy.openingHours.entries) {
+      final k = e.key.toLowerCase().trim();
+      if (k == frDay || k == enDay) return e.value;
+    }
+    return null;
+  }
+
+  /// Bandeau d'état de l'ambassade (13b). Rouge fiable via le drapeau
+  /// [isTemporarilyClosed] ; vert sinon, avec les horaires du jour si connus
+  /// (pas de calcul « ouvert maintenant » : le format des horaires n'est pas
+  /// garanti côté back).
+  Widget _buildStatusBanner(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final closed = embassy.isTemporarilyClosed;
+    final fg = closed ? const Color(0xFFC23E2D) : const Color(0xFF2D7D46);
+    final todayHours = _todayHours();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: fg.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            closed
+                ? Icons.warning_amber_rounded
+                : Icons.check_circle_outline_rounded,
+            color: fg,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  closed ? l10n.embassyTemporarilyClosed : l10n.embassyOpen,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: fg,
+                    fontSize: 15,
+                  ),
+                ),
+                if (closed) ...[
+                  if (embassy.closureMessage != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      embassy.closureMessage!,
+                      style: TextStyle(
+                        color: fg.withValues(alpha: 0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                  if (embassy.reopenDate != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${l10n.reopenExpected} : ${DateFormat('dd MMMM yyyy', 'fr_FR').format(embassy.reopenDate!)}',
+                      style: TextStyle(
+                        color: fg,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ] else if (todayHours != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${l10n.todayTitle} · $todayHours',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoTab(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -169,57 +265,9 @@ class EmbassyDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Unavailability Banner
-          if (embassy.isTemporarilyClosed)
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber,
-                        color: Colors.red[700],
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Temporairement Fermé',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (embassy.closureMessage != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      embassy.closureMessage!,
-                      style: TextStyle(color: Colors.red[800]),
-                    ),
-                  ],
-                  if (embassy.reopenDate != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Réouverture prévue: ${DateFormat('dd MMMM yyyy', 'fr_FR').format(embassy.reopenDate!)}',
-                      style: TextStyle(
-                        color: Colors.red[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+          // Bandeau d'état (13b) : vert « Ouvert » (+ horaires du jour) / rouge
+          // « Temporairement fermé » (+ date de réouverture).
+          _buildStatusBanner(context, theme),
 
           // Basic Info with Official Badge confirmation text
           if (embassy.isVerified)

@@ -9924,7 +9924,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedLocation => 'Localisation partagée';
 
   @override
-  String get embassyTemporarilyClosed => 'Temporairement Fermé';
+  String get embassyTemporarilyClosed => 'Temporairement fermé';
 
   @override
   String get embassyOfficialVerified => 'Compte Officiel Vérifié';
@@ -14224,6 +14224,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exploreOtherwise => 'Explorer autrement';
+
+  @override
+  String get embassyOpen => 'Ouvert';
+
+  @override
+  String get reopenExpected => 'Réouverture prévue';
 
   @override
   String get posts => 'posts';

@@ -9825,7 +9825,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLocation => 'Shared location';
 
   @override
-  String get embassyTemporarilyClosed => 'Temporarily Closed';
+  String get embassyTemporarilyClosed => 'Temporarily closed';
 
   @override
   String get embassyOfficialVerified => 'Official Verified Account';
@@ -14090,6 +14090,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exploreOtherwise => 'Explore another way';
+
+  @override
+  String get embassyOpen => 'Open';
+
+  @override
+  String get reopenExpected => 'Reopening expected';
 
   @override
   String get posts => 'posts';

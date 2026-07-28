@@ -18419,7 +18419,7 @@ abstract class AppLocalizations {
   /// No description provided for @embassyTemporarilyClosed.
   ///
   /// In fr, this message translates to:
-  /// **'Temporairement Fermé'**
+  /// **'Temporairement fermé'**
   String get embassyTemporarilyClosed;
 
   /// No description provided for @embassyOfficialVerified.
@@ -26347,6 +26347,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Explorer autrement'**
   String get exploreOtherwise;
+
+  /// No description provided for @embassyOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get embassyOpen;
+
+  /// No description provided for @reopenExpected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réouverture prévue'**
+  String get reopenExpected;
 
   /// No description provided for @posts.
   ///
