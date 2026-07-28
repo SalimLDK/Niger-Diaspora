@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
 import 'full_screen_image_viewer.dart';
 
@@ -135,14 +136,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.textTertiaryColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 20),
 
                 if (widget.onForward != null)
@@ -177,6 +171,14 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                     },
                   ),
 
+                // Filet : destructif isolé en bas (§16).
+                if (widget.onDelete != null)
+                  Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: context.borderColor,
+                  ),
                 if (widget.onDelete != null)
                   ListTile(
                     leading: const Icon(
