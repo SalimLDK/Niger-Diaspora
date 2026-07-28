@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -642,181 +641,145 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     // Priorité aux données du profil, sinon fallback sur les données auth
     final displayName = profile?.displayName ?? user?.displayName;
     final photoUrl = profile?.photoUrl ?? user?.photoUrl;
-    final email = profile?.email ?? user?.email ?? '';
+    // Ligne « Ville, Pays » (l'e-mail disparaît de l'en-tête — refonte 10a).
+    final locationParts = <String>[
+      if (profile?.currentCity?.trim().isNotEmpty ?? false)
+        profile!.currentCity!.trim(),
+      if (profile?.currentCountry?.trim().isNotEmpty ?? false)
+        profile!.currentCountry!.trim(),
+    ];
+    final locationLine = locationParts.join(', ');
 
     return Container(
-      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
-      child: Stack(
-        children: [
-          // Motifs décoratifs
-          ..._buildDecorativePatterns(),
-
-          // Contenu principal
-          SafeArea(
-            child: Center(
-              child: Column(
+      color: context.backgroundColor,
+      child: SafeArea(
+        bottom: false,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Avatar 84 rayon 28 + pastille appareil photo.
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  if (photoUrl != null) {
+                    FullScreenImageViewer.show(
+                      context,
+                      imageUrl: photoUrl,
+                      heroTag: 'profile_avatar',
+                      senderName: displayName,
+                    );
+                  } else {
+                    context.push('/profile/edit');
+                  }
+                },
+                onLongPress: () {
+                  HapticFeedback.mediumImpact();
+                  context.push('/profile/edit');
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Hero(
+                      tag: 'profile_avatar',
+                      child: Container(
+                        width: 84,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          color: context.surfaceVariantColor,
+                          border: Border.all(
+                            color: context.borderColor,
+                            width: 2,
+                          ),
+                          image: photoUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(photoUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: photoUrl == null
+                            ? Center(
+                                child: Text(
+                                  _getInitials(displayName ?? 'U'),
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: context.adaptivePrimaryColor,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: context.adaptivePrimaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: context.backgroundColor,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.photo_camera_rounded,
+                          size: 14,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Avatar avec effet glow
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      // Si photo existe, ouvrir en plein écran
-                      if (photoUrl != null) {
-                        FullScreenImageViewer.show(
-                          context,
-                          imageUrl: photoUrl,
-                          heroTag: 'profile_avatar',
-                          senderName: displayName,
-                        );
-                      } else {
-                        // Sinon, aller à l'édition du profil
-                        context.push('/profile/edit');
-                      }
-                    },
-                    onLongPress: () {
-                      HapticFeedback.mediumImpact();
-                      context.push('/profile/edit');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.white.withValues(alpha: 0.4),
-                            AppColors.white.withValues(alpha: 0.1),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 16,
-                            spreadRadius: 1,
-                          ),
-                        ],
+                  Flexible(
+                    child: Text(
+                      displayName ?? l10n.user,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
                       ),
-                      child: Hero(
-                        tag: 'profile_avatar',
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.white.withValues(alpha: 0.2),
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 2,
-                            ),
-                            image:
-                                photoUrl != null
-                                    ? DecorationImage(
-                                      image: NetworkImage(photoUrl),
-                                      fit: BoxFit.cover,
-                                    )
-                                    : null,
-                          ),
-                          child:
-                              photoUrl == null
-                                  ? Center(
-                                    child: Text(
-                                      _getInitials(displayName ?? 'U'),
-                                      style: const TextStyle(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  )
-                                  : null,
-                        ),
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Nom avec style
-                  Text(
-                    displayName ?? l10n.user,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                      letterSpacing: 0.5,
+                  if (profile?.isVerified ?? false) ...[
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.verified_rounded,
+                      size: 18,
+                      color: Color(0xFF1976D2),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Email
-                  Text(
-                    email,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
+                  ],
                 ],
               ),
-            ),
+              if (locationLine.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  locationLine,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
     );
-  }
-
-  List<Widget> _buildDecorativePatterns() {
-    return [
-      // Cercles décoratifs
-      Positioned(
-        top: -50,
-        right: -30,
-        child: Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.white.withValues(alpha: 0.05),
-          ),
-        ),
-      ),
-      Positioned(
-        bottom: 20,
-        left: -40,
-        child: Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.white.withValues(alpha: 0.03),
-          ),
-        ),
-      ),
-      Positioned(
-        top: 60,
-        left: 30,
-        child: Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.white.withValues(alpha: 0.1),
-          ),
-        ),
-      ),
-      Positioned(
-        bottom: 80,
-        right: 50,
-        child: Transform.rotate(
-          angle: math.pi / 4,
-          child: Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: AppColors.white.withValues(alpha: 0.08),
-            ),
-          ),
-        ),
-      ),
-    ];
   }
 
   Widget _buildStatsCard(AppLocalizations l10n) {
