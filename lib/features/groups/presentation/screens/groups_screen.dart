@@ -843,14 +843,23 @@ class _GroupCard extends StatelessWidget {
                         child: Text(
                           group.name,
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
                             color: context.textPrimaryColor,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      // Cadenas si le groupe est privé (refonte 9c).
+                      if (group.isPrivate) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.lock_outline_rounded,
+                          size: 13,
+                          color: context.textTertiaryColor,
+                        ),
+                      ],
                       if (group.isOfficial) ...[
                         const SizedBox(width: 6),
                         Container(
@@ -887,6 +896,46 @@ class _GroupCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
+                      // Ville (refonte 9c : « ville · N membres »).
+                      if ((group.location ?? group.country)?.trim().isNotEmpty ??
+                          false) ...[
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.surfaceVariantColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppIcon(
+                                  AppIcon.location,
+                                  size: 12,
+                                  color: context.textSecondaryColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    (group.location ?? group.country)!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: context.textSecondaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
