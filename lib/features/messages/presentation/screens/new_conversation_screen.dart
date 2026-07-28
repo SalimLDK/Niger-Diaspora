@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
@@ -34,6 +38,41 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   final List<ProfileModel> _selectedUsers = [];
   bool _isSearching = false;
   bool _isLoading = false;
+
+  /// Ma position (pour la distance des « Proches de vous »), si disponible.
+  double? _myLat;
+  double? _myLng;
+
+  @override
+  void initState() {
+    super.initState();
+    _maybeLoadNearby();
+  }
+
+  /// Charge les membres proches pour l'état au repos — **sans** demander la
+  /// permission depuis cet écran : on ne charge que si elle est déjà accordée
+  /// et si l'utilisateur a activé « membres à proximité ». Sinon la section ne
+  /// s'affiche simplement pas.
+  Future<void> _maybeLoadNearby() async {
+    if (!ref.read(nearbyMembersEnabledProvider)) return;
+    try {
+      final perm = await Geolocator.checkPermission();
+      if (perm != LocationPermission.always &&
+          perm != LocationPermission.whileInUse) {
+        return;
+      }
+      final pos = await LocationService.instance.getCurrentPosition();
+      if (!mounted) return;
+      _myLat = pos.latitude;
+      _myLng = pos.longitude;
+      await ref
+          .read(nearbyProfilesNotifierProvider.notifier)
+          .loadNearbyProfiles(pos.latitude, pos.longitude, radiusKm: 50);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Localisation indisponible/refusée : on n'affiche pas la section.
+    }
+  }
 
   @override
   void dispose() {
@@ -541,15 +580,24 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     );
   }
 
-  /// État au repos (aucune recherche) : raccourcis + contacts récents.
-  /// « Proches de vous » (distance/présence) reste à câbler — pas de provider
-  /// de membres proches dans la feature messages.
+  /// État au repos (aucune recherche) : raccourcis, « Proches de vous »
+  /// (si géoloc déjà autorisée), puis contacts récents.
   Widget _buildIdleContent() {
     final myId = ref.watch(currentUserProvider).valueOrNull?.id ?? '';
     final recents = (ref.watch(conversationsProvider).valueOrNull ?? [])
         .where((c) => c.isIndividual && !c.isSelfNotesFor(myId))
         .take(12)
         .toList();
+
+    // « Proches de vous » : membres géolocalisés (mode « à proximité » activé),
+    // hors soi-même. La liste vient du provider partagé avec l'accueil/la carte.
+    final nearby = ref.watch(nearbyMembersEnabledProvider)
+        ? (ref.watch(nearbyProfilesNotifierProvider).valueOrNull ??
+                const <ProfileEntity>[])
+            .where((p) => p.id != myId)
+            .take(8)
+            .toList()
+        : const <ProfileEntity>[];
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -576,22 +624,160 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
           subtitle: 'Vos brouillons, visibles de vous seul',
           onTap: _openSelfNotes,
         ),
+        if (nearby.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          _buildSectionLabel('Proches de vous'),
+          const SizedBox(height: 8),
+          ...nearby.map(_buildNearbyTile),
+        ],
         if (recents.isNotEmpty) ...[
           const SizedBox(height: 24),
-          Text(
-            'Contacts récents',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: context.textSecondaryColor,
-            ),
-          ),
+          _buildSectionLabel('Contacts récents'),
           const SizedBox(height: 8),
           ...recents.map((c) => _buildRecentTile(c, myId)),
         ],
       ],
     );
   }
+
+  Widget _buildSectionLabel(String text) => Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: context.textSecondaryColor,
+        ),
+      );
+
+  /// Distance « à N km » depuis ma position, si connue et si le membre est
+  /// géolocalisé.
+  String? _distanceLabel(ProfileEntity p) {
+    if (_myLat == null || p.latitude == null || p.longitude == null) return null;
+    final meters = Geolocator.distanceBetween(
+      _myLat!,
+      _myLng!,
+      p.latitude!,
+      p.longitude!,
+    );
+    final km = meters / 1000;
+    return km < 1 ? '< 1 km' : '${km.round()} km';
+  }
+
+  /// Ouvre directement une conversation individuelle avec ce membre.
+  Future<void> _openWith(ProfileEntity p) async {
+    final conversation = await ref
+        .read(createConversationProvider.notifier)
+        .createIndividual(p.id);
+    if (conversation != null && mounted) {
+      context.push(
+        '/messages/${conversation.id}',
+        extra: {
+          'name': p.displayName,
+          'imageUrl': p.photoUrl,
+          'otherUserId': p.id,
+          'isGroup': false,
+        },
+      );
+    }
+  }
+
+  Widget _buildNearbyTile(ProfileEntity p) {
+    final online = p.isOnline && p.showOnlineStatus;
+    final subtitleParts = <String>[
+      if (p.profession != null && p.profession!.isNotEmpty) p.profession!,
+      if (_distanceLabel(p) != null) _distanceLabel(p)!,
+      if (online) 'En ligne',
+    ];
+
+    return GestureDetector(
+      onTap: () => _openWith(p),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: context.adaptivePrimaryGradient,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: p.photoUrl != null
+                      ? Image.network(
+                          p.photoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _nearbyInitials(p),
+                        )
+                      : _nearbyInitials(p),
+                ),
+                if (online)
+                  Positioned(
+                    right: -1,
+                    bottom: -1,
+                    child: Container(
+                      width: 13,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D7D46),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: context.backgroundColor,
+                          width: 2.5,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    p.displayName ?? AppLocalizations.of(context)!.user,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: context.textPrimaryColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitleParts.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitleParts.join(' · '),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: context.textSecondaryColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _nearbyInitials(ProfileEntity p) => Center(
+        child: Text(
+          _getInitials(p.displayName),
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
 
   Widget _buildShortcut({
     required Widget icon,
