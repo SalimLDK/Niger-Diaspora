@@ -9,6 +9,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/services/currency_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/data_export_service.dart';
 import '../../../../core/services/notification_service.dart';
@@ -446,16 +447,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 20),
                 Text(
                   AppLocalizations.of(ctx)!.chooseLanguage,
@@ -565,16 +557,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 20),
                 Text(
                   AppLocalizations.of(ctx)!.chooseTheme,
@@ -662,16 +645,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 20),
                 Text(
                   AppLocalizations.of(ctx)!.helpAndSupport,
@@ -1034,16 +1008,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 20),
                 Text(
                   'Choisir la couleur',
