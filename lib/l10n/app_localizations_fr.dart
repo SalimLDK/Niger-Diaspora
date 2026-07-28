@@ -39,6 +39,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get hangUp => 'Raccrocher';
 
   @override
+  String get supportPromptHeader => 'Par quoi commencer ?';
+
+  @override
+  String get supportPromptTransfer => 'Un transfert est bloqué';
+
+  @override
+  String get supportPromptAccount => 'Je n\'accède pas à mon compte';
+
+  @override
+  String get supportPromptBug => 'Un problème technique';
+
+  @override
   String get appTitle => 'Diaspo Niger';
 
   @override

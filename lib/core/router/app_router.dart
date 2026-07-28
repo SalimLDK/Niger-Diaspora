@@ -719,6 +719,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             prefillSubject: extra?['subject'] as String?,
             prefillDescription: extra?['description'] as String?,
             relatedTransactionId: extra?['transactionId'] as String?,
+            initialCategory: extra?['category'] as TicketCategory?,
           );
         },
       ),

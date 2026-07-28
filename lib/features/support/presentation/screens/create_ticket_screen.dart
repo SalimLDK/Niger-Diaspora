@@ -11,12 +11,14 @@ class CreateTicketScreen extends ConsumerStatefulWidget {
   final String? relatedTransactionId;
   final String? prefillSubject;
   final String? prefillDescription;
+  final TicketCategory? initialCategory;
 
   const CreateTicketScreen({
     super.key,
     this.relatedTransactionId,
     this.prefillSubject,
     this.prefillDescription,
+    this.initialCategory,
   });
 
   @override
@@ -37,7 +39,9 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
         TextEditingController(text: widget.prefillSubject ?? '');
     _descriptionController =
         TextEditingController(text: widget.prefillDescription ?? '');
-    if (widget.relatedTransactionId != null) {
+    if (widget.initialCategory != null) {
+      _category = widget.initialCategory!;
+    } else if (widget.relatedTransactionId != null) {
       _category = TicketCategory.transaction;
     }
   }

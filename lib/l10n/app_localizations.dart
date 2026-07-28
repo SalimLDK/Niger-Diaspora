@@ -158,6 +158,30 @@ abstract class AppLocalizations {
   /// **'Raccrocher'**
   String get hangUp;
 
+  /// No description provided for @supportPromptHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par quoi commencer ?'**
+  String get supportPromptHeader;
+
+  /// No description provided for @supportPromptTransfer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un transfert est bloqué'**
+  String get supportPromptTransfer;
+
+  /// No description provided for @supportPromptAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je n\'accède pas à mon compte'**
+  String get supportPromptAccount;
+
+  /// No description provided for @supportPromptBug.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un problème technique'**
+  String get supportPromptBug;
+
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:

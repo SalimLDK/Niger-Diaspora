@@ -31,39 +31,7 @@ class SupportTicketsScreen extends ConsumerWidget {
         error: (error, _) => Center(child: Text(l10n.error)),
         data: (tickets) {
           if (tickets.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.support_agent_outlined,
-                      size: 64,
-                      color: context.textTertiaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.noSupportTickets,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.noSupportTicketsDesc,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: context.textTertiaryColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return _EmptyStatePrompts(l10n: l10n);
           }
 
           return ListView.separated(
@@ -77,6 +45,106 @@ class SupportTicketsScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// État vide §11 : au lieu d'un simple texte gris, trois amorces typées qui
+/// pré-remplissent le sujet et la catégorie du nouveau ticket.
+class _EmptyStatePrompts extends StatelessWidget {
+  final AppLocalizations l10n;
+
+  const _EmptyStatePrompts({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final prompts = <(IconData, String, TicketCategory)>[
+      (Icons.receipt_long_outlined, l10n.supportPromptTransfer,
+          TicketCategory.transaction),
+      (Icons.person_outline, l10n.supportPromptAccount,
+          TicketCategory.account),
+      (Icons.build_outlined, l10n.supportPromptBug, TicketCategory.technical),
+    ];
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        const SizedBox(height: 24),
+        Center(
+          child: Icon(
+            Icons.support_agent_outlined,
+            size: 64,
+            color: context.textTertiaryColor,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          l10n.noSupportTickets,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: context.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.noSupportTicketsDesc,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: context.textTertiaryColor),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          l10n.supportPromptHeader,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: context.textSecondaryColor,
+          ),
+        ),
+        const SizedBox(height: 10),
+        for (final (icon, label, category) in prompts)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => context.push(
+                '/support/new',
+                extra: {'subject': label, 'category': category},
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: context.surfaceColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: context.borderColor.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 20, color: context.textSecondaryColor),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: context.textTertiaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
