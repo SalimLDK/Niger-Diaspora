@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,7 +35,7 @@ class _HeaderActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = Material(
-      color: Colors.black.withValues(alpha: 0.22),
+      color: AppColors.white.withValues(alpha: 0.15),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -470,7 +473,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                   _showArchived
                                       ? l10n.archives
                                       : l10n.messagesTitle,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.playfairDisplay(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.white,
@@ -557,9 +560,24 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           ),
         );
     return [
-      Positioned(top: -45, right: -35, child: circle(170, 0.06)),
-      Positioned(top: 25, right: 55, child: circle(90, 0.05)),
-      Positioned(bottom: -35, left: -25, child: circle(120, 0.04)),
+      Positioned(top: -50, right: -30, child: circle(150, 0.06)),
+      Positioned(bottom: -45, left: -35, child: circle(130, 0.05)),
+      Positioned(top: 50, left: 30, child: circle(18, 0.10)),
+      Positioned(
+        bottom: 14,
+        right: 55,
+        child: Transform.rotate(
+          angle: math.pi / 4,
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: AppColors.white.withValues(alpha: 0.08),
+            ),
+          ),
+        ),
+      ),
     ];
   }
 
