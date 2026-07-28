@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/payment_account_entity.dart';
@@ -136,14 +137,9 @@ class PaymentAccountsScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: SheetHandle(),
             ),
             const SizedBox(height: 16),
             Text(

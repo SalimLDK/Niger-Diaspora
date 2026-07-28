@@ -5,6 +5,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../domain/entities/blocked_user_entity.dart';
 import '../providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 
 class BlockedUsersModal extends ConsumerWidget {
   const BlockedUsersModal({super.key});
@@ -23,16 +24,7 @@ class BlockedUsersModal extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          const SheetHandle(),
           const SizedBox(height: 20),
           Text(
             l10n.blockedUsers,

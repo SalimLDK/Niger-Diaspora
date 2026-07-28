@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/sticker_pack_entity.dart';
 import '../providers/sticker_provider.dart';
@@ -358,14 +359,9 @@ class _PackDetailsSheet extends ConsumerWidget {
         return Column(
           children: [
             // Handle
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: context.textSecondaryColor.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: SheetHandle(),
             ),
             // Header
             Padding(
