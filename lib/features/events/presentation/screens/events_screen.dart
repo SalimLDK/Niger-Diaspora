@@ -463,6 +463,44 @@ class _EventCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // Badge « Complet » quand l'événement est plein (refonte 13a).
+                  if (!isPast &&
+                      !event.isOnline &&
+                      event.maxAttendees > 0 &&
+                      event.attendeeIds.length >= event.maxAttendees)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFC23E2D),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.event_busy_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              AppLocalizations.of(context)!.full,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   // Default icon if no image
                   if (event.posterUrls.isEmpty)
                     Center(
