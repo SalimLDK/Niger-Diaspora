@@ -14193,6 +14193,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mentions => 'Mentions';
 
   @override
+  String get groupActive => 'Actif';
+
+  @override
+  String get groupCalm => 'Calme';
+
+  @override
   String get posts => 'posts';
 
   @override

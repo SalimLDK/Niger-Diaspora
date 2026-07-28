@@ -13,8 +13,28 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../providers/group_request_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
+/// Dernière activité (dernier message) par groupe, dérivée des conversations
+/// déjà chargées — le champ `lastMessageAt` vit sur la conversation liée
+/// (`conversations.groupId`), pas sur le document groupe. Permet le badge
+/// ACTIF/CALME sans requête supplémentaire ni changement backend.
+final groupLastActivityProvider = Provider<Map<String, DateTime>>((ref) {
+  final conversations =
+      ref.watch(conversationsProvider).valueOrNull ?? const [];
+  final map = <String, DateTime>{};
+  for (final c in conversations) {
+    final gid = c.groupId;
+    final at = c.lastMessageAt;
+    if (gid != null && at != null) {
+      final existing = map[gid];
+      if (existing == null || at.isAfter(existing)) map[gid] = at;
+    }
+  }
+  return map;
+});
 
 class GroupsScreen extends ConsumerStatefulWidget {
   const GroupsScreen({super.key});
@@ -741,7 +761,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 }
 
-class _GroupCard extends StatelessWidget {
+class _GroupCard extends ConsumerWidget {
   final GroupEntity group;
   final bool isJoined;
   final String currentUserId;
@@ -757,8 +777,9 @@ class _GroupCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final lastActivity = ref.watch(groupLastActivityProvider)[group.id];
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -839,47 +860,60 @@ class _GroupCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Flexible(
-                        child: Text(
-                          group.name,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: context.textPrimaryColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                group.name,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.textPrimaryColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Cadenas si le groupe est privé (refonte 9c).
+                            if (group.isPrivate) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.lock_outline_rounded,
+                                size: 13,
+                                color: context.textTertiaryColor,
+                              ),
+                            ],
+                            if (group.isOfficial) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.adaptivePrimaryColor
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Officiel',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: context.adaptivePrimaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      // Cadenas si le groupe est privé (refonte 9c).
-                      if (group.isPrivate) ...[
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.lock_outline_rounded,
-                          size: 13,
-                          color: context.textTertiaryColor,
-                        ),
-                      ],
-                      if (group.isOfficial) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Officiel',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                          ),
-                        ),
+                      // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
+                      // qu'on connaît la dernière activité de la conversation.
+                      if (lastActivity != null) ...[
+                        const SizedBox(width: 8),
+                        _GroupActivityBadge(lastActivity: lastActivity),
                       ],
                     ],
                   ),
@@ -1028,6 +1062,53 @@ class _GroupCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Pastille d'activité : ACTIF (< 24 h) vert, sinon CALME neutre.
+class _GroupActivityBadge extends StatelessWidget {
+  final DateTime lastActivity;
+
+  const _GroupActivityBadge({required this.lastActivity});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isActive = DateTime.now().difference(lastActivity).inHours < 24;
+    // Vert lisible en clair comme en sombre pour ACTIF ; neutre pour CALME.
+    const activeColor = Color(0xFF2D7D46);
+    final fg = isActive ? activeColor : context.textSecondaryColor;
+    final bg = isActive
+        ? activeColor.withValues(alpha: 0.14)
+        : context.surfaceVariantColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            (isActive ? l10n.groupActive : l10n.groupCalm).toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+              color: fg,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -6234,6 +6234,8 @@
   "todayTitle": "Today",
   "messagesUnreadTitle": "Unread messages",
   "mentions": "Mentions",
+  "groupActive": "Active",
+  "groupCalm": "Quiet",
   "posts": "posts",
   "postSingle": "post",
 

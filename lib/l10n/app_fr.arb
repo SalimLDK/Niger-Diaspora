@@ -6546,6 +6546,8 @@
   "todayTitle": "Aujourd'hui",
   "messagesUnreadTitle": "Messages non lus",
   "mentions": "Mentions",
+  "groupActive": "Actif",
+  "groupCalm": "Calme",
   "posts": "posts",
   "postSingle": "post",
   "shareToConversation": "Envoyer à...",

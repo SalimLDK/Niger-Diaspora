@@ -26288,6 +26288,18 @@ abstract class AppLocalizations {
   /// **'Mentions'**
   String get mentions;
 
+  /// No description provided for @groupActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actif'**
+  String get groupActive;
+
+  /// No description provided for @groupCalm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calme'**
+  String get groupCalm;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:

@@ -14060,6 +14060,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mentions => 'Mentions';
 
   @override
+  String get groupActive => 'Active';
+
+  @override
+  String get groupCalm => 'Quiet';
+
+  @override
   String get posts => 'posts';
 
   @override
