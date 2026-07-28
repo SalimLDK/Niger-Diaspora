@@ -6236,6 +6236,9 @@
   "mentions": "Mentions",
   "groupActive": "Active",
   "groupCalm": "Quiet",
+  "settingsPrivacySecurity": "Privacy & security",
+  "settingsAppearanceLanguage": "Appearance & language",
+  "settingsHelpAbout": "Help & about",
   "posts": "posts",
   "postSingle": "post",
 

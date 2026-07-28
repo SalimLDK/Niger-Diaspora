@@ -370,17 +370,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         const SizedBox(height: 20),
 
-        // Section Confidentialité
+        // Réglages condensés en 3 entrées repliables avec leur état en
+        // sous-titre (refonte 10a : 7 sections → 3).
         _buildAnimatedSection(
           delay: 1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.privacy,
-                const Icon(Icons.shield_outlined),
-              ),
-              _SettingsCard(
+              // 1. Confidentialité et sécurité
+              _buildSettingsGroup(
+                icon: Icons.shield_outlined,
+                title: l10n.settingsPrivacySecurity,
+                subtitle: () {
+                  final on = <String>[
+                    if (_profileVisible) l10n.visibleProfile,
+                    if (_locationEnabled) l10n.myLocation,
+                  ];
+                  return on.isEmpty ? l10n.privacy : on.join(' · ');
+                }(),
                 children: [
                   _SettingsSwitchTile(
                     icon: const Icon(Icons.visibility_outlined),
@@ -419,6 +426,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
+                    icon: const Icon(Icons.lock_outline),
+                    title: l10n.keyBackup,
+                    subtitle: l10n.keyBackupSubtitle,
+                    onTap: () => context.push('/settings/security/backup'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: const Icon(Icons.devices_outlined),
+                    title: l10n.connectedDevices,
+                    subtitle: l10n.connectedDevicesSubtitle,
+                    onTap: () => context.push('/settings/security/devices'),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
                     icon: const Icon(Icons.block_outlined),
                     title: l10n.blockedUsers,
                     onTap: () => _showBlockedUsers(),
@@ -432,77 +453,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Section Sécurité
-        _buildAnimatedSection(
-          delay: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader(l10n.security, const Icon(Icons.security)),
-              _SettingsCard(
-                children: [
-                  _SettingsTile(
-                    icon: const Icon(Icons.lock_outline),
-                    title: l10n.keyBackup,
-                    subtitle: l10n.keyBackupSubtitle,
-                    onTap: () => context.push('/settings/security/backup'),
-                  ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
-                    icon: const Icon(Icons.devices_outlined),
-                    title: l10n.connectedDevices,
-                    subtitle: l10n.connectedDevicesSubtitle,
-                    onTap: () => context.push('/settings/security/devices'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Section Appels
-        _buildAnimatedSection(
-          delay: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader(l10n.calls, const Icon(Icons.call_outlined)),
-              _SettingsCard(
-                children: [
-                  _SettingsSwitchTile(
-                    icon: const Icon(Icons.graphic_eq),
-                    title: l10n.noiseSuppression,
-                    subtitle: l10n.noiseSuppressionSubtitle,
-                    value: _noiseSuppressionEnabled,
-                    onChanged: _toggleNoiseSuppression,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Section Préférences
-        _buildAnimatedSection(
-          delay: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader(
-                l10n.preferences,
-                const Icon(Icons.tune_outlined),
-              ),
-              _SettingsCard(
+              const SizedBox(height: 12),
+              // 2. Apparence et langue
+              _buildSettingsGroup(
+                icon: Icons.tune_outlined,
+                title: l10n.settingsAppearanceLanguage,
+                subtitle:
+                    '${_getThemeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
                 children: [
                   _SettingsTile(
                     icon: const Icon(Icons.palette_outlined),
@@ -513,7 +470,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                     onTap: () => _showThemeSelector(l10n),
                   ),
-
                   const _SettingsDivider(),
                   _SettingsTile(
                     icon: const Icon(Icons.translate_outlined),
@@ -531,25 +487,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     subtitle: _backgroundSubtitle(l10n),
                     onTap: () => _showGlobalBackgroundPicker(),
                   ),
+                  const _SettingsDivider(),
+                  _SettingsSwitchTile(
+                    icon: const Icon(Icons.graphic_eq),
+                    title: l10n.noiseSuppression,
+                    subtitle: l10n.noiseSuppressionSubtitle,
+                    value: _noiseSuppressionEnabled,
+                    onChanged: _toggleNoiseSuppression,
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Section Aide
-        _buildAnimatedSection(
-          delay: 5,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader(
-                l10n.helpAndSupport,
-                const Icon(Icons.help_outline),
-              ),
-              _SettingsCard(
+              const SizedBox(height: 12),
+              // 3. Aide et à propos
+              _buildSettingsGroup(
+                icon: Icons.help_outline,
+                title: l10n.settingsHelpAbout,
+                subtitle: '${l10n.version} 1.2.0',
                 children: [
                   _SettingsTile(
                     icon: const Icon(Icons.support_agent_outlined),
@@ -910,6 +863,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         );
       },
       child: child,
+    );
+  }
+
+  /// Entrée de réglages repliable (refonte 10a) : une carte + ExpansionTile,
+  /// titre + état en sous-titre, révélant les réglages détaillés au tap.
+  Widget _buildSettingsGroup({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Widget> children,
+  }) {
+    return _SettingsCard(
+      children: [
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            leading: Icon(icon, color: context.adaptivePrimaryColor),
+            title: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            subtitle: Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: context.textSecondaryColor,
+              ),
+            ),
+            childrenPadding: EdgeInsets.zero,
+            shape: const Border(),
+            collapsedShape: const Border(),
+            children: children,
+          ),
+        ),
+      ],
     );
   }
 

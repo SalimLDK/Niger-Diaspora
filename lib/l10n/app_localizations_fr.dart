@@ -14199,6 +14199,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get groupCalm => 'Calme';
 
   @override
+  String get settingsPrivacySecurity => 'Confidentialité et sécurité';
+
+  @override
+  String get settingsAppearanceLanguage => 'Apparence et langue';
+
+  @override
+  String get settingsHelpAbout => 'Aide et à propos';
+
+  @override
   String get posts => 'posts';
 
   @override

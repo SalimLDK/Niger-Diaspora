@@ -26300,6 +26300,24 @@ abstract class AppLocalizations {
   /// **'Calme'**
   String get groupCalm;
 
+  /// No description provided for @settingsPrivacySecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confidentialité et sécurité'**
+  String get settingsPrivacySecurity;
+
+  /// No description provided for @settingsAppearanceLanguage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apparence et langue'**
+  String get settingsAppearanceLanguage;
+
+  /// No description provided for @settingsHelpAbout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aide et à propos'**
+  String get settingsHelpAbout;
+
   /// No description provided for @posts.
   ///
   /// In fr, this message translates to:

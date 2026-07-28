@@ -14066,6 +14066,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupCalm => 'Quiet';
 
   @override
+  String get settingsPrivacySecurity => 'Privacy & security';
+
+  @override
+  String get settingsAppearanceLanguage => 'Appearance & language';
+
+  @override
+  String get settingsHelpAbout => 'Help & about';
+
+  @override
   String get posts => 'posts';
 
   @override
