@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../feed/presentation/theme/feed_tokens.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
@@ -56,6 +57,14 @@ class _PollResultsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = FeedTokens.of(context);
+    // L'option gagnante = celle qui a le plus de voix (dès qu'un vote existe).
+    final maxVotes = poll.options.isEmpty
+        ? 0
+        : poll.options
+            .map((o) => o.voteCount)
+            .reduce((a, b) => a > b ? a : b);
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -82,7 +91,26 @@ class _PollResultsBody extends ConsumerWidget {
         ),
         const SizedBox(height: 20),
         for (final option in poll.options)
-          _OptionResultCard(poll: poll, option: option),
+          _OptionResultCard(
+            poll: poll,
+            option: option,
+            tokens: tokens,
+            isWinner: poll.totalVotes > 0 && option.voteCount == maxVotes,
+            isMyChoice: poll.votedOptionIds.contains(option.id),
+          ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            AppIcon(AppIcon.info, size: 14, color: context.textTertiaryColor),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Les votes sont visibles par l\'auteur du sondage.',
+                style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -91,8 +119,17 @@ class _PollResultsBody extends ConsumerWidget {
 class _OptionResultCard extends ConsumerWidget {
   final PollEntity poll;
   final PollOptionEntity option;
+  final FeedTokens tokens;
+  final bool isWinner;
+  final bool isMyChoice;
 
-  const _OptionResultCard({required this.poll, required this.option});
+  const _OptionResultCard({
+    required this.poll,
+    required this.option,
+    required this.tokens,
+    required this.isWinner,
+    required this.isMyChoice,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -101,10 +138,18 @@ class _OptionResultCard extends ConsumerWidget {
       _optionVotersProvider((pollId: poll.id, optionId: option.id)),
     );
 
+    // Carte de base ; l'option gagnante est encadrée 1,5 px en accent2 (#7A8A5E).
+    final baseDecoration = context.cardDecoration;
+    final decoration = isWinner
+        ? baseDecoration.copyWith(
+            border: Border.all(color: tokens.accent2, width: 1.5),
+          )
+        : baseDecoration;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: context.cardDecoration,
+      decoration: decoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -120,20 +165,45 @@ class _OptionResultCard extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (isMyChoice) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: tokens.accent2.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'Votre choix',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.accent2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Text(
-                '${option.voteCount} ┬À ${(percentage * 100).round()}%',
+                '${option.voteCount} · ${(percentage * 100).round()}%',
                 style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
               ),
             ],
           ),
           const SizedBox(height: 8),
+          // Barre remplie proportionnellement : fond surface + remplissage
+          // accent2 à 35 % sur la largeur du pourcentage.
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: percentage,
-              minHeight: 6,
-              backgroundColor: context.surfaceVariantColor,
-              valueColor: const AlwaysStoppedAnimation(_pollAccent),
+            child: Container(
+              height: 10,
+              color: tokens.surface,
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: percentage.clamp(0.0, 1.0),
+                child: Container(
+                  color: tokens.accent2.withValues(alpha: 0.35),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
