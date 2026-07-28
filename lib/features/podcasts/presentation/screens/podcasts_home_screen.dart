@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/routes/podcasts_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
@@ -175,6 +176,9 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Bandeau « Reprendre » (§1d)
+            _buildResumeBanner(l10n),
+
             // Trending section
             _buildSectionHeader(l10n.trending, l10n, onSeeAll: () {}),
             const SizedBox(height: 12),
@@ -186,6 +190,107 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
             const SizedBox(height: 12),
             _buildLatestEpisodes(l10n),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Bandeau « Reprendre » (§1d) : dernier épisode commencé mais non terminé,
+  /// avec sa progression et un accès direct au lecteur.
+  Widget _buildResumeBanner(AppLocalizations l10n) {
+    final userData = ref.watch(podcastUserDataProvider).valueOrNull;
+    final inProgress = userData?.inProgressEpisodes ?? const [];
+    if (inProgress.isEmpty) return const SizedBox.shrink();
+
+    // Le plus récemment écouté.
+    final entry = inProgress.reduce(
+      (a, b) => a.listenedAt.isAfter(b.listenedAt) ? a : b,
+    );
+    final episode = ref.watch(episodeProvider(entry.episodeId)).valueOrNull;
+    if (episode == null) return const SizedBox.shrink();
+
+    final total = episode.durationSeconds;
+    final progress =
+        total > 0 ? (entry.progressSeconds / total).clamp(0.0, 1.0) : 0.0;
+    final accent = AppColors.secondary;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Material(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => context.push('/podcasts/episodes/${episode.id}'),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child:
+                        episode.coverImageUrl != null &&
+                                episode.coverImageUrl!.isNotEmpty
+                            ? Image.network(
+                              episode.coverImageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (_, __, ___) => Container(
+                                    color: accent.withValues(alpha: 0.15),
+                                    child: Icon(Icons.podcasts, color: accent),
+                                  ),
+                            )
+                            : Container(
+                              color: accent.withValues(alpha: 0.15),
+                              child: Icon(Icons.podcasts, color: accent),
+                            ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.resumeListening.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        episode.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 4,
+                          backgroundColor: accent.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(accent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.play_circle_fill_rounded, color: accent, size: 40),
+              ],
+            ),
+          ),
         ),
       ),
     );

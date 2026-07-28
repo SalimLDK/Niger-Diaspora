@@ -1259,6 +1259,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get membersNearby => 'Membres à proximité';
 
   @override
+  String get aroundYou => 'Autour de vous';
+
+  @override
+  String get theMap => 'La carte';
+
+  @override
   String get noMembersNearby => 'Aucun membre à proximité';
 
   @override
@@ -4863,6 +4869,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get newEpisodes => 'Nouveaux épisodes';
+
+  @override
+  String get resumeListening => 'Reprendre';
 
   @override
   String get categories => 'Catégories';

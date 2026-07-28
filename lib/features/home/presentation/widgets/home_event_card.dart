@@ -4,43 +4,76 @@ import '../../../../core/theme/adaptive_colors.dart';
 
 class HomeEventCard extends StatelessWidget {
   final String title;
-  final String date;
-  final String location;
-  final int attendeesCount;
+
+  /// Date de début : sert à afficher le pavé jour + mois (refonte accueil).
+  final DateTime date;
+
+  /// Ligne de contexte « Paris 18e · 14 h · 62 participants ».
+  final String subtitle;
 
   const HomeEventCard({
     super.key,
     required this.title,
     required this.date,
-    required this.location,
-    required this.attendeesCount,
+    required this.subtitle,
   });
+
+  static const _months = [
+    'JAN',
+    'FÉV',
+    'MAR',
+    'AVR',
+    'MAI',
+    'JUIN',
+    'JUIL',
+    'AOÛT',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DÉC',
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.adaptivePrimaryColor;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: context.cardDecoration,
       child: Row(
         children: [
+          // Pavé date : « 02 / AOÛT » sur fond crème (refonte accueil).
           Container(
             width: 56,
             height: 56,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: context.adaptivePrimaryGradient,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: context.isDarkMode
+                  ? accent.withValues(alpha: 0.16)
+                  : AppColors.primaryLighter,
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.event, color: context.onPrimaryColor, size: 24),
+                Text(
+                  date.day.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _months[date.month - 1],
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: accent,
+                  ),
+                ),
               ],
             ),
           ),
@@ -59,84 +92,26 @@ class HomeEventCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.primaryBackgroundColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: 12,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            date,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: context.textSecondaryColor,
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.secondaryBackgroundColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.people,
-                            size: 12,
-                            color: context.adaptiveSecondaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$attendeesCount',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: context.adaptiveSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: context.surfaceVariantColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: context.textSecondaryColor,
-            ),
+          const SizedBox(width: 8),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 22,
+            color: context.textTertiaryColor,
           ),
         ],
       ),

@@ -2414,6 +2414,18 @@ abstract class AppLocalizations {
   /// **'Membres à proximité'**
   String get membersNearby;
 
+  /// No description provided for @aroundYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autour de vous'**
+  String get aroundYou;
+
+  /// No description provided for @theMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'La carte'**
+  String get theMap;
+
   /// No description provided for @noMembersNearby.
   ///
   /// In fr, this message translates to:
@@ -9055,6 +9067,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouveaux épisodes'**
   String get newEpisodes;
+
+  /// No description provided for @resumeListening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get resumeListening;
 
   /// No description provided for @categories.
   ///
