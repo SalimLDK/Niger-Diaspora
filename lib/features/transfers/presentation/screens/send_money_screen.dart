@@ -25,7 +25,6 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   int _currentStep = 0;
   bool _isLoading = false;
-  bool _amountValid = false;
   Timer? _debounceTimer;
 
   @override
@@ -58,77 +57,171 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: Stepper(
-          currentStep: _currentStep,
-          onStepContinue: _onStepContinue,
-          onStepCancel: _onStepCancel,
-          controlsBuilder: (context, details) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : details.onStepContinue,
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : Text(
-                                _continueLabel(transferState, selectedCurrency),
-                              ),
-                    ),
-                  ),
-                  if (_currentStep > 0) ...[
-                    const SizedBox(width: 12),
-                    OutlinedButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Retour'),
-                    ),
-                  ],
-                ],
+        child: Column(
+          children: [
+            // Stepper sur une seule ligne (remplace le Stepper natif — 12a).
+            _buildStepIndicator(theme),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: _stepContent(theme, transferState, selectedCurrency),
               ),
-            );
-          },
-          steps: [
-            // Step 1: Select Recipient
-            Step(
-              title: const Text('Beneficiaire'),
-              subtitle:
-                  transferState.selectedRecipient != null
-                      ? Text(transferState.selectedRecipient!.fullName)
-                      : null,
-              content: _buildRecipientStep(theme, transferState),
-              isActive: _currentStep >= 0,
-              state: _currentStep > 0 ? StepState.complete : StepState.indexed,
             ),
-            // Step 2: Enter Amount
-            Step(
-              title: const Text('Montant'),
-              subtitle:
-                  transferState.amount > 0
-                      ? Text(
-                        '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
-                      )
-                      : null,
-              content: _buildAmountStep(theme, selectedCurrency),
-              isActive: _currentStep >= 1,
-              state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-            ),
-            // Step 3: Review & Confirm
-            Step(
-              title: const Text('Confirmation'),
-              content: _buildConfirmationStep(theme, transferState),
-              isActive: _currentStep >= 2,
-              state: StepState.indexed,
-            ),
+            _buildBottomBar(theme, transferState, selectedCurrency),
           ],
         ),
+      ),
+    );
+  }
+
+  // Couleurs du transfert (refonte §6/12a).
+  static const _kTransferAccent = Color(0xFFB85E24);
+  static const _kStepUpcoming = Color(0xFFE8DFD4);
+
+  Widget _stepContent(
+    ThemeData theme,
+    TransferState transferState,
+    String selectedCurrency,
+  ) {
+    switch (_currentStep) {
+      case 0:
+        return _buildRecipientStep(theme, transferState);
+      case 1:
+        return _buildAmountStep(theme, selectedCurrency);
+      default:
+        return _buildConfirmationStep(theme, transferState);
+    }
+  }
+
+  /// Indicateur d'étapes sur une ligne : rond 22 px + libellé, barre 2 px
+  /// entre les étapes (accent = faite/en cours, beige = à venir).
+  Widget _buildStepIndicator(ThemeData theme) {
+    const labels = ['Bénéficiaire', 'Montant', 'Confirmer'];
+
+    Widget node(int idx) {
+      final done = _currentStep > idx;
+      final active = _currentStep >= idx;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? _kTransferAccent : _kStepUpcoming,
+              shape: BoxShape.circle,
+            ),
+            child: done
+                ? const Icon(Icons.check, size: 14, color: Colors.white)
+                : Text(
+                    '${idx + 1}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: active
+                          ? Colors.white
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            labels[idx],
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight:
+                  _currentStep == idx ? FontWeight.w600 : FontWeight.w400,
+              color: active
+                  ? theme.colorScheme.onSurface
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget bar(int afterIdx) {
+      final done = _currentStep > afterIdx;
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Container(
+            height: 2,
+            color: done ? _kTransferAccent : _kStepUpcoming,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [node(0), bar(0), node(1), bar(1), node(2)],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(
+    ThemeData theme,
+    TransferState transferState,
+    String selectedCurrency,
+  ) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        MediaQuery.of(context).padding.bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (_currentStep > 0) ...[
+            OutlinedButton(
+              onPressed: _isLoading ? null : _onStepCancel,
+              child: const Text('Retour'),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _kTransferAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: _isLoading ? null : _onStepContinue,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        _continueLabel(transferState, selectedCurrency),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -348,78 +441,93 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   }
 
   Widget _buildAmountStep(ThemeData theme, String selectedCurrency) {
+    const quickAmounts = [25, 50, 100, 200];
+    final currentAmount = double.tryParse(_amountController.text);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Currency selector
-        DropdownButtonFormField<String>(
-          initialValue: selectedCurrency,
-          decoration: const InputDecoration(
-            labelText: 'Devise',
-            border: OutlineInputBorder(),
-          ),
-          isExpanded: true,
-          items: _buildTransferCurrencyItems(),
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(selectedCurrencyProvider.notifier).select(value);
-              ref
-                  .read(transferStateNotifierProvider.notifier)
-                  .setCurrency(value);
-              // Mettre à jour le taux de change et les frais pour la nouvelle devise
-              _updateFeeAndRateDebounced();
-            }
-          },
-        ),
-        const SizedBox(height: 16),
-
-        // Amount input with real-time validation
-        TextFormField(
-          controller: _amountController,
-          decoration: InputDecoration(
-            labelText: 'Montant a envoyer',
-            border: const OutlineInputBorder(),
-            prefixText: _getCurrencySymbol(selectedCurrency),
-            suffixText: selectedCurrency,
-            suffixIcon:
-                _amountController.text.isNotEmpty
-                    ? Icon(
-                      _amountValid ? Icons.check_circle : Icons.error,
-                      color: _amountValid ? Colors.green : Colors.red,
-                    )
-                    : null,
-            helperText:
-                _amountController.text.isEmpty
-                    ? 'Minimum 5 $selectedCurrency'
-                    : null,
-          ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+        const SizedBox(height: 8),
+        // Montant héros + sélecteur de devise en pastille.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _amountController,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -1.5,
+                  color: theme.colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                  contentPadding: EdgeInsets.zero,
+                  hintText: '0',
+                  hintStyle: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -1.5,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.4,
+                    ),
+                  ),
+                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Entrez un montant';
+                  final amount = double.tryParse(value);
+                  if (amount == null || amount <= 0) return 'Montant invalide';
+                  if (amount < 5) return 'Minimum 5 $selectedCurrency';
+                  return null;
+                },
+                onChanged: (value) {
+                  final amount = double.tryParse(value) ?? 0;
+                  // Rebuild pour rafraîchir la surbrillance des montants rapides.
+                  setState(() {});
+                  ref
+                      .read(transferStateNotifierProvider.notifier)
+                      .setAmount(amount);
+                  _updateFeeAndRateDebounced();
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            _currencyPastille(theme, selectedCurrency),
           ],
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Entrez un montant';
-            }
-            final amount = double.tryParse(value);
-            if (amount == null || amount <= 0) {
-              return 'Montant invalide';
-            }
-            if (amount < 5) {
-              return 'Minimum 5 $selectedCurrency';
-            }
-            return null;
-          },
-          onChanged: (value) {
-            final amount = double.tryParse(value) ?? 0;
-            setState(() {
-              _amountValid = amount >= 5;
-            });
-            ref.read(transferStateNotifierProvider.notifier).setAmount(amount);
-            _updateFeeAndRateDebounced();
-          },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 6),
+        Text(
+          'Minimum 5 $selectedCurrency',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Montants rapides.
+        Row(
+          children: [
+            for (final amt in quickAmounts) ...[
+              Expanded(
+                child: _quickAmountChip(
+                  theme,
+                  amt,
+                  currentAmount == amt.toDouble(),
+                ),
+              ),
+              if (amt != quickAmounts.last) const SizedBox(width: 8),
+            ],
+          ],
+        ),
+        const SizedBox(height: 24),
 
         // Notes (optional)
         TextFormField(
@@ -440,6 +548,80 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         _buildFeePreview(theme, selectedCurrency),
       ],
     );
+  }
+
+  /// Sélecteur de devise en pastille (à droite du montant héros).
+  Widget _currencyPastille(ThemeData theme, String selectedCurrency) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        ref.read(selectedCurrencyProvider.notifier).select(value);
+        ref.read(transferStateNotifierProvider.notifier).setCurrency(value);
+        _updateFeeAndRateDebounced();
+      },
+      itemBuilder: (ctx) => _transferCurrencies
+          .map(
+            (c) => PopupMenuItem<String>(
+              value: c.code,
+              child: Text('${c.flag}  ${c.code} · ${c.name}'),
+            ),
+          )
+          .toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedCurrency,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _quickAmountChip(ThemeData theme, int amount, bool active) {
+    return GestureDetector(
+      onTap: () => _setQuickAmount(amount),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active
+              ? _kTransferAccent
+              : theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          '$amount',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: active ? Colors.white : theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _setQuickAmount(int amount) {
+    _amountController.text = '$amount';
+    setState(() {});
+    ref.read(transferStateNotifierProvider.notifier).setAmount(amount.toDouble());
+    _updateFeeAndRateDebounced();
   }
 
   Widget _buildFeePreview(ThemeData theme, String selectedCurrency) {
@@ -942,11 +1124,6 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     }
   }
 
-  String _getCurrencySymbol(String currencyCode) {
-    final currency = CurrencyExtension.fromCode(currencyCode);
-    return currency.symbol;
-  }
-
   // Currencies commonly used for money transfers
   static const _transferCurrencies = [
     // Major diaspora currencies
@@ -968,29 +1145,4 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     Currency.kwd,
   ];
 
-  List<DropdownMenuItem<String>> _buildTransferCurrencyItems() {
-    return _transferCurrencies.map((currency) {
-      return DropdownMenuItem<String>(
-        value: currency.code,
-        child: Row(
-          children: [
-            Text(currency.flag, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 8),
-            Text(
-              currency.code,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                currency.name,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
 }
