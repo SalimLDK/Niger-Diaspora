@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
@@ -483,16 +484,7 @@ class _ConversationOptionsModalState
         child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.dividerColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          const SheetHandle(),
           const SizedBox(height: 20),
           Text(
             l10n.conversationOptions,
@@ -616,12 +608,6 @@ class _ConversationOptionsModalState
               title: l10n.exportConversation,
               onTap: _exportConversation,
             ),
-            _buildOption(
-              iconWidget: const AppIcon(AppIcon.delete, color: Colors.red),
-              title: l10n.deleteConversation,
-              onTap: _deleteConversation,
-              isDestructive: true,
-            ),
             if (!widget.isGroup && widget.otherUserId != null) ...[
               const Divider(),
               Consumer(
@@ -645,6 +631,14 @@ class _ConversationOptionsModalState
               iconWidget: AppIcon(AppIcon.flag, color: context.adaptivePrimaryColor),
               title: l10n.report,
               onTap: _reportConversation,
+            ),
+            // Action destructive isolée en bas, après un filet (§16).
+            const Divider(),
+            _buildOption(
+              iconWidget: const AppIcon(AppIcon.delete, color: Colors.red),
+              title: l10n.deleteConversation,
+              onTap: _deleteConversation,
+              isDestructive: true,
             ),
           ],
           const SizedBox(height: 20),
