@@ -113,6 +113,11 @@ class PreferencesService {
   // Message Drafts
   static const String _keyMessageDrafts = 'message_drafts';
 
+  // Voice Notes — local "listened" state driving the unheard dot
+  static const String _keyPlayedVoiceNotes = 'played_voice_notes';
+  // Cap the list so it can't grow without bound; keep the most recent ids.
+  static const int _maxPlayedVoiceNotes = 1000;
+
   // ============================
   // SESSION
   // ============================
@@ -437,6 +442,33 @@ class PreferencesService {
   /// Clear all drafts
   Future<void> clearAllMessageDrafts() async {
     await prefs.remove(_keyMessageDrafts);
+  }
+
+  // ============================
+  // VOICE NOTES ("listened" state)
+  // ============================
+
+  /// Whether the local user has already played this voice note. Drives the
+  /// green "unheard" dot on [AudioMessageBubble] and persists across rebuilds
+  /// and app restarts. Returns `false` before the service is initialized.
+  bool isVoiceNotePlayed(String messageId) {
+    if (_prefs == null) return false;
+    final played = _prefs!.getStringList(_keyPlayedVoiceNotes);
+    return played != null && played.contains(messageId);
+  }
+
+  /// Mark a voice note as played by the local user. No-op if already recorded
+  /// or if the service isn't initialized yet.
+  Future<void> markVoiceNotePlayed(String messageId) async {
+    if (_prefs == null) return;
+    final current = _prefs!.getStringList(_keyPlayedVoiceNotes) ?? <String>[];
+    if (current.contains(messageId)) return;
+    current.add(messageId);
+    // Keep only the most recent ids to bound storage growth.
+    if (current.length > _maxPlayedVoiceNotes) {
+      current.removeRange(0, current.length - _maxPlayedVoiceNotes);
+    }
+    await _prefs!.setStringList(_keyPlayedVoiceNotes, current);
   }
 
   // ============================

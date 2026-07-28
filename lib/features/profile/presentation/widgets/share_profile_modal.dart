@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -173,8 +174,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                           _buildShareButtons(isDark),
                           const SizedBox(height: 16),
 
-                          // TODO: Scan QR code button - disabled temporarily
-                          // _buildScanButton(isDark),
+                          // Scan QR code button
+                          _buildScanButton(isDark),
                         ],
                       ],
                     ),
@@ -621,6 +622,36 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildScanButton(bool isDark) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          Navigator.pop(context);
+          context.push('/qr-scanner');
+        },
+        icon: Icon(
+          Icons.qr_code_scanner_rounded,
+          color: context.adaptiveSecondaryColor,
+        ),
+        label: Text(
+          'Scanner un QR code',
+          style: TextStyle(
+            color: context.adaptiveSecondaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          side: BorderSide(color: context.adaptiveSecondaryColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
     );
   }
 

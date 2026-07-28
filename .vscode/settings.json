@@ -1,3 +1,29 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+
+    // Le JDK système (JAVA_HOME) est Java 23, non supporté par Gradle 8.10.2
+    // (« Unsupported class file major version 67 »). On force Gradle et le
+    // serveur de langage Java sur le JBR d'Android Studio (JDK 21).
+    "java.import.gradle.java.home": "C:/Program Files/Android/Android Studio/jbr",
+    "java.jdt.ls.java.home": "C:/Program Files/Android/Android Studio/jbr",
+
+    // Empêche l'extension Java d'importer les copies du projet Android situées
+    // dans les worktrees git (.claude/worktrees) : elles déclenchent
+    // « Duplicate root element android », « Missing .settings » et
+    // « local.properties introuvable ». Ce ne sont pas des projets à indexer.
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/.metadata/**",
+        "**/archetype-resources/**",
+        "**/META-INF/maven/**",
+        "**/.claude/**"
+    ],
+
+    // Ne pas surveiller/indexer les worktrees dans l'explorateur et la recherche.
+    "files.watcherExclude": {
+        "**/.claude/worktrees/**": true
+    },
+    "search.exclude": {
+        "**/.claude/worktrees/**": true
+    }
 }
