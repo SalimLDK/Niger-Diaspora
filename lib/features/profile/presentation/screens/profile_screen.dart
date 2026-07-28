@@ -46,6 +46,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   bool _noiseSuppressionEnabled = true;
   ChatBackgroundEntity? _globalBackground;
   bool _headerCollapsed = false;
+  bool _completionDismissed = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -207,6 +208,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         child: _buildStatsCard(l10n),
                       ),
                     ),
+                  ),
+                ),
+              ),
+
+              // Bandeau « profil incomplet » (§11f)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth:
+                          context.isTablet
+                              ? AppSpacing.tabletMaxContentWidth
+                              : double.infinity,
+                    ),
+                    child: _buildCompletionBanner(user, l10n),
                   ),
                 ),
               ),
@@ -731,6 +747,158 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Bandeau « profil incomplet » (§11f) : progression n/5 + jusqu'à trois
+  /// champs manquants nommés avec leur bénéfice, CTA « Compléter » + « Plus tard ».
+  Widget _buildCompletionBanner(dynamic user, AppLocalizations l10n) {
+    if (user == null || _completionDismissed) return const SizedBox.shrink();
+    final profile = ref.watch(profileNotifierProvider(user.id)).valueOrNull;
+    if (profile == null) return const SizedBox.shrink();
+
+    // 5 champs de complétude, chacun avec son bénéfice.
+    final fields = <({bool filled, String label, String benefit})>[
+      (
+        filled: (profile.photoUrl ?? '').trim().isNotEmpty,
+        label: 'Photo de profil',
+        benefit: 'Vous serez plus facilement reconnu',
+      ),
+      (
+        filled: (profile.currentCity ?? '').trim().isNotEmpty,
+        label: 'Ville actuelle',
+        benefit: 'Vous apparaîtrez auprès des membres proches',
+      ),
+      (
+        filled: (profile.profession ?? '').trim().isNotEmpty,
+        label: 'Métier',
+        benefit: 'Utile pour les mises en relation',
+      ),
+      (
+        filled: profile.languages.isNotEmpty,
+        label: 'Langues parlées',
+        benefit: "Utile pour l'entraide et les démarches",
+      ),
+      (
+        filled: (profile.bio ?? '').trim().isNotEmpty,
+        label: 'Bio',
+        benefit: 'Présentez-vous à la communauté',
+      ),
+    ];
+
+    final filledCount = fields.where((f) => f.filled).length;
+    final total = fields.length;
+    if (filledCount >= total) return const SizedBox.shrink();
+
+    final missing = fields.where((f) => !f.filled).take(3).toList();
+    final accent = context.adaptivePrimaryColor;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: context.cardDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Complétez votre profil',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+                Text(
+                  '$filledCount/$total',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: filledCount / total,
+                minHeight: 6,
+                backgroundColor: context.surfaceVariantColor,
+                valueColor: AlwaysStoppedAnimation<Color>(accent),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...missing.map(
+              (f) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.radio_button_unchecked,
+                      size: 18,
+                      color: context.textTertiaryColor,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            f.label,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                          Text(
+                            f.benefit,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/profile/edit'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accent,
+                      foregroundColor: context.onPrimaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Compléter mon profil'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => setState(() => _completionDismissed = true),
+                  child: Text(
+                    'Plus tard',
+                    style: TextStyle(color: context.textSecondaryColor),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
