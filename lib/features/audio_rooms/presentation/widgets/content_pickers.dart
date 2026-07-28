@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -57,14 +59,9 @@ class _EventPickerBottomSheetState
           child: Column(
             children: [
               // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: DnSheetHandle(),
               ),
               // Header
               Padding(
@@ -291,14 +288,9 @@ class _GroupPickerBottomSheetState
           child: Column(
             children: [
               // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: DnSheetHandle(),
               ),
               // Header
               Padding(
@@ -531,14 +523,9 @@ class _EmbassyPickerBottomSheetState
           child: Column(
             children: [
               // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: DnSheetHandle(),
               ),
               // Header
               Padding(

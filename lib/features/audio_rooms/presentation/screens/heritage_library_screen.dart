@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -1021,14 +1023,9 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
       child: Column(
         children: [
           // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: DnSheetHandle(),
           ),
 
           // Content

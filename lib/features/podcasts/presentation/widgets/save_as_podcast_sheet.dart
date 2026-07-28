@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -188,16 +190,7 @@ class _SaveAsPodcastSheetState extends ConsumerState<SaveAsPodcastSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Handle
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: context.borderColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  const DnSheetHandle(),
                   const SizedBox(height: 20),
 
                   // Title

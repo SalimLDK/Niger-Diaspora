@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -435,16 +437,7 @@ class _ContributeBottomSheetState extends ConsumerState<ContributeBottomSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            const DnSheetHandle(),
             const SizedBox(height: 24),
 
             // Header
