@@ -149,6 +149,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.password,
                   obscureText: true,
                   enabled: !isLoading,
+                  onChanged: (_) => setState(() {}),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return l10n.enterAPassword;
@@ -159,6 +160,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     return null;
                   },
                 ),
+
+                // Jauge de robustesse en 3 segments (§15b).
+                if (_passwordController.text.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _PasswordStrengthGauge(password: _passwordController.text),
+                ],
 
                 const SizedBox(height: 16),
 
@@ -288,6 +295,69 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Jauge de robustesse du mot de passe en 3 segments (§15b) :
+/// faible (rouge) / moyen (orange) / fort (vert).
+class _PasswordStrengthGauge extends StatelessWidget {
+  final String password;
+
+  const _PasswordStrengthGauge({required this.password});
+
+  /// Score 1..3 (0 = vide).
+  int get _score {
+    var s = 0;
+    if (password.length >= 6) s++;
+    final hasLetter = password.contains(RegExp(r'[A-Za-z]'));
+    final hasDigit = password.contains(RegExp(r'[0-9]'));
+    final hasUpper = password.contains(RegExp(r'[A-Z]'));
+    final hasSpecial = password.contains(RegExp(r'[^A-Za-z0-9]'));
+    if (password.length >= 10 || (hasLetter && hasDigit)) s++;
+    if (hasUpper && hasDigit && (hasSpecial || password.length >= 12)) s++;
+    return s.clamp(0, 3);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final score = _score;
+    const labels = ['Faible', 'Moyen', 'Fort'];
+    final colors = [
+      const Color(0xFFC23E2D),
+      const Color(0xFFD9A441),
+      const Color(0xFF2D7D46),
+    ];
+    final color = score == 0 ? Colors.grey : colors[score - 1];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: List.generate(3, (i) {
+            final filled = i < score;
+            return Expanded(
+              child: Container(
+                height: 4,
+                margin: EdgeInsets.only(right: i < 2 ? 6 : 0),
+                decoration: BoxDecoration(
+                  color: filled
+                      ? color
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            );
+          }),
+        ),
+        if (score > 0) ...[
+          const SizedBox(height: 4),
+          Text(
+            labels[score - 1],
+            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ],
     );
   }
 }
