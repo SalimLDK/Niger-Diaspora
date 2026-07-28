@@ -1856,6 +1856,18 @@ abstract class AppLocalizations {
   /// **'Vous n\'avez rejoint aucun groupe'**
   String get noJoinedGroups;
 
+  /// No description provided for @pinnedSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épinglées'**
+  String get pinnedSection;
+
+  /// No description provided for @otherConversations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres'**
+  String get otherConversations;
+
   /// No description provided for @emptyMessagesJoinGroup.
   ///
   /// In fr, this message translates to:

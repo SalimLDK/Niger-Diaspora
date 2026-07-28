@@ -1019,6 +1019,40 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       );
     }
 
+    // Section « Épinglées » séparée (§9a), hors recherche/archives.
+    final pinned = <ConversationEntity>[];
+    final others = <ConversationEntity>[];
+    for (final c in filtered) {
+      (c.isPinnedBy(currentUserId) ? pinned : others).add(c);
+    }
+    final useSections =
+        !showArchived && _searchQuery.isEmpty && pinned.isNotEmpty;
+
+    // Liste d'entrées : marqueurs d'en-tête (String) + conversations.
+    final entries = <Object>[];
+    if (showSelfNotesTile) entries.add(_kSelfNotesMarker);
+    if (useSections) {
+      entries.add(l10n.pinnedSection);
+      entries.addAll(pinned);
+      if (others.isNotEmpty) entries.add(l10n.otherConversations);
+      entries.addAll(others);
+    } else {
+      entries.addAll(filtered);
+    }
+
+    Widget sectionHeader(String label) => Padding(
+      padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: context.textTertiaryColor,
+        ),
+      ),
+    );
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(conversationsProvider);
@@ -1031,12 +1065,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           20,
           10 + MediaQuery.of(context).padding.bottom,
         ),
-        itemCount: filtered.length + (showSelfNotesTile ? 1 : 0),
+        itemCount: entries.length,
         itemBuilder: (context, index) {
-          if (showSelfNotesTile && index == 0) {
+          final entry = entries[index];
+          if (entry == _kSelfNotesMarker) {
             return _buildSelfNotesTile(context);
           }
-          final conversation = filtered[showSelfNotesTile ? index - 1 : index];
+          if (entry is String) {
+            return sectionHeader(entry);
+          }
+          final conversation = entry as ConversationEntity;
 
           return ConversationItem(
             conversation: conversation,
@@ -1068,3 +1106,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 }
+
+/// Marqueur interne pour la tuile « Mes notes » dans la liste d'entrées.
+const String _kSelfNotesMarker = '__self_notes__';

@@ -388,6 +388,8 @@
   "myGroups": "My groups",
   "searchGroup": "Search for a group...",
   "noJoinedGroups": "You haven't joined any group",
+  "pinnedSection": "Pinned",
+  "otherConversations": "Others",
   "emptyMessagesJoinGroup": "Join a group in your city",
   "emptyGroupsUsage": "Groups bring the diaspora together by city, interest or project. Join one or create your own.",
   "noGroupsToDiscover": "No new groups to discover",
