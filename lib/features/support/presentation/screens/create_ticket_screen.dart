@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -167,6 +169,11 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 20),
+
+              // Contexte technique joint automatiquement (§11) : évite un
+              // aller-retour où le support demande version/OS/langue.
+              _buildAutoAttachedBlock(context, l10n),
               const SizedBox(height: 32),
 
               // Submit button
@@ -205,5 +212,55 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
       TicketCategory.technical => l10n.ticketCategoryTechnical,
       TicketCategory.other => l10n.ticketCategoryOther,
     };
+  }
+
+  Widget _buildAutoAttachedBlock(BuildContext context, AppLocalizations l10n) {
+    final os = Platform.isAndroid
+        ? 'Android'
+        : Platform.isIOS
+            ? 'iOS'
+            : Platform.operatingSystem;
+    final lang = Localizations.localeOf(context).languageCode.toUpperCase();
+    // NB : version d'app non affichée (pas de package_info_plus au projet) ;
+    // à compléter (version + modèle via device_info_plus) si besoin.
+    final context_ = 'Diaspo Niger · $os · $lang';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.surfaceVariantColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: context.textTertiaryColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.supportAutoAttached,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  context_,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportPromptBug => 'A technical problem';
 
   @override
+  String get supportAutoAttached => 'Automatically attached';
+
+  @override
   String get appTitle => 'Diaspo Niger';
 
   @override

@@ -51,6 +51,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get supportPromptBug => 'Un problème technique';
 
   @override
+  String get supportAutoAttached => 'Joint automatiquement';
+
+  @override
   String get appTitle => 'Diaspo Niger';
 
   @override

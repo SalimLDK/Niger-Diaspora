@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Un problème technique'**
   String get supportPromptBug;
 
+  /// No description provided for @supportAutoAttached.
+  ///
+  /// In fr, this message translates to:
+  /// **'Joint automatiquement'**
+  String get supportAutoAttached;
+
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:
