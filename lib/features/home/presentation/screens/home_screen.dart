@@ -11,6 +11,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/geo_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
@@ -24,7 +25,6 @@ import '../providers/home_provider.dart';
 
 import '../widgets/home_section_header.dart';
 import '../widgets/home_empty_state_card.dart';
-import '../widgets/home_member_card.dart';
 import '../widgets/home_event_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -734,18 +734,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: context.adaptivePrimaryColor
-                                        .withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.search,
-                                    color: context.adaptivePrimaryColor,
-                                    size: 20,
-                                  ),
+                                Icon(
+                                  Icons.search,
+                                  color: context.textTertiaryColor,
+                                  size: 22,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -757,17 +749,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: context.adaptivePrimaryColor,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.tune,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
+                                Icon(
+                                  Icons.tune,
+                                  color: context.adaptivePrimaryColor,
+                                  size: 22,
                                 ),
                               ],
                             ),
@@ -829,15 +814,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Section Membres
+                  // Section « Autour de vous » : rangée d'avatars circulaires
+                  // avec la distance (remplace les grandes cartes membres —
+                  // refonte accueil).
                   Column(
                     key: _nearbyMembersKey,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       HomeSectionHeader(
-                        title: l10n.membersNearby,
+                        title: l10n.aroundYou,
                         onSeeAll: () => context.go('/map'),
-                        seeAllText: l10n.seeAll,
+                        seeAllText: l10n.theMap,
                       ),
                       // Indicateur de dernière mise à jour
                       if (_lastNearbyUpdate != null && _locationError == null)
@@ -889,59 +876,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               );
                             }
 
+                            // On affiche au plus 8 avatars, puis une pastille
+                            // « +N / La carte » qui renvoie vers la carte.
+                            const maxAvatars = 8;
+                            final visible =
+                                filteredProfiles.take(maxAvatars).toList();
+                            final remaining =
+                                filteredProfiles.length - visible.length;
+
                             return SizedBox(
-                              height: 200,
-                              child: ListView.builder(
+                              height: 104,
+                              child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
-                                itemCount:
-                                    filteredProfiles.length > 10 ? 10 : filteredProfiles.length,
+                                itemCount: visible.length + (remaining > 0 ? 1 : 0),
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 16),
                                 itemBuilder: (context, index) {
-                                  final profile = filteredProfiles[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                      left: index == 0 ? 0 : 12,
-                                      right:
-                                          index ==
-                                                  (filteredProfiles.length > 10
-                                                      ? 9
-                                                      : filteredProfiles.length - 1)
-                                              ? 0
-                                              : 0,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap:
-                                          () => context.push(
-                                            '/profile/${profile.id}',
-                                            extra: profile,
-                                          ),
-                                      child: HomeMemberCard(
-                                        userId: profile.id,
-                                        name: profile.displayName ?? 'Membre',
-                                        location: profile.currentCity ?? '',
-                                        badge: profile.profession ?? '',
-                                        photoUrl: profile.photoUrl,
-                                      ),
+                                  if (index >= visible.length) {
+                                    return _SeeAllAvatar(
+                                      count: remaining,
+                                      label: l10n.seeAll,
+                                      onTap: () => context.go('/map'),
+                                    );
+                                  }
+                                  final p = visible[index];
+                                  return _NearbyAvatar(
+                                    name: p.displayName ?? 'Membre',
+                                    photoUrl: p.photoUrl,
+                                    distance:
+                                        _distanceLabel(p.latitude, p.longitude),
+                                    color: _avatarColor(p.id),
+                                    onTap: () => context.push(
+                                      '/profile/${p.id}',
+                                      extra: p,
                                     ),
                                   );
                                 },
                               ),
                             );
                           },
-                          loading:
-                              () => SizedBox(
-                                height: 200,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: 3,
-                                  itemBuilder:
-                                      (context, index) => Padding(
-                                        padding: EdgeInsets.only(
-                                          left: index == 0 ? 0 : 12,
-                                        ),
-                                        child: HomeMemberCardLoading(),
-                                      ),
-                                ),
-                              ),
+                          loading: () => SizedBox(
+                            height: 104,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 4,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 16),
+                              itemBuilder: (_, __) => const _NearbyAvatarLoading(),
+                            ),
+                          ),
                           error:
                               (_, __) => HomeEmptyStateCard(
                                 icon: Icons.error_outline,
@@ -992,12 +975,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                               ),
                                           child: HomeEventCard(
                                             title: event.title,
-                                            date: _formatEventDate(
-                                              event.startDate,
+                                            date: event.startDate,
+                                            subtitle: _eventSubtitle(
+                                              event,
+                                              l10n,
                                             ),
-                                            location: event.location,
-                                            attendeesCount:
-                                                event.attendeeIds.length,
                                           ),
                                         ),
                                       ),
@@ -1048,22 +1030,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return upcoming.isNotEmpty ? upcoming.first : null;
   }
 
-  String _formatEventDate(DateTime date) {
-    final months = [
-      'jan',
-      'fév',
-      'mar',
-      'avr',
-      'mai',
-      'juin',
-      'juil',
-      'aoû',
-      'sep',
-      'oct',
-      'nov',
-      'déc',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  /// Ligne de contexte de l'événement : « Paris 18e · 14 h · 62 participants ».
+  String _eventSubtitle(EventEntity e, AppLocalizations l10n) {
+    final parts = <String>[];
+    if (e.location.trim().isNotEmpty) parts.add(e.location.trim());
+    final minute = e.startDate.minute;
+    parts.add(
+      minute == 0
+          ? '${e.startDate.hour} h'
+          : '${e.startDate.hour} h ${minute.toString().padLeft(2, '0')}',
+    );
+    parts.add(l10n.participants(e.attendeeIds.length));
+    return parts.join(' · ');
+  }
+
+  /// Distance formatée « 1,2 km » entre l'utilisateur et un profil, ou `null`
+  /// si la position (de l'un ou l'autre) est indisponible.
+  String? _distanceLabel(double? lat, double? lng) {
+    if (_currentLat == null || _currentLng == null) return null;
+    if (lat == null || lng == null) return null;
+    final d = GeoUtils.calculateDistance(_currentLat!, _currentLng!, lat, lng);
+    return GeoUtils.formatDistance(d).replaceAll('.', ',');
   }
 }
 
@@ -1406,7 +1393,7 @@ class _ServicesGrid extends ConsumerWidget {
     final items = <Widget>[
       _ServiceTile(
         icon: Icons.dynamic_feed_rounded,
-        label: 'Fil',
+        label: 'Le fil',
         color: context.adaptivePrimaryColor,
         onTap: () => context.push('/feed'),
       ),
@@ -1435,7 +1422,7 @@ class _ServicesGrid extends ConsumerWidget {
         _ServiceTile(
           icon: Icons.account_balance,
           label: 'Ambassades',
-          color: Colors.indigo,
+          color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/embassies'),
         ),
     ];
@@ -1475,24 +1462,230 @@ class _ServiceTile extends StatelessWidget {
             child: Container(
               width: double.infinity,
               alignment: Alignment.center,
+              // Carte blanche à bord léger (remplace la pastille teintée —
+              // refonte accueil).
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.10),
+                color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: context.borderColor),
+                boxShadow: context.isDarkMode
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
-              child: Icon(icon, size: 24, color: color),
+              child: Icon(icon, size: 26, color: color),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             label,
-            maxLines: 2,
+            maxLines: 1,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: context.textSecondaryColor,
               height: 1.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Refonte accueil : section « Autour de vous » (avatars circulaires) ───────
+
+/// Palette d'avatars (orange, vert, sarcelle, brique, violet) alignée sur la
+/// maquette. La couleur est stable pour un même profil via son id.
+const _avatarPalette = <Color>[
+  Color(0xFFB85E24), // orange
+  Color(0xFF2D7D46), // vert
+  Color(0xFF2A7F7B), // sarcelle
+  Color(0xFFC23E2D), // brique
+  Color(0xFF7A5AA8), // violet
+];
+
+Color _avatarColor(String seed) =>
+    _avatarPalette[seed.hashCode.abs() % _avatarPalette.length];
+
+String _avatarInitials(String name) {
+  final trimmed = name.trim();
+  if (trimmed.isEmpty) return '?';
+  final parts = trimmed.split(RegExp(r'\s+'));
+  if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  }
+  return trimmed[0].toUpperCase();
+}
+
+/// Avatar circulaire d'un membre proche : cercle coloré (photo ou initiales),
+/// prénom, puis distance formatée.
+class _NearbyAvatar extends StatelessWidget {
+  final String name;
+  final String? photoUrl;
+  final String? distance;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _NearbyAvatar({
+    required this.name,
+    required this.photoUrl,
+    required this.distance,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 68,
+        child: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              clipBehavior: Clip.antiAlias,
+              alignment: Alignment.center,
+              child: photoUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: photoUrl!,
+                      fit: BoxFit.cover,
+                      width: 60,
+                      height: 60,
+                      placeholder: (_, __) => _initials(),
+                      errorWidget: (_, __, ___) => _initials(),
+                    )
+                  : _initials(),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name.split(' ').first,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            if (distance != null)
+              Text(
+                distance!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: context.textTertiaryColor,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _initials() => Text(
+        _avatarInitials(name),
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+}
+
+/// Pastille finale « +N / Voir tout » de la rangée d'avatars.
+class _SeeAllAvatar extends StatelessWidget {
+  final int count;
+  final String label;
+  final VoidCallback onTap;
+
+  const _SeeAllAvatar({
+    required this.count,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 68,
+        child: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.surfaceVariantColor,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '+$count',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Placeholder de chargement d'un avatar proche.
+class _NearbyAvatarLoading extends StatelessWidget {
+  const _NearbyAvatarLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 68,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 44,
+            height: 10,
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
         ],
