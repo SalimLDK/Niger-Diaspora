@@ -183,21 +183,60 @@ class _UpcomingEventsTab extends ConsumerWidget {
           );
         }
 
+        // Regroupement « Cette semaine » / « Plus tard » (§13a).
+        final now = DateTime.now();
+        final weekEnd = now.add(const Duration(days: 7));
+        final sorted = [...events]
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+        final thisWeek =
+            sorted.where((e) => e.startDate.isBefore(weekEnd)).toList();
+        final later =
+            sorted.where((e) => !e.startDate.isBefore(weekEnd)).toList();
+
+        Widget card(EventEntity event) => _EventCard(
+              event: event,
+              onTap: () => context.push('/events/${event.id}'),
+            );
+
         return RefreshIndicator(
           onRefresh: () => ref.read(eventsNotifierProvider.notifier).refresh(),
-          child: ListView.builder(
+          child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
-              return _EventCard(
-                event: event,
-                onTap: () => context.push('/events/${event.id}'),
-              );
-            },
+            children: [
+              if (thisWeek.isNotEmpty) ...[
+                _EventsSectionHeader(label: l10n.thisWeek),
+                ...thisWeek.map(card),
+              ],
+              if (later.isNotEmpty) ...[
+                _EventsSectionHeader(label: l10n.later),
+                ...later.map(card),
+              ],
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _EventsSectionHeader extends StatelessWidget {
+  final String label;
+
+  const _EventsSectionHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+          color: context.textSecondaryColor,
+        ),
+      ),
     );
   }
 }
