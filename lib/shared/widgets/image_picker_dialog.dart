@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/services/image_upload_service.dart';
 import '../../core/services/permission_service.dart';
 import '../../core/theme/adaptive_colors.dart';
+import 'sheet_handle.dart';
 
 class ImagePickerDialog extends StatelessWidget {
   final Function(File file) onImageSelected;
@@ -113,14 +114,7 @@ class _ImagePickerSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.borderColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          const SheetHandle(),
           const SizedBox(height: 20),
           Text(
             'Choisir une image',
@@ -241,14 +235,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.borderColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          const SheetHandle(),
           const SizedBox(height: 20),
           Text(
             'Choisir des images',

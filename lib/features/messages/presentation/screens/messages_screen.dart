@@ -16,6 +16,7 @@ import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 
 /// Filtres rapides de la liste, en puces sous l'en-tête.
 enum _MessagesFilter { all, unread, groups }
@@ -169,14 +170,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: context.textTertiaryColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: SheetHandle(),
                 ),
                 ListTile(
                   leading:

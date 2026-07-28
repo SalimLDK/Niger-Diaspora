@@ -9,6 +9,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
@@ -235,14 +236,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.borderColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 24),
                 Row(
                   children: [

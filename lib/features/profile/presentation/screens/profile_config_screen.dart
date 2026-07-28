@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -708,14 +709,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.borderColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                const SheetHandle(),
                 const SizedBox(height: 24),
                 Row(
                   children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
@@ -312,14 +313,9 @@ class _CountryPickerSheet extends StatelessWidget {
       child: Column(
         children: [
           // Handle
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.outline.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: SheetHandle(),
           ),
           // Title
           Padding(
