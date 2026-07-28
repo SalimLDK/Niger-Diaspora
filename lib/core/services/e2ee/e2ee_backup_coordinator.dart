@@ -39,16 +39,12 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
   /// Aiguille le démarrage E2EE pour [userId]. Best-effort : toute erreur laisse
   /// l'app fonctionner (repli AES) plutôt que de bloquer la connexion.
   ///
-  /// - Clés locales présentes           -> initialise (re-publie au besoin), pas de prompt.
-  /// - Pas de clés + backup distant      -> `needsRestore`, NE génère PAS de clés
+  /// - Clés locales présentes        -> initialise (re-publie au besoin), pas de prompt.
+  /// - Pas de clés + backup présent   -> `needsRestore`, NE génère PAS de clés
   ///   (générer créerait une nouvelle identité et casserait le déchiffrement).
-  /// - Pas de clés + pas de backup       -> génère les clés puis `needsBackup`.
-  ///
-  /// Limite connue : [KeyBackupService.hasBackup] renvoie `false` sur toute
-  /// erreur (y compris réseau), donc une panne réseau au login peut faire
-  /// générer des clés neuves alors qu'un backup existe. C'est déjà le
-  /// comportement historique (génération inconditionnelle) ; à durcir plus tard
-  /// en distinguant « absent » de « injoignable ».
+  /// - Pas de clés + backup absent    -> génère les clés puis `needsBackup`.
+  /// - Pas de clés + statut inconnu   -> NE génère PAS non plus (le backup peut
+  ///   exister mais être injoignable) ; aucun prompt, réévalué au prochain login.
   Future<void> bootstrap(String userId) async {
     try {
       final storage = _ref.read(secureKeyStorageProvider);
@@ -67,19 +63,31 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
 
       // Pas de clés locales : une sauvegarde distante est-elle disponible ?
       final backupService = _ref.read(keyBackupServiceProvider);
-      final hasBackup = await backupService.hasBackup(userId);
+      final presence = await backupService.checkBackupPresence(userId);
 
-      if (hasBackup) {
-        // On NE génère PAS : cela créerait une identité neuve, rendrait le backup
-        // irrécupérable et casserait les sessions existantes. On propose la
-        // restauration ; les clés seront initialisées après restauration réussie.
-        state = E2EEBackupPrompt.needsRestore;
-        return;
+      switch (presence) {
+        case BackupPresence.present:
+          // On NE génère PAS : cela créerait une identité neuve, rendrait le
+          // backup irrécupérable et casserait les sessions existantes. On
+          // propose la restauration ; les clés seront initialisées après.
+          state = E2EEBackupPrompt.needsRestore;
+
+        case BackupPresence.absent:
+          // Premier appareil, aucun backup confirmé : générer puis inviter à
+          // sauvegarder.
+          await _ref.read(messagingE2EEServiceProvider).initialize(userId);
+          state = E2EEBackupPrompt.needsBackup;
+
+        case BackupPresence.unknown:
+          // Statut de backup indéterminé (réseau/permission/quota) : ne PAS
+          // générer de clés, on risquerait d'écraser une identité restaurable.
+          // Rien à proposer ; le repli AES opère et on réévaluera au prochain
+          // login (ou l'utilisateur passera par l'écran de sécurité).
+          debugPrint(
+            'E2EEBackupCoordinator: backup presence unknown, skipping key generation',
+          );
+          state = E2EEBackupPrompt.none;
       }
-
-      // Premier appareil, aucun backup : générer les clés puis inviter à sauvegarder.
-      await _ref.read(messagingE2EEServiceProvider).initialize(userId);
-      state = E2EEBackupPrompt.needsBackup;
     } catch (e) {
       debugPrint('E2EEBackupCoordinator: bootstrap failed: $e');
       // En cas d'échec, ne rien proposer à tort : rester silencieux.

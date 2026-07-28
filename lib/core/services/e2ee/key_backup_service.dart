@@ -160,16 +160,38 @@ class KeyBackupService {
     }
   }
 
-  /// Vérifie si un backup existe pour l'utilisateur
-  Future<bool> hasBackup(String userId) async {
+  /// Détermine l'état de présence du backup distant en distinguant « absent »
+  /// de « injoignable ».
+  ///
+  /// [BackupPresence.absent] n'est renvoyé que si le stockage confirme
+  /// explicitement l'absence de l'objet (`object-not-found`). Toute autre
+  /// erreur (réseau, permission, quota…) donne [BackupPresence.unknown] : le
+  /// backup peut exister, l'appelant ne doit alors PAS supposer son absence
+  /// (sous peine d'écraser une identité restaurable).
+  Future<BackupPresence> checkBackupPresence(String userId) async {
     try {
       final path = 'key_backups/$userId/backup.enc';
       final ref = _firebaseStorage.ref(path);
       await ref.getMetadata();
-      return true;
+      return BackupPresence.present;
     } catch (e) {
-      return false;
+      if (e.toString().contains('object-not-found')) {
+        return BackupPresence.absent;
+      }
+      debugPrint(
+        'KeyBackupService: backup presence unknown (${e.runtimeType}): $e',
+      );
+      return BackupPresence.unknown;
     }
+  }
+
+  /// Vrai si un backup existe de façon confirmée.
+  ///
+  /// Note : renvoie `false` aussi bien pour « absent » que pour « injoignable ».
+  /// Pour prendre une décision destructrice (générer de nouvelles clés),
+  /// utiliser [checkBackupPresence] et traiter `unknown` prudemment.
+  Future<bool> hasBackup(String userId) async {
+    return (await checkBackupPresence(userId)) == BackupPresence.present;
   }
 
   /// Récupère les métadonnées du backup sans le télécharger
@@ -429,6 +451,19 @@ enum PassphraseStrength {
   weak,
   medium,
   strong,
+}
+
+/// État de présence d'un backup distant, avec distinction « injoignable ».
+enum BackupPresence {
+  /// Le backup existe (confirmé).
+  present,
+
+  /// Le backup n'existe pas (confirmé par le stockage : `object-not-found`).
+  absent,
+
+  /// Impossible de déterminer (réseau, permission, quota…). Ne PAS supposer
+  /// l'absence : le backup peut exister.
+  unknown,
 }
 
 /// Métadonnées d'un backup
