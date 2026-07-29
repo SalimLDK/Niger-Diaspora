@@ -441,6 +441,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get codeOfConduct => 'Code of Conduct';
 
   @override
+  String get legalDocumentsTitle => 'Legal documents';
+
+  @override
+  String get legalEssentialsTitle => 'The essentials';
+
+  @override
+  String legalReadingTime(int minutes) {
+    return '≈ $minutes min read';
+  }
+
+  @override
   String get legalUpdateTitle => 'Terms update';
 
   @override

@@ -1,59 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
+import '../../../legal/presentation/widgets/legal_essentials_card.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/support_service.dart';
 
+/// Onglet CGU (§26c), hébergé par `LegalDocumentsScreen` — plus d'écran ni
+/// d'AppBar propres, ceux-ci sont partagés entre les 3 documents légaux.
 class TermsScreen extends ConsumerWidget {
   const TermsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final termsAsync = ref.watch(termsProvider);
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Conditions d\'utilisation'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: termsAsync.when(
-        data:
-            (terms) => ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                ...terms.sections.map(
-                  (section) =>
-                      _buildSection(context, section.title, section.content),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Version ${terms.version} - Dernière mise à jour : ${_formatDate(terms.updatedAt)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.textTertiaryColor,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
-        loading:
-            () => Center(
-              child: CircularProgressIndicator(
-                color: context.adaptivePrimaryColor,
+    return termsAsync.when(
+      data:
+          (terms) => ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              LegalEssentialsCard(guarantees: _essentials(context)),
+              ...terms.sections.map(
+                (section) =>
+                    _buildSection(context, section.title, section.content),
               ),
+              const SizedBox(height: 20),
+              Text(
+                '${l10n.versionInfo(terms.version, _formatDate(terms.updatedAt))} · '
+                '${legalReadingTimeLabel(terms.sections.map((s) => s.content), l10n)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textTertiaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              _buildContactFooter(context, ref, l10n),
+              const SizedBox(height: 32),
+            ],
+          ),
+      loading:
+          () => Center(
+            child: CircularProgressIndicator(
+              color: context.adaptivePrimaryColor,
             ),
-        error: (error, _) => _buildFallbackContent(
-          context,
-          ref.watch(supportServiceProvider),
-        ),
+          ),
+      error: (error, _) => _buildFallbackContent(
+        context,
+        l10n,
+        ref.watch(supportServiceProvider),
+      ),
+    );
+  }
+
+  List<String> _essentials(BuildContext context) {
+    final isFrench = Localizations.localeOf(context).languageCode == 'fr';
+    return isFrench
+        ? const [
+          'Vous gardez le contrôle de votre compte et de son contenu',
+          'Vous pouvez supprimer votre compte à tout moment',
+          'Un usage respectueux est requis de tous les membres',
+        ]
+        : const [
+          'You keep control of your account and its content',
+          'You can delete your account at any time',
+          'Respectful use is required of all members',
+        ];
+  }
+
+  Widget _buildContactFooter(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    return Center(
+      child: OutlinedButton.icon(
+        onPressed: () => ref.read(supportServiceProvider).sendContactEmail(),
+        icon: const Icon(Icons.mail_outline, size: 18),
+        label: Text(l10n.contactUs),
       ),
     );
   }
@@ -76,10 +104,15 @@ class TermsScreen extends ConsumerWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
 
-  Widget _buildFallbackContent(BuildContext context, SupportService supportService) {
+  Widget _buildFallbackContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    SupportService supportService,
+  ) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        LegalEssentialsCard(guarantees: _essentials(context)),
         _buildSection(
           context,
           'Bienvenue sur Diaspo Niger',
@@ -140,6 +173,14 @@ class TermsScreen extends ConsumerWidget {
           ),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 20),
+        Center(
+          child: OutlinedButton.icon(
+            onPressed: () => supportService.sendContactEmail(),
+            icon: const Icon(Icons.mail_outline, size: 18),
+            label: Text(l10n.contactUs),
+          ),
+        ),
         const SizedBox(height: 32),
       ],
     );
@@ -165,7 +206,7 @@ class TermsScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               color: context.textSecondaryColor,
-              height: 1.6,
+              height: 1.65,
             ),
           ),
         ],

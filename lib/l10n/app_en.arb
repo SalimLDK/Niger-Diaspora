@@ -157,6 +157,16 @@
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
   "codeOfConduct": "Code of Conduct",
+  "legalDocumentsTitle": "Legal documents",
+  "legalEssentialsTitle": "The essentials",
+  "legalReadingTime": "≈ {minutes} min read",
+  "@legalReadingTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "legalUpdateTitle": "Terms update",
   "legalUpdateDescription": "Our terms of service and/or privacy policy have been updated. Please read and accept them to continue using the app.",
   "summaryOfChanges": "Summary of changes:",

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
+import '../../../legal/presentation/widgets/legal_essentials_card.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/support_service.dart';
-import '../../../../shared/widgets/app_icon.dart';
 
+/// Onglet Code de conduite (§26c), hébergé par `LegalDocumentsScreen` — plus
+/// d'écran ni d'AppBar propres, ceux-ci sont partagés entre les 3 documents.
 class CodeOfConductScreen extends ConsumerWidget {
   const CodeOfConductScreen({super.key});
 
@@ -18,52 +19,68 @@ class CodeOfConductScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context);
     final conductAsync = ref.watch(codeOfConductProvider);
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: Text(l10n.codeOfConduct),
-        leading: IconButton(
-          icon: const AppIcon(AppIcon.arrowBack),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: conductAsync.when(
-        data:
-            (conduct) => ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                ...conduct.sections.map(
-                  (section) =>
-                      _buildSection(context, section.title, section.content),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.versionInfo(
-                    conduct.version,
-                    _formatDate(conduct.updatedAt, locale),
-                  ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.textTertiaryColor,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
-        loading:
-            () => Center(
-              child: CircularProgressIndicator(
-                color: context.adaptivePrimaryColor,
+    return conductAsync.when(
+      data:
+          (conduct) => ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              LegalEssentialsCard(guarantees: _essentials(locale)),
+              ...conduct.sections.map(
+                (section) =>
+                    _buildSection(context, section.title, section.content),
               ),
+              const SizedBox(height: 20),
+              Text(
+                '${l10n.versionInfo(conduct.version, _formatDate(conduct.updatedAt, locale))} · '
+                '${legalReadingTimeLabel(conduct.sections.map((s) => s.content), l10n)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textTertiaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              _buildContactFooter(ref, l10n),
+              const SizedBox(height: 32),
+            ],
+          ),
+      loading:
+          () => Center(
+            child: CircularProgressIndicator(
+              color: context.adaptivePrimaryColor,
             ),
-        error: (error, _) => _buildFallbackContent(
-          context,
-          l10n,
-          locale,
-          ref.watch(supportServiceProvider),
-        ),
+          ),
+      error: (error, _) => _buildFallbackContent(
+        context,
+        l10n,
+        locale,
+        ref.watch(supportServiceProvider),
+      ),
+    );
+  }
+
+  List<String> _essentials(Locale locale) {
+    final isFrench = locale.languageCode == 'fr';
+    return isFrench
+        ? const [
+          'Respect et bienveillance obligatoires entre tous les membres',
+          'Les signalements sont traités de façon confidentielle',
+          'Sanctions graduées en cas de manquement (avertissement à suppression)',
+        ]
+        : const [
+          'Respect and kindness are mandatory between all members',
+          'Reports are handled confidentially',
+          'Graduated sanctions for violations (warning to account deletion)',
+        ];
+  }
+
+  Widget _buildContactFooter(WidgetRef ref, AppLocalizations l10n) {
+    return Center(
+      child: OutlinedButton.icon(
+        onPressed: () => ref.read(supportServiceProvider).sendContactEmail(),
+        icon: const Icon(Icons.mail_outline, size: 18),
+        label: Text(l10n.contactUs),
       ),
     );
   }
@@ -84,6 +101,7 @@ class CodeOfConductScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        LegalEssentialsCard(guarantees: _essentials(locale)),
         _buildSection(
           context,
           isFrench
@@ -318,6 +336,14 @@ class CodeOfConductScreen extends ConsumerWidget {
           ),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 20),
+        Center(
+          child: OutlinedButton.icon(
+            onPressed: () => supportService.sendContactEmail(),
+            icon: const Icon(Icons.mail_outline, size: 18),
+            label: Text(l10n.contactUs),
+          ),
+        ),
         const SizedBox(height: 32),
       ],
     );
@@ -343,7 +369,7 @@ class CodeOfConductScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               color: context.textSecondaryColor,
-              height: 1.6,
+              height: 1.65,
             ),
           ),
         ],

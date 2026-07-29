@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../legal/presentation/providers/legal_provider.dart';
+import '../../../legal/presentation/widgets/legal_essentials_card.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/support_service.dart';
 
+/// Onglet Confidentialité (§26c), hébergé par `LegalDocumentsScreen` — plus
+/// d'écran ni d'AppBar propres, ceux-ci sont partagés entre les 3 documents.
 class PrivacyPolicyScreen extends ConsumerWidget {
   const PrivacyPolicyScreen({super.key});
 
@@ -17,52 +19,68 @@ class PrivacyPolicyScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context);
     final privacyAsync = ref.watch(privacyPolicyProvider);
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: Text(l10n.privacyPolicy),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: privacyAsync.when(
-        data:
-            (privacy) => ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                ...privacy.sections.map(
-                  (section) =>
-                      _buildSection(context, section.title, section.content),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.versionInfo(
-                    privacy.version,
-                    _formatDate(privacy.updatedAt, locale),
-                  ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.textTertiaryColor,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
-        loading:
-            () => Center(
-              child: CircularProgressIndicator(
-                color: context.adaptivePrimaryColor,
+    return privacyAsync.when(
+      data:
+          (privacy) => ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              LegalEssentialsCard(guarantees: _essentials(locale)),
+              ...privacy.sections.map(
+                (section) =>
+                    _buildSection(context, section.title, section.content),
               ),
+              const SizedBox(height: 20),
+              Text(
+                '${l10n.versionInfo(privacy.version, _formatDate(privacy.updatedAt, locale))} · '
+                '${legalReadingTimeLabel(privacy.sections.map((s) => s.content), l10n)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textTertiaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              _buildContactFooter(ref, l10n),
+              const SizedBox(height: 32),
+            ],
+          ),
+      loading:
+          () => Center(
+            child: CircularProgressIndicator(
+              color: context.adaptivePrimaryColor,
             ),
-        error: (error, _) => _buildFallbackContent(
-          context,
-          l10n,
-          locale,
-          ref.watch(supportServiceProvider),
-        ),
+          ),
+      error: (error, _) => _buildFallbackContent(
+        context,
+        l10n,
+        locale,
+        ref.watch(supportServiceProvider),
+      ),
+    );
+  }
+
+  List<String> _essentials(Locale locale) {
+    final isFrench = locale.languageCode == 'fr';
+    return isFrench
+        ? const [
+          'Vos données ne sont jamais vendues à des tiers',
+          'Vous pouvez exporter ou supprimer vos données (RGPD)',
+          'Vos messages sont chiffrés de bout en bout',
+        ]
+        : const [
+          'Your data is never sold to third parties',
+          'You can export or delete your data (GDPR)',
+          'Your messages are end-to-end encrypted',
+        ];
+  }
+
+  Widget _buildContactFooter(WidgetRef ref, AppLocalizations l10n) {
+    return Center(
+      child: OutlinedButton.icon(
+        onPressed: () => ref.read(supportServiceProvider).sendContactEmail(),
+        icon: const Icon(Icons.mail_outline, size: 18),
+        label: Text(l10n.contactUs),
       ),
     );
   }
@@ -81,6 +99,7 @@ class PrivacyPolicyScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        LegalEssentialsCard(guarantees: _essentials(locale)),
         _buildSection(
           context,
           'Introduction',
@@ -145,6 +164,14 @@ class PrivacyPolicyScreen extends ConsumerWidget {
           ),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 20),
+        Center(
+          child: OutlinedButton.icon(
+            onPressed: () => supportService.sendContactEmail(),
+            icon: const Icon(Icons.mail_outline, size: 18),
+            label: Text(l10n.contactUs),
+          ),
+        ),
         const SizedBox(height: 32),
       ],
     );
@@ -170,7 +197,7 @@ class PrivacyPolicyScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               color: context.textSecondaryColor,
-              height: 1.6,
+              height: 1.65,
             ),
           ),
         ],

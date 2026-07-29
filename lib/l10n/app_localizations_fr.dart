@@ -445,6 +445,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get codeOfConduct => 'Code de conduite';
 
   @override
+  String get legalDocumentsTitle => 'Documents légaux';
+
+  @override
+  String get legalEssentialsTitle => 'L\'essentiel';
+
+  @override
+  String legalReadingTime(int minutes) {
+    return '≈ $minutes min de lecture';
+  }
+
+  @override
   String get legalUpdateTitle => 'Mise à jour des conditions';
 
   @override

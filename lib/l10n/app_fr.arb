@@ -157,6 +157,16 @@
   "termsOfService": "Conditions d'utilisation",
   "privacyPolicy": "Politique de confidentialité",
   "codeOfConduct": "Code de conduite",
+  "legalDocumentsTitle": "Documents légaux",
+  "legalEssentialsTitle": "L'essentiel",
+  "legalReadingTime": "≈ {minutes} min de lecture",
+  "@legalReadingTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "legalUpdateTitle": "Mise à jour des conditions",
   "legalUpdateDescription": "Nos conditions d'utilisation et/ou notre politique de confidentialité ont été mises à jour. Veuillez les lire et les accepter pour continuer à utiliser l'application.",
   "summaryOfChanges": "Résumé des changements :",

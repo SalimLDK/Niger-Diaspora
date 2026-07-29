@@ -938,6 +938,24 @@ abstract class AppLocalizations {
   /// **'Code de conduite'**
   String get codeOfConduct;
 
+  /// No description provided for @legalDocumentsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Documents légaux'**
+  String get legalDocumentsTitle;
+
+  /// No description provided for @legalEssentialsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'essentiel'**
+  String get legalEssentialsTitle;
+
+  /// No description provided for @legalReadingTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'≈ {minutes} min de lecture'**
+  String legalReadingTime(int minutes);
+
   /// No description provided for @legalUpdateTitle.
   ///
   /// In fr, this message translates to:

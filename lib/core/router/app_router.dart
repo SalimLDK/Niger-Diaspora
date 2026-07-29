@@ -56,9 +56,7 @@ import '../../features/notifications/presentation/screens/notification_settings_
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/search/presentation/providers/search_provider.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/settings/presentation/screens/terms_screen.dart';
-import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
-import '../../features/settings/presentation/screens/code_of_conduct_screen.dart';
+import '../../features/legal/presentation/screens/legal_documents_screen.dart';
 import '../../features/settings/presentation/screens/security_backup_screen.dart';
 import '../../features/settings/presentation/screens/devices_screen.dart';
 import '../../features/reports/presentation/screens/my_reports_screen.dart';
@@ -498,17 +496,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
+      // Documents légaux (§26c) : 3 routes distinctes pour les liens
+      // profonds existants (consentement, inscription...), mais un seul
+      // écran à onglets partagé — voir LegalDocumentsScreen.
       GoRoute(
         path: '/settings/terms',
-        builder: (context, state) => const TermsScreen(),
+        builder:
+            (context, state) =>
+                const LegalDocumentsScreen(initialTab: LegalTab.terms),
       ),
       GoRoute(
         path: '/settings/privacy',
-        builder: (context, state) => const PrivacyPolicyScreen(),
+        builder:
+            (context, state) =>
+                const LegalDocumentsScreen(initialTab: LegalTab.privacy),
       ),
       GoRoute(
         path: '/settings/code-of-conduct',
-        builder: (context, state) => const CodeOfConductScreen(),
+        builder:
+            (context, state) =>
+                const LegalDocumentsScreen(initialTab: LegalTab.conduct),
       ),
       GoRoute(
         path: '/settings/my-reports',
