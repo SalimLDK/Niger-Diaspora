@@ -12,6 +12,7 @@ import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../providers/online_status_provider.dart';
+import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../widgets/online_status_indicator.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -485,6 +486,46 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     );
   }
 
+  /// Compteur « groupes en commun » (§10c). Masqué s'il n'y en a pas.
+  Widget _buildCommonGroups(BuildContext context, String userId) {
+    final common = ref.watch(commonGroupsProvider(userId)).valueOrNull ?? [];
+    if (common.isEmpty) return const SizedBox.shrink();
+    final label = common.length == 1
+        ? '1 groupe en commun'
+        : '${common.length} groupes en commun';
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: context.adaptiveSecondaryColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon(
+                AppIcon.groups,
+                size: 16,
+                color: context.adaptiveSecondaryColor,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: context.adaptiveSecondaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileContent(
     BuildContext context,
     ProfileEntity profile,
@@ -764,6 +805,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         ),
                       ),
                     ],
+
+                    // Groupes en commun (§10c)
+                    if (!isBlocked) _buildCommonGroups(context, profile.id),
 
                     // Current location (city, country)
                     if (locationString.isNotEmpty) ...[
