@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/services/file_download_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -40,10 +41,12 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   double _playbackSpeed = 1.0;
   int _currentChapter = 2; // 0-based
 
-  // Simulated chapters
+  // Chapitres : non portés par RoomReplayEntity → repères par défaut.
   static const _chapters = ['Introduction', 'Actualités', 'Diaspora & politique', 'Q&R', 'Conclusion'];
-  // Simulated co-hosts
-  static const _coHosts = ['Salim B.', 'Aïcha M.'];
+
+  // Téléchargement hors ligne (§1e).
+  bool _downloading = false;
+  bool _downloaded = false;
 
   @override
   void initState() {
@@ -55,6 +58,33 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
           if (mounted) setState(() => _videoInitialized = true);
         });
     }
+    _checkDownloaded();
+  }
+
+  Future<void> _checkDownloaded() async {
+    final id = widget.replay?.id;
+    if (id == null) return;
+    final path = await FileDownloadService().getDownloadedPath('replay_$id');
+    if (mounted && path != null) setState(() => _downloaded = true);
+  }
+
+  Future<void> _downloadReplay() async {
+    final replay = widget.replay;
+    final url = replay?.audioUrl;
+    if (_downloading || _downloaded || replay == null || url == null || url.isEmpty) {
+      return;
+    }
+    setState(() => _downloading = true);
+    final file = await FileDownloadService().downloadToAppDirectory(
+      url,
+      fileName: 'replay_${replay.id}.m4a',
+      messageId: 'replay_${replay.id}',
+    );
+    if (!mounted) return;
+    setState(() {
+      _downloading = false;
+      _downloaded = file != null;
+    });
   }
 
   @override
@@ -91,7 +121,35 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                     const Spacer(),
                     Text(AppLocalizations.of(context)!.replayBadge, style: DNText.mono(size: 9, color: DNColors.ink4)),
                     const Spacer(),
-                    const SizedBox(width: 40),
+                    // Téléchargement hors ligne (§1e).
+                    if (_downloading)
+                      const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: DNColors.paper,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if ((widget.replay?.audioUrl ?? '').isNotEmpty)
+                      IconButton(
+                        icon: Icon(
+                          _downloaded
+                              ? Icons.download_done_rounded
+                              : Icons.download_for_offline_outlined,
+                          color: _downloaded ? DNColors.leaf : DNColors.paper,
+                          size: 24,
+                        ),
+                        onPressed: _downloaded ? null : _downloadReplay,
+                      )
+                    else
+                      const SizedBox(width: 40),
                   ],
                 ),
               ),
@@ -176,7 +234,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
               ),
               const SizedBox(height: 4),
               Text(
-                _coHosts.join(' · '),
+                widget.replay?.hostName ?? '',
                 style: DNText.mono(size: 9, color: DNColors.ink3),
               ),
 

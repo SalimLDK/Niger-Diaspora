@@ -301,9 +301,28 @@ class EmbassyDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Main Action Buttons
+          // 4 actions principales (§13b) : Demande en plein #1976D2,
+          // Contacter / Appeler / Y aller en tuiles teintées.
           Row(
             children: [
+              Expanded(
+                child: _MainActionButton(
+                  icon: Icons.description,
+                  label: 'Demande',
+                  color: const Color(0xFF1976D2),
+                  filled: true,
+                  enabled: !embassy.isTemporarilyClosed,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                                  AdministrativeRequestScreen(embassy: embassy),
+                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: _MainActionButton(
                   icon: Icons.message,
@@ -322,32 +341,24 @@ class EmbassyDetailScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _MainActionButton(
-                  icon: Icons.description,
-                  label: 'Demande',
-                  color: Colors.orange,
-                  enabled: !embassy.isTemporarilyClosed,
-                  onTap:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (_) =>
-                                  AdministrativeRequestScreen(embassy: embassy),
-                        ),
-                      ),
+                  icon: Icons.call,
+                  label: 'Appeler',
+                  color: theme.colorScheme.primary,
+                  enabled: embassy.phone != null && !embassy.isTemporarilyClosed,
+                  onTap: () => _makePhoneCall(embassy.phone ?? ''),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _MainActionButton(
-                  icon: Icons.people,
-                  label: 'Personnel',
-                  color: Colors.teal,
+                  icon: Icons.directions,
+                  label: 'Y aller',
+                  color: theme.colorScheme.primary,
+                  enabled: embassy.latitude != null && embassy.longitude != null,
                   onTap:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (_) => EmployeeSearchScreen(embassy: embassy),
-                        ),
+                      () => _openMap(
+                        embassy.latitude ?? 0,
+                        embassy.longitude ?? 0,
                       ),
                 ),
               ),
@@ -355,19 +366,21 @@ class EmbassyDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Quick Actions
+          // Actions secondaires (hors maquette, fonctionnalités réelles de
+          // l'app conservées) : Personnel, Email, Site web.
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (embassy.phone != null)
-                _ActionButton(
-                  icon: Icons.call,
-                  label: 'Appeler',
-                  onTap:
-                      embassy.isTemporarilyClosed
-                          ? null
-                          : () => _makePhoneCall(embassy.phone!),
-                ),
+              _ActionButton(
+                icon: Icons.people,
+                label: 'Personnel',
+                onTap:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => EmployeeSearchScreen(embassy: embassy),
+                      ),
+                    ),
+              ),
               if (embassy.email != null)
                 _ActionButton(
                   icon: Icons.email,
@@ -379,12 +392,6 @@ class EmbassyDetailScreen extends StatelessWidget {
                   icon: Icons.language,
                   label: 'Site Web',
                   onTap: () => _openWebsite(embassy.website!),
-                ),
-              if (embassy.latitude != null && embassy.longitude != null)
-                _ActionButton(
-                  icon: Icons.directions,
-                  label: 'Y aller',
-                  onTap: () => _openMap(embassy.latitude!, embassy.longitude!),
                 ),
             ],
           ),
@@ -685,6 +692,7 @@ class _MainActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool enabled;
+  final bool filled;
 
   const _MainActionButton({
     required this.icon,
@@ -692,10 +700,15 @@ class _MainActionButton extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.enabled = true,
+    this.filled = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final fg =
+        filled
+            ? Colors.white
+            : (enabled ? color : Colors.grey);
     return InkWell(
       onTap: enabled ? onTap : null,
       borderRadius: BorderRadius.circular(12),
@@ -703,27 +716,32 @@ class _MainActionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color:
-              enabled
-                  ? color.withValues(alpha: 0.1)
-                  : Colors.grey.withValues(alpha: 0.1),
+              filled
+                  ? (enabled ? color : Colors.grey)
+                  : (enabled
+                      ? color.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1)),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color:
-                enabled
-                    ? color.withValues(alpha: 0.3)
-                    : Colors.grey.withValues(alpha: 0.3),
-          ),
+          border:
+              filled
+                  ? null
+                  : Border.all(
+                    color:
+                        enabled
+                            ? color.withValues(alpha: 0.3)
+                            : Colors.grey.withValues(alpha: 0.3),
+                  ),
         ),
         child: Column(
           children: [
-            Icon(icon, color: enabled ? color : Colors.grey, size: 28),
+            Icon(icon, color: fg, size: 28),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: enabled ? color : Colors.grey,
+                color: fg,
               ),
             ),
           ],
