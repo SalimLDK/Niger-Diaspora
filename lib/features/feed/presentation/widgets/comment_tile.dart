@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:diaspo_niger/core/utils/rich_text_parser.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/comment_entity.dart';
 import '../theme/feed_tokens.dart';
 import 'feed_avatar.dart';
@@ -21,7 +23,7 @@ String _formatTimeAgo(DateTime dt, BuildContext context) {
 /// Affiche un commentaire (racine ou réponse). Les réponses elles-mêmes sont
 /// rendues par l'écran de détail ; ce widget expose seulement le toggle
 /// « voir N réponses » via [onToggleReplies].
-class CommentTile extends StatelessWidget {
+class CommentTile extends ConsumerWidget {
   final CommentEntity comment;
   final String currentUserId;
   final void Function(String commentId)? onDelete;
@@ -50,13 +52,25 @@ class CommentTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final tokens = FeedTokens.of(context);
     final isOwner = comment.authorId == currentUserId;
     // Réponse : avatar réduit à 30 px (r15), indentées à 42 px (§13).
     final avatarRadius = isReply ? 15.0 : 16.0;
+    final isDeletedAuthor = comment.authorName.trim().isEmpty;
+    final authorHandle =
+        isDeletedAuthor
+            ? null
+            : ref
+                .watch(profileNotifierProvider(comment.authorId))
+                .valueOrNull
+                ?.handle;
+    final metaLine =
+        (authorHandle != null && authorHandle.isNotEmpty)
+            ? '@$authorHandle · ${_formatTimeAgo(comment.createdAt, context)}'
+            : _formatTimeAgo(comment.createdAt, context);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -69,7 +83,7 @@ class CommentTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FeedAvatar(
-            name: comment.authorName,
+            name: isDeletedAuthor ? '?' : comment.authorName,
             photoUrl: comment.authorPhotoUrl,
             radius: avatarRadius,
             tokens: tokens,
@@ -81,17 +95,25 @@ class CommentTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      comment.authorName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        isDeletedAuthor ? l10n.deletedUser : comment.authorName,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      _formatTimeAgo(comment.createdAt, context),
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: tokens.mutedText),
+                    Flexible(
+                      child: Text(
+                        metaLine,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: tokens.mutedText),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
