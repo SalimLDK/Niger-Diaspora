@@ -7,6 +7,7 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/utils/rich_text_parser.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/entities/repost_ref.dart';
 import '../providers/feed_personalization_provider.dart';
@@ -144,19 +145,27 @@ class _RepostBanner extends StatelessWidget {
   }
 }
 
-class _PostHeader extends StatelessWidget {
+class _PostHeader extends ConsumerWidget {
   final PostEntity post;
   final AppLocalizations l10n;
 
   const _PostHeader({required this.post, required this.l10n});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = FeedTokens.of(context);
     final isAuthor = FirebaseAuth.instance.currentUser?.uid == post.authorId;
     // Auteur au compte effacé : nom vide dénormalisé — affichage neutre,
     // pas de navigation profil ni de bouton suivre.
     final isDeletedAuthor = post.authorName.trim().isEmpty;
+    final authorHandle =
+        isDeletedAuthor
+            ? null
+            : ref.watch(profileNotifierProvider(post.authorId)).valueOrNull?.handle;
+    final metaLine =
+        (authorHandle != null && authorHandle.isNotEmpty)
+            ? '@$authorHandle · ${_formatTimeAgo(post.createdAt, context)}'
+            : _formatTimeAgo(post.createdAt, context);
     return Row(
       children: [
         Expanded(
@@ -187,11 +196,13 @@ class _PostHeader extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatTimeAgo(post.createdAt, context),
+                        metaLine,
                         style: TextStyle(
                           fontSize: 12.5,
                           color: tokens.mutedText,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

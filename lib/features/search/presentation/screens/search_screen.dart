@@ -416,6 +416,17 @@ class _MemberItem extends StatelessWidget {
                       color: context.textPrimaryColor,
                     ),
                   ),
+                  if (profile.handle != null && profile.handle!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '@${profile.handle}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: context.adaptivePrimaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                   if (profile.profession != null) ...[
                     const SizedBox(height: 4),
                     Text(
