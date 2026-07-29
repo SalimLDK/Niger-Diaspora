@@ -8,6 +8,7 @@ import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Provider pour la source de donnees distante du profil
 final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
@@ -187,11 +188,17 @@ class NearbyProfilesNotifier
       (failure) =>
           state = AsyncValue.error(failure.message, StackTrace.current),
       (profiles) {
+        // Exclure l'utilisateur courant : on ne s'affiche pas dans sa propre
+        // liste de membres à proximité.
+        final currentUserId = _ref.read(currentUserProvider).valueOrNull?.id;
+
         // Filtrer par presence:
         // 1. Online
         // 2. OU Location mise a jour dans les 5 dernieres minutes
         final now = DateTime.now();
         final filteredProfiles = profiles.where((p) {
+          if (currentUserId != null && p.id == currentUserId) return false;
+
           if (p.isOnline) {
             // Verifier si le statut "Online" est obsolete (utilisateur fantome)
             // L'app envoie un heartbeat toutes les 10 min

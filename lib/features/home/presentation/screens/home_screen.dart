@@ -5,6 +5,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../../../core/services/location_service.dart';
@@ -58,6 +59,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Position actuelle pour le rafraîchissement
   double? _currentLat;
   double? _currentLng;
+
+  // Ville / pays résolus par géocodage inverse de la position GPS. Servent de
+  // repli dans la ligne de contexte quand le profil n'a pas ces champs.
+  String? _geoCity;
+  String? _geoCountry;
 
   @override
   void initState() {
@@ -392,6 +398,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             // Démarrer les timers de rafraîchissement automatique
             _startRefreshTimers();
           }
+
+          // Résoudre ville/pays depuis la position (repli pour la ligne stats).
+          _resolvePlaceName(lat, lng);
         }
       } catch (e) {
         // debugPrint('Erreur de localisation HomeScreen: $e');
@@ -743,6 +752,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 Expanded(
                                   child: Text(
                                     l10n.searchMembersGroups,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: context.textTertiaryColor,
                                       fontSize: 15,
@@ -775,8 +786,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     key: _statsRowKey,
                     padding: const EdgeInsets.only(bottom: 16),
                     child: _ContextLine(
-                      city: profile?.currentCity,
-                      country: profile?.currentCountry,
+                      city: (profile?.currentCity?.trim().isNotEmpty ?? false)
+                          ? profile!.currentCity
+                          : _geoCity,
+                      country:
+                          (profile?.currentCountry?.trim().isNotEmpty ?? false)
+                              ? profile!.currentCountry
+                              : _geoCountry,
                       members: homeStats.valueOrNull?.membersCount,
                       groups: homeStats.valueOrNull?.groupsCount,
                     ),
@@ -806,13 +822,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           seeAllText: l10n.seeAll,
                         ),
                         const SizedBox(height: 16),
-                        // Grille 4 colonnes (remplace le carrousel horizontal
-                        // qui masquait la moitié des services).
+                        // Grille adaptative (3 ou 4 colonnes selon le nombre de
+                        // services) — remplace le carrousel horizontal.
                         const _ServicesGrid(),
                       ],
                     ),
 
-                  const SizedBox(height: 28),
+                  // Espace réduit avant « Autour de vous » (demande accueil).
+                  const SizedBox(height: 20),
 
                   // Section « Autour de vous » : rangée d'avatars circulaires
                   // avec la distance (remplace les grandes cartes membres —
@@ -1042,6 +1059,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
     parts.add(l10n.participants(e.attendeeIds.length));
     return parts.join(' · ');
+  }
+
+  /// Géocode inverse de la position en ville + pays, mémorisés pour la ligne
+  /// de contexte. Silencieux en cas d'échec (réseau, quota).
+  Future<void> _resolvePlaceName(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (!mounted || placemarks.isEmpty) return;
+      final p = placemarks.first;
+      final city = (p.locality?.trim().isNotEmpty ?? false)
+          ? p.locality!.trim()
+          : (p.subAdministrativeArea?.trim().isNotEmpty ?? false)
+              ? p.subAdministrativeArea!.trim()
+              : null;
+      final country =
+          (p.country?.trim().isNotEmpty ?? false) ? p.country!.trim() : null;
+      if (city == null && country == null) return;
+      setState(() {
+        _geoCity = city;
+        _geoCountry = country;
+      });
+    } catch (_) {
+      // Géocodage indisponible : on garde les champs du profil s'ils existent.
+    }
   }
 
   /// Distance formatée « 1,2 km » entre l'utilisateur et un profil, ou `null`
@@ -1383,14 +1424,16 @@ class _PillButton extends StatelessWidget {
   }
 }
 
-/// Grille 4 colonnes des services (remplace le carrousel horizontal). Chaque
-/// tuile est conditionnée par son feature flag ; le Fil est toujours présent.
+/// Grille des services (remplace le carrousel horizontal). Chaque tuile est
+/// conditionnée par son feature flag ; le Fil est toujours présent. La grille
+/// passe à 3 colonnes quand il y a peu de services (évite le vide à droite),
+/// et reste à 4 dès qu'il y en a assez.
 class _ServicesGrid extends ConsumerWidget {
   const _ServicesGrid();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = <Widget>[
+    final items = <_ServiceTile>[
       _ServiceTile(
         icon: Icons.dynamic_feed_rounded,
         label: 'Le fil',
@@ -1427,14 +1470,23 @@ class _ServicesGrid extends ConsumerWidget {
         ),
     ];
 
-    return GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 0.8,
-      children: items,
+    // 4 colonnes dès qu'il y a assez de tuiles, sinon 3 (peu de services).
+    final columns = items.length >= 4 ? 4 : 3;
+    const spacing = 12.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileWidth =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: 16,
+          children: [
+            for (final tile in items)
+              SizedBox(width: tileWidth, child: tile),
+          ],
+        );
+      },
     );
   }
 }
@@ -1456,14 +1508,17 @@ class _ServiceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
+          // Carte blanche carrée à bord léger (remplace la pastille teintée).
+          // AspectRatio garantit un carré et une hauteur bornée (plus de vide
+          // fantôme du GridView).
+          AspectRatio(
+            aspectRatio: 1,
             child: Container(
-              width: double.infinity,
               alignment: Alignment.center,
-              // Carte blanche à bord léger (remplace la pastille teintée —
-              // refonte accueil).
               decoration: BoxDecoration(
                 color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(18),
