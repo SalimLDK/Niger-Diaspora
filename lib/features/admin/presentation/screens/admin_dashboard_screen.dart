@@ -1,4 +1,5 @@
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
@@ -54,13 +55,15 @@ class AdminDashboardScreen extends ConsumerStatefulWidget {
 class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   int _selectedIndex = 0;
 
-  // Modern color palette
-  static const Color _primaryColor = Color(0xFF6366F1); // Indigo
-  static const Color _secondaryColor = Color(0xFF8B5CF6); // Purple
-  static const Color _backgroundColor = Color(0xFFF8FAFC);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  // Palette back-office (design system — cf. AdminColors).
+  // L'accent orange grand public est exclu de l'admin : l'action principale
+  // et l'état actif utilisent le bleu d'action.
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _secondaryColor = AdminColors.actionBlueLight;
+  static const Color _backgroundColor = AdminColors.bg;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   /// Toutes les destinations de navigation avec leurs permissions
   late final List<_NavDestination> _allDestinations;
@@ -233,7 +236,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       body: Row(
         children: [
           _buildNavigationRail(adminState, isWideScreen, filteredDestinations),
-          const VerticalDivider(thickness: 1, width: 1, color: Color(0xFFE2E8F0)),
+          const VerticalDivider(thickness: 1, width: 1, color: AdminColors.border),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -315,7 +318,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         ),
         const SizedBox(width: 8),
         _buildAppBarButton(
-          icon: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+          icon: const Icon(Icons.logout_rounded, color: AdminColors.statusRed, size: 20),
           tooltip: 'Déconnexion',
           onPressed: () {
             Navigator.of(context).pushReplacementNamed('/login');
@@ -344,8 +347,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isDestructive
-                  ? Colors.red.withAlpha(20)
-                  : const Color(0xFFF1F5F9),
+                  ? AdminColors.statusRed.withAlpha(20)
+                  : AdminColors.bg,
               borderRadius: BorderRadius.circular(10),
             ),
             child: icon,
@@ -406,7 +409,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
                 if (badgeCount > 0) {
                   iconWidget = Badge(
-                    backgroundColor: Colors.red,
+                    backgroundColor: AdminColors.statusRed,
                     label: Text('$badgeCount',
                         style: const TextStyle(color: Colors.white, fontSize: 10)),
                     child: iconWidget,
@@ -485,25 +488,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               title: 'Utilisateurs',
               value: state.totalUsers.toString(),
               icon: const AppIcon(AppIcon.people, color: Colors.white, size: 24),
-              gradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+              gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
               title: 'Sessions Actives',
               value: state.activeSessions.toString(),
               icon: const Icon(Icons.wifi_rounded, color: Colors.white, size: 24),
-              gradient: const [Color(0xFF10B981), Color(0xFF059669)],
+              gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
               title: 'Événements',
               value: state.totalEvents.toString(),
               icon: const AppIcon(AppIcon.event, color: Colors.white, size: 24),
-              gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+              gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
               title: 'Groupes',
               value: state.totalGroups.toString(),
               icon: const AppIcon(AppIcon.groups, color: Colors.white, size: 24),
-              gradient: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+              gradient: const [AdminColors.statusPurple, AdminColors.statusPurple],
             ),
           ]),
           const SizedBox(height: 32),
@@ -516,27 +519,27 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               title: 'Commerces',
               value: state.totalBusinesses.toString(),
               icon: const AppIcon(AppIcon.store, color: Colors.white, size: 24),
-              gradient: const [Color(0xFF14B8A6), Color(0xFF0D9488)],
+              gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
               title: 'Produits',
               value: state.totalProducts.toString(),
               icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 24),
-              gradient: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
+              gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
               title: 'Transactions',
               value: state.totalTransactions.toString(),
               icon: const Icon(Icons.payments_rounded, color: Colors.white, size: 24),
-              gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+              gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
               title: 'Signalements',
               value: state.pendingReports.toString(),
               icon: Icon(Icons.report_rounded, color: Colors.white, size: 24),
               gradient: state.pendingReports > 0
-                  ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
-                  : const [Color(0xFF9CA3AF), Color(0xFF6B7280)],
+                  ? const [AdminColors.statusRed, AdminColors.statusRedStrong]
+                  : const [AdminColors.statusGray, AdminColors.statusGray],
             ),
           ]),
           const SizedBox(height: 32),
@@ -550,44 +553,44 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             children: [
               _buildQuickAction(
                 label: 'Voir Signalements',
-                icon: const Icon(Icons.report_rounded, color: Color(0xFFEF4444), size: 20),
-                color: const Color(0xFFEF4444),
+                icon: const Icon(Icons.report_rounded, color: AdminColors.statusRed, size: 20),
+                color: AdminColors.statusRed,
                 onTap: () => setState(() => _selectedIndex = 4),
               ),
               _buildQuickAction(
                 label: 'Gérer Utilisateurs',
-                icon: const AppIcon(AppIcon.people, color: Color(0xFF3B82F6), size: 20),
-                color: const Color(0xFF3B82F6),
+                icon: const AppIcon(AppIcon.people, color: AdminColors.actionBlue, size: 20),
+                color: AdminColors.actionBlue,
                 onTap: () => setState(() => _selectedIndex = 1),
               ),
               _buildQuickAction(
                 label: 'Envoyer Notification',
-                icon: const Icon(Icons.notifications_rounded, color: Color(0xFFF59E0B), size: 20),
-                color: const Color(0xFFF59E0B),
+                icon: const Icon(Icons.notifications_rounded, color: AdminColors.statusAmber, size: 20),
+                color: AdminColors.statusAmber,
                 onTap: () => setState(() => _selectedIndex = 9),
               ),
               _buildQuickAction(
                 label: 'Voir Analytics',
-                icon: const Icon(Icons.analytics_rounded, color: Color(0xFF10B981), size: 20),
-                color: const Color(0xFF10B981),
+                icon: const Icon(Icons.analytics_rounded, color: AdminColors.statusGreen, size: 20),
+                color: AdminColors.statusGreen,
                 onTap: () => setState(() => _selectedIndex = 8),
               ),
               _buildQuickAction(
                 label: 'Configuration',
-                icon: const Icon(Icons.settings_rounded, color: Color(0xFF6366F1), size: 20),
-                color: const Color(0xFF6366F1),
+                icon: const Icon(Icons.settings_rounded, color: AdminColors.statusGray, size: 20),
+                color: AdminColors.statusGray,
                 onTap: () => setState(() => _selectedIndex = 10),
               ),
               _buildQuickAction(
                 label: 'Feature Flags',
-                icon: const Icon(Icons.toggle_on_rounded, color: Color(0xFF8B5CF6), size: 20),
-                color: const Color(0xFF8B5CF6),
+                icon: const Icon(Icons.toggle_on_rounded, color: AdminColors.statusPurple, size: 20),
+                color: AdminColors.statusPurple,
                 onTap: () => setState(() => _selectedIndex = 11),
               ),
               _buildQuickAction(
                 label: 'Historique Audit',
-                icon: const Icon(Icons.history_rounded, color: Color(0xFF64748B), size: 20),
-                color: const Color(0xFF64748B),
+                icon: const Icon(Icons.history_rounded, color: AdminColors.statusGray, size: 20),
+                color: AdminColors.statusGray,
                 onTap: () => setState(() => _selectedIndex = 12),
               ),
             ],
@@ -875,13 +878,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const AppIcon(
                 AppIcon.error,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),

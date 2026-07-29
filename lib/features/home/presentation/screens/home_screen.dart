@@ -55,6 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Timer? _uiRefreshTimer;
   static const int _nearbyRefreshIntervalSeconds = 60; // Rafraîchir les membres toutes les 60s
   static const int _uiRefreshIntervalSeconds = 10; // Rafraîchir l'affichage du temps toutes les 10s
+  static const double _nearbyRadiusKm = 200; // Rayon « Autour de vous »
 
   // Position actuelle pour le rafraîchissement
   double? _currentLat;
@@ -109,7 +110,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       await ref
           .read(nearbyProfilesNotifierProvider.notifier)
-          .loadNearbyProfiles(_currentLat!, _currentLng!, radiusKm: 50);
+          .loadNearbyProfiles(_currentLat!, _currentLng!,
+              radiusKm: _nearbyRadiusKm);
 
       if (mounted) {
         setState(() {
@@ -363,7 +365,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Déterminer la localisation
       double lat = 13.5116; // Par défaut: Niamey
       double lng = 2.1254;
-      double radius = 50; // Rayon standard
+      double radius = _nearbyRadiusKm;
 
       // Tenter d'obtenir la position actuelle pour mettre à jour
       try {
