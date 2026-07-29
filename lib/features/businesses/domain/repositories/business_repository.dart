@@ -24,6 +24,7 @@ abstract class BusinessRepository {
   });
   Future<Either<Failure, BusinessEntity>> getBusinessById(String id);
   Future<Either<Failure, BusinessEntity?>> getMyBusiness(String ownerId);
+  Future<Either<Failure, List<BusinessEntity>>> getMyBusinesses(String ownerId);
 
   // Businesses - Write
   Future<Either<Failure, BusinessEntity>> createBusiness(BusinessEntity business);

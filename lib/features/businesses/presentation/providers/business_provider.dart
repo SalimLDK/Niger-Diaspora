@@ -192,6 +192,33 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
   }
 }
 
+// Current user's businesses — liste (§19c : un propriétaire peut en avoir
+// plusieurs). Provider manuel pour éviter un cycle build_runner.
+final myBusinessesNotifierProvider =
+    AsyncNotifierProvider<MyBusinessesNotifier, List<BusinessEntity>>(
+  MyBusinessesNotifier.new,
+);
+
+class MyBusinessesNotifier extends AsyncNotifier<List<BusinessEntity>> {
+  @override
+  Future<List<BusinessEntity>> build() async {
+    final user = ref.watch(currentUserProvider).valueOrNull;
+    if (user == null) return const [];
+    final repository = ref.read(businessRepositoryProvider);
+    final result = await repository.getMyBusinesses(user.id);
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (businesses) => businesses,
+    );
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
 // Boost management
 
 @riverpod

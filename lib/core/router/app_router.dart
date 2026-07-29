@@ -68,6 +68,7 @@ import '../shell/main_shell.dart';
 import '../../features/businesses/presentation/screens/businesses_screen.dart';
 import '../../features/businesses/presentation/screens/business_detail_screen.dart';
 import '../../features/businesses/presentation/screens/create_business_screen.dart';
+import '../../features/businesses/presentation/screens/my_businesses_screen.dart';
 import '../../features/businesses/presentation/screens/boost_business_screen.dart';
 import '../../features/businesses/presentation/screens/business_reviews_screen.dart';
 import '../../features/businesses/domain/entities/business_entity.dart';
@@ -568,6 +569,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/businesses/create',
         builder: (context, state) => const CreateBusinessScreen(),
+      ),
+      // Déclarée AVANT '/businesses/:businessId' (sinon 'mine' serait pris
+      // pour un identifiant).
+      GoRoute(
+        path: '/businesses/mine',
+        builder: (context, state) => const MyBusinessesScreen(),
       ),
       GoRoute(
         path: '/businesses/:businessId',

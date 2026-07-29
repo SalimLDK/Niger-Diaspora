@@ -83,6 +83,11 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
               });
             },
           ),
+          IconButton(
+            tooltip: 'Mes entreprises',
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () => context.push('/businesses/mine'),
+          ),
         ],
       ),
       body: Column(

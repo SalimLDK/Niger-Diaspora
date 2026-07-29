@@ -15,6 +15,7 @@ abstract class BusinessRemoteDataSource {
   Future<List<BusinessModel>> getBusinessesByLocation({String? country, String? city});
   Future<BusinessModel> getBusinessById(String id);
   Future<BusinessModel?> getMyBusiness(String ownerId);
+  Future<List<BusinessModel>> getMyBusinesses(String ownerId);
 
   // Businesses - Write
   Future<BusinessModel> createBusiness(BusinessModel business);
@@ -219,6 +220,40 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
       final data = doc.data() as Map<String, dynamic>;
       data['id'] = doc.id;
       return BusinessModel.fromJson(_convertTimestamps(data));
+    } on FirebaseException catch (e) {
+      throw ServerException(e.message ?? 'Erreur lors du chargement');
+    }
+  }
+
+  @override
+  Future<List<BusinessModel>> getMyBusinesses(String ownerId) async {
+    try {
+      final isConnected = await _connectivity.isConnected();
+      if (!isConnected) {
+        throw ServerException('Pas de connexion internet');
+      }
+
+      // Pas de .limit(1) : un propriétaire peut avoir plusieurs entreprises.
+      final snapshot = await _businessesCollection
+          .where('ownerId', isEqualTo: ownerId)
+          .get();
+
+      final businesses = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return BusinessModel.fromJson(_convertTimestamps(data));
+      }).toList();
+
+      // Les plus récentes en premier (tri client pour éviter un index composite).
+      businesses.sort((a, b) {
+        final da = a.createdAt;
+        final db = b.createdAt;
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return db.compareTo(da);
+      });
+      return businesses;
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors du chargement');
     }
