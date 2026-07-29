@@ -885,7 +885,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 filteredProfiles.length - visible.length;
 
                             return SizedBox(
-                              height: 104,
+                              height: 120,
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: visible.length + (remaining > 0 ? 1 : 0),
@@ -916,7 +916,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             );
                           },
                           loading: () => SizedBox(
-                            height: 104,
+                            height: 120,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: 4,
@@ -1575,6 +1575,7 @@ class _NearbyAvatar extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12.5,
+                height: 1.2,
                 fontWeight: FontWeight.w600,
                 color: context.textPrimaryColor,
               ),
@@ -1586,6 +1587,7 @@ class _NearbyAvatar extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11,
+                  height: 1.2,
                   color: context.textTertiaryColor,
                 ),
               ),
