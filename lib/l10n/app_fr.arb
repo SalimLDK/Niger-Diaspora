@@ -5762,6 +5762,8 @@
   "jsonLabel": "JSON",
   "joinLabel": "Rejoindre",
   "remindLater": "Me rappeler plus tard",
+  "audioRoomsReminderSet": "Rappel activé — vous serez prévenu",
+  "audioRoomsStartingSoon": "Le salon va commencer",
   "inOneHour": "Dans 1 heure",
   "exampleBank": "Ex : BCEAO, Ecobank...",
   "ibanExample": "NEXX XXXX XXXX XXXX",

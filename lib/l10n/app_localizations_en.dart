@@ -12219,6 +12219,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindLater => 'Remind me later';
 
   @override
+  String get audioRoomsReminderSet => 'Reminder set — we\'ll notify you';
+
+  @override
+  String get audioRoomsStartingSoon => 'The room is starting';
+
+  @override
   String get inOneHour => 'In 1 hour';
 
   @override

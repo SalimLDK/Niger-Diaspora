@@ -37,6 +37,22 @@ final groupLastActivityProvider = Provider<Map<String, DateTime>>((ref) {
   return map;
 });
 
+/// Groupes dont la conversation liée est épinglée par l'utilisateur courant
+/// (§9c : indicateur épinglé sur la carte) — même mécanisme dérivé que
+/// [groupLastActivityProvider], zéro requête supplémentaire.
+final groupPinnedProvider = Provider<Set<String>>((ref) {
+  final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+  if (currentUserId == null) return const <String>{};
+  final conversations =
+      ref.watch(conversationsProvider).valueOrNull ?? const [];
+  final pinned = <String>{};
+  for (final c in conversations) {
+    final gid = c.groupId;
+    if (gid != null && c.isPinnedBy(currentUserId)) pinned.add(gid);
+  }
+  return pinned;
+});
+
 class GroupsScreen extends ConsumerStatefulWidget {
   const GroupsScreen({super.key});
 
@@ -822,6 +838,7 @@ class _GroupCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final lastActivity = ref.watch(groupLastActivityProvider)[group.id];
+    final isPinned = ref.watch(groupPinnedProvider).contains(group.id);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -951,6 +968,16 @@ class _GroupCard extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      // Épinglé (refonte 9c) : reprend l'icône/couleur du
+                      // même indicateur sur les conversations.
+                      if (isPinned) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.push_pin,
+                          size: 14,
+                          color: context.adaptivePrimaryColor,
+                        ),
+                      ],
                       // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
                       // qu'on connaît la dernière activité de la conversation.
                       if (lastActivity != null) ...[

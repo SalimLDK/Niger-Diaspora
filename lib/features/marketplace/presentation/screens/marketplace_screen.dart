@@ -65,6 +65,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     final productsAsync = ref.watch(
       productsProvider(category: selectedCategory, country: selectedCountry),
     );
+    final cartItemCount = ref.watch(
+      cartNotifierProvider.select(
+        (items) => items.fold<int>(0, (total, item) => total + item.quantity),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -80,9 +85,43 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         ),
         title: const Text('Marketplace'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () => context.push('/marketplace/cart'),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart_outlined),
+                onPressed: () => context.push('/marketplace/cart'),
+              ),
+              if (cartItemCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Center(
+                        child: Text(
+                          cartItemCount > 99 ? '99+' : cartItemCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),

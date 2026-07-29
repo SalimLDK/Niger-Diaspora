@@ -5552,6 +5552,8 @@
   "jsonLabel": "JSON",
   "joinLabel": "Join",
   "remindLater": "Remind me later",
+  "audioRoomsReminderSet": "Reminder set — we'll notify you",
+  "audioRoomsStartingSoon": "The room is starting",
   "inOneHour": "In 1 hour",
   "exampleBank": "Ex: BCEAO, Ecobank...",
   "ibanExample": "NEXX XXXX XXXX XXXX",

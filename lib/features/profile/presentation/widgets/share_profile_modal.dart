@@ -443,7 +443,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
               QrImageView(
                 data: _shareUrl!,
                 version: QrVersions.auto,
-                size: 160,
+                size: 196,
                 backgroundColor: Colors.white,
                 eyeStyle: QrEyeStyle(
                   eyeShape: QrEyeShape.square,

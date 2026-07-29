@@ -8,12 +8,14 @@ import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/audio_room_entity.dart';
 import '../providers/audio_room_provider.dart';
 import '../widgets/_shared/collection_progress_bar.dart';
 import '../widgets/_shared/dn_tab_bar.dart';
 import '../widgets/_shared/live_dot.dart';
 import '../widgets/_shared/mode_chip.dart';
+import '../widgets/timezone_display_widget.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 
@@ -292,6 +294,43 @@ class _LiveCard extends StatelessWidget {
                   _PricePill(price: (room.ticketPrice ?? 0) / 100),
               ],
             ),
+            // Métriques (§1a) : intervenants sur max + tags + Participer.
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.mic_none_rounded, size: 13, color: dn.onSurface3),
+                const SizedBox(width: 3),
+                Text(
+                  '${room.speakerIds.length}/${room.maxSpeakers}',
+                  style: DNText.mono(size: 9, color: dn.onSurface3),
+                ),
+                if (room.tags.isNotEmpty) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      room.tags.take(3).map((t) => '#$t').join('  '),
+                      style: DNText.mono(size: 9, color: dn.onSurface3),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ] else
+                  const Spacer(),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DNColors.terra,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)!.join,
+                    style: DNText.mono(size: 9, color: DNColors.paper),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -382,6 +421,16 @@ class _ScheduledCard extends StatelessWidget {
             '${room.hostName} · ${AppLocalizations.of(context)!.audioRoomsRegisteredCount(room.listenerCount)}',
             style: DNText.sans(size: 11, color: dn.onSurface3),
           ),
+          // Heure dans plusieurs fuseaux (§1a) — réutilise la logique tz testée.
+          if (room.scheduledAt != null) ...[
+            const SizedBox(height: 8),
+            TimezoneDisplayWidget(
+              utcTime: room.scheduledAt!.toUtc(),
+              timezones: room.displayTimezones,
+              compact: true,
+              showDate: false,
+            ),
+          ],
           if (room.hasActiveCollection) ...[
             const SizedBox(height: 8),
             CollectionProgressBar(
@@ -393,7 +442,7 @@ class _ScheduledCard extends StatelessWidget {
           ],
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () => _scheduleReminder(context),
             icon: const Text('🔔', style: TextStyle(fontSize: 13)),
             label: Text(AppLocalizations.of(context)!.remindLater,
                 style: DNText.sans(size: 12, color: dn.onSurface),),
@@ -414,6 +463,25 @@ class _ScheduledCard extends StatelessWidget {
     return '${d.day} $month · '
         '${d.hour.toString().padLeft(2, '0')}:'
         '${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// « Me le rappeler » (§1a) : programme une notification locale au début du
+  /// salon et confirme à l'utilisateur.
+  Future<void> _scheduleReminder(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final at = room.scheduledAt;
+    if (at != null && at.isAfter(DateTime.now())) {
+      await NotificationService().scheduleNotification(
+        id: room.id.hashCode & 0x7fffffff,
+        title: room.title,
+        body: l10n.audioRoomsStartingSoon,
+        scheduledDate: at,
+      );
+    }
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.audioRoomsReminderSet)),
+    );
   }
 }
 

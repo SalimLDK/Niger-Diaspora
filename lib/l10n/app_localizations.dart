@@ -22892,6 +22892,18 @@ abstract class AppLocalizations {
   /// **'Me rappeler plus tard'**
   String get remindLater;
 
+  /// No description provided for @audioRoomsReminderSet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel activé — vous serez prévenu'**
+  String get audioRoomsReminderSet;
+
+  /// No description provided for @audioRoomsStartingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le salon va commencer'**
+  String get audioRoomsStartingSoon;
+
   /// No description provided for @inOneHour.
   ///
   /// In fr, this message translates to:
