@@ -671,29 +671,41 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = iconColor ?? FeedTokens.of(context).mutedText;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              transitionBuilder:
-                  (child, anim) => ScaleTransition(scale: anim, child: child),
-              child: KeyedSubtree(
-                key: ValueKey<String>(
-                  '${_iconIdentity(icon)}_${color.toARGB32()}',
+    // Cible tactile 44px minimum (GUIDE_IMPLEMENTATION §0.4) : la hauteur du
+    // bouton est fixée à 44 (Row centre icône+libellé dedans), la largeur ne
+    // descend jamais sous 44 (utile pour les boutons sans libellé : signet,
+    // partage).
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 44),
+      child: SizedBox(
+        height: 44,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder:
+                      (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
+                  child: KeyedSubtree(
+                    key: ValueKey<String>(
+                      '${_iconIdentity(icon)}_${color.toARGB32()}',
+                    ),
+                    child: icon,
+                  ),
                 ),
-                child: icon,
-              ),
+                if (label.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  Text(label, style: TextStyle(color: color, fontSize: 13)),
+                ],
+              ],
             ),
-            if (label.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              Text(label, style: TextStyle(color: color, fontSize: 13)),
-            ],
-          ],
+          ),
         ),
       ),
     );
