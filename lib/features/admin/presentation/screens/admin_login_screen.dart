@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,13 +103,13 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AdminColors.bg,
       body: Center(
         child: Container(
           width: 400,
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AdminColors.surface,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -125,7 +126,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+                  color: AdminColors.actionBlue,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
@@ -146,7 +147,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 'DiaspoNiger Monitoring',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodyMedium?.copyWith(color: AdminColors.text3),
               ),
               const SizedBox(height: 32),
               // Google Sign-In Button
@@ -161,7 +162,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   ),
                   label: const Text('Sign in with Google'),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
+                    side: const BorderSide(color: AdminColors.border),
                   ),
                 ),
               ),
@@ -176,7 +177,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                       'OR',
                       style: Theme.of(
                         context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                      ).textTheme.bodyMedium?.copyWith(color: AdminColors.text3),
                     ),
                   ),
                   const Expanded(child: Divider()),
@@ -196,10 +197,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   margin: const EdgeInsets.only(bottom: 16),
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: AdminColors.statusRed.withValues(alpha: 0.1),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                    style: const TextStyle(color: AdminColors.statusRed),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -218,6 +219,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 height: 48,
                 child: FilledButton(
                   onPressed: _isLoading ? null : _handleLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AdminColors.actionBlue,
+                    foregroundColor: Colors.white,
+                  ),
                   child:
                       _isLoading
                           ? const SizedBox(

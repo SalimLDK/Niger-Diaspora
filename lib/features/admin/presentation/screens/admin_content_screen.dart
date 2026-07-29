@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,16 +73,16 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1),
+            color: AdminColors.actionBlueLight.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const AppIcon(AppIcon.event, color: Colors.blue),
+          child: const AppIcon(AppIcon.event, color: AdminColors.actionBlueLight),
         ),
         title: Text(item.title),
         subtitle: Text('Événement par ${item.organizerId}'),
         trailing: Text(
           DateFormat('dd/MM HH:mm').format(item.createdAt ?? DateTime.now()),
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12, color: AdminColors.text3),
         ),
       );
     } else if (item is GroupEntity) {
@@ -90,16 +91,16 @@ class _AdminContentScreenState extends ConsumerState<AdminContentScreen> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Colors.green.withValues(alpha: 0.1),
+            color: AdminColors.statusGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const AppIcon(AppIcon.groups, color: Colors.green),
+          child: const AppIcon(AppIcon.groups, color: AdminColors.statusGreen),
         ),
         title: Text(item.name),
         subtitle: Text('Groupe • ${item.isPrivate ? "Privé" : "Public"}'),
         trailing: Text(
           DateFormat('dd/MM HH:mm').format(item.createdAt ?? DateTime.now()),
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12, color: AdminColors.text3),
         ),
       );
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
 
@@ -17,10 +18,10 @@ class _AdminTransactionsScreenState
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -167,7 +168,7 @@ class _AdminTransactionsScreenState
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -200,27 +201,27 @@ class _AdminTransactionsScreenState
           title: 'Volume Total (USD)',
           value: '\$${state.totalVolumeUSD.toStringAsFixed(2)}',
           icon: Icons.account_balance_wallet_rounded,
-          gradient: const [Color(0xFF10B981), Color(0xFF059669)],
+          gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
         ),
         _buildStatCard(
           title: 'Frais Collectés (USD)',
           value: '\$${state.totalFeesUSD.toStringAsFixed(2)}',
           icon: Icons.payments_rounded,
-          gradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+          gradient: const [AdminColors.actionBlueLight, AdminColors.actionBlue],
         ),
         _buildStatCard(
           title: 'En attente',
           value: state.pendingTransactions.length.toString(),
           icon: Icons.pending_rounded,
-          gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+          gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
           title: 'Échouées',
           value: state.failedTransactions.length.toString(),
           icon: Icons.error_rounded,
           gradient: state.failedTransactions.isNotEmpty
-              ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
-              : const [Color(0xFF9CA3AF), Color(0xFF6B7280)],
+              ? const [AdminColors.statusRed, AdminColors.statusRedStrong]
+              : const [AdminColors.statusGray, AdminColors.statusGray],
         ),
       ],
     );
@@ -315,12 +316,12 @@ class _AdminTransactionsScreenState
     required double fees,
   }) {
     final currencyColors = {
-      'EUR': const Color(0xFF3B82F6),
-      'USD': const Color(0xFF10B981),
-      'CAD': const Color(0xFFEF4444),
-      'GBP': const Color(0xFF8B5CF6),
-      'CHF': const Color(0xFFF59E0B),
-      'XOF': const Color(0xFF14B8A6),
+      'EUR': AdminColors.actionBlueLight,
+      'USD': AdminColors.statusGreen,
+      'CAD': AdminColors.statusRed,
+      'GBP': AdminColors.statusPurple,
+      'CHF': AdminColors.statusAmber,
+      'XOF': AdminColors.statusGreen,
     };
 
     final color = currencyColors[currency] ?? _primaryColor;
@@ -569,7 +570,7 @@ class _AdminTransactionsScreenState
               value,
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: isError ? const Color(0xFFEF4444) : _textPrimary,
+                color: isError ? AdminColors.statusRed : _textPrimary,
                 fontSize: 13,
               ),
             ),
@@ -590,7 +591,7 @@ class _AdminTransactionsScreenState
           _buildActionButton(
             label: 'Échouer',
             icon: Icons.error_rounded,
-            color: const Color(0xFFEF4444),
+            color: AdminColors.statusRed,
             isOutlined: true,
             onPressed: () async {
               if (currentAdmin == null) {
@@ -611,7 +612,7 @@ class _AdminTransactionsScreenState
           _buildActionButton(
             label: 'Compléter',
             icon: Icons.check_rounded,
-            color: const Color(0xFF10B981),
+            color: AdminColors.statusGreen,
             onPressed: () async {
               if (currentAdmin == null) {
                 _showSnackBar('Erreur: Admin non connecté');
@@ -632,7 +633,7 @@ class _AdminTransactionsScreenState
           _buildActionButton(
             label: 'Rembourser',
             icon: Icons.undo_rounded,
-            color: const Color(0xFFF59E0B),
+            color: AdminColors.statusAmber,
             onPressed: () async {
               if (currentAdmin == null) {
                 _showSnackBar('Erreur: Admin non connecté');
@@ -692,17 +693,17 @@ class _AdminTransactionsScreenState
   Color _getStatusColor(TransactionStatus status) {
     switch (status) {
       case TransactionStatus.pending:
-        return const Color(0xFFF59E0B);
+        return AdminColors.statusAmber;
       case TransactionStatus.processing:
-        return const Color(0xFF3B82F6);
+        return AdminColors.actionBlueLight;
       case TransactionStatus.completed:
-        return const Color(0xFF10B981);
+        return AdminColors.statusGreen;
       case TransactionStatus.failed:
-        return const Color(0xFFEF4444);
+        return AdminColors.statusRed;
       case TransactionStatus.refunded:
-        return const Color(0xFF8B5CF6);
+        return AdminColors.statusPurple;
       case TransactionStatus.cancelled:
-        return const Color(0xFF6B7280);
+        return AdminColors.statusGray;
     }
   }
 
@@ -820,13 +821,13 @@ class _AdminTransactionsScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.error_outline_rounded,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),
@@ -949,7 +950,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: AdminColors.bg,
       child: tabBar,
     );
   }

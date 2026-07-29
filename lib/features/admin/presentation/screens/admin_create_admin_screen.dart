@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,19 +35,19 @@ class _AdminCreateAdminScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AdminColors.bg,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const AppIcon(AppIcon.arrowBack, color: Color(0xFF1E293B)),
+          icon: const AppIcon(AppIcon.arrowBack, color: AdminColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Créer un administrateur',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: AdminColors.text,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -80,7 +81,7 @@ class _AdminCreateAdminScreenState
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+          colors: [AdminColors.actionBlue, AdminColors.actionBlueLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -134,7 +135,7 @@ class _AdminCreateAdminScreenState
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        side: const BorderSide(color: AdminColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -145,14 +146,14 @@ class _AdminCreateAdminScreenState
             children: [
               const Row(
                 children: [
-                  AppIcon(AppIcon.search, color: Color(0xFF6366F1)),
+                  AppIcon(AppIcon.search, color: AdminColors.actionBlue),
                   SizedBox(width: 8),
                   Text(
                     'Rechercher un utilisateur',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
+                      color: AdminColors.text,
                     ),
                   ),
                 ],
@@ -161,7 +162,7 @@ class _AdminCreateAdminScreenState
               const Text(
                 'Entrez l\'adresse email de l\'utilisateur que vous souhaitez promouvoir',
                 style: TextStyle(
-                  color: Color(0xFF64748B),
+                  color: AdminColors.text2,
                   fontSize: 14,
                 ),
               ),
@@ -190,7 +191,7 @@ class _AdminCreateAdminScreenState
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
+                  fillColor: AdminColors.bg,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -209,19 +210,19 @@ class _AdminCreateAdminScreenState
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.withAlpha(20),
+                    color: AdminColors.statusRed.withAlpha(20),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withAlpha(50)),
+                    border: Border.all(color: AdminColors.statusRed.withAlpha(50)),
                   ),
                   child: Row(
                     children: [
                       const AppIcon(AppIcon.error,
-                          color: Colors.red, size: 20),
+                          color: AdminColors.statusRed, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: AdminColors.statusRed),
                         ),
                       ),
                     ],
@@ -242,8 +243,8 @@ class _AdminCreateAdminScreenState
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: _foundUser!.adminRole != AdminRole.none
-              ? Colors.orange.withAlpha(100)
-              : const Color(0xFF10B981).withAlpha(100),
+              ? AdminColors.statusAmber.withAlpha(100)
+              : AdminColors.statusGreen.withAlpha(100),
           width: 2,
         ),
       ),
@@ -259,8 +260,8 @@ class _AdminCreateAdminScreenState
                       ? AppIcon.warning
                       : AppIcon.checkCircle,
                   color: _foundUser!.adminRole != AdminRole.none
-                      ? Colors.orange
-                      : const Color(0xFF10B981),
+                      ? AdminColors.statusAmber
+                      : AdminColors.statusGreen,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -271,8 +272,8 @@ class _AdminCreateAdminScreenState
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: _foundUser!.adminRole != AdminRole.none
-                        ? Colors.orange
-                        : const Color(0xFF10B981),
+                        ? AdminColors.statusAmber
+                        : AdminColors.statusGreen,
                   ),
                 ),
               ],
@@ -285,7 +286,7 @@ class _AdminCreateAdminScreenState
                   backgroundImage: _foundUser!.photoUrl != null
                       ? NetworkImage(_foundUser!.photoUrl!)
                       : null,
-                  backgroundColor: const Color(0xFFE2E8F0),
+                  backgroundColor: AdminColors.border,
                   child: _foundUser!.photoUrl == null
                       ? Text(
                           (_foundUser!.displayName ?? _foundUser!.email ?? '?')
@@ -294,7 +295,7 @@ class _AdminCreateAdminScreenState
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF64748B),
+                            color: AdminColors.text2,
                           ),
                         )
                       : null,
@@ -309,14 +310,14 @@ class _AdminCreateAdminScreenState
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
+                          color: AdminColors.text,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _foundUser!.email ?? '',
                         style: const TextStyle(
-                          color: Color(0xFF64748B),
+                          color: AdminColors.text2,
                         ),
                       ),
                       if (_foundUser!.adminRole != AdminRole.none) ...[
@@ -367,7 +368,7 @@ class _AdminCreateAdminScreenState
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        side: const BorderSide(color: AdminColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -376,14 +377,14 @@ class _AdminCreateAdminScreenState
           children: [
             const Row(
               children: [
-                Icon(Icons.assignment_ind, color: Color(0xFF6366F1)),
+                Icon(Icons.assignment_ind, color: AdminColors.actionBlue),
                 SizedBox(width: 8),
                 Text(
                   'Sélectionner un rôle',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
+                    color: AdminColors.text,
                   ),
                 ),
               ],
@@ -418,7 +419,7 @@ class _AdminCreateAdminScreenState
           color: isSelected ? role.color.withAlpha(15) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? role.color : const Color(0xFFE2E8F0),
+            color: isSelected ? role.color : AdminColors.border,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -442,7 +443,7 @@ class _AdminCreateAdminScreenState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? role.color : const Color(0xFF1E293B),
+                      color: isSelected ? role.color : AdminColors.text,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -450,7 +451,7 @@ class _AdminCreateAdminScreenState
                     role.description,
                     style: const TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF64748B),
+                      color: AdminColors.text2,
                     ),
                   ),
                 ],
@@ -484,7 +485,7 @@ class _AdminCreateAdminScreenState
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        side: const BorderSide(color: AdminColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -500,7 +501,7 @@ class _AdminCreateAdminScreenState
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
+                    color: AdminColors.text,
                   ),
                 ),
               ],
@@ -509,7 +510,7 @@ class _AdminCreateAdminScreenState
             Text(
               '${permissions.length} permissions actives',
               style: const TextStyle(
-                color: Color(0xFF64748B),
+                color: AdminColors.text2,
                 fontSize: 14,
               ),
             ),
@@ -597,7 +598,7 @@ class _AdminCreateAdminScreenState
                   : 'Créer l\'administrateur',
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: AdminColors.actionBlue,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -659,7 +660,7 @@ class _AdminCreateAdminScreenState
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
@@ -17,10 +18,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -150,7 +151,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -250,7 +251,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: AdminColors.statusGrayBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.more_vert_rounded, color: _textSecondary, size: 20),
@@ -264,10 +265,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withAlpha(20),
+                            color: AdminColors.statusAmber.withAlpha(20),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(Icons.cancel_rounded, color: Color(0xFFF59E0B), size: 16),
+                          child: const Icon(Icons.cancel_rounded, color: AdminColors.statusAmber, size: 16),
                         ),
                         const SizedBox(width: 12),
                         const Text('Annuler'),
@@ -281,10 +282,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withAlpha(20),
+                          color: AdminColors.statusRed.withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.delete_rounded, color: Color(0xFFEF4444), size: 16),
+                        child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
                       const Text('Supprimer'),
@@ -338,7 +339,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: group.imageUrl == null
-                    ? const LinearGradient(colors: [_primaryColor, Color(0xFF8B5CF6)])
+                    ? const LinearGradient(colors: [_primaryColor, AdminColors.actionBlueLight])
                     : null,
                 image: group.imageUrl != null
                     ? DecorationImage(
@@ -372,7 +373,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       Icon(
                         group.isPrivate ? Icons.lock_rounded : Icons.public_rounded,
                         size: 18,
-                        color: group.isPrivate ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                        color: group.isPrivate ? AdminColors.statusAmber : AdminColors.statusGreen,
                       ),
                     ],
                   ),
@@ -402,7 +403,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: AdminColors.statusGrayBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.more_vert_rounded, color: _textSecondary, size: 20),
@@ -415,12 +416,12 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6).withAlpha(20),
+                          color: AdminColors.actionBlueLight.withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
                           group.isPrivate ? Icons.public_rounded : Icons.lock_rounded,
-                          color: const Color(0xFF3B82F6),
+                          color: AdminColors.actionBlueLight,
                           size: 16,
                         ),
                       ),
@@ -436,10 +437,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withAlpha(20),
+                          color: AdminColors.statusRed.withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.delete_rounded, color: Color(0xFFEF4444), size: 16),
+                        child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
                       const Text('Supprimer'),
@@ -494,13 +495,13 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
   Color _getStatusColor(EventStatus status) {
     switch (status) {
       case EventStatus.upcoming:
-        return const Color(0xFF3B82F6);
+        return AdminColors.actionBlueLight;
       case EventStatus.ongoing:
-        return const Color(0xFF10B981);
+        return AdminColors.statusGreen;
       case EventStatus.completed:
-        return const Color(0xFF6B7280);
+        return AdminColors.statusGray;
       case EventStatus.cancelled:
-        return const Color(0xFFEF4444);
+        return AdminColors.statusRed;
     }
   }
 
@@ -560,13 +561,13 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.error_outline_rounded,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),
@@ -695,7 +696,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: AdminColors.statusRed,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Confirmer'),

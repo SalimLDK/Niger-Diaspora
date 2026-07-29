@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,10 +17,10 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   int _selectedFilter = 0;
 
   // Couleurs cohérentes avec le dashboard
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -111,7 +112,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                   ? Center(
                     child: Text(
                       'Erreur: ${state.error}',
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(color: AdminColors.statusRed),
                     ),
                   )
                   : filteredList.isEmpty
@@ -145,7 +146,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           color: isSelected ? _primaryColor : _cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? _primaryColor : const Color(0xFFE2E8F0),
+            color: isSelected ? _primaryColor : AdminColors.border,
           ),
           boxShadow:
               isSelected
@@ -192,7 +193,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AdminColors.statusGrayBg,
                 borderRadius: BorderRadius.circular(12),
                 image:
                     business.logoUrl != null
@@ -231,7 +232,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           margin: const EdgeInsets.only(left: 8),
                           child: const Icon(
                             Icons.verified,
-                            color: Colors.blue,
+                            color: AdminColors.actionBlueLight,
                             size: 20,
                           ),
                         ),
@@ -240,7 +241,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           margin: const EdgeInsets.only(left: 4),
                           child: const Icon(
                             Icons.rocket_launch,
-                            color: Colors.orange,
+                            color: AdminColors.statusAmber,
                             size: 20,
                           ),
                         ),
@@ -290,7 +291,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           children: [
                             AppIcon(
                               AppIcon.checkCircle,
-                              color: Colors.green,
+                              color: AdminColors.statusGreen,
                               size: 20,
                             ),
                             SizedBox(width: 12),
@@ -303,7 +304,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         value: 'unverify',
                         child: Row(
                           children: [
-                            AppIcon(AppIcon.cancel, color: Colors.orange, size: 20),
+                            AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 20),
                             SizedBox(width: 12),
                             Text('Retirer vérification'),
                           ],
@@ -316,7 +317,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           children: [
                             Icon(
                               Icons.rocket_launch,
-                              color: Colors.blue,
+                              color: AdminColors.actionBlueLight,
                               size: 20,
                             ),
                             SizedBox(width: 12),
@@ -329,7 +330,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         value: 'unboost',
                         child: Row(
                           children: [
-                            AppIcon(AppIcon.cancel, color: Colors.grey, size: 20),
+                            AppIcon(AppIcon.cancel, color: AdminColors.statusGray, size: 20),
                             SizedBox(width: 12),
                             Text('Retirer boost'),
                           ],
@@ -340,11 +341,11 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          AppIcon(AppIcon.delete, color: Colors.red, size: 20),
+                          AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 20),
                           SizedBox(width: 12),
                           Text(
                             'Supprimer',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: AdminColors.statusRed),
                           ),
                         ],
                       ),
@@ -435,7 +436,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: AdminColors.statusRed,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,10 +17,10 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -105,7 +106,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [_primaryColor, Color(0xFF8B5CF6)],
+              colors: [_primaryColor, AdminColors.actionBlueLight],
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
@@ -163,7 +164,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                     hintText: 'Rechercher par admin ou action...',
                     prefixIcon: const AppIcon(AppIcon.search, color: _textSecondary),
                     filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
+                    fillColor: AdminColors.surfaceAlt,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -188,7 +189,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AdminColors.surfaceAlt,
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
@@ -332,7 +333,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AdminColors.surfaceAlt,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -394,9 +395,9 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AdminColors.surfaceAlt,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AdminColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,57 +444,57 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   _ActionInfo _getActionInfo(String action) {
     switch (action) {
       case 'ban_user':
-        return _ActionInfo('Utilisateur banni', const Icon(Icons.block, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Utilisateur banni', const Icon(Icons.block, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'unban_user':
-        return _ActionInfo('Utilisateur débanni', const AppIcon(AppIcon.checkCircle, color: Colors.green, size: 24), Colors.green);
+        return _ActionInfo('Utilisateur débanni', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'promote_admin':
-        return _ActionInfo('Promu administrateur', const Icon(Icons.admin_panel_settings, color: Color(0xFF8B5CF6), size: 24), const Color(0xFF8B5CF6));
+        return _ActionInfo('Promu administrateur', const Icon(Icons.admin_panel_settings, color: AdminColors.statusPurple, size: 24), AdminColors.statusPurple);
       case 'demote_admin':
-        return _ActionInfo('Rétrogradé', const Icon(Icons.remove_moderator, color: Colors.orange, size: 24), Colors.orange);
+        return _ActionInfo('Rétrogradé', const Icon(Icons.remove_moderator, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'verify_profile':
-        return _ActionInfo('Profil vérifié', const Icon(Icons.verified, color: Colors.blue, size: 24), Colors.blue);
+        return _ActionInfo('Profil vérifié', const Icon(Icons.verified, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'verify_business':
-        return _ActionInfo('Commerce vérifié', const Icon(Icons.verified_user, color: Colors.green, size: 24), Colors.green);
+        return _ActionInfo('Commerce vérifié', const Icon(Icons.verified_user, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'unverify_business':
-        return _ActionInfo('Vérification retirée', const AppIcon(AppIcon.cancel, color: Colors.orange, size: 24), Colors.orange);
+        return _ActionInfo('Vérification retirée', const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_business':
-        return _ActionInfo('Commerce supprimé', const AppIcon(AppIcon.delete, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Commerce supprimé', const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_boost':
-        return _ActionInfo('Boost modifié', const Icon(Icons.trending_up, color: Color(0xFFF59E0B), size: 24), const Color(0xFFF59E0B));
+        return _ActionInfo('Boost modifié', const Icon(Icons.trending_up, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_event':
-        return _ActionInfo('Événement supprimé', const Icon(Icons.event_busy, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Événement supprimé', const Icon(Icons.event_busy, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'cancel_event':
-        return _ActionInfo('Événement annulé', const Icon(Icons.event_busy, color: Colors.orange, size: 24), Colors.orange);
+        return _ActionInfo('Événement annulé', const Icon(Icons.event_busy, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_group':
-        return _ActionInfo('Groupe supprimé', const Icon(Icons.group_off, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Groupe supprimé', const Icon(Icons.group_off, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_privacy':
-        return _ActionInfo('Confidentialité modifiée', const AppIcon(AppIcon.lock, color: Color(0xFF6366F1), size: 24), const Color(0xFF6366F1));
+        return _ActionInfo('Confidentialité modifiée', const AppIcon(AppIcon.lock, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'resolve_report':
-        return _ActionInfo('Signalement résolu', const AppIcon(AppIcon.checkCircle, color: Colors.green, size: 24), Colors.green);
+        return _ActionInfo('Signalement résolu', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'dismiss_report':
-        return _ActionInfo('Signalement rejeté', const AppIcon(AppIcon.cancel, color: Colors.orange, size: 24), Colors.orange);
+        return _ActionInfo('Signalement rejeté', const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_content':
-        return _ActionInfo('Contenu supprimé', const Icon(Icons.delete_forever, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Contenu supprimé', const Icon(Icons.delete_forever, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'refund_transaction':
-        return _ActionInfo('Transaction remboursée', const Icon(Icons.money_off, color: Color(0xFF10B981), size: 24), const Color(0xFF10B981));
+        return _ActionInfo('Transaction remboursée', const Icon(Icons.money_off, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'complete_transaction':
-        return _ActionInfo('Transaction complétée', const AppIcon(AppIcon.checkCircle, color: Colors.green, size: 24), Colors.green);
+        return _ActionInfo('Transaction complétée', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'fail_transaction':
-        return _ActionInfo('Transaction échouée', const AppIcon(AppIcon.error, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Transaction échouée', const AppIcon(AppIcon.error, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'delete_product':
-        return _ActionInfo('Produit supprimé', const Icon(Icons.shopping_bag, color: Colors.red, size: 24), Colors.red);
+        return _ActionInfo('Produit supprimé', const Icon(Icons.shopping_bag, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_product':
-        return _ActionInfo('Disponibilité modifiée', const Icon(Icons.inventory, color: Color(0xFF6366F1), size: 24), const Color(0xFF6366F1));
+        return _ActionInfo('Disponibilité modifiée', const Icon(Icons.inventory, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'resolve_dispute':
-        return _ActionInfo('Litige résolu', const Icon(Icons.gavel, color: Colors.green, size: 24), Colors.green);
+        return _ActionInfo('Litige résolu', const Icon(Icons.gavel, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'update_settings':
-        return _ActionInfo('Configuration mise à jour', const Icon(Icons.settings, color: Color(0xFF6366F1), size: 24), const Color(0xFF6366F1));
+        return _ActionInfo('Configuration mise à jour', const Icon(Icons.settings, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'toggle_feature':
-        return _ActionInfo('Feature modifiée', const Icon(Icons.toggle_on, color: Color(0xFF8B5CF6), size: 24), const Color(0xFF8B5CF6));
+        return _ActionInfo('Feature modifiée', const Icon(Icons.toggle_on, color: AdminColors.statusPurple, size: 24), AdminColors.statusPurple);
       case 'send_notification':
-        return _ActionInfo('Notification envoyée', const Icon(Icons.notifications, color: Color(0xFFF59E0B), size: 24), const Color(0xFFF59E0B));
+        return _ActionInfo('Notification envoyée', const Icon(Icons.notifications, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'force_logout':
-        return _ActionInfo('Déconnexion forcée', const Icon(Icons.logout, color: Colors.orange, size: 24), Colors.orange);
+        return _ActionInfo('Déconnexion forcée', const Icon(Icons.logout, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       default:
         return _ActionInfo(action, AppIcon(AppIcon.info, color: _textSecondary, size: 24), _textSecondary);
     }
@@ -502,25 +503,25 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   _TargetTypeInfo _getTargetTypeInfo(String targetType) {
     switch (targetType) {
       case 'user':
-        return _TargetTypeInfo('Utilisateur', const AppIcon(AppIcon.person, size: 14, color: Color(0xFF3B82F6)), const Color(0xFF3B82F6));
+        return _TargetTypeInfo('Utilisateur', const AppIcon(AppIcon.person, size: 14, color: AdminColors.actionBlueLight), AdminColors.actionBlueLight);
       case 'business':
-        return _TargetTypeInfo('Commerce', const AppIcon(AppIcon.store, size: 14, color: Color(0xFF10B981)), const Color(0xFF10B981));
+        return _TargetTypeInfo('Commerce', const AppIcon(AppIcon.store, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
       case 'event':
-        return _TargetTypeInfo('Événement', const AppIcon(AppIcon.event, size: 14, color: Color(0xFFF59E0B)), const Color(0xFFF59E0B));
+        return _TargetTypeInfo('Événement', const AppIcon(AppIcon.event, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
       case 'group':
-        return _TargetTypeInfo('Groupe', const AppIcon(AppIcon.groups, size: 14, color: Color(0xFF8B5CF6)), const Color(0xFF8B5CF6));
+        return _TargetTypeInfo('Groupe', const AppIcon(AppIcon.groups, size: 14, color: AdminColors.statusPurple), AdminColors.statusPurple);
       case 'report':
-        return _TargetTypeInfo('Signalement', const Icon(Icons.report, size: 14, color: Colors.red), Colors.red);
+        return _TargetTypeInfo('Signalement', const Icon(Icons.report, size: 14, color: AdminColors.statusRed), AdminColors.statusRed);
       case 'product':
-        return _TargetTypeInfo('Produit', const Icon(Icons.shopping_bag, size: 14, color: Color(0xFF6366F1)), const Color(0xFF6366F1));
+        return _TargetTypeInfo('Produit', const Icon(Icons.shopping_bag, size: 14, color: AdminColors.actionBlue), AdminColors.actionBlue);
       case 'transaction':
-        return _TargetTypeInfo('Transaction', const Icon(Icons.payments, size: 14, color: Color(0xFF14B8A6)), const Color(0xFF14B8A6));
+        return _TargetTypeInfo('Transaction', const Icon(Icons.payments, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
       case 'settings':
-        return _TargetTypeInfo('Configuration', const Icon(Icons.settings, size: 14, color: Color(0xFF64748B)), const Color(0xFF64748B));
+        return _TargetTypeInfo('Configuration', const Icon(Icons.settings, size: 14, color: AdminColors.statusGray), AdminColors.statusGray);
       case 'notification':
-        return _TargetTypeInfo('Notification', const Icon(Icons.notifications, size: 14, color: Color(0xFFF59E0B)), const Color(0xFFF59E0B));
+        return _TargetTypeInfo('Notification', const Icon(Icons.notifications, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
       case 'order':
-        return _TargetTypeInfo('Commande', const Icon(Icons.shopping_cart, size: 14, color: Color(0xFF6366F1)), const Color(0xFF6366F1));
+        return _TargetTypeInfo('Commande', const Icon(Icons.shopping_cart, size: 14, color: AdminColors.actionBlue), AdminColors.actionBlue);
       default:
         return _TargetTypeInfo(targetType, Icon(Icons.help, size: 14, color: _textSecondary), _textSecondary);
     }
@@ -555,13 +556,13 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const AppIcon(
                 AppIcon.error,
                 size: 48,
-                color: Colors.red,
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),
@@ -618,7 +619,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: AdminColors.surfaceAlt,
                 shape: BoxShape.circle,
               ),
               child: const Icon(

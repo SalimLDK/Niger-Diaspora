@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,10 +19,10 @@ class _AdminEmbassyVerificationScreenState
   late TabController _tabController;
 
   // Modern color palette
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -108,19 +109,19 @@ class _AdminEmbassyVerificationScreenState
           title: 'En attente',
           value: pending.toString(),
           icon: Icons.hourglass_empty_rounded,
-          gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+          gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
           title: 'Actives',
           value: active.toString(),
           icon: Icons.verified_rounded,
-          gradient: const [Color(0xFF10B981), Color(0xFF059669)],
+          gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
         ),
         _buildStatCard(
           title: 'Suspendues',
           value: suspended.toString(),
           icon: Icons.block_rounded,
-          gradient: const [Color(0xFFEF4444), Color(0xFFDC2626)],
+          gradient: const [AdminColors.statusRed, AdminColors.statusRedStrong],
         ),
       ],
     );
@@ -218,7 +219,7 @@ class _AdminEmbassyVerificationScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: AdminColors.bg,
                 shape: BoxShape.circle,
               ),
               child: const AppIcon(
@@ -286,13 +287,13 @@ class _AdminEmbassyVerificationScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const AppIcon(
                 AppIcon.error,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),
@@ -338,16 +339,16 @@ class _EmbassyAdminCard extends ConsumerWidget {
   final EmbassyEntity embassy;
 
   // Modern color palette
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   const _EmbassyAdminCard({required this.embassy});
 
   Color _getStatusColor() {
-    if (embassy.isSuspended) return const Color(0xFFEF4444);
-    if (embassy.isVerified) return const Color(0xFF10B981);
-    return const Color(0xFFF59E0B);
+    if (embassy.isSuspended) return AdminColors.statusRed;
+    if (embassy.isVerified) return AdminColors.statusGreen;
+    return AdminColors.statusAmber;
   }
 
   IconData _getStatusIcon() {
@@ -383,7 +384,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 Text('Ambassade ${embassy.name} approuvee'),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AdminColors.statusGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -402,7 +403,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 Expanded(child: Text('Erreur: $e')),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AdminColors.statusRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -455,7 +456,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Ambassade ${embassy.name} rejetee'),
-                          backgroundColor: Colors.orange,
+                          backgroundColor: AdminColors.statusAmber,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -468,7 +469,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Erreur: $e'),
-                          backgroundColor: Colors.red,
+                          backgroundColor: AdminColors.statusRed,
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -476,7 +477,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: AdminColors.statusRed,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -508,7 +509,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 Text('Ambassade ${embassy.name} suspendue'),
               ],
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: AdminColors.statusAmber,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -521,7 +522,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AdminColors.statusRed,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -546,7 +547,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 Text('Ambassade ${embassy.name} reactivee'),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AdminColors.statusGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -559,7 +560,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AdminColors.statusRed,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -690,14 +691,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 _buildActionButton(
                   label: 'Reactiver',
                   icon: const Icon(Icons.replay_rounded, size: 18),
-                  color: const Color(0xFF10B981),
+                  color: AdminColors.statusGreen,
                   onPressed: () => _reactivate(ref, context),
                 ),
               ] else if (!embassy.isVerified) ...[
                 _buildActionButton(
                   label: 'Rejeter',
                   icon: const AppIcon(AppIcon.close, size: 18),
-                  color: const Color(0xFFEF4444),
+                  color: AdminColors.statusRed,
                   isOutlined: true,
                   onPressed: () => _reject(ref, context),
                 ),
@@ -705,14 +706,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 _buildActionButton(
                   label: 'Approuver',
                   icon: const AppIcon(AppIcon.check, size: 18),
-                  color: const Color(0xFF10B981),
+                  color: AdminColors.statusGreen,
                   onPressed: () => _approve(ref, context),
                 ),
               ] else ...[
                 _buildActionButton(
                   label: 'Suspendre',
                   icon: const Icon(Icons.block_rounded, size: 18),
-                  color: Colors.orange,
+                  color: AdminColors.statusAmber,
                   isOutlined: true,
                   onPressed: () => _suspend(ref, context),
                 ),

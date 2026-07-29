@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
@@ -19,10 +20,10 @@ class _AdminUsersManagementScreenState
   String _searchQuery = '';
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -140,7 +141,7 @@ class _AdminUsersManagementScreenState
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -243,7 +244,7 @@ class _AdminUsersManagementScreenState
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     gradient: user.photoUrl == null
-                        ? const LinearGradient(colors: [_primaryColor, Color(0xFF8B5CF6)])
+                        ? const LinearGradient(colors: [_primaryColor, AdminColors.actionBlueLight])
                         : null,
                     image: user.photoUrl != null
                         ? DecorationImage(
@@ -272,7 +273,7 @@ class _AdminUsersManagementScreenState
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: const BoxDecoration(
-                        color: Color(0xFFEF4444),
+                        color: AdminColors.statusRed,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.block_rounded, size: 12, color: Colors.white),
@@ -298,8 +299,8 @@ class _AdminUsersManagementScreenState
                           ),
                         ),
                       ),
-                      if (user.isAdmin) _buildBadge('ADMIN', const Color(0xFF8B5CF6)),
-                      if (user.isBanned) _buildBadge('BANNI', const Color(0xFFEF4444)),
+                      if (user.isAdmin) _buildBadge('ADMIN', AdminColors.statusPurple),
+                      if (user.isBanned) _buildBadge('BANNI', AdminColors.statusRed),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -319,12 +320,12 @@ class _AdminUsersManagementScreenState
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withAlpha(15),
+                        color: AdminColors.statusRed.withAlpha(15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'Raison: ${user.banReason}',
-                        style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11),
+                        style: const TextStyle(color: AdminColors.statusRed, fontSize: 11),
                       ),
                     ),
                   ],
@@ -338,21 +339,21 @@ class _AdminUsersManagementScreenState
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: AdminColors.statusGrayBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.more_vert_rounded, color: _textSecondary, size: 20),
               ),
               itemBuilder: (context) => [
                 if (!user.isBanned)
-                  _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, const Color(0xFFEF4444))
+                  _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, AdminColors.statusRed)
                 else
-                  _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, const Color(0xFF10B981)),
+                  _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
                 if (!user.isAdmin)
-                  _buildPopupMenuItem('promote', 'Promouvoir admin', Icons.arrow_upward_rounded, const Color(0xFF8B5CF6))
+                  _buildPopupMenuItem('promote', 'Promouvoir admin', Icons.arrow_upward_rounded, AdminColors.statusPurple)
                 else
-                  _buildPopupMenuItem('demote', 'Retirer admin', Icons.arrow_downward_rounded, const Color(0xFFF59E0B)),
-                _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, const Color(0xFF3B82F6)),
+                  _buildPopupMenuItem('demote', 'Retirer admin', Icons.arrow_downward_rounded, AdminColors.statusAmber),
+                _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, AdminColors.actionBlueLight),
                 _buildPopupMenuItem('force_logout', 'Forcer déconnexion', Icons.logout_rounded, _textSecondary),
                 _buildPopupMenuItem('activity', 'Voir activité', Icons.history_rounded, _primaryColor),
               ],
@@ -447,10 +448,10 @@ class _AdminUsersManagementScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.error_outline_rounded, size: 48, color: Color(0xFFEF4444)),
+              child: const Icon(Icons.error_outline_rounded, size: 48, color: AdminColors.statusRed),
             ),
             const SizedBox(height: 24),
             const Text(

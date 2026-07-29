@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
@@ -16,10 +17,10 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -161,11 +162,11 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444),
+        color: AdminColors.statusRed,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFEF4444).withAlpha(50),
+            color: AdminColors.statusRed.withAlpha(50),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -195,7 +196,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const AppIcon(
@@ -246,7 +247,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
               height: 56,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: const Color(0xFFF1F5F9),
+                color: AdminColors.statusGrayBg,
                 image: product.imageUrls.isNotEmpty
                     ? DecorationImage(
                         image: NetworkImage(product.imageUrls.first),
@@ -284,7 +285,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                     '${product.price.toStringAsFixed(0)} ${product.currency}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF10B981),
+                      color: AdminColors.statusGreen,
                       fontSize: 14,
                     ),
                   ),
@@ -306,7 +307,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: AdminColors.statusGrayBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.more_vert_rounded, color: _textSecondary, size: 20),
@@ -319,12 +320,12 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: (product.isAvailable ? const Color(0xFFF59E0B) : const Color(0xFF10B981)).withAlpha(20),
+                          color: (product.isAvailable ? AdminColors.statusAmber : AdminColors.statusGreen).withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
                           product.isAvailable ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                          color: product.isAvailable ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                          color: product.isAvailable ? AdminColors.statusAmber : AdminColors.statusGreen,
                           size: 16,
                         ),
                       ),
@@ -340,10 +341,10 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withAlpha(20),
+                          color: AdminColors.statusRed.withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const AppIcon(AppIcon.delete, color: Color(0xFFEF4444), size: 16),
+                        child: const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
                       const Text('Supprimer'),
@@ -359,7 +360,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   }
 
   Widget _buildAvailabilityBadge(bool isAvailable) {
-    final color = isAvailable ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    final color = isAvailable ? AdminColors.statusGreen : AdminColors.statusRed;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -451,7 +452,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
+                            color: AdminColors.statusRed,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
@@ -504,13 +505,13 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withAlpha(20),
+                color: AdminColors.statusGreen.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const AppIcon(
                 AppIcon.checkCircle,
                 size: 48,
-                color: Color(0xFF10B981),
+                color: AdminColors.statusGreen,
               ),
             ),
             const SizedBox(height: 16),
@@ -540,9 +541,9 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withAlpha(10),
+        color: AdminColors.statusRed.withAlpha(10),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEF4444).withAlpha(30)),
+        border: Border.all(color: AdminColors.statusRed.withAlpha(30)),
       ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -551,10 +552,10 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFEF4444).withAlpha(20),
+            color: AdminColors.statusRed.withAlpha(20),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.gavel_rounded, color: Color(0xFFEF4444), size: 20),
+          child: const Icon(Icons.gavel_rounded, color: AdminColors.statusRed, size: 20),
         ),
         title: Text(
           'Litige #${dispute['id']?.substring(0, 8) ?? 'N/A'}',
@@ -574,7 +575,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             Text(
               'Raison: ${dispute['disputeReason'] ?? 'Non spécifiée'}',
-              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12),
+              style: const TextStyle(color: AdminColors.statusRed, fontSize: 12),
             ),
           ],
         ),
@@ -598,7 +599,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AdminColors.bg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -614,7 +615,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             _buildActionButton(
               label: 'Acheteur',
               icon: Icons.person_rounded,
-              color: const Color(0xFF3B82F6),
+              color: AdminColors.actionBlueLight,
               isOutlined: true,
               onPressed: () => _resolveDispute(dispute, 'buyer_favor'),
             ),
@@ -622,7 +623,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             _buildActionButton(
               label: 'Vendeur',
               icon: Icons.store_rounded,
-              color: const Color(0xFF8B5CF6),
+              color: AdminColors.statusPurple,
               isOutlined: true,
               onPressed: () => _resolveDispute(dispute, 'seller_favor'),
             ),
@@ -630,7 +631,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             _buildActionButton(
               label: 'Rembourser',
               icon: Icons.money_off_rounded,
-              color: const Color(0xFFF59E0B),
+              color: AdminColors.statusAmber,
               onPressed: () => _resolveDispute(dispute, 'refund'),
             ),
           ],
@@ -693,17 +694,17 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   Color _getOrderStatusColor(String status) {
     switch (status) {
       case 'pending':
-        return const Color(0xFFF59E0B);
+        return AdminColors.statusAmber;
       case 'confirmed':
-        return const Color(0xFF3B82F6);
+        return AdminColors.actionBlueLight;
       case 'shipped':
-        return const Color(0xFF8B5CF6);
+        return AdminColors.statusPurple;
       case 'delivered':
-        return const Color(0xFF10B981);
+        return AdminColors.statusGreen;
       case 'cancelled':
-        return const Color(0xFFEF4444);
+        return AdminColors.statusRed;
       default:
-        return const Color(0xFF64748B);
+        return AdminColors.statusGray;
     }
   }
 
@@ -754,10 +755,10 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
-              child: const AppIcon(AppIcon.error, size: 48, color: Color(0xFFEF4444)),
+              child: const AppIcon(AppIcon.error, size: 48, color: AdminColors.statusRed),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -848,7 +849,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: AdminColors.statusRed,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Confirmer'),

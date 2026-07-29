@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,9 +16,11 @@ class AdminApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE97424), // Primary Orange
+          // Back-office : bleu d'action (l'orange est réservé au grand public).
+          seedColor: AdminColors.actionBlue,
           brightness: Brightness.light,
         ),
+        scaffoldBackgroundColor: AdminColors.bg,
         useMaterial3: true,
         textTheme: GoogleFonts.interTextTheme(),
       ),

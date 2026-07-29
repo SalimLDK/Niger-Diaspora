@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../providers/admin_provider.dart';
 
 class AdminNotificationsScreen extends ConsumerStatefulWidget {
@@ -20,10 +21,10 @@ class _AdminNotificationsScreenState
   String _targetGroup = 'all';
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -166,7 +167,7 @@ class _AdminNotificationsScreenState
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -251,7 +252,7 @@ class _AdminNotificationsScreenState
                     label: const Text('Effacer'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _textSecondary,
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      side: const BorderSide(color: AdminColors.border),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -301,7 +302,7 @@ class _AdminNotificationsScreenState
         hintText: hint,
         prefixIcon: Icon(icon, color: _textSecondary),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -325,7 +326,7 @@ class _AdminNotificationsScreenState
           color: isSelected ? _primaryColor : _cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? _primaryColor : const Color(0xFFE2E8F0),
+            color: isSelected ? _primaryColor : AdminColors.border,
           ),
           boxShadow: isSelected
               ? [
@@ -500,13 +501,13 @@ class _AdminNotificationsScreenState
   Color _getStatusColor(String status) {
     switch (status) {
       case 'sent':
-        return const Color(0xFF10B981);
+        return AdminColors.statusGreen;
       case 'pending':
-        return const Color(0xFFF59E0B);
+        return AdminColors.statusAmber;
       case 'failed':
-        return const Color(0xFFEF4444);
+        return AdminColors.statusRed;
       default:
-        return const Color(0xFF64748B);
+        return AdminColors.statusGray;
     }
   }
 
@@ -689,9 +690,9 @@ class _AdminNotificationsScreenState
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         backgroundColor: isSuccess
-            ? const Color(0xFF10B981)
+            ? AdminColors.statusGreen
             : isError
-                ? const Color(0xFFEF4444)
+                ? AdminColors.statusRed
                 : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

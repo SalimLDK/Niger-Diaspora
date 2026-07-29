@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -139,7 +140,7 @@ class _AdminCreateEmbassyScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Ambassade créée avec succès!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AdminColors.statusGreen,
           ),
         );
         context.pop();
@@ -147,7 +148,7 @@ class _AdminCreateEmbassyScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: AdminColors.statusRed),
         );
       }
     } finally {
@@ -187,13 +188,14 @@ class _AdminCreateEmbassyScreenState
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: AdminColors.actionBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AdminColors.actionBlue.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    AppIcon(AppIcon.info, color: Colors.blue[700]),
+                    AppIcon(AppIcon.info, color: AdminColors.actionBlue),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
@@ -400,7 +402,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 8),
               Text(
                 'Indiquez les pays dont les ressortissants peuvent contacter cette ambassade.',
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                style: TextStyle(color: AdminColors.text2, fontSize: 13),
               ),
               const SizedBox(height: 16),
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -15,11 +16,11 @@ class AdminSettingsScreen extends ConsumerStatefulWidget {
 
 class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
     with SingleTickerProviderStateMixin {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
-  static const _backgroundColor = Color(0xFFF8FAFC);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
+  static const _backgroundColor = AdminColors.bg;
 
   late TabController _tabController;
 
@@ -75,7 +76,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
               isScrollable: true,
               indicator: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [_primaryColor, Color(0xFF8B5CF6)],
+                  colors: [_primaryColor, AdminColors.actionBlueLight],
                 ),
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
@@ -188,19 +189,19 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.red.shade50,
+          color: AdminColors.statusRedBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.red.shade200),
+          border: Border.all(color: AdminColors.alertBorderRed),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.shade100,
+                color: AdminColors.statusRedBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.error_outline, color: Colors.red.shade700, size: 28),
+              child: Icon(Icons.error_outline, color: AdminColors.statusRedStrong, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -213,13 +214,13 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red.shade700,
+                      color: AdminColors.statusRedStrong,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     error,
-                    style: TextStyle(color: Colors.red.shade600),
+                    style: TextStyle(color: AdminColors.statusRed),
                   ),
                 ],
               ),
@@ -245,10 +246,10 @@ class _FeesTab extends ConsumerStatefulWidget {
 }
 
 class _FeesTabState extends ConsumerState<_FeesTab> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _transferFeePercentController;
@@ -318,7 +319,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
               Text('Frais mis a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -339,7 +340,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
               title: 'Frais de Transfert',
               subtitle: 'Configuration des frais sur les envois d\'argent',
               icon: Icons.send_rounded,
-              color: const Color(0xFF10B981),
+              color: AdminColors.statusGreen,
               children: [
                 _buildPercentField(
                   controller: _transferFeePercentController,
@@ -371,7 +372,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
               title: 'Frais Marketplace',
               subtitle: 'Commission sur les ventes de produits',
               icon: Icons.storefront_rounded,
-              color: const Color(0xFFF59E0B),
+              color: AdminColors.statusAmber,
               children: [
                 _buildPercentField(
                   controller: _marketplaceFeePercentController,
@@ -486,14 +487,14 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
         hintText: hint,
         suffixText: '%',
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AdminColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -501,7 +502,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AdminColors.statusRed),
         ),
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -528,14 +529,14 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AdminColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -543,7 +544,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AdminColors.statusRed),
         ),
       ),
       keyboardType: TextInputType.number,
@@ -561,7 +562,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_primaryColor, Color(0xFF8B5CF6)],
+          colors: [_primaryColor, AdminColors.actionBlueLight],
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -615,10 +616,10 @@ class _BoostPricingTab extends ConsumerStatefulWidget {
 }
 
 class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _standardBaseController;
@@ -686,7 +687,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
               Text('Tarifs boost mis a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -703,30 +704,30 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('Prix de base (7 jours)', Icons.rocket_launch_rounded, const Color(0xFF8B5CF6)),
+            _buildSectionHeader('Prix de base (7 jours)', Icons.rocket_launch_rounded, AdminColors.statusPurple),
             const SizedBox(height: 20),
             _buildPriceCard(
               title: 'Standard',
               description: 'Visibilite amelioree',
               controller: _standardBaseController,
-              color: const Color(0xFF3B82F6),
+              color: AdminColors.actionBlueLight,
             ),
             const SizedBox(height: 12),
             _buildPriceCard(
               title: 'Featured',
               description: 'Badge + meilleure position',
               controller: _featuredBaseController,
-              color: const Color(0xFFF59E0B),
+              color: AdminColors.statusAmber,
             ),
             const SizedBox(height: 12),
             _buildPriceCard(
               title: 'Premium',
               description: 'Top position + section dediee',
               controller: _premiumBaseController,
-              color: const Color(0xFF8B5CF6),
+              color: AdminColors.statusPurple,
             ),
             const SizedBox(height: 32),
-            _buildSectionHeader('Multiplicateurs de duree', Icons.schedule_rounded, const Color(0xFF10B981)),
+            _buildSectionHeader('Multiplicateurs de duree', Icons.schedule_rounded, AdminColors.statusGreen),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(20),
@@ -867,7 +868,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
               decoration: InputDecoration(
                 suffixText: 'XOF',
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: AdminColors.bg,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -899,7 +900,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
         labelText: label,
         suffixText: 'x',
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -930,7 +931,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
         gradient: LinearGradient(
           colors: [
             _primaryColor.withValues(alpha: 0.1),
-            const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+            AdminColors.actionBlueLight.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -999,7 +1000,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_primaryColor, Color(0xFF8B5CF6)],
+          colors: [_primaryColor, AdminColors.actionBlueLight],
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -1053,22 +1054,22 @@ class _TaxRatesTab extends ConsumerStatefulWidget {
 }
 
 class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   final _formKey = GlobalKey<FormState>();
   late Map<String, TextEditingController> _controllers;
 
   final List<Map<String, dynamic>> _categories = [
-    {'key': 'alimentation', 'label': 'Alimentation', 'icon': Icons.restaurant_rounded, 'color': const Color(0xFF10B981)},
-    {'key': 'artisanat', 'label': 'Artisanat', 'icon': Icons.handyman_rounded, 'color': const Color(0xFFF59E0B)},
-    {'key': 'electronique', 'label': 'Electronique', 'icon': Icons.devices_rounded, 'color': const Color(0xFF3B82F6)},
-    {'key': 'vetements', 'label': 'Vetements', 'icon': Icons.checkroom_rounded, 'color': const Color(0xFFEC4899)},
-    {'key': 'services', 'label': 'Services', 'icon': Icons.miscellaneous_services_rounded, 'color': const Color(0xFF8B5CF6)},
-    {'key': 'immobilier', 'label': 'Immobilier', 'icon': Icons.home_rounded, 'color': const Color(0xFF06B6D4)},
-    {'key': 'standard', 'label': 'Standard (autres)', 'icon': Icons.category_rounded, 'color': Colors.grey},
+    {'key': 'alimentation', 'label': 'Alimentation', 'icon': Icons.restaurant_rounded, 'color': AdminColors.statusGreen},
+    {'key': 'artisanat', 'label': 'Artisanat', 'icon': Icons.handyman_rounded, 'color': AdminColors.statusAmber},
+    {'key': 'electronique', 'label': 'Electronique', 'icon': Icons.devices_rounded, 'color': AdminColors.actionBlueLight},
+    {'key': 'vetements', 'label': 'Vetements', 'icon': Icons.checkroom_rounded, 'color': AdminColors.statusPurple},
+    {'key': 'services', 'label': 'Services', 'icon': Icons.miscellaneous_services_rounded, 'color': AdminColors.statusPurple},
+    {'key': 'immobilier', 'label': 'Immobilier', 'icon': Icons.home_rounded, 'color': AdminColors.statusGreen},
+    {'key': 'standard', 'label': 'Standard (autres)', 'icon': Icons.category_rounded, 'color': AdminColors.statusGray},
   ];
 
   @override
@@ -1124,7 +1125,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
               Text('Taux de TVA mis a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -1147,7 +1148,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+                      colors: [AdminColors.statusAmber, AdminColors.statusRed],
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1244,7 +1245,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
             decoration: InputDecoration(
               suffixText: '%',
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: AdminColors.bg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -1277,7 +1278,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_primaryColor, Color(0xFF8B5CF6)],
+          colors: [_primaryColor, AdminColors.actionBlueLight],
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -1331,10 +1332,10 @@ class _MediaLimitsTab extends ConsumerStatefulWidget {
 }
 
 class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _imageMaxWidthController;
@@ -1408,7 +1409,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               Text('Limites medias mises a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -1429,7 +1430,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               title: 'Images',
               subtitle: 'Configuration des images uploadees',
               icon: Icons.image_rounded,
-              color: const Color(0xFF3B82F6),
+              color: AdminColors.actionBlueLight,
               children: [
                 _buildIntField(
                   controller: _imageMaxWidthController,
@@ -1468,7 +1469,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               title: 'Videos',
               subtitle: 'Limites pour les videos',
               icon: Icons.videocam_rounded,
-              color: const Color(0xFFEF4444),
+              color: AdminColors.statusRed,
               children: [
                 _buildIntField(
                   controller: _maxVideoSizeController,
@@ -1481,7 +1482,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               title: 'Messages',
               subtitle: 'Configuration des messages',
               icon: Icons.message_rounded,
-              color: const Color(0xFF10B981),
+              color: AdminColors.statusGreen,
               children: [
                 _buildIntField(
                   controller: _messageMaxCharsController,
@@ -1577,14 +1578,14 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
         labelText: label,
         hintText: hint,
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AdminColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -1592,7 +1593,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AdminColors.statusRed),
         ),
       ),
       keyboardType: TextInputType.number,
@@ -1612,7 +1613,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_primaryColor, Color(0xFF8B5CF6)],
+          colors: [_primaryColor, AdminColors.actionBlueLight],
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -1666,10 +1667,10 @@ class _SystemSettingsTab extends ConsumerStatefulWidget {
 }
 
 class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _shareBaseUrlController;
@@ -1746,7 +1747,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
               Text('URLs mises a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -1783,7 +1784,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
               Text('Intervalles mis a jour'),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AdminColors.statusGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -1804,7 +1805,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
               title: 'URLs & Contact',
               subtitle: 'Configuration des liens et emails',
               icon: Icons.link_rounded,
-              color: const Color(0xFF3B82F6),
+              color: AdminColors.actionBlueLight,
               saveAction: _saveUrls,
               children: [
                 _buildTextField(
@@ -1849,7 +1850,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
               title: 'Intervalles systeme',
               subtitle: 'Frequences de mise a jour',
               icon: Icons.timer_rounded,
-              color: const Color(0xFFF59E0B),
+              color: AdminColors.statusAmber,
               saveAction: _saveIntervals,
               children: [
                 _buildIntervalField(
@@ -1998,14 +1999,14 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
         labelText: label,
         prefixIcon: Icon(icon, color: _textSecondary, size: 20),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AdminColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -2026,14 +2027,14 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
         labelText: label,
         prefixIcon: Icon(icon, color: _textSecondary, size: 20),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AdminColors.bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AdminColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -2041,7 +2042,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AdminColors.statusRed),
         ),
       ),
       keyboardType: TextInputType.number,

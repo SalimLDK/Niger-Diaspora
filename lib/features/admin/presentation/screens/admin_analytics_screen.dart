@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,10 +13,10 @@ class AdminAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -120,19 +121,19 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: AdminColors.statusRedBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: AdminColors.alertBorderRed),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.shade100,
+              color: AdminColors.statusRedBg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: AppIcon(AppIcon.error, color: Colors.red.shade700, size: 28),
+            child: AppIcon(AppIcon.error, color: AdminColors.statusRedStrong, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -144,13 +145,13 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red.shade700,
+                    color: AdminColors.statusRedStrong,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   error,
-                  style: TextStyle(color: Colors.red.shade600),
+                  style: TextStyle(color: AdminColors.statusRed),
                 ),
               ],
             ),
@@ -170,7 +171,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  colors: [AdminColors.statusGreen, AdminColors.statusGreenStrong],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -195,20 +196,20 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             _buildStatCard(
               'Aujourd\'hui',
               data.newUsersToday.toString(),
-              const AppIcon(AppIcon.personAdd, color: Color(0xFF3B82F6), size: 24),
-              const Color(0xFF3B82F6),
+              const AppIcon(AppIcon.personAdd, color: AdminColors.actionBlueLight, size: 24),
+              AdminColors.actionBlueLight,
             ),
             _buildStatCard(
               'Cette semaine',
               data.newUsersThisWeek.toString(),
-              const Icon(Icons.date_range_rounded, color: Color(0xFF10B981), size: 24),
-              const Color(0xFF10B981),
+              const Icon(Icons.date_range_rounded, color: AdminColors.statusGreen, size: 24),
+              AdminColors.statusGreen,
             ),
             _buildStatCard(
               'Ce mois',
               data.newUsersThisMonth.toString(),
-              const Icon(Icons.calendar_month_rounded, color: Color(0xFFF59E0B), size: 24),
-              const Color(0xFFF59E0B),
+              const Icon(Icons.calendar_month_rounded, color: AdminColors.statusAmber, size: 24),
+              AdminColors.statusAmber,
             ),
           ],
         ),
@@ -275,7 +276,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [_primaryColor, Color(0xFF8B5CF6)],
+                  colors: [_primaryColor, AdminColors.actionBlueLight],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -373,7 +374,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                             gradient: const LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [_primaryColor, Color(0xFF8B5CF6)],
+                              colors: [_primaryColor, AdminColors.actionBlueLight],
                             ),
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(8),
@@ -428,8 +429,8 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         Expanded(
           child: _buildDistributionCard(
             'Evenements par Categorie',
-            const Icon(Icons.event_rounded, color: Color(0xFF3B82F6), size: 18),
-            const Color(0xFF3B82F6),
+            const Icon(Icons.event_rounded, color: AdminColors.actionBlueLight, size: 18),
+            AdminColors.actionBlueLight,
             data.eventsByCategory,
           ),
         ),
@@ -437,8 +438,8 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         Expanded(
           child: _buildDistributionCard(
             'Commerces par Categorie',
-            const AppIcon(AppIcon.store, color: Color(0xFFF59E0B), size: 18),
-            const Color(0xFFF59E0B),
+            const AppIcon(AppIcon.store, color: AdminColors.statusAmber, size: 18),
+            AdminColors.statusAmber,
             data.businessesByCategory,
           ),
         ),
@@ -538,7 +539,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: AdminColors.statusGrayBg,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: FractionallySizedBox(
@@ -584,7 +585,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFFA855F7)],
+                  colors: [AdminColors.statusPurple, AdminColors.statusPurple],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -619,10 +620,10 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildExportButton('Utilisateurs', const AppIcon(AppIcon.people, color: Colors.white, size: 20), const Color(0xFF3B82F6), 'users'),
-              _buildExportButton('Evenements', const Icon(Icons.event_rounded, color: Colors.white, size: 20), const Color(0xFF10B981), 'events'),
-              _buildExportButton('Commerces', const AppIcon(AppIcon.store, color: Colors.white, size: 20), const Color(0xFFF59E0B), 'businesses'),
-              _buildExportButton('Transactions', const Icon(Icons.payments_rounded, color: Colors.white, size: 20), const Color(0xFF8B5CF6), 'transactions'),
+              _buildExportButton('Utilisateurs', const AppIcon(AppIcon.people, color: Colors.white, size: 20), AdminColors.actionBlueLight, 'users'),
+              _buildExportButton('Evenements', const Icon(Icons.event_rounded, color: Colors.white, size: 20), AdminColors.statusGreen, 'events'),
+              _buildExportButton('Commerces', const AppIcon(AppIcon.store, color: Colors.white, size: 20), AdminColors.statusAmber, 'businesses'),
+              _buildExportButton('Transactions', const Icon(Icons.payments_rounded, color: Colors.white, size: 20), AdminColors.statusPurple, 'transactions'),
             ],
           ),
         ),

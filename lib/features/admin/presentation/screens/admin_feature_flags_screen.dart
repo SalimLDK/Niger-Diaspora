@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,11 +15,11 @@ class AdminFeatureFlagsScreen extends ConsumerStatefulWidget {
 
 class _AdminFeatureFlagsScreenState
     extends ConsumerState<AdminFeatureFlagsScreen> {
-  static const _primaryColor = Color(0xFF6366F1);
-  static const _cardColor = Colors.white;
-  static const _textPrimary = Color(0xFF1E293B);
-  static const _textSecondary = Color(0xFF64748B);
-  static const _backgroundColor = Color(0xFFF8FAFC);
+  static const _primaryColor = AdminColors.actionBlue;
+  static const _cardColor = AdminColors.surface;
+  static const _textPrimary = AdminColors.text;
+  static const _textSecondary = AdminColors.text2;
+  static const _backgroundColor = AdminColors.bg;
 
   FeatureFlagsEntity? _localFlags;
   bool _hasChanges = false;
@@ -76,7 +77,7 @@ class _AdminFeatureFlagsScreenState
                 Text('Feature flags mis a jour'),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AdminColors.statusGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -100,7 +101,7 @@ class _AdminFeatureFlagsScreenState
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AdminColors.statusRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -152,7 +153,7 @@ class _AdminFeatureFlagsScreenState
                   : Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [_primaryColor, Color(0xFF8B5CF6)],
+                          colors: [_primaryColor, AdminColors.actionBlueLight],
                         ),
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
@@ -221,19 +222,19 @@ class _AdminFeatureFlagsScreenState
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.red.shade50,
+          color: AdminColors.statusRedBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.red.shade200),
+          border: Border.all(color: AdminColors.alertBorderRed),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.shade100,
+                color: AdminColors.statusRedBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.error_outline, color: Colors.red.shade700, size: 28),
+              child: Icon(Icons.error_outline, color: AdminColors.statusRedStrong, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -245,13 +246,13 @@ class _AdminFeatureFlagsScreenState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red.shade700,
+                      color: AdminColors.statusRedStrong,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     error,
-                    style: TextStyle(color: Colors.red.shade600),
+                    style: TextStyle(color: AdminColors.statusRed),
                   ),
                 ],
               ),
@@ -268,13 +269,13 @@ class _AdminFeatureFlagsScreenState
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isMaintenanceOn ? Colors.red.shade50 : _cardColor,
+        color: isMaintenanceOn ? AdminColors.statusRedBg : _cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: isMaintenanceOn ? Border.all(color: Colors.red.shade200, width: 2) : null,
+        border: isMaintenanceOn ? Border.all(color: AdminColors.alertBorderRed, width: 2) : null,
         boxShadow: [
           BoxShadow(
             color: isMaintenanceOn
-                ? Colors.red.withValues(alpha: 0.1)
+                ? AdminColors.statusRed.withValues(alpha: 0.1)
                 : Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
@@ -291,8 +292,8 @@ class _AdminFeatureFlagsScreenState
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isMaintenanceOn
-                        ? [Colors.red.shade400, Colors.red.shade600]
-                        : [Colors.grey.shade400, Colors.grey.shade600],
+                        ? [AdminColors.statusRed, AdminColors.statusRedStrong]
+                        : [AdminColors.statusGray, AdminColors.statusGray],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -316,7 +317,7 @@ class _AdminFeatureFlagsScreenState
                       isMaintenanceOn ? 'Application en maintenance' : 'Application active',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isMaintenanceOn ? Colors.red.shade600 : _textSecondary,
+                        color: isMaintenanceOn ? AdminColors.statusRed : _textSecondary,
                       ),
                     ),
                   ],
@@ -326,8 +327,8 @@ class _AdminFeatureFlagsScreenState
                 scale: 1.2,
                 child: Switch(
                   value: _flags.maintenanceMode,
-                  activeThumbColor: Colors.red,
-                  activeTrackColor: Colors.red.shade200,
+                  activeThumbColor: AdminColors.statusRed,
+                  activeTrackColor: AdminColors.alertBorderRed,
                   onChanged: (value) {
                     _updateFlag(_flags.copyWith(maintenanceMode: value));
                   },
@@ -349,20 +350,20 @@ class _AdminFeatureFlagsScreenState
               controller: _maintenanceMessageController,
               decoration: InputDecoration(
                 hintText: 'Ex: Application en maintenance...',
-                hintStyle: TextStyle(color: Colors.grey.shade400),
+                hintStyle: TextStyle(color: AdminColors.text3),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.red.shade200),
+                  borderSide: BorderSide(color: AdminColors.alertBorderRed),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.red.shade200),
+                  borderSide: BorderSide(color: AdminColors.alertBorderRed),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+                  borderSide: BorderSide(color: AdminColors.statusRed, width: 2),
                 ),
               ),
               maxLines: 2,
@@ -376,18 +377,18 @@ class _AdminFeatureFlagsScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.shade100,
+                color: AdminColors.statusRedBg,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 24),
+                  Icon(Icons.warning_amber_rounded, color: AdminColors.statusRedStrong, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'L\'application sera inaccessible pour tous les utilisateurs non-admin!',
                       style: TextStyle(
-                        color: Colors.red.shade800,
+                        color: AdminColors.statusRedStrong,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -411,7 +412,7 @@ class _AdminFeatureFlagsScreenState
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [_primaryColor, Color(0xFF8B5CF6)],
+                  colors: [_primaryColor, AdminColors.actionBlueLight],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -445,7 +446,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Transfert d\'argent',
           subtitle: 'Envoi d\'argent vers le Niger',
           icon: Icons.send_rounded,
-          color: const Color(0xFF10B981),
+          color: AdminColors.statusGreen,
           value: _flags.moneyTransfer,
           onChanged: (v) => _updateFlag(_flags.copyWith(moneyTransfer: v)),
         ),
@@ -453,7 +454,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Marketplace',
           subtitle: 'Achat et vente de produits',
           icon: Icons.storefront_rounded,
-          color: const Color(0xFFF59E0B),
+          color: AdminColors.statusAmber,
           value: _flags.marketplace,
           onChanged: (v) => _updateFlag(_flags.copyWith(marketplace: v)),
         ),
@@ -461,7 +462,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Annuaire Entreprises',
           subtitle: 'Repertoire des entreprises nigeriennes',
           icon: Icons.business_rounded,
-          color: const Color(0xFF3B82F6),
+          color: AdminColors.actionBlueLight,
           value: _flags.businessDirectory,
           onChanged: (v) => _updateFlag(_flags.copyWith(businessDirectory: v)),
         ),
@@ -469,7 +470,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Evenements',
           subtitle: 'Creation et participation aux evenements',
           icon: Icons.event_rounded,
-          color: const Color(0xFF8B5CF6),
+          color: AdminColors.statusPurple,
           value: _flags.events,
           onChanged: (v) => _updateFlag(_flags.copyWith(events: v)),
         ),
@@ -477,7 +478,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Groupes',
           subtitle: 'Creation et gestion des groupes',
           icon: Icons.groups_rounded,
-          color: const Color(0xFFEC4899),
+          color: AdminColors.statusPurple,
           value: _flags.groups,
           onChanged: (v) => _updateFlag(_flags.copyWith(groups: v)),
         ),
@@ -485,7 +486,7 @@ class _AdminFeatureFlagsScreenState
           title: 'Ambassades',
           subtitle: 'Services consulaires et ambassades',
           icon: Icons.account_balance_rounded,
-          color: const Color(0xFF06B6D4),
+          color: AdminColors.statusGreen,
           value: _flags.embassies,
           onChanged: (v) => _updateFlag(_flags.copyWith(embassies: v)),
         ),
@@ -526,12 +527,12 @@ class _AdminFeatureFlagsScreenState
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: value ? color.withValues(alpha: 0.1) : Colors.grey.shade100,
+              color: value ? color.withValues(alpha: 0.1) : AdminColors.statusGrayBg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
-              color: value ? color : Colors.grey.shade400,
+              color: value ? color : AdminColors.statusGray,
               size: 24,
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,10 +19,10 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   String? _selectedTypeFilter;
 
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   static const List<String> _targetTypes = [
     'user',
@@ -176,21 +177,21 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             'En attente',
             stats['pending'] ?? 0,
             Icons.hourglass_empty_rounded,
-            const Color(0xFFF59E0B),
+            AdminColors.statusAmber,
           ),
           const SizedBox(width: 12),
           _buildStatCard(
             'Résolus',
             stats['resolved'] ?? 0,
             Icons.check_circle_outline_rounded,
-            const Color(0xFF10B981),
+            AdminColors.statusGreen,
           ),
           const SizedBox(width: 12),
           _buildStatCard(
             'Rejetés',
             stats['dismissed'] ?? 0,
             Icons.cancel_outlined,
-            const Color(0xFF6B7280),
+            AdminColors.statusGray,
           ),
           const SizedBox(width: 12),
           _buildStatCard(
@@ -290,7 +291,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                     )
                   : null,
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: AdminColors.bg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -353,7 +354,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         setState(() => _selectedTypeFilter = type);
       },
       selectedColor: _primaryColor,
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: AdminColors.statusGrayBg,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -406,11 +407,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444),
+        color: AdminColors.statusRed,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFEF4444).withAlpha(50),
+            color: AdminColors.statusRed.withAlpha(50),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -438,7 +439,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -565,7 +566,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AdminColors.bg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -592,9 +593,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withAlpha(15),
+              color: AdminColors.statusGreen.withAlpha(15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF10B981).withAlpha(30)),
+              border: Border.all(color: AdminColors.statusGreen.withAlpha(30)),
             ),
             child: Text(
               report.adminNote!,
@@ -618,9 +619,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF3C7),
+        color: AdminColors.statusAmberBg,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFF59E0B).withAlpha(50)),
+        border: Border.all(color: AdminColors.statusAmber.withAlpha(50)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,7 +631,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               Icon(
                 _getSnapshotIcon(snapshot.contentType),
                 size: 16,
-                color: const Color(0xFFF59E0B),
+                color: AdminColors.statusAmber,
               ),
               const SizedBox(width: 8),
               const Text(
@@ -638,7 +639,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFB45309),
+                  color: AdminColors.statusAmber,
                 ),
               ),
               const Spacer(),
@@ -647,7 +648,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                   _formatDate(snapshot.capturedAt!),
                   style: TextStyle(
                     fontSize: 10,
-                    color: const Color(0xFFB45309).withAlpha(180),
+                    color: AdminColors.statusAmber.withAlpha(180),
                   ),
                 ),
             ],
@@ -665,7 +666,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 80,
-                  color: Colors.grey.shade200,
+                  color: AdminColors.statusGrayBg,
                   child: const Center(child: Icon(Icons.broken_image)),
                 ),
               ),
@@ -843,20 +844,20 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         _buildActionButton(
           label: 'Rejeter',
           icon: Icons.close_rounded,
-          color: const Color(0xFF6B7280),
+          color: AdminColors.statusGray,
           isOutlined: true,
           onPressed: () => _dismissReport(report),
         ),
         _buildActionButton(
           label: 'Traiter',
           icon: Icons.check_rounded,
-          color: const Color(0xFF10B981),
+          color: AdminColors.statusGreen,
           onPressed: () => _resolveReport(report),
         ),
         _buildActionButton(
           label: 'Supprimer contenu',
           icon: Icons.delete_rounded,
-          color: const Color(0xFFEF4444),
+          color: AdminColors.statusRed,
           onPressed: () => _deleteContent(report),
         ),
       ],
@@ -925,13 +926,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   Color _getStatusColor(String status) {
     switch (status) {
       case 'pending':
-        return const Color(0xFFF59E0B);
+        return AdminColors.statusAmber;
       case 'resolved':
-        return const Color(0xFF10B981);
+        return AdminColors.statusGreen;
       case 'dismissed':
-        return const Color(0xFF6B7280);
+        return AdminColors.statusGray;
       default:
-        return const Color(0xFF3B82F6);
+        return AdminColors.actionBlueLight;
     }
   }
 
@@ -1046,13 +1047,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.error_outline_rounded,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(height: 24),
@@ -1198,12 +1199,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: AdminColors.statusRed.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.warning_amber_rounded,
-                color: Color(0xFFEF4444),
+                color: AdminColors.statusRed,
               ),
             ),
             const SizedBox(width: 12),
@@ -1231,7 +1232,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: AdminColors.bg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1266,7 +1267,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             icon: const Icon(Icons.delete_rounded, size: 18),
             label: const Text('Supprimer'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: AdminColors.statusRed,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
@@ -1355,7 +1356,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ],
         ),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+        backgroundColor: isError ? AdminColors.statusRed : AdminColors.statusGreen,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );

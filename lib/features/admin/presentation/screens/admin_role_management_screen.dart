@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
@@ -47,7 +48,7 @@ class _AdminRoleManagementScreenState
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+              colors: [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -63,13 +64,13 @@ class _AdminRoleManagementScreenState
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: AdminColors.text,
                 ),
               ),
               Text(
                 'Attribuez et gérez les rôles des administrateurs',
                 style: TextStyle(
-                  color: Color(0xFF64748B),
+                  color: AdminColors.text2,
                   fontSize: 14,
                 ),
               ),
@@ -92,7 +93,7 @@ class _AdminRoleManagementScreenState
           icon: const Icon(Icons.person_add),
           label: const Text('Nouvel Admin'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6366F1),
+            backgroundColor: AdminColors.actionBlue,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             shape: RoundedRectangleBorder(
@@ -122,9 +123,9 @@ class _AdminRoleManagementScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            Icon(Icons.error_outline, size: 48, color: AdminColors.statusRed),
             const SizedBox(height: 16),
-            Text(state.error!, style: const TextStyle(color: Colors.red)),
+            Text(state.error!, style: const TextStyle(color: AdminColors.statusRed)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -143,13 +144,13 @@ class _AdminRoleManagementScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.admin_panel_settings_outlined,
-                size: 64, color: Color(0xFF94A3B8)),
+                size: 64, color: AdminColors.text3),
             SizedBox(height: 16),
             Text(
               'Aucun administrateur configuré',
               style: TextStyle(
                 fontSize: 18,
-                color: Color(0xFF64748B),
+                color: AdminColors.text2,
               ),
             ),
           ],
@@ -201,14 +202,14 @@ class _AdminRoleManagementScreenState
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: AdminColors.statusGrayBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${admins.length}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
+                    color: AdminColors.text2,
                   ),
                 ),
               ),
@@ -227,7 +228,7 @@ class _AdminRoleManagementScreenState
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        side: const BorderSide(color: AdminColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -254,21 +255,21 @@ class _AdminRoleManagementScreenState
                   ),
                   Text(
                     admin.email ?? '',
-                    style: const TextStyle(color: Color(0xFF64748B)),
+                    style: const TextStyle(color: AdminColors.text2),
                   ),
                   if (admin.lastLoginAt != null)
                     Text(
                       'Dernière connexion: ${_formatDate(admin.lastLoginAt!)}',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF94A3B8),
+                        color: AdminColors.text3,
                       ),
                     ),
                 ],
               ),
             ),
             PopupMenuButton<AdminRole?>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+              icon: const Icon(Icons.more_vert, color: AdminColors.text2),
               itemBuilder: (context) => [
                 ...availableAdminRoles
                     .where((r) => r != admin.adminRole)
@@ -288,10 +289,10 @@ class _AdminRoleManagementScreenState
                   child: Row(
                     children: [
                       Icon(Icons.remove_circle_outline,
-                          size: 18, color: Colors.red),
+                          size: 18, color: AdminColors.statusRed),
                       SizedBox(width: 8),
                       Text('Révoquer l\'accès',
-                          style: TextStyle(color: Colors.red)),
+                          style: TextStyle(color: AdminColors.statusRed)),
                     ],
                   ),
                 ),
@@ -361,7 +362,7 @@ class _AdminRoleManagementScreenState
                   .revokeRole(admin.id);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AdminColors.statusRed,
               foregroundColor: Colors.white,
             ),
             child: const Text('Révoquer'),

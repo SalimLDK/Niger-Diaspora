@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,10 +13,10 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
 
 class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   // Modern color palette (matching dashboard)
-  static const Color _primaryColor = Color(0xFF6366F1);
-  static const Color _cardColor = Colors.white;
-  static const Color _textPrimary = Color(0xFF1E293B);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _primaryColor = AdminColors.actionBlue;
+  static const Color _cardColor = AdminColors.surface;
+  static const Color _textPrimary = AdminColors.text;
+  static const Color _textSecondary = AdminColors.text2;
 
   @override
   void initState() {
@@ -42,7 +43,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: AdminColors.statusRed,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Déconnecter'),
@@ -132,7 +133,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AdminColors.statusGrayBg,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
@@ -164,7 +165,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           itemCount: adminState.recentUsers.length,
           separatorBuilder: (context, index) => Divider(
             height: 1,
-            color: Colors.grey.withAlpha(30),
+            color: AdminColors.border.withAlpha(30),
           ),
           itemBuilder: (context, index) {
             final user = adminState.recentUsers[index];
@@ -192,7 +193,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
               borderRadius: BorderRadius.circular(12),
               gradient: user.photoUrl == null
                   ? const LinearGradient(
-                      colors: [_primaryColor, Color(0xFF8B5CF6)],
+                      colors: [_primaryColor, AdminColors.actionBlueLight],
                     )
                   : null,
               image: user.photoUrl != null
@@ -270,16 +271,16 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       margin: const EdgeInsets.only(left: 8),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withAlpha(20),
+        color: AdminColors.statusAmber.withAlpha(20),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFF59E0B).withAlpha(50)),
+        border: Border.all(color: AdminColors.statusAmber.withAlpha(50)),
       ),
       child: const Text(
         'Admin',
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: Color(0xFFF59E0B),
+          color: AdminColors.statusAmber,
         ),
       ),
     );
@@ -290,16 +291,16 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       margin: const EdgeInsets.only(left: 8),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withAlpha(20),
+        color: AdminColors.statusRed.withAlpha(20),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFEF4444).withAlpha(50)),
+        border: Border.all(color: AdminColors.statusRed.withAlpha(50)),
       ),
       child: const Text(
         'Banni',
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: Color(0xFFEF4444),
+          color: AdminColors.statusRed,
         ),
       ),
     );
@@ -319,12 +320,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF4444).withAlpha(15),
+              color: AdminColors.statusRed.withAlpha(15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.logout_rounded,
-              color: Color(0xFFEF4444),
+              color: AdminColors.statusRed,
               size: 20,
             ),
           ),
