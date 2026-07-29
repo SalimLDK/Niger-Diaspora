@@ -9,19 +9,65 @@ import '../../../messages/data/datasources/message_remote_datasource.dart';
 import '../../../messages/domain/entities/conversation_entity.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
+import '../../data/datasources/search_remote_datasource.dart';
 
 part 'search_provider.g.dart';
 
 @riverpod
 class SearchNotifier extends _$SearchNotifier {
+  final _searchDataSource = SearchRemoteDataSourceImpl();
+
   @override
   SearchState build() {
+    loadRecentSearches();
     return const SearchState();
+  }
+
+  /// Recherches récentes (§12d), chargées à l'ouverture de l'écran.
+  Future<void> loadRecentSearches() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      final recent = await _searchDataSource.getRecentSearches(
+        userId: userId,
+      );
+      state = state.copyWith(recentSearches: recent);
+    } catch (_) {
+      // Confort, pas critique : on garde la liste vide plutôt que de bloquer.
+    }
+  }
+
+  /// Enregistre la requête validée (soumission du champ) dans les récentes.
+  Future<void> commitSearch(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      await _searchDataSource.saveRecentSearch(
+        userId: userId,
+        query: trimmed,
+      );
+      await loadRecentSearches();
+    } catch (_) {
+      // Idem : silencieux.
+    }
+  }
+
+  Future<void> clearRecentSearches() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      await _searchDataSource.clearRecentSearches(userId: userId);
+      state = state.copyWith(recentSearches: const []);
+    } catch (_) {
+      // Idem : silencieux.
+    }
   }
 
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
-      state = const SearchState();
+      state = SearchState(recentSearches: state.recentSearches);
       return;
     }
 
@@ -84,7 +130,7 @@ class SearchNotifier extends _$SearchNotifier {
   }
 
   void clearSearch() {
-    state = const SearchState();
+    state = SearchState(recentSearches: state.recentSearches);
   }
 
   void setFilter(SearchFilter filter) {
@@ -101,6 +147,7 @@ class SearchState {
   final List<FriendEntity> friends;
   final List<ConversationEntity> conversations;
   final SearchFilter filter;
+  final List<String> recentSearches;
 
   const SearchState({
     this.query = '',
@@ -111,6 +158,7 @@ class SearchState {
     this.friends = const [],
     this.conversations = const [],
     this.filter = SearchFilter.all,
+    this.recentSearches = const [],
   });
 
   SearchState copyWith({
@@ -122,6 +170,7 @@ class SearchState {
     List<FriendEntity>? friends,
     List<ConversationEntity>? conversations,
     SearchFilter? filter,
+    List<String>? recentSearches,
   }) {
     return SearchState(
       query: query ?? this.query,
@@ -132,6 +181,7 @@ class SearchState {
       friends: friends ?? this.friends,
       conversations: conversations ?? this.conversations,
       filter: filter ?? this.filter,
+      recentSearches: recentSearches ?? this.recentSearches,
     );
   }
 

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/file_download_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
@@ -36,7 +38,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   VideoPlayerController? _videoCtrl;
   bool _videoInitialized = false;
 
-  double _progress = 0.35; // 0.0 – 1.0
+  double _progress = 0.0; // 0.0 – 1.0
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
   int _currentChapter = 2; // 0-based
@@ -44,9 +46,25 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   // Chapitres : non portés par RoomReplayEntity → repères par défaut.
   static const _chapters = ['Introduction', 'Actualités', 'Diaspora & politique', 'Q&R', 'Conclusion'];
 
+  // Lecture audio réelle (§1e) via le service partagé just_audio.
+  final AudioPlaybackService _audio = AudioPlaybackService();
+  StreamSubscription<Duration>? _posSub;
+  StreamSubscription<Duration?>? _durSub;
+  StreamSubscription<bool>? _playSub;
+  Duration _position = Duration.zero;
+  Duration _total = Duration.zero;
+
+  // Minuteur de sommeil.
+  Timer? _sleepTimer;
+  int? _sleepMinutes;
+
   // Téléchargement hors ligne (§1e).
   bool _downloading = false;
   bool _downloaded = false;
+
+  bool get _isAudio =>
+      (widget.replay?.videoUrl ?? '').isEmpty &&
+      (widget.replay?.audioUrl ?? '').isNotEmpty;
 
   @override
   void initState() {
@@ -57,8 +75,71 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
         ..initialize().then((_) {
           if (mounted) setState(() => _videoInitialized = true);
         });
+    } else if (_isAudio) {
+      _total = Duration(seconds: widget.replay?.durationSeconds ?? 0);
+      _posSub = _audio.positionStream.listen((p) {
+        if (!mounted) return;
+        setState(() {
+          _position = p;
+          if (_total.inMilliseconds > 0) {
+            _progress = (p.inMilliseconds / _total.inMilliseconds).clamp(0.0, 1.0);
+          }
+        });
+      });
+      _durSub = _audio.durationStream.listen((d) {
+        if (mounted && d != null && d > Duration.zero) {
+          setState(() => _total = d);
+        }
+      });
+      _playSub = _audio.playingStream.listen((playing) {
+        if (mounted) setState(() => _isPlaying = playing);
+      });
     }
     _checkDownloaded();
+  }
+
+  /// Play/pause de la piste audio (ou vidéo) réelle.
+  Future<void> _togglePlay() async {
+    final replay = widget.replay;
+    if (_isAudio && replay?.audioUrl != null) {
+      await _audio.togglePlayPause(replay!.audioUrl!);
+    } else if (_videoCtrl != null) {
+      setState(() {
+        _videoCtrl!.value.isPlaying ? _videoCtrl!.pause() : _videoCtrl!.play();
+        _isPlaying = _videoCtrl!.value.isPlaying;
+      });
+    }
+  }
+
+  /// Saut relatif (§1e : −10 s / +30 s) sur la lecture réelle.
+  Future<void> _skip(int seconds) async {
+    if (_isAudio) {
+      var target = _position + Duration(seconds: seconds);
+      if (target < Duration.zero) target = Duration.zero;
+      if (_total > Duration.zero && target > _total) target = _total;
+      await _audio.seek(target);
+    } else if (_videoCtrl != null) {
+      await _videoCtrl!.seekTo(
+        _videoCtrl!.value.position + Duration(seconds: seconds),
+      );
+    }
+  }
+
+  Future<void> _seekFraction(double v) async {
+    if (_isAudio && _total > Duration.zero) {
+      await _audio.seek(
+        Duration(milliseconds: (v * _total.inMilliseconds).round()),
+      );
+    } else {
+      setState(() => _progress = v);
+    }
+  }
+
+  void _cycleSpeed() {
+    setState(() {
+      _playbackSpeed = _playbackSpeed < 2.0 ? _playbackSpeed + 0.5 : 1.0;
+    });
+    if (_isAudio) _audio.setSpeed(_playbackSpeed);
   }
 
   Future<void> _checkDownloaded() async {
@@ -87,10 +168,73 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     });
   }
 
+  /// Minuteur de sommeil (§1e) : met la lecture en pause après N minutes.
+  void _setSleepTimer(int? minutes) {
+    _sleepTimer?.cancel();
+    setState(() => _sleepMinutes = minutes);
+    if (minutes != null) {
+      _sleepTimer = Timer(Duration(minutes: minutes), () {
+        if (_isAudio) {
+          _audio.pause();
+        } else {
+          _videoCtrl?.pause();
+        }
+        if (mounted) setState(() => _sleepMinutes = null);
+      });
+    }
+  }
+
+  void _showSleepMenu() {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: DNColors.darkSurface,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Text(l10n.sleepTimer,
+                style: DNText.mono(size: 10, color: DNColors.ink4),),
+            const SizedBox(height: 4),
+            for (final m in const [5, 15, 30, 60])
+              ListTile(
+                title: Text('$m min',
+                    style: DNText.sans(size: 15, color: DNColors.paper),),
+                trailing: _sleepMinutes == m
+                    ? const Icon(Icons.check, color: DNColors.ochre)
+                    : null,
+                onTap: () {
+                  _setSleepTimer(m);
+                  Navigator.pop(context);
+                },
+              ),
+            ListTile(
+              title: Text(l10n.sleepTimerOff,
+                  style: DNText.sans(size: 15, color: DNColors.paper),),
+              trailing: _sleepMinutes == null
+                  ? const Icon(Icons.check, color: DNColors.ochre)
+                  : null,
+              onTap: () {
+                _setSleepTimer(null);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _pulseCtrl.dispose();
     _videoCtrl?.dispose();
+    _sleepTimer?.cancel();
+    _posSub?.cancel();
+    _durSub?.cancel();
+    _playSub?.cancel();
+    if (_isAudio) _audio.pause();
     super.dispose();
   }
 
@@ -245,7 +389,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: _Waveform(
                   progress: _progress,
-                  onSeek: (v) => setState(() => _progress = v),
+                  onSeek: _seekFraction,
                 ),
               ),
               const SizedBox(height: 4),
@@ -254,9 +398,15 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_fmtProgress(0), style: DNText.mono(size: 8, color: DNColors.ink4)),
-                    Text(_fmtProgress(_progress), style: DNText.mono(size: 8, color: DNColors.ink4)),
-                    Text(_fmtProgress(1.0), style: DNText.mono(size: 8, color: DNColors.ink4)),
+                    Text(_fmtDuration(Duration.zero),
+                        style: DNText.mono(size: 8, color: DNColors.ink4),),
+                    Text(
+                        _isAudio
+                            ? _fmtDuration(_position)
+                            : _fmtProgress(_progress),
+                        style: DNText.mono(size: 8, color: DNColors.ink4),),
+                    Text(_isAudio ? _fmtDuration(_total) : _fmtProgress(1.0),
+                        style: DNText.mono(size: 8, color: DNColors.ink4),),
                   ],
                 ),
               ),
@@ -268,13 +418,12 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _ControlBtn(
-                    label: '⏮15',
-                    onTap: () => setState(() =>
-                        _progress = (_progress - 0.02).clamp(0.0, 1.0),),
+                    label: '⏮10',
+                    onTap: () => _skip(-10),
                   ),
                   const SizedBox(width: 20),
                   GestureDetector(
-                    onTap: () => setState(() => _isPlaying = !_isPlaying),
+                    onTap: _togglePlay,
                     child: Container(
                       width: 64,
                       height: 64,
@@ -291,9 +440,8 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                   ),
                   const SizedBox(width: 20),
                   _ControlBtn(
-                    label: '15⏭',
-                    onTap: () => setState(() =>
-                        _progress = (_progress + 0.02).clamp(0.0, 1.0),),
+                    label: '30⏭',
+                    onTap: () => _skip(30),
                   ),
                 ],
               ),
@@ -308,13 +456,19 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                   children: [
                     _SpeedPill(
                       speed: _playbackSpeed,
-                      onTap: () => setState(() {
-                        _playbackSpeed =
-                            _playbackSpeed < 2.0 ? _playbackSpeed + 0.5 : 1.0;
-                      }),
+                      onTap: _cycleSpeed,
                     ),
                     const SizedBox(width: 8),
                     _Pill(label: AppLocalizations.of(context)!.chaptersPill, onTap: _showChapters),
+                    const SizedBox(width: 8),
+                    // Minuteur de sommeil (§1e).
+                    _Pill(
+                      label: _sleepMinutes != null
+                          ? '😴 ${_sleepMinutes}m'
+                          : '😴 ${AppLocalizations.of(context)!.sleepTimer}',
+                      ochre: _sleepMinutes != null,
+                      onTap: _showSleepMenu,
+                    ),
                     const SizedBox(width: 8),
                     _Pill(label: '🪙 ${AppLocalizations.of(context)!.audioRoomTipLabel}', ochre: true, onTap: () {}),
                   ],
@@ -341,6 +495,10 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
         itemBuilder: (_, i) => ListTile(
           onTap: () {
             setState(() => _currentChapter = i);
+            // Pas de timestamps réels sur l'entité → division régulière.
+            if (_isAudio && _chapters.isNotEmpty) {
+              _seekFraction(i / _chapters.length);
+            }
             Navigator.pop(context);
           },
           leading: Text('${i + 1}',
@@ -359,6 +517,12 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     final pos = Duration(milliseconds: (total.inMilliseconds * pct).round());
     final m = pos.inMinutes.toString().padLeft(2, '0');
     final s = (pos.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  static String _fmtDuration(Duration d) {
+    final m = d.inMinutes.toString().padLeft(2, '0');
+    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
     return '$m:$s';
   }
 }

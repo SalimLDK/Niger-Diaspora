@@ -24098,6 +24098,18 @@ abstract class AppLocalizations {
   /// **'REPLAY'**
   String get replayBadge;
 
+  /// No description provided for @sleepTimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Minuteur'**
+  String get sleepTimer;
+
+  /// No description provided for @sleepTimerOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivé'**
+  String get sleepTimerOff;
+
   /// No description provided for @saveAsPodcastTitle.
   ///
   /// In fr, this message translates to:

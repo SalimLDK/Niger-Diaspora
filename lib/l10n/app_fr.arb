@@ -6088,6 +6088,8 @@
   "liveBadge": "DIRECT",
   "chaptersPill": "Chapitres",
   "replayBadge": "REPLAY",
+  "sleepTimer": "Minuteur",
+  "sleepTimerOff": "Désactivé",
   "saveAsPodcastTitle": "Sauvegarder comme podcast",
   "saveAsPodcastSubtitle": "post-production",
   "postPublicationTips": "Pourboires post-publication",

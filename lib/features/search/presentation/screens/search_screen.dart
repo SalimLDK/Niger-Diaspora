@@ -59,6 +59,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
+  /// Requête validée (entrée clavier ou tap sur une puce récente) : lance la
+  /// recherche et l'ajoute aux recherches récentes (§12d).
+  void _onSearchSubmitted(String query) {
+    if (query.trim().isEmpty) return;
+    _debounce?.cancel();
+    ref.read(searchNotifierProvider.notifier).commitSearch(query);
+  }
+
+  void _tapRecentSearch(String query) {
+    _searchController.value = TextEditingValue(
+      text: query,
+      selection: TextSelection.collapsed(offset: query.length),
+    );
+    _onSearchSubmitted(query);
+  }
+
   /// Nombre de résultats bruts pour une catégorie (compteurs des puces 12d).
   int _resultCountFor(SearchState state, SearchFilter filter) {
     switch (filter) {
@@ -135,6 +151,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             hintText: _getHintText(),
             autofocus: true,
             onChanged: _onSearchChanged,
+            onSubmitted: _onSearchSubmitted,
             onClear: () {
               ref.read(searchNotifierProvider.notifier).clearSearch();
             },
@@ -211,6 +228,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _buildResults(SearchState state) {
     if (state.query.isEmpty) {
+      if (state.recentSearches.isNotEmpty) {
+        return _buildRecentSearches(state);
+      }
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -307,6 +327,92 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
         const SizedBox(height: 32),
       ],
+    );
+  }
+
+  /// Recherches récentes (§12d) : chips avec icône horloge + « Effacer ».
+  Widget _buildRecentSearches(SearchState state) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recherches récentes',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            TextButton(
+              onPressed:
+                  () =>
+                      ref
+                          .read(searchNotifierProvider.notifier)
+                          .clearRecentSearches(),
+              child: const Text('Effacer'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              state.recentSearches
+                  .map(
+                    (query) => _RecentSearchChip(
+                      query: query,
+                      onTap: () => _tapRecentSearch(query),
+                    ),
+                  )
+                  .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _RecentSearchChip extends StatelessWidget {
+  final String query;
+  final VoidCallback onTap;
+
+  const _RecentSearchChip({required this.query, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: context.borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.access_time_rounded,
+              size: 15,
+              color: context.textTertiaryColor,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              query,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

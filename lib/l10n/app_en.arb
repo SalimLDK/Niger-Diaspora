@@ -5788,6 +5788,8 @@
   "liveBadge": "LIVE",
   "chaptersPill": "Chapters",
   "replayBadge": "REPLAY",
+  "sleepTimer": "Sleep timer",
+  "sleepTimerOff": "Off",
   "saveAsPodcastTitle": "Save as podcast",
   "saveAsPodcastSubtitle": "post-production",
   "postPublicationTips": "Post-publication tips",

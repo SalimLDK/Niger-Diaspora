@@ -12859,6 +12859,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replayBadge => 'REPLAY';
 
   @override
+  String get sleepTimer => 'Sleep timer';
+
+  @override
+  String get sleepTimerOff => 'Off';
+
+  @override
   String get saveAsPodcastTitle => 'Save as podcast';
 
   @override
