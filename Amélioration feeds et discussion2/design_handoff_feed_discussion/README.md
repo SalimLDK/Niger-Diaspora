@@ -31,6 +31,38 @@ Tours livrés :
 
 Et dans un **second fichier**, `Salons audio & Podcasts.dc.html` : salons audio (liste, salon en direct, patrimoine oral), podcasts (accueil, lecteur), revenus créateur, don et achat de billet.
 
+## État d'implémentation (màj 2026-07-29)
+
+> Branche `wip-jules-2025-12-29T23-58-34-776Z`. `flutter analyze` = **0 issue**, `flutter test` = **62/62**. **Aucune vérification sur appareil** (pas d'émulateur) : les changements de gestes/layout/permissions restent à valider à la main.
+
+**Le handoff est implémenté au maximum du faisable.** Le socle (tours 4–28 + Salons/Podcasts) était déjà couvert ; les items qui restaient « bloqués par le modèle/backend » ont depuis été débloqués.
+
+### ✅ Fait — déblocages récents
+| Item | § | Note |
+|---|---|---|
+| Écran **« Mes entreprises »** multi-cartes | 19c | `getMyBusinesses()` (plus de `.limit(1)`), route `/businesses/mine` |
+| **Offre en cours** sur la carte annuaire | 17c | requête paresseuse par carte |
+| **Fonds d'écran nommés** Sahel / Tissage / Nuit | 21c | rendus en `CustomPainter` (aucun asset) |
+| **Badge « Gratuit »** événements + champ prix | 13a/16e/25a | champ `price` sur `EventEntity` |
+| **Filtre par ville** du fil | — | champ `author_city` + migration SQL |
+| **Rôle modérateur** : champ + affectation + badge MODÉ | 9d | `moderatorIds`, affectation depuis l'écran membres |
+| **Prochaine rencontre** sur la fiche de groupe | 9d | `EventModel` porte enfin `groupId` (était perdu) |
+| **@handle public** + vérification de disponibilité | 16f/10c | champ `handle` + index UNIQUE serveur |
+| **Groupes en commun** sur le profil public | 10c | dérivé des groupes déjà chargés (sans RPC) |
+
+### 🗄️ Migrations Supabase appliquées
+- `posts.author_city` (+ backfill depuis `users.city`) — filtre villes du fil ;
+- `groups.moderator_ids` — rôle modérateur ;
+- `users.handle` (+ index UNIQUE `lower(handle)`) — poignée publique ;
+- `mark_messages_as_delivered` : suppression de la surcharge TEXT en double (bug-fix prod).
+
+### ⛔ Reste hors périmètre (greenfield / contrainte produit)
+- **Rail stories/actus** : feature volontairement écartée (aucun modèle Story) — build greenfield, pas un déblocage.
+- **En-tête carte unifié (7d)** : réécriture d'un écran Google Maps de ~3200 lignes, non testable sans appareil.
+- **Filmstrip multi-média (27d)** : casserait l'éditeur mono-fichier façon Signal.
+- **Sondage / Lieu attachés à un post** : les sondages sont réservés aux groupes (contrainte DB).
+- **Back-office admin (19 écrans)** : traité dans un document séparé (cf. « Non traité dans ce handoff »).
+
 ## Guide d'implémentation détaillé
 
 👉 **`GUIDE_IMPLEMENTATION.md`** explique écran par écran *comment* reproduire les maquettes dans le code : fichier à ouvrir, ce qui disparaît, ce qui apparaît, valeurs exactes, pièges, et les points à trancher avant de coder. Ce README reste la référence *quoi changer* ; le guide donne le *comment*.
