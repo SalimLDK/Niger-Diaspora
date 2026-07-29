@@ -2945,10 +2945,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       appBar: AppBar(
         title: Text(l10n.mapTitle),
         actions: [
-          // Bouton bascule "Membres \u00e0 proximit\u00e9" (mode priv\u00e9)
-          // (Bascule « Membres » déplacée vers le bouton calques de l'en-tête.)
-          // Bouton bascule "Commerces" (visible seulement si le feature flag
-          // "annuaire des commerces" est actif)
+          // (Bascules de couches deplacees vers le bouton calques de l'en-tete -- refonte 7d.)
           // Bouton de sélection du rayon
           GestureDetector(
             onTap: _showRadiusSelector,
