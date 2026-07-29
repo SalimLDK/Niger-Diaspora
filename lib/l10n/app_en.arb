@@ -62,6 +62,7 @@
   "appearOnMap": "Appear on map",
   "blockedUsers": "Blocked users",
   "noBlockedUsers": "No blocked users",
+  "blockedUsersConsequences": "The blocked person can no longer send you messages, or see your location or online status. They are not notified of the block.",
   "unblock": "Unblock",
   "blockUser": "Block user",
   "userBlocked": "User blocked",

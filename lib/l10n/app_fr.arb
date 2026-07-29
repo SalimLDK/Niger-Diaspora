@@ -62,6 +62,7 @@
   "appearOnMap": "Apparaître sur la carte",
   "blockedUsers": "Utilisateurs bloqués",
   "noBlockedUsers": "Aucun utilisateur bloqué",
+  "blockedUsersConsequences": "La personne bloquée ne peut plus vous envoyer de messages, ni voir votre position ou votre statut en ligne. Elle n'est pas informée du blocage.",
   "unblock": "Débloquer",
   "blockUser": "Bloquer l'utilisateur",
   "userBlocked": "Utilisateur bloqué",

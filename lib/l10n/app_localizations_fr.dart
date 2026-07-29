@@ -198,6 +198,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noBlockedUsers => 'Aucun utilisateur bloqué';
 
   @override
+  String get blockedUsersConsequences =>
+      'La personne bloquée ne peut plus vous envoyer de messages, ni voir votre position ou votre statut en ligne. Elle n\'est pas informée du blocage.';
+
+  @override
   String get unblock => 'Débloquer';
 
   @override

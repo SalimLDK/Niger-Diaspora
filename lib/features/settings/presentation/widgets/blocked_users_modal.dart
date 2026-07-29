@@ -34,7 +34,38 @@ class BlockedUsersModal extends ConsumerWidget {
               color: context.textPrimaryColor,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
+          // Conséquences du blocage explicitées (§21b) : pas de simple
+          // liste, la personne comprend ce que ça change concrètement.
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: context.textTertiaryColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.blockedUsersConsequences,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.4,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           blockedUsersAsync.when(
             data:
                 (users) =>

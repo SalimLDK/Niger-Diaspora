@@ -470,6 +470,12 @@ abstract class AppLocalizations {
   /// **'Aucun utilisateur bloqué'**
   String get noBlockedUsers;
 
+  /// No description provided for @blockedUsersConsequences.
+  ///
+  /// In fr, this message translates to:
+  /// **'La personne bloquée ne peut plus vous envoyer de messages, ni voir votre position ou votre statut en ligne. Elle n\'est pas informée du blocage.'**
+  String get blockedUsersConsequences;
+
   /// No description provided for @unblock.
   ///
   /// In fr, this message translates to:
