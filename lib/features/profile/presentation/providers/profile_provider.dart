@@ -192,32 +192,13 @@ class NearbyProfilesNotifier
         // liste de membres à proximité.
         final currentUserId = _ref.read(currentUserProvider).valueOrNull?.id;
 
-        // Filtrer par presence:
-        // 1. Online
-        // 2. OU Location mise a jour dans les 5 dernieres minutes
-        final now = DateTime.now();
-        final filteredProfiles = profiles.where((p) {
-          if (currentUserId != null && p.id == currentUserId) return false;
-
-          if (p.isOnline) {
-            // Verifier si le statut "Online" est obsolete (utilisateur fantome)
-            // L'app envoie un heartbeat toutes les 10 min
-            // Si pas de mise a jour depuis 20 min, considerer comme offline
-            if (p.lastSeen != null) {
-              final diffOnline = now.difference(p.lastSeen!);
-              if (diffOnline.inMinutes < 20) return true;
-            }
-          }
-
-          if (p.locationUpdatedAt != null) {
-            final diffLocation = now.difference(p.locationUpdatedAt!);
-            // Seuil de 330 secondes (5m 30s)
-            // (mise a jour en arriere-plan toutes les 5 min + 30s de marge)
-            if (diffLocation.inSeconds < 330) return true;
-          }
-
-          return false;
-        }).toList();
+        // Choix produit : afficher tout membre proche ayant une position
+        // connue, sans filtre de fraîcheur de présence (le dépôt renvoie déjà
+        // les profils visibles dans le rayon). Seul l'utilisateur courant est
+        // écarté.
+        final filteredProfiles = profiles
+            .where((p) => currentUserId == null || p.id != currentUserId)
+            .toList();
 
         state = AsyncValue.data(filteredProfiles);
       },
