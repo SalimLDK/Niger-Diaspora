@@ -2892,6 +2892,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       backgroundColor: context.surfaceColor,
       elevation: 0,
       titleSpacing: 0,
+      toolbarHeight: 58,
       leadingWidth: 40,
       leading: IconButton(
         padding: EdgeInsets.zero,
@@ -2940,19 +2941,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             children: [
               // Avatar
               Container(
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   gradient:
                       widget.isGroup
                           ? context.adaptiveSecondaryGradient
                           : context.adaptivePrimaryGradient,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(13),
                 ),
                 child:
                     displayImage != null
                         ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(13),
                           child: CachedNetworkImage(
                             imageUrl: displayImage,
                             fit: BoxFit.cover,
@@ -3035,13 +3036,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    // Status text below name
+                    // Status text below name + cadenas chiffrement (§4a) —
+                    // jamais affiché pour un compte supprimé, rien à protéger.
                     if (widget.isSelfNotes)
-                      Text(
-                        'Notes personnelles',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.textTertiaryColor,
+                      _buildStatusWithLock(
+                        Text(
+                          'Notes personnelles',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.textTertiaryColor,
+                          ),
                         ),
                       )
                     else if (widget.isGroup)
@@ -3052,11 +3056,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                               (count != null && count > 0)
                                   ? '$count ${count > 1 ? 'membres' : 'membre'}'
                                   : AppLocalizations.of(context)!.group;
-                          return Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.textTertiaryColor,
+                          return _buildStatusWithLock(
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.textTertiaryColor,
+                              ),
                             ),
                           );
                         },
@@ -3065,13 +3071,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         widget.otherUserId != null &&
                         !isDeletedUser)
                       // Online status text for individual chats
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: OnlineStatusIndicator(
-                          key: ValueKey(widget.otherUserId),
-                          userId: widget.otherUserId!,
-                          showText: true,
-                          showDot: false,
+                      _buildStatusWithLock(
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: OnlineStatusIndicator(
+                            key: ValueKey(widget.otherUserId),
+                            userId: widget.otherUserId!,
+                            showText: true,
+                            showDot: false,
+                          ),
                         ),
                       ),
                   ],
@@ -3086,12 +3094,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         if (!widget.isGroup && !isDeletedUser && !widget.isSelfNotes) ...[
           IconButton(
             onPressed: () => _startCall(isVideo: false),
-            icon: AppIcon(AppIcon.call, color: context.textPrimaryColor),
+            icon: AppIcon(
+              AppIcon.call,
+              size: 21,
+              color: context.textPrimaryColor,
+            ),
             tooltip: l10n.voiceCall,
           ),
           IconButton(
             onPressed: () => _startCall(isVideo: true),
-            icon: AppIcon(AppIcon.video, color: context.textPrimaryColor),
+            icon: AppIcon(
+              AppIcon.video,
+              size: 21,
+              color: context.textPrimaryColor,
+            ),
             tooltip: l10n.videoCall,
           ),
         ],
@@ -3099,32 +3115,47 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         if (widget.isGroup && !widget.isSelfNotes) ...[
           IconButton(
             onPressed: () => _startGroupCall(isVideo: false),
-            icon: AppIcon(AppIcon.call, color: context.textPrimaryColor),
+            icon: AppIcon(
+              AppIcon.call,
+              size: 21,
+              color: context.textPrimaryColor,
+            ),
             tooltip: l10n.voiceCall,
           ),
           IconButton(
             onPressed: () => _startGroupCall(isVideo: true),
-            icon: AppIcon(AppIcon.video, color: context.textPrimaryColor),
+            icon: AppIcon(
+              AppIcon.video,
+              size: 21,
+              color: context.textPrimaryColor,
+            ),
             tooltip: l10n.videoCall,
           ),
         ],
-        // More options button
+        // More options button — icône nue, sans conteneur gris (§4a).
         IconButton(
           onPressed: () => _showConversationOptions(),
-          icon: _buildMoreValuesIcon(context),
+          icon: Icon(
+            Icons.more_vert,
+            color: context.textPrimaryColor,
+            size: 21,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildMoreValuesIcon(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: context.surfaceVariantColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(Icons.more_vert, color: context.textPrimaryColor, size: 20),
+  /// Statut + cadenas chiffrement (§4a) : Signal pour 1-à-1/groupes, AES
+  /// local pour « Mes notes » — jamais affiché pour un compte supprimé
+  /// (géré en amont, cette méthode n'est pas appelée dans ce cas).
+  Widget _buildStatusWithLock(Widget status) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: status),
+        const SizedBox(width: 4),
+        AppIcon(AppIcon.lock, size: 11, color: context.textTertiaryColor),
+      ],
     );
   }
 
