@@ -26,4 +26,9 @@ class DNColors {
   static const leaf = Color(0xFF5A7A3A);
   static const mark = Color(0xFFF6EF5A);
   static const danger = Color(0xFFC23E2D);
+
+  // Sombre audio — écrans de salon/podcast en mode sombre.
+  static const darkBg = Color(0xFF12100E);
+  static const darkSurface = Color(0xFF1F1B17);
+  static const darkBorder = Color(0xFF332C24);
 }
