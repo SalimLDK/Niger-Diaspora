@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/app_icon.dart';
+import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../../domain/entities/friend_request_entity.dart';
 import '../providers/friend_provider.dart';
 
@@ -58,6 +60,7 @@ class FriendRequestItem extends ConsumerWidget {
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: context.textSecondaryColor),
                           ),
+                        _buildCommonGroups(context, ref, userId),
                       ],
                     ),
                   ),
@@ -142,6 +145,41 @@ class FriendRequestItem extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Contexte « groupes en commun » (§26a) sur la carte de demande — aide à
+  /// décider de l'accepter. Masqué s'il n'y en a pas.
+  Widget _buildCommonGroups(
+    BuildContext context,
+    WidgetRef ref,
+    String otherUserId,
+  ) {
+    final common =
+        ref.watch(commonGroupsProvider(otherUserId)).valueOrNull ?? [];
+    if (common.isEmpty) return const SizedBox.shrink();
+    final label =
+        common.length == 1
+            ? '1 groupe en commun'
+            : '${common.length} groupes en commun';
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppIcon(AppIcon.groups, size: 13, color: context.textTertiaryColor),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.textTertiaryColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
