@@ -5334,6 +5334,11 @@
   "profileSendingRequest": "Envoi en cours...",
   "profileTravelModeSubtitle": "Permettre la localisation même quand l'application est fermée (Mise à jour toutes les 5 min)",
   "profileShowOnlineStatusSubtitle": "Permet de voir et d'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.",
+  "whoSeesYou": "Qui vous voit",
+  "dataSaverMode": "Mode données réduites",
+  "dataSaverModeSubtitle": "Médias non téléchargés automatiquement en discussion",
+  "displayCurrency": "Devise",
+  "displayCurrencySubtitle": "Les prix seront affichés dans cette devise",
   "profileUpdateError": "Erreur lors de la mise à jour: {error}",
   "@profileUpdateError": {
     "placeholders": {

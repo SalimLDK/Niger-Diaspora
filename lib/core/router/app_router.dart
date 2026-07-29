@@ -55,7 +55,7 @@ import '../../features/notifications/presentation/screens/notifications_screen.d
 import '../../features/notifications/presentation/screens/notification_settings_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/search/presentation/providers/search_provider.dart';
-// import '../../features/settings/presentation/screens/settings_screen.dart'; // Fusionné dans ProfileScreen
+import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/terms_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/code_of_conduct_screen.dart';
@@ -492,11 +492,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/friends',
         builder: (context, state) => const FriendsScreen(),
       ),
-      // Settings route - COMMENTÉ (fusionné dans ProfileScreen)
-      // GoRoute(
-      //   path: '/settings',
-      //   builder: (context, state) => const SettingsScreen(),
-      // ),
+      // Écran de réglages dédié (§10b) : les 3 entrées condensées de
+      // ProfileScreen y renvoient.
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
       GoRoute(
         path: '/settings/terms',
         builder: (context, state) => const TermsScreen(),

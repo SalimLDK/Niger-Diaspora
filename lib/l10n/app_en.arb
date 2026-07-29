@@ -5248,6 +5248,11 @@
 
   "profileTravelModeSubtitle": "Allow location even when the app is closed (updates every 5 min)",
   "profileShowOnlineStatusSubtitle": "Allows you to see and be seen online. If disabled, you won't see others' status.",
+  "whoSeesYou": "Who sees you",
+  "dataSaverMode": "Data saver mode",
+  "dataSaverModeSubtitle": "Media not downloaded automatically in chats",
+  "displayCurrency": "Currency",
+  "displayCurrencySubtitle": "Prices will be displayed in this currency",
   "profileUpdateError": "Error updating: {error}",
   "@profileUpdateError": {"placeholders": {"error": {"type": "String"}}},
   "profileLoadingText": "Loading...",

@@ -11534,6 +11534,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Permet de voir et d\'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.';
 
   @override
+  String get whoSeesYou => 'Qui vous voit';
+
+  @override
+  String get dataSaverMode => 'Mode données réduites';
+
+  @override
+  String get dataSaverModeSubtitle =>
+      'Médias non téléchargés automatiquement en discussion';
+
+  @override
+  String get displayCurrency => 'Devise';
+
+  @override
+  String get displayCurrencySubtitle =>
+      'Les prix seront affichés dans cette devise';
+
+  @override
   String profileUpdateError(String error) {
     return 'Erreur lors de la mise à jour: $error';
   }

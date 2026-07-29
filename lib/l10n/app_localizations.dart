@@ -21410,6 +21410,36 @@ abstract class AppLocalizations {
   /// **'Permet de voir et d\'être vu en ligne. Si désactivé, vous ne verrez pas le statut des autres.'**
   String get profileShowOnlineStatusSubtitle;
 
+  /// No description provided for @whoSeesYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui vous voit'**
+  String get whoSeesYou;
+
+  /// No description provided for @dataSaverMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode données réduites'**
+  String get dataSaverMode;
+
+  /// No description provided for @dataSaverModeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Médias non téléchargés automatiquement en discussion'**
+  String get dataSaverModeSubtitle;
+
+  /// No description provided for @displayCurrency.
+  ///
+  /// In fr, this message translates to:
+  /// **'Devise'**
+  String get displayCurrency;
+
+  /// No description provided for @displayCurrencySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les prix seront affichés dans cette devise'**
+  String get displayCurrencySubtitle;
+
   /// No description provided for @profileUpdateError.
   ///
   /// In fr, this message translates to:

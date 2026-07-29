@@ -11418,6 +11418,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allows you to see and be seen online. If disabled, you won\'t see others\' status.';
 
   @override
+  String get whoSeesYou => 'Who sees you';
+
+  @override
+  String get dataSaverMode => 'Data saver mode';
+
+  @override
+  String get dataSaverModeSubtitle =>
+      'Media not downloaded automatically in chats';
+
+  @override
+  String get displayCurrency => 'Currency';
+
+  @override
+  String get displayCurrencySubtitle =>
+      'Prices will be displayed in this currency';
+
+  @override
   String profileUpdateError(String error) {
     return 'Error updating: $error';
   }
