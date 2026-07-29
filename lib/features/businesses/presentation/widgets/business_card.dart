@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
+import '../../domain/entities/business_post_entity.dart';
+import '../providers/business_provider.dart';
 
-class BusinessCard extends StatelessWidget {
+class BusinessCard extends ConsumerWidget {
   final BusinessEntity business;
   final VoidCallback? onTap;
 
@@ -52,7 +55,7 @@ class BusinessCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final hasImage = business.photoUrls.isNotEmpty || business.logoUrl != null;
     final imageUrl = business.logoUrl ?? (business.photoUrls.isNotEmpty ? business.photoUrls.first : null);
@@ -213,6 +216,9 @@ class BusinessCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  // Offre en cours (§17c) — requête paresseuse par carte
+                  // (auto-dispose au défilement).
+                  _buildOfferBanner(context, ref),
                   const SizedBox(height: 8),
                   // Location and rating
                   Row(
@@ -265,6 +271,74 @@ class BusinessCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Bandeau « offre en cours » : première offre active retournée par
+  /// [businessOffersNotifierProvider] (déjà filtrée non-expirée côté datasource).
+  /// Rien tant que la requête charge ou s'il n'y a pas d'offre — pas de saut de
+  /// mise en page.
+  Widget _buildOfferBanner(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final offersAsync = ref.watch(businessOffersNotifierProvider(business.id));
+    final offer = offersAsync.maybeWhen(
+      data: (offers) => offers.isNotEmpty ? offers.first : null,
+      orElse: () => null,
+    );
+    if (offer == null) return const SizedBox.shrink();
+
+    const orange = Color(0xFFB85E24);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: orange.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: orange.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.local_offer, size: 15, color: orange),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _offerLabel(offer),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: orange,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (offer.promoCode != null && offer.promoCode!.isNotEmpty)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: orange.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  offer.promoCode!,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: orange,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _offerLabel(BusinessPostEntity offer) {
+    if (offer.discountPercent != null && offer.discountPercent! > 0) {
+      return '-${offer.discountPercent}% · ${offer.title}';
+    }
+    return offer.title;
   }
 
   Widget _buildOpenStatePill(BuildContext context) {
