@@ -4,7 +4,7 @@ import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/dn_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/file_download_service.dart';
 import '../../domain/entities/heritage_recording_entity.dart';
@@ -152,7 +152,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       expandedHeight: _isSearching ? 120 : 180,
       floating: true,
       pinned: true,
-      backgroundColor: AppColors.secondary,
+      backgroundColor: DNColors.terra,
       leading: IconButton(
         icon: const AppIcon(AppIcon.arrowBack, color: Colors.white),
         onPressed: () => context.pop(),
@@ -228,8 +228,8 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.secondary,
-                AppColors.secondary.withValues(alpha: 0.8),
+                DNColors.terra,
+                DNColors.terra2,
               ],
             ),
           ),
@@ -819,6 +819,21 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                             ),
                           ),
                         ],
+                        // Nombre d'écoutes (§1c).
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.headphones_rounded,
+                          size: 12,
+                          color: Colors.grey[500],
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${recording.playCount}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -852,7 +867,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                       isSaved
                           ? Icons.bookmark_rounded
                           : Icons.bookmark_border_rounded,
-                      color: isSaved ? AppColors.secondary : Colors.grey[400],
+                      color: isSaved ? DNColors.ochre : Colors.grey[400],
                       size: 22,
                     ),
                     onPressed: () {
@@ -938,17 +953,18 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
     };
   }
 
+  // Teintes par type de contenu sur la palette DNColors (Sahel), §1c.
   Color _getContentTypeColor(HeritageContentType type) {
     return switch (type) {
-      HeritageContentType.story => const Color(0xFF6366F1),
-      HeritageContentType.proverb => const Color(0xFFF59E0B),
-      HeritageContentType.history => const Color(0xFF8B5CF6),
-      HeritageContentType.ceremony => const Color(0xFFEF4444),
-      HeritageContentType.language => const Color(0xFF10B981),
-      HeritageContentType.craft => const Color(0xFF3B82F6),
-      HeritageContentType.recipe => const Color(0xFFF97316),
-      HeritageContentType.medicine => const Color(0xFF14B8A6),
-      HeritageContentType.other => Colors.grey,
+      HeritageContentType.story => DNColors.terra,
+      HeritageContentType.proverb => DNColors.ochre,
+      HeritageContentType.history => DNColors.ink3,
+      HeritageContentType.ceremony => DNColors.terra2,
+      HeritageContentType.language => DNColors.teal,
+      HeritageContentType.craft => DNColors.leaf,
+      HeritageContentType.recipe => DNColors.terra,
+      HeritageContentType.medicine => DNColors.teal,
+      HeritageContentType.other => DNColors.ink4,
     };
   }
 
@@ -989,17 +1005,18 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
     ref.read(heritageNotifierProvider.notifier).recordPlay(widget.recording.id);
   }
 
+  // Teintes par type de contenu sur la palette DNColors (Sahel), §1c.
   Color _getContentTypeColor(HeritageContentType type) {
     return switch (type) {
-      HeritageContentType.story => const Color(0xFF6366F1),
-      HeritageContentType.proverb => const Color(0xFFF59E0B),
-      HeritageContentType.history => const Color(0xFF8B5CF6),
-      HeritageContentType.ceremony => const Color(0xFFEF4444),
-      HeritageContentType.language => const Color(0xFF10B981),
-      HeritageContentType.craft => const Color(0xFF3B82F6),
-      HeritageContentType.recipe => const Color(0xFFF97316),
-      HeritageContentType.medicine => const Color(0xFF14B8A6),
-      HeritageContentType.other => Colors.grey,
+      HeritageContentType.story => DNColors.terra,
+      HeritageContentType.proverb => DNColors.ochre,
+      HeritageContentType.history => DNColors.ink3,
+      HeritageContentType.ceremony => DNColors.terra2,
+      HeritageContentType.language => DNColors.teal,
+      HeritageContentType.craft => DNColors.leaf,
+      HeritageContentType.recipe => DNColors.terra,
+      HeritageContentType.medicine => DNColors.teal,
+      HeritageContentType.other => DNColors.ink4,
     };
   }
 

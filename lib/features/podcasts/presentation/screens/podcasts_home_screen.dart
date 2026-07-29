@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/router/routes/podcasts_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
@@ -213,12 +213,13 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
     final total = episode.durationSeconds;
     final progress =
         total > 0 ? (entry.progressSeconds / total).clamp(0.0, 1.0) : 0.0;
-    final accent = AppColors.secondary;
+    // Carte sombre ink + accent ocre (§1d, palette Sahel DNColors).
+    const accent = DNColors.ochre;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Material(
-        color: accent.withValues(alpha: 0.08),
+        color: DNColors.ink,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -240,12 +241,12 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
                               fit: BoxFit.cover,
                               errorBuilder:
                                   (_, __, ___) => Container(
-                                    color: accent.withValues(alpha: 0.15),
+                                    color: DNColors.ink2,
                                     child: Icon(Icons.podcasts, color: accent),
                                   ),
                             )
                             : Container(
-                              color: accent.withValues(alpha: 0.15),
+                              color: DNColors.ink2,
                               child: Icon(Icons.podcasts, color: accent),
                             ),
                   ),
@@ -272,6 +273,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          color: DNColors.paper,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -280,8 +282,8 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 4,
-                          backgroundColor: accent.withValues(alpha: 0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(accent),
+                          backgroundColor: DNColors.paper.withValues(alpha: 0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(accent),
                         ),
                       ),
                     ],
@@ -415,19 +417,20 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
   }
 
   Widget _buildCategoryCard(PodcastCategory category) {
+    // Palette DNColors (Sahel) au lieu de l'arc-en-ciel Material (§1d).
     final colors = {
-      PodcastCategory.news: Colors.red,
-      PodcastCategory.culture: Colors.orange,
-      PodcastCategory.spirituality: Colors.purple,
-      PodcastCategory.business: Colors.blue,
-      PodcastCategory.entertainment: Colors.pink,
-      PodcastCategory.education: Colors.green,
-      PodcastCategory.storytelling: Colors.amber,
-      PodcastCategory.sports: Colors.teal,
-      PodcastCategory.politics: Colors.indigo,
-      PodcastCategory.technology: Colors.cyan,
-      PodcastCategory.health: Colors.lightGreen,
-      PodcastCategory.other: Colors.grey,
+      PodcastCategory.news: DNColors.terra,
+      PodcastCategory.culture: DNColors.ochre,
+      PodcastCategory.spirituality: DNColors.ink3,
+      PodcastCategory.business: DNColors.teal,
+      PodcastCategory.entertainment: DNColors.terra2,
+      PodcastCategory.education: DNColors.leaf,
+      PodcastCategory.storytelling: DNColors.ochre,
+      PodcastCategory.sports: DNColors.teal,
+      PodcastCategory.politics: DNColors.ink3,
+      PodcastCategory.technology: DNColors.teal,
+      PodcastCategory.health: DNColors.leaf,
+      PodcastCategory.other: DNColors.ink4,
     };
 
     final icons = {
