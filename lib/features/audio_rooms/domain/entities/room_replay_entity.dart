@@ -18,6 +18,37 @@ enum RoomReplayStatus {
   deleted,
 }
 
+/// Un chapitre d'un replay : un repère horodaté dans la piste (§1e).
+class ReplayChapter extends Equatable {
+  /// Titre du chapitre
+  final String title;
+
+  /// Position de début, en secondes depuis le début de la piste
+  final int startSeconds;
+
+  const ReplayChapter({required this.title, required this.startSeconds});
+
+  factory ReplayChapter.fromMap(Map<String, dynamic> map) => ReplayChapter(
+        title: (map['title'] ?? '') as String,
+        startSeconds: (map['startSeconds'] as num?)?.toInt() ?? 0,
+      );
+
+  Map<String, dynamic> toMap() => {'title': title, 'startSeconds': startSeconds};
+
+  /// Position formatée MM:SS (ou HH:MM:SS).
+  String get formattedTime {
+    final h = startSeconds ~/ 3600;
+    final m = (startSeconds % 3600) ~/ 60;
+    final s = startSeconds % 60;
+    final mm = m.toString().padLeft(2, '0');
+    final ss = s.toString().padLeft(2, '0');
+    return h > 0 ? '${h.toString().padLeft(2, '0')}:$mm:$ss' : '$mm:$ss';
+  }
+
+  @override
+  List<Object?> get props => [title, startSeconds];
+}
+
 /// Entity representing a recorded audio room replay
 class RoomReplayEntity extends Equatable {
   /// Unique identifier
@@ -86,6 +117,9 @@ class RoomReplayEntity extends Equatable {
   /// Video thumbnail URL
   final String? videoThumbnailUrl;
 
+  /// Chapitres horodatés de la piste (vide si non fournis), §1e.
+  final List<ReplayChapter> chapters;
+
   const RoomReplayEntity({
     required this.id,
     required this.roomId,
@@ -109,6 +143,7 @@ class RoomReplayEntity extends Equatable {
     this.mediaType = 'audio',
     this.videoUrl,
     this.videoThumbnailUrl,
+    this.chapters = const [],
   });
 
   /// Calculate commission (15%)
@@ -173,6 +208,7 @@ class RoomReplayEntity extends Equatable {
     String? mediaType,
     String? videoUrl,
     String? videoThumbnailUrl,
+    List<ReplayChapter>? chapters,
   }) {
     return RoomReplayEntity(
       id: id ?? this.id,
@@ -197,6 +233,7 @@ class RoomReplayEntity extends Equatable {
       mediaType: mediaType ?? this.mediaType,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
+      chapters: chapters ?? this.chapters,
     );
   }
 

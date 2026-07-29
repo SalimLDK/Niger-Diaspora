@@ -41,10 +41,18 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   double _progress = 0.0; // 0.0 – 1.0
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
-  int _currentChapter = 2; // 0-based
+  int _currentChapter = 0; // 0-based
 
-  // Chapitres : non portés par RoomReplayEntity → repères par défaut.
+  // Chapitres de repli si l'entité n'en fournit pas.
   static const _chapters = ['Introduction', 'Actualités', 'Diaspora & politique', 'Q&R', 'Conclusion'];
+
+  /// Chapitres réels de l'entité (avec timestamps), sinon [].
+  List<ReplayChapter> get _chaptersData => widget.replay?.chapters ?? const [];
+  bool get _hasRealChapters => _chaptersData.isNotEmpty;
+
+  /// Titres affichés : réels si fournis, sinon les repères de repli.
+  List<String> get _chapterTitles =>
+      _hasRealChapters ? _chaptersData.map((c) => c.title).toList() : _chapters;
 
   // Lecture audio réelle (§1e) via le service partagé just_audio.
   final AudioPlaybackService _audio = AudioPlaybackService();
@@ -83,6 +91,15 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
           _position = p;
           if (_total.inMilliseconds > 0) {
             _progress = (p.inMilliseconds / _total.inMilliseconds).clamp(0.0, 1.0);
+          }
+          // Chapitre courant d'après la position (chapitres réels).
+          final ch = _chaptersData;
+          if (ch.isNotEmpty) {
+            var idx = 0;
+            for (var j = 0; j < ch.length; j++) {
+              if (p.inSeconds >= ch[j].startSeconds) idx = j;
+            }
+            _currentChapter = idx;
           }
         });
       });
@@ -368,12 +385,12 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
 
               // Chapter info
               Text(
-                'Chapitre ${_currentChapter + 1}/${_chapters.length}',
+                'Chapitre ${(_currentChapter + 1).clamp(1, _chapterTitles.length)}/${_chapterTitles.length}',
                 style: DNText.mono(size: 9, color: DNColors.ink4),
               ),
               const SizedBox(height: 4),
               Text(
-                _chapters[_currentChapter],
+                _chapterTitles[_currentChapter.clamp(0, _chapterTitles.length - 1)],
                 style: DNText.serif(size: 22, italic: true, color: DNColors.paper),
               ),
               const SizedBox(height: 4),
@@ -491,20 +508,29 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),),
       builder: (_) => ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        itemCount: _chapters.length,
+        itemCount: _chapterTitles.length,
         itemBuilder: (_, i) => ListTile(
           onTap: () {
             setState(() => _currentChapter = i);
-            // Pas de timestamps réels sur l'entité → division régulière.
-            if (_isAudio && _chapters.isNotEmpty) {
-              _seekFraction(i / _chapters.length);
+            if (_isAudio) {
+              if (_hasRealChapters) {
+                // Timestamp réel du chapitre.
+                _audio.seek(Duration(seconds: _chaptersData[i].startSeconds));
+              } else if (_chapterTitles.isNotEmpty) {
+                // Repli : division régulière.
+                _seekFraction(i / _chapterTitles.length);
+              }
             }
             Navigator.pop(context);
           },
           leading: Text('${i + 1}',
               style: DNText.mono(size: 12, color: DNColors.terra),),
-          title: Text(_chapters[i],
+          title: Text(_chapterTitles[i],
               style: DNText.sans(size: 13, color: DNColors.paper),),
+          subtitle: _hasRealChapters
+              ? Text(_chaptersData[i].formattedTime,
+                  style: DNText.mono(size: 10, color: DNColors.ink4),)
+              : null,
           selected: i == _currentChapter,
           selectedColor: DNColors.terra,
         ),
