@@ -172,7 +172,10 @@ class NearbyProfilesNotifier
     extends StateNotifier<AsyncValue<List<ProfileEntity>>> {
   final Ref _ref;
 
-  NearbyProfilesNotifier(this._ref) : super(const AsyncValue.data([]));
+  // État initial « loading » (et non liste vide) pour que l'accueil affiche le
+  // squelette avant le premier chargement, jamais un état vide (maquette
+  // 1b/CAS 3 : « jamais de texte vide avant la fin du chargement »).
+  NearbyProfilesNotifier(this._ref) : super(const AsyncValue.loading());
 
   Future<void> loadNearbyProfiles(
     double lat,

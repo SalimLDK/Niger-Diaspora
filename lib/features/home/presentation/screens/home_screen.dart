@@ -11,6 +11,7 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/geo_utils.dart';
@@ -71,6 +72,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // repli dans la ligne de contexte quand le profil n'a pas ces champs.
   String? _geoCity;
   String? _geoCountry;
+
+  // Bandeau hors-ligne masqué manuellement (« Lire hors ligne ») ; réaffiché
+  // à la prochaine coupure réseau.
+  bool _offlineDismissed = false;
 
   @override
   void initState() {
@@ -524,6 +529,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final completion = _computeCompletion(profile, placeCity);
     final showOnboarding = profile != null && completion.filled < completion.total;
 
+    // Hors-ligne : bandeau explicatif (contenu en cache) — maquette 2d.
+    final isOnline = ref.watch(connectivityNotifierProvider);
+    final showOffline = !isOnline && !_offlineDismissed;
+
+    // Retour du réseau : réarmer le bandeau et rafraîchir le contenu.
+    ref.listen(connectivityNotifierProvider, (previous, next) {
+      if (next == true) {
+        if (_offlineDismissed && mounted) {
+          setState(() => _offlineDismissed = false);
+        }
+        ref.read(homeStatsNotifierProvider.notifier).refresh();
+        _loadData();
+      }
+    });
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: RefreshIndicator(
@@ -747,6 +767,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // Bandeau hors-ligne : contenu en cache + réessayer (2d).
+                  if (showOffline) ...[
+                    _OfflineBanner(
+                      onRetry: () {
+                        ref
+                            .read(connectivityNotifierProvider.notifier)
+                            .checkConnectivity();
+                        ref.read(homeStatsNotifierProvider.notifier).refresh();
+                        _loadData();
+                      },
+                      onDismiss: () =>
+                          setState(() => _offlineDismissed = true),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Premier lancement : progression du profil, masquée dès qu'il
                   // est complet (maquette 8a).
                   if (showOnboarding) ...[
@@ -1943,6 +1979,96 @@ class _HomeActionButton extends StatelessWidget {
   }
 }
 
+/// Bandeau hors-ligne (maquette 2d) : explique que le contenu vient du cache
+/// et propose de réessayer ou de continuer hors ligne. Rouge adouci (#F87171).
+class _OfflineBanner extends StatelessWidget {
+  final VoidCallback onRetry;
+  final VoidCallback onDismiss;
+
+  const _OfflineBanner({required this.onRetry, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    const softRed = Color(0xFFF87171);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: softRed.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(Icons.cloud_off_rounded,
+                    size: 20, color: softRed),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Vous êtes hors ligne',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: softRed,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Contenu affiché depuis le cache. Mise à jour '
+                      'automatique au retour du réseau.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _HomeActionButton(
+                  label: 'Réessayer',
+                  filled: true,
+                  onTap: onRetry,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _HomeActionButton(
+                  label: 'Lire hors ligne',
+                  filled: false,
+                  onTap: onDismiss,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Premier lancement (maquette 8a) : complétion de profil + onboarding ──────
 
 /// Résultat du calcul de complétude du profil.
@@ -2422,11 +2548,22 @@ class _NearbyAvatarLoading extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          // Barre « prénom ».
           Container(
-            width: 44,
+            width: 48,
             height: 10,
             decoration: BoxDecoration(
               color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 5),
+          // Barre « distance » (plus courte).
+          Container(
+            width: 30,
+            height: 9,
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
