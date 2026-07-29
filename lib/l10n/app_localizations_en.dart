@@ -752,6 +752,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get messageNotSent => 'Not sent';
+
+  @override
   String get noMessages => 'No messages';
 
   @override

@@ -1508,6 +1508,12 @@ abstract class AppLocalizations {
   /// **'Réessayer'**
   String get retry;
 
+  /// No description provided for @messageNotSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non envoyé'**
+  String get messageNotSent;
+
   /// No description provided for @noMessages.
   ///
   /// In fr, this message translates to:

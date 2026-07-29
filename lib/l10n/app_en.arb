@@ -302,6 +302,7 @@
   "noMessageRequests": "No message requests",
   "loadingError": "Loading error",
   "retry": "Retry",
+  "messageNotSent": "Not sent",
   "noMessages": "No messages",
   "sendFirstMessage": "Send the first message!",
   "group": "Group",

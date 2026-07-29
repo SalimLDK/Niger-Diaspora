@@ -2556,9 +2556,28 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         }
 
       case MessageStatus.failed:
+        // Libellé explicite « Non envoyé · Réessayer » (rouge adouci) plutôt
+        // qu'un simple triangle — maquette 2d.
+        final l10n = AppLocalizations.of(context)!;
+        const softRed = Color(0xFFF87171);
         iconWidget = GestureDetector(
           onTap: widget.onRetry,
-          child: const AppIcon(AppIcon.warning, size: 14, color: Colors.red),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 12, color: softRed),
+              const SizedBox(width: 3),
+              Text(
+                '${l10n.messageNotSent} · ${l10n.retry}',
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: softRed,
+                ),
+              ),
+            ],
+          ),
         );
 
       case MessageStatus.sent:

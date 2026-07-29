@@ -764,6 +764,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get retry => 'Réessayer';
 
   @override
+  String get messageNotSent => 'Non envoyé';
+
+  @override
   String get noMessages => 'Aucun message';
 
   @override
