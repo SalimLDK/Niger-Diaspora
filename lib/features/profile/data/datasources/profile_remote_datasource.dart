@@ -31,6 +31,10 @@ abstract class ProfileRemoteDataSource {
   Future<void> updateOnlineStatusVisibility(String userId, bool showStatus);
   Future<void> updateNotifyLocalEvents(String userId, bool enabled);
   ProfileModel? getCachedProfile(String userId);
+
+  /// Vrai si la poignée [handle] est disponible (§16f). Comparaison
+  /// insensible à la casse ; [excludeUserId] ignore le propriétaire actuel.
+  Future<bool> isHandleAvailable(String handle, {String? excludeUserId});
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -540,5 +544,25 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       // debugPrint('Erreur lors de la récupération du profil en cache: $e');
     }
     return null;
+  }
+
+  @override
+  Future<bool> isHandleAvailable(String handle, {String? excludeUserId}) async {
+    final normalized = handle.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    try {
+      final snapshot = await _firestore
+          .collection(FirebaseCollections.users)
+          .where('handle', isEqualTo: normalized)
+          .limit(1)
+          .get();
+      if (snapshot.docs.isEmpty) return true;
+      // Disponible si la seule correspondance est l'utilisateur lui-même.
+      return snapshot.docs.first.id == excludeUserId;
+    } on FirebaseException {
+      // En cas d'erreur réseau, on ne bloque pas : on laisse la contrainte
+      // d'unicité serveur trancher au moment de l'écriture.
+      return true;
+    }
   }
 }

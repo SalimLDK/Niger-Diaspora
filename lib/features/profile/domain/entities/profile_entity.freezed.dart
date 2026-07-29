@@ -19,7 +19,9 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$ProfileEntity {
   String get id => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
-  String? get displayName => throw _privateConstructorUsedError;
+  String? get displayName =>
+      throw _privateConstructorUsedError; // Poignée publique unique (@handle), §16f/10c. null tant que non choisie.
+  String? get handle => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
@@ -70,6 +72,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
     String id,
     String? email,
     String? displayName,
+    String? handle,
     String? photoUrl,
     String? phoneNumber,
     String? bio,
@@ -122,6 +125,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? id = null,
     Object? email = freezed,
     Object? displayName = freezed,
+    Object? handle = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? bio = freezed,
@@ -170,6 +174,11 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                 freezed == displayName
                     ? _value.displayName
                     : displayName // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            handle:
+                freezed == handle
+                    ? _value.handle
+                    : handle // ignore: cast_nullable_to_non_nullable
                         as String?,
             photoUrl:
                 freezed == photoUrl
@@ -345,6 +354,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     String id,
     String? email,
     String? displayName,
+    String? handle,
     String? photoUrl,
     String? phoneNumber,
     String? bio,
@@ -396,6 +406,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? id = null,
     Object? email = freezed,
     Object? displayName = freezed,
+    Object? handle = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? bio = freezed,
@@ -444,6 +455,11 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
             freezed == displayName
                 ? _value.displayName
                 : displayName // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        handle:
+            freezed == handle
+                ? _value.handle
+                : handle // ignore: cast_nullable_to_non_nullable
                     as String?,
         photoUrl:
             freezed == photoUrl
@@ -612,6 +628,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     required this.id,
     this.email,
     this.displayName,
+    this.handle,
     this.photoUrl,
     this.phoneNumber,
     this.bio,
@@ -654,6 +671,9 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   final String? email;
   @override
   final String? displayName;
+  // Poignée publique unique (@handle), §16f/10c. null tant que non choisie.
+  @override
+  final String? handle;
   @override
   final String? photoUrl;
   @override
@@ -758,7 +778,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, isVerified: $isVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, isVerified: $isVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -770,6 +790,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
             (identical(other.email, email) || other.email == email) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
+            (identical(other.handle, handle) || other.handle == handle) &&
             (identical(other.photoUrl, photoUrl) ||
                 other.photoUrl == photoUrl) &&
             (identical(other.phoneNumber, phoneNumber) ||
@@ -844,6 +865,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     id,
     email,
     displayName,
+    handle,
     photoUrl,
     phoneNumber,
     bio,
@@ -891,6 +913,7 @@ abstract class _ProfileEntity implements ProfileEntity {
     required final String id,
     final String? email,
     final String? displayName,
+    final String? handle,
     final String? photoUrl,
     final String? phoneNumber,
     final String? bio,
@@ -929,7 +952,9 @@ abstract class _ProfileEntity implements ProfileEntity {
   @override
   String? get email;
   @override
-  String? get displayName;
+  String? get displayName; // Poignée publique unique (@handle), §16f/10c. null tant que non choisie.
+  @override
+  String? get handle;
   @override
   String? get photoUrl;
   @override

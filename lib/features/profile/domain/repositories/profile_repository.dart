@@ -31,4 +31,8 @@ abstract class ProfileRepository {
     String userId,
     bool showStatus,
   );
+
+  /// Disponibilité d'une poignée @handle (§16f). Renvoie `true` si libre
+  /// (ou en cas d'incertitude réseau — la contrainte serveur tranchera).
+  Future<bool> isHandleAvailable(String handle, {String? excludeUserId});
 }

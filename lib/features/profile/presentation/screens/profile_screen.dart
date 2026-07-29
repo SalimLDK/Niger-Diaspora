@@ -735,6 +735,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ],
                 ],
               ),
+              // Poignée publique @handle (§10c)
+              if (profile?.handle != null &&
+                  profile!.handle!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '@${profile.handle}',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: context.adaptivePrimaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               if (locationLine.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(

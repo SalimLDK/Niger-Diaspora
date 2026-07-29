@@ -710,6 +710,22 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       ),
                     ),
 
+                    // Poignée publique @handle (§10c)
+                    if (profile.handle != null &&
+                        profile.handle!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Center(
+                        child: Text(
+                          '@${profile.handle}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.adaptivePrimaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+
                     // Online Status Indicator (hidden if blocked)
                     if (!isBlocked) ...[
                       const SizedBox(height: 8),

@@ -304,4 +304,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(ServerFailure(e.message));
     }
   }
+
+  @override
+  Future<bool> isHandleAvailable(String handle, {String? excludeUserId}) {
+    return remoteDataSource.isHandleAvailable(
+      handle,
+      excludeUserId: excludeUserId,
+    );
+  }
 }

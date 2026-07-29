@@ -8,6 +8,7 @@ Map<String, dynamic> _mapProfile(Map<String, dynamic> row) => {
   'id': row['id'],
   'email': row['email'],
   'displayName': row['display_name'],
+  'handle': row['handle'],
   'photoUrl': row['avatar_url'],
   'phoneNumber': row['phone_number'],
   'bio': row['bio'],
@@ -162,6 +163,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .upsert({
           'id': profile.id,
           'display_name': profile.displayName,
+          if (profile.handle != null) 'handle': profile.handle,
           'avatar_url': profile.photoUrl,
           'phone_number': profile.phoneNumber,
           'bio': profile.bio,
@@ -257,4 +259,23 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   ProfileModel? getCachedProfile(String userId) => _cache[userId];
+
+  @override
+  Future<bool> isHandleAvailable(String handle, {String? excludeUserId}) async {
+    final normalized = handle.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    try {
+      // ilike insensible à la casse ; on ne récupère que l'id pour le test.
+      final rows = await _supabase
+          .from('users')
+          .select('id')
+          .ilike('handle', normalized)
+          .limit(1);
+      if ((rows as List).isEmpty) return true;
+      return (rows.first as Map)['id'] == excludeUserId;
+    } catch (_) {
+      // Erreur réseau : ne pas bloquer, la contrainte UNIQUE serveur tranchera.
+      return true;
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,9 @@ import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// État de vérification d'une poignée @handle.
+enum _HandleStatus { idle, checking, available, taken, invalid }
+
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -34,7 +38,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   final _customProfessionController = TextEditingController();
   final _customCountryController = TextEditingController();
   final _customOriginCityController = TextEditingController();
+  final _handleController = TextEditingController();
   final _scrollController = ScrollController();
+
+  // Disponibilité de la poignée @handle (§16f).
+  _HandleStatus _handleStatus = _HandleStatus.idle;
+  Timer? _handleDebounce;
+  String? _initialHandle;
 
   bool _isLoading = false;
   bool _isVisible = true;
@@ -106,6 +116,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           // Utiliser les données du profil existant (pas besoin de recharger)
           _displayNameController.text =
               existingProfile.displayName ?? user.displayName ?? '';
+          _handleController.text = existingProfile.handle ?? '';
+          _initialHandle = existingProfile.handle;
           _bioController.text = existingProfile.bio ?? '';
           _completePhoneNumber = existingProfile.phoneNumber ?? '';
           _currentCityController.text = existingProfile.currentCity ?? '';
@@ -209,6 +221,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   @override
   void dispose() {
     _displayNameController.dispose();
+    _handleController.dispose();
+    _handleDebounce?.cancel();
     _bioController.dispose();
     _currentCityController.dispose();
     _customProfessionController.dispose();
@@ -372,8 +386,123 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     });
   }
 
+  /// Poignée normalisée (minuscules, sans @), ou `null` si vide.
+  String? _normalizedHandle() {
+    final raw = _handleController.text.trim().replaceAll('@', '').toLowerCase();
+    return raw.isEmpty ? null : raw;
+  }
+
+  static final _handleRegExp = RegExp(r'^[a-z0-9_]{3,20}$');
+
+  /// Débounce + vérifie la disponibilité de la poignée saisie (§16f).
+  void _onHandleChanged(String value) {
+    _handleDebounce?.cancel();
+    final normalized = _normalizedHandle();
+    // Inchangée ou vide → pas de vérification (la poignée reste optionnelle).
+    if (normalized == null || normalized == _initialHandle) {
+      setState(() => _handleStatus = _HandleStatus.idle);
+      return;
+    }
+    if (!_handleRegExp.hasMatch(normalized)) {
+      setState(() => _handleStatus = _HandleStatus.invalid);
+      return;
+    }
+    setState(() => _handleStatus = _HandleStatus.checking);
+    _handleDebounce = Timer(const Duration(milliseconds: 450), () async {
+      final userId = ref.read(authNotifierProvider).maybeWhen(
+            authenticated: (user) => user.id,
+            orElse: () => null,
+          );
+      final available = await ref
+          .read(profileRepositoryProvider)
+          .isHandleAvailable(normalized, excludeUserId: userId);
+      if (!mounted || _normalizedHandle() != normalized) return;
+      setState(() => _handleStatus =
+          available ? _HandleStatus.available : _HandleStatus.taken);
+    });
+  }
+
+  Widget _buildHandleField(BuildContext context) {
+    Widget? suffix;
+    switch (_handleStatus) {
+      case _HandleStatus.checking:
+        suffix = const Padding(
+          padding: EdgeInsets.all(12),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+        break;
+      case _HandleStatus.available:
+        suffix = const Icon(Icons.check_circle, color: Color(0xFF1B5E32));
+        break;
+      case _HandleStatus.taken:
+      case _HandleStatus.invalid:
+        suffix = const Icon(Icons.error_outline, color: Color(0xFFC23E2D));
+        break;
+      case _HandleStatus.idle:
+        suffix = null;
+        break;
+    }
+
+    String? helper;
+    Color helperColor = context.textTertiaryColor;
+    switch (_handleStatus) {
+      case _HandleStatus.available:
+        helper = 'Disponible';
+        helperColor = const Color(0xFF1B5E32);
+        break;
+      case _HandleStatus.taken:
+        helper = 'Cette poignée est déjà prise';
+        helperColor = const Color(0xFFC23E2D);
+        break;
+      case _HandleStatus.invalid:
+        helper = '3 à 20 caractères : lettres, chiffres, _';
+        helperColor = const Color(0xFFC23E2D);
+        break;
+      default:
+        helper = 'Votre identifiant public unique (optionnel)';
+    }
+
+    return TextFormField(
+      controller: _handleController,
+      onChanged: _onHandleChanged,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+      ],
+      style: TextStyle(color: context.textPrimaryColor),
+      decoration: InputDecoration(
+        labelText: 'Nom d\'utilisateur',
+        prefixText: '@',
+        prefixStyle: TextStyle(
+          color: context.textSecondaryColor,
+          fontSize: 16,
+        ),
+        prefixIcon: const Icon(Icons.alternate_email),
+        suffixIcon: suffix,
+        helperText: helper,
+        helperStyle: TextStyle(color: helperColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
+    // Bloque la sauvegarde si la poignée saisie est invalide ou déjà prise.
+    if (_handleStatus == _HandleStatus.taken ||
+        _handleStatus == _HandleStatus.invalid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choisissez une poignée valide et disponible'),
+        ),
+      );
+      return;
+    }
 
     HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
@@ -385,6 +514,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           id: user.id,
           email: user.email,
           displayName: _displayNameController.text.trim(),
+          handle: _normalizedHandle(),
           photoUrl: _photoUrl,
           phoneNumber: _completePhoneNumber.trim(),
           bio: _bioController.text.trim(),
@@ -622,6 +752,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                   return null;
                                 },
                               ),
+                              const SizedBox(height: 16),
+                              // Poignée publique @handle (§16f)
+                              _buildHandleField(context),
                               const SizedBox(height: 16),
                               // Dropdown Profession
                               _buildDropdownField(

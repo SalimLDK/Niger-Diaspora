@@ -8,6 +8,8 @@ class ProfileEntity with _$ProfileEntity {
     required String id,
     String? email,
     String? displayName,
+    // Poignée publique unique (@handle), §16f/10c. null tant que non choisie.
+    String? handle,
     String? photoUrl,
     String? phoneNumber,
     String? bio,

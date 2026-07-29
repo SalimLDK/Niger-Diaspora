@@ -24,6 +24,7 @@ mixin _$ProfileModel {
   String get id => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
+  String? get handle => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
@@ -76,6 +77,7 @@ abstract class $ProfileModelCopyWith<$Res> {
     String id,
     String? email,
     String? displayName,
+    String? handle,
     String? photoUrl,
     String? phoneNumber,
     String? bio,
@@ -127,6 +129,7 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? id = null,
     Object? email = freezed,
     Object? displayName = freezed,
+    Object? handle = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? bio = freezed,
@@ -174,6 +177,11 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                 freezed == displayName
                     ? _value.displayName
                     : displayName // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            handle:
+                freezed == handle
+                    ? _value.handle
+                    : handle // ignore: cast_nullable_to_non_nullable
                         as String?,
             photoUrl:
                 freezed == photoUrl
@@ -344,6 +352,7 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     String id,
     String? email,
     String? displayName,
+    String? handle,
     String? photoUrl,
     String? phoneNumber,
     String? bio,
@@ -394,6 +403,7 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? email = freezed,
     Object? displayName = freezed,
+    Object? handle = freezed,
     Object? photoUrl = freezed,
     Object? phoneNumber = freezed,
     Object? bio = freezed,
@@ -441,6 +451,11 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
             freezed == displayName
                 ? _value.displayName
                 : displayName // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        handle:
+            freezed == handle
+                ? _value.handle
+                : handle // ignore: cast_nullable_to_non_nullable
                     as String?,
         photoUrl:
             freezed == photoUrl
@@ -604,6 +619,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     required this.id,
     this.email,
     this.displayName,
+    this.handle,
     this.photoUrl,
     this.phoneNumber,
     this.bio,
@@ -649,6 +665,8 @@ class _$ProfileModelImpl extends _ProfileModel {
   final String? email;
   @override
   final String? displayName;
+  @override
+  final String? handle;
   @override
   final String? photoUrl;
   @override
@@ -750,7 +768,7 @@ class _$ProfileModelImpl extends _ProfileModel {
 
   @override
   String toString() {
-    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
+    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -762,6 +780,7 @@ class _$ProfileModelImpl extends _ProfileModel {
             (identical(other.email, email) || other.email == email) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
+            (identical(other.handle, handle) || other.handle == handle) &&
             (identical(other.photoUrl, photoUrl) ||
                 other.photoUrl == photoUrl) &&
             (identical(other.phoneNumber, phoneNumber) ||
@@ -835,6 +854,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     id,
     email,
     displayName,
+    handle,
     photoUrl,
     phoneNumber,
     bio,
@@ -886,6 +906,7 @@ abstract class _ProfileModel extends ProfileModel {
     required final String id,
     final String? email,
     final String? displayName,
+    final String? handle,
     final String? photoUrl,
     final String? phoneNumber,
     final String? bio,
@@ -928,6 +949,8 @@ abstract class _ProfileModel extends ProfileModel {
   String? get email;
   @override
   String? get displayName;
+  @override
+  String? get handle;
   @override
   String? get photoUrl;
   @override
