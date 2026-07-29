@@ -10,6 +10,7 @@ class GroupEntity extends Equatable {
   final String creatorId;
   final String? creatorName;
   final List<String> adminIds;
+  final List<String> moderatorIds;
   final List<String> memberIds;
   final GroupCategory category;
   final bool isPrivate;
@@ -31,6 +32,7 @@ class GroupEntity extends Equatable {
     required this.creatorId,
     this.creatorName,
     this.adminIds = const [],
+    this.moderatorIds = const [],
     this.memberIds = const [],
     this.category = GroupCategory.other,
     this.isPrivate = false,
@@ -50,6 +52,9 @@ class GroupEntity extends Equatable {
   /// Verifier si un utilisateur est admin
   bool isAdmin(String userId) => adminIds.contains(userId) || userId == creatorId;
 
+  /// Verifier si un utilisateur est moderateur (role dedie, distinct d'admin).
+  bool isModerator(String userId) => moderatorIds.contains(userId);
+
   /// Verifier si un utilisateur est membre
   bool isMember(String userId) => memberIds.contains(userId);
 
@@ -61,6 +66,7 @@ class GroupEntity extends Equatable {
     String? creatorId,
     String? creatorName,
     List<String>? adminIds,
+    List<String>? moderatorIds,
     List<String>? memberIds,
     GroupCategory? category,
     bool? isPrivate,
@@ -81,6 +87,7 @@ class GroupEntity extends Equatable {
       creatorId: creatorId ?? this.creatorId,
       creatorName: creatorName ?? this.creatorName,
       adminIds: adminIds ?? this.adminIds,
+      moderatorIds: moderatorIds ?? this.moderatorIds,
       memberIds: memberIds ?? this.memberIds,
       category: category ?? this.category,
       isPrivate: isPrivate ?? this.isPrivate,
@@ -104,6 +111,7 @@ class GroupEntity extends Equatable {
         creatorId,
         creatorName,
         adminIds,
+        moderatorIds,
         memberIds,
         category,
         isPrivate,

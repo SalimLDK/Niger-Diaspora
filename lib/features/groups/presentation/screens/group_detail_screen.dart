@@ -840,6 +840,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               _MemberListItem(
                 memberId: group.creatorId,
                 isAdmin: group.adminIds.contains(group.creatorId),
+                isModerator: group.isModerator(group.creatorId),
                 isCreator: true,
                 onTap: () => context.push('/profile/${group.creatorId}'),
               ),
@@ -876,6 +877,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   return _MemberListItem(
                     memberId: memberId,
                     isAdmin: group.adminIds.contains(memberId),
+                    isModerator: group.isModerator(memberId),
                     isCreator: false,
                     onTap: () => context.push('/profile/$memberId'),
                   );
@@ -932,12 +934,14 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 class _MemberListItem extends ConsumerWidget {
   final String memberId;
   final bool isAdmin;
+  final bool isModerator;
   final bool isCreator;
   final VoidCallback onTap;
 
   const _MemberListItem({
     required this.memberId,
     required this.isAdmin,
+    this.isModerator = false,
     required this.isCreator,
     required this.onTap,
   });
@@ -1034,6 +1038,26 @@ class _MemberListItem extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 10,
                       color: context.adaptiveSecondaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ] else if (isModerator) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7A8A5E).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Modé',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF5A6B45),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

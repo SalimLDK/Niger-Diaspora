@@ -13,6 +13,7 @@ Map<String, dynamic> _mapGroup(Map<String, dynamic> row) => {
   'creatorId': row['creator_id'],
   'creatorName': row['creator_name'],
   'adminIds': (row['admin_ids'] as List?)?.cast<String>() ?? [],
+  'moderatorIds': (row['moderator_ids'] as List?)?.cast<String>() ?? [],
   'memberIds': (row['member_ids'] as List?)?.cast<String>() ?? [],
   'category': row['category'] ?? 'general',
   'isPrivate': row['is_private'] ?? false,

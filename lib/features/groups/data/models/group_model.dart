@@ -11,6 +11,7 @@ class GroupModel extends Equatable {
   final String creatorId;
   final String? creatorName;
   final List<String> adminIds;
+  final List<String> moderatorIds;
   final List<String> memberIds;
   final String category;
   final bool isPrivate;
@@ -30,6 +31,7 @@ class GroupModel extends Equatable {
     required this.creatorId,
     this.creatorName,
     this.adminIds = const [],
+    this.moderatorIds = const [],
     this.memberIds = const [],
     this.category = 'other',
     this.isPrivate = false,
@@ -59,6 +61,10 @@ class GroupModel extends Equatable {
       creatorId: json['creatorId'] as String? ?? '',
       creatorName: json['creatorName'] as String?,
       adminIds: (json['adminIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      moderatorIds: (json['moderatorIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -92,6 +98,7 @@ class GroupModel extends Equatable {
       'creatorId': creatorId,
       'creatorName': creatorName,
       'adminIds': adminIds,
+      'moderatorIds': moderatorIds,
       'memberIds': memberIds,
       'category': category,
       'isPrivate': isPrivate,
@@ -133,6 +140,7 @@ class GroupModel extends Equatable {
         creatorId: creatorId,
         creatorName: creatorName,
         adminIds: adminIds,
+        moderatorIds: moderatorIds,
         memberIds: memberIds,
         category: _parseCategory(category),
         isPrivate: isPrivate,
@@ -160,6 +168,7 @@ class GroupModel extends Equatable {
         creatorId: entity.creatorId,
         creatorName: entity.creatorName,
         adminIds: entity.adminIds,
+        moderatorIds: entity.moderatorIds,
         memberIds: entity.memberIds,
         category: entity.category.name,
         isPrivate: entity.isPrivate,
@@ -180,6 +189,7 @@ class GroupModel extends Equatable {
     String? creatorId,
     String? creatorName,
     List<String>? adminIds,
+    List<String>? moderatorIds,
     List<String>? memberIds,
     String? category,
     bool? isPrivate,
@@ -199,6 +209,7 @@ class GroupModel extends Equatable {
       creatorId: creatorId ?? this.creatorId,
       creatorName: creatorName ?? this.creatorName,
       adminIds: adminIds ?? this.adminIds,
+      moderatorIds: moderatorIds ?? this.moderatorIds,
       memberIds: memberIds ?? this.memberIds,
       category: category ?? this.category,
       isPrivate: isPrivate ?? this.isPrivate,
@@ -221,6 +232,7 @@ class GroupModel extends Equatable {
         creatorId,
         creatorName,
         adminIds,
+        moderatorIds,
         memberIds,
         category,
         isPrivate,
