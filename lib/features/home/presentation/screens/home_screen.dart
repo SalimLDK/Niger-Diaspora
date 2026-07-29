@@ -9,6 +9,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../../../core/services/location_service.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -55,7 +56,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Timer? _uiRefreshTimer;
   static const int _nearbyRefreshIntervalSeconds = 60; // Rafraîchir les membres toutes les 60s
   static const int _uiRefreshIntervalSeconds = 10; // Rafraîchir l'affichage du temps toutes les 10s
-  static const double _nearbyRadiusKm = 200; // Rayon « Autour de vous »
+  static const double _nearbyRadiusDefaultKm = 50; // Rayon initial « Autour de vous »
+  static const double _nearbyRadiusWideKm = 200; // Rayon élargi à la demande
+
+  // Rayon courant : élargi de 50 à 200 km via le bouton de l'état vide.
+  double _nearbyRadiusKm = _nearbyRadiusDefaultKm;
 
   // Position actuelle pour le rafraîchissement
   double? _currentLat;
@@ -462,55 +467,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildReciprocityCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.warningColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.warningColor.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.location_off_outlined,
-            size: 40,
-            color: context.warningColor,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "Localisation requise",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Pour voir les membres à proximité, vous devez activer votre localisation. C'est donnant-donnant !",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () async {
-              await LocationService.instance.openLocationSettings();
-              await Future.delayed(const Duration(seconds: 1));
-              _loadData();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.warningColor,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text("Activer la localisation"),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -870,7 +826,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       else
                         const SizedBox(height: 16),
                       if (_locationError != null)
-                        _buildReciprocityCard()
+                        _NoPositionCard(onActivate: _enableLocation)
                       else
                         nearbyProfiles.when(
                           skipLoadingOnRefresh: true,
@@ -889,9 +845,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             }).toList();
 
                             if (filteredProfiles.isEmpty) {
-                              return HomeEmptyStateCard(
-                                icon: Icons.people_outline,
-                                message: l10n.noMembersNearby,
+                              // État vide « position active, personne autour » :
+                              // on explique la cause et on propose des issues
+                              // plutôt qu'un simple libellé (maquette 1b/CAS 1).
+                              return _NearbyEmptyCard(
+                                radiusKm: _nearbyRadiusKm,
+                                city: (profile?.currentCity?.trim().isNotEmpty ??
+                                        false)
+                                    ? profile!.currentCity
+                                    : _geoCity,
+                                canWiden:
+                                    _nearbyRadiusKm < _nearbyRadiusWideKm,
+                                onWiden: _widenRadius,
+                                onInvite: _inviteFriend,
                               );
                             }
 
@@ -1085,6 +1051,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (_) {
       // Géocodage indisponible : on garde les champs du profil s'ils existent.
     }
+  }
+
+  /// Élargit le rayon de recherche des membres proches (50 → 200 km) et
+  /// recharge, depuis l'état vide « Personne à moins de 50 km ».
+  void _widenRadius() {
+    if (_nearbyRadiusKm >= _nearbyRadiusWideKm) return;
+    setState(() => _nearbyRadiusKm = _nearbyRadiusWideKm);
+    if (_currentLat != null && _currentLng != null) {
+      ref
+          .read(nearbyProfilesNotifierProvider.notifier)
+          .loadNearbyProfiles(_currentLat!, _currentLng!,
+              radiusKm: _nearbyRadiusKm);
+    }
+  }
+
+  /// Partage un lien d'invitation à rejoindre l'app (« Inviter un proche »).
+  Future<void> _inviteFriend() async {
+    final uid = ref.read(currentUserProvider).valueOrNull?.id;
+    final link = DeepLinkService.instance.generateInviteLink(referrerId: uid);
+    await DeepLinkService.instance.shareLink(
+      link: link,
+      title: 'Rejoignez Diaspo Niger',
+      text: 'Rejoins-moi sur Diaspo Niger, la communauté nigérienne à '
+          'travers le monde.',
+    );
+  }
+
+  /// Ouvre les réglages de localisation, puis recharge (« Activer ma position »).
+  Future<void> _enableLocation() async {
+    await LocationService.instance.openLocationSettings();
+    await Future.delayed(const Duration(seconds: 1));
+    _loadData();
   }
 
   /// Distance formatée « 1,2 km » entre l'utilisateur et un profil, ou `null`
@@ -1558,6 +1556,293 @@ class _ServiceTile extends StatelessWidget {
 }
 
 // ── Refonte accueil : section « Autour de vous » (avatars circulaires) ───────
+
+/// État vide « position active, personne autour » (maquette 1b/CAS 1) : on
+/// explique la cause, on rassure (position active), et on propose deux issues
+/// (élargir le rayon, inviter un proche) plutôt qu'un libellé muet.
+class _NearbyEmptyCard extends StatelessWidget {
+  final double radiusKm;
+  final String? city;
+  final bool canWiden;
+  final VoidCallback onWiden;
+  final VoidCallback onInvite;
+
+  const _NearbyEmptyCard({
+    required this.radiusKm,
+    required this.city,
+    required this.canWiden,
+    required this.onWiden,
+    required this.onInvite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCity = city != null && city!.trim().isNotEmpty;
+    final subtitle = hasCity
+        ? "Aucun membre ne partage sa position autour de ${city!.trim()} pour l'instant."
+        : "Aucun membre ne partage sa position autour de vous pour l'instant.";
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(
+                  Icons.people_alt_outlined,
+                  size: 20,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Personne à moins de ${radiusKm.round()} km',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Réassurance : la position de l'utilisateur est bien active.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: context.successColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.check_circle_outline,
+                    size: 18, color: context.successColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Votre position est active : vous apparaîtrez dès qu\'un '
+                    'membre partagera la sienne.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.3,
+                      color: context.successColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              if (canWiden) ...[
+                Expanded(
+                  child: _HomeActionButton(
+                    label: 'Élargir à 200 km',
+                    filled: true,
+                    onTap: onWiden,
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: _HomeActionButton(
+                  label: 'Inviter un proche',
+                  filled: false,
+                  onTap: onInvite,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// État « position coupée » (maquette 1b/CAS 2) : rappelle la réciprocité du
+/// partage, rassure sur la confidentialité, et propose d'activer la position.
+class _NoPositionCard extends StatelessWidget {
+  final VoidCallback onActivate;
+
+  const _NoPositionCard({required this.onActivate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _homeOrange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(Icons.location_off_outlined,
+                    size: 20, color: _homeOrange),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vous n\'apparaissez pas sur la carte',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Le partage est réciproque : sans votre position, vous '
+                      'ne voyez pas non plus les autres.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _CheckLine(text: 'Position approximative, jamais l\'adresse exacte'),
+          const SizedBox(height: 8),
+          _CheckLine(text: 'Désactivable à tout moment'),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: _HomeActionButton(
+              label: 'Activer ma position',
+              filled: true,
+              onTap: onActivate,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckLine extends StatelessWidget {
+  final String text;
+  const _CheckLine({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.check_rounded, size: 16, color: context.successColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.3,
+              color: context.textSecondaryColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bouton d'action des cartes d'état vide : plein (orange) ou contour.
+class _HomeActionButton extends StatelessWidget {
+  final String label;
+  final bool filled;
+  final VoidCallback onTap;
+
+  const _HomeActionButton({
+    required this.label,
+    required this.filled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 44,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: filled ? _homeOrange : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: filled
+              ? null
+              : Border.all(color: context.borderStrongColor),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: filled ? Colors.white : context.textPrimaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Palette d'avatars (orange, vert, sarcelle, brique, violet) alignée sur la
 /// maquette. La couleur est stable pour un même profil via son id.
