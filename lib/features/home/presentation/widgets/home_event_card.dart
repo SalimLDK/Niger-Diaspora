@@ -11,11 +11,23 @@ class HomeEventCard extends StatelessWidget {
   /// Ligne de contexte « Paris 18e · 14 h · 62 participants ».
   final String subtitle;
 
+  /// Événement en ligne : ajoute un badge « EN LIGNE » (maquette 1c/CAS 1).
+  final bool isOnline;
+
+  /// Événement passé : pavé date grisé et titre atténué (maquette 1c/CAS 3).
+  final bool past;
+
+  /// Widget de fin personnalisé (ex. « Photos ») ; sinon un chevron.
+  final Widget? trailing;
+
   const HomeEventCard({
     super.key,
     required this.title,
     required this.date,
     required this.subtitle,
+    this.isOnline = false,
+    this.past = false,
+    this.trailing,
   });
 
   static const _months = [
@@ -35,21 +47,27 @@ class HomeEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.adaptivePrimaryColor;
+    // Passé : pavé date grisé ; sinon accent primaire.
+    final Color boxText =
+        past ? context.textTertiaryColor : context.adaptivePrimaryColor;
+    final Color boxBg = past
+        ? context.surfaceVariantColor
+        : (context.isDarkMode
+            ? context.adaptivePrimaryColor.withValues(alpha: 0.16)
+            : AppColors.primaryLighter);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: context.cardDecoration,
       child: Row(
         children: [
-          // Pavé date : « 02 / AOÛT » sur fond crème (refonte accueil).
+          // Pavé date : « 02 / AOÛT ».
           Container(
             width: 56,
             height: 56,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: context.isDarkMode
-                  ? accent.withValues(alpha: 0.16)
-                  : AppColors.primaryLighter,
+              color: boxBg,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -61,7 +79,7 @@ class HomeEventCard extends StatelessWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     height: 1,
-                    color: accent,
+                    color: boxText,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -71,7 +89,7 @@ class HomeEventCard extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
-                    color: accent,
+                    color: boxText,
                   ),
                 ),
               ],
@@ -82,15 +100,27 @@ class HomeEventCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: past
+                              ? context.textSecondaryColor
+                              : context.textPrimaryColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isOnline) ...[
+                      const SizedBox(width: 8),
+                      const _OnlineBadge(),
+                    ],
+                  ],
                 ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -108,12 +138,39 @@ class HomeEventCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Icon(
-            Icons.chevron_right_rounded,
-            size: 22,
-            color: context.textTertiaryColor,
-          ),
+          trailing ??
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: context.textTertiaryColor,
+              ),
         ],
+      ),
+    );
+  }
+}
+
+/// Petit badge « EN LIGNE » (bleu) pour les événements en ligne.
+class _OnlineBadge extends StatelessWidget {
+  const _OnlineBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = context.infoColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        'EN LIGNE',
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+          color: color,
+        ),
       ),
     );
   }

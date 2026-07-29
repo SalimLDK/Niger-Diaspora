@@ -11,6 +11,8 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/services/preferences_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -533,6 +535,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isOnline = ref.watch(connectivityNotifierProvider);
     final showOffline = !isOnline && !_offlineDismissed;
 
+    // Événement passé le plus récent, pour l'état vide « rien à venir, mais un
+    // passé » des Événements (maquette 1c/CAS 3).
+    final recentPastEvent = ref.watch(recentPastEventProvider).valueOrNull;
+    // Topic FCM pour « M'avertir du prochain » (par pays si connu).
+    final rawCc = (profile?.countryCode?.trim().isNotEmpty ?? false)
+        ? profile!.countryCode!.trim()
+        : (profile?.currentCountry?.trim().isNotEmpty ?? false)
+            ? profile!.currentCountry!.trim()
+            : 'all';
+    final eventsTopic =
+        'events_${rawCc.replaceAll(RegExp(r"[^A-Za-z0-9_-]"), "")}';
+
     // Retour du réseau : réarmer le bandeau et rafraîchir le contenu.
     ref.listen(connectivityNotifierProvider, (previous, next) {
       if (next == true) {
@@ -1007,46 +1021,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         skipLoadingOnRefresh: true,
                         data: (events) {
                           final upcoming = events.take(3).toList();
-                          if (upcoming.isEmpty) {
-                            // État vide « aucun événement » : inviter à créer le
-                            // premier plutôt qu'un libellé muet (maquette
-                            // 1c/CAS 2).
-                            return _EventsEmptyCard(
-                              city:
-                                  (profile?.currentCity?.trim().isNotEmpty ??
-                                          false)
-                                      ? profile!.currentCity
-                                      : _geoCity,
+
+                          if (upcoming.isNotEmpty) {
+                            final hasPhysical =
+                                upcoming.any((e) => !e.isOnline);
+                            // CAS 1 : rien en présentiel, mais des événements en
+                            // ligne accessibles (maquette 1c/CAS 1).
+                            if (!hasPhysical) {
+                              return _EventsOnlineOnlyCard(
+                                events: upcoming,
+                                city: placeCity,
+                                subtitleOf: (e) => _eventSubtitle(e, l10n),
+                              );
+                            }
+                            // Cartes normales (badge « EN LIGNE » si en ligne).
+                            return Column(
+                              children: upcoming
+                                  .map(
+                                    (event) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: GestureDetector(
+                                        onTap: () => context.push(
+                                          '/events/${event.id}',
+                                          extra: event,
+                                        ),
+                                        child: HomeEventCard(
+                                          title: event.title,
+                                          date: event.startDate,
+                                          subtitle: _eventSubtitle(event, l10n),
+                                          isOnline: event.isOnline,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                             );
                           }
 
-                          return Column(
-                            children:
-                                upcoming
-                                    .map(
-                                      (event) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        child: GestureDetector(
-                                          onTap:
-                                              () => context.push(
-                                                '/events/${event.id}',
-                                                extra: event,
-                                              ),
-                                          child: HomeEventCard(
-                                            title: event.title,
-                                            date: event.startDate,
-                                            subtitle: _eventSubtitle(
-                                              event,
-                                              l10n,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                          );
+                          // Rien à venir : CAS 3 si un événement passé existe,
+                          // sinon CAS 2 (créer le premier).
+                          if (recentPastEvent != null) {
+                            return _EventsPastCard(
+                              event: recentPastEvent,
+                              subtitle:
+                                  'Terminé · ${l10n.participants(recentPastEvent.attendeeIds.length)}',
+                              notifyTopic: eventsTopic,
+                            );
+                          }
+                          return _EventsEmptyCard(city: placeCity);
                         },
                         loading:
                             () => Column(
@@ -2363,6 +2386,293 @@ class _EventChip extends StatelessWidget {
             color: context.textSecondaryColor,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// État « rien en présentiel, mais en ligne oui » (maquette 1c/CAS 1) : affiche
+/// les événements en ligne accessibles + actions « Voir en ligne » / « Créer ».
+class _EventsOnlineOnlyCard extends StatelessWidget {
+  final List<EventEntity> events;
+  final String? city;
+  final String Function(EventEntity) subtitleOf;
+
+  const _EventsOnlineOnlyCard({
+    required this.events,
+    required this.city,
+    required this.subtitleOf,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCity = city != null && city!.trim().isNotEmpty;
+    final first = events.first;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(Icons.event_busy_outlined,
+                    size: 20, color: context.textSecondaryColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasCity
+                          ? 'Aucun événement à ${city!.trim()}'
+                          : 'Aucun événement en présentiel',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Un atelier en ligne est accessible depuis chez vous.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (final e in events.take(2))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () => context.push('/events/${e.id}', extra: e),
+                child: HomeEventCard(
+                  title: e.title,
+                  date: e.startDate,
+                  subtitle: subtitleOf(e),
+                  isOnline: true,
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: _HomeActionButton(
+                  label: 'Voir en ligne',
+                  filled: false,
+                  onTap: () =>
+                      context.push('/events/${first.id}', extra: first),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _HomeActionButton(
+                  label: 'Créer',
+                  filled: true,
+                  onTap: () => context.push('/events/create'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// État « plus rien à venir, mais un passé » (maquette 1c/CAS 3) : rappelle le
+/// dernier événement et propose de s'abonner au prochain.
+class _EventsPastCard extends StatelessWidget {
+  final EventEntity event;
+  final String subtitle;
+  final String notifyTopic;
+
+  const _EventsPastCard({
+    required this.event,
+    required this.subtitle,
+    required this.notifyTopic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final n = event.attendeeIds.length;
+    final hasPhotos = event.recapPhotoUrls.isNotEmpty;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(Icons.history_rounded,
+                    size: 20, color: context.textSecondaryColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Rien de prévu pour le moment',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      n > 0
+                          ? 'Le dernier a réuni $n personne${n > 1 ? 's' : ''}.'
+                          : 'Relancez la communauté avec un nouvel événement.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () => context.push(
+              hasPhotos ? '/events/${event.id}/recap' : '/events/${event.id}',
+              extra: event,
+            ),
+            child: HomeEventCard(
+              title: event.title,
+              date: event.startDate,
+              subtitle: subtitle,
+              past: true,
+              trailing: hasPhotos
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.photo_library_outlined,
+                            size: 14, color: context.adaptivePrimaryColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Photos',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                        ),
+                      ],
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Divider(height: 1, color: context.borderColor),
+          _NotifyNextToggle(topic: notifyTopic),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bascule « M'avertir du prochain » : persiste le choix et (dés)abonne au
+/// topic FCM des événements (même mécanisme que les groupes).
+class _NotifyNextToggle extends StatefulWidget {
+  final String topic;
+  const _NotifyNextToggle({required this.topic});
+
+  @override
+  State<_NotifyNextToggle> createState() => _NotifyNextToggleState();
+}
+
+class _NotifyNextToggleState extends State<_NotifyNextToggle> {
+  static const _prefKey = 'home_notify_next_event';
+  bool _on = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _on = PreferencesService.instance.prefs.getBool(_prefKey) ?? false;
+  }
+
+  Future<void> _set(bool value) async {
+    setState(() => _on = value);
+    await PreferencesService.instance.prefs.setBool(_prefKey, value);
+    try {
+      if (value) {
+        await NotificationService().subscribeToTopic(widget.topic);
+      } else {
+        await NotificationService().unsubscribeFromTopic(widget.topic);
+      }
+    } catch (_) {
+      // Abonnement best-effort : on garde la préférence locale.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_active_outlined,
+              size: 18, color: context.textSecondaryColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'M\'avertir du prochain',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ),
+          Switch.adaptive(
+            value: _on,
+            onChanged: _set,
+            activeThumbColor: _homeGreen,
+          ),
+        ],
       ),
     );
   }

@@ -22,6 +22,18 @@ EventRepository eventRepository(Ref ref) {
   );
 }
 
+/// Événement passé le plus récent (status = completed), pour l'état vide
+/// « plus rien à venir, mais un passé » de l'accueil (maquette 1c/CAS 3).
+/// `null` s'il n'y en a aucun. Provider simple (sans codegen).
+final recentPastEventProvider = FutureProvider<EventEntity?>((ref) async {
+  final repository = ref.read(eventRepositoryProvider);
+  final result = await repository.getPastEvents();
+  return result.fold(
+    (_) => null,
+    (events) => events.isNotEmpty ? events.first : null,
+  );
+});
+
 @Riverpod(keepAlive: true)
 class EventsNotifier extends _$EventsNotifier {
   @override
