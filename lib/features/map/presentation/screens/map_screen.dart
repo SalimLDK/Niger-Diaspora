@@ -2063,15 +2063,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: context.adaptivePrimaryGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.adaptivePrimaryColor.withValues(
-                          alpha: 0.3,
-                        ),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                    boxShadow:
+                        context.isDarkMode
+                            ? null
+                            : [
+                              BoxShadow(
+                                color: context.adaptivePrimaryColor
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                   ),
                   child:
                       member.photoUrl != null &&
@@ -2413,7 +2415,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                 width: isSelected ? 2 : 1,
                               ),
                               boxShadow:
-                                  isSelected
+                                  isSelected && !context.isDarkMode
                                       ? [
                                         BoxShadow(
                                           color: context.adaptivePrimaryColor
@@ -2520,13 +2522,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
         decoration: BoxDecoration(
           color: context.surfaceColor,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow:
+              context.isDarkMode
+                  ? null
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
         ),
         child: Icon(Icons.layers_outlined, color: context.textPrimaryColor),
       ),
@@ -3087,13 +3092,18 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                 color: context.warningBackgroundColor,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: context.warningColor),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                                boxShadow:
+                                    context.isDarkMode
+                                        ? null
+                                        : [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                               ),
                               child: Row(
                                 children: [
@@ -3221,13 +3231,18 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(24),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
-                                blurRadius: 20,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
+                            boxShadow:
+                                context.isDarkMode
+                                    ? null
+                                    : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, -4),
+                                      ),
+                                    ],
                           ),
                           child: Column(
                             children: [
@@ -3402,13 +3417,16 @@ class _FilterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected ? context.adaptivePrimaryColor : context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
       ),
       child: Text(
         label,

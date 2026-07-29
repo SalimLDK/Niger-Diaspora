@@ -696,13 +696,18 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               decoration: BoxDecoration(
                                 color: context.surfaceColor,
                                 borderRadius: BorderRadius.circular(28),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
+                                boxShadow:
+                                    context.isDarkMode
+                                        ? null
+                                        : [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 10),
+                                          ),
+                                        ],
                               ),
                               child:
                                   profile.photoUrl != null
@@ -1187,13 +1192,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   ),
                   decoration: BoxDecoration(
                     color: context.surfaceColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
+                    boxShadow:
+                        context.isDarkMode
+                            ? null
+                            : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
                   ),
                   child: OutlinedButton.icon(
                     onPressed: () async {
@@ -1264,13 +1272,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   ),
                   decoration: BoxDecoration(
                     color: context.surfaceColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
+                    boxShadow:
+                        context.isDarkMode
+                            ? null
+                            : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
                   ),
                   child: Row(
                     children: [
@@ -1419,13 +1430,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
               ),
               decoration: BoxDecoration(
                 color: context.surfaceColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+                boxShadow:
+                    context.isDarkMode
+                        ? null
+                        : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, -4),
+                          ),
+                        ],
               ),
               child: ElevatedButton.icon(
                 onPressed: onPressed,
