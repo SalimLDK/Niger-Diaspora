@@ -7,9 +7,15 @@ import '../../features/messages/presentation/providers/message_provider.dart';
 import '../../features/messages/presentation/screens/share_to_conversation_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
+import '../../shared/widgets/tablet_navigation_rail.dart';
 import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/shared_media_service.dart';
 import '../utils/toast_utils.dart';
+
+/// Même seuil que `feed_screen.dart` (tour 4b) : au-delà, le fil affiche déjà
+/// sa colonne droite tablette — le rail de navigation gauche doit apparaître
+/// au même point pour ne pas désynchroniser les deux layouts.
+const double _kTabletBreakpoint = 700;
 
 class MainShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -75,6 +81,26 @@ class _MainShellState extends ConsumerState<MainShell> {
       e2eeBackupCoordinatorProvider,
       (_, next) => _handleE2EEPrompt(next),
     );
+
+    final isWide = MediaQuery.of(context).size.width >= _kTabletBreakpoint;
+
+    if (isWide) {
+      // Tablette/desktop (tour 4b) : rail de navigation fixe 86px à gauche,
+      // pas de barre flottante — la colonne centrale n'a pas besoin de la
+      // réserve basse de 110px (rien ne flotte par-dessus le contenu ici).
+      return Scaffold(
+        body: Row(
+          children: [
+            TabletNavigationRail(
+              currentIndex: widget.navigationShell.currentIndex,
+              onTap: (index) => _onTap(context, index),
+              unreadMessagesCount: unreadMessagesCount,
+            ),
+            Expanded(child: widget.navigationShell),
+          ],
+        ),
+      );
+    }
 
     // extendBody: true keeps the glass/blur effect (nav bar floats over body).
     // MediaQuery.padding.bottom is inflated so every ListView/ScrollView that
