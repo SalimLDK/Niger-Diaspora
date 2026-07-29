@@ -9,12 +9,15 @@ import '../../../../core/theme/dn_theme.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/audio_room_entity.dart';
 import '../providers/audio_room_provider.dart';
+import '../providers/monetization_provider.dart';
 import '../widgets/_shared/collection_progress_bar.dart';
 import '../widgets/_shared/dn_tab_bar.dart';
 import '../widgets/_shared/live_dot.dart';
 import '../widgets/_shared/mode_chip.dart';
+import '../widgets/buy_ticket_bottom_sheet.dart';
 import '../widgets/timezone_display_widget.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
@@ -236,18 +239,48 @@ class _LiveList extends ConsumerWidget {
   }
 }
 
-class _LiveCard extends StatelessWidget {
+class _LiveCard extends ConsumerWidget {
   final AudioRoomEntity room;
 
   const _LiveCard({required this.room});
 
+  void _enterRoom(BuildContext context) {
+    context.push('/audio-rooms/${room.id}', extra: {'title': room.title});
+  }
+
+  /// Salon payant (§1h) : vérifie un billet déjà acheté avant d'entrer,
+  /// sinon ouvre `BuyTicketBottomSheet` — l'entrée ne suit que si l'achat
+  /// réussit (ou si un billet valide existait déjà).
+  Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
+    if (!room.isPaid) {
+      _enterRoom(context);
+      return;
+    }
+
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    final hasTicket = await ref.read(
+      hasValidTicketProvider((roomId: room.id, userId: currentUser.id)).future,
+    );
+    if (hasTicket) {
+      if (context.mounted) _enterRoom(context);
+      return;
+    }
+
+    if (!context.mounted) return;
+    final purchased = await BuyTicketBottomSheet.show(context, room: room);
+    if (purchased == true && context.mounted) {
+      _enterRoom(context);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dn = context.dn;
     final mode = roomModeFrom(room.mode.name);
     return GestureDetector(
-      onTap: () =>
-          context.push('/audio-rooms/${room.id}', extra: {'title': room.title}),
+      onTap: () => _handleTap(context, ref),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
