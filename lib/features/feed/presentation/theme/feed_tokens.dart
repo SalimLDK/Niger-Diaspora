@@ -124,7 +124,7 @@ class FeedTokens {
     accent: Color(0xFF9184D9),
     accent2: Color(0xFFA7A1DB),
     divider: Color(0x29E9E9ED),
-    onAccent: Color(0xFFFFFFFF),
+    onAccent: Color(0xFF161826),
     avatarBg: Color(0xFF423A6A),
     avatarFg: Color(0xFFF5F4FF),
     hashtagColor: Color(0xFFD2CEFD),
