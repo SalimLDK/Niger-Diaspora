@@ -48,6 +48,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _addressController = TextEditingController();
   final _onlineLinkController = TextEditingController();
   final _maxAttendeesController = TextEditingController();
+  final _priceController = TextEditingController();
 
   EventCategory _selectedCategory = EventCategory.other;
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
@@ -106,6 +107,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _addressController.dispose();
     _onlineLinkController.dispose();
     _maxAttendeesController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -306,6 +308,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           _maxAttendeesController.text.isNotEmpty
               ? int.tryParse(_maxAttendeesController.text) ?? 0
               : 0,
+      price: _priceController.text.trim().isNotEmpty
+          ? double.tryParse(
+                _priceController.text.trim().replaceAll(',', '.'),
+              ) ??
+              0.0
+          : 0.0,
       attendeeIds: [currentUser.id],
       groupId: widget.groupId,
       groupName: widget.groupName,
@@ -833,6 +841,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             const SizedBox(height: 4),
             Text(
               l10n.unlimitedAttendees,
+              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Prix du billet (§16e) — 0 = gratuit
+            _buildLabel(l10n.eventPriceOptional),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _priceController,
+              decoration: _inputDecoration(l10n.eventPriceHint, context).copyWith(
+                suffixText: '€',
+                suffixStyle: TextStyle(color: context.textSecondaryColor),
+              ),
+              style: TextStyle(color: context.textPrimaryColor),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.eventPriceFreeHelper,
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
             ),
 

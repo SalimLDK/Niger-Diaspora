@@ -306,6 +306,30 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ),
                             ),
                           ],
+                          // Badge Gratuit / Payant (§25a)
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: event.isFree
+                                  ? const Color(0xFF1B5E32)
+                                  : const Color(0xFFB85E24),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              event.isFree
+                                  ? l10n.eventFree
+                                  : '${event.price.toStringAsFixed(0)} €',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),

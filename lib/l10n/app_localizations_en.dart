@@ -881,6 +881,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get full => 'Full';
 
   @override
+  String get eventFree => 'Free';
+
+  @override
+  String get eventPaid => 'Paid';
+
+  @override
+  String get eventPriceOptional => 'Ticket price (optional)';
+
+  @override
+  String get eventPriceHint => '0 = free';
+
+  @override
+  String get eventPriceFreeHelper => 'Leave at 0 for a free event';
+
+  @override
   String get registrationConfirmed => 'Registration confirmed!';
 
   @override

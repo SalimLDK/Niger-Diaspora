@@ -35,6 +35,7 @@ _$EventModelImpl _$$EventModelImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       maxAttendees: (json['maxAttendees'] as num?)?.toInt() ?? 0,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       isOnline: json['isOnline'] as bool? ?? false,
       onlineLink: json['onlineLink'] as String?,
       category: json['category'] as String? ?? 'other',
@@ -73,6 +74,7 @@ Map<String, dynamic> _$$EventModelImplToJson(_$EventModelImpl instance) =>
       'posterUrls': instance.posterUrls,
       'attendeeIds': instance.attendeeIds,
       'maxAttendees': instance.maxAttendees,
+      'price': instance.price,
       'isOnline': instance.isOnline,
       'onlineLink': instance.onlineLink,
       'category': instance.category,

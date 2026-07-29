@@ -21,6 +21,8 @@ class EventEntity with _$EventEntity {
     @Default([]) List<String> posterUrls,
     @Default([]) List<String> attendeeIds,
     @Default(0) int maxAttendees,
+    // Prix du billet (0 = gratuit). §13a/25a — badge « Gratuit ».
+    @Default(0.0) double price,
     @Default(false) bool isOnline,
     String? onlineLink,
     @Default(EventCategory.other) EventCategory category,
@@ -34,6 +36,11 @@ class EventEntity with _$EventEntity {
     String? conversationId,
     @Default(false) bool isPublic,
   }) = _EventEntity;
+
+  const EventEntity._();
+
+  /// Événement gratuit (aucun prix de billet).
+  bool get isFree => price <= 0;
 }
 
 enum EventCategory {

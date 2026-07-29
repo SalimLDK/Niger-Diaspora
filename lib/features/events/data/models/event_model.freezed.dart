@@ -37,6 +37,7 @@ mixin _$EventModel {
   List<String> get posterUrls => throw _privateConstructorUsedError;
   List<String> get attendeeIds => throw _privateConstructorUsedError;
   int get maxAttendees => throw _privateConstructorUsedError;
+  double get price => throw _privateConstructorUsedError;
   bool get isOnline => throw _privateConstructorUsedError;
   String? get onlineLink => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
@@ -80,6 +81,7 @@ abstract class $EventModelCopyWith<$Res> {
     List<String> posterUrls,
     List<String> attendeeIds,
     int maxAttendees,
+    double price,
     bool isOnline,
     String? onlineLink,
     String category,
@@ -122,6 +124,7 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
     Object? posterUrls = null,
     Object? attendeeIds = null,
     Object? maxAttendees = null,
+    Object? price = null,
     Object? isOnline = null,
     Object? onlineLink = freezed,
     Object? category = null,
@@ -213,6 +216,11 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
                     ? _value.maxAttendees
                     : maxAttendees // ignore: cast_nullable_to_non_nullable
                         as int,
+            price:
+                null == price
+                    ? _value.price
+                    : price // ignore: cast_nullable_to_non_nullable
+                        as double,
             isOnline:
                 null == isOnline
                     ? _value.isOnline
@@ -285,6 +293,7 @@ abstract class _$$EventModelImplCopyWith<$Res>
     List<String> posterUrls,
     List<String> attendeeIds,
     int maxAttendees,
+    double price,
     bool isOnline,
     String? onlineLink,
     String category,
@@ -326,6 +335,7 @@ class __$$EventModelImplCopyWithImpl<$Res>
     Object? posterUrls = null,
     Object? attendeeIds = null,
     Object? maxAttendees = null,
+    Object? price = null,
     Object? isOnline = null,
     Object? onlineLink = freezed,
     Object? category = null,
@@ -417,6 +427,11 @@ class __$$EventModelImplCopyWithImpl<$Res>
                 ? _value.maxAttendees
                 : maxAttendees // ignore: cast_nullable_to_non_nullable
                     as int,
+        price:
+            null == price
+                ? _value.price
+                : price // ignore: cast_nullable_to_non_nullable
+                    as double,
         isOnline:
             null == isOnline
                 ? _value.isOnline
@@ -482,6 +497,7 @@ class _$EventModelImpl extends _EventModel {
     final List<String> posterUrls = const [],
     final List<String> attendeeIds = const [],
     this.maxAttendees = 0,
+    this.price = 0.0,
     this.isOnline = false,
     this.onlineLink,
     this.category = 'other',
@@ -547,6 +563,9 @@ class _$EventModelImpl extends _EventModel {
   final int maxAttendees;
   @override
   @JsonKey()
+  final double price;
+  @override
+  @JsonKey()
   final bool isOnline;
   @override
   final String? onlineLink;
@@ -574,7 +593,7 @@ class _$EventModelImpl extends _EventModel {
 
   @override
   String toString() {
-    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
+    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, price: $price, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
   }
 
   @override
@@ -613,6 +632,7 @@ class _$EventModelImpl extends _EventModel {
             ) &&
             (identical(other.maxAttendees, maxAttendees) ||
                 other.maxAttendees == maxAttendees) &&
+            (identical(other.price, price) || other.price == price) &&
             (identical(other.isOnline, isOnline) ||
                 other.isOnline == isOnline) &&
             (identical(other.onlineLink, onlineLink) ||
@@ -652,6 +672,7 @@ class _$EventModelImpl extends _EventModel {
     const DeepCollectionEquality().hash(_posterUrls),
     const DeepCollectionEquality().hash(_attendeeIds),
     maxAttendees,
+    price,
     isOnline,
     onlineLink,
     category,
@@ -694,6 +715,7 @@ abstract class _EventModel extends EventModel {
     final List<String> posterUrls,
     final List<String> attendeeIds,
     final int maxAttendees,
+    final double price,
     final bool isOnline,
     final String? onlineLink,
     final String category,
@@ -740,6 +762,8 @@ abstract class _EventModel extends EventModel {
   List<String> get attendeeIds;
   @override
   int get maxAttendees;
+  @override
+  double get price;
   @override
   bool get isOnline;
   @override

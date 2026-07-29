@@ -1736,6 +1736,36 @@ abstract class AppLocalizations {
   /// **'Complet'**
   String get full;
 
+  /// No description provided for @eventFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gratuit'**
+  String get eventFree;
+
+  /// No description provided for @eventPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payant'**
+  String get eventPaid;
+
+  /// No description provided for @eventPriceOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix du billet (optionnel)'**
+  String get eventPriceOptional;
+
+  /// No description provided for @eventPriceHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'0 = gratuit'**
+  String get eventPriceHint;
+
+  /// No description provided for @eventPriceFreeHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez à 0 pour un événement gratuit'**
+  String get eventPriceFreeHelper;
+
   /// No description provided for @registrationConfirmed.
   ///
   /// In fr, this message translates to:

@@ -893,6 +893,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get full => 'Complet';
 
   @override
+  String get eventFree => 'Gratuit';
+
+  @override
+  String get eventPaid => 'Payant';
+
+  @override
+  String get eventPriceOptional => 'Prix du billet (optionnel)';
+
+  @override
+  String get eventPriceHint => '0 = gratuit';
+
+  @override
+  String get eventPriceFreeHelper => 'Laissez à 0 pour un événement gratuit';
+
+  @override
   String get registrationConfirmed => 'Inscription confirmée !';
 
   @override

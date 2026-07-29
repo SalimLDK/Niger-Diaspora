@@ -32,7 +32,9 @@ mixin _$EventEntity {
   String? get organizerPhotoUrl => throw _privateConstructorUsedError;
   List<String> get posterUrls => throw _privateConstructorUsedError;
   List<String> get attendeeIds => throw _privateConstructorUsedError;
-  int get maxAttendees => throw _privateConstructorUsedError;
+  int get maxAttendees =>
+      throw _privateConstructorUsedError; // Prix du billet (0 = gratuit). §13a/25a — badge « Gratuit ».
+  double get price => throw _privateConstructorUsedError;
   bool get isOnline => throw _privateConstructorUsedError;
   String? get onlineLink => throw _privateConstructorUsedError;
   EventCategory get category => throw _privateConstructorUsedError;
@@ -77,6 +79,7 @@ abstract class $EventEntityCopyWith<$Res> {
     List<String> posterUrls,
     List<String> attendeeIds,
     int maxAttendees,
+    double price,
     bool isOnline,
     String? onlineLink,
     EventCategory category,
@@ -123,6 +126,7 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
     Object? posterUrls = null,
     Object? attendeeIds = null,
     Object? maxAttendees = null,
+    Object? price = null,
     Object? isOnline = null,
     Object? onlineLink = freezed,
     Object? category = null,
@@ -218,6 +222,11 @@ class _$EventEntityCopyWithImpl<$Res, $Val extends EventEntity>
                     ? _value.maxAttendees
                     : maxAttendees // ignore: cast_nullable_to_non_nullable
                         as int,
+            price:
+                null == price
+                    ? _value.price
+                    : price // ignore: cast_nullable_to_non_nullable
+                        as double,
             isOnline:
                 null == isOnline
                     ? _value.isOnline
@@ -310,6 +319,7 @@ abstract class _$$EventEntityImplCopyWith<$Res>
     List<String> posterUrls,
     List<String> attendeeIds,
     int maxAttendees,
+    double price,
     bool isOnline,
     String? onlineLink,
     EventCategory category,
@@ -355,6 +365,7 @@ class __$$EventEntityImplCopyWithImpl<$Res>
     Object? posterUrls = null,
     Object? attendeeIds = null,
     Object? maxAttendees = null,
+    Object? price = null,
     Object? isOnline = null,
     Object? onlineLink = freezed,
     Object? category = null,
@@ -450,6 +461,11 @@ class __$$EventEntityImplCopyWithImpl<$Res>
                 ? _value.maxAttendees
                 : maxAttendees // ignore: cast_nullable_to_non_nullable
                     as int,
+        price:
+            null == price
+                ? _value.price
+                : price // ignore: cast_nullable_to_non_nullable
+                    as double,
         isOnline:
             null == isOnline
                 ? _value.isOnline
@@ -517,7 +533,7 @@ class __$$EventEntityImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$EventEntityImpl implements _EventEntity {
+class _$EventEntityImpl extends _EventEntity {
   const _$EventEntityImpl({
     required this.id,
     required this.title,
@@ -535,6 +551,7 @@ class _$EventEntityImpl implements _EventEntity {
     final List<String> posterUrls = const [],
     final List<String> attendeeIds = const [],
     this.maxAttendees = 0,
+    this.price = 0.0,
     this.isOnline = false,
     this.onlineLink,
     this.category = EventCategory.other,
@@ -549,7 +566,8 @@ class _$EventEntityImpl implements _EventEntity {
     this.isPublic = false,
   }) : _posterUrls = posterUrls,
        _attendeeIds = attendeeIds,
-       _recapPhotoUrls = recapPhotoUrls;
+       _recapPhotoUrls = recapPhotoUrls,
+       super._();
 
   @override
   final String id;
@@ -598,6 +616,10 @@ class _$EventEntityImpl implements _EventEntity {
   @override
   @JsonKey()
   final int maxAttendees;
+  // Prix du billet (0 = gratuit). §13a/25a — badge « Gratuit ».
+  @override
+  @JsonKey()
+  final double price;
   @override
   @JsonKey()
   final bool isOnline;
@@ -636,7 +658,7 @@ class _$EventEntityImpl implements _EventEntity {
 
   @override
   String toString() {
-    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt, groupId: $groupId, groupName: $groupName, conversationId: $conversationId, isPublic: $isPublic)';
+    return 'EventEntity(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, price: $price, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt, groupId: $groupId, groupName: $groupName, conversationId: $conversationId, isPublic: $isPublic)';
   }
 
   @override
@@ -675,6 +697,7 @@ class _$EventEntityImpl implements _EventEntity {
             ) &&
             (identical(other.maxAttendees, maxAttendees) ||
                 other.maxAttendees == maxAttendees) &&
+            (identical(other.price, price) || other.price == price) &&
             (identical(other.isOnline, isOnline) ||
                 other.isOnline == isOnline) &&
             (identical(other.onlineLink, onlineLink) ||
@@ -720,6 +743,7 @@ class _$EventEntityImpl implements _EventEntity {
     const DeepCollectionEquality().hash(_posterUrls),
     const DeepCollectionEquality().hash(_attendeeIds),
     maxAttendees,
+    price,
     isOnline,
     onlineLink,
     category,
@@ -743,7 +767,7 @@ class _$EventEntityImpl implements _EventEntity {
       __$$EventEntityImplCopyWithImpl<_$EventEntityImpl>(this, _$identity);
 }
 
-abstract class _EventEntity implements EventEntity {
+abstract class _EventEntity extends EventEntity {
   const factory _EventEntity({
     required final String id,
     required final String title,
@@ -761,6 +785,7 @@ abstract class _EventEntity implements EventEntity {
     final List<String> posterUrls,
     final List<String> attendeeIds,
     final int maxAttendees,
+    final double price,
     final bool isOnline,
     final String? onlineLink,
     final EventCategory category,
@@ -774,6 +799,7 @@ abstract class _EventEntity implements EventEntity {
     final String? conversationId,
     final bool isPublic,
   }) = _$EventEntityImpl;
+  const _EventEntity._() : super._();
 
   @override
   String get id;
@@ -806,7 +832,9 @@ abstract class _EventEntity implements EventEntity {
   @override
   List<String> get attendeeIds;
   @override
-  int get maxAttendees;
+  int get maxAttendees; // Prix du billet (0 = gratuit). §13a/25a — badge « Gratuit ».
+  @override
+  double get price;
   @override
   bool get isOnline;
   @override
