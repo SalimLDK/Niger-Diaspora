@@ -47,8 +47,9 @@ Et dans un **second fichier**, `Salons audio & Podcasts.dc.html` : salons audio 
 | **Filtre par ville** du fil | — | champ `author_city` + migration SQL |
 | **Rôle modérateur** : champ + affectation + badge MODÉ | 9d | `moderatorIds`, affectation depuis l'écran membres |
 | **Prochaine rencontre** sur la fiche de groupe | 9d | `EventModel` porte enfin `groupId` (était perdu) |
-| **@handle public** + vérification de disponibilité | 16f/10c | champ `handle` + index UNIQUE serveur |
+| **@handle public** + vérification de disponibilité | 16f/10c | champ `handle` + index UNIQUE serveur ; aussi dans la config 1/4 (widget `HandleField` partagé) |
 | **Groupes en commun** sur le profil public | 10c | dérivé des groupes déjà chargés (sans RPC) |
+| **En-tête carte unifié** + bouton « calques » | 7d | recherche + calques sur une ligne ; feuille consolidant Membres / Commerces / Ambassades ⚠️ *à valider sur appareil* |
 
 ### 🗄️ Migrations Supabase appliquées
 - `posts.author_city` (+ backfill depuis `users.city`) — filtre villes du fil ;
@@ -56,9 +57,10 @@ Et dans un **second fichier**, `Salons audio & Podcasts.dc.html` : salons audio 
 - `users.handle` (+ index UNIQUE `lower(handle)`) — poignée publique ;
 - `mark_messages_as_delivered` : suppression de la surcharge TEXT en double (bug-fix prod).
 
+> **§7d — note.** Livré en version pragmatique : la barre de recherche et un bouton « calques » sont sur une même ligne, mais les filtres profession restent une rangée séparée juste en dessous (le déroulant de `MapSearchBar` grandit en colonne inline → une fusion en un seul bloc ferait sauter les chips). Le rendu de l'overlay reste à valider sur appareil.
+
 ### ⛔ Reste hors périmètre (greenfield / contrainte produit)
 - **Rail stories/actus** : feature volontairement écartée (aucun modèle Story) — build greenfield, pas un déblocage.
-- **En-tête carte unifié (7d)** : réécriture d'un écran Google Maps de ~3200 lignes, non testable sans appareil.
 - **Filmstrip multi-média (27d)** : casserait l'éditeur mono-fichier façon Signal.
 - **Sondage / Lieu attachés à un post** : les sondages sont réservés aux groupes (contrainte DB).
 - **Back-office admin (19 écrans)** : traité dans un document séparé (cf. « Non traité dans ce handoff »).
