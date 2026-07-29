@@ -196,7 +196,8 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
   }
 
   /// Bandeau « Reprendre » (§1d) : dernier épisode commencé mais non terminé,
-  /// avec sa progression et un accès direct au lecteur.
+  /// avec sa progression ; le tap ouvre l'écran de détail d'épisode (d'où la
+  /// lecture reprend).
   Widget _buildResumeBanner(AppLocalizations l10n) {
     final userData = ref.watch(podcastUserDataProvider).valueOrNull;
     final inProgress = userData?.inProgressEpisodes ?? const [];

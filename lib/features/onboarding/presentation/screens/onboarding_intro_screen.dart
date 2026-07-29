@@ -184,7 +184,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                   // Next/Start button
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
+                    height: 54,
                     child: ElevatedButton(
                       onPressed: _requestingPermissions ? null : _nextPage,
                       style: ElevatedButton.styleFrom(

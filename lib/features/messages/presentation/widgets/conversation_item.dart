@@ -333,11 +333,11 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     if (widget.conversation.isGroup) {
       return Container(
-        width: 56,
-        height: 56,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           gradient: context.adaptiveSecondaryGradient,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(17),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.2),
             width: 2,
@@ -353,12 +353,12 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         child:
             photoUrl != null && photoUrl.isNotEmpty
                 ? ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(17),
                   child: CachedNetworkImage(
                     imageUrl: photoUrl,
                     fit: BoxFit.cover,
-                    width: 56,
-                    height: 56,
+                    width: 50,
+                    height: 50,
                     placeholder:
                         (_, __) => const Center(
                           child: AppIcon(AppIcon.groups,
@@ -383,11 +383,11 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     // Conversation individuelle avec indicateur en ligne
     final avatarWidget = Container(
-      width: 56,
-      height: 56,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         gradient: context.adaptivePrimaryGradient,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(17),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.2),
           width: 2,
@@ -403,12 +403,12 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       child:
           photoUrl != null && photoUrl.isNotEmpty
               ? ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(17),
                 child: CachedNetworkImage(
                   imageUrl: photoUrl,
                   fit: BoxFit.cover,
-                  width: 56,
-                  height: 56,
+                  width: 50,
+                  height: 50,
                   placeholder:
                       (_, __) => Center(
                         child: Text(
