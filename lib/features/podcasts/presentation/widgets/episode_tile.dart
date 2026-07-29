@@ -9,6 +9,7 @@ import '../../../../core/services/podcast_download_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/podcast_episode_entity.dart';
+import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// A tile widget for displaying a podcast episode with download capability
@@ -32,6 +33,21 @@ class EpisodeTile extends ConsumerWidget {
 
     // For premium episodes without access, replace tap/play with paywall redirect
     final isPremiumLocked = episode.isPremium && !hasPremiumAccess;
+
+    // Prix d'abonnement premium (porté par le podcast parent), §1d.
+    String? premiumPriceLabel;
+    if (episode.isPremium) {
+      final podcast =
+          ref.watch(podcastStreamProvider(episode.podcastId)).valueOrNull;
+      final cents = podcast?.premiumPrice;
+      if (cents != null && cents > 0) {
+        final amount = cents / 100;
+        final text =
+            amount == amount.roundToDouble() ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
+        final cur = podcast?.premiumCurrency ?? 'EUR';
+        premiumPriceLabel = cur == 'EUR' ? '€$text' : '$text $cur';
+      }
+    }
 
     return InkWell(
       onTap: isPremiumLocked
@@ -96,7 +112,9 @@ class EpisodeTile extends ConsumerWidget {
                               ),
                               const SizedBox(width: 3),
                               Text(
-                                'Premium',
+                                premiumPriceLabel != null
+                                    ? 'Premium · $premiumPriceLabel'
+                                    : 'Premium',
                                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: Colors.amber[700],
                                   fontWeight: FontWeight.w600,
