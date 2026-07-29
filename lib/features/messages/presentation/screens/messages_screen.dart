@@ -18,8 +18,9 @@ import '../widgets/conversation_item.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 
-/// Filtres rapides de la liste, en puces sous l'en-tête.
-enum _MessagesFilter { all, unread, groups }
+/// Filtres rapides de la liste, en puces sous l'en-tête (§9a : Tous / Non lus
+/// / Groupes / Archives, un seul rang de puces mutuellement exclusives).
+enum _MessagesFilter { all, unread, groups, archives }
 
 /// Pastille d'action de l'en-tête : carré arrondi sombre sur le dégradé.
 class _HeaderActionButton extends StatelessWidget {
@@ -59,7 +60,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
-  bool _showArchived = false;
   _MessagesFilter _filter = _MessagesFilter.all;
 
   /// Hauteur du CONTENU de l'en-tête sous la barre de statut. La hauteur
@@ -94,11 +94,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     filtered =
         filtered.where((conv) => !conv.isSelfNotesFor(currentUserId)).toList();
 
-    // Puces de filtre rapide (ne s'appliquent pas aux archives, qui ont déjà
-    // leur propre vue).
+    // Puces de filtre rapide. « archives » est déjà géré par le filtre
+    // showArchived ci-dessus (les 2 se déduisent de la même puce active).
     if (!showArchived) {
       switch (_filter) {
         case _MessagesFilter.all:
+        case _MessagesFilter.archives:
           break;
         case _MessagesFilter.unread:
           filtered =
@@ -336,9 +337,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                     horizontal: 20,
                                   ),
                                   child: Text(
-                                    _showArchived
-                                        ? l10n.archives
-                                        : l10n.messagesTitle,
+                                    l10n.messagesTitle,
                                     style: GoogleFonts.playfairDisplay(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -389,7 +388,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   return _buildConversationList(
                     conversations: conversations,
                     currentUserId: currentUserId,
-                    showArchived: _showArchived,
+                    showArchived: _filter == _MessagesFilter.archives,
                     blockedUserIds: blockedUserIds,
                     participantNames: participantNames,
                   );
@@ -555,18 +554,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_showArchived)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: IconButton(
-                              icon: AppIcon(
-                                AppIcon.arrowBack,
-                                color: AppColors.white,
-                              ),
-                              onPressed:
-                                  () => setState(() => _showArchived = false),
-                            ),
-                          ),
                         Expanded(
                           child:
                               _isSearching
@@ -596,17 +583,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        _showArchived
-                                            ? l10n.archives
-                                            : l10n.messagesTitle,
+                                        l10n.messagesTitle,
                                         style: GoogleFonts.playfairDisplay(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.white,
                                         ),
                                       ),
-                                      if (!_showArchived &&
-                                          unreadTotal > 0) ...[
+                                      if (unreadTotal > 0) ...[
                                         const SizedBox(height: 2),
                                         Text(
                                           l10n.unreadConversations(unreadTotal),
@@ -652,21 +636,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                             ),
                             onPressed:
                                 () => setState(() => _isSearching = true),
-                          ),
-                          const SizedBox(width: 10),
-                          _HeaderActionButton(
-                            icon: const Icon(
-                              Icons.more_vert,
-                              color: AppColors.white,
-                            ),
-                            onPressed:
-                                () => setState(
-                                  () => _showArchived = !_showArchived,
-                                ),
-                            tooltip:
-                                _showArchived
-                                    ? l10n.messagesTitle
-                                    : l10n.archives,
                           ),
                         ],
                       ],
@@ -714,15 +683,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     ];
   }
 
-  /// Puces de filtre rapide. Masquées en recherche et dans les archives, où
-  /// elles n'auraient pas de sens.
+  /// Puces de filtre rapide (§9a : Tous / Non lus / Groupes / Archives, un
+  /// seul rang mutuellement exclusif). Masquées seulement en recherche.
   Widget _buildFilterChips(BuildContext context, AppLocalizations l10n) {
-    if (_showArchived || _isSearching) return const SizedBox.shrink();
+    if (_isSearching) return const SizedBox.shrink();
 
     final entries = <(_MessagesFilter, String)>[
       (_MessagesFilter.all, l10n.filterAll),
       (_MessagesFilter.unread, l10n.filterUnread),
       (_MessagesFilter.groups, l10n.filterGroups),
+      (_MessagesFilter.archives, l10n.archives),
     ];
 
     return Padding(
