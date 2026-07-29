@@ -53,8 +53,10 @@ class GroupMembersScreen extends ConsumerWidget {
                       currentUser != null &&
                       groupEntity.adminIds.contains(currentUser.id);
                   return _MemberListItem(
+                    group: groupEntity,
                     memberId: memberId,
                     isAdmin: groupEntity.adminIds.contains(memberId),
+                    isModerator: groupEntity.moderatorIds.contains(memberId),
                     isCreator: groupEntity.creatorId == memberId,
                     conversationId: conversationId,
                     currentUserId: currentUser?.id,
@@ -68,8 +70,10 @@ class GroupMembersScreen extends ConsumerWidget {
 }
 
 class _MemberListItem extends ConsumerWidget {
+  final GroupEntity group;
   final String memberId;
   final bool isAdmin;
+  final bool isModerator;
   final bool isCreator;
   final String? conversationId;
   final String? currentUserId;
@@ -77,8 +81,10 @@ class _MemberListItem extends ConsumerWidget {
   final VoidCallback onTap;
 
   const _MemberListItem({
+    required this.group,
     required this.memberId,
     required this.isAdmin,
+    required this.isModerator,
     required this.isCreator,
     required this.conversationId,
     required this.currentUserId,
@@ -86,8 +92,34 @@ class _MemberListItem extends ConsumerWidget {
     required this.onTap,
   });
 
+  /// Bascule le rôle modérateur (§9d) via updateGroup (persiste
+  /// groups.moderator_ids). Invalide la fiche pour rafraîchir le badge.
+  Future<void> _toggleModerator(BuildContext context, WidgetRef ref) async {
+    final updated = List<String>.from(group.moderatorIds);
+    if (isModerator) {
+      updated.remove(memberId);
+    } else {
+      updated.add(memberId);
+    }
+    final success = await ref
+        .read(myGroupsNotifierProvider.notifier)
+        .updateGroup(group.copyWith(moderatorIds: updated));
+    if (success) ref.invalidate(groupDetailNotifierProvider);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? (isModerator ? 'Modérateur retiré' : 'Membre promu modérateur')
+                : 'Erreur lors de la mise à jour du rôle',
+          ),
+        ),
+      );
+    }
+  }
+
   void _showMemberOptions(BuildContext context, WidgetRef ref) {
-    if (!canModerate || conversationId == null || currentUserId == memberId) {
+    if (!canModerate || currentUserId == memberId) {
       return;
     }
 
@@ -98,7 +130,25 @@ class _MemberListItem extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (!isAdmin && !isCreator)
+                // Rôle modérateur (§9d) — indépendant de la conversation.
+                if (!isCreator && !isAdmin)
+                  ListTile(
+                    leading: Icon(
+                      isModerator
+                          ? Icons.remove_moderator_outlined
+                          : Icons.shield_outlined,
+                    ),
+                    title: Text(
+                      isModerator
+                          ? 'Retirer modérateur'
+                          : 'Promouvoir modérateur',
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _toggleModerator(context, ref);
+                    },
+                  ),
+                if (conversationId != null && !isAdmin && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.admin_panel_settings),
                     title: const Text('Promouvoir Admin'),
@@ -123,7 +173,7 @@ class _MemberListItem extends ConsumerWidget {
                       }
                     },
                   ),
-                if (isAdmin && !isCreator)
+                if (conversationId != null && isAdmin && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.remove_moderator),
                     title: const Text('Retirer Admin'),
@@ -148,7 +198,7 @@ class _MemberListItem extends ConsumerWidget {
                       }
                     },
                   ),
-                if (!isCreator)
+                if (conversationId != null && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.person_remove, color: Colors.red),
                     title: const Text(
@@ -227,9 +277,7 @@ class _MemberListItem extends ConsumerWidget {
           child: ListTile(
             onTap: onTap,
             onLongPress:
-                canModerate && conversationId != null
-                    ? () => _showMemberOptions(context, ref)
-                    : null,
+                canModerate ? () => _showMemberOptions(context, ref) : null,
             leading: Container(
               width: 44,
               height: 44,
@@ -309,6 +357,26 @@ class _MemberListItem extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 10,
                         color: context.adaptiveSecondaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ] else if (isModerator) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7A8A5E).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'Modé',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF5A6B45),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

@@ -213,6 +213,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
           'group_location': group.location,
           'tags': group.tags,
           'permissions': group.permissions,
+          'moderator_ids': group.moderatorIds,
           'updated_at': DateTime.now().toIso8601String(),
         })
         .eq('id', group.id)
