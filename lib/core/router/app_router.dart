@@ -370,7 +370,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Events routes
       GoRoute(
         path: '/events/create',
-        builder: (context, state) => const CreateEventScreen(),
+        builder: (context, state) => CreateEventScreen(
+          initialCategory:
+              state.extra is EventCategory ? state.extra as EventCategory : null,
+        ),
       ),
       GoRoute(
         path: '/events/:eventId',

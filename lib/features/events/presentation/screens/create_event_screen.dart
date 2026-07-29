@@ -25,11 +25,15 @@ class CreateEventScreen extends ConsumerStatefulWidget {
   final String? groupName;
   final String? conversationId;
 
+  /// Catégorie pré-sélectionnée (raccourcis de l'état vide « créer le premier »).
+  final EventCategory? initialCategory;
+
   const CreateEventScreen({
     super.key,
     this.groupId,
     this.groupName,
     this.conversationId,
+    this.initialCategory,
   });
 
   @override
@@ -61,6 +65,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   @override
   void initState() {
     super.initState();
+    // Catégorie pré-sélectionnée depuis les raccourcis de l'accueil.
+    if (widget.initialCategory != null) {
+      _selectedCategory = widget.initialCategory!;
+    }
     // Pre-fill location from user's profile
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _prefillLocation();

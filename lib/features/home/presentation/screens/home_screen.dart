@@ -937,10 +937,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         data: (events) {
                           final upcoming = events.take(3).toList();
                           if (upcoming.isEmpty) {
-                            return HomeEmptyStateCard(
-                              icon: Icons.event_busy,
-                              message: l10n.noUpcomingEvents,
-                              subtitle: l10n.createOrJoinEvents,
+                            // État vide « aucun événement » : inviter à créer le
+                            // premier plutôt qu'un libellé muet (maquette
+                            // 1c/CAS 2).
+                            return _EventsEmptyCard(
+                              city:
+                                  (profile?.currentCity?.trim().isNotEmpty ??
+                                          false)
+                                      ? profile!.currentCity
+                                      : _geoCity,
                             );
                           }
 
@@ -1837,6 +1842,119 @@ class _HomeActionButton extends StatelessWidget {
             fontSize: 13.5,
             fontWeight: FontWeight.w600,
             color: filled ? Colors.white : context.textPrimaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// État vide des Événements « rien à venir » (maquette 1c/CAS 2) : invite à
+/// lancer la première rencontre avec des raccourcis par catégorie.
+class _EventsEmptyCard extends StatelessWidget {
+  final String? city;
+  const _EventsEmptyCard({required this.city});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCity = city != null && city!.trim().isNotEmpty;
+    final subtitle = hasCity
+        ? 'Un thé, un match, une aide aux papiers : soyez le premier à réunir '
+            'la communauté de ${city!.trim()}.'
+        : 'Un thé, un match, une aide aux papiers : soyez le premier à réunir '
+            'la communauté.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 22, 16, 16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _homeOrange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.event_available_outlined,
+                size: 26, color: _homeOrange),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Lancez la première rencontre',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.35,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: const [
+              _EventChip(label: 'Rencontre', category: EventCategory.social),
+              _EventChip(
+                  label: 'Démarches', category: EventCategory.educational),
+              _EventChip(label: 'Sport', category: EventCategory.sports),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: _HomeActionButton(
+              label: 'Créer un événement',
+              filled: true,
+              onTap: () => context.push('/events/create'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Puce-raccourci de création d'événement pré-catégorisé.
+class _EventChip extends StatelessWidget {
+  final String label;
+  final EventCategory category;
+  const _EventChip({required this.label, required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/events/create', extra: category),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.surfaceVariantColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: context.textSecondaryColor,
           ),
         ),
       ),
