@@ -38,6 +38,7 @@ import '../../../../core/services/preferences_service.dart';
 import '../../../settings/data/models/chat_background_model.dart';
 import '../../../settings/domain/entities/chat_background_entity.dart';
 import '../widgets/chat_background_picker_modal.dart';
+import '../widgets/chat_wallpapers.dart';
 import 'dart:convert';
 import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/services/notification_service.dart';
@@ -1213,6 +1214,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 : null,
         child: Stack(
           children: [
+            // Fond d'écran nommé (§21c) rendu procéduralement, sous l'overlay.
+            if (_chatBackground != null &&
+                _chatBackground!.isPattern &&
+                ChatWallpaper.byId(_chatBackground!.patternId) != null)
+              ChatWallpaper.byId(_chatBackground!.patternId)!
+                  .fill(context.isDarkMode),
             // Semi-transparent overlay for readability
             if (_chatBackground != null && !_chatBackground!.isDefault)
               Container(

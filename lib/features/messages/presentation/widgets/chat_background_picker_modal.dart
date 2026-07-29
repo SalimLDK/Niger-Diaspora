@@ -10,6 +10,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/data/models/chat_background_model.dart';
 import '../../../settings/domain/constants/chat_background_colors.dart';
 import '../../../settings/domain/entities/chat_background_entity.dart';
+import 'chat_wallpapers.dart';
 
 class ChatBackgroundPickerModal extends StatefulWidget {
   final String? conversationId; // If null, apply to all conversations
@@ -179,6 +180,25 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
               ),
               const SizedBox(height: 20),
 
+              // Fonds nommés (§21c) — rendus procéduralement
+              Text(
+                'Fonds',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: ChatWallpaper.all
+                    .map((w) => _buildPatternOption(w))
+                    .toList(),
+              ),
+              const SizedBox(height: 20),
+
               // Image Option
               _buildImageOption(),
               const SizedBox(height: 24),
@@ -229,6 +249,18 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
       ),
       child: Stack(
         children: [
+          // Fond nommé procédural (§21c)
+          if (_selectedBackground!.isPattern &&
+              ChatWallpaper.byId(_selectedBackground!.patternId) != null)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CustomPaint(
+                  painter: ChatWallpaper.byId(_selectedBackground!.patternId)!
+                      .painter(context.isDarkMode),
+                ),
+              ),
+            ),
           // Semi-transparent overlay
           if (!_selectedBackground!.isDefault)
             Container(
@@ -379,6 +411,49 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                   size: 32,
                 )
                 : null,
+      ),
+    );
+  }
+
+  Widget _buildPatternOption(ChatWallpaper wallpaper) {
+    final isSelected = _selectedBackground?.isPattern == true &&
+        _selectedBackground?.patternId == wallpaper.id;
+    final isDark = context.isDarkMode;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedBackground = ChatBackgroundEntity.pattern(wallpaper.id);
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected
+                    ? context.adaptivePrimaryColor
+                    : context.outlineColor,
+                width: isSelected ? 3 : 1,
+              ),
+            ),
+            child: wallpaper.thumbnail(isDark, size: 60),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            wallpaper.label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected
+                  ? context.adaptivePrimaryColor
+                  : context.textSecondaryColor,
+            ),
+          ),
+        ],
       ),
     );
   }

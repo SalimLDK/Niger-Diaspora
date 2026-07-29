@@ -31,6 +31,13 @@ class ChatBackgroundModel with _$ChatBackgroundModel {
         );
       case ChatBackgroundType.image:
         return ChatBackgroundModel(type: 'image', imageUrl: entity.imageUrl);
+      case ChatBackgroundType.pattern:
+        // On réutilise le champ string `colorValue` pour l'id du motif afin de
+        // ne pas modifier la forme freezed (pas de build_runner).
+        return ChatBackgroundModel(
+          type: 'pattern',
+          colorValue: entity.patternId,
+        );
     }
   }
 }
@@ -48,6 +55,9 @@ extension ChatBackgroundModelX on ChatBackgroundModel {
         return const ChatBackgroundEntity.defaultTheme();
       case 'image':
         return ChatBackgroundEntity.image(imageUrl: imageUrl);
+      case 'pattern':
+        // L'id du motif est stocké dans `colorValue` (cf. fromEntity).
+        return ChatBackgroundEntity.pattern(colorValue);
       case 'default':
       default:
         return const ChatBackgroundEntity.defaultTheme();
