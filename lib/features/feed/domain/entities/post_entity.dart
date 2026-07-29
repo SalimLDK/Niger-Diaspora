@@ -45,6 +45,7 @@ class PostEntity extends Equatable {
   final List<MentionedGroup> mentionedGroups;
   final List<String> hashtags;
   final String? authorCountry;
+  final String? authorCity;
 
   /// Miniature de la vid├®o (uniquement si [mediaType] == video).
   final String? videoThumbnailUrl;
@@ -70,6 +71,7 @@ class PostEntity extends Equatable {
     this.mentionedGroups = const [],
     this.hashtags = const [],
     this.authorCountry,
+    this.authorCity,
     this.videoThumbnailUrl,
     this.videoDurationSeconds,
   });
@@ -92,6 +94,7 @@ class PostEntity extends Equatable {
     List<MentionedGroup>? mentionedGroups,
     List<String>? hashtags,
     String? authorCountry,
+    String? authorCity,
     String? videoThumbnailUrl,
     int? videoDurationSeconds,
   }) {
@@ -113,6 +116,7 @@ class PostEntity extends Equatable {
       mentionedGroups: mentionedGroups ?? this.mentionedGroups,
       hashtags: hashtags ?? this.hashtags,
       authorCountry: authorCountry ?? this.authorCountry,
+      authorCity: authorCity ?? this.authorCity,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       videoDurationSeconds: videoDurationSeconds ?? this.videoDurationSeconds,
     );
@@ -137,6 +141,7 @@ class PostEntity extends Equatable {
     mentionedGroups,
     hashtags,
     authorCountry,
+    authorCity,
     videoThumbnailUrl,
     videoDurationSeconds,
   ];

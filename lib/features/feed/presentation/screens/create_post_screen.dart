@@ -183,6 +183,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       final profileAsync = ref.read(profileNotifierProvider(user.uid));
       final authorCountry =
           profileAsync.whenOrNull(data: (p) => p?.currentCountry);
+      final authorCity =
+          profileAsync.whenOrNull(data: (p) => p?.currentCity);
 
       final now = DateTime.now();
       final post = PostEntity(
@@ -199,6 +201,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         mentionedGroups: _mentionedGroups,
         hashtags: hashtags,
         authorCountry: authorCountry,
+        authorCity: authorCity,
         videoThumbnailUrl: videoThumb,
         videoDurationSeconds: videoDur,
       );

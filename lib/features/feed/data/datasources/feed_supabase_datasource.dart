@@ -64,6 +64,7 @@ Map<String, dynamic> _mapPost(Map<String, dynamic> row) {
         [],
     'hashtags': (row['hashtags'] as List?)?.cast<String>() ?? [],
     'authorCountry': row['country_code'],
+    'authorCity': row['author_city'],
     'videoThumbnailUrl': videoThumbnailUrl,
     'videoDurationSeconds': videoDurationSeconds,
   };
@@ -193,6 +194,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
           'mentioned_users': post.mentionedUsers,
           'mentioned_groups': post.mentionedGroups,
           'country_code': post.authorCountry,
+          'author_city': post.authorCity,
         })
         .select()
         .single();

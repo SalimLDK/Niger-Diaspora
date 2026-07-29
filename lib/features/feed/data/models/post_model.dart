@@ -19,6 +19,7 @@ class PostModel {
   final List<Map<String, dynamic>> mentionedGroups;
   final List<String> hashtags;
   final String? authorCountry;
+  final String? authorCity;
   final String? videoThumbnailUrl;
   final int? videoDurationSeconds;
 
@@ -40,6 +41,7 @@ class PostModel {
     this.mentionedGroups = const [],
     this.hashtags = const [],
     this.authorCountry,
+    this.authorCity,
     this.videoThumbnailUrl,
     this.videoDurationSeconds,
   });
@@ -80,6 +82,7 @@ class PostModel {
               .toList() ??
           [],
       authorCountry: json['authorCountry'] as String?,
+      authorCity: json['authorCity'] as String?,
       videoThumbnailUrl: json['videoThumbnailUrl'] as String?,
       videoDurationSeconds: (json['videoDurationSeconds'] as num?)?.toInt(),
     );
@@ -102,6 +105,7 @@ class PostModel {
     'mentionedGroups': mentionedGroups,
     'hashtags': hashtags,
     if (authorCountry != null) 'authorCountry': authorCountry,
+    if (authorCity != null) 'authorCity': authorCity,
     if (videoThumbnailUrl != null) 'videoThumbnailUrl': videoThumbnailUrl,
     if (videoDurationSeconds != null)
       'videoDurationSeconds': videoDurationSeconds,
@@ -136,6 +140,7 @@ class PostModel {
         .toList(),
     hashtags: hashtags,
     authorCountry: authorCountry,
+    authorCity: authorCity,
     videoThumbnailUrl: videoThumbnailUrl,
     videoDurationSeconds: videoDurationSeconds,
   );
@@ -165,6 +170,7 @@ class PostModel {
         .toList(),
     hashtags: entity.hashtags,
     authorCountry: entity.authorCountry,
+    authorCity: entity.authorCity,
     videoThumbnailUrl: entity.videoThumbnailUrl,
     videoDurationSeconds: entity.videoDurationSeconds,
   );
