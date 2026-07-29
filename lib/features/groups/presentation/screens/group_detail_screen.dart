@@ -504,13 +504,16 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           ),
           decoration: BoxDecoration(
             color: context.surfaceColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -4),
-              ),
-            ],
+            boxShadow:
+                context.isDarkMode
+                    ? null
+                    : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
           ),
           child:
               _isLoading
