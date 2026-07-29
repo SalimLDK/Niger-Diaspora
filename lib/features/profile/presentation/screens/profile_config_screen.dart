@@ -9,6 +9,7 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../providers/profile_provider.dart';
+import '../widgets/handle_field.dart';
 import '../../../../shared/widgets/app_icon.dart';
 
 class ProfileConfigScreen extends ConsumerStatefulWidget {
@@ -27,6 +28,11 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   final _displayNameController = TextEditingController();
   bool _hasManuallyEdited = false;
   String? _selectedProfession;
+
+  // Poignée publique @handle (§16f)
+  String? _handle;
+  String? _initialHandle;
+  bool _handleValid = true;
 
   // Location preferences
   CountryOption? _selectedCountry;
@@ -112,6 +118,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             _selectedProfession = profile.profession;
             // debugPrint('✅ DEBUG: Profession set: ${profile.profession}');
           }
+
+          // Pre-fill handle
+          _initialHandle = profile.handle;
+          _handle = profile.handle;
         } else {
           // debugPrint('🟠 DEBUG: Profile is null');
         }
@@ -153,6 +163,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       // Update profile with configuration
       final updatedProfile = profile.copyWith(
         displayName: _displayNameController.text.trim(),
+        handle: _handle,
         profession: _selectedProfession,
         currentCountry: _selectedCountry?.name,
         countryCode: _selectedCountry?.code,
@@ -302,6 +313,18 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                           _isLoading || currentUser == null
                               ? null
                               : () {
+                                // Bloque l'avancement si la poignée saisie à
+                                // l'étape 1/4 est invalide ou déjà prise.
+                                if (_currentStep == 0 && !_handleValid) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Choisissez une poignée valide et disponible',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
                                 if (_currentStep < 3) {
                                   setState(() => _currentStep++);
                                 } else {
@@ -445,6 +468,17 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               ),
               prefixIcon: const AppIcon(AppIcon.person),
             ),
+          ),
+          const SizedBox(height: 16),
+
+          // Poignée publique @handle (§16f)
+          HandleField(
+            initialHandle: _initialHandle,
+            userId: ref.read(currentUserAsyncProvider).valueOrNull?.id,
+            onChanged: (normalized, isValid) {
+              _handle = normalized;
+              _handleValid = isValid;
+            },
           ),
           const SizedBox(height: 16),
 
