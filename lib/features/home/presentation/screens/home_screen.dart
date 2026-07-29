@@ -14,6 +14,7 @@ import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/geo_utils.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
@@ -515,6 +516,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userName = profile?.displayName ?? authUser?.displayName ?? l10n.user;
     final userPhotoUrl = profile?.photoUrl ?? authUser?.photoUrl;
 
+    // Complétude du profil (premier lancement — maquette 8a). Les cartes
+    // d'onboarding restent affichées tant que le profil est incomplet.
+    final placeCity = (profile?.currentCity?.trim().isNotEmpty ?? false)
+        ? profile!.currentCity
+        : _geoCity;
+    final completion = _computeCompletion(profile, placeCity);
+    final showOnboarding = profile != null && completion.filled < completion.total;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: RefreshIndicator(
@@ -738,6 +747,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // Premier lancement : progression du profil, masquée dès qu'il
+                  // est complet (maquette 8a).
+                  if (showOnboarding) ...[
+                    _ProfileCompletionCard(
+                      filled: completion.filled,
+                      total: completion.total,
+                      ctaLabel: completion.ctaLabel,
+                      message: completion.message,
+                      onTap: () => context.push('/profile/edit'),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Ligne de contexte : ville + compteurs (remplace les trois
                   // cartes de stats — refonte 8a).
                   Container(
@@ -755,6 +777,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       groups: homeStats.valueOrNull?.groupsCount,
                     ),
                   ),
+
+                  // Premier lancement : raccourcis d'onboarding (maquette 8a).
+                  if (showOnboarding) ...[
+                    _PourCommencerCard(
+                      groupsCount: homeStats.valueOrNull?.groupsCount ?? 0,
+                      onFindFriends: () => context.push('/qr-scanner'),
+                      onJoinGroup: () => context.push('/groups'),
+                      onActivateMap: _locationError != null
+                          ? _enableLocation
+                          : () => context.go('/map'),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // Bloc « Aujourd'hui » : messages non lus, prochain
                   // événement, membres proches.
@@ -1056,6 +1091,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (_) {
       // Géocodage indisponible : on garde les champs du profil s'ils existent.
     }
+  }
+
+  /// Calcule la complétude du profil sur 5 champs clés et prépare le libellé
+  /// d'action + le message contextuel (premier lancement — maquette 8a).
+  _ProfileCompletion _computeCompletion(ProfileEntity? profile, String? city) {
+    final items = <({bool done, String cta, String name})>[
+      (
+        done: (profile?.photoUrl?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter une photo',
+        name: 'photo',
+      ),
+      (
+        done: (profile?.currentCity?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter ma ville',
+        name: 'ville',
+      ),
+      (
+        done: (profile?.currentCountry?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter mon pays',
+        name: 'pays',
+      ),
+      (
+        done: (profile?.profession?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter mon métier',
+        name: 'métier',
+      ),
+      (
+        done: (profile?.bio?.trim().isNotEmpty ?? false),
+        cta: 'Compléter ma bio',
+        name: 'bio',
+      ),
+    ];
+
+    final filled = items.where((e) => e.done).length;
+    final missing = items.where((e) => !e.done).toList();
+
+    if (missing.isEmpty) {
+      return const _ProfileCompletion(
+        filled: 5,
+        total: 5,
+        ctaLabel: '',
+        message: '',
+      );
+    }
+
+    final names = missing.take(2).map((e) => 'votre ${e.name}').toList();
+    final list = names.length == 2 ? '${names[0]} et ${names[1]}' : names[0];
+    final verb = names.length == 2 ? 'rendent' : 'rend';
+    final cap = list[0].toUpperCase() + list.substring(1);
+    final cityPart = (city != null && city.trim().isNotEmpty)
+        ? ' de ${city.trim()}'
+        : '';
+
+    return _ProfileCompletion(
+      filled: filled,
+      total: 5,
+      ctaLabel: missing.first.cta,
+      message: '$cap vous $verb visible auprès de la communauté$cityPart.',
+    );
   }
 
   /// Élargit le rayon de recherche des membres proches (50 → 200 km) et
@@ -1844,6 +1938,192 @@ class _HomeActionButton extends StatelessWidget {
             color: filled ? Colors.white : context.textPrimaryColor,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Premier lancement (maquette 8a) : complétion de profil + onboarding ──────
+
+/// Résultat du calcul de complétude du profil.
+class _ProfileCompletion {
+  final int filled;
+  final int total;
+  final String ctaLabel;
+  final String message;
+
+  const _ProfileCompletion({
+    required this.filled,
+    required this.total,
+    required this.ctaLabel,
+    required this.message,
+  });
+}
+
+/// Carte « Complétez votre profil » : progression X/5, message contextuel et
+/// action vers le champ manquant (maquette 8a).
+class _ProfileCompletionCard extends StatelessWidget {
+  final int filled;
+  final int total;
+  final String ctaLabel;
+  final String message;
+  final VoidCallback onTap;
+
+  const _ProfileCompletionCard({
+    required this.filled,
+    required this.total,
+    required this.ctaLabel,
+    required this.message,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Complétez votre profil',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimaryColor,
+                ),
+              ),
+              Text(
+                '$filled/$total',
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: _homeOrange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: total == 0 ? 0 : filled / total,
+              minHeight: 6,
+              backgroundColor: context.surfaceVariantColor,
+              valueColor: const AlwaysStoppedAnimation<Color>(_homeOrange),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.35,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: _HomeActionButton(
+              label: ctaLabel,
+              filled: true,
+              onTap: onTap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Carte « Pour commencer » : raccourcis d'onboarding (retrouver ses proches,
+/// rejoindre un groupe, activer la carte). Réutilise les lignes du bloc
+/// « Aujourd'hui » (maquette 8a).
+class _PourCommencerCard extends StatelessWidget {
+  final int groupsCount;
+  final VoidCallback onFindFriends;
+  final VoidCallback onJoinGroup;
+  final VoidCallback onActivateMap;
+
+  const _PourCommencerCard({
+    required this.groupsCount,
+    required this.onFindFriends,
+    required this.onJoinGroup,
+    required this.onActivateMap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget chevron() => Icon(
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: context.textTertiaryColor,
+        );
+
+    final groupSubtitle = groupsCount > 0
+        ? '$groupsCount ${groupsCount > 1 ? "groupes" : "groupe"} à découvrir'
+        : 'Trouvez votre communauté';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'POUR COMMENCER',
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 10.5,
+              letterSpacing: 1.05,
+              fontWeight: FontWeight.w700,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          _TodayRow(
+            bg: context.successColor.withValues(alpha: 0.12),
+            iconColor: context.successColor,
+            icon: Icons.person_add_alt_1_outlined,
+            title: 'Retrouver vos proches',
+            subtitle: 'Par QR code, sans échanger de numéro',
+            trailing: chevron(),
+            onTap: onFindFriends,
+          ),
+          Divider(height: 1, color: context.borderColor),
+          _TodayRow(
+            bg: _homeOrange.withValues(alpha: 0.12),
+            iconColor: _homeOrange,
+            icon: Icons.groups_outlined,
+            title: 'Rejoindre un groupe',
+            subtitle: groupSubtitle,
+            trailing: chevron(),
+            onTap: onJoinGroup,
+          ),
+          Divider(height: 1, color: context.borderColor),
+          _TodayRow(
+            bg: context.adaptivePrimaryColor.withValues(alpha: 0.10),
+            iconColor: context.adaptivePrimaryColor,
+            icon: Icons.map_outlined,
+            title: 'Activer la carte des membres',
+            subtitle: 'Réciproque · désactivable',
+            trailing: chevron(),
+            onTap: onActivateMap,
+          ),
+        ],
       ),
     );
   }
