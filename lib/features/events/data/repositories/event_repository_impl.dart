@@ -77,6 +77,21 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
+  Future<Either<Failure, List<EventEntity>>> getEventsByGroup(
+    String groupId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure('Pas de connexion internet'));
+    }
+    try {
+      final events = await remoteDataSource.getEventsByGroup(groupId);
+      return Right(events.map((e) => e.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, EventEntity>> getEventById(String eventId) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure('Pas de connexion internet'));

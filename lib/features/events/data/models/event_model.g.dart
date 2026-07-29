@@ -54,6 +54,10 @@ _$EventModelImpl _$$EventModelImplFromJson(Map<String, dynamic> json) =>
           json['recapCreatedAt'] == null
               ? null
               : DateTime.parse(json['recapCreatedAt'] as String),
+      groupId: json['groupId'] as String?,
+      groupName: json['groupName'] as String?,
+      conversationId: json['conversationId'] as String?,
+      isPublic: json['isPublic'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$EventModelImplToJson(_$EventModelImpl instance) =>
@@ -83,4 +87,8 @@ Map<String, dynamic> _$$EventModelImplToJson(_$EventModelImpl instance) =>
       'recapPhotoUrls': instance.recapPhotoUrls,
       'recapDescription': instance.recapDescription,
       'recapCreatedAt': instance.recapCreatedAt?.toIso8601String(),
+      'groupId': instance.groupId,
+      'groupName': instance.groupName,
+      'conversationId': instance.conversationId,
+      'isPublic': instance.isPublic,
     };

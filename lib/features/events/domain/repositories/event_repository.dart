@@ -10,6 +10,7 @@ abstract class EventRepository {
   Future<Either<Failure, List<EventEntity>>> getEventsByCategory(
     EventCategory category,
   );
+  Future<Either<Failure, List<EventEntity>>> getEventsByGroup(String groupId);
   Future<Either<Failure, EventEntity>> getEventById(String eventId);
   Future<Either<Failure, EventEntity>> createEvent(EventEntity event);
   Future<Either<Failure, EventEntity>> updateEvent(EventEntity event);

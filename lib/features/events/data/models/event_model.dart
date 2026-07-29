@@ -35,6 +35,13 @@ class EventModel with _$EventModel {
     @Default([]) List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
+    // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
+    // de groupe (§9d).
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    @Default(false) bool isPublic,
   }) = _EventModel;
 
   factory EventModel.fromJson(Map<String, dynamic> json) =>
@@ -82,6 +89,10 @@ class EventModel with _$EventModel {
     recapPhotoUrls: recapPhotoUrls,
     recapDescription: recapDescription,
     recapCreatedAt: recapCreatedAt,
+    groupId: groupId,
+    groupName: groupName,
+    conversationId: conversationId,
+    isPublic: isPublic,
   );
 
   static EventCategory _parseCategory(String value) {
@@ -124,5 +135,9 @@ class EventModel with _$EventModel {
     recapPhotoUrls: entity.recapPhotoUrls,
     recapDescription: entity.recapDescription,
     recapCreatedAt: entity.recapCreatedAt,
+    groupId: entity.groupId,
+    groupName: entity.groupName,
+    conversationId: entity.conversationId,
+    isPublic: entity.isPublic,
   );
 }

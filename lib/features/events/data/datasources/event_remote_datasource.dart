@@ -12,6 +12,7 @@ abstract class EventRemoteDataSource {
   Future<List<EventModel>> getUpcomingEvents();
   Future<List<EventModel>> getPastEvents();
   Future<List<EventModel>> getEventsByCategory(String category);
+  Future<List<EventModel>> getEventsByGroup(String groupId);
   Future<EventModel> getEventById(String eventId);
   Future<EventModel> createEvent(EventModel event);
   Future<EventModel> updateEvent(EventModel event);
@@ -180,6 +181,36 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
               .where((e) => e.category == category && e.status == 'upcoming')
               .toList();
       if (filtered.isNotEmpty) return filtered;
+      throw ServerException(e.message ?? 'Erreur lors du chargement');
+    }
+  }
+
+  @override
+  Future<List<EventModel>> getEventsByGroup(String groupId) async {
+    try {
+      final isConnected = await _connectivity.isConnected();
+      if (!isConnected) {
+        return _getEventsFromCache()
+            .where((e) => e.groupId == groupId)
+            .toList();
+      }
+      // Filtre single-field (pas d'index composite requis) ; le tri/filtre
+      // « à venir » est fait côté provider.
+      final snapshot =
+          await _eventsCollection.where('groupId', isEqualTo: groupId).get();
+      final events = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return EventModel.fromJson(_convertTimestamps(data));
+      }).toList();
+      for (final event in events) {
+        await _cache.cacheEvent(event.id, event.toJson());
+      }
+      return events;
+    } on FirebaseException catch (e) {
+      final cached =
+          _getEventsFromCache().where((e) => e.groupId == groupId).toList();
+      if (cached.isNotEmpty) return cached;
       throw ServerException(e.message ?? 'Erreur lors du chargement');
     }
   }

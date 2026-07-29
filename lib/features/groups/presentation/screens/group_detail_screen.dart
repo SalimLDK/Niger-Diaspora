@@ -13,7 +13,9 @@ import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
+import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
+import '../../../events/presentation/providers/group_next_event_provider.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -453,6 +455,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
                     const SizedBox(height: 24),
 
+                    // Prochaine rencontre (§9d)
+                    _buildNextEventSection(context, group),
+
                     // Médias partagés (avant les membres)
                     if (isMember) _buildMediaSection(group),
 
@@ -798,6 +803,116 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       groupImageUrl: group.imageUrl,
       groupId: group.id,
       category: group.category,
+    );
+  }
+
+  /// Prochaine rencontre (§9d) : carte du prochain événement lié au groupe.
+  /// Masquée s'il n'y en a pas (pas de bloc vide).
+  Widget _buildNextEventSection(BuildContext context, GroupEntity group) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final eventAsync = ref.watch(groupNextEventProvider(group.id));
+        final event = eventAsync.valueOrNull;
+        if (event == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: InkWell(
+            onTap: () =>
+                context.push('/events/${event.id}', extra: event),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Pastille de date
+                  Container(
+                    width: 48,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('dd').format(event.startDate),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            height: 1,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat('MMM', 'fr_FR')
+                              .format(event.startDate)
+                              .toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: context.textSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Prochaine rencontre',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          event.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${event.isOnline ? 'En ligne' : event.location} · ${DateFormat('HH:mm').format(event.startDate)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: context.textSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: context.textTertiaryColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

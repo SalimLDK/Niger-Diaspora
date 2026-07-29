@@ -45,7 +45,14 @@ mixin _$EventModel {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   List<String> get recapPhotoUrls => throw _privateConstructorUsedError;
   String? get recapDescription => throw _privateConstructorUsedError;
-  DateTime? get recapCreatedAt => throw _privateConstructorUsedError;
+  DateTime? get recapCreatedAt =>
+      throw _privateConstructorUsedError; // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
+  // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
+  // de groupe (§9d).
+  String? get groupId => throw _privateConstructorUsedError;
+  String? get groupName => throw _privateConstructorUsedError;
+  String? get conversationId => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
 
   /// Serializes this EventModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -90,6 +97,10 @@ abstract class $EventModelCopyWith<$Res> {
     List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    bool isPublic,
   });
 }
 
@@ -133,6 +144,10 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
     Object? recapPhotoUrls = null,
     Object? recapDescription = freezed,
     Object? recapCreatedAt = freezed,
+    Object? groupId = freezed,
+    Object? groupName = freezed,
+    Object? conversationId = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _value.copyWith(
@@ -261,6 +276,26 @@ class _$EventModelCopyWithImpl<$Res, $Val extends EventModel>
                     ? _value.recapCreatedAt
                     : recapCreatedAt // ignore: cast_nullable_to_non_nullable
                         as DateTime?,
+            groupId:
+                freezed == groupId
+                    ? _value.groupId
+                    : groupId // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            groupName:
+                freezed == groupName
+                    ? _value.groupName
+                    : groupName // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            conversationId:
+                freezed == conversationId
+                    ? _value.conversationId
+                    : conversationId // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            isPublic:
+                null == isPublic
+                    ? _value.isPublic
+                    : isPublic // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -302,6 +337,10 @@ abstract class _$$EventModelImplCopyWith<$Res>
     List<String> recapPhotoUrls,
     String? recapDescription,
     DateTime? recapCreatedAt,
+    String? groupId,
+    String? groupName,
+    String? conversationId,
+    bool isPublic,
   });
 }
 
@@ -344,6 +383,10 @@ class __$$EventModelImplCopyWithImpl<$Res>
     Object? recapPhotoUrls = null,
     Object? recapDescription = freezed,
     Object? recapCreatedAt = freezed,
+    Object? groupId = freezed,
+    Object? groupName = freezed,
+    Object? conversationId = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _$EventModelImpl(
@@ -472,6 +515,26 @@ class __$$EventModelImplCopyWithImpl<$Res>
                 ? _value.recapCreatedAt
                 : recapCreatedAt // ignore: cast_nullable_to_non_nullable
                     as DateTime?,
+        groupId:
+            freezed == groupId
+                ? _value.groupId
+                : groupId // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        groupName:
+            freezed == groupName
+                ? _value.groupName
+                : groupName // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        conversationId:
+            freezed == conversationId
+                ? _value.conversationId
+                : conversationId // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        isPublic:
+            null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -506,6 +569,10 @@ class _$EventModelImpl extends _EventModel {
     final List<String> recapPhotoUrls = const [],
     this.recapDescription,
     this.recapCreatedAt,
+    this.groupId,
+    this.groupName,
+    this.conversationId,
+    this.isPublic = false,
   }) : _posterUrls = posterUrls,
        _attendeeIds = attendeeIds,
        _recapPhotoUrls = recapPhotoUrls,
@@ -590,10 +657,22 @@ class _$EventModelImpl extends _EventModel {
   final String? recapDescription;
   @override
   final DateTime? recapCreatedAt;
+  // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
+  // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
+  // de groupe (§9d).
+  @override
+  final String? groupId;
+  @override
+  final String? groupName;
+  @override
+  final String? conversationId;
+  @override
+  @JsonKey()
+  final bool isPublic;
 
   @override
   String toString() {
-    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, price: $price, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt)';
+    return 'EventModel(id: $id, title: $title, description: $description, startDate: $startDate, endDate: $endDate, location: $location, address: $address, country: $country, latitude: $latitude, longitude: $longitude, organizerId: $organizerId, organizerName: $organizerName, organizerPhotoUrl: $organizerPhotoUrl, posterUrls: $posterUrls, attendeeIds: $attendeeIds, maxAttendees: $maxAttendees, price: $price, isOnline: $isOnline, onlineLink: $onlineLink, category: $category, status: $status, createdAt: $createdAt, recapPhotoUrls: $recapPhotoUrls, recapDescription: $recapDescription, recapCreatedAt: $recapCreatedAt, groupId: $groupId, groupName: $groupName, conversationId: $conversationId, isPublic: $isPublic)';
   }
 
   @override
@@ -649,7 +728,14 @@ class _$EventModelImpl extends _EventModel {
             (identical(other.recapDescription, recapDescription) ||
                 other.recapDescription == recapDescription) &&
             (identical(other.recapCreatedAt, recapCreatedAt) ||
-                other.recapCreatedAt == recapCreatedAt));
+                other.recapCreatedAt == recapCreatedAt) &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.groupName, groupName) ||
+                other.groupName == groupName) &&
+            (identical(other.conversationId, conversationId) ||
+                other.conversationId == conversationId) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -681,6 +767,10 @@ class _$EventModelImpl extends _EventModel {
     const DeepCollectionEquality().hash(_recapPhotoUrls),
     recapDescription,
     recapCreatedAt,
+    groupId,
+    groupName,
+    conversationId,
+    isPublic,
   ]);
 
   /// Create a copy of EventModel
@@ -724,6 +814,10 @@ abstract class _EventModel extends EventModel {
     final List<String> recapPhotoUrls,
     final String? recapDescription,
     final DateTime? recapCreatedAt,
+    final String? groupId,
+    final String? groupName,
+    final String? conversationId,
+    final bool isPublic,
   }) = _$EventModelImpl;
   const _EventModel._() : super._();
 
@@ -779,7 +873,17 @@ abstract class _EventModel extends EventModel {
   @override
   String? get recapDescription;
   @override
-  DateTime? get recapCreatedAt;
+  DateTime? get recapCreatedAt; // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
+  // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
+  // de groupe (§9d).
+  @override
+  String? get groupId;
+  @override
+  String? get groupName;
+  @override
+  String? get conversationId;
+  @override
+  bool get isPublic;
 
   /// Create a copy of EventModel
   /// with the given fields replaced by the non-null parameter values.
