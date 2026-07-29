@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
@@ -24,8 +25,12 @@ class MonEspaceScreen extends ConsumerWidget {
         (user?.displayName?.trim().isNotEmpty ?? false)
             ? user!.displayName!.trim()
             : 'Vous';
+    final profile =
+        uid != null ? ref.watch(profileNotifierProvider(uid)).valueOrNull : null;
     final handle =
-        '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
+        (profile?.handle != null && profile!.handle!.isNotEmpty)
+            ? '@${profile.handle}'
+            : '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
 
     return Scaffold(
       backgroundColor: tokens.bg,
