@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/preferences_service.dart';
 import '../../data/datasources/feed_remote_datasource.dart';
 import '../../data/datasources/feed_supabase_datasource.dart';
 import '../../data/repositories/feed_repository_impl.dart';
@@ -824,3 +825,49 @@ final feedRepostsProvider = FutureProvider<List<RepostFeedEntry>>((ref) async {
       );
   return result.fold((_) => const <RepostFeedEntry>[], (items) => items);
 });
+
+// ============================================================================
+// Brouillon de publication & hashtags suivis (carte « Mon espace », §5a)
+//
+// Stockage 100% local (SharedPreferences via PreferencesService) : aucun
+// modèle serveur pour ni l'un ni l'autre, et un brouillon local suffit pour
+// un usage mono-appareil.
+// ============================================================================
+
+class PostDraftNotifier extends Notifier<String?> {
+  @override
+  String? build() => PreferencesService.instance.postDraft;
+
+  Future<void> save(String text) async {
+    await PreferencesService.instance.savePostDraft(text);
+    state = PreferencesService.instance.postDraft;
+  }
+
+  Future<void> clear() async {
+    await PreferencesService.instance.clearPostDraft();
+    state = null;
+  }
+}
+
+final postDraftProvider =
+    NotifierProvider<PostDraftNotifier, String?>(PostDraftNotifier.new);
+
+class FollowedHashtagsNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() => PreferencesService.instance.followedHashtags;
+
+  Future<void> toggle(String hashtag) async {
+    await PreferencesService.instance.toggleFollowedHashtag(hashtag);
+    state = PreferencesService.instance.followedHashtags;
+  }
+
+  Future<void> unfollow(String hashtag) async {
+    await PreferencesService.instance.unfollowHashtag(hashtag);
+    state = PreferencesService.instance.followedHashtags;
+  }
+}
+
+final followedHashtagsProvider =
+    NotifierProvider<FollowedHashtagsNotifier, List<String>>(
+  FollowedHashtagsNotifier.new,
+);

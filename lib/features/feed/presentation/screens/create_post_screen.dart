@@ -45,6 +45,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   List<String> _hashtags = [];
   bool _isPublishing = false;
 
+  /// Passe à `true` juste avant de quitter l'écran après une publication
+  /// réussie : évite de re-sauvegarder le texte publié comme brouillon dans
+  /// `dispose()`.
+  bool _didPublish = false;
+
   bool get _isEditing => widget.editingPost != null;
 
   /// Un post vidéo n'autorise pas l'ajout/suppression d'images en édition.
@@ -61,11 +66,23 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       _mentionedGroups = List.of(post.mentionedGroups);
       _hashtags = List.of(post.hashtags);
       _existingMediaUrls.addAll(post.mediaUrls);
+    } else {
+      // Nouvelle publication : reprend le brouillon local s'il y en a un
+      // (carte « Brouillons » de Mon espace, §5a).
+      final draft = ref.read(postDraftProvider);
+      if (draft != null && draft.isNotEmpty) {
+        _contentController.text = draft;
+      }
     }
   }
 
   @override
   void dispose() {
+    // Quitter sans publier sauvegarde le texte en brouillon (édition d'un
+    // post existant exclue : ce n'est pas un brouillon de nouvelle publication).
+    if (!_isEditing && !_didPublish) {
+      ref.read(postDraftProvider.notifier).save(_contentController.text);
+    }
     _contentController.dispose();
     super.dispose();
   }
@@ -206,6 +223,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         videoDurationSeconds: videoDur,
       );
       success = await ref.read(feedNotifierProvider.notifier).createPost(post);
+    }
+
+    if (success && !_isEditing) {
+      _didPublish = true;
+      await ref.read(postDraftProvider.notifier).clear();
     }
 
     if (mounted) {

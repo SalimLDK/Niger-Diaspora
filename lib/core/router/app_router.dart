@@ -40,6 +40,7 @@ import '../../features/profile/presentation/screens/qr_scanner_screen.dart';
 import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/feed/presentation/screens/mon_espace_screen.dart';
+import '../../features/feed/presentation/screens/followed_hashtags_screen.dart';
 import '../../features/feed/presentation/screens/my_posts_screen.dart';
 import '../../features/feed/presentation/screens/saved_posts_screen.dart';
 import '../../features/feed/presentation/screens/follows_screen.dart';
@@ -831,6 +832,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/feed/space',
         builder: (context, state) => const MonEspaceScreen(),
+      ),
+      GoRoute(
+        path: '/feed/space/hashtags',
+        builder: (context, state) => const FollowedHashtagsScreen(),
       ),
       GoRoute(
         path: '/feed/:postId/edit',

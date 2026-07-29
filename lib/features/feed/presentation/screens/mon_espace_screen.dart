@@ -80,6 +80,91 @@ class MonEspaceScreen extends ConsumerWidget {
             label: 'Abonnés et abonnements',
             onTap: () => context.push('/profile/follows'),
           ),
+          Consumer(
+            builder: (context, ref, _) {
+              final count = ref.watch(followedHashtagsProvider).length;
+              return _SpaceTile(
+                tokens: tokens,
+                icon: Icon(
+                  Icons.tag_rounded,
+                  size: 20,
+                  color: tokens.hashtagColor,
+                ),
+                label:
+                    count > 0 ? 'Hashtags suivis · $count' : 'Hashtags suivis',
+                onTap: () => context.push('/feed/space/hashtags'),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          const Consumer(builder: _buildDraftCard),
+        ],
+      ),
+    );
+  }
+
+  /// Carte Brouillon séparée (§5a) : n'apparaît que s'il y a un brouillon de
+  /// publication non publié en attente localement.
+  static Widget _buildDraftCard(
+    BuildContext context,
+    WidgetRef ref,
+    Widget? _,
+  ) {
+    final draft = ref.watch(postDraftProvider);
+    if (draft == null || draft.isEmpty) return const SizedBox.shrink();
+    final tokens = FeedTokens.of(context);
+    final preview = draft.length > 80 ? '${draft.substring(0, 80)}…' : draft;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        border: Border.all(color: tokens.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.edit_note_rounded, size: 18, color: tokens.mutedText),
+              const SizedBox(width: 6),
+              Text(
+                'Brouillon',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: tokens.mutedText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            preview,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 14.5, height: 1.4, color: tokens.text),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              TextButton(
+                onPressed:
+                    () => ref.read(postDraftProvider.notifier).clear(),
+                child: Text(
+                  'Supprimer',
+                  style: TextStyle(color: tokens.mutedText),
+                ),
+              ),
+              const Spacer(),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: tokens.accent),
+                onPressed: () => context.push('/feed/create'),
+                child: Text('Reprendre', style: TextStyle(color: tokens.onAccent)),
+              ),
+            ],
+          ),
         ],
       ),
     );

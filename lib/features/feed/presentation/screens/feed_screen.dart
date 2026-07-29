@@ -878,14 +878,20 @@ class _RailCard extends StatelessWidget {
   }
 }
 
-class _HashtagBanner extends StatelessWidget {
+class _HashtagBanner extends ConsumerWidget {
   final String hashtag;
 
   const _HashtagBanner({required this.hashtag});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = FeedTokens.of(context);
+    // Sans le `#`, cohérent avec le stockage local des hashtags suivis
+    // (Mon espace, §5a).
+    final tag = hashtag.startsWith('#') ? hashtag.substring(1) : hashtag;
+    final isFollowed = ref.watch(
+      followedHashtagsProvider.select((tags) => tags.contains(tag.toLowerCase())),
+    );
     return Container(
       width: double.infinity,
       color: tokens.accent.withValues(alpha: 0.1),
@@ -897,6 +903,26 @@ class _HashtagBanner extends StatelessWidget {
           Text(
             hashtag,
             style: TextStyle(color: tokens.accent, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => ref.read(followedHashtagsProvider.notifier).toggle(tag),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isFollowed ? tokens.accent : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: tokens.accent),
+              ),
+              child: Text(
+                isFollowed ? 'Suivi' : 'Suivre',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: isFollowed ? tokens.onAccent : tokens.accent,
+                ),
+              ),
+            ),
           ),
           const Spacer(),
           GestureDetector(

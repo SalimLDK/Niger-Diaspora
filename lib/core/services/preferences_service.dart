@@ -113,6 +113,12 @@ class PreferencesService {
   // Message Drafts
   static const String _keyMessageDrafts = 'message_drafts';
 
+  // Post Draft (§5a "Mon espace" — un seul brouillon de publication local)
+  static const String _keyPostDraft = 'post_draft';
+
+  // Followed Hashtags (§5a "Mon espace" — suivi local, aucun modèle serveur)
+  static const String _keyFollowedHashtags = 'followed_hashtags';
+
   // Voice Notes — local "listened" state driving the unheard dot
   static const String _keyPlayedVoiceNotes = 'played_voice_notes';
   // Cap the list so it can't grow without bound; keep the most recent ids.
@@ -442,6 +448,56 @@ class PreferencesService {
   /// Clear all drafts
   Future<void> clearAllMessageDrafts() async {
     await prefs.remove(_keyMessageDrafts);
+  }
+
+  // ============================
+  // POST DRAFT (carte "Brouillons" de Mon espace, §5a)
+  // ============================
+
+  /// Texte du brouillon de publication en cours, s'il y en a un.
+  String? get postDraft => prefs.getString(_keyPostDraft);
+
+  /// Sauvegarde le brouillon (vide = suppression, comme les brouillons de
+  /// message).
+  Future<void> savePostDraft(String text) async {
+    if (text.trim().isEmpty) {
+      await clearPostDraft();
+      return;
+    }
+    await prefs.setString(_keyPostDraft, text);
+  }
+
+  Future<void> clearPostDraft() async {
+    await prefs.remove(_keyPostDraft);
+  }
+
+  // ============================
+  // FOLLOWED HASHTAGS (carte "Hashtags suivis" de Mon espace, §5a)
+  // ============================
+
+  /// Hashtags suivis localement (sans `#`), les plus récents en tête.
+  List<String> get followedHashtags {
+    return prefs.getStringList(_keyFollowedHashtags) ?? const [];
+  }
+
+  bool isHashtagFollowed(String hashtag) =>
+      followedHashtags.contains(hashtag.toLowerCase());
+
+  Future<void> toggleFollowedHashtag(String hashtag) async {
+    final tag = hashtag.toLowerCase();
+    final current = List<String>.from(followedHashtags);
+    if (current.contains(tag)) {
+      current.remove(tag);
+    } else {
+      current.insert(0, tag);
+    }
+    await prefs.setStringList(_keyFollowedHashtags, current);
+  }
+
+  Future<void> unfollowHashtag(String hashtag) async {
+    final current = List<String>.from(followedHashtags)
+      ..remove(hashtag.toLowerCase());
+    await prefs.setStringList(_keyFollowedHashtags, current);
   }
 
   // ============================
