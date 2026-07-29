@@ -59,6 +59,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   List<EmbassyEntity> _embassies = [];
   List<BusinessEntity> _businesses = [];
   bool _showBusinesses = true;
+  bool _showEmbassies = true;
   String _selectedFilter = 'all';
 
   /// Vrai quand la liste de résultats de recherche de lieu est ouverte : on
@@ -2508,6 +2509,120 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
+  /// Bouton « calques » de l'en-tête unifié (§7d) : ouvre la feuille de
+  /// bascule des couches (membres / commerces / ambassades).
+  Widget _buildLayersButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showLayersSheet(context),
+      child: Container(
+        height: 52,
+        width: 52,
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(Icons.layers_outlined, color: context.textPrimaryColor),
+      ),
+    );
+  }
+
+  /// Feuille « Calques » (§7d) : consolide les bascules de couches auparavant
+  /// dispersées dans l'AppBar (membres, commerces, ambassades).
+  void _showLayersSheet(BuildContext context) {
+    final businessDirectoryEnabled =
+        ref.read(isBusinessDirectoryEnabledProvider);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: StatefulBuilder(
+          builder: (ctx, setModalState) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ctx.borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Calques', style: Theme.of(ctx).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                // Membres (état privé partagé, via provider).
+                Consumer(
+                  builder: (c, r, _) {
+                    final on = r.watch(nearbyMembersEnabledProvider);
+                    return SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.people_alt_outlined),
+                      title: const Text('Membres'),
+                      value: on,
+                      onChanged: (v) => r
+                          .read(nearbyMembersEnabledProvider.notifier)
+                          .setEnabled(v),
+                    );
+                  },
+                ),
+                if (businessDirectoryEnabled)
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.storefront_outlined),
+                    title: const Text('Commerces'),
+                    value: _showBusinesses,
+                    onChanged: (v) {
+                      _toggleBusinessesLayer(v);
+                      setModalState(() {});
+                    },
+                  ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.account_balance_outlined),
+                  title: const Text('Ambassades'),
+                  value: _showEmbassies,
+                  onChanged: (v) {
+                    setState(() => _showEmbassies = v);
+                    setModalState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Bascule la couche commerces (avec chargement paresseux + persistance),
+  /// logique reprise de l'ancien bouton de l'AppBar.
+  Future<void> _toggleBusinessesLayer(bool newValue) async {
+    setState(() => _showBusinesses = newValue);
+    await PreferencesService.instance.setMapBusinessesLayerVisible(newValue);
+    if (newValue && _currentPosition != null) {
+      await _loadNearbyBusinesses(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+      );
+    }
+    _updateBusinessMarkers();
+  }
+
   /// Petit bouton flottant pour rouvrir le panneau "Membres à proximité"
   /// une fois masqué complètement.
   /// Écran assumé sans localisation (8c) : réciprocité expliquée, trois
@@ -2831,69 +2946,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
         title: Text(l10n.mapTitle),
         actions: [
           // Bouton bascule "Membres \u00e0 proximit\u00e9" (mode priv\u00e9)
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: nearbyEnabled
-                    ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
-                    : context.surfaceVariantColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                nearbyEnabled ? Icons.visibility : Icons.visibility_off,
-                color: nearbyEnabled
-                    ? context.adaptivePrimaryColor
-                    : context.textTertiaryColor,
-              ),
-            ),
-            tooltip: nearbyEnabled
-                ? l10n.disableNearbyMembers
-                : l10n.enableNearbyMembers,
-            onPressed: () =>
-                ref.read(nearbyMembersEnabledProvider.notifier).toggle(),
-          ),
-          const SizedBox(width: 4),
+          // (Bascule « Membres » déplacée vers le bouton calques de l'en-tête.)
           // Bouton bascule "Commerces" (visible seulement si le feature flag
           // "annuaire des commerces" est actif)
-          if (businessDirectoryEnabled)
-            IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _showBusinesses
-                      ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
-                      : context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _showBusinesses
-                      ? Icons.storefront
-                      : Icons.storefront_outlined,
-                  color: _showBusinesses
-                      ? context.adaptivePrimaryColor
-                      : context.textTertiaryColor,
-                ),
-              ),
-              tooltip: _showBusinesses
-                  ? l10n.hideBusinessesOnMap
-                  : l10n.showBusinessesOnMap,
-              onPressed: () async {
-                final newValue = !_showBusinesses;
-                setState(() => _showBusinesses = newValue);
-                await PreferencesService.instance.setMapBusinessesLayerVisible(
-                  newValue,
-                );
-                if (newValue && _currentPosition != null) {
-                  await _loadNearbyBusinesses(
-                    _currentPosition!.latitude,
-                    _currentPosition!.longitude,
-                  );
-                }
-                _updateBusinessMarkers();
-              },
-            ),
-          if (businessDirectoryEnabled) const SizedBox(width: 4),
           // Bouton de sélection du rayon
           GestureDetector(
             onTap: _showRadiusSelector,
@@ -2998,7 +3053,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         );
                       }
                     },
-                    markers: {..._markers, ..._embassyMarkers, ..._businessMarkers},
+                    markers: {
+                      ..._markers,
+                      if (_showEmbassies) ..._embassyMarkers,
+                      ..._businessMarkers,
+                    },
                     myLocationEnabled: false,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
@@ -3116,19 +3175,32 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     top: 16,
                     left: 16,
                     right: 16,
-                    child: MapSearchBar(
-                      onResultsVisibilityChanged: (open) {
-                        if (_isSearchResultsOpen != open) {
-                          setState(() => _isSearchResultsOpen = open);
-                        }
-                      },
-                      onPlaceSelected: (latLng, _) {
-                        _controller.future.then((c) {
-                          c.animateCamera(
-                            CameraUpdate.newLatLngZoom(latLng, 14),
-                          );
-                        });
-                      },
+                    // En-tête unifié (§7d) : recherche + bouton « calques » sur
+                    // une même ligne. Les filtres profession restent la rangée
+                    // juste en dessous (top:76). Le bouton calques est aligné en
+                    // haut pour ne pas suivre le déroulant de recherche.
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: MapSearchBar(
+                            onResultsVisibilityChanged: (open) {
+                              if (_isSearchResultsOpen != open) {
+                                setState(() => _isSearchResultsOpen = open);
+                              }
+                            },
+                            onPlaceSelected: (latLng, _) {
+                              _controller.future.then((c) {
+                                c.animateCamera(
+                                  CameraUpdate.newLatLngZoom(latLng, 14),
+                                );
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildLayersButton(context),
+                      ],
                     ),
                   ),
 
