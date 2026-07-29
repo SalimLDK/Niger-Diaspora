@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import '../widgets/product_card.dart';
@@ -70,6 +72,18 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         (items) => items.fold<int>(0, (total, item) => total + item.quantity),
       ),
     );
+    // Badge côté vendeur : commandes payées en attente d'expédition
+    // (même logique d'action que dans my_orders_screen.dart).
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final pendingSellerOrders =
+        currentUser == null
+            ? 0
+            : ref
+                    .watch(watchSellerOrdersProvider(currentUser.id))
+                    .valueOrNull
+                    ?.where((o) => o.status == OrderStatus.paid)
+                    .length ??
+                0;
 
     return Scaffold(
       appBar: AppBar(
@@ -123,9 +137,45 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.receipt_long_outlined),
-            onPressed: () => context.push('/marketplace/my-orders'),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.receipt_long_outlined),
+                onPressed: () => context.push('/marketplace/my-orders'),
+              ),
+              if (pendingSellerOrders > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Center(
+                        child: Text(
+                          pendingSellerOrders > 99
+                              ? '99+'
+                              : pendingSellerOrders.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.inventory_2_outlined),
