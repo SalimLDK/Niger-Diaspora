@@ -22,6 +22,88 @@ class AdministrativeRequestScreen extends ConsumerStatefulWidget {
       _AdministrativeRequestScreenState();
 }
 
+/// Pièces à joindre par type de démarche (§16d). Propositions indicatives —
+/// fichier marqué « non relu » dans le handoff, pas de données officielles
+/// disponibles ; à confirmer/ajuster avec un consulat si besoin.
+const Map<AdministrativeRequestType, List<String>> _requiredDocuments = {
+  AdministrativeRequestType.passportRenewal: [
+    'Ancien passeport',
+    '2 photos d\'identité récentes',
+    'Justificatif de domicile',
+    'Copie de l\'acte de naissance',
+  ],
+  AdministrativeRequestType.passportNewRequest: [
+    'Acte de naissance original',
+    '2 photos d\'identité récentes',
+    'Justificatif de domicile',
+    'Carte consulaire ou pièce d\'identité',
+  ],
+  AdministrativeRequestType.visaApplication: [
+    'Passeport valide',
+    '2 photos d\'identité récentes',
+    'Justificatif d\'hébergement',
+    'Billet aller-retour ou réservation',
+  ],
+  AdministrativeRequestType.birthCertificate: [
+    'Copie du livret de famille ou extrait existant',
+    'Pièce d\'identité du demandeur',
+  ],
+  AdministrativeRequestType.marriageCertificate: [
+    'Copie de l\'acte de mariage existant',
+    'Pièces d\'identité des deux époux',
+  ],
+  AdministrativeRequestType.deathCertificate: [
+    'Copie de l\'acte de décès existant',
+    'Pièce d\'identité du demandeur',
+  ],
+  AdministrativeRequestType.consularId: [
+    '2 photos d\'identité récentes',
+    'Justificatif de domicile',
+    'Passeport ou acte de naissance',
+  ],
+  AdministrativeRequestType.legalDocument: [
+    'Document original à légaliser',
+    'Pièce d\'identité',
+  ],
+  AdministrativeRequestType.laissezPasser: [
+    'Déclaration de perte ou de vol (si applicable)',
+    '2 photos d\'identité récentes',
+    'Toute pièce d\'identité disponible',
+  ],
+  AdministrativeRequestType.powerOfAttorney: [
+    'Pièce d\'identité du mandant',
+    'Pièce d\'identité du mandataire',
+    'Objet précis de la procuration',
+  ],
+  AdministrativeRequestType.inscription: [
+    'Passeport ou pièce d\'identité',
+    'Justificatif de domicile à l\'étranger',
+    '1 photo d\'identité',
+  ],
+  AdministrativeRequestType.other: [
+    'Pièce d\'identité',
+    'Description détaillée de la demande',
+  ],
+};
+
+/// Délai indicatif par type de démarche (§16d). Même réserve que
+/// [_requiredDocuments] : proposition, pas une donnée officielle.
+const Map<AdministrativeRequestType, String> _indicativeDelay = {
+  AdministrativeRequestType.passportRenewal: 'Environ 3 à 4 semaines',
+  AdministrativeRequestType.passportNewRequest: 'Environ 4 à 6 semaines',
+  AdministrativeRequestType.visaApplication: 'Environ 5 à 10 jours ouvrés',
+  AdministrativeRequestType.birthCertificate: 'Environ 1 à 2 semaines',
+  AdministrativeRequestType.marriageCertificate: 'Environ 1 à 2 semaines',
+  AdministrativeRequestType.deathCertificate: 'Environ 1 à 2 semaines',
+  AdministrativeRequestType.consularId: 'Environ 2 à 3 semaines',
+  AdministrativeRequestType.legalDocument: 'Environ 3 à 5 jours ouvrés',
+  AdministrativeRequestType.laissezPasser:
+      'Sous 48 à 72 heures (urgence voyage)',
+  AdministrativeRequestType.powerOfAttorney: 'Environ 3 à 5 jours ouvrés',
+  AdministrativeRequestType.inscription: 'Environ 1 semaine',
+  AdministrativeRequestType.other: 'Délai variable selon la demande',
+};
+
 class _AdministrativeRequestScreenState
     extends ConsumerState<AdministrativeRequestScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -29,6 +111,7 @@ class _AdministrativeRequestScreenState
   bool _isPreFilled = false;
 
   late AdministrativeRequestType _selectedType;
+  final Set<String> _checkedDocuments = {};
 
   // Pre-filled form controllers
   final _fullNameController = TextEditingController();
@@ -187,6 +270,7 @@ class _AdministrativeRequestScreenState
             _notesController.text.trim().isEmpty
                 ? null
                 : _notesController.text.trim(),
+        additionalData: {'checkedDocuments': _checkedDocuments.toList()},
         userName: profile?.displayName ?? user.displayName,
         userPhotoUrl: profile?.photoUrl,
         embassyName: widget.embassy.name,
@@ -322,7 +406,12 @@ class _AdministrativeRequestScreenState
                     }).toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    setState(() => _selectedType = value);
+                    setState(() {
+                      _selectedType = value;
+                      // Les pièces cochées ne s'appliquent qu'au type
+                      // précédent — on repart d'une liste vide.
+                      _checkedDocuments.clear();
+                    });
                   }
                 },
               ),
@@ -331,7 +420,49 @@ class _AdministrativeRequestScreenState
                 _getTypeDescription(_selectedType),
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.schedule, size: 14, color: theme.colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Délai indicatif : ${_indicativeDelay[_selectedType]}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
+
+              // Pièces à joindre (§16d) : cochées une à une par le
+              // demandeur pour confirmer qu'il les a bien réunies.
+              _buildSectionTitle('Pièces à joindre'),
+              const SizedBox(height: 8),
+              ...(_requiredDocuments[_selectedType] ?? []).map(
+                (doc) => CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  title: Text(doc, style: const TextStyle(fontSize: 13.5)),
+                  value: _checkedDocuments.contains(doc),
+                  onChanged: (checked) {
+                    setState(() {
+                      if (checked ?? false) {
+                        _checkedDocuments.add(doc);
+                      } else {
+                        _checkedDocuments.remove(doc);
+                      }
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Personal information
               _buildSectionTitle('Informations personnelles'),

@@ -185,41 +185,57 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       ),
       body: Column(
         children: [
-          // Search bar
-          StandardSearchBar(
-            controller: _searchController,
-            hintText: 'Rechercher un produit...',
-            onChanged: (value) {
-              setState(() => _searchQuery = value);
-            },
-          ),
-
-          // Country filter - single button
+          // Recherche + filtre pays fusionnés sur la même ligne (§12b) — le
+          // pays n'est plus une rangée séparée sous la barre.
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Row(
               children: [
-                ActionChip(
-                  avatar: Text(
-                    selectedCountry?.flag ?? '🌍',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  label: Text(
-                    selectedCountry?.label ?? 'Tous les pays',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  onPressed: () => _showCountryPicker(context),
-                ),
-                if (selectedCountry != null) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => ref.read(selectedCountryProvider.notifier).select(null),
-                    visualDensity: VisualDensity.compact,
+                Expanded(
+                  child: StandardSearchBar(
+                    controller: _searchController,
+                    hintText: 'Rechercher un produit...',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
                   ),
-                ],
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () => _showCountryPicker(context),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          selectedCountry?.flag ?? '🌍',
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        if (selectedCountry != null) ...[
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => ref
+                                .read(selectedCountryProvider.notifier)
+                                .select(null),
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
