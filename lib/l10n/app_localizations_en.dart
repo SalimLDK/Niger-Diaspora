@@ -832,6 +832,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUpcomingEvents => 'No upcoming events';
 
   @override
+  String get eventsNearMe => 'Near me';
+
+  @override
+  String get eventsOnline => 'Online';
+
+  @override
+  String get eventsFree => 'Free';
+
+  @override
   String participants(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11482,6 +11491,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gifProviderNotConfigured => 'GIFs are not configured yet.';
+
+  @override
+  String get gifDataSaverNote => 'Downloaded once, sent without using data';
 
   @override
   String get showKeyboard => 'Show keyboard';

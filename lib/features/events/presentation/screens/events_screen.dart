@@ -9,7 +9,16 @@ import '../../../../shared/widgets/error_widget.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/geo_utils.dart';
+
+/// Filtres rapides (§13a), indépendants de la catégorie : appliqués côté
+/// client sur la liste déjà chargée (pas de requête serveur supplémentaire).
+enum _QuickFilter { nearMe, online, free }
+
+const double _nearMeRadiusKm = 50.0;
 
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({super.key});
@@ -21,6 +30,7 @@ class EventsScreen extends ConsumerStatefulWidget {
 class _EventsScreenState extends ConsumerState<EventsScreen>
     with SingleTickerProviderStateMixin {
   EventCategory? _selectedCategory;
+  final Set<_QuickFilter> _quickFilters = {};
   late TabController _tabController;
 
   @override
@@ -37,6 +47,14 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _toggleQuickFilter(_QuickFilter filter) {
+    if (_quickFilters.contains(filter)) {
+      _quickFilters.remove(filter);
+    } else {
+      _quickFilters.add(filter);
+    }
   }
 
   @override
@@ -116,7 +134,47 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+
+          // Filtres rapides (§13a) : Près de moi / En ligne / Gratuits —
+          // multi-sélection, indépendants de la catégorie.
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _QuickFilterChip(
+                  label: l10n.all,
+                  isSelected: _quickFilters.isEmpty,
+                  onTap: () => setState(_quickFilters.clear),
+                ),
+                _QuickFilterChip(
+                  label: l10n.eventsNearMe,
+                  isSelected: _quickFilters.contains(_QuickFilter.nearMe),
+                  onTap: () => setState(
+                    () => _toggleQuickFilter(_QuickFilter.nearMe),
+                  ),
+                ),
+                _QuickFilterChip(
+                  label: l10n.eventsOnline,
+                  isSelected: _quickFilters.contains(_QuickFilter.online),
+                  onTap: () => setState(
+                    () => _toggleQuickFilter(_QuickFilter.online),
+                  ),
+                ),
+                _QuickFilterChip(
+                  label: l10n.eventsFree,
+                  isSelected: _quickFilters.contains(_QuickFilter.free),
+                  onTap: () => setState(
+                    () => _toggleQuickFilter(_QuickFilter.free),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
 
           // Events List with Tabs
           Expanded(
@@ -124,11 +182,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
               controller: _tabController,
               children: [
                 _UpcomingEventsTab(
+                  quickFilters: _quickFilters,
                   onCategoryChange: () {
                     setState(() => _selectedCategory = null);
                   },
                 ),
                 _PastEventsTab(
+                  quickFilters: _quickFilters,
                   onCategoryChange: () {
                     setState(() => _selectedCategory = null);
                   },
@@ -143,14 +203,19 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
 }
 
 class _UpcomingEventsTab extends ConsumerWidget {
+  final Set<_QuickFilter> quickFilters;
   final VoidCallback onCategoryChange;
 
-  const _UpcomingEventsTab({required this.onCategoryChange});
+  const _UpcomingEventsTab({
+    required this.quickFilters,
+    required this.onCategoryChange,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final eventsState = ref.watch(eventsNotifierProvider);
+    final myProfile = _myProfile(ref);
 
     return eventsState.when(
       skipLoadingOnRefresh: true,
@@ -160,7 +225,8 @@ class _UpcomingEventsTab extends ConsumerWidget {
             message: error.toString(),
             onRetry: () => ref.read(eventsNotifierProvider.notifier).refresh(),
           ),
-      data: (events) {
+      data: (allEvents) {
+        final events = _applyQuickFilters(allEvents, quickFilters, myProfile);
         if (events.isEmpty) {
           return Center(
             child: Column(
@@ -242,14 +308,19 @@ class _EventsSectionHeader extends StatelessWidget {
 }
 
 class _PastEventsTab extends ConsumerWidget {
+  final Set<_QuickFilter> quickFilters;
   final VoidCallback onCategoryChange;
 
-  const _PastEventsTab({required this.onCategoryChange});
+  const _PastEventsTab({
+    required this.quickFilters,
+    required this.onCategoryChange,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final eventsState = ref.watch(pastEventsNotifierProvider);
+    final myProfile = _myProfile(ref);
 
     return eventsState.when(
       skipLoadingOnRefresh: true,
@@ -260,7 +331,8 @@ class _PastEventsTab extends ConsumerWidget {
             onRetry:
                 () => ref.read(pastEventsNotifierProvider.notifier).refresh(),
           ),
-      data: (events) {
+      data: (allEvents) {
+        final events = _applyQuickFilters(allEvents, quickFilters, myProfile);
         if (events.isEmpty) {
           return Center(
             child: Column(
@@ -300,6 +372,99 @@ class _PastEventsTab extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Profil courant (pour le filtre "Près de moi") : lat/lng déjà chargées
+/// ailleurs dans l'app, aucune requête supplémentaire ici.
+ProfileEntity? _myProfile(WidgetRef ref) {
+  final uid = ref.watch(currentUserProvider).valueOrNull?.id;
+  if (uid == null) return null;
+  return ref.watch(profileNotifierProvider(uid)).valueOrNull;
+}
+
+List<EventEntity> _applyQuickFilters(
+  List<EventEntity> events,
+  Set<_QuickFilter> filters,
+  ProfileEntity? myProfile,
+) {
+  if (filters.isEmpty) return events;
+  return events.where((event) {
+    if (filters.contains(_QuickFilter.online) && !event.isOnline) {
+      return false;
+    }
+    if (filters.contains(_QuickFilter.free) && !event.isFree) {
+      return false;
+    }
+    if (filters.contains(_QuickFilter.nearMe)) {
+      final myLat = myProfile?.latitude;
+      final myLng = myProfile?.longitude;
+      if (myLat == null ||
+          myLng == null ||
+          event.latitude == null ||
+          event.longitude == null) {
+        return false;
+      }
+      final distance = GeoUtils.calculateDistance(
+        myLat,
+        myLng,
+        event.latitude!,
+        event.longitude!,
+      );
+      if (distance > _nearMeRadiusKm) return false;
+    }
+    return true;
+  }).toList();
+}
+
+class _QuickFilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _QuickFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color:
+                isSelected
+                    ? context.adaptivePrimaryColor.withValues(alpha: 0.12)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color:
+                  isSelected
+                      ? context.adaptivePrimaryColor
+                      : context.borderColor,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color:
+                    isSelected
+                        ? context.adaptivePrimaryColor
+                        : context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

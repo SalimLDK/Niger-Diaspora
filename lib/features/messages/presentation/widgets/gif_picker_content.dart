@@ -48,6 +48,7 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
     return Column(
       children: [
         _buildToolbar(context, l10n, type),
+        _buildDataSaverNote(context, l10n),
         Expanded(
           child: resultsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -125,6 +126,33 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
             onSelectionChanged: (selection) =>
                 ref.read(gifContentTypeProvider.notifier).state =
                     selection.first,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Rappel mode données réduites (§26b) : les GIFs/stickers ne sont
+  /// téléchargés qu'une fois puis renvoyés sans re-consommer de données.
+  Widget _buildDataSaverNote(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+      child: Row(
+        children: [
+          Icon(
+            Icons.data_saver_on,
+            size: 12,
+            color: context.textSecondaryColor,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              l10n.gifDataSaverNote,
+              style: TextStyle(
+                fontSize: 11,
+                color: context.textSecondaryColor,
+              ),
+            ),
           ),
         ],
       ),

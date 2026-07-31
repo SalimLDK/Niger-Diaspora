@@ -1658,6 +1658,24 @@ abstract class AppLocalizations {
   /// **'Aucun événement à venir'**
   String get noUpcomingEvents;
 
+  /// No description provided for @eventsNearMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Près de moi'**
+  String get eventsNearMe;
+
+  /// No description provided for @eventsOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get eventsOnline;
+
+  /// No description provided for @eventsFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gratuits'**
+  String get eventsFree;
+
   /// No description provided for @participants.
   ///
   /// In fr, this message translates to:
@@ -21523,6 +21541,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Les GIFs ne sont pas encore configurés.'**
   String get gifProviderNotConfigured;
+
+  /// No description provided for @gifDataSaverNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléchargés une fois, envoyés sans données'**
+  String get gifDataSaverNote;
 
   /// No description provided for @showKeyboard.
   ///

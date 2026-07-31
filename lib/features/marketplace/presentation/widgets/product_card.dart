@@ -130,6 +130,47 @@ class ProductCard extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // Vendeur : avatar 20px + nom (§12b, sous le titre).
+                    if (product.sellerName != null &&
+                        product.sellerName!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundColor:
+                                theme.colorScheme.surfaceContainerHighest,
+                            backgroundImage:
+                                (product.sellerPhotoUrl != null &&
+                                        product.sellerPhotoUrl!.isNotEmpty)
+                                    ? CachedNetworkImageProvider(
+                                      product.sellerPhotoUrl!,
+                                    )
+                                    : null,
+                            child:
+                                (product.sellerPhotoUrl == null ||
+                                        product.sellerPhotoUrl!.isEmpty)
+                                    ? Icon(
+                                      Icons.person,
+                                      size: 12,
+                                      color: theme.colorScheme.outline,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              product.sellerName!,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const Spacer(),
                     Row(
                       children: [
