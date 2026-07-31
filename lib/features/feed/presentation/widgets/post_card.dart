@@ -7,12 +7,15 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/utils/rich_text_parser.dart';
+import '../../../polls/presentation/providers/poll_provider.dart';
+import '../../../polls/presentation/widgets/poll_card.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/entities/repost_ref.dart';
 import '../providers/feed_personalization_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_tokens.dart';
+import 'post_location_card.dart';
 import 'feed_avatar.dart';
 import 'feed_image_viewer.dart';
 import 'follow_button.dart';
@@ -93,6 +96,15 @@ class PostCard extends ConsumerWidget {
                 const SizedBox(height: 10),
                 _MediaGrid(post: post),
               ],
+              if (post.hasLocation) ...[
+                const SizedBox(height: 10),
+                PostLocationCard(
+                  latitude: post.latitude!,
+                  longitude: post.longitude!,
+                  address: post.locationAddress ?? '',
+                ),
+              ],
+              _PostPollSection(postId: post.id),
               const SizedBox(height: 12),
               _ActionBar(post: post, l10n: l10n, isDetail: isDetail),
               if (isDetail) ...[
@@ -103,6 +115,24 @@ class PostCard extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Sondage joint au post (§13/23d), s'il y en a un — un post n'en porte
+/// jamais plus d'un aujourd'hui (composé une seule fois à la création).
+class _PostPollSection extends ConsumerWidget {
+  final String postId;
+
+  const _PostPollSection({required this.postId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final polls = ref.watch(postPollsProvider(postId)).valueOrNull ?? [];
+    if (polls.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: PollCard(poll: polls.first, postId: postId),
     );
   }
 }

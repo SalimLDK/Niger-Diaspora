@@ -53,6 +53,12 @@ class PostEntity extends Equatable {
   /// Dur├®e de la vid├®o en secondes (uniquement si [mediaType] == video).
   final int? videoDurationSeconds;
 
+  /// Lieu joint au post (§13/23d), optionnel — les trois champs vont
+  /// ensemble ou sont tous absents.
+  final double? latitude;
+  final double? longitude;
+  final String? locationAddress;
+
   const PostEntity({
     required this.id,
     required this.authorId,
@@ -74,7 +80,12 @@ class PostEntity extends Equatable {
     this.authorCity,
     this.videoThumbnailUrl,
     this.videoDurationSeconds,
+    this.latitude,
+    this.longitude,
+    this.locationAddress,
   });
+
+  bool get hasLocation => latitude != null && longitude != null;
 
   PostEntity copyWith({
     String? id,
@@ -97,6 +108,9 @@ class PostEntity extends Equatable {
     String? authorCity,
     String? videoThumbnailUrl,
     int? videoDurationSeconds,
+    double? latitude,
+    double? longitude,
+    String? locationAddress,
   }) {
     return PostEntity(
       id: id ?? this.id,
@@ -119,6 +133,9 @@ class PostEntity extends Equatable {
       authorCity: authorCity ?? this.authorCity,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       videoDurationSeconds: videoDurationSeconds ?? this.videoDurationSeconds,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      locationAddress: locationAddress ?? this.locationAddress,
     );
   }
 
@@ -144,5 +161,8 @@ class PostEntity extends Equatable {
     authorCity,
     videoThumbnailUrl,
     videoDurationSeconds,
+    latitude,
+    longitude,
+    locationAddress,
   ];
 }

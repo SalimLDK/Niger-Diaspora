@@ -7,6 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/video_upload_service.dart';
+import '../../../messages/presentation/widgets/location_picker_modal.dart';
+import '../../../polls/domain/entities/poll_entity.dart';
+import '../../../polls/presentation/providers/poll_provider.dart';
+import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
@@ -17,6 +21,34 @@ import '../widgets/hashtag_highlighting_controller.dart';
 import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
+/// Brouillon de sondage composé avant publication (le post n'a pas encore
+/// d'id — voir `_publish()`).
+class _PollDraft {
+  final String question;
+  final List<String> optionLabels;
+  final bool allowMultiple;
+  final DateTime? endsAt;
+
+  const _PollDraft({
+    required this.question,
+    required this.optionLabels,
+    required this.allowMultiple,
+    this.endsAt,
+  });
+}
+
+class _LocationDraft {
+  final double latitude;
+  final double longitude;
+  final String address;
+
+  const _LocationDraft({
+    required this.latitude,
+    required this.longitude,
+    required this.address,
+  });
+}
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   /// Si non null, l'écran est en mode édition et préremplit ce post.
@@ -40,6 +72,12 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   /// Médias déjà uploadés (mode édition) : URLs distantes, supprimables.
   final List<String> _existingMediaUrls = [];
+
+  /// Sondage/lieu composés — mutuellement exclusifs entre eux et avec les
+  /// médias (un seul type de contenu joint à la fois, §13/23d).
+  _PollDraft? _pollDraft;
+  _LocationDraft? _locationDraft;
+
   List<MentionedUser> _mentionedUsers = [];
   List<MentionedGroup> _mentionedGroups = [];
   List<String> _hashtags = [];
@@ -93,6 +131,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     if (result.files.isNotEmpty) {
       setState(() {
         _selectedVideo = null; // exclusivité images/vidéo
+        _pollDraft = null; // exclusivité média/sondage/lieu
+        _locationDraft = null;
         _selectedFiles.addAll(result.files);
         if (_selectedFiles.length > 5) {
           _selectedFiles.removeRange(5, _selectedFiles.length);
@@ -116,9 +156,54 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     if (result.isSuccess) {
       setState(() {
         _selectedFiles.clear(); // exclusivité images/vidéo
+        _pollDraft = null; // exclusivité média/sondage/lieu
+        _locationDraft = null;
         _selectedVideo = result.file;
       });
     }
+  }
+
+  void _pickPoll() {
+    showCreatePollSheet(
+      context,
+      contextType: PollContextType.post,
+      contextId: '', // ignoré : onDraft intercepte la soumission
+      onDraft: (question, options, allowMultiple, endsAt) {
+        setState(() {
+          _selectedFiles.clear();
+          _selectedVideo = null;
+          _locationDraft = null;
+          _pollDraft = _PollDraft(
+            question: question,
+            optionLabels: options,
+            allowMultiple: allowMultiple,
+            endsAt: endsAt,
+          );
+        });
+      },
+    );
+  }
+
+  Future<void> _pickLocation() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LocationPickerModal(
+        onLocationSelected: (lat, lng, address) {
+          setState(() {
+            _selectedFiles.clear();
+            _selectedVideo = null;
+            _pollDraft = null;
+            _locationDraft = _LocationDraft(
+              latitude: lat,
+              longitude: lng,
+              address: address,
+            );
+          });
+        },
+      ),
+    );
   }
 
   Future<void> _publish() async {
@@ -126,7 +211,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     if (content.isEmpty &&
         _selectedFiles.isEmpty &&
         _existingMediaUrls.isEmpty &&
-        _selectedVideo == null) {
+        _selectedVideo == null &&
+        _pollDraft == null &&
+        _locationDraft == null) {
       return;
     }
 
@@ -221,8 +308,25 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         authorCity: authorCity,
         videoThumbnailUrl: videoThumb,
         videoDurationSeconds: videoDur,
+        latitude: _locationDraft?.latitude,
+        longitude: _locationDraft?.longitude,
+        locationAddress: _locationDraft?.address,
       );
-      success = await ref.read(feedNotifierProvider.notifier).createPost(post);
+      final created =
+          await ref.read(feedNotifierProvider.notifier).createPost(post);
+      success = created != null;
+
+      // Le sondage n'est créé qu'une fois le post publié (son id n'existait
+      // pas avant) — voir le doc-comment de _pollDraft/showCreatePollSheet.
+      if (created != null && _pollDraft != null) {
+        await ref.read(pollActionsNotifierProvider.notifier).createPostPoll(
+              postId: created.id,
+              question: _pollDraft!.question,
+              optionLabels: _pollDraft!.optionLabels,
+              allowMultiple: _pollDraft!.allowMultiple,
+              endsAt: _pollDraft!.endsAt,
+            );
+      }
     }
 
     if (success && !_isEditing) {
@@ -587,6 +691,25 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                       ],
                     ),
                   ],
+                  if (_pollDraft != null) ...[
+                    const SizedBox(height: 12),
+                    _AttachmentPreview(
+                      tokens: tokens,
+                      icon: Icons.poll_outlined,
+                      label:
+                          '${_pollDraft!.question} · ${_pollDraft!.optionLabels.length} options',
+                      onRemove: () => setState(() => _pollDraft = null),
+                    ),
+                  ],
+                  if (_locationDraft != null) ...[
+                    const SizedBox(height: 12),
+                    _AttachmentPreview(
+                      tokens: tokens,
+                      icon: Icons.location_on_outlined,
+                      label: _locationDraft!.address,
+                      onRemove: () => setState(() => _locationDraft = null),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,9 +751,70 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     onPressed:
                         (_isPublishing || _isEditing) ? null : _pickVideo,
                   ),
+                  // Sondage / Lieu (§13/23d) : un seul type de contenu joint
+                  // à la fois, uniquement pour une nouvelle publication (le
+                  // sondage a besoin de l'id du post, pas encore créé en
+                  // édition).
+                  IconButton(
+                    icon: AppIcon(AppIcon.poll, color: tokens.accent),
+                    tooltip: 'Sondage',
+                    onPressed: (_isPublishing || _isEditing) ? null : _pickPoll,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.location_on_outlined, color: tokens.accent),
+                    tooltip: 'Lieu',
+                    onPressed:
+                        (_isPublishing || _isEditing) ? null : _pickLocation,
+                  ),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Puce de prévisualisation du sondage/lieu composé, avec retrait — même
+/// esprit que les vignettes média déjà présentes.
+class _AttachmentPreview extends StatelessWidget {
+  final FeedTokens tokens;
+  final IconData icon;
+  final String label;
+  final VoidCallback onRemove;
+
+  const _AttachmentPreview({
+    required this.tokens,
+    required this.icon,
+    required this.label,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tokens.divider),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: tokens.accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13.5, color: tokens.text),
+            ),
+          ),
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(Icons.close_rounded, size: 18, color: tokens.mutedText),
           ),
         ],
       ),

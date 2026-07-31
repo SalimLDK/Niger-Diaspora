@@ -9,28 +9,49 @@ import '../providers/poll_provider.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
+/// Callback de brouillon : reçoit les champs du sondage composé sans les
+/// soumettre au repository (cas d'un nouveau post, dont l'id n'existe pas
+/// encore au moment de la composition).
+typedef PollDraftCallback = void Function(
+  String question,
+  List<String> optionLabels,
+  bool allowMultiple,
+  DateTime? endsAt,
+);
+
 /// Sheet de creation de sondage, generique (groupe ou post du feed via contextId).
+///
+/// [onDraft] : si fourni, la soumission n'appelle PAS le repository — elle
+/// renvoie les champs composés à l'appelant (voir `create_post_screen.dart`,
+/// qui crée le sondage seulement après avoir obtenu l'id du post publié).
 Future<void> showCreatePollSheet(
   BuildContext context, {
   required PollContextType contextType,
   required String contextId,
+  PollDraftCallback? onDraft,
 }) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => CreatePollSheet(contextType: contextType, contextId: contextId),
+    builder: (_) => CreatePollSheet(
+      contextType: contextType,
+      contextId: contextId,
+      onDraft: onDraft,
+    ),
   );
 }
 
 class CreatePollSheet extends ConsumerStatefulWidget {
   final PollContextType contextType;
   final String contextId;
+  final PollDraftCallback? onDraft;
 
   const CreatePollSheet({
     super.key,
     required this.contextType,
     required this.contextId,
+    this.onDraft,
   });
 
   @override
@@ -84,6 +105,16 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
       return;
     }
 
+    final endsAt = _duration == null ? null : DateTime.now().add(_duration!);
+
+    // Mode brouillon (nouveau post, id pas encore connu) : renvoie les
+    // champs à l'appelant sans toucher au repository.
+    if (widget.onDraft != null) {
+      widget.onDraft!(question, options, _allowMultiple, endsAt);
+      Navigator.pop(context);
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     final success = widget.contextType == PollContextType.group
@@ -92,9 +123,15 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               question: question,
               optionLabels: options,
               allowMultiple: _allowMultiple,
-              endsAt: _duration == null ? null : DateTime.now().add(_duration!),
+              endsAt: endsAt,
             )
-        : false;
+        : await ref.read(pollActionsNotifierProvider.notifier).createPostPoll(
+              postId: widget.contextId,
+              question: question,
+              optionLabels: options,
+              allowMultiple: _allowMultiple,
+              endsAt: endsAt,
+            );
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);

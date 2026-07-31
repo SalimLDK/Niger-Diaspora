@@ -295,13 +295,16 @@ class FeedNotifier extends Notifier<FeedState> {
 
   Future<void> refresh() => loadInitial();
 
-  Future<bool> createPost(PostEntity post) async {
+  /// Renvoie le post créé (avec son vrai id) ou `null` en cas d'échec.
+  /// Nécessaire pour rattacher un sondage/lieu composé avant publication
+  /// (`create_post_screen.dart`), dont le contextId n'existe qu'après coup.
+  Future<PostEntity?> createPost(PostEntity post) async {
     final result = await _repo.createPost(post);
     return result.fold(
-      (failure) => false,
+      (failure) => null,
       (created) {
         state = state.copyWith(posts: [created, ...state.posts]);
-        return true;
+        return created;
       },
     );
   }

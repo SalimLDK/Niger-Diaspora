@@ -23,6 +23,19 @@ final groupPollsProvider =
   return result.fold((failure) => throw failure.message, (polls) => polls);
 });
 
+/// Sondages d'un post du fil (§13/23d) — mirror de [groupPollsProvider].
+final postPollsProvider =
+    FutureProvider.family<List<PollEntity>, String>((ref, postId) async {
+  final repository = ref.watch(pollRepositoryProvider);
+  final userId = ref.watch(currentUserProvider).valueOrNull?.id;
+  final result = await repository.getPollsByContext(
+    PollContextType.post,
+    postId,
+    currentUserId: userId,
+  );
+  return result.fold((failure) => throw failure.message, (polls) => polls);
+});
+
 /// Detail d'un sondage en temps reel (mise a jour live des votes)
 final pollStreamProvider =
     StreamProvider.family<PollEntity?, String>((ref, pollId) {
@@ -74,7 +87,48 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     );
   }
 
-  Future<bool> vote(String pollId, List<String> optionIds, {String? groupId}) async {
+  /// Sondage sur un post du fil — mirror de [createGroupPoll]. Le post doit
+  /// déjà exister (contrairement à un groupe, son id n'est connu qu'après
+  /// publication : voir `create_post_screen.dart`).
+  Future<bool> createPostPoll({
+    required String postId,
+    required String question,
+    required List<String> optionLabels,
+    bool allowMultiple = false,
+    DateTime? endsAt,
+  }) async {
+    final userId = ref.read(currentUserProvider).valueOrNull?.id;
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(pollRepositoryProvider).createPoll(
+          contextType: PollContextType.post,
+          contextId: postId,
+          question: question,
+          optionLabels: optionLabels,
+          allowMultiple: allowMultiple,
+          endsAt: endsAt,
+          userId: userId,
+        );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(postPollsProvider(postId));
+        return true;
+      },
+    );
+  }
+
+  Future<bool> vote(
+    String pollId,
+    List<String> optionIds, {
+    String? groupId,
+    String? postId,
+  }) async {
     final userId = ref.read(currentUserProvider).valueOrNull?.id;
     state = const AsyncValue.loading();
 
@@ -90,6 +144,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
       (_) {
         state = const AsyncValue.data(null);
         if (groupId != null) ref.invalidate(groupPollsProvider(groupId));
+        if (postId != null) ref.invalidate(postPollsProvider(postId));
         return true;
       },
     );
@@ -104,7 +159,11 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     return result.fold((failure) => [], (voters) => voters);
   }
 
-  Future<bool> deletePoll(String pollId, {String? groupId}) async {
+  Future<bool> deletePoll(
+    String pollId, {
+    String? groupId,
+    String? postId,
+  }) async {
     state = const AsyncValue.loading();
     final result = await ref.read(pollRepositoryProvider).deletePoll(pollId);
     return result.fold(
@@ -115,6 +174,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
       (_) {
         state = const AsyncValue.data(null);
         if (groupId != null) ref.invalidate(groupPollsProvider(groupId));
+        if (postId != null) ref.invalidate(postPollsProvider(postId));
         return true;
       },
     );

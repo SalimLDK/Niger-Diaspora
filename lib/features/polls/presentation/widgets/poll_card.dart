@@ -23,8 +23,9 @@ String _formatTimeAgo(DateTime dt, BuildContext context) {
 class PollCard extends ConsumerStatefulWidget {
   final PollEntity poll;
   final String? groupId;
+  final String? postId;
 
-  const PollCard({super.key, required this.poll, this.groupId});
+  const PollCard({super.key, required this.poll, this.groupId, this.postId});
 
   @override
   ConsumerState<PollCard> createState() => _PollCardState();
@@ -37,9 +38,12 @@ class _PollCardState extends ConsumerState<PollCard> {
   Future<void> _submitVote() async {
     if (_selected.isEmpty) return;
     setState(() => _isVoting = true);
-    final success = await ref
-        .read(pollActionsNotifierProvider.notifier)
-        .vote(widget.poll.id, _selected.toList(), groupId: widget.groupId);
+    final success = await ref.read(pollActionsNotifierProvider.notifier).vote(
+          widget.poll.id,
+          _selected.toList(),
+          groupId: widget.groupId,
+          postId: widget.postId,
+        );
     if (!mounted) return;
     setState(() => _isVoting = false);
     if (success) {

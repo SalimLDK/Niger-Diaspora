@@ -22,6 +22,9 @@ class PostModel {
   final String? authorCity;
   final String? videoThumbnailUrl;
   final int? videoDurationSeconds;
+  final double? latitude;
+  final double? longitude;
+  final String? locationAddress;
 
   const PostModel({
     required this.id,
@@ -44,6 +47,9 @@ class PostModel {
     this.authorCity,
     this.videoThumbnailUrl,
     this.videoDurationSeconds,
+    this.latitude,
+    this.longitude,
+    this.locationAddress,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -85,6 +91,9 @@ class PostModel {
       authorCity: json['authorCity'] as String?,
       videoThumbnailUrl: json['videoThumbnailUrl'] as String?,
       videoDurationSeconds: (json['videoDurationSeconds'] as num?)?.toInt(),
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      locationAddress: json['locationAddress'] as String?,
     );
   }
   Map<String, dynamic> toJson() => {
@@ -109,6 +118,9 @@ class PostModel {
     if (videoThumbnailUrl != null) 'videoThumbnailUrl': videoThumbnailUrl,
     if (videoDurationSeconds != null)
       'videoDurationSeconds': videoDurationSeconds,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+    if (locationAddress != null) 'locationAddress': locationAddress,
   };
 
   PostEntity toEntity() => PostEntity(
@@ -143,6 +155,9 @@ class PostModel {
     authorCity: authorCity,
     videoThumbnailUrl: videoThumbnailUrl,
     videoDurationSeconds: videoDurationSeconds,
+    latitude: latitude,
+    longitude: longitude,
+    locationAddress: locationAddress,
   );
 
   static PostModel fromEntity(PostEntity entity) => PostModel(
@@ -173,6 +188,9 @@ class PostModel {
     authorCity: entity.authorCity,
     videoThumbnailUrl: entity.videoThumbnailUrl,
     videoDurationSeconds: entity.videoDurationSeconds,
+    latitude: entity.latitude,
+    longitude: entity.longitude,
+    locationAddress: entity.locationAddress,
   );
 
   static PostMediaType _parseMediaType(String value) {

@@ -67,6 +67,9 @@ Map<String, dynamic> _mapPost(Map<String, dynamic> row) {
     'authorCity': row['author_city'],
     'videoThumbnailUrl': videoThumbnailUrl,
     'videoDurationSeconds': videoDurationSeconds,
+    'latitude': (row['latitude'] as num?)?.toDouble(),
+    'longitude': (row['longitude'] as num?)?.toDouble(),
+    'locationAddress': row['location_address'],
   };
 }
 
@@ -195,6 +198,10 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
           'mentioned_groups': post.mentionedGroups,
           'country_code': post.authorCountry,
           'author_city': post.authorCity,
+          if (post.latitude != null) 'latitude': post.latitude,
+          if (post.longitude != null) 'longitude': post.longitude,
+          if (post.locationAddress != null)
+            'location_address': post.locationAddress,
         })
         .select()
         .single();
