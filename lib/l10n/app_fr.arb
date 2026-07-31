@@ -5407,6 +5407,8 @@
   "communityPacks": "Packs de la communauté",
   "serviceFeed": "Fil d'actualité",
   "feedTitle": "Fil d'actualité",
+  "storyTakePhoto": "Prendre une photo",
+  "storyChooseFromGallery": "Choisir depuis la galerie",
   "feedEmpty": "Aucune publication pour le moment.\nSoyez le premier à partager !",
   "feedNewPostsPill": "{count, plural, =1{1 nouvelle publication} other{{count} nouvelles publications}}",
   "@feedNewPostsPill": {

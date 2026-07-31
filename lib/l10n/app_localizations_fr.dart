@@ -11701,6 +11701,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedTitle => 'Fil d\'actualité';
 
   @override
+  String get storyTakePhoto => 'Prendre une photo';
+
+  @override
+  String get storyChooseFromGallery => 'Choisir depuis la galerie';
+
+  @override
   String get feedEmpty =>
       'Aucune publication pour le moment.\nSoyez le premier à partager !';
 

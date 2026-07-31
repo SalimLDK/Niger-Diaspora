@@ -18,6 +18,7 @@ import '../widgets/ad_slot.dart';
 import '../widgets/feed_segmented_control.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
+import '../widgets/story_rail.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
@@ -49,9 +50,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// Filtre géographique actif (ville de l'auteur). `null` = toutes.
   ///
   /// Le filtre s'applique aux posts déjà chargés via [PostEntity.authorCity]
-  /// (renseigné à la création depuis la ville du profil). Le rail
-  /// d'actus/stories de la maquette n'a pas de modèle de données côté app et
-  /// n'est pas repris.
+  /// (renseigné à la création depuis la ville du profil). Le rail d'actus se
+  /// replie au défilement dans la maquette (§4) — non repris en MVP (voir
+  /// [StoryRail]) : le rail lui-même reste toujours visible ici.
   String? _cityFilter;
 
   @override
@@ -234,6 +235,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               selected: _cityFilter,
               onChanged: (c) => setState(() => _cityFilter = c),
             ),
+          if (filter == null) const StoryRail(),
           if (filter != null) _HashtagBanner(hashtag: filter),
           Expanded(
             child: _buildBody(context, l10n, feedState, reposts, wide),

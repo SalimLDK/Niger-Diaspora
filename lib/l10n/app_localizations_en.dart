@@ -11584,6 +11584,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedTitle => 'Social Feed';
 
   @override
+  String get storyTakePhoto => 'Take a photo';
+
+  @override
+  String get storyChooseFromGallery => 'Choose from gallery';
+
+  @override
   String get feedEmpty => 'No posts yet.\nBe the first to share something!';
 
   @override

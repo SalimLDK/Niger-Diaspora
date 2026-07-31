@@ -41,6 +41,7 @@ import '../../features/profile/presentation/screens/profile_config_screen.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/feed/presentation/screens/mon_espace_screen.dart';
 import '../../features/feed/presentation/screens/followed_hashtags_screen.dart';
+import '../../features/feed/presentation/screens/story_viewer_screen.dart';
 import '../../features/feed/presentation/screens/my_posts_screen.dart';
 import '../../features/feed/presentation/screens/saved_posts_screen.dart';
 import '../../features/feed/presentation/screens/follows_screen.dart';
@@ -836,6 +837,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/feed/space/hashtags',
         builder: (context, state) => const FollowedHashtagsScreen(),
+      ),
+      // Viewer de stories — doit précéder '/feed/:postId' (même piège que
+      // '/feed/space' : "stories" serait sinon interprété comme un postId).
+      GoRoute(
+        path: '/feed/stories/:authorId',
+        builder: (context, state) {
+          final authorId = state.pathParameters['authorId']!;
+          return StoryViewerScreen(authorId: authorId);
+        },
       ),
       GoRoute(
         path: '/feed/:postId/edit',

@@ -5314,6 +5314,8 @@
 
   "serviceFeed": "Social Feed",
   "feedTitle": "Social Feed",
+  "storyTakePhoto": "Take a photo",
+  "storyChooseFromGallery": "Choose from gallery",
   "feedEmpty": "No posts yet.\nBe the first to share something!",
   "feedNewPostsPill": "{count, plural, =1{1 new post} other{{count} new posts}}",
   "@feedNewPostsPill": {

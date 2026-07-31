@@ -21722,6 +21722,18 @@ abstract class AppLocalizations {
   /// **'Fil d\'actualité'**
   String get feedTitle;
 
+  /// No description provided for @storyTakePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre une photo'**
+  String get storyTakePhoto;
+
+  /// No description provided for @storyChooseFromGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir depuis la galerie'**
+  String get storyChooseFromGallery;
+
   /// No description provided for @feedEmpty.
   ///
   /// In fr, this message translates to:
