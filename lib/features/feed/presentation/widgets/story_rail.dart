@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/services/image_upload_service.dart';
+import '../../../../core/services/video_upload_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../stories/domain/entities/story_entity.dart';
@@ -202,12 +203,33 @@ class _MyStoryAvatar extends ConsumerWidget {
               title: Text(l10n.storyChooseFromGallery),
               onTap: () => Navigator.pop(context, 'gallery'),
             ),
+            ListTile(
+              leading: Icon(Icons.videocam_outlined, color: tokens.accent),
+              title: Text(l10n.storyChooseVideo),
+              subtitle: Text(
+                l10n.storyVideoMaxDuration,
+                style: TextStyle(fontSize: 12, color: tokens.mutedText),
+              ),
+              onTap: () => Navigator.pop(context, 'video'),
+            ),
           ],
         ),
       ),
     );
     if (choice == null || !context.mounted) return;
 
+    if (choice == 'video') {
+      await _createVideoStory(context, ref);
+    } else {
+      await _createPhotoStory(context, ref, choice);
+    }
+  }
+
+  Future<void> _createPhotoStory(
+    BuildContext context,
+    WidgetRef ref,
+    String choice,
+  ) async {
     final uploadService = ImageUploadService();
     final result = choice == 'camera'
         ? await uploadService.pickImageFromCameraWithResult()
@@ -233,6 +255,35 @@ class _MyStoryAvatar extends ConsumerWidget {
           authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
           mediaUrl: url,
           mediaType: StoryMediaType.image,
+        );
+  }
+
+  Future<void> _createVideoStory(BuildContext context, WidgetRef ref) async {
+    final videoService = VideoUploadService();
+    final pick = await videoService.pickVideoFromGallery(
+      maxDuration: const Duration(seconds: 30),
+    );
+    if (!pick.isSuccess || pick.file == null) return;
+    if (!context.mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+    final uploadResult = await videoService.uploadStoryVideo(
+      file: pick.file!,
+      storyId: tempId,
+    );
+    if (uploadResult == null) return;
+
+    final profile =
+        ref.read(profileNotifierProvider(user.uid)).valueOrNull;
+    await ref.read(storyActionsNotifierProvider.notifier).createStory(
+          authorId: user.uid,
+          authorName: profile?.displayName ?? user.displayName ?? 'Vous',
+          authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
+          mediaUrl: uploadResult.videoUrl,
+          mediaType: StoryMediaType.video,
+          videoDurationSeconds: uploadResult.durationSeconds,
         );
   }
 

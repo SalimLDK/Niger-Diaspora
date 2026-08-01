@@ -306,6 +306,48 @@ class VideoUploadService {
     );
   }
 
+  /// Upload a story video to Firebase Storage (§4 — même schéma de stockage
+  /// que [uploadPostVideo], sous le préfixe `stories/`).
+  Future<VideoUploadResult?> uploadStoryVideo({
+    required File file,
+    required String storyId,
+    void Function(double progress)? onProgress,
+  }) async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    final durationSeconds = await getVideoDuration(file.path);
+    final compressedFile = await compress(file) ?? file;
+    final fileSizeBytes = await compressedFile.length();
+    final thumbnailFile = await generateThumbnail(file.path);
+
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final videoUrl = await _uploadFile(
+      file: compressedFile,
+      storagePath: 'stories/$storyId/video_$ts.mp4',
+      contentType: 'video/mp4',
+      onProgress: onProgress,
+    );
+    if (videoUrl == null) return null;
+
+    String? thumbnailUrl;
+    if (thumbnailFile != null) {
+      thumbnailUrl = await _uploadFile(
+        file: thumbnailFile,
+        storagePath: 'stories/$storyId/thumbnail_$ts.jpg',
+        contentType: 'image/jpeg',
+      );
+    }
+
+    return VideoUploadResult(
+      videoUrl: videoUrl,
+      thumbnailUrl: thumbnailUrl,
+      durationSeconds: durationSeconds,
+      fileSizeBytes: fileSizeBytes,
+    );
+  }
+
   /// Delete a video from Firebase Storage by URL.
   Future<bool> deleteVideo(String url) async {
     try {

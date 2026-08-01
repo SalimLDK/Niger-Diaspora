@@ -19,4 +19,18 @@ abstract class StoryRepository {
   });
 
   Future<Either<Failure, void>> markViewed(String storyId, String viewerId);
+
+  Future<Either<Failure, List<StoryViewerEntity>>> getViewers(String storyId);
+
+  Future<Either<Failure, List<StoryReactionEntity>>> getReactions(
+    String storyId,
+  );
+
+  Future<Either<Failure, void>> setReaction(
+    String storyId,
+    String userId,
+    String emoji,
+  );
+
+  Future<Either<Failure, void>> removeReaction(String storyId, String userId);
 }

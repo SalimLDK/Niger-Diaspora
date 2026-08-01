@@ -47,6 +47,35 @@ class StoryEntity extends Equatable {
       ];
 }
 
+/// Un spectateur d'une story (§4 — liste « qui a vu », visible par l'auteur
+/// uniquement, RLS déjà posée en ce sens sur `story_views`).
+class StoryViewerEntity extends Equatable {
+  final String viewerId;
+  final DateTime viewedAt;
+
+  const StoryViewerEntity({required this.viewerId, required this.viewedAt});
+
+  @override
+  List<Object?> get props => [viewerId, viewedAt];
+}
+
+/// Une réaction (emoji) sur une story (§4) — une par utilisateur et par
+/// story, upsert au nouveau tap.
+class StoryReactionEntity extends Equatable {
+  final String userId;
+  final String emoji;
+  final DateTime createdAt;
+
+  const StoryReactionEntity({
+    required this.userId,
+    required this.emoji,
+    required this.createdAt,
+  });
+
+  @override
+  List<Object?> get props => [userId, emoji, createdAt];
+}
+
 /// Stories actives d'un même auteur, groupées pour le rail et le viewer.
 class AuthorStories extends Equatable {
   final String authorId;

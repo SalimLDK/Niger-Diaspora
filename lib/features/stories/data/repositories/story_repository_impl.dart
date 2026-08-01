@@ -83,4 +83,61 @@ class StoryRepositoryImpl implements StoryRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<StoryViewerEntity>>> getViewers(
+    String storyId,
+  ) async {
+    try {
+      final viewers = await _dataSource.getViewers(storyId);
+      return Right(viewers);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<StoryReactionEntity>>> getReactions(
+    String storyId,
+  ) async {
+    try {
+      final reactions = await _dataSource.getReactions(storyId);
+      return Right(reactions);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setReaction(
+    String storyId,
+    String userId,
+    String emoji,
+  ) async {
+    try {
+      await _dataSource.setReaction(storyId, userId, emoji);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeReaction(
+    String storyId,
+    String userId,
+  ) async {
+    try {
+      await _dataSource.removeReaction(storyId, userId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

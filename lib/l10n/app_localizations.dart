@@ -21746,6 +21746,30 @@ abstract class AppLocalizations {
   /// **'Afficher'**
   String get storiesShow;
 
+  /// No description provided for @storyChooseVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une vidéo'**
+  String get storyChooseVideo;
+
+  /// No description provided for @storyVideoMaxDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'30 secondes maximum'**
+  String get storyVideoMaxDuration;
+
+  /// No description provided for @storyViewersCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune vue} =1{1 vue} other{{count} vues}}'**
+  String storyViewersCount(int count);
+
+  /// No description provided for @storyNoViewersYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a encore vu cette story'**
+  String get storyNoViewersYet;
+
   /// No description provided for @feedEmpty.
   ///
   /// In fr, this message translates to:

@@ -11604,6 +11604,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storiesShow => 'Show';
 
   @override
+  String get storyChooseVideo => 'Choose a video';
+
+  @override
+  String get storyVideoMaxDuration => '30 seconds maximum';
+
+  @override
+  String storyViewersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count views',
+      one: '1 view',
+      zero: 'No views',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storyNoViewersYet => 'No one has seen this story yet';
+
+  @override
   String get feedEmpty => 'No posts yet.\nBe the first to share something!';
 
   @override

@@ -5418,6 +5418,17 @@
     }
   },
   "storiesShow": "Afficher",
+  "storyChooseVideo": "Choisir une vidéo",
+  "storyVideoMaxDuration": "30 secondes maximum",
+  "storyViewersCount": "{count, plural, =0{Aucune vue} =1{1 vue} other{{count} vues}}",
+  "@storyViewersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyNoViewersYet": "Personne n'a encore vu cette story",
   "feedEmpty": "Aucune publication pour le moment.\nSoyez le premier à partager !",
   "feedNewPostsPill": "{count, plural, =1{1 nouvelle publication} other{{count} nouvelles publications}}",
   "@feedNewPostsPill": {

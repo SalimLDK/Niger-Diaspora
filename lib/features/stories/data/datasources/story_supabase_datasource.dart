@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../domain/entities/story_entity.dart';
 import '../models/story_model.dart';
 
 abstract class StoryRemoteDataSource {
@@ -15,6 +16,20 @@ abstract class StoryRemoteDataSource {
     int? videoDurationSeconds,
   });
   Future<void> markViewed(String storyId, String viewerId);
+
+  /// Qui a vu cette story (§4). RLS ne renvoie des lignes que si l'appelant
+  /// en est l'auteur (ou le spectateur lui-même) — pas de filtre côté app.
+  Future<List<StoryViewerEntity>> getViewers(String storyId);
+
+  /// Réactions visibles pour l'appelant (RLS : toutes si auteur, sinon
+  /// seulement la sienne).
+  Future<List<StoryReactionEntity>> getReactions(String storyId);
+
+  /// Pose/change ma réaction (upsert, une par story et par utilisateur).
+  Future<void> setReaction(String storyId, String userId, String emoji);
+
+  /// Retire ma réaction (toggle : retaper le même emoji l'enlève).
+  Future<void> removeReaction(String storyId, String userId);
 }
 
 class StorySupabaseDataSource implements StoryRemoteDataSource {
@@ -137,6 +152,75 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
     } catch (_) {
       // Confort (compteur/anneau), pas critique : on n'interrompt pas la
       // lecture de la story si l'écriture échoue.
+    }
+  }
+
+  @override
+  Future<List<StoryViewerEntity>> getViewers(String storyId) async {
+    try {
+      final rows = await _supabase
+          .from('story_views')
+          .select('viewer_id, viewed_at')
+          .eq('story_id', storyId)
+          .order('viewed_at', ascending: false);
+      return rows
+          .map(
+            (r) => StoryViewerEntity(
+              viewerId: r['viewer_id'] as String,
+              viewedAt: DateTime.parse(r['viewed_at'] as String),
+            ),
+          )
+          .toList();
+    } catch (e) {
+      throw ServerException('Impossible de charger les vues : $e');
+    }
+  }
+
+  @override
+  Future<List<StoryReactionEntity>> getReactions(String storyId) async {
+    try {
+      final rows = await _supabase
+          .from('story_reactions')
+          .select('user_id, emoji, created_at')
+          .eq('story_id', storyId);
+      return rows
+          .map(
+            (r) => StoryReactionEntity(
+              userId: r['user_id'] as String,
+              emoji: r['emoji'] as String,
+              createdAt: DateTime.parse(r['created_at'] as String),
+            ),
+          )
+          .toList();
+    } catch (e) {
+      throw ServerException('Impossible de charger les réactions : $e');
+    }
+  }
+
+  @override
+  Future<void> setReaction(String storyId, String userId, String emoji) async {
+    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
+    try {
+      await _supabase.from('story_reactions').upsert(
+        {'story_id': storyId, 'user_id': userId, 'emoji': emoji},
+        onConflict: 'story_id,user_id',
+      );
+    } catch (e) {
+      throw ServerException('Impossible d\'envoyer la réaction : $e');
+    }
+  }
+
+  @override
+  Future<void> removeReaction(String storyId, String userId) async {
+    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
+    try {
+      await _supabase
+          .from('story_reactions')
+          .delete()
+          .eq('story_id', storyId)
+          .eq('user_id', userId);
+    } catch (_) {
+      // Confort, pas critique.
     }
   }
 }

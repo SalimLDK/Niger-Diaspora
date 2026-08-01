@@ -5325,6 +5325,17 @@
     }
   },
   "storiesShow": "Show",
+  "storyChooseVideo": "Choose a video",
+  "storyVideoMaxDuration": "30 seconds maximum",
+  "storyViewersCount": "{count, plural, =0{No views} =1{1 view} other{{count} views}}",
+  "@storyViewersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyNoViewersYet": "No one has seen this story yet",
   "feedEmpty": "No posts yet.\nBe the first to share something!",
   "feedNewPostsPill": "{count, plural, =1{1 new post} other{{count} new posts}}",
   "@feedNewPostsPill": {
