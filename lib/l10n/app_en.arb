@@ -5316,6 +5316,15 @@
   "feedTitle": "Social Feed",
   "storyTakePhoto": "Take a photo",
   "storyChooseFromGallery": "Choose from gallery",
+  "storiesTodayCount": "{count, plural, =1{1 story today} other{{count} stories today}}",
+  "@storiesTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storiesShow": "Show",
   "feedEmpty": "No posts yet.\nBe the first to share something!",
   "feedNewPostsPill": "{count, plural, =1{1 new post} other{{count} new posts}}",
   "@feedNewPostsPill": {

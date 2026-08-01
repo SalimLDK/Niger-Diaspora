@@ -5409,6 +5409,15 @@
   "feedTitle": "Fil d'actualité",
   "storyTakePhoto": "Prendre une photo",
   "storyChooseFromGallery": "Choisir depuis la galerie",
+  "storiesTodayCount": "{count, plural, =1{1 récit aujourd'hui} other{{count} récits aujourd'hui}}",
+  "@storiesTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storiesShow": "Afficher",
   "feedEmpty": "Aucune publication pour le moment.\nSoyez le premier à partager !",
   "feedNewPostsPill": "{count, plural, =1{1 nouvelle publication} other{{count} nouvelles publications}}",
   "@feedNewPostsPill": {

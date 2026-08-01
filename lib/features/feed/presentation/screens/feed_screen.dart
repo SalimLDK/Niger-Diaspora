@@ -50,10 +50,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// Filtre géographique actif (ville de l'auteur). `null` = toutes.
   ///
   /// Le filtre s'applique aux posts déjà chargés via [PostEntity.authorCity]
-  /// (renseigné à la création depuis la ville du profil). Le rail d'actus se
-  /// replie au défilement dans la maquette (§4) — non repris en MVP (voir
-  /// [StoryRail]) : le rail lui-même reste toujours visible ici.
+  /// (renseigné à la création depuis la ville du profil).
   String? _cityFilter;
+
+  /// Rail de stories replié (§4 : `scrollOffset > 24`) en une barre compacte.
+  bool _storyRailCollapsed = false;
 
   @override
   void initState() {
@@ -87,6 +88,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       ref.read(feedNotifierProvider.notifier).loadMore();
+    }
+    // Rail de stories replié au défilement (§4, seuil 24px).
+    final collapsed = _scrollController.position.pixels > 24;
+    if (collapsed != _storyRailCollapsed) {
+      setState(() => _storyRailCollapsed = collapsed);
     }
   }
 
@@ -235,7 +241,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               selected: _cityFilter,
               onChanged: (c) => setState(() => _cityFilter = c),
             ),
-          if (filter == null) const StoryRail(),
+          if (filter == null)
+            StoryRail(
+              collapsed: _storyRailCollapsed,
+              onExpand: () {
+                if (_scrollController.hasClients) {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                }
+                setState(() => _storyRailCollapsed = false);
+              },
+            ),
           if (filter != null) _HashtagBanner(hashtag: filter),
           Expanded(
             child: _buildBody(context, l10n, feedState, reposts, wide),

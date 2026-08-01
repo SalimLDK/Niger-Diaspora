@@ -21734,6 +21734,18 @@ abstract class AppLocalizations {
   /// **'Choisir depuis la galerie'**
   String get storyChooseFromGallery;
 
+  /// No description provided for @storiesTodayCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 récit aujourd\'hui} other{{count} récits aujourd\'hui}}'**
+  String storiesTodayCount(int count);
+
+  /// No description provided for @storiesShow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher'**
+  String get storiesShow;
+
   /// No description provided for @feedEmpty.
   ///
   /// In fr, this message translates to:

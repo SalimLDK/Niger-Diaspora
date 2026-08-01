@@ -13,9 +13,17 @@ import '../theme/feed_tokens.dart';
 
 /// Rail de stories/actus (§4) — cercles d'avatars en haut du fil, anneau
 /// accent pour les non-vues. Mon avatar en premier, avec « + » si je n'ai
-/// pas de story active.
+/// pas de story active. Se replie en barre compacte au défilement
+/// ([collapsed], piloté par le `ScrollController` de `feed_screen.dart`).
 class StoryRail extends ConsumerWidget {
-  const StoryRail({super.key});
+  final bool collapsed;
+  final VoidCallback onExpand;
+
+  const StoryRail({
+    super.key,
+    this.collapsed = false,
+    required this.onExpand,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,20 +42,134 @@ class StoryRail extends ConsumerWidget {
             groups.where((g) => g.authorId == myUid).firstOrNull;
         final others = groups.where((g) => g.authorId != myUid).toList();
 
-        return SizedBox(
-          height: 96,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            children: [
-              _MyStoryAvatar(tokens: tokens, myGroup: myGroup),
-              ...others.map(
-                (group) => _StoryAvatar(tokens: tokens, group: group),
-              ),
-            ],
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 220),
+          crossFadeState: collapsed
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          firstChild: SizedBox(
+            height: 96,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                _MyStoryAvatar(tokens: tokens, myGroup: myGroup),
+                ...others.map(
+                  (group) => _StoryAvatar(tokens: tokens, group: group),
+                ),
+              ],
+            ),
+          ),
+          secondChild: _CollapsedStoryBar(
+            tokens: tokens,
+            groups: groups,
+            onTap: onExpand,
           ),
         );
       },
+    );
+  }
+}
+
+/// Barre repliée (§4) : trois avatars superposés + « N récits aujourd'hui »
+/// + action « Afficher ».
+class _CollapsedStoryBar extends StatelessWidget {
+  final FeedTokens tokens;
+  final List<AuthorStories> groups;
+  final VoidCallback onTap;
+
+  const _CollapsedStoryBar({
+    required this.tokens,
+    required this.groups,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (groups.isEmpty) return const SizedBox.shrink();
+    final visible = groups.take(3).toList();
+    final l10n = AppLocalizations.of(context)!;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 22.0 + (visible.length - 1) * 14,
+              height: 26,
+              child: Stack(
+                children: visible.asMap().entries.map((entry) {
+                  final group = entry.value;
+                  return Positioned(
+                    left: entry.key * 14.0,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: tokens.avatarBg,
+                        border: Border.all(color: tokens.bg, width: 1.5),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      alignment: Alignment.center,
+                      child: (group.authorPhotoUrl != null &&
+                              group.authorPhotoUrl!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: group.authorPhotoUrl!,
+                              fit: BoxFit.cover,
+                              width: 26,
+                              height: 26,
+                              errorWidget: (_, __, ___) => Text(
+                                group.authorName.isNotEmpty
+                                    ? group.authorName[0].toUpperCase()
+                                    : '?',
+                                style: TextStyle(
+                                  color: tokens.avatarFg,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              group.authorName.isNotEmpty
+                                  ? group.authorName[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                color: tokens.avatarFg,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.storiesTodayCount(groups.length),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.5, color: tokens.mutedText),
+              ),
+            ),
+            Text(
+              l10n.storiesShow,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: tokens.accent,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

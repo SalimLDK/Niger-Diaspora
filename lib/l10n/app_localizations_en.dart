@@ -11590,6 +11590,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storyChooseFromGallery => 'Choose from gallery';
 
   @override
+  String storiesTodayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stories today',
+      one: '1 story today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storiesShow => 'Show';
+
+  @override
   String get feedEmpty => 'No posts yet.\nBe the first to share something!';
 
   @override
