@@ -17,6 +17,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import 'location_picker_modal.dart';
 import '../screens/camera_capture_screen.dart';
 import '../screens/gallery_picker_screen.dart';
+import '../screens/media_batch_preview_screen.dart';
 import '../screens/media_preview_screen.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
@@ -565,8 +566,22 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  /// Caméra unifiée (photo/vidéo dans le même écran). Renvoie une liste de
-  /// médias (1 = passé par l'aperçu, N = envoi groupé) via onSendFile.
+  /// Revue groupée (§27d) avant envoi : pellicule + qualité réduite + poids
+  /// annoncé. Appelée seulement quand il y a plusieurs médias — 1 seul
+  /// continue de passer par [MediaPreviewScreen] (édition Signal-style).
+  Future<void> _reviewAndSendBatch(List<GalleryPick> picks) async {
+    final result = await Navigator.push<MediaBatchPreviewResult>(
+      context,
+      MaterialPageRoute(builder: (_) => MediaBatchPreviewScreen(picks: picks)),
+    );
+    if (result == null || result.picks.isEmpty || !mounted) return;
+    for (final p in result.picks) {
+      widget.onSendFile(p.file, !p.isVideo);
+    }
+  }
+
+  /// Caméra unifiée (photo/vidéo dans le même écran). 1 média passe par
+  /// l'aperçu Signal-style, plusieurs passent par la revue groupée (§27d).
   Future<void> _openCamera() async {
     final permissionResult =
         await PermissionService().requestCameraPermission();
@@ -580,13 +595,18 @@ class _MessageInputState extends State<MessageInput>
       MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
     );
     if (result == null || result.isEmpty || !mounted) return;
-    for (final m in result) {
-      widget.onSendFile(m.file, !m.isVideo);
+    if (result.length == 1) {
+      widget.onSendFile(result.first.file, !result.first.isVideo);
+      return;
     }
+    await _reviewAndSendBatch(
+      result.map((m) => GalleryPick(m.file, m.isVideo)).toList(),
+    );
   }
 
   /// Galerie intégrée (grille photo_manager, jamais le gestionnaire de
-  /// fichiers). 1 média passe par l'aperçu, plusieurs sont envoyés d'un coup.
+  /// fichiers). 1 média passe par l'aperçu, plusieurs passent par la revue
+  /// groupée (§27d) avant d'être envoyés.
   Future<void> _pickFromGalleryUnified() async {
     if (!mounted) return;
     final picks = await Navigator.push<List<GalleryPick>>(
@@ -611,9 +631,7 @@ class _MessageInputState extends State<MessageInput>
         widget.onSendFile(result.file, result.isImage, caption: result.caption);
       }
     } else {
-      for (final p in picks) {
-        widget.onSendFile(p.file, !p.isVideo);
-      }
+      await _reviewAndSendBatch(picks);
     }
   }
 
