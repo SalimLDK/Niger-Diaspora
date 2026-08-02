@@ -20,8 +20,10 @@ Conservés hors de `lib/` (pas supprimés) au cas où du code y serait encore
 utile à reprendre, mais retirés du build/analyze actif.
 
 **Non inclus dans cet archivage** (trouvés par le même audit mais PAS des
-doublons — des fonctionnalités inachevées, une décision à prendre avant
-d'agir) : `HeritageLibraryScreen`, `StickerPacksScreen`/`CreateStickerPackScreen`,
-les sélecteurs `content_pickers.dart` (audio rooms), `LegalUpdateDialog`,
-`SimpleMapTestScreen` (écran de debug), et le système `PermissionGuard`
-admin. Voir la conversation du 2026-07-31 pour le détail.
+doublons — des fonctionnalités inachevées) : `HeritageLibraryScreen`,
+`StickerPacksScreen`/`CreateStickerPackScreen`, les sélecteurs
+`content_pickers.dart` (audio rooms), et le système `PermissionGuard` admin —
+modifiés récemment (juillet 2026), probablement en cours de finalisation,
+conservés dans `lib/`. `LegalUpdateDialog` et `SimpleMapTestScreen`, inactifs
+depuis fin décembre 2025, ont eux été archivés séparément dans
+[`../fonctionnalites_non_integrees/`](../fonctionnalites_non_integrees/README.md).
