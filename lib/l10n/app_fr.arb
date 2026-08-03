@@ -1022,6 +1022,8 @@
   "modifyYourInfo": "Modifier vos informations",
   "myFriends": "Mes amis",
   "manageConnections": "Gérer vos connexions",
+  "callHistoryTitle": "Historique d'appels",
+  "callHistorySubtitle": "Vos appels passés et manqués",
   "shareMyProfile": "Partager mon profil",
   "qrCodeAndShareLink": "QR code et lien de partage",
   "manageAlerts": "Gérer les notifications",

@@ -3962,6 +3962,18 @@ abstract class AppLocalizations {
   /// **'Gérer vos connexions'**
   String get manageConnections;
 
+  /// No description provided for @callHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique d\'appels'**
+  String get callHistoryTitle;
+
+  /// No description provided for @callHistorySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos appels passés et manqués'**
+  String get callHistorySubtitle;
+
   /// No description provided for @shareMyProfile.
   ///
   /// In fr, this message translates to:

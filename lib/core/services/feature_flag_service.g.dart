@@ -191,6 +191,26 @@ final isAudioRoomsEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsAudioRoomsEnabledRef = AutoDisposeProviderRef<bool>;
+String _$isPodcastsEnabledHash() => r'c24ff9b3cb47975c244707192998f40d37d2fb87';
+
+/// Provider to check if podcasts feature is enabled
+///
+/// Copied from [isPodcastsEnabled].
+@ProviderFor(isPodcastsEnabled)
+final isPodcastsEnabledProvider = AutoDisposeProvider<bool>.internal(
+  isPodcastsEnabled,
+  name: r'isPodcastsEnabledProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isPodcastsEnabledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsPodcastsEnabledRef = AutoDisposeProviderRef<bool>;
 String _$maintenanceMessageHash() =>
     r'2cdad47b26032ae796100660c74b5df35a4d3426';
 

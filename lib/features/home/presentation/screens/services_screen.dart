@@ -41,6 +41,23 @@ class ServicesScreen extends ConsumerWidget {
           color: Colors.indigo,
           route: '/embassies',
         ),
+      // Absents de la grille alors que les modules sont livrés : sans ces deux
+      // entrées, /audio-rooms et /podcasts n'étaient joignables par aucun
+      // chemin depuis l'app.
+      if (ref.watch(isAudioRoomsEnabledProvider))
+        _ServiceItem(
+          icon: Icons.podcasts_rounded,
+          label: 'Salons audio',
+          color: context.adaptivePrimaryColor,
+          route: '/audio-rooms',
+        ),
+      if (ref.watch(isPodcastsEnabledProvider))
+        _ServiceItem(
+          icon: Icons.mic_rounded,
+          label: 'Podcasts',
+          color: context.adaptiveSecondaryColor,
+          route: '/podcasts',
+        ),
     ];
 
     return Scaffold(

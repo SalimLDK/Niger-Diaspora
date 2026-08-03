@@ -2124,6 +2124,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageConnections => 'Manage your connections';
 
   @override
+  String get callHistoryTitle => 'Call history';
+
+  @override
+  String get callHistorySubtitle => 'Your past and missed calls';
+
+  @override
   String get shareMyProfile => 'Share my profile';
 
   @override

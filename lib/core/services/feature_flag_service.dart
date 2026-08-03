@@ -77,6 +77,12 @@ bool isAudioRoomsEnabled(Ref ref) {
   return ref.watch(featureFlagsProvider).audioRooms;
 }
 
+/// Provider to check if podcasts feature is enabled
+@riverpod
+bool isPodcastsEnabled(Ref ref) {
+  return ref.watch(featureFlagsProvider).podcasts;
+}
+
 /// Provider for maintenance message
 @riverpod
 String? maintenanceMessage(Ref ref) {

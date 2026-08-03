@@ -317,6 +317,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     onTap: () => _showShareProfileModal(),
                   ),
                   const _SettingsDivider(),
+                  // CallHistoryScreen était injoignable : la route existait,
+                  // mais aucun écran n'y renvoyait.
+                  _SettingsTile(
+                    icon: const Icon(Icons.call_outlined),
+                    title: l10n.callHistoryTitle,
+                    subtitle: l10n.callHistorySubtitle,
+                    onTap: () => context.push('/calls/history'),
+                  ),
+                  const _SettingsDivider(),
                   _SettingsTile(
                     icon: const Icon(Icons.notifications_outlined),
                     title: l10n.notifications,

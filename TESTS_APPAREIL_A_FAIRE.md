@@ -297,6 +297,21 @@ en solo.
   vérifier qu'on n'est pas éjecté d'un de ces écrans pendant le chargement des
   réglages.
 
+- [ ] **Points d'entrée créés vers trois modules injoignables**
+  (`lib/features/home/presentation/screens/home_screen_widgets.dart`,
+  `lib/features/home/presentation/screens/services_screen.dart`,
+  `lib/features/profile/presentation/screens/profile_screen.dart`,
+  2026-08-03) : `/audio-rooms`, `/podcasts` et `/calls/history` n'étaient
+  référencés par aucun écran de l'app — seuls des liens internes à ces modules
+  pointaient vers eux. Les écrans existaient et les routes étaient déclarées,
+  mais aucun chemin de navigation n'y menait. Tuiles « Salons » et
+  « Podcasts » ajoutées à la grille de l'accueil et à « Tous les services »,
+  entrée « Historique d'appels » ajoutée à la section Compte du profil.
+  **À vérifier sur le téléphone** : les deux tuiles apparaissent bien sur
+  l'accueil une fois les flags activés (et disparaissent quand on les
+  désactive), la grille ne casse pas son passage 3↔4 colonnes avec deux tuiles
+  de plus, et les trois destinations s'ouvrent réellement.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

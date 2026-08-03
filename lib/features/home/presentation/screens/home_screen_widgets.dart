@@ -373,6 +373,23 @@ class _ServicesGrid extends ConsumerWidget {
           color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/embassies'),
         ),
+      // Salons audio et Podcasts n'avaient aucun point d'entrée dans l'app :
+      // les écrans et les routes existaient, mais rien n'y menait — seuls des
+      // liens internes à ces deux modules référençaient leurs routes.
+      if (ref.watch(isAudioRoomsEnabledProvider))
+        _ServiceTile(
+          icon: Icons.podcasts_rounded,
+          label: 'Salons',
+          color: context.adaptivePrimaryColor,
+          onTap: () => context.push('/audio-rooms'),
+        ),
+      if (ref.watch(isPodcastsEnabledProvider))
+        _ServiceTile(
+          icon: Icons.mic_rounded,
+          label: 'Podcasts',
+          color: context.adaptiveSecondaryColor,
+          onTap: () => context.push('/podcasts'),
+        ),
     ];
 
     // 4 colonnes dès qu'il y a assez de tuiles, sinon 3 (peu de services).

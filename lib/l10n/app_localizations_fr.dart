@@ -2148,6 +2148,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get manageConnections => 'Gérer vos connexions';
 
   @override
+  String get callHistoryTitle => 'Historique d\'appels';
+
+  @override
+  String get callHistorySubtitle => 'Vos appels passés et manqués';
+
+  @override
   String get shareMyProfile => 'Partager mon profil';
 
   @override
