@@ -178,7 +178,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
       children: [
         const SizedBox(height: 28),
         _SectionHeader(
-          title: 'Suggéré pour toi',
+          title: l10n.groupsSuggestedForYou,
           icon: Icons.auto_awesome,
           iconColor: context.adaptivePrimaryColor,
         ),
@@ -1516,9 +1516,10 @@ class _InviteCard extends ConsumerWidget {
   }
 
   void _showError(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Action impossible pour le moment, réessayez.'),
+      SnackBar(
+        content: Text(l10n.groupsActionUnavailable),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ),
@@ -1527,6 +1528,7 @@ class _InviteCard extends ConsumerWidget {
 
   /// Aperçu des détails du groupe (nom, description, membres) avant de décider.
   void _showGroupDetails(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1613,7 +1615,7 @@ class _InviteCard extends ConsumerWidget {
                     data: (group) {
                       if (group == null) {
                         return Text(
-                          'Détails indisponibles.',
+                          l10n.groupsDetailsUnavailable,
                           style: TextStyle(color: context.textTertiaryColor),
                         );
                       }
@@ -1652,7 +1654,7 @@ class _InviteCard extends ConsumerWidget {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (_, __) => Text(
-                      'Détails indisponibles.',
+                      l10n.groupsDetailsUnavailable,
                       style: TextStyle(color: context.textTertiaryColor),
                     ),
                   ),

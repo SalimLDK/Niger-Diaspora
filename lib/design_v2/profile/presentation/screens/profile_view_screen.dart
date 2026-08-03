@@ -137,15 +137,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _startConversation() async {
+    final l10n = AppLocalizations.of(context)!;
     // Use the same provider as the screen display (userStreamProvider)
     // instead of profileNotifierProvider to avoid desync issues
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
 
-    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
+    if (profile == null || profile.displayName == l10n.deletedUser) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible de discuter avec un utilisateur supprimé'),
+        SnackBar(
+          content: Text(l10n.profileCannotChatDeleted),
           backgroundColor: AppColors.error,
         ),
       );
@@ -172,11 +173,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
   Future<void> _sendFriendRequest() async {
     if (_isSendingRequest) return;
+    final l10n = AppLocalizations.of(context)!;
 
     // Use the same provider as the screen display (userStreamProvider)
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
-    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
+    if (profile == null || profile.displayName == l10n.deletedUser) {
       return;
     }
 
@@ -184,7 +186,6 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       _isSendingRequest = true;
     });
 
-    final l10n = AppLocalizations.of(context)!;
     final success = await ref
         .read(friendRequestNotifierProvider.notifier)
         .sendRequest(
@@ -200,7 +201,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Demande d\'ami envoyée' : 'Échec de l\'envoi',
+            success ? l10n.profileFriendRequestSent : l10n.profileFriendRequestFailed,
           ),
           backgroundColor: success ? AppColors.success : AppColors.error,
         ),
@@ -209,13 +210,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _blockUser(ProfileEntity profile) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Bloquer l\'utilisateur'),
         content: Text(
-          'Voulez-vous vraiment bloquer ${profile.displayName ?? 'cet utilisateur'} ? '
-          'Vous ne recevrez plus de messages de sa part.',
+          l10n.profileBlockConfirm(profile.displayName ?? l10n.user),
         ),
         actions: [
           TextButton(
@@ -245,7 +246,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Utilisateur bloqué' : 'Erreur lors du blocage',
+            success ? l10n.userBlocked : l10n.blockError,
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
@@ -454,9 +455,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   Widget _buildCommonGroups(BuildContext context, String userId) {
     final common = ref.watch(commonGroupsProvider(userId)).valueOrNull ?? [];
     if (common.isEmpty) return const SizedBox.shrink();
-    final label = common.length == 1
-        ? '1 groupe en commun'
-        : '${common.length} groupes en commun';
+    final label = AppLocalizations.of(
+      context,
+    )!.profileCommonGroups(common.length);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Center(
@@ -554,7 +555,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 },
               ),
               actions: [
-                if (profile.displayName != 'Utilisateur supprimé')
+                if (profile.displayName != l10n.deletedUser)
                   IconButton(
                     icon: AppIcon(
                         AppIcon.share,
@@ -570,7 +571,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       );
                     },
                   ),
-                if (!_isCurrentUser && profile.displayName != 'Utilisateur supprimé')
+                if (!_isCurrentUser && profile.displayName != l10n.deletedUser)
                   PopupMenuButton<String>(
                     icon: Container(
                       padding: const EdgeInsets.all(8),
@@ -769,7 +770,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       child: Text(
                         profile.bio?.isNotEmpty == true
                             ? profile.bio!
-                            : 'Aucune biographie',
+                            : l10n.profileNoBio,
                         style: TextStyle(
                           fontSize: 14,
                           color:
@@ -829,7 +830,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   .toList(),
                         )
                         : Text(
-                          'Aucune compétence ajoutée',
+                          l10n.profileNoSkillsAdded,
                           style: TextStyle(
                             fontSize: 14,
                             color: context.textTertiaryColor,
@@ -876,7 +877,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   .toList(),
                         )
                         : Text(
-                          'Aucun intérêt ajouté',
+                          l10n.profileNoInterestsAdded,
                           style: TextStyle(
                             fontSize: 14,
                             color: context.textTertiaryColor,
@@ -994,7 +995,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  'Erreur lors de la mise à jour: $e',
+                                                  l10n.profileUpdateError(e.toString()),
                                                 ),
                                                 backgroundColor:
                                                     AppColors.error,
@@ -1058,7 +1059,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
             switch (status) {
               case FriendshipStatus.friends:
-                buttonText = 'Envoyer un message';
+                buttonText = l10n.sendMessage;
                 buttonIcon = const AppIcon(AppIcon.chatBubble);
                 onPressed = _startConversation;
                 backgroundColor = context.adaptivePrimaryColor;
@@ -1108,16 +1109,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                         if (context.mounted && success) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Demande d\'ami annulée'),
+                            SnackBar(
+                              content: Text(l10n.profileRequestCancelled),
                             ),
                           );
                         }
                       } on StateError {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Cette demande n\'existe plus.'),
+                            SnackBar(
+                              content: Text(l10n.profileRequestNotExist),
                               backgroundColor: AppColors.error,
                             ),
                           );
@@ -1134,7 +1135,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       }
                     },
                     icon: const AppIcon(AppIcon.close),
-                    label: const Text('Annuler la demande'),
+                    label: Text(l10n.cancelRequest),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
@@ -1191,8 +1192,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                               if (context.mounted && success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Demande d\'ami refusée'),
+                                  SnackBar(
+                                    content: Text(l10n.profileRequestDeclined),
                                     backgroundColor: AppColors.error,
                                   ),
                                 );
@@ -1200,9 +1201,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             } on StateError {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Cette demande n\'existe plus.',
+                                      l10n.profileRequestNotExist,
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1252,8 +1253,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                               if (context.mounted && success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Demande d\'ami acceptée'),
+                                  SnackBar(
+                                    content: Text(l10n.profileRequestAccepted),
                                     backgroundColor: AppColors.success,
                                   ),
                                 );
@@ -1261,10 +1262,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             } on StateError {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Cette demande n\'existe plus. '
-                                      'Elle a peut-être déjà été acceptée ou annulée.',
+                                      l10n.profileRequestGoneDetail,
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1275,7 +1275,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Erreur lors de l\'acceptation: $e',
+                                      l10n.profileAcceptError(e.toString()),
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1297,7 +1297,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 );
 
               case FriendshipStatus.none:
-                buttonText = 'Envoyer une demande d\'ami';
+                buttonText = l10n.profileSendFriendRequest;
                 buttonIcon = const AppIcon(AppIcon.personAdd);
                 onPressed = _isSendingRequest ? null : _sendFriendRequest;
                 backgroundColor = context.adaptivePrimaryColor;
@@ -1336,7 +1336,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         ),
                       )
                     : buttonIcon,
-                label: Text(_isSendingRequest ? 'Envoi en cours...' : buttonText),
+                label: Text(_isSendingRequest ? l10n.adminSending : buttonText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: backgroundColor,
                   foregroundColor: AppColors.white,

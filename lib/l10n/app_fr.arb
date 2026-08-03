@@ -7525,5 +7525,402 @@
         "type": "int"
       }
     }
+  },
+  "homeServiceFeed": "Le fil",
+  "@homeServiceFeed": {
+    "description": "Tuile de service : le fil"
+  },
+  "homeNobodyWithin": "Personne à moins de {km} km",
+  "@homeNobodyWithin": {
+    "description": "Etat vide de la section autour de vous",
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLocationActiveNote": "Votre position est active : vous apparaîtrez dès qu'un membre partagera la sienne.",
+  "@homeLocationActiveNote": {
+    "description": "Rassurance quand personne n est autour"
+  },
+  "homeWidenRadius": "Élargir à 200 km",
+  "@homeWidenRadius": {
+    "description": "Action : elargir le rayon"
+  },
+  "homeInviteRelative": "Inviter un proche",
+  "@homeInviteRelative": {
+    "description": "Action : inviter"
+  },
+  "homeNotOnMapTitle": "Vous n'apparaissez pas sur la carte",
+  "@homeNotOnMapTitle": {
+    "description": "Carte sans position"
+  },
+  "homeNotOnMapBody": "Le partage est réciproque : sans votre position, vous ne voyez pas non plus les autres.",
+  "@homeNotOnMapBody": {
+    "description": "Carte sans position"
+  },
+  "homeEnableLocation": "Activer ma position",
+  "@homeEnableLocation": {
+    "description": "Action : activer la position"
+  },
+  "homeOfflineTitle": "Vous êtes hors ligne",
+  "@homeOfflineTitle": {
+    "description": "Bandeau hors ligne"
+  },
+  "homeOfflineBody": "Contenu affiché depuis le cache. Mise à jour automatique au retour du réseau.",
+  "@homeOfflineBody": {
+    "description": "Bandeau hors ligne"
+  },
+  "homeCompleteProfile": "Complétez votre profil",
+  "@homeCompleteProfile": {
+    "description": "Carte de completude"
+  },
+  "homeGroupsToDiscover": "{count, plural, =1{1 groupe à découvrir} other{{count} groupes à découvrir}}",
+  "@homeGroupsToDiscover": {
+    "description": "Sous-titre de la carte pour commencer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFindYourCommunity": "Trouvez votre communauté",
+  "@homeFindYourCommunity": {
+    "description": "Sous-titre de repli"
+  },
+  "homeGettingStarted": "POUR COMMENCER",
+  "@homeGettingStarted": {
+    "description": "Intertitre de la carte de demarrage"
+  },
+  "homeFindRelatives": "Retrouver vos proches",
+  "@homeFindRelatives": {
+    "description": "Amorce 1"
+  },
+  "homeFindRelativesSub": "Par QR code, sans échanger de numéro",
+  "@homeFindRelativesSub": {
+    "description": "Amorce 1"
+  },
+  "homeJoinGroup": "Rejoindre un groupe",
+  "@homeJoinGroup": {
+    "description": "Amorce 2"
+  },
+  "homeEnableMemberMap": "Activer la carte des membres",
+  "@homeEnableMemberMap": {
+    "description": "Amorce 3"
+  },
+  "homeEnableMemberMapSub": "Réciproque · désactivable",
+  "@homeEnableMemberMapSub": {
+    "description": "Amorce 3"
+  },
+  "homeFirstMeetupCity": "Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté de {city}.",
+  "@homeFirstMeetupCity": {
+    "description": "Etat vide des evenements, ville connue",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "homeFirstMeetup": "Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté.",
+  "@homeFirstMeetup": {
+    "description": "Etat vide des evenements"
+  },
+  "homeStartFirstMeetup": "Lancez la première rencontre",
+  "@homeStartFirstMeetup": {
+    "description": "Titre d etat vide"
+  },
+  "homeEventChipPaperwork": "Démarches",
+  "@homeEventChipPaperwork": {
+    "description": "Exemple de categorie d evenement"
+  },
+  "homeNoEventInCity": "Aucun événement à {city}",
+  "@homeNoEventInCity": {
+    "description": "Etat vide des evenements",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "homeNoInPersonEvent": "Aucun événement en présentiel",
+  "@homeNoInPersonEvent": {
+    "description": "Etat vide des evenements"
+  },
+  "homeOnlineWorkshopNote": "Un atelier en ligne est accessible depuis chez vous.",
+  "@homeOnlineWorkshopNote": {
+    "description": "Etat vide des evenements"
+  },
+  "homeNothingPlanned": "Rien de prévu pour le moment",
+  "@homeNothingPlanned": {
+    "description": "Etat vide des evenements"
+  },
+  "homeLastEventGathered": "{count, plural, =1{Le dernier a réuni 1 personne.} other{Le dernier a réuni {count} personnes.}}",
+  "@homeLastEventGathered": {
+    "description": "Etat vide des evenements, passe",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeReviveCommunity": "Relancez la communauté avec un nouvel événement.",
+  "@homeReviveCommunity": {
+    "description": "Etat vide des evenements"
+  },
+  "homeNotifyNext": "M'avertir du prochain",
+  "@homeNotifyNext": {
+    "description": "Bascule de rappel"
+  },
+  "homeAddCity": "Ajouter ma ville",
+  "@homeAddCity": {
+    "description": "Champ manquant du profil"
+  },
+  "homeAddCountry": "Ajouter mon pays",
+  "@homeAddCountry": {
+    "description": "Champ manquant du profil"
+  },
+  "homeAddProfession": "Ajouter mon métier",
+  "@homeAddProfession": {
+    "description": "Champ manquant du profil"
+  },
+  "homeFieldProfession": "métier",
+  "@homeFieldProfession": {
+    "description": "Nom du champ metier, en minuscules"
+  },
+  "homeCompleteBio": "Compléter ma bio",
+  "@homeCompleteBio": {
+    "description": "Champ manquant du profil"
+  },
+  "homeShareInvite": "Rejoins-moi sur Diaspo Niger, la communauté nigérienne à travers le monde.",
+  "@homeShareInvite": {
+    "description": "Texte de partage de l invitation"
+  },
+  "groupsSuggestedForYou": "Suggéré pour toi",
+  "@groupsSuggestedForYou": {
+    "description": "Section de decouverte"
+  },
+  "groupsActionUnavailable": "Action impossible pour le moment, réessayez.",
+  "@groupsActionUnavailable": {
+    "description": "Echec d action sur une invitation"
+  },
+  "groupsDetailsUnavailable": "Détails indisponibles.",
+  "@groupsDetailsUnavailable": {
+    "description": "Invitation sans details"
+  },
+  "groupSeeAllMembers": "Voir tous les {count} membres",
+  "@groupSeeAllMembers": {
+    "description": "Lien vers la liste des membres",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupRoleModerator": "Modé",
+  "@groupRoleModerator": {
+    "description": "Badge de role, abrege"
+  },
+  "messagesMyNotes": "Mes notes",
+  "@messagesMyNotes": {
+    "description": "Conversation avec soi-meme"
+  },
+  "messagesMyNotesSubtitle": "Notes, brouillons et sondages",
+  "@messagesMyNotesSubtitle": {
+    "description": "Apercu par defaut de Mes notes"
+  },
+  "callStatusMissed": "manqué",
+  "@callStatusMissed": {
+    "description": "Statut d appel dans l apercu"
+  },
+  "callStatusDeclined": "refusé",
+  "@callStatusDeclined": {
+    "description": "Statut d appel dans l apercu"
+  },
+  "callKindVideo": "vidéo",
+  "@callKindVideo": {
+    "description": "Type d appel dans l apercu"
+  },
+  "notificationsGroupedMessages": "{count} messages de {conversations} conversations",
+  "@notificationsGroupedMessages": {
+    "description": "Notification groupee",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "conversations": {
+        "type": "int"
+      }
+    }
+  },
+  "profileCompletionPhotoBenefit": "Vous serez plus facilement reconnu",
+  "@profileCompletionPhotoBenefit": {
+    "description": "Benefice d un champ manquant"
+  },
+  "profileCompletionCityBenefit": "Vous apparaîtrez auprès des membres proches",
+  "@profileCompletionCityBenefit": {
+    "description": "Benefice d un champ manquant"
+  },
+  "profileFieldOccupation": "Métier",
+  "@profileFieldOccupation": {
+    "description": "Champ du profil"
+  },
+  "profileCompletionJobBenefit": "Utile pour les mises en relation",
+  "@profileCompletionJobBenefit": {
+    "description": "Benefice d un champ manquant"
+  },
+  "profileCompletionBioBenefit": "Présentez-vous à la communauté",
+  "@profileCompletionBioBenefit": {
+    "description": "Benefice d un champ manquant"
+  },
+  "profileCompleteYours": "Complétez votre profil",
+  "@profileCompleteYours": {
+    "description": "Titre du bandeau de completude"
+  },
+  "profileCompleteMine": "Compléter mon profil",
+  "@profileCompleteMine": {
+    "description": "Action du bandeau de completude"
+  },
+  "profileBlockConfirm": "Voulez-vous vraiment bloquer {name} ? Vous ne recevrez plus de messages de sa part.",
+  "@profileBlockConfirm": {
+    "description": "Confirmation de blocage",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCommonGroups": "{count, plural, =1{1 groupe en commun} other{{count} groupes en commun}}",
+  "@profileCommonGroups": {
+    "description": "Groupes partages avec un membre",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileAcceptError": "Erreur lors de l'acceptation : {details}",
+  "@profileAcceptError": {
+    "description": "Echec d acceptation de demande",
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRequestGoneDetail": "Cette demande n'existe plus. Elle a peut-être déjà été acceptée ou annulée.",
+  "@profileRequestGoneDetail": {
+    "description": "Demande d ami disparue"
+  },
+  "searchRecent": "Recherches récentes",
+  "@searchRecent": {
+    "description": "Section des recherches recentes"
+  },
+  "searchAnything": "Rechercher...",
+  "@searchAnything": {
+    "description": "Invite de recherche generique"
+  },
+  "homeServiceTransfers": "transferts d'argent",
+  "@homeServiceTransfers": {
+    "description": "Nom de service, dans une enumeration"
+  },
+  "homeServiceShop": "boutique",
+  "@homeServiceShop": {
+    "description": "Nom de service, dans une enumeration"
+  },
+  "homeServiceEmbassies": "ambassades",
+  "@homeServiceEmbassies": {
+    "description": "Nom de service, dans une enumeration"
+  },
+  "homeA11yServices": "Accès rapide aux services : {list}.",
+  "@homeA11yServices": {
+    "description": "Description d accessibilite, liste deja formatee",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSearchableMembers": "membres",
+  "@homeSearchableMembers": {
+    "description": "Ce que la recherche trouve"
+  },
+  "homeSearchableGroups": "groupes",
+  "@homeSearchableGroups": {
+    "description": "Ce que la recherche trouve"
+  },
+  "homeSearchableEvents": "événements",
+  "@homeSearchableEvents": {
+    "description": "Ce que la recherche trouve"
+  },
+  "homeA11ySearch": "Trouvez des {list} facilement.",
+  "@homeA11ySearch": {
+    "description": "Description d accessibilite, liste deja formatee",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "homeA11yStats": "Découvrez la communauté : nombre de {list}. Appuyez pour explorer.",
+  "@homeA11yStats": {
+    "description": "Description d accessibilite, liste deja formatee",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "listSeparatorAnd": " et ",
+  "@listSeparatorAnd": {
+    "description": "Liaison avant le dernier element d une liste"
+  },
+  "profileCompletionMessage": "{count, plural, =1{{fields} vous rend visible auprès de la communauté{place}.} other{{fields} vous rendent visible auprès de la communauté{place}.}}",
+  "@profileCompletionMessage": {
+    "description": "Message de completude ; fields est deja capitalise",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "fields": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCompletionField": "votre {field}",
+  "@profileCompletionField": {
+    "description": "Un champ manquant, dans une enumeration",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCompletionPlace": " de {city}",
+  "@profileCompletionPlace": {
+    "description": "Complement de lieu du message de completude",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "homeFieldPhoto": "photo",
+  "@homeFieldPhoto": {
+    "description": "Nom du champ photo, en minuscules"
+  },
+  "homeFieldCity": "ville",
+  "@homeFieldCity": {
+    "description": "Nom du champ ville, en minuscules"
+  },
+  "homeFieldCountry": "pays",
+  "@homeFieldCountry": {
+    "description": "Nom du champ pays, en minuscules"
+  },
+  "homeFieldBio": "bio",
+  "@homeFieldBio": {
+    "description": "Nom du champ bio, en minuscules"
   }
 }

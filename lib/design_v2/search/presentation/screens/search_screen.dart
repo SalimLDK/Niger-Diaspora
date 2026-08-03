@@ -98,26 +98,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
 
 
-  String _getHintText() {
+  String _getHintText(AppLocalizations l10n) {
     if (widget.restrictToFilter && widget.initialFilter != null) {
       switch (widget.initialFilter!) {
         case SearchFilter.groups:
-          return 'Rechercher un groupe...';
+          return l10n.searchGroup;
         case SearchFilter.conversations:
-          return 'Rechercher une discussion...';
+          return l10n.searchDiscussionHint;
         case SearchFilter.friends:
-          return 'Rechercher un ami...';
+          return l10n.searchFriend;
         case SearchFilter.members:
-          return 'Rechercher un membre...';
+          return l10n.searchMember;
         case SearchFilter.all:
-          return 'Rechercher...';
+          return l10n.searchAnything;
       }
     }
-    return 'Rechercher des membres ou groupes...';
+    return l10n.searchMembersOrGroupsHint;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final searchState = ref.watch(searchNotifierProvider);
 
     return Scaffold(
@@ -142,7 +143,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 Expanded(
                   child: DesignSearchField(
                     controller: _searchController,
-                    hintText: _getHintText(),
+                    hintText: _getHintText(l10n),
                     autofocus: true,
                     onChanged: _onSearchChanged,
                     onClear: () {
@@ -198,6 +199,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _buildResults(SearchState state) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.query.isEmpty) {
       if (state.recentSearches.isNotEmpty) {
         return _buildRecentSearches(state);
@@ -213,7 +215,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Recherchez des membres ou groupes',
+              l10n.searchMembersOrGroupsPrompt,
               style: TextStyle(fontSize: 16, color: context.textTertiaryColor),
             ),
           ],
@@ -233,7 +235,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Erreur de recherche',
+              l10n.searchError,
               style: TextStyle(color: context.textTertiaryColor),
             ),
           ],
@@ -310,6 +312,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Recherches récentes (§12d) : chips avec icône horloge + « Effacer ».
   Widget _buildRecentSearches(SearchState state) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -317,7 +320,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recherches récentes',
+              l10n.searchRecent,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,

@@ -616,8 +616,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           ),
                           label: Text(
                             hasPendingRequest
-                                ? 'Demande en attente'
-                                : 'Demander à rejoindre',
+                                ? l10n.requestPending
+                                : l10n.requestToJoin,
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.adaptivePrimaryColor,
@@ -634,6 +634,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   }
 
   Future<void> _requestToJoin(GroupEntity group) async {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
@@ -659,7 +660,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Demande envoyée avec succès')),
+              SnackBar(content: Text(l10n.requestSent)),
             );
           },
         );
@@ -1002,7 +1003,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 context.push('/groups/${group.id}/members', extra: group);
               },
               child: Text(
-                'Voir tous les ${group.memberIds.length} membres',
+                l10n.groupSeeAllMembers(group.memberIds.length),
                 style: TextStyle(color: context.adaptivePrimaryColor),
               ),
             ),
@@ -1057,6 +1058,7 @@ class _MemberListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(userStreamProvider(memberId));
 
     return profileAsync.when(
@@ -1120,8 +1122,8 @@ class _MemberListItem extends ConsumerWidget {
                     color: context.adaptivePrimaryColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    'Créateur',
+                  child: Text(
+                    l10n.creator,
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.white,
@@ -1162,8 +1164,8 @@ class _MemberListItem extends ConsumerWidget {
                     color: const Color(0xFF7A8A5E).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    'Modé',
+                  child: Text(
+                    l10n.groupRoleModerator,
                     style: TextStyle(
                       fontSize: 10,
                       color: Color(0xFF5A6B45),

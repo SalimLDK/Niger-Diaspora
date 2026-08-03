@@ -1007,7 +1007,7 @@ class _NotificationGroup {
       case NotificationType.localEvent:
       case NotificationType.nearbyMember:
       case NotificationType.proximityAlert:
-        return 'Alertes proximité';
+        return l10n.notifGroupProximity;
       case NotificationType.general:
         return 'Notifications';
     }
@@ -1025,7 +1025,7 @@ class _NotificationGroup {
         if (senderNames.length == 1) {
           return '$count nouveaux messages';
         }
-        return '$count messages de ${senderNames.length} conversations';
+        return l10n.notificationsGroupedMessages(count, senderNames.length);
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:

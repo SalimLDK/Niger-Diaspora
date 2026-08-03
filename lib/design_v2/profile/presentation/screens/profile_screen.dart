@@ -532,28 +532,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final fields = <({bool filled, String label, String benefit})>[
       (
         filled: (profile.photoUrl ?? '').trim().isNotEmpty,
-        label: 'Photo de profil',
-        benefit: 'Vous serez plus facilement reconnu',
+        label: l10n.profilePhotoTitle,
+        benefit: l10n.profileCompletionPhotoBenefit,
       ),
       (
         filled: (profile.currentCity ?? '').trim().isNotEmpty,
         label: 'Ville actuelle',
-        benefit: 'Vous apparaîtrez auprès des membres proches',
+        benefit: l10n.profileCompletionCityBenefit,
       ),
       (
         filled: (profile.profession ?? '').trim().isNotEmpty,
-        label: 'Métier',
-        benefit: 'Utile pour les mises en relation',
+        label: l10n.profileFieldOccupation,
+        benefit: l10n.profileCompletionJobBenefit,
       ),
       (
         filled: profile.languages.isNotEmpty,
-        label: 'Langues parlées',
+        label: l10n.spokenLanguages,
         benefit: "Utile pour l'entraide et les démarches",
       ),
       (
         filled: (profile.bio ?? '').trim().isNotEmpty,
         label: 'Bio',
-        benefit: 'Présentez-vous à la communauté',
+        benefit: l10n.profileCompletionBioBenefit,
       ),
     ];
 
@@ -576,7 +576,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               children: [
                 Expanded(
                   child: Text(
-                    'Complétez votre profil',
+                    l10n.profileCompleteYours,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -654,14 +654,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       foregroundColor: context.onPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Compléter mon profil'),
+                    child: Text(l10n.profileCompleteMine),
                   ),
                 ),
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: () => setState(() => _completionDismissed = true),
                   child: Text(
-                    'Plus tard',
+                    l10n.later,
                     style: TextStyle(color: context.textSecondaryColor),
                   ),
                 ),

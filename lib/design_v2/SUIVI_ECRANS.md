@@ -67,13 +67,26 @@ suivi dans `TESTS_APPAREIL_A_FAIRE.md`, pas ici.
 
 ## Localisation
 
-La copie des maquettes est passée en ARB (63 clés, `app_fr.arb` template +
-`app_en.arb`, métadonnées `@clé` à parité). Les écrans repris d'un état
-déjà existant (accueil, carte, messagerie, groupes, profil, réglages,
-notifications, recherche) gardent en revanche les **littéraux qu'ils
-avaient déjà en production** — ce n'est pas une dette introduite par la
-refonte, et les convertir ferait diverger la copie de l'original juste
-avant la bascule.
+Terminée. 140 clés ajoutées à `app_fr.arb` (template) et `app_en.arb`,
+métadonnées `@clé` à parité des deux côtés — contrôlé automatiquement :
+**0 écart de clé, 0 écart de `@clé`**.
+
+Il reste 17 littéraux dans `design_v2`, tous délibérés :
+
+| Ce que c'est | Où | Pourquoi ça reste |
+|---|---|---|
+| Séparateurs `' · '` et `' → '` | partout | ponctuation, pas du texte |
+| Compositions `'$date · ${e.location}'` | accueil, groupes, profil, recherche | assemblage de valeurs déjà localisées |
+| Sentinelles `_kProfileMissing`, `_kNotSignedIn` | config profil | servent à **reconnaître** le cas dans `e.toString()` : les traduire casserait la détection |
+| Valeurs de centres d'intérêt (`'Santé'`…) | config profil | c'est ce que le profil **enregistre en base** ; seul le libellé affiché passe par `_interestLabel` |
+
+Deux corrections de fond faites au passage :
+
+- Les **mois abrégés** de l'accueil (`'fév'`, `'aoû'`, `'déc'`…) étaient une
+  table française codée en dur. Ils passent par `DateFormat('d MMM', locale)`
+  et suivent donc la langue.
+- Les **énumérations** (« a, b et c ») ne concaténaient plus avec un `' et '`
+  en dur : la liaison finale vient de l'ARB, elle n'est pas la même partout.
 
 ## Écrans hors maquettes
 

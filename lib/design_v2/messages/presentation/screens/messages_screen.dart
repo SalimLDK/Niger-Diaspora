@@ -473,19 +473,24 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     context.push(
       '/messages/${conversation.id}',
-      extra: {'name': 'Mes notes', 'isGroup': false, 'isSelfNotes': true},
+      extra: {
+        'name': AppLocalizations.of(context)!.messagesMyNotes,
+        'isGroup': false,
+        'isSelfNotes': true,
+      },
     );
   }
 
   /// Tuile épinglée « Mes notes », toujours en tête de liste (hors recherche
   /// et hors archives). L'aperçu reprend le dernier contenu noté s'il existe.
   Widget _buildSelfNotesTile(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final selfConversation = ref.watch(selfNotesConversationProvider);
     final lastNote = selfConversation?.lastMessage?.trim();
     final subtitle =
         (lastNote != null && lastNote.isNotEmpty)
             ? lastNote
-            : 'Notes, brouillons et sondages';
+            : l10n.messagesMyNotesSubtitle;
     final isOpening = ref.watch(ensureSelfNotesProvider).isLoading;
 
     // Ligne à plat comme les autres conversations (§9a) : le bandeau
@@ -531,7 +536,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Mes notes',
+                      l10n.messagesMyNotes,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

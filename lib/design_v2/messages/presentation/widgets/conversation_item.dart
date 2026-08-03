@@ -604,9 +604,9 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     if (isCallMessage) {
       // Color based on call status in message content
       final lastMessage = conversation.lastMessage ?? '';
-      if (lastMessage.contains('missed') || lastMessage.contains('manqué')) {
+      if (lastMessage.contains('missed') || lastMessage.contains(l10n.callStatusMissed)) {
         textColor = AppColors.error;
-      } else if (lastMessage.contains('declined') || lastMessage.contains('refusé')) {
+      } else if (lastMessage.contains('declined') || lastMessage.contains(l10n.callStatusDeclined)) {
         textColor = Colors.orange;
       } else {
         textColor = AppColors.success;
@@ -618,7 +618,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     // Show icon for calls
     if (isCallMessage) {
       final lastMessage = conversation.lastMessage ?? '';
-      final isVideoCall = lastMessage.contains('video') || lastMessage.contains('vidéo');
+      final isVideoCall = lastMessage.contains('video') || lastMessage.contains(l10n.callKindVideo);
       return Row(
         children: [
           AppIcon(isVideoCall ? AppIcon.video : AppIcon.call,
@@ -693,7 +693,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         typeLabel = '📎 Photo';
         break;
       case MessageType.video:
-        typeLabel = '🎥 Vidéo';
+        typeLabel = l10n.messageTypeVideo;
         break;
       case MessageType.file:
         typeLabel = '📎 Document';

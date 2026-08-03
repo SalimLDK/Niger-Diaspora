@@ -15383,4 +15383,302 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeServiceFeed => 'Le fil';
+
+  @override
+  String homeNobodyWithin(int km) {
+    return 'Personne à moins de $km km';
+  }
+
+  @override
+  String get homeLocationActiveNote =>
+      'Votre position est active : vous apparaîtrez dès qu\'un membre partagera la sienne.';
+
+  @override
+  String get homeWidenRadius => 'Élargir à 200 km';
+
+  @override
+  String get homeInviteRelative => 'Inviter un proche';
+
+  @override
+  String get homeNotOnMapTitle => 'Vous n\'apparaissez pas sur la carte';
+
+  @override
+  String get homeNotOnMapBody =>
+      'Le partage est réciproque : sans votre position, vous ne voyez pas non plus les autres.';
+
+  @override
+  String get homeEnableLocation => 'Activer ma position';
+
+  @override
+  String get homeOfflineTitle => 'Vous êtes hors ligne';
+
+  @override
+  String get homeOfflineBody =>
+      'Contenu affiché depuis le cache. Mise à jour automatique au retour du réseau.';
+
+  @override
+  String get homeCompleteProfile => 'Complétez votre profil';
+
+  @override
+  String homeGroupsToDiscover(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groupes à découvrir',
+      one: '1 groupe à découvrir',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeFindYourCommunity => 'Trouvez votre communauté';
+
+  @override
+  String get homeGettingStarted => 'POUR COMMENCER';
+
+  @override
+  String get homeFindRelatives => 'Retrouver vos proches';
+
+  @override
+  String get homeFindRelativesSub => 'Par QR code, sans échanger de numéro';
+
+  @override
+  String get homeJoinGroup => 'Rejoindre un groupe';
+
+  @override
+  String get homeEnableMemberMap => 'Activer la carte des membres';
+
+  @override
+  String get homeEnableMemberMapSub => 'Réciproque · désactivable';
+
+  @override
+  String homeFirstMeetupCity(String city) {
+    return 'Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté de $city.';
+  }
+
+  @override
+  String get homeFirstMeetup =>
+      'Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté.';
+
+  @override
+  String get homeStartFirstMeetup => 'Lancez la première rencontre';
+
+  @override
+  String get homeEventChipPaperwork => 'Démarches';
+
+  @override
+  String homeNoEventInCity(String city) {
+    return 'Aucun événement à $city';
+  }
+
+  @override
+  String get homeNoInPersonEvent => 'Aucun événement en présentiel';
+
+  @override
+  String get homeOnlineWorkshopNote =>
+      'Un atelier en ligne est accessible depuis chez vous.';
+
+  @override
+  String get homeNothingPlanned => 'Rien de prévu pour le moment';
+
+  @override
+  String homeLastEventGathered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Le dernier a réuni $count personnes.',
+      one: 'Le dernier a réuni 1 personne.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeReviveCommunity =>
+      'Relancez la communauté avec un nouvel événement.';
+
+  @override
+  String get homeNotifyNext => 'M\'avertir du prochain';
+
+  @override
+  String get homeAddCity => 'Ajouter ma ville';
+
+  @override
+  String get homeAddCountry => 'Ajouter mon pays';
+
+  @override
+  String get homeAddProfession => 'Ajouter mon métier';
+
+  @override
+  String get homeFieldProfession => 'métier';
+
+  @override
+  String get homeCompleteBio => 'Compléter ma bio';
+
+  @override
+  String get homeShareInvite =>
+      'Rejoins-moi sur Diaspo Niger, la communauté nigérienne à travers le monde.';
+
+  @override
+  String get groupsSuggestedForYou => 'Suggéré pour toi';
+
+  @override
+  String get groupsActionUnavailable =>
+      'Action impossible pour le moment, réessayez.';
+
+  @override
+  String get groupsDetailsUnavailable => 'Détails indisponibles.';
+
+  @override
+  String groupSeeAllMembers(int count) {
+    return 'Voir tous les $count membres';
+  }
+
+  @override
+  String get groupRoleModerator => 'Modé';
+
+  @override
+  String get messagesMyNotes => 'Mes notes';
+
+  @override
+  String get messagesMyNotesSubtitle => 'Notes, brouillons et sondages';
+
+  @override
+  String get callStatusMissed => 'manqué';
+
+  @override
+  String get callStatusDeclined => 'refusé';
+
+  @override
+  String get callKindVideo => 'vidéo';
+
+  @override
+  String notificationsGroupedMessages(int count, int conversations) {
+    return '$count messages de $conversations conversations';
+  }
+
+  @override
+  String get profileCompletionPhotoBenefit =>
+      'Vous serez plus facilement reconnu';
+
+  @override
+  String get profileCompletionCityBenefit =>
+      'Vous apparaîtrez auprès des membres proches';
+
+  @override
+  String get profileFieldOccupation => 'Métier';
+
+  @override
+  String get profileCompletionJobBenefit => 'Utile pour les mises en relation';
+
+  @override
+  String get profileCompletionBioBenefit => 'Présentez-vous à la communauté';
+
+  @override
+  String get profileCompleteYours => 'Complétez votre profil';
+
+  @override
+  String get profileCompleteMine => 'Compléter mon profil';
+
+  @override
+  String profileBlockConfirm(String name) {
+    return 'Voulez-vous vraiment bloquer $name ? Vous ne recevrez plus de messages de sa part.';
+  }
+
+  @override
+  String profileCommonGroups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groupes en commun',
+      one: '1 groupe en commun',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileAcceptError(String details) {
+    return 'Erreur lors de l\'acceptation : $details';
+  }
+
+  @override
+  String get profileRequestGoneDetail =>
+      'Cette demande n\'existe plus. Elle a peut-être déjà été acceptée ou annulée.';
+
+  @override
+  String get searchRecent => 'Recherches récentes';
+
+  @override
+  String get searchAnything => 'Rechercher...';
+
+  @override
+  String get homeServiceTransfers => 'transferts d\'argent';
+
+  @override
+  String get homeServiceShop => 'boutique';
+
+  @override
+  String get homeServiceEmbassies => 'ambassades';
+
+  @override
+  String homeA11yServices(String list) {
+    return 'Accès rapide aux services : $list.';
+  }
+
+  @override
+  String get homeSearchableMembers => 'membres';
+
+  @override
+  String get homeSearchableGroups => 'groupes';
+
+  @override
+  String get homeSearchableEvents => 'événements';
+
+  @override
+  String homeA11ySearch(String list) {
+    return 'Trouvez des $list facilement.';
+  }
+
+  @override
+  String homeA11yStats(String list) {
+    return 'Découvrez la communauté : nombre de $list. Appuyez pour explorer.';
+  }
+
+  @override
+  String get listSeparatorAnd => ' et ';
+
+  @override
+  String profileCompletionMessage(int count, String fields, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$fields vous rendent visible auprès de la communauté$place.',
+      one: '$fields vous rend visible auprès de la communauté$place.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileCompletionField(String field) {
+    return 'votre $field';
+  }
+
+  @override
+  String profileCompletionPlace(String city) {
+    return ' de $city';
+  }
+
+  @override
+  String get homeFieldPhoto => 'photo';
+
+  @override
+  String get homeFieldCity => 'ville';
+
+  @override
+  String get homeFieldCountry => 'pays';
+
+  @override
+  String get homeFieldBio => 'bio';
 }

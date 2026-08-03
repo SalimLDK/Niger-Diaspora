@@ -28255,6 +28255,468 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 non lue} other{{count} non lues}}'**
   String notificationsUnreadCount(int count);
+
+  /// Tuile de service : le fil
+  ///
+  /// In fr, this message translates to:
+  /// **'Le fil'**
+  String get homeServiceFeed;
+
+  /// Etat vide de la section autour de vous
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne à moins de {km} km'**
+  String homeNobodyWithin(int km);
+
+  /// Rassurance quand personne n est autour
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre position est active : vous apparaîtrez dès qu\'un membre partagera la sienne.'**
+  String get homeLocationActiveNote;
+
+  /// Action : elargir le rayon
+  ///
+  /// In fr, this message translates to:
+  /// **'Élargir à 200 km'**
+  String get homeWidenRadius;
+
+  /// Action : inviter
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter un proche'**
+  String get homeInviteRelative;
+
+  /// Carte sans position
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'apparaissez pas sur la carte'**
+  String get homeNotOnMapTitle;
+
+  /// Carte sans position
+  ///
+  /// In fr, this message translates to:
+  /// **'Le partage est réciproque : sans votre position, vous ne voyez pas non plus les autres.'**
+  String get homeNotOnMapBody;
+
+  /// Action : activer la position
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer ma position'**
+  String get homeEnableLocation;
+
+  /// Bandeau hors ligne
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes hors ligne'**
+  String get homeOfflineTitle;
+
+  /// Bandeau hors ligne
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu affiché depuis le cache. Mise à jour automatique au retour du réseau.'**
+  String get homeOfflineBody;
+
+  /// Carte de completude
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétez votre profil'**
+  String get homeCompleteProfile;
+
+  /// Sous-titre de la carte pour commencer
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 groupe à découvrir} other{{count} groupes à découvrir}}'**
+  String homeGroupsToDiscover(int count);
+
+  /// Sous-titre de repli
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouvez votre communauté'**
+  String get homeFindYourCommunity;
+
+  /// Intertitre de la carte de demarrage
+  ///
+  /// In fr, this message translates to:
+  /// **'POUR COMMENCER'**
+  String get homeGettingStarted;
+
+  /// Amorce 1
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrouver vos proches'**
+  String get homeFindRelatives;
+
+  /// Amorce 1
+  ///
+  /// In fr, this message translates to:
+  /// **'Par QR code, sans échanger de numéro'**
+  String get homeFindRelativesSub;
+
+  /// Amorce 2
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejoindre un groupe'**
+  String get homeJoinGroup;
+
+  /// Amorce 3
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer la carte des membres'**
+  String get homeEnableMemberMap;
+
+  /// Amorce 3
+  ///
+  /// In fr, this message translates to:
+  /// **'Réciproque · désactivable'**
+  String get homeEnableMemberMapSub;
+
+  /// Etat vide des evenements, ville connue
+  ///
+  /// In fr, this message translates to:
+  /// **'Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté de {city}.'**
+  String homeFirstMeetupCity(String city);
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Un thé, un match, une aide aux papiers : soyez le premier à réunir la communauté.'**
+  String get homeFirstMeetup;
+
+  /// Titre d etat vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancez la première rencontre'**
+  String get homeStartFirstMeetup;
+
+  /// Exemple de categorie d evenement
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches'**
+  String get homeEventChipPaperwork;
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement à {city}'**
+  String homeNoEventInCity(String city);
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement en présentiel'**
+  String get homeNoInPersonEvent;
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Un atelier en ligne est accessible depuis chez vous.'**
+  String get homeOnlineWorkshopNote;
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de prévu pour le moment'**
+  String get homeNothingPlanned;
+
+  /// Etat vide des evenements, passe
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Le dernier a réuni 1 personne.} other{Le dernier a réuni {count} personnes.}}'**
+  String homeLastEventGathered(int count);
+
+  /// Etat vide des evenements
+  ///
+  /// In fr, this message translates to:
+  /// **'Relancez la communauté avec un nouvel événement.'**
+  String get homeReviveCommunity;
+
+  /// Bascule de rappel
+  ///
+  /// In fr, this message translates to:
+  /// **'M\'avertir du prochain'**
+  String get homeNotifyNext;
+
+  /// Champ manquant du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter ma ville'**
+  String get homeAddCity;
+
+  /// Champ manquant du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter mon pays'**
+  String get homeAddCountry;
+
+  /// Champ manquant du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter mon métier'**
+  String get homeAddProfession;
+
+  /// Nom du champ metier, en minuscules
+  ///
+  /// In fr, this message translates to:
+  /// **'métier'**
+  String get homeFieldProfession;
+
+  /// Champ manquant du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Compléter ma bio'**
+  String get homeCompleteBio;
+
+  /// Texte de partage de l invitation
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejoins-moi sur Diaspo Niger, la communauté nigérienne à travers le monde.'**
+  String get homeShareInvite;
+
+  /// Section de decouverte
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggéré pour toi'**
+  String get groupsSuggestedForYou;
+
+  /// Echec d action sur une invitation
+  ///
+  /// In fr, this message translates to:
+  /// **'Action impossible pour le moment, réessayez.'**
+  String get groupsActionUnavailable;
+
+  /// Invitation sans details
+  ///
+  /// In fr, this message translates to:
+  /// **'Détails indisponibles.'**
+  String get groupsDetailsUnavailable;
+
+  /// Lien vers la liste des membres
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les {count} membres'**
+  String groupSeeAllMembers(int count);
+
+  /// Badge de role, abrege
+  ///
+  /// In fr, this message translates to:
+  /// **'Modé'**
+  String get groupRoleModerator;
+
+  /// Conversation avec soi-meme
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes notes'**
+  String get messagesMyNotes;
+
+  /// Apercu par defaut de Mes notes
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes, brouillons et sondages'**
+  String get messagesMyNotesSubtitle;
+
+  /// Statut d appel dans l apercu
+  ///
+  /// In fr, this message translates to:
+  /// **'manqué'**
+  String get callStatusMissed;
+
+  /// Statut d appel dans l apercu
+  ///
+  /// In fr, this message translates to:
+  /// **'refusé'**
+  String get callStatusDeclined;
+
+  /// Type d appel dans l apercu
+  ///
+  /// In fr, this message translates to:
+  /// **'vidéo'**
+  String get callKindVideo;
+
+  /// Notification groupee
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} messages de {conversations} conversations'**
+  String notificationsGroupedMessages(int count, int conversations);
+
+  /// Benefice d un champ manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous serez plus facilement reconnu'**
+  String get profileCompletionPhotoBenefit;
+
+  /// Benefice d un champ manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous apparaîtrez auprès des membres proches'**
+  String get profileCompletionCityBenefit;
+
+  /// Champ du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Métier'**
+  String get profileFieldOccupation;
+
+  /// Benefice d un champ manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'Utile pour les mises en relation'**
+  String get profileCompletionJobBenefit;
+
+  /// Benefice d un champ manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'Présentez-vous à la communauté'**
+  String get profileCompletionBioBenefit;
+
+  /// Titre du bandeau de completude
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétez votre profil'**
+  String get profileCompleteYours;
+
+  /// Action du bandeau de completude
+  ///
+  /// In fr, this message translates to:
+  /// **'Compléter mon profil'**
+  String get profileCompleteMine;
+
+  /// Confirmation de blocage
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment bloquer {name} ? Vous ne recevrez plus de messages de sa part.'**
+  String profileBlockConfirm(String name);
+
+  /// Groupes partages avec un membre
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 groupe en commun} other{{count} groupes en commun}}'**
+  String profileCommonGroups(int count);
+
+  /// Echec d acceptation de demande
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'acceptation : {details}'**
+  String profileAcceptError(String details);
+
+  /// Demande d ami disparue
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette demande n\'existe plus. Elle a peut-être déjà été acceptée ou annulée.'**
+  String get profileRequestGoneDetail;
+
+  /// Section des recherches recentes
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherches récentes'**
+  String get searchRecent;
+
+  /// Invite de recherche generique
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher...'**
+  String get searchAnything;
+
+  /// Nom de service, dans une enumeration
+  ///
+  /// In fr, this message translates to:
+  /// **'transferts d\'argent'**
+  String get homeServiceTransfers;
+
+  /// Nom de service, dans une enumeration
+  ///
+  /// In fr, this message translates to:
+  /// **'boutique'**
+  String get homeServiceShop;
+
+  /// Nom de service, dans une enumeration
+  ///
+  /// In fr, this message translates to:
+  /// **'ambassades'**
+  String get homeServiceEmbassies;
+
+  /// Description d accessibilite, liste deja formatee
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès rapide aux services : {list}.'**
+  String homeA11yServices(String list);
+
+  /// Ce que la recherche trouve
+  ///
+  /// In fr, this message translates to:
+  /// **'membres'**
+  String get homeSearchableMembers;
+
+  /// Ce que la recherche trouve
+  ///
+  /// In fr, this message translates to:
+  /// **'groupes'**
+  String get homeSearchableGroups;
+
+  /// Ce que la recherche trouve
+  ///
+  /// In fr, this message translates to:
+  /// **'événements'**
+  String get homeSearchableEvents;
+
+  /// Description d accessibilite, liste deja formatee
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouvez des {list} facilement.'**
+  String homeA11ySearch(String list);
+
+  /// Description d accessibilite, liste deja formatee
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrez la communauté : nombre de {list}. Appuyez pour explorer.'**
+  String homeA11yStats(String list);
+
+  /// Liaison avant le dernier element d une liste
+  ///
+  /// In fr, this message translates to:
+  /// **' et '**
+  String get listSeparatorAnd;
+
+  /// Message de completude ; fields est deja capitalise
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{{fields} vous rend visible auprès de la communauté{place}.} other{{fields} vous rendent visible auprès de la communauté{place}.}}'**
+  String profileCompletionMessage(int count, String fields, String place);
+
+  /// Un champ manquant, dans une enumeration
+  ///
+  /// In fr, this message translates to:
+  /// **'votre {field}'**
+  String profileCompletionField(String field);
+
+  /// Complement de lieu du message de completude
+  ///
+  /// In fr, this message translates to:
+  /// **' de {city}'**
+  String profileCompletionPlace(String city);
+
+  /// Nom du champ photo, en minuscules
+  ///
+  /// In fr, this message translates to:
+  /// **'photo'**
+  String get homeFieldPhoto;
+
+  /// Nom du champ ville, en minuscules
+  ///
+  /// In fr, this message translates to:
+  /// **'ville'**
+  String get homeFieldCity;
+
+  /// Nom du champ pays, en minuscules
+  ///
+  /// In fr, this message translates to:
+  /// **'pays'**
+  String get homeFieldCountry;
+
+  /// Nom du champ bio, en minuscules
+  ///
+  /// In fr, this message translates to:
+  /// **'bio'**
+  String get homeFieldBio;
 }
 
 class _AppLocalizationsDelegate

@@ -15235,4 +15235,303 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeServiceFeed => 'The feed';
+
+  @override
+  String homeNobodyWithin(int km) {
+    return 'Nobody within $km km';
+  }
+
+  @override
+  String get homeLocationActiveNote =>
+      'Your location is on: you will show up as soon as a member shares theirs.';
+
+  @override
+  String get homeWidenRadius => 'Widen to 200 km';
+
+  @override
+  String get homeInviteRelative => 'Invite someone close';
+
+  @override
+  String get homeNotOnMapTitle => 'You do not appear on the map';
+
+  @override
+  String get homeNotOnMapBody =>
+      'Sharing is reciprocal: without your location, you cannot see others either.';
+
+  @override
+  String get homeEnableLocation => 'Turn on my location';
+
+  @override
+  String get homeOfflineTitle => 'You are offline';
+
+  @override
+  String get homeOfflineBody =>
+      'Showing cached content. It will refresh automatically when the network is back.';
+
+  @override
+  String get homeCompleteProfile => 'Complete your profile';
+
+  @override
+  String homeGroupsToDiscover(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groups to discover',
+      one: '1 group to discover',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeFindYourCommunity => 'Find your community';
+
+  @override
+  String get homeGettingStarted => 'GETTING STARTED';
+
+  @override
+  String get homeFindRelatives => 'Find your people';
+
+  @override
+  String get homeFindRelativesSub => 'By QR code, without swapping numbers';
+
+  @override
+  String get homeJoinGroup => 'Join a group';
+
+  @override
+  String get homeEnableMemberMap => 'Turn on the member map';
+
+  @override
+  String get homeEnableMemberMapSub => 'Reciprocal · can be turned off';
+
+  @override
+  String homeFirstMeetupCity(String city) {
+    return 'A tea, a match, a hand with paperwork: be the first to bring the $city community together.';
+  }
+
+  @override
+  String get homeFirstMeetup =>
+      'A tea, a match, a hand with paperwork: be the first to bring the community together.';
+
+  @override
+  String get homeStartFirstMeetup => 'Start the first meet-up';
+
+  @override
+  String get homeEventChipPaperwork => 'Paperwork';
+
+  @override
+  String homeNoEventInCity(String city) {
+    return 'No event in $city';
+  }
+
+  @override
+  String get homeNoInPersonEvent => 'No in-person event';
+
+  @override
+  String get homeOnlineWorkshopNote =>
+      'An online workshop is available from home.';
+
+  @override
+  String get homeNothingPlanned => 'Nothing planned right now';
+
+  @override
+  String homeLastEventGathered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'The last one gathered $count people.',
+      one: 'The last one gathered 1 person.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeReviveCommunity =>
+      'Get the community going again with a new event.';
+
+  @override
+  String get homeNotifyNext => 'Notify me of the next one';
+
+  @override
+  String get homeAddCity => 'Add my city';
+
+  @override
+  String get homeAddCountry => 'Add my country';
+
+  @override
+  String get homeAddProfession => 'Add my occupation';
+
+  @override
+  String get homeFieldProfession => 'occupation';
+
+  @override
+  String get homeCompleteBio => 'Complete my bio';
+
+  @override
+  String get homeShareInvite =>
+      'Join me on Diaspo Niger, the Nigerien community around the world.';
+
+  @override
+  String get groupsSuggestedForYou => 'Suggested for you';
+
+  @override
+  String get groupsActionUnavailable =>
+      'Action unavailable right now, please try again.';
+
+  @override
+  String get groupsDetailsUnavailable => 'Details unavailable.';
+
+  @override
+  String groupSeeAllMembers(int count) {
+    return 'See all $count members';
+  }
+
+  @override
+  String get groupRoleModerator => 'Mod';
+
+  @override
+  String get messagesMyNotes => 'My notes';
+
+  @override
+  String get messagesMyNotesSubtitle => 'Notes, drafts and polls';
+
+  @override
+  String get callStatusMissed => 'missed';
+
+  @override
+  String get callStatusDeclined => 'declined';
+
+  @override
+  String get callKindVideo => 'video';
+
+  @override
+  String notificationsGroupedMessages(int count, int conversations) {
+    return '$count messages from $conversations conversations';
+  }
+
+  @override
+  String get profileCompletionPhotoBenefit =>
+      'You will be recognised more easily';
+
+  @override
+  String get profileCompletionCityBenefit =>
+      'You will show up for nearby members';
+
+  @override
+  String get profileFieldOccupation => 'Occupation';
+
+  @override
+  String get profileCompletionJobBenefit => 'Useful for introductions';
+
+  @override
+  String get profileCompletionBioBenefit =>
+      'Introduce yourself to the community';
+
+  @override
+  String get profileCompleteYours => 'Complete your profile';
+
+  @override
+  String get profileCompleteMine => 'Complete my profile';
+
+  @override
+  String profileBlockConfirm(String name) {
+    return 'Are you sure you want to block $name? You will no longer receive messages from them.';
+  }
+
+  @override
+  String profileCommonGroups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groups in common',
+      one: '1 group in common',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileAcceptError(String details) {
+    return 'Could not accept: $details';
+  }
+
+  @override
+  String get profileRequestGoneDetail =>
+      'This request no longer exists. It may already have been accepted or cancelled.';
+
+  @override
+  String get searchRecent => 'Recent searches';
+
+  @override
+  String get searchAnything => 'Search...';
+
+  @override
+  String get homeServiceTransfers => 'money transfers';
+
+  @override
+  String get homeServiceShop => 'shop';
+
+  @override
+  String get homeServiceEmbassies => 'embassies';
+
+  @override
+  String homeA11yServices(String list) {
+    return 'Quick access to services: $list.';
+  }
+
+  @override
+  String get homeSearchableMembers => 'members';
+
+  @override
+  String get homeSearchableGroups => 'groups';
+
+  @override
+  String get homeSearchableEvents => 'events';
+
+  @override
+  String homeA11ySearch(String list) {
+    return 'Find $list easily.';
+  }
+
+  @override
+  String homeA11yStats(String list) {
+    return 'Discover the community: number of $list. Tap to explore.';
+  }
+
+  @override
+  String get listSeparatorAnd => ' and ';
+
+  @override
+  String profileCompletionMessage(int count, String fields, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$fields make you visible to the community$place.',
+      one: '$fields makes you visible to the community$place.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileCompletionField(String field) {
+    return 'your $field';
+  }
+
+  @override
+  String profileCompletionPlace(String city) {
+    return ' in $city';
+  }
+
+  @override
+  String get homeFieldPhoto => 'photo';
+
+  @override
+  String get homeFieldCity => 'city';
+
+  @override
+  String get homeFieldCountry => 'country';
+
+  @override
+  String get homeFieldBio => 'bio';
 }

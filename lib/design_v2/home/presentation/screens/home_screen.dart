@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -174,6 +175,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   List<TargetFocus> _createTargets() {
+    final l10n = AppLocalizations.of(context)!;
     // Check feature flags
     final hasMoneyTransfer = ref.read(isMoneyTransferEnabledProvider);
     final hasMarketplace = ref.read(isMarketplaceEnabledProvider);
@@ -188,37 +190,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Build dynamic services description based on enabled features
     String buildServicesDescription() {
       final services = <String>[];
-      if (hasMoneyTransfer) services.add('transferts d\'argent');
-      if (hasMarketplace) services.add('boutique');
-      if (hasBusinessDirectory) services.add('annuaire des entreprises');
-      if (hasEmbassies) services.add('ambassades');
+      if (hasMoneyTransfer) services.add(l10n.homeServiceTransfers);
+      if (hasMarketplace) services.add(l10n.homeServiceShop);
+      if (hasBusinessDirectory) services.add(l10n.serviceBusinessDirectory);
+      if (hasEmbassies) services.add(l10n.homeServiceEmbassies);
 
       if (services.isEmpty) return '';
-      if (services.length == 1) return 'Acces rapide au service: ${services.first}.';
-
-      final lastService = services.removeLast();
-      return 'Acces rapide aux services: ${services.join(', ')} et $lastService.';
+      return l10n.homeA11yServices(_enumere(services, l10n));
     }
 
     // Build dynamic search description based on enabled features
     String buildSearchDescription() {
-      final searchables = <String>['membres'];
-      if (hasGroups) searchables.add('groupes');
-      if (hasEvents) searchables.add('evenements');
+      final searchables = <String>[l10n.homeSearchableMembers];
+      if (hasGroups) searchables.add(l10n.homeSearchableGroups);
+      if (hasEvents) searchables.add(l10n.homeSearchableEvents);
 
-      if (searchables.length == 1) return 'Trouvez des ${searchables.first} facilement.';
-
-      final last = searchables.removeLast();
-      return 'Trouvez des ${searchables.join(', ')} et des $last facilement.';
+      return l10n.homeA11ySearch(_enumere(searchables, l10n));
     }
 
     // Build dynamic stats description
     String buildStatsDescription() {
-      final stats = <String>['membres'];
-      if (hasGroups) stats.add('groupes');
-      if (hasEvents) stats.add('evenements');
+      final stats = <String>[l10n.homeSearchableMembers];
+      if (hasGroups) stats.add(l10n.homeSearchableGroups);
+      if (hasEvents) stats.add(l10n.homeSearchableEvents);
 
-      return 'Decouvrez la communaute: nombre de ${stats.join(', ')}. Appuyez pour explorer.';
+      return l10n.homeA11yStats(_enumere(stats, l10n));
     }
 
     // Determine which is the last coach mark for isLast flag
@@ -1157,34 +1153,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  /// Enumère une liste en langue naturelle : « a, b et c ». La liaison
+  /// finale vient de l'ARB, elle n'est pas la même dans toutes les langues.
+  String _enumere(List<String> elements, AppLocalizations l10n) {
+    if (elements.isEmpty) return '';
+    if (elements.length == 1) return elements.first;
+    final reste = elements.sublist(0, elements.length - 1);
+    return '${reste.join(', ')}${l10n.listSeparatorAnd}${elements.last}';
+  }
+
   /// Calcule la complétude du profil sur 5 champs clés et prépare le libellé
   /// d'action + le message contextuel (premier lancement — maquette 8a).
-  _ProfileCompletion _computeCompletion(ProfileEntity? profile, String? city) {
+  _ProfileCompletion _computeCompletion(
+    ProfileEntity? profile,
+    String? city,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     final items = <({bool done, String cta, String name})>[
       (
         done: (profile?.photoUrl?.trim().isNotEmpty ?? false),
-        cta: 'Ajouter une photo',
-        name: 'photo',
+        cta: l10n.addPhoto,
+        name: l10n.homeFieldPhoto,
       ),
       (
         done: (profile?.currentCity?.trim().isNotEmpty ?? false),
-        cta: 'Ajouter ma ville',
-        name: 'ville',
+        cta: l10n.homeAddCity,
+        name: l10n.homeFieldCity,
       ),
       (
         done: (profile?.currentCountry?.trim().isNotEmpty ?? false),
-        cta: 'Ajouter mon pays',
-        name: 'pays',
+        cta: l10n.homeAddCountry,
+        name: l10n.homeFieldCountry,
       ),
       (
         done: (profile?.profession?.trim().isNotEmpty ?? false),
-        cta: 'Ajouter mon métier',
-        name: 'métier',
+        cta: l10n.homeAddProfession,
+        name: l10n.homeFieldProfession,
       ),
       (
         done: (profile?.bio?.trim().isNotEmpty ?? false),
-        cta: 'Compléter ma bio',
-        name: 'bio',
+        cta: l10n.homeCompleteBio,
+        name: l10n.homeFieldBio,
       ),
     ];
 
@@ -1200,19 +1209,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
-    final names = missing.take(2).map((e) => 'votre ${e.name}').toList();
-    final list = names.length == 2 ? '${names[0]} et ${names[1]}' : names[0];
-    final verb = names.length == 2 ? 'rendent' : 'rend';
+    final names = missing
+        .take(2)
+        .map((e) => l10n.profileCompletionField(e.name))
+        .toList();
+    final list = _enumere(names, l10n);
     final cap = list[0].toUpperCase() + list.substring(1);
     final cityPart = (city != null && city.trim().isNotEmpty)
-        ? ' de ${city.trim()}'
+        ? l10n.profileCompletionPlace(city.trim())
         : '';
 
     return _ProfileCompletion(
       filled: filled,
       total: 5,
       ctaLabel: missing.first.cta,
-      message: '$cap vous $verb visible auprès de la communauté$cityPart.',
+      message: l10n.profileCompletionMessage(names.length, cap, cityPart),
     );
   }
 
@@ -1231,13 +1242,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Partage un lien d'invitation à rejoindre l'app (« Inviter un proche »).
   Future<void> _inviteFriend() async {
+    final l10n = AppLocalizations.of(context)!;
     final uid = ref.read(currentUserProvider).valueOrNull?.id;
     final link = DeepLinkService.instance.generateInviteLink(referrerId: uid);
     await DeepLinkService.instance.shareLink(
       link: link,
       title: 'Rejoignez Diaspo Niger',
-      text: 'Rejoins-moi sur Diaspo Niger, la communauté nigérienne à '
-          'travers le monde.',
+      text: l10n.homeShareInvite,
     );
   }
 

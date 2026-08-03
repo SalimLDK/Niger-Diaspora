@@ -92,8 +92,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _backgroundSubtitle(AppLocalizations l10n) {
     final bg = _globalBackground;
     if (bg == null || bg.isDefault) return l10n.defaultTheme;
-    if (bg.isColor) return 'Couleur personnalisée';
-    return 'Image personnalisée';
+    if (bg.isColor) return l10n.customColor;
+    return l10n.customImage;
   }
 
   void _toggleNoiseSuppression(bool value) {
@@ -532,7 +532,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildThemeColorOption(
-                        'Vert (Défaut)',
+                        l10n.themeGreenDefault,
                         AppThemeColor.green,
                         currentColor == AppThemeColor.green,
                       ),
@@ -1905,7 +1905,7 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           Divider(color: context.borderColor),
           const SizedBox(height: 16),
           Text(
-            'Son et Vibration',
+            l10n.soundAndVibration,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -1915,7 +1915,7 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildNotificationOption(
             context,
-            'Son',
+            l10n.notificationSound,
             prefs.soundEnabled,
             (value) => ref
                 .read(notificationPreferencesNotifierProvider.notifier)
@@ -2157,7 +2157,7 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
             Icon(Icons.search_off, size: 48, color: context.textTertiaryColor),
             const SizedBox(height: 16),
             Text(
-              'Aucune devise trouvée',
+              AppLocalizations.of(context)!.noCurrencyFound,
               style: TextStyle(color: context.textSecondaryColor),
             ),
           ],
