@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 

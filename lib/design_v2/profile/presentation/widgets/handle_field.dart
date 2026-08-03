@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Champ de saisie de la poignée publique @handle (§16f) avec vérification de
 /// disponibilité débouncée. Réutilisable (config d'onboarding + édition profil).

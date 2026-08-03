@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Contenu d'un écran d'onboarding (maquettes 14a → 14e).
 ///

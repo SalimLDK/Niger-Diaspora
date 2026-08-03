@@ -6,7 +6,7 @@ import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../features/onboarding/presentation/providers/onboarding_provider.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../widgets/onboarding_page.dart';
 
 /// Onboarding en cinq écrans (maquettes 14a → 14e).

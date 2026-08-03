@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/adaptive_colors.dart';
-import 'kit/design_kit.dart';
+import '../core/theme/design_kit.dart';
 
 import 'auth/presentation/screens/login_screen.dart' as v2_login;
 import 'auth/presentation/screens/register_screen.dart' as v2_register;

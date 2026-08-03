@@ -14,7 +14,7 @@ import '../../../../features/profile/presentation/providers/profile_provider.dar
 import '../../../../features/profile/presentation/widgets/online_status_indicator.dart';
 import '../../../../features/settings/presentation/providers/blocked_users_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 class ConversationItem extends ConsumerStatefulWidget {
   final ConversationEntity conversation;

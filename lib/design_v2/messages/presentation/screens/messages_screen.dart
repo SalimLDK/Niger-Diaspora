@@ -11,7 +11,7 @@ import '../../../../features/messages/presentation/providers/conversation_action
 import '../../../../features/messages/domain/entities/conversation_entity.dart';
 import '../../../../features/messages/presentation/providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 

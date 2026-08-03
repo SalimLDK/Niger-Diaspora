@@ -12,7 +12,7 @@ import '../../../../features/onboarding/presentation/providers/onboarding_provid
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Sentinelles d'erreur : le message affiché est localisé, mais la
 /// reconnaissance du cas repose sur ces marqueurs bruts, qui ne doivent pas

@@ -20,7 +20,7 @@ import '../../../../features/groups/presentation/widgets/share_group_modal.dart'
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;

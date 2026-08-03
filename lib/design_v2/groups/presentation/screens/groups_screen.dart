@@ -17,7 +17,7 @@ import '../../../../features/messages/presentation/providers/message_provider.da
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Dernière activité (dernier message) par groupe, dérivée des conversations
 /// déjà chargées — le champ `lastMessageAt` vit sur la conversation liée

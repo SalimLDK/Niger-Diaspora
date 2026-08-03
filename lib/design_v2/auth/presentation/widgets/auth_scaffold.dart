@@ -4,7 +4,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../kit/design_kit.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Briques communes aux écrans d'authentification, transcrites des maquettes
 /// « Bon retour. » / « Créer un compte. » / « Configuration du profil ».
