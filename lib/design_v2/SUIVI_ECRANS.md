@@ -398,6 +398,22 @@ position, l'état d'écoute et le téléchargement. Deux écarts corrigés :
   jointe. Rétabli le 2026-08-03, affiché seulement quand le serveur a
   renvoyé la valeur.
 
+### Appels — les blancs et les dégradés sont légitimes
+
+Les deux écrans d'appel comptent 48 et 26 usages de blanc, et trois
+dégradés. Aucun n'est un oubli :
+
+- Le **blanc** est le seul contraste tenable : ces écrans se peignent sur
+  le flux vidéo ou un fond sombre (`Colors.grey[900]`), pas sur le crème.
+  C'est ce que font WhatsApp, Signal et FaceTime, pour la même raison.
+- Les **dégradés** sont des *scrims* — transparent vers noir à 70 % — posés
+  derrière les contrôles pour qu'ils restent lisibles quelle que soit
+  l'image en dessous. Les retirer casserait la lisibilité au lieu de la
+  moderniser.
+
+Seul changement appliqué : le **nom de l'interlocuteur passe en serif**,
+pour rejoindre le titrage du reste de la série. Le reste était déjà juste.
+
 ### Nocturnes — rien à implémenter
 
 Vérifié : `app.dart:142` déclare `darkTheme: AppTheme.darkTheme`, donc chaque
@@ -500,8 +516,8 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 23a | Appel en cours 1-à-1 | `calls/…/call_screen.dart` | 2031 l. | à faire |
-| 23b | Appel de groupe | `group_calls/…/group_call_screen.dart` | 852 l. | à faire |
+| 23a | Appel en cours 1-à-1 | `calls/…/call_screen.dart` | 2031 l. | fait |
+| 23b | Appel de groupe | `group_calls/…/group_call_screen.dart` | 852 l. | fait |
 | 23c | Détail d'un post et commentaires | `feed/…/post_detail_screen.dart` | 357 l. | famille « fil » |
 | 23d | Créer une publication | `feed/…/create_post_screen.dart` | 823 l. | famille « fil » |
 | 24a | Galerie de la conversation | `messages/…/media_gallery_screen.dart` | 895 l. | à faire |
