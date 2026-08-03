@@ -65,6 +65,8 @@ familles :
 
 1. **Widgets jamais référencés** — nom de classe absent de tout autre
    fichier. Passe balayé le 2026-08-03 : **55 widgets publics sur 262**.
+   Repris en profondeur plus bas (« Audit d'accessibilité »), qui remplace
+   ce comptage par une mesure plus juste.
    ⚠ Ce n'est **pas** une liste de défauts : les 55 se répartissent en trois
    cas qu'on ne distingue qu'en regardant chacun.
    - *Joignable quand même*, via une fonction helper du même fichier —
@@ -573,6 +575,101 @@ existent, sans détail par élément ni sections dédiées.
 | 3b Reconnexion après coupure | **Non implémenté** |
 | 3c Boutique (3 vides) | Écarts (recherche sans résultat = écart majeur) |
 | 3d Groupes (3 vides) | Écarts ("rien dans ma ville" = non implémenté) |
+
+---
+
+## Audit d'accessibilité — 2026-08-03
+
+Suite de l'écart #10. Le premier comptage (« 55 widgets sur 262 jamais cités
+ailleurs ») était trop grossier : un widget peut être cité par un autre widget
+lui-même mort, et un fichier qui n'expose qu'une extension paraît orphelin
+alors qu'il est utilisé partout.
+
+**Méthode retenue** : graphe de références entre fichiers, puis parcours
+depuis les vrais points d'entrée — `lib/main.dart`, `lib/app.dart`, tout
+`lib/core/router/`, et `lib/features/admin/main.dart` (le back-office a son
+propre `runApp`). Un fichier est « inatteignable » si aucun chemin ne va d'un
+point d'entrée jusqu'à lui. Les membres d'extension (`context.surfaceColor`)
+et les directives `part of` sont pris en compte — sans ça le bruit est massif.
+
+Script : `scripts/orphan_audit.py`, versionné pour que l'audit soit
+rejouable — `python scripts/orphan_audit.py` depuis la racine.
+
+**Résultat : 60 fichiers inatteignables sur 701.**
+
+### A. Widgets remplacés, ancêtre jamais supprimé — *vérifié*
+
+Rien à corriger côté fonctionnalité ; c'est du code mort à supprimer.
+
+| Orphelin | Ce qui l'a remplacé |
+|---|---|
+| `CallControls`, `CallTimer` | `_buildModernCallControls`, interne à `call_screen.dart` et `group_call_screen.dart` |
+| `VideoView`, `LocalVideoOverlay` | `RTCVideoView` utilisé directement dans `call_screen.dart` |
+| `IncomingCallOverlay` | CallKit, via `NativeCallService.showIncomingCall` |
+| `StickerPicker` | `EmojiStickerPicker` |
+| `TipAnimationWidget`, `TipNotificationBanner` | `TipCoinAnimation` (`_shared/tip_coin_animation.dart`) |
+| `UploadingMessageOverlay` | `conversation_screen` lit `mediaUploadProvider` et rend son propre affichage |
+| `HomeStatCard`, `HomeMemberCard` | remplacés lors d'une refonte antérieure (déjà noté en annexe de 2d) |
+| `message_e2ee_helper`, `notification_decryption_service` | la messagerie déchiffre via `_encryptionService` dans `message_remote_datasource` ; ces deux-là ne sont atteints que par le baril `e2ee/e2ee.dart`, lui-même inatteignable |
+
+### B. Couches d'architecture jamais branchées — *vérifié*
+
+Quatre features ont une couche Clean Architecture complète (repository +
+usecases + datasource + entity/model) que rien n'appelle : les écrans parlent
+directement à Supabase. Ce n'est pas un bug, c'est un chantier abandonné en
+cours de route — mais ça trompe quiconque lit l'arborescence.
+
+- `features/home/` — `home_repository`, `home_repository_impl`,
+  `home_remote_datasource`, `home_content_model`, `get_home_content`
+- `features/legal/` — `legal_repository`, `_impl`, `legal_usecases`,
+  `legal_entity`
+- `features/search/` — `search_repository`, `_impl`, `search_usecases`
+- `features/settings/` — les 5 fichiers `notification_preferences_*`
+
+### C. Écran sans point d'entrée — *vérifié*
+
+- `stickers/sticker_packs_screen.dart` (`CreateStickerPackScreen`) : aucune
+  route, aucun appel. Même cas que la bibliothèque du patrimoine avant sa
+  correction. À rapprocher du constat « packs Supabase vides » : la
+  fonctionnalité de packs n'a jamais été rendue accessible.
+
+### D. À vérifier — *non tranché*
+
+Inatteignables, mais je n'ai pas établi s'ils sont morts ou juste pas encore
+branchés. À regarder un par un avant toute suppression.
+
+- Widgets partagés jamais adoptés : `CustomCard`/`MemberCard`/`StatCard`,
+  `EmptyStateWidget`/`CompactEmptyState`, `LoadingSkeleton`/`CardSkeleton`/
+  `ListItemSkeleton`, `ImagePickerDialog`/`ImageUploadPreview`,
+  `NetworkStatusBanner`/`OfflineIndicator`, `UserAvatar`, `FeedTag`,
+  `AudioRecorderOverlay`, `GroupCallMessageBubble`
+- Boîte à outils responsive entière : `responsive.dart`,
+  `responsive_builder.dart` (`ResponsiveBuilder`, `AdaptiveLayout`,
+  `MasterDetailLayout`, `ResponsiveContainer`), `responsive_service.dart`
+- Services : `retry_service`, `session_backup_service`,
+  `play_integrity_provider`, `eff_wordlist`, `image_compressor`,
+  `conversation_cleanup_script`, `validators`, `app_text_styles`,
+  `app_assets`
+- Entités/datasources isolés : `creator_subscription_entity`,
+  `hand_raise_entity`, `podcast_subscription_entity`,
+  `group_participant_model`, `group_request_supabase_datasource`,
+  `common_groups_provider`, `notification_supabase_datasource`,
+  `contact_row`, `get_current_user`, `profile_extensions`
+
+`play_integrity_provider` mérite un regard en priorité : une vérification
+d'intégrité qui n'est jamais appelée ne protège rien.
+
+### Ce que cet audit ne dit pas
+
+- **Aucun fichier n'a été supprimé.** Le classement A/B/C est solide, mais la
+  suppression est une décision qui appartient à Salim, et certains de ces
+  fichiers sont peut-être gardés volontairement pour un chantier à venir.
+- Le graphe est syntaxique, pas sémantique : un widget construit uniquement
+  par réflexion ou via une chaîne de caractères passerait pour orphelin. Rien
+  de tel n'a été repéré ici, mais la limite existe.
+- Les tests (`test/`) ne sont pas comptés comme points d'entrée : un fichier
+  utilisé seulement par un test ressort donc comme inatteignable, ce qui est
+  le comportement voulu pour du code de production.
 
 ---
 
