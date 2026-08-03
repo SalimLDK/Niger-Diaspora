@@ -33,12 +33,12 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choisir un beneficiaire'),
+        title: const Text('Choisir un bénéficiaire'),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_outlined),
             onPressed: () => _navigateToAddRecipient(context),
-            tooltip: 'Ajouter un beneficiaire',
+            tooltip: 'Ajouter un bénéficiaire',
           ),
         ],
       ),
@@ -63,7 +63,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
   Widget _buildSearchBar() {
     return StandardSearchBar(
       controller: _searchController,
-      hintText: 'Rechercher un beneficiaire...',
+      hintText: 'Rechercher un bénéficiaire...',
       onChanged: (value) {
         setState(() => _searchQuery = value.toLowerCase());
       },
@@ -82,7 +82,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           const SizedBox(width: 8),
           _buildFilterChip(RecipientType.bankAccount, 'Banque'),
           const SizedBox(width: 8),
-          _buildFilterChip(RecipientType.cashPickup, 'Especes'),
+          _buildFilterChip(RecipientType.cashPickup, 'Espèces'),
         ],
       ),
     );
@@ -120,7 +120,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 ElevatedButton(
                   onPressed:
                       () => ref.invalidate(userRecipientsProvider(userId)),
-                  child: const Text('Reessayer'),
+                  child: const Text('Réessayer'),
                 ),
               ],
             ),
@@ -183,8 +183,8 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           const SizedBox(height: 16),
           Text(
             hasFilters
-                ? 'Aucun beneficiaire trouve'
-                : 'Aucun beneficiaire enregistre',
+                ? 'Aucun bénéficiaire trouvé'
+                : 'Aucun bénéficiaire enregistré',
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: context.textSecondaryColor),
@@ -193,7 +193,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           Text(
             hasFilters
                 ? 'Essayez de modifier vos filtres'
-                : 'Ajoutez votre premier beneficiaire',
+                : 'Ajoutez votre premier bénéficiaire',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: context.textTertiaryColor),
@@ -203,7 +203,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
             ElevatedButton.icon(
               onPressed: () => _navigateToAddRecipient(context),
               icon: const Icon(Icons.person_add),
-              label: const Text('Ajouter un beneficiaire'),
+              label: const Text('Ajouter un bénéficiaire'),
             ),
           ],
         ],
@@ -226,7 +226,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('Supprimer le beneficiaire ?'),
+                title: const Text('Supprimer le bénéficiaire ?'),
                 content: Text('Voulez-vous supprimer ${recipient.fullName} ?'),
                 actions: [
                   TextButton(
@@ -249,7 +249,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
             .read(recipientNotifierProvider.notifier)
             .deleteRecipient(recipient.id, userId);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${recipient.fullName} supprime')),
+          SnackBar(content: Text('${recipient.fullName} supprimé')),
         );
       },
       child: ListTile(

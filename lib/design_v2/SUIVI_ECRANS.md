@@ -1324,9 +1324,31 @@ pareil :
 - les **messages d'exception et de journal** (`'_upsertUserToSupabase:
   upsert effectue avec succes'`) — cosmétique, aucune urgence.
 
-Non corrigés dans cette passe : plusieurs de ces fichiers appartiennent à des
+**Le tunnel des transferts est soldé (2026-08-03)** : `add_recipient_screen`
+(23 chaînes) et `recipient_select_screen` (9) rejoignent `send_money_screen`.
+Les trois écrans du parcours d'envoi sont maintenant accentués.
+
+Deux pièges rencontrés, à connaître avant de faire la même chose ailleurs :
+
+- **`succes` est un préfixe de `success`.** Un remplacement au mot aurait
+  transformé l'identifiant `AppColors.success` en `AppColors.succèss`. Ce
+  mot-là se traite par phrase entière (« ajoute avec succes »), jamais au mot.
+- **`supprime` est à la fois un participe et un verbe.** « Bénéficiaire
+  supprime » veut son accent, « Voulez-vous vraiment supprimer » n'en veut
+  pas. Même conclusion : phrase entière.
+
+⛔ **`'Tillaberi'` n'a délibérément pas été accentué.** La liste
+`_nigerCities` n'est pas un tableau de libellés : la valeur choisie alimente
+`_cityController`, puis le champ `city` **enregistré en base**. L'accentuer
+ferait cohabiter « Tillaberi » et « Tillabéri » dans la même colonne. C'est
+la même règle que pour les centres d'intérêt de la configuration du profil :
+ce qui est stocké ne s'accentue pas sans migration.
+
+Non corrigés dans cette passe : les occurrences restantes appartiennent à des
 features que d'autres sessions touchent, et la correction se fait mieux
-feature par feature qu'en un balayage global.
+feature par feature qu'en un balayage global. `devices_screen` en porte trois
+(« Appareil revoque », « Impossible de revoquer cet appareil », « Erreur lors
+de la revocation »), repérées en passant.
 
 ### §28d — la feuille existe, la moitié du câblage manque
 

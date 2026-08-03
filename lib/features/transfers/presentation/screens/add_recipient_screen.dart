@@ -102,7 +102,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Modifier le beneficiaire' : 'Nouveau beneficiaire',
+          _isEditing ? 'Modifier le bénéficiaire' : 'Nouveau bénéficiaire',
         ),
         actions: [
           if (_isEditing)
@@ -158,7 +158,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
               return 'Le nom est requis';
             }
             if (value.trim().length < 3) {
-              return 'Le nom doit contenir au moins 3 caracteres';
+              return 'Le nom doit contenir au moins 3 caractères';
             }
             return null;
           },
@@ -167,18 +167,18 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         TextFormField(
           controller: _phoneController,
           decoration: const InputDecoration(
-            labelText: 'Numero de telephone *',
+            labelText: 'Numéro de téléphone *',
             hintText: '+227 XX XX XX XX',
             prefixIcon: Icon(Icons.phone_outlined),
           ),
           keyboardType: TextInputType.phone,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Le numero de telephone est requis';
+              return 'Le numéro de téléphone est requis';
             }
             final cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
             if (cleaned.length < 8) {
-              return 'Numero de telephone invalide';
+              return 'Numéro de téléphone invalide';
             }
             return null;
           },
@@ -210,7 +210,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mode de reception',
+          'Mode de réception',
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -296,7 +296,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Details de paiement',
+          'Détails de paiement',
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -316,7 +316,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     return DropdownButtonFormField<String>(
       initialValue: _selectedMobileProvider,
       decoration: const InputDecoration(
-        labelText: 'Operateur mobile *',
+        labelText: 'Opérateur mobile *',
         prefixIcon: Icon(Icons.sim_card_outlined),
       ),
       items:
@@ -330,7 +330,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       },
       validator: (value) {
         if (_selectedType == RecipientType.mobileWallet && value == null) {
-          return 'Selectionnez un operateur';
+          return 'Sélectionnez un opérateur';
         }
         return null;
       },
@@ -361,7 +361,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           validator: (value) {
             if (_selectedType == RecipientType.bankAccount &&
                 (value == null || value.isEmpty)) {
-              return 'Selectionnez une banque';
+              return 'Sélectionnez une banque';
             }
             return null;
           },
@@ -370,7 +370,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         TextFormField(
           controller: _bankAccountController,
           decoration: const InputDecoration(
-            labelText: 'Numero de compte *',
+            labelText: 'Numéro de compte *',
             hintText: 'XXXX XXXX XXXX XXXX',
             prefixIcon: Icon(Icons.credit_card_outlined),
           ),
@@ -378,10 +378,10 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           validator: (value) {
             if (_selectedType == RecipientType.bankAccount) {
               if (value == null || value.trim().isEmpty) {
-                return 'Le numero de compte est requis';
+                return 'Le numéro de compte est requis';
               }
               if (value.replaceAll(' ', '').length < 10) {
-                return 'Numero de compte invalide';
+                return 'Numéro de compte invalide';
               }
             }
             return null;
@@ -405,7 +405,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Le beneficiaire pourra retirer l\'argent dans un point de service NITA avec une piece d\'identite.',
+              'Le bénéficiaire pourra retirer l\'argent dans un point de service NITA avec une pièce d\'identité.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -458,7 +458,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
   Widget _buildFavoriteToggle() {
     return SwitchListTile(
       title: const Text('Ajouter aux favoris'),
-      subtitle: const Text('Acces rapide lors des prochains transferts'),
+      subtitle: const Text('Accès rapide lors des prochains transferts'),
       value: _isFavorite,
       onChanged: (value) {
         setState(() {
@@ -488,7 +488,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
               : Text(
                 _isEditing
                     ? 'Enregistrer les modifications'
-                    : 'Ajouter le beneficiaire',
+                    : 'Ajouter le bénéficiaire',
               ),
     );
   }
@@ -517,7 +517,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     try {
       final user = ref.read(currentUserAsyncProvider).value;
       if (user == null) {
-        throw Exception('Utilisateur non connecte');
+        throw Exception('Utilisateur non connecté');
       }
 
       // debugPrint('👤 User: ${user.id}');
@@ -575,8 +575,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           SnackBar(
             content: Text(
               _isEditing
-                  ? 'Beneficiaire modifie avec succes'
-                  : 'Beneficiaire ajoute avec succes',
+                  ? 'Bénéficiaire modifié avec succès'
+                  : 'Bénéficiaire ajouté avec succès',
             ),
             backgroundColor: AppColors.success,
           ),
@@ -622,9 +622,9 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer le beneficiaire ?'),
+            title: const Text('Supprimer le bénéficiaire ?'),
             content: Text(
-              'Voulez-vous vraiment supprimer ${widget.existingRecipient?.fullName} de vos beneficiaires ?',
+              'Voulez-vous vraiment supprimer ${widget.existingRecipient?.fullName} de vos bénéficiaires ?',
             ),
             actions: [
               TextButton(
@@ -644,7 +644,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       setState(() => _isLoading = true);
       try {
         final user = ref.read(currentUserAsyncProvider).value;
-        if (user == null) throw Exception('Utilisateur non connecte');
+        if (user == null) throw Exception('Utilisateur non connecté');
 
         await ref
             .read(recipientNotifierProvider.notifier)
@@ -653,7 +653,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Beneficiaire supprime'),
+              content: Text('Bénéficiaire supprimé'),
               backgroundColor: AppColors.success,
             ),
           );

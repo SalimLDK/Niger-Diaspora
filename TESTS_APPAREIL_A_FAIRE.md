@@ -709,23 +709,42 @@ vers le haut.
   visible de la session** : il touche boutons pleins et contour, boutons
   texte, FAB, barre de navigation basse, onglets, interrupteurs, cases à
   cocher, radios, barres de progression et bordure de champ au focus.
-  **À vérifier sur le téléphone**, en thème orange puis en thème vert :
-  1. Le nouvel orange est plus foncé et plus terreux. Confirmer que le blanc
-     posé dessus (libellés de boutons pleins, FAB) reste franc — c'est le
-     sens du changement, le contraste s'améliore.
-  2. Les éléments *fins* en orange sont ceux qui risquent de s'assombrir de
-     trop : bordure de champ au focus, coche sélectionnée, piste
-     d'interrupteur, indicateur d'onglet. À regarder sur le fond crème.
-  3. Thème vert : l'orange n'est plus que secondaire, mais il change quand
-     même de teinte. Vérifier qu'il ne jure pas à côté du vert.
+  **Vérifié sur SM A515F le 2026-08-03** (build de `ebc3716`, thème orange,
+  mode clair forcé en adb puis restauré). Couleurs relevées au pixel sur les
+  captures, pas jugées à l'œil — `#B85E24` exactement sur : bouton plein
+  « Compléter ma bio », barre de progression du profil, onglet actif de la
+  navigation basse, bouton composer de la messagerie, icône d'information,
+  bordure de champ **au focus**. Fond `#FAF7F2` et surface `#FFFFFF`
+  conformes au guide.
+  1. [x] **Le blanc sur l'accent** : franc, et mesurable — le contraste blanc
+     sur `#B85E24` est de **4,50:1** (AA pour le texte courant), contre
+     **2,97:1** sur l'ancien `#E07B39`, qui échouait même au seuil du grand
+     texte. C'est le vrai gain du changement.
+  2. [x] **Bordure de champ au focus** : nette, ~4 px réels de `#B85E24` sur
+     le crème. Ma crainte que les traits fins s'assombrissent de trop ne se
+     confirme pas.
+  3. [ ] **Coche, piste d'interrupteur, indicateur d'onglet** : pas atteints
+     pendant la session. Même jeton que les éléments ci-dessus, donc même
+     valeur — mais l'épaisseur du trait n'a pas été jugée.
+  4. [ ] **Thème vert** : non vérifié, le compte de test est en accent
+     orange.
 - [ ] **Dégradés inchangés, volontairement** : `AppColors.primary`
   (`#E07B39`) reste la teinte claire de la famille orange et continue
   d'ouvrir `primaryGradient` (`#E07B39` → `#B85E24`). Un dégradé qui part
   d'un ton plus clair que l'accent est normal, mais si un bandeau paraît
-  désormais désaccordé avec les boutons, c'est là qu'il faut regarder.
-- [ ] **Thèmes sombres non touchés** : ils utilisent déjà
-  `AppColors.primaryLight` (`#F4A574`), l'accent nocturne du guide. Aucun
-  changement attendu en mode nuit.
+  désormais désaccordé avec les boutons, c'est là qu'il faut regarder. Aucun
+  écran à dégradé n'a été ouvert pendant la session.
+- [x] **Thèmes sombres non touchés** : vérifié sur l'appareil — l'accent
+  nocturne reste `#F4A574` (pictogrammes, libellés de section, onglet actif).
+  Aucun changement en mode nuit, comme attendu.
+- [ ] **Bordure forte `#E0D6C6` sur les puces au repos** : c'est le point que
+  j'avais désigné comme le plus à risque, et il **n'a pas été atteint**
+  (`DesignSelectableChip` vit dans la configuration du profil,
+  `DesignSecondaryButton` dans ses barres de navigation). Les puces de filtre
+  de la messagerie, elles, utilisent la bordure fine `#EFE7DB` : visible sur
+  la capture, leur contour est très discret, la puce ne tient que par son
+  aplat blanc sur le fond crème. À trancher en voyant la configuration du
+  profil.
 
 ## Feature flags & accès aux écrans
 
@@ -845,6 +864,16 @@ mais c'est exactement ce qu'il faut regarder en premier :
   à recevoir » tiennent toujours sur une ligne à `font_scale = 1.1` — un
   accent ajoute de la hauteur, pas de la largeur, mais les libellés
   s'allongent d'un caractère.
+- [ ] **Accents du choix et de l'ajout de bénéficiaire** (2026-08-03) :
+  32 chaînes de plus sur `add_recipient_screen` et `recipient_select_screen`.
+  Les libellés de champs (« Numéro de téléphone \* », « Opérateur mobile \* »)
+  et les messages de validation sont les plus exposés — un `labelText` trop
+  long passe en ellipse sans prévenir. Vérifier aussi les trois SnackBars
+  (« Bénéficiaire ajouté/modifié/supprimé avec succès »).
+- [ ] **La ville reste sans accent, exprès** : « Tillaberi » dans la liste de
+  `add_recipient_screen` alimente le champ `city` enregistré en base.
+  Vérifier au passage qu'un bénéficiaire créé avant aujourd'hui affiche
+  toujours sa ville correctement.
 
 ## Bascule design_v2 → production : la carte (§7e, 2026-08-03)
 
