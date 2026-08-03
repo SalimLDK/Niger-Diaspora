@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -44,7 +43,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                  Icon(Icons.error_outline, size: 48, color: context.errorColor),
                   const SizedBox(height: 16),
                   Text('Erreur: $error'),
                 ],
@@ -205,7 +204,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: AppColors.primary,
+                    color: context.adaptivePrimaryColor,
                   ),
                 ),
               ],
@@ -226,7 +225,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
+                color: context.adaptiveSecondaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -235,13 +234,13 @@ class TransactionDetailScreen extends ConsumerWidget {
                     'Montant recu',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.secondary),
+                    ).textTheme.bodySmall?.copyWith(color: context.adaptiveSecondaryColor),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     xofFormat.format(transaction.amountInXof),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppColors.secondary,
+                      color: context.adaptiveSecondaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -275,11 +274,11 @@ class TransactionDetailScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  backgroundColor: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                   child: Text(
                     _getInitials(transaction.recipientName ?? ''),
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: context.adaptivePrimaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -413,7 +412,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               value,
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: isError ? AppColors.error : null,
+                color: isError ? context.errorColor : null,
               ),
             ),
             if (canCopy) ...[
@@ -529,42 +528,42 @@ class TransactionDetailScreen extends ConsumerWidget {
     return switch (kind) {
       TransferFailureKind.operatorBlocked => _StatusInfo(
           icon: Icons.block,
-          color: AppColors.error,
+          color: context.errorColor,
           label: l10n.transferFailOperatorBlockedTitle,
           description: l10n.transferFailOperatorBlockedDesc,
           debitNotice: debitNotice,
         ),
       TransferFailureKind.duplicatePrevented => _StatusInfo(
           icon: Icons.shield_outlined,
-          color: AppColors.info,
+          color: context.infoColor,
           label: l10n.transferFailDuplicateTitle,
           description: l10n.transferFailDuplicateDesc,
           debitNotice: debitNotice,
         ),
       TransferFailureKind.invalidRecipient => _StatusInfo(
           icon: Icons.person_off_outlined,
-          color: AppColors.warning,
+          color: context.warningColor,
           label: l10n.transferFailInvalidRecipientTitle,
           description: l10n.transferFailInvalidRecipientDesc,
           debitNotice: debitNotice,
         ),
       TransferFailureKind.paymentDeclined => _StatusInfo(
           icon: Icons.credit_card_off,
-          color: AppColors.error,
+          color: context.errorColor,
           label: l10n.transferFailDeclinedTitle,
           description: l10n.transferFailDeclinedDesc,
           debitNotice: debitNotice,
         ),
       TransferFailureKind.insufficientFunds => _StatusInfo(
           icon: Icons.account_balance_wallet_outlined,
-          color: AppColors.warning,
+          color: context.warningColor,
           label: l10n.transferFailInsufficientTitle,
           description: l10n.transferFailInsufficientDesc,
           debitNotice: debitNotice,
         ),
       TransferFailureKind.networkTimeout => _StatusInfo(
           icon: Icons.wifi_off,
-          color: AppColors.warning,
+          color: context.warningColor,
           label: l10n.transferFailTimeoutTitle,
           description: l10n.transferFailTimeoutDesc,
           debitNotice: debitNotice,
@@ -572,7 +571,7 @@ class TransactionDetailScreen extends ConsumerWidget {
       // Comportement historique conservé tel quel.
       TransferFailureKind.unknown => _StatusInfo(
           icon: Icons.error,
-          color: AppColors.error,
+          color: context.errorColor,
           label: 'Echoue',
           description: 'Le transfert a echoue. Veuillez reessayer.',
         ),
@@ -590,35 +589,35 @@ class TransactionDetailScreen extends ConsumerWidget {
       case TransactionStatus.pending:
         return _StatusInfo(
           icon: Icons.schedule,
-          color: AppColors.warning,
+          color: context.warningColor,
           label: 'En attente',
           description: 'Votre transfert est en attente de traitement.',
         );
       case TransactionStatus.processing:
         return _StatusInfo(
           icon: Icons.sync,
-          color: AppColors.info,
+          color: context.infoColor,
           label: 'En cours',
           description: 'Votre transfert est en cours de traitement.',
         );
       case TransactionStatus.completed:
         return _StatusInfo(
           icon: Icons.check_circle,
-          color: AppColors.success,
+          color: context.successColor,
           label: 'Termine',
           description: 'Votre transfert a ete effectue avec succes !',
         );
       case TransactionStatus.failed:
         return _StatusInfo(
           icon: Icons.error,
-          color: AppColors.error,
+          color: context.errorColor,
           label: 'Echoue',
           description: 'Le transfert a echoue. Veuillez reessayer.',
         );
       case TransactionStatus.refunded:
         return _StatusInfo(
           icon: Icons.replay,
-          color: AppColors.info,
+          color: context.infoColor,
           label: 'Rembourse',
           description: 'Le montant a ete rembourse sur votre compte.',
         );

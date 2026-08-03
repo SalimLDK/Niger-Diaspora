@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -495,21 +496,21 @@ class _StatusChip extends StatelessWidget {
   (Color, Color) _getStatusColors(BuildContext context) {
     switch (status) {
       case OrderStatus.pending:
-        return (Colors.orange.shade700, Colors.orange.shade50);
+        return (context.warningColor, context.warningBackgroundColor);
       case OrderStatus.paid:
-        return (Colors.blue.shade700, Colors.blue.shade50);
+        return (context.infoColor, context.infoBackgroundColor);
       case OrderStatus.shipped:
         return (Colors.purple.shade700, Colors.purple.shade50);
       case OrderStatus.delivered:
         return (Colors.teal.shade700, Colors.teal.shade50);
       case OrderStatus.completed:
-        return (Colors.green.shade700, Colors.green.shade50);
+        return (context.successColor, context.successBackgroundColor);
       case OrderStatus.disputed:
-        return (Colors.red.shade700, Colors.red.shade50);
+        return (context.errorColor, context.errorBackgroundColor);
       case OrderStatus.refunded:
-        return (Colors.grey.shade700, Colors.grey.shade200);
+        return (context.textSecondaryColor, context.surfaceVariantColor);
       case OrderStatus.cancelled:
-        return (Colors.grey.shade700, Colors.grey.shade200);
+        return (context.textSecondaryColor, context.surfaceVariantColor);
     }
   }
 }
@@ -558,16 +559,16 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
         if (mounted) {
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Paiement effectue avec succes!'),
-                backgroundColor: Colors.green,
+                backgroundColor: context.successColor,
               ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Erreur lors de la mise a jour de la commande'),
-                backgroundColor: Colors.red,
+                backgroundColor: context.errorColor,
               ),
             );
           }
@@ -578,7 +579,7 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur de paiement: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: context.errorColor,
           ),
         );
       }
@@ -602,9 +603,9 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
       setState(() => _isLoading = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Livraison confirmee'),
-            backgroundColor: Colors.green,
+            backgroundColor: context.successColor,
           ),
         );
       }
@@ -627,9 +628,9 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
       setState(() => _isLoading = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Commande marquee comme expediee'),
-            backgroundColor: Colors.green,
+            backgroundColor: context.successColor,
           ),
         );
       }
@@ -685,8 +686,8 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
           child: ElevatedButton.icon(
             onPressed: _processPayment,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: context.successColor,
+              foregroundColor: context.onPrimaryColor,
               padding: const EdgeInsets.symmetric(vertical: 8),
             ),
             icon: const Icon(Icons.payment, size: 18),
