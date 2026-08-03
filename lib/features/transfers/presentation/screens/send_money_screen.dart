@@ -76,11 +76,12 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   // Couleurs du transfert (refonte §6/12a).
   //
-  // L'orange d'action du guide de style. L'étape à venir, elle, portait une
-  // copie figée de l'ancienne bordure (`#E8DFD4`) — un beige clair qui
-  // restait clair en nocturne : elle passe désormais par
-  // `colorScheme.outline`, qui suit le thème.
-  static const _kTransferAccent = Color(0xFFB85E24);
+  // Plus rien n'est figé ici. L'accent suit `colorScheme.primary` — donc le
+  // thème choisi par le compte, et sa version éclaircie en nocturne — et
+  // l'étape à venir `colorScheme.outline`. Les deux recopiaient un jeton
+  // (`#B85E24`, `#E8DFD4`) et gardaient donc leur valeur de thème clair en
+  // mode nuit. Le texte posé sur l'accent passe par `colorScheme.onPrimary` :
+  // le guide impose de l'encre foncée sur l'accent nocturne, jamais du blanc.
 
   Widget _stepContent(
     ThemeData theme,
@@ -113,18 +114,24 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             height: 22,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: active ? _kTransferAccent : theme.colorScheme.outline,
+              color: active
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
               shape: BoxShape.circle,
             ),
             child: done
-                ? const Icon(Icons.check, size: 14, color: Colors.white)
+                ? Icon(
+                    Icons.check,
+                    size: 14,
+                    color: theme.colorScheme.onPrimary,
+                  )
                 : Text(
                     '${idx + 1}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: active
-                          ? Colors.white
+                          ? theme.colorScheme.onPrimary
                           : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
@@ -152,7 +159,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           padding: const EdgeInsets.only(top: 10),
           child: Container(
             height: 2,
-            color: done ? _kTransferAccent : theme.colorScheme.outline,
+            color: done
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline,
           ),
         ),
       );
@@ -199,20 +208,20 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               height: 52,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _kTransferAccent,
-                  foregroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 onPressed: _isLoading ? null : _onStepContinue,
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: theme.colorScheme.onPrimary,
                         ),
                       )
                     : Text(
@@ -605,7 +614,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: active
-              ? _kTransferAccent
+              ? theme.colorScheme.primary
               : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -614,7 +623,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: active ? Colors.white : theme.colorScheme.onSurface,
+            color: active
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSurface,
           ),
         ),
       ),

@@ -543,6 +543,23 @@ sont invisibles à `flutter analyze` :
   vérifier** : dans une conversation en mode nuit, la bulle reçue doit encore
   se détacher du fond.
 
+- [ ] **Le tunnel de transfert suit désormais l'accent du compte**
+  (`transfers/…/send_money_screen.dart`, les deux copies) : `_kTransferAccent`
+  figeait `#B85E24` sur les 5 points d'accent (rond d'étape actif, barre
+  franchie, bouton principal, puce de montant rapide), toujours avec du
+  `Colors.white` en dur. Tout passe par `colorScheme.primary` /
+  `colorScheme.onPrimary`. **C'est un changement de comportement assumé, pas
+  seulement un correctif** — trois choses à regarder :
+  1. **Compte en accent vert** : le tunnel devient vert. C'était orange pour
+     tout le monde jusqu'ici. Vérifier que rien ne jure avec le reste de
+     l'écran.
+  2. **Compte en accent orange** : la teinte glisse de `#B85E24` à `#E07B39`
+     (`colorScheme.primary` du thème orange), donc un orange plus clair. Le
+     blanc dessus reste-t-il franc ?
+  3. **Mode nuit** : l'accent s'éclaircit et le texte dessus devient de l'encre
+     foncée au lieu du blanc — c'est la règle du guide. Confirmer sur le rond
+     d'étape (chiffre + coche), le bouton « Continuer » et son spinner.
+
 ## Feature flags & accès aux écrans
 
 - [ ] **Déblocage des routes gardées par les flags** (`lib/core/router/app_router.dart`,
