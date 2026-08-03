@@ -369,7 +369,7 @@ pas séparément.
 
 | Maquette | Feuille | Fichier | Structure |
 |---|---|---|---|
-| 27a | Actions sur un message | discussion | à faire |
+| 27a | Actions sur un message | `messages/…/conversation_screen.dart` | ✅ faite — voir « Feuille d'actions sur un message » |
 | 27b | Confirmation destructive | `messages/…/widgets/delete_message_modal.dart` | ✅ câblée |
 | 27c | Signaler un contenu | `reports/…/widgets/report_content_modal.dart` | ✅ câblée |
 | 27d | Joindre un média | `messages/…/media_batch_preview_screen.dart` | ✅ câblée |
