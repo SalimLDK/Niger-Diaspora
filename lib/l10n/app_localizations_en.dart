@@ -15580,4 +15580,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileStatPosts => 'Posts';
+
+  @override
+  String get filterUnreadFeminine => 'Unread';
 }

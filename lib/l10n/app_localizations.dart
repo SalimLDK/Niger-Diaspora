@@ -28789,6 +28789,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Publications'**
   String get profileStatPosts;
+
+  /// Filtre « non lues » au feminin (notifications) ; filterUnread reste au masculin pour les messages
+  ///
+  /// In fr, this message translates to:
+  /// **'Non lues'**
+  String get filterUnreadFeminine;
 }
 
 class _AppLocalizationsDelegate

@@ -467,7 +467,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             const SizedBox(width: 8),
             _filterChip(
               context,
-              l10n.filterUnread,
+              // « notifications » est féminin : filterUnread reste au
+              // masculin pour la messagerie, qui filtre des messages.
+              l10n.filterUnreadFeminine,
               NotificationFilter.unread,
               badge: unreadCount,
             ),

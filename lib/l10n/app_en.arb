@@ -7481,5 +7481,9 @@
   "profileStatPosts": "Posts",
   "@profileStatPosts": {
     "description": "Libelle autonome de la statistique ; la cle posts reste en minuscule pour les incises"
+  },
+  "filterUnreadFeminine": "Unread",
+  "@filterUnreadFeminine": {
+    "description": "Filtre « non lues » au feminin (notifications) ; filterUnread reste au masculin pour les messages"
   }
 }

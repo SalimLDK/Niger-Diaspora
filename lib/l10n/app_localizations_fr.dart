@@ -15728,4 +15728,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileStatPosts => 'Publications';
+
+  @override
+  String get filterUnreadFeminine => 'Non lues';
 }

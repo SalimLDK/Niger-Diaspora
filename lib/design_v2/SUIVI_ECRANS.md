@@ -23,6 +23,24 @@ Légende de l'état :
 | 15b | Inscription | `auth/…/register_screen.dart` | fait |
 | — | Gabarit auth + boutons | `auth/…/widgets/auth_scaffold.dart`, `auth_button.dart` | fait |
 
+## §12c Notifications — écarts avec la maquette, relevés sur appareil
+
+L'écran rend et ne lève aucune exception, mais il lui manque trois choses
+que la maquette 12c montre. Relevé, **non implémenté** — ce sont des ajouts
+de fonctionnalité, pas des correctifs :
+
+| Manque | Ce que la maquette montre |
+|---|---|
+| Sous-titre de compte | « 4 non lues » sous le titre |
+| Action « Tout lire » | bouton dédié à côté du filtre |
+| Pastille de compte sur la puce | « Non lues **4** » |
+| Regroupement par jour | intertitres « AUJOURD'HUI » / « CETTE SEMAINE » |
+
+Corrigé en revanche : la puce affichait « Non lus » au masculin.
+`filterUnread` est **partagée** avec la messagerie, où le masculin est juste
+(des *messages* non lus) ; ici il s'agit de *notifications*, féminin. Une clé
+`filterUnreadFeminine` sépare les deux.
+
 ## Bascule vers la production — famille 1 : onboarding + auth (2026-08-03)
 
 **Faite.** Première des familles prévues. La trousse `design_kit.dart` rejoint
