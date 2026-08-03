@@ -236,8 +236,89 @@ Ce sont des **décisions produit**, pas du design : elles doivent être
 tranchées avant d'implémenter cet écran, sinon on affichera des délais
 inventés.
 
+## Cinquième vague — salons audio et podcasts
+
+Les deux features audio, qui étaient jusqu'ici la principale zone sans
+maquette. Quatre documents, 22 maquettes.
+
+**5 des 22 sont déjà câblées** (`grep -rl "§" lib/features/audio_rooms
+lib/features/podcasts` remonte §1a, §1c, §1d, §1e, §1h). Comme pour les
+vagues précédentes, cela vaut pour la **structure** : le langage visuel
+reste à appliquer partout.
+
+### Document 1 — écouter
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 1a | Salons audio — liste | `audio_rooms/…/audio_rooms_list_screen.dart` | 849 l. | ✅ câblée |
+| 1b | Salon en direct | `audio_rooms/…/audio_room_screen.dart` | 1528 l. | à faire |
+| 1c | Bibliothèque du patrimoine | `audio_rooms/…/heritage_library_screen.dart` | 1432 l. | ✅ câblée |
+| 1d | Podcasts — accueil | `podcasts/…/podcasts_home_screen.dart` | 704 l. | ✅ câblée |
+| 1e | Lecteur d'épisode | `podcasts/…/episode_detail_screen.dart` | 996 l. | ✅ câblée |
+| — | Lecteur de replay (même gabarit que 1e) | `audio_rooms/…/replay_player_screen.dart` | 771 l. | à faire |
+| 1f | Revenus créateur | `audio_rooms/…/creator_earnings_screen.dart` | 545 l. | à faire |
+| 1g | Envoyer un don | `audio_rooms/…/widgets/send_tip_bottom_sheet.dart` | 340 l. | à faire |
+| 1h | Acheter un billet | `audio_rooms/…/widgets/buy_ticket_bottom_sheet.dart` | 336 l. | ✅ câblée |
+
+### Document 2 — créer et publier
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 2a | Ouvrir un salon | `audio_rooms/…/create_audio_room_screen.dart` | 638 l. | à faire |
+| 2b | Programmer — multi-fuseaux | `audio_rooms/…/widgets/timezone_display_widget.dart` | 536 l. | à faire |
+| 2c | Publier en podcast | `audio_rooms/…/save_as_podcast_screen.dart` | 366 l. | à faire |
+| 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | à faire |
+| 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | à faire |
+| 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | à faire |
+| 2g | Salons — nocturne | `audio_rooms_list_screen.dart` | — | à faire |
+
+### Documents 3 et 4 — gérer, modérer, mesurer
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 3a | Mes podcasts (créateur) | `podcasts/…/my_podcasts_screen.dart` | 525 l. | à faire |
+| 3b | Fiche d'un podcast | `podcasts/…/podcast_detail_screen.dart` | 531 l. | à faire |
+| 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | à faire |
+| — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | à faire |
+| 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | à faire |
+| 4b | Lecteur — nocturne | même écran que 1e | — | à faire |
+| 4c | Patrimoine oral — nocturne | même écran que 1c | — | à faire |
+
+### ⚠️ Ces maquettes reposent sur de l'argent qui ne circule pas encore
+
+Les documents 1 à 4 affichent des prix d'entrée, des abonnements mensuels,
+des dons, des replays payants et un solde créateur retirable. Deux réserves
+avant de traiter ces écrans :
+
+1. **Ne pas inventer de chiffres.** Les maquettes elles-mêmes marquent leurs
+   montants « propositions à valider » : paliers de don, tarif des épisodes
+   payants, montants de revenus, et surtout **le taux de commission hors
+   don** — le code ne fixe explicitement que les 95 % reversés sur un don.
+   Tant que ce n'est pas tranché, afficher un taux serait une invention.
+2. **Vérifier l'état réel du backend** (abonnements, replays payants,
+   versements) avant de dessiner un écran qui promet une opération que
+   l'app ne sait pas encore exécuter. C'est le piège déjà rencontré sur ces
+   mêmes écrans : une interface complète posée sur un chemin de paiement
+   qui n'aboutissait pas.
+
+## États vides et nocturne de l'accueil (1a→1c, 2d)
+
+Cette série ne décrit pas de nouvel écran : c'est l'accueil déjà repris dans
+`design_v2`, vu **en situation de vide**. Elle confirme les trois causes
+distinctes qui y sont implémentées (position active mais personne autour,
+position coupée, et les trois vides d'événements).
+
+Un manque reste, explicite dans la maquette 1b « CAS 3 · CHARGEMENT » :
+
+| Ce qui manque | Où | Exigence de la maquette |
+|---|---|---|
+| Squelette de chargement | `home/…/home_screen_widgets.dart` | Afficher un squelette pendant la recherche des membres proches — **jamais** de texte « vide » avant la fin du chargement |
+
+C'est un vrai défaut d'usage et pas seulement du visuel : aujourd'hui l'état
+vide peut s'afficher avant que la recherche ait abouti, ce qui annonce
+« personne autour » à quelqu'un qui a peut-être des voisins.
+
 ## Écrans hors maquettes
 
-Restent sans maquette à ce jour, et hors périmètre annoncé : les salons
-audio (8 écrans), les podcasts (7 écrans) et le back-office admin
-(19 écrans). Ces écrans gardent leur habillage actuel.
+Reste sans maquette à ce jour, et hors périmètre annoncé : le back-office
+admin (19 écrans). Ces écrans gardent leur habillage actuel.
