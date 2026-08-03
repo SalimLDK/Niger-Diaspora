@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
@@ -18,7 +19,11 @@ class NotificationSettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.notificationSettings),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.notificationSettings, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),

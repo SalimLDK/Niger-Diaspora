@@ -805,6 +805,11 @@ parce qu'il change un **comportement**, pas seulement un habillage :
   **thème sombre** — libellés sur l'accent, puces de rayon et de filtre
   sélectionnées, pastille de la légende.
 
+- [ ] **Réglages de notifications** (§20d) : seul le titre de la barre a
+  changé (serif, barre plate). Vérifier que les **étiquettes de section en
+  chasse fixe** et le bandeau d'information sont restés tels quels — c'est
+  précisément ce qu'une bascule du fichier aurait annulé.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

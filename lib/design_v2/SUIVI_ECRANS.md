@@ -215,21 +215,55 @@ sens** :
 | `home_screen`, `home_screen_widgets` | `e6172b3` squelette à l'élargissement | oui (le correctif est né dans la copie) | **basculés** |
 | `send_money_screen` | `f833a07`, `e3e47a3` | oui, les deux | **basculé** |
 | `call_screen` | `0ce170a` — **§23a fait en production** | non | ⛔ **ne pas basculer** |
-| `notification_settings_screen` | `642761f` — **§20d fait en production** | non | ⛔ **ne pas basculer** |
+| `notification_settings_screen` | `642761f` — §20d fait en production | non, malgré une copie plus récente | **titre serif porté à la main** |
 | `devices_screen`, `security_backup_screen` | `13861b7` — **§20b/§20c faits en production** | non | ⛔ **ne pas basculer** |
 | `settings_screen` | `0d90246` entrée debug vers `/design-v2` | non | ⏸ **à la fin** — voir ci-dessous |
 | `map_screen` | `94d721c`, `bdcd795` | **oui — la copie est postérieure aux deux** | **basculé** |
 
-### Quatre copies sont périmées, pas en attente
+### `notification_settings_screen` — la date dit une chose, le contenu une autre
 
-`call_screen`, `notification_settings_screen`, `devices_screen` et
-`security_backup_screen` portent des maquettes qui ont ensuite été
-implémentées **directement en production** (§23a, §20d, §20b, §20c). Leur
-copie est antérieure à ce travail : la basculer serait une régression pure.
+Ce fichier a failli être basculé sur la foi de sa date : sa copie est
+postérieure de six minutes au commit qui a fait le §20d en production
+(`642761f` à 08:52, copie à 08:58), donc « elle devrait le contenir ».
+
+**Elle ne le contient pas.** Le contenu tranche, pas l'horodatage :
+
+| | Copie | Production |
+|---|---|---|
+| Libellés de section (§20d) | pictogramme en pastille teintée | étiquette en chasse fixe |
+| Bandeau d'information | `AppColors.info` — **jeton figé du thème clair** | `context.infoColor` |
+| Titre de la barre | `DesignTitle` serif | `Text` ordinaire |
+
+La basculer aurait annulé le §20d **et** réintroduit un jeton figé, c'est-à-dire
+la famille de défauts la plus récurrente du projet. Seul le titre serif
+méritait d'être repris : il l'a été à la main, quatre lignes, le reste de la
+production intact (`robotoMono` 1, `context.infoColor` 3, `AppColors.info` 0).
+
+**Règle qui en sort** : la date sert à *savoir quoi regarder*, jamais à
+décider. Deux fichiers modifiés le même jour à quelques minutes d'écart ne
+sont pas ordonnés de façon fiable, et une copie peut être prise d'un état de
+travail plus ancien que son commit.
+
+### Trois copies sont périmées, pas en attente
+
+`call_screen`, `devices_screen` et `security_backup_screen` portent des
+maquettes implémentées **ensuite directement en production** (§23a, §20b,
+§20c) : `0ce170a` et `13861b7` sont postérieurs à leur copie. La basculer
+serait une régression.
+
+(`notification_settings_screen` était dans cette liste ; il en sort par le
+haut — son écart utile a été porté à la main, voir ci-dessus.)
 
 Elles ne se basculent pas — elles se **suppriment** avec le reste de
 `design_v2`. À ne pas confondre avec « reste à faire » dans un futur
 inventaire : le travail est fait, il est en production.
+
+⚠️ `call_screen` mérite un dernier regard avant suppression : sa copie
+(`355ec6a`) et la production (`0ce170a`) implémentent **toutes les deux** la
+§23a, indépendamment. Ce n'est pas « une version en retard » mais deux
+lectures de la même maquette. La production gagne par défaut — c'est elle qui
+tourne — mais si un détail de la copie est meilleur, c'est le moment de le
+prendre, pas après la suppression du dossier.
 
 ### `settings_screen` attend la fin, exprès
 
