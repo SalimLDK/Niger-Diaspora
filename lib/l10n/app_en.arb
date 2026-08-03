@@ -7448,5 +7448,9 @@
   "recordingHandsFree": "Hands free — you can let go of the screen",
   "@recordingHandsFree": {
     "description": "Explique pourquoi l enregistrement continue sans le doigt"
+  },
+  "pollLabel": "Poll",
+  "@pollLabel": {
+    "description": "Tuile de la grille de pieces jointes"
   }
 }

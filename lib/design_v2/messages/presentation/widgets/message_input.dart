@@ -1213,7 +1213,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.photo_camera,
         label: l10n.cameraSection,
-        color: context.adaptiveSecondaryColor,
+        color: context.adaptivePrimaryColor,
         onTap: () {
           _toggleAttachPanel();
           _openCamera();
@@ -1231,7 +1231,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.description,
         label: l10n.documentsLabel,
-        color: Colors.blue,
+        color: context.adaptivePrimaryColor,
         onTap: () {
           _toggleAttachPanel();
           _pickFile();
@@ -1241,7 +1241,7 @@ class _MessageInputState extends State<MessageInput>
         _buildAttachTile(
           icon: Icons.location_on,
           label: l10n.positionLabel,
-          color: Colors.green,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             _showLocationPicker();
@@ -1250,8 +1250,8 @@ class _MessageInputState extends State<MessageInput>
       if (widget.onCreatePoll != null)
         _buildAttachTile(
           icon: Icons.poll,
-          label: 'Sondage',
-          color: const Color(0xFF6B5CE0),
+          label: l10n.pollLabel,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             widget.onCreatePoll!();
@@ -1260,8 +1260,8 @@ class _MessageInputState extends State<MessageInput>
       if (widget.onCreateEvent != null)
         _buildAttachTile(
           icon: Icons.event,
-          label: 'Événement',
-          color: Colors.teal,
+          label: l10n.eventLabel,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             widget.onCreateEvent!();

@@ -15549,4 +15549,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recordingHandsFree => 'Hands free — you can let go of the screen';
+
+  @override
+  String get pollLabel => 'Poll';
 }

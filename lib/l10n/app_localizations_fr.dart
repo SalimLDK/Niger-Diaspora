@@ -15697,4 +15697,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recordingHandsFree => 'Mains libres — vous pouvez lâcher l’écran';
+
+  @override
+  String get pollLabel => 'Sondage';
 }

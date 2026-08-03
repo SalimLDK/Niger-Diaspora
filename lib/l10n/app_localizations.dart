@@ -28747,6 +28747,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mains libres — vous pouvez lâcher l’écran'**
   String get recordingHandsFree;
+
+  /// Tuile de la grille de pieces jointes
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage'**
+  String get pollLabel;
 }
 
 class _AppLocalizationsDelegate

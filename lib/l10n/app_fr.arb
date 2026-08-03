@@ -7942,5 +7942,9 @@
   "recordingHandsFree": "Mains libres — vous pouvez lâcher l’écran",
   "@recordingHandsFree": {
     "description": "Explique pourquoi l enregistrement continue sans le doigt"
+  },
+  "pollLabel": "Sondage",
+  "@pollLabel": {
+    "description": "Tuile de la grille de pieces jointes"
   }
 }

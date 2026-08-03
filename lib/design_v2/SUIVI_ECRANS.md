@@ -161,11 +161,32 @@ si on annonçait une suppression imminente.
 Cinq clés ARB ajoutées (fr + en, `@clé` à parité). Deux `Colors.red` de
 plus passent à `context.errorColor`.
 
-**Reste à faire sur le composer** : 4c décrit trois changements de
-structure que je n'ai pas faits — le « + » qui sort du champ en cible de
-40 px, la feuille « + » en grille ancrée de six tuiles (au lieu du menu
-caché), et le panneau unique Emojis/GIF/Stickers avec les récents en
-premier. Ce sont des remaniements de disposition, pas des libellés.
+#### Les trois remaniements de §4c — vérifiés un par un
+
+Après vérification, **deux des trois étaient déjà en place**, et le
+troisième ne tenait qu'à des couleurs. Le détail, parce que « c'est déjà
+fait » ne se croit pas sur parole :
+
+| §4c | Attendu | Constat |
+|---|---|---|
+| 1 · Le « + » sort du champ | cible de 40 px hors du champ | déjà fait — `_buildPlusButton`, 42 px, pastille ronde, glyphe qui pivote en croix |
+| 2 · Feuille « + » en grille ancrée | six tuiles, panneau ancré et non modal | déjà fait — `_showAttachPanel` + `_buildAttachPanel`, les six tuiles y sont (l'ancienne modale reste en repli sur appui long) |
+| 3 · Panneau unique, récents en premier | trois onglets Emojis/GIF/Stickers | déjà fait — `EmojiStickerPicker`, et `emoji_picker_flutter` ouvre sur `Category.RECENT` avec `RecentTabBehavior.RECENT` **par défaut** : les récents sont donc bien en tête sans rien coder |
+
+**Ce qui n'allait pas, en revanche : les couleurs des tuiles.** La maquette
+impose deux familles — « terracotta pour les médias, vert pour ce qui crée
+un objet partagé ». Le code en portait **six** sans rapport : vert pour la
+caméra, terracotta pour la galerie, bleu pour les documents, vert pour la
+position, violet `#6B5CE0` pour le sondage, teal pour l'événement.
+
+Six couleurs ne disent rien : personne n'apprend un code à six entrées vu
+une seconde. Deux familles, si — ce que j'envoie depuis mon téléphone
+(caméra, galerie, document → terracotta) contre ce que je crée pour la
+conversation (position, sondage, événement → vert).
+
+Au passage, `'Sondage'` et `'Événement'` étaient codés en dur : le premier
+a désormais sa clé `pollLabel`, le second réutilise `eventLabel` qui
+existait déjà.
 
 #### Feuille d'actions sur un message (§27a) — fait
 
