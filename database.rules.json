@@ -151,10 +151,17 @@
                 }
             }
         },
+        "superAdmins": {
+            ".read": false,
+            ".write": false,
+            "$userId": {
+                ".validate": "newData.isBoolean() || !newData.exists()"
+            }
+        },
         "admins": {
             "$userId": {
                 ".read": "auth != null && auth.uid === $userId",
-                ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+                ".write": "auth != null && root.child('superAdmins').child(auth.uid).val() === true",
                 ".validate": "newData.isBoolean() || !newData.exists()"
             }
         },
