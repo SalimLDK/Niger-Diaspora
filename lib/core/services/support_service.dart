@@ -40,6 +40,14 @@ class SupportService {
   String get feedbackEmail => urls.feedbackEmail;
   String get moderationEmail => urls.moderationEmail;
 
+  /// Numéro du support, vide tant qu'aucun n'est configuré.
+  String get supportPhone => urls.supportPhone;
+
+  /// Y a-t-il un numéro joignable ? Les écrans doivent masquer la ligne
+  /// « Téléphone » quand ce n'est pas le cas, plutôt qu'afficher un
+  /// gabarit du type « +33 1 XX XX XX XX ».
+  bool get hasSupportPhone => urls.supportPhone.trim().isNotEmpty;
+
   /// Open email client with pre-filled subject and body
   Future<bool> sendEmail({
     required String to,

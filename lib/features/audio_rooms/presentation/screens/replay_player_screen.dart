@@ -45,16 +45,17 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   double _playbackSpeed = 1.0;
   int _currentChapter = 0; // 0-based
 
-  // Chapitres de repli si l'entité n'en fournit pas.
-  static const _chapters = ['Introduction', 'Actualités', 'Diaspora & politique', 'Q&R', 'Conclusion'];
-
   /// Chapitres réels de l'entité (avec timestamps), sinon [].
+  ///
+  /// Un repli de cinq titres inventés (« Introduction », « Actualités »…)
+  /// était affiché quand le replay n'en portait aucun, et le tap dessus
+  /// sautait à `i / 5` de la piste. C'était de la donnée fabriquée présentée
+  /// comme réelle : sans chapitres, on n'en montre plus.
   List<ReplayChapter> get _chaptersData => widget.replay?.chapters ?? const [];
   bool get _hasRealChapters => _chaptersData.isNotEmpty;
 
-  /// Titres affichés : réels si fournis, sinon les repères de repli.
   List<String> get _chapterTitles =>
-      _hasRealChapters ? _chaptersData.map((c) => c.title).toList() : _chapters;
+      _chaptersData.map((c) => c.title).toList();
 
   // Lecture audio réelle (§1e) via le service partagé just_audio.
   final AudioPlaybackService _audio = AudioPlaybackService();
@@ -82,6 +83,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     final videoUrl = widget.replay?.videoUrl;
     if (videoUrl != null && videoUrl.isNotEmpty) {
       _videoCtrl = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+        ..addListener(_onVideoTick)
         ..initialize().then((_) {
           if (mounted) setState(() => _videoInitialized = true);
         });
@@ -130,6 +132,48 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     }
   }
 
+  /// Rafraîchit le compteur et la barre pendant la lecture vidéo.
+  ///
+  /// Le contrôleur n'était écouté par personne : sans ça, la position affichée
+  /// resterait figée sur la valeur du premier rendu.
+  void _onVideoTick() {
+    final ctrl = _videoCtrl;
+    if (!mounted || ctrl == null || !ctrl.value.isInitialized) return;
+    final total = ctrl.value.duration;
+    setState(() {
+      _isPlaying = ctrl.value.isPlaying;
+      _progress = total > Duration.zero
+          ? (ctrl.value.position.inMilliseconds / total.inMilliseconds)
+              .clamp(0.0, 1.0)
+          : 0.0;
+      final ch = _chaptersData;
+      if (ch.isNotEmpty) {
+        var idx = 0;
+        for (var j = 0; j < ch.length; j++) {
+          if (ctrl.value.position.inSeconds >= ch[j].startSeconds) idx = j;
+        }
+        _currentChapter = idx;
+      }
+    });
+  }
+
+  /// Position et durée courantes, quelle que soit la source.
+  ///
+  /// Le compteur de la vidéo dérivait d'une durée totale codée en dur à
+  /// 1 h 14 (`_fmtProgress`) : le temps affiché n'avait aucun rapport avec le
+  /// fichier lu. Le contrôleur vidéo porte les vraies valeurs ; on retombe sur
+  /// la durée annoncée par l'entité tant qu'il n'est pas initialisé.
+  Duration get _currentPosition =>
+      _isAudio ? _position : (_videoCtrl?.value.position ?? Duration.zero);
+
+  Duration get _currentTotal {
+    if (_isAudio) return _total;
+    final d = _videoCtrl?.value.duration ?? Duration.zero;
+    return d > Duration.zero
+        ? d
+        : Duration(seconds: widget.replay?.durationSeconds ?? 0);
+  }
+
   /// Saut relatif (§1e : −10 s / +30 s) sur la lecture réelle.
   Future<void> _skip(int seconds) async {
     if (_isAudio) {
@@ -149,9 +193,19 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
       await _audio.seek(
         Duration(milliseconds: (v * _total.inMilliseconds).round()),
       );
-    } else {
-      setState(() => _progress = v);
+      return;
     }
+    // En vidéo, glisser sur la forme d'onde ne faisait que déplacer le
+    // curseur à l'écran : la lecture continuait à sa position d'origine.
+    final ctrl = _videoCtrl;
+    final total = ctrl?.value.duration ?? Duration.zero;
+    if (ctrl != null && total > Duration.zero) {
+      await ctrl.seekTo(
+        Duration(milliseconds: (v * total.inMilliseconds).round()),
+      );
+      return;
+    }
+    setState(() => _progress = v);
   }
 
   void _cycleSpeed() {
@@ -273,6 +327,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   @override
   void dispose() {
     _pulseCtrl.dispose();
+    _videoCtrl?.removeListener(_onVideoTick);
     _videoCtrl?.dispose();
     _sleepTimer?.cancel();
     _posSub?.cancel();
@@ -410,14 +465,21 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                 ),
               const SizedBox(height: 24),
 
-              // Chapter info
+              // Chapitre en cours — seulement si le replay en porte vraiment.
+              if (_hasRealChapters) ...[
+                Text(
+                  'Chapitre ${_currentChapter + 1}/${_chapterTitles.length}',
+                  style: DNText.mono(size: 9, color: DNColors.ink4),
+                ),
+                const SizedBox(height: 4),
+              ],
+              // Sans chapitre, cette place revient au titre du salon rejoué,
+              // qui n'était affiché nulle part ailleurs sur l'écran.
               Text(
-                'Chapitre ${(_currentChapter + 1).clamp(1, _chapterTitles.length)}/${_chapterTitles.length}',
-                style: DNText.mono(size: 9, color: DNColors.ink4),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _chapterTitles[_currentChapter.clamp(0, _chapterTitles.length - 1)],
+                _hasRealChapters
+                    ? _chapterTitles[
+                        _currentChapter.clamp(0, _chapterTitles.length - 1)]
+                    : (widget.replay?.roomTitle ?? ''),
                 style: DNText.serif(size: 22, italic: true, color: DNColors.paper),
               ),
               const SizedBox(height: 4),
@@ -444,12 +506,9 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                   children: [
                     Text(_fmtDuration(Duration.zero),
                         style: DNText.mono(size: 8, color: DNColors.ink4),),
-                    Text(
-                        _isAudio
-                            ? _fmtDuration(_position)
-                            : _fmtProgress(_progress),
+                    Text(_fmtDuration(_currentPosition),
                         style: DNText.mono(size: 8, color: DNColors.ink4),),
-                    Text(_isAudio ? _fmtDuration(_total) : _fmtProgress(1.0),
+                    Text(_fmtDuration(_currentTotal),
                         style: DNText.mono(size: 8, color: DNColors.ink4),),
                   ],
                 ),
@@ -503,7 +562,13 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                       onTap: _cycleSpeed,
                     ),
                     const SizedBox(width: 8),
-                    _Pill(label: AppLocalizations.of(context)!.chaptersPill, onTap: _showChapters),
+                    // Pastille masquée sans chapitres réels : elle n'ouvrait
+                    // qu'une liste inventée.
+                    if (_hasRealChapters)
+                      _Pill(
+                        label: AppLocalizations.of(context)!.chaptersPill,
+                        onTap: _showChapters,
+                      ),
                     const SizedBox(width: 8),
                     // Minuteur de sommeil (§1e).
                     _Pill(
@@ -550,14 +615,11 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
         itemBuilder: (_, i) => ListTile(
           onTap: () {
             setState(() => _currentChapter = i);
+            final start = Duration(seconds: _chaptersData[i].startSeconds);
             if (_isAudio) {
-              if (_hasRealChapters) {
-                // Timestamp réel du chapitre.
-                _audio.seek(Duration(seconds: _chaptersData[i].startSeconds));
-              } else if (_chapterTitles.isNotEmpty) {
-                // Repli : division régulière.
-                _seekFraction(i / _chapterTitles.length);
-              }
+              _audio.seek(start);
+            } else {
+              _videoCtrl?.seekTo(start);
             }
             Navigator.pop(context);
           },
@@ -565,23 +627,13 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
               style: DNText.mono(size: 12, color: DNColors.terra),),
           title: Text(_chapterTitles[i],
               style: DNText.sans(size: 13, color: DNColors.paper),),
-          subtitle: _hasRealChapters
-              ? Text(_chaptersData[i].formattedTime,
-                  style: DNText.mono(size: 10, color: DNColors.ink4),)
-              : null,
+          subtitle: Text(_chaptersData[i].formattedTime,
+              style: DNText.mono(size: 10, color: DNColors.ink4),),
           selected: i == _currentChapter,
           selectedColor: DNColors.terra,
         ),
       ),
     );
-  }
-
-  static String _fmtProgress(double pct) {
-    const total = Duration(hours: 1, minutes: 14);
-    final pos = Duration(milliseconds: (total.inMilliseconds * pct).round());
-    final m = pos.inMinutes.toString().padLeft(2, '0');
-    final s = (pos.inSeconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
   }
 
   static String _fmtDuration(Duration d) {

@@ -641,6 +641,7 @@ class SystemIntervalsModel {
 class SystemUrlsModel {
   final String shareBaseUrl;
   final String supportEmail;
+  final String supportPhone;
   final String privacyEmail;
   final String bugsEmail;
   final String feedbackEmail;
@@ -652,6 +653,7 @@ class SystemUrlsModel {
   SystemUrlsModel({
     this.shareBaseUrl = 'https://diasponiger.com/p/',
     this.supportEmail = 'support@diasponiger.com',
+    this.supportPhone = '',
     this.privacyEmail = 'privacy@diasponiger.com',
     this.bugsEmail = 'bugs@diasponiger.com',
     this.feedbackEmail = 'feedback@diasponiger.com',
@@ -667,6 +669,7 @@ class SystemUrlsModel {
     shareBaseUrl:
         json['shareBaseUrl'] as String? ?? 'https://diasponiger.com/p/',
     supportEmail: json['supportEmail'] as String? ?? 'support@diasponiger.com',
+    supportPhone: json['supportPhone'] as String? ?? '',
     privacyEmail: json['privacyEmail'] as String? ?? 'privacy@diasponiger.com',
     bugsEmail: json['bugsEmail'] as String? ?? 'bugs@diasponiger.com',
     feedbackEmail:
@@ -683,6 +686,7 @@ class SystemUrlsModel {
   Map<String, dynamic> toJson() => {
     'shareBaseUrl': shareBaseUrl,
     'supportEmail': supportEmail,
+    'supportPhone': supportPhone,
     'privacyEmail': privacyEmail,
     'bugsEmail': bugsEmail,
     'feedbackEmail': feedbackEmail,
@@ -695,6 +699,7 @@ class SystemUrlsModel {
   SystemUrlsEntity toEntity() => SystemUrlsEntity(
     shareBaseUrl: shareBaseUrl,
     supportEmail: supportEmail,
+    supportPhone: supportPhone,
     privacyEmail: privacyEmail,
     bugsEmail: bugsEmail,
     feedbackEmail: feedbackEmail,

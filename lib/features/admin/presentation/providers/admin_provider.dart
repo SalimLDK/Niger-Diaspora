@@ -1937,8 +1937,6 @@ class AnalyticsData extends Equatable {
   final Map<String, int> userGrowth;
   final Map<String, int> eventsByCategory;
   final Map<String, int> businessesByCategory;
-  final Map<String, double> transactionVolume;
-  final Map<String, int> activeUsersByDay;
   final int newUsersToday;
   final int newUsersThisWeek;
   final int newUsersThisMonth;
@@ -1947,8 +1945,6 @@ class AnalyticsData extends Equatable {
     this.userGrowth = const {},
     this.eventsByCategory = const {},
     this.businessesByCategory = const {},
-    this.transactionVolume = const {},
-    this.activeUsersByDay = const {},
     this.newUsersToday = 0,
     this.newUsersThisWeek = 0,
     this.newUsersThisMonth = 0,
@@ -1959,8 +1955,6 @@ class AnalyticsData extends Equatable {
     userGrowth,
     eventsByCategory,
     businessesByCategory,
-    transactionVolume,
-    activeUsersByDay,
     newUsersToday,
     newUsersThisWeek,
     newUsersThisMonth,

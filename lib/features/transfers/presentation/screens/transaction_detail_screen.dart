@@ -13,6 +13,7 @@ import '../../domain/entities/recipient_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/transfer_failure_kind.dart';
 import '../providers/transfer_provider.dart';
+import '../../../core/theme/adaptive_colors.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String transactionId;
@@ -112,7 +113,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               statusInfo.description,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: context.textSecondaryColor),
               textAlign: TextAlign.center,
             ),
             // L'état du débit est ce que l'utilisateur cherche en premier :
@@ -196,7 +197,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   'Total debite',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: context.textPrimaryColor,
                   ),
                 ),
                 Text(
@@ -298,7 +299,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                       if (transaction.recipientPhone != null)
                         Text(
                           transaction.recipientPhone!,
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: context.textSecondaryColor),
                         ),
                     ],
                   ),
@@ -404,7 +405,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: AppColors.textSecondary)),
+        Text(label, style: TextStyle(color: context.textSecondaryColor)),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -430,7 +431,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 child: Icon(
                   Icons.copy,
                   size: 16,
-                  color: AppColors.textTertiary,
+                  color: context.textTertiaryColor,
                 ),
               ),
             ],
@@ -456,7 +457,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               transaction.notes!,
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.textSecondaryColor),
             ),
           ],
         ),
@@ -624,7 +625,7 @@ class TransactionDetailScreen extends ConsumerWidget {
       case TransactionStatus.cancelled:
         return _StatusInfo(
           icon: Icons.cancel,
-          color: AppColors.textTertiary,
+          color: context.textTertiaryColor,
           label: 'Annule',
           description: 'Ce transfert a ete annule.',
         );
@@ -752,15 +753,22 @@ class TransactionDetailScreen extends ConsumerWidget {
                     launchUrl(emailLaunchUri);
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.phone_outlined),
-                  title: const Text('Telephone'),
-                  subtitle: const Text('+33 1 XX XX XX XX'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    launchUrl(Uri.parse('tel:+33100000000'));
-                  },
-                ),
+                // La ligne affichait le gabarit « +33 1 XX XX XX XX » et
+                // composait `+33100000000` au tap — un numéro qui n'est pas
+                // celui du support. Elle n'apparaît plus que si un vrai
+                // numéro est configuré côté réglages.
+                if (supportService.hasSupportPhone)
+                  ListTile(
+                    leading: const Icon(Icons.phone_outlined),
+                    title: const Text('Téléphone'),
+                    subtitle: Text(supportService.supportPhone),
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchUrl(
+                        Uri.parse('tel:${supportService.supportPhone}'),
+                      );
+                    },
+                  ),
                 const SizedBox(height: 16),
               ],
             ),

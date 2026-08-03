@@ -167,6 +167,11 @@ dependencies:
   # Device info
   device_info_plus: ^11.4.0
 
+  # Version de l'app (affichée dans Réglages et Profil, jointe aux tickets
+  # de support). Déjà présente en dépendance transitive : la déclarer permet
+  # de l'importer sans dépendre d'un paquet non listé.
+  package_info_plus: ^9.0.1
+
   # Crypto utilities
   crypto: ^3.0.6
 

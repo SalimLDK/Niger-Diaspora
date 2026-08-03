@@ -20,6 +20,7 @@ import '../../../feed/presentation/screens/saved_posts_screen.dart'
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
+import '../../../../core/services/app_version_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +31,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with SingleTickerProviderStateMixin {
+  /// Version de l'app, lue sur le paquet installé plutôt qu'écrite en dur.
+  String _versionLabel(AppLocalizations l10n) {
+    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+    return version.isEmpty ? l10n.version : '${l10n.version} $version';
+  }
+
   bool _locationEnabled = true;
   bool _profileVisible = true;
   bool _headerCollapsed = false;
@@ -377,7 +384,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _SettingsTile(
                     icon: const Icon(Icons.help_outline),
                     title: l10n.settingsHelpAbout,
-                    subtitle: '${l10n.version} 1.2.0',
+                    subtitle: _versionLabel(l10n),
                     onTap: () => context.push('/settings'),
                   ),
                 ],
@@ -821,7 +828,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return Container(
       width: 1,
       height: 45,
-      color: AppColors.border.withValues(alpha: 0.5),
+      color: context.borderColor.withValues(alpha: 0.5),
     );
   }
 

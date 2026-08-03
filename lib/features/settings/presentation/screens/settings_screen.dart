@@ -24,6 +24,7 @@ import '../../domain/entities/chat_background_entity.dart';
 import '../providers/notification_preferences_provider.dart';
 import '../widgets/blocked_users_modal.dart';
 import '../widgets/bug_report_dialog.dart';
+import '../../../../core/services/app_version_service.dart';
 
 /// Écran de réglages dédié (§10b) : « Qui vous voit », Sécurité, Application,
 /// puis une zone sensible isolée pour déconnexion/suppression. ProfileScreen
@@ -36,6 +37,14 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  /// Version de l'app, lue sur le paquet installé plutôt qu'écrite en dur.
+  /// Chaîne vide tant qu'elle n'est pas résolue : on n'affiche alors que le
+  /// libellé, jamais un numéro inventé.
+  String _versionLabel(AppLocalizations l10n) {
+    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+    return version.isEmpty ? l10n.version : '${l10n.version} $version';
+  }
+
   bool _profileVisible = true;
   bool _locationEnabled = true;
   bool _showOnlineStatus = true;
@@ -292,7 +301,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _SettingsTile(
                 icon: const Icon(Icons.info_outline),
                 title: l10n.about,
-                subtitle: '${l10n.version} 1.2.0',
+                subtitle: _versionLabel(l10n),
                 onTap: () => _showAbout(l10n),
               ),
               const _SettingsDivider(),
@@ -1017,7 +1026,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                       ),
                       Text(
-                        '${l10n.version} 1.2.0',
+                        _versionLabel(l10n),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,

@@ -501,6 +501,13 @@ class SystemIntervalsEntity extends Equatable {
 class SystemUrlsEntity extends Equatable {
   final String shareBaseUrl;
   final String supportEmail;
+
+  /// Numéro de téléphone du support. **Vide par défaut, et c'est voulu** :
+  /// aucun numéro réel n'existe pour ce projet. Les écrans doivent masquer la
+  /// ligne « Téléphone » tant qu'il l'est — un écran affichait
+  /// « +33 1 XX XX XX XX » et composait `+33100000000` au tap.
+  final String supportPhone;
+
   final String privacyEmail;
   final String bugsEmail;
   final String feedbackEmail;
@@ -512,6 +519,7 @@ class SystemUrlsEntity extends Equatable {
   const SystemUrlsEntity({
     this.shareBaseUrl = 'https://diasponiger.com/p/',
     this.supportEmail = 'support@diasponiger.com',
+    this.supportPhone = '',
     this.privacyEmail = 'privacy@diasponiger.com',
     this.bugsEmail = 'bugs@diasponiger.com',
     this.feedbackEmail = 'feedback@diasponiger.com',
@@ -524,6 +532,7 @@ class SystemUrlsEntity extends Equatable {
   SystemUrlsEntity copyWith({
     String? shareBaseUrl,
     String? supportEmail,
+    String? supportPhone,
     String? privacyEmail,
     String? bugsEmail,
     String? feedbackEmail,
@@ -535,6 +544,7 @@ class SystemUrlsEntity extends Equatable {
     return SystemUrlsEntity(
       shareBaseUrl: shareBaseUrl ?? this.shareBaseUrl,
       supportEmail: supportEmail ?? this.supportEmail,
+      supportPhone: supportPhone ?? this.supportPhone,
       privacyEmail: privacyEmail ?? this.privacyEmail,
       bugsEmail: bugsEmail ?? this.bugsEmail,
       feedbackEmail: feedbackEmail ?? this.feedbackEmail,
@@ -549,6 +559,7 @@ class SystemUrlsEntity extends Equatable {
   List<Object?> get props => [
     shareBaseUrl,
     supportEmail,
+    supportPhone,
     privacyEmail,
     bugsEmail,
     feedbackEmail,

@@ -23,11 +23,7 @@ class PodcastSubscriptionEntity extends Equatable {
   /// Whether notifications are enabled for new episodes
   final bool notificationsEnabled;
 
-  /// Last listened episode ID
-  final String? lastListenedEpisodeId;
 
-  /// When the user last listened
-  final DateTime? lastListenedAt;
 
   const PodcastSubscriptionEntity({
     required this.id,
@@ -37,8 +33,6 @@ class PodcastSubscriptionEntity extends Equatable {
     required this.userId,
     required this.subscribedAt,
     this.notificationsEnabled = true,
-    this.lastListenedEpisodeId,
-    this.lastListenedAt,
   });
 
   /// Copy with new values
@@ -50,8 +44,6 @@ class PodcastSubscriptionEntity extends Equatable {
     String? userId,
     DateTime? subscribedAt,
     bool? notificationsEnabled,
-    String? lastListenedEpisodeId,
-    DateTime? lastListenedAt,
   }) {
     return PodcastSubscriptionEntity(
       id: id ?? this.id,
@@ -61,8 +53,6 @@ class PodcastSubscriptionEntity extends Equatable {
       userId: userId ?? this.userId,
       subscribedAt: subscribedAt ?? this.subscribedAt,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
-      lastListenedEpisodeId: lastListenedEpisodeId ?? this.lastListenedEpisodeId,
-      lastListenedAt: lastListenedAt ?? this.lastListenedAt,
     );
   }
 
