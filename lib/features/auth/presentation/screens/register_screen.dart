@@ -4,10 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_scaffold.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -23,6 +22,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -45,6 +46,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       AnalyticsService.instance.logSignUp(method: 'email');
     }
   }
+
+  /// Les deux mots de passe concordent et sont assez longs — sert la coche
+  /// verte de la maquette sur le champ de confirmation.
+  bool get _confirmMatches =>
+      _confirmPasswordController.text.isNotEmpty &&
+      _confirmPasswordController.text == _passwordController.text &&
+      _passwordController.text.length >= 6;
 
   @override
   Widget build(BuildContext context) {
@@ -69,246 +77,221 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       orElse: () => false,
     );
 
-    return Scaffold(
-      backgroundColor: context.surfaceVariantColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
+    return AuthScaffold(
+      header: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
           icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Title
-                Text(
-                  l10n.createAccount,
-                  style: Theme.of(context).textTheme.displayMedium,
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  l10n.joinCommunity,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: context.textSecondaryColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 32),
-
-                // Name Field
-                CustomTextField(
-                  controller: _nameController,
-                  label: l10n.fullName,
-                  keyboardType: TextInputType.name,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterName;
-                    }
-                    if (value.length < 2) {
-                      return l10n.nameTooShort;
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Email Field
-                CustomTextField(
-                  controller: _emailController,
-                  label: l10n.email,
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterEmail;
-                    }
-                    // Erreurs en langage clair (§15b).
-                    final v = value.trim();
-                    if (!v.contains('@')) return l10n.emailMissingAt;
-                    final parts = v.split('@');
-                    if (parts.length != 2 ||
-                        parts[0].isEmpty ||
-                        parts[1].isEmpty) {
-                      return l10n.invalidEmail;
-                    }
-                    if (!parts[1].contains('.')) return l10n.emailMissingDomain;
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Password Field
-                CustomTextField(
-                  controller: _passwordController,
-                  label: l10n.password,
-                  obscureText: true,
-                  enabled: !isLoading,
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterAPassword;
-                    }
-                    if (value.length < 6) {
-                      return l10n.passwordTooShort;
-                    }
-                    return null;
-                  },
-                ),
-
-                // Jauge de robustesse en 3 segments (§15b).
-                if (_passwordController.text.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  _PasswordStrengthGauge(password: _passwordController.text),
-                ],
-
-                const SizedBox(height: 16),
-
-                // Confirm Password Field
-                CustomTextField(
-                  controller: _confirmPasswordController,
-                  label: l10n.confirmPassword,
-                  obscureText: true,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.confirmPasswordRequired;
-                    }
-                    if (value != _passwordController.text) {
-                      return l10n.passwordsDoNotMatch;
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 32),
-
-                // Register Button
-                CustomButton(
-                  onPressed: _handleRegister,
-                  label: l10n.signUp,
-                  isLoading: isLoading,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Login Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l10n.alreadyHaveAccount,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: context.textTertiaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => context.pop(),
-                      child: Text(
-                        l10n.signIn,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Terms
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final fullText = l10n.termsAgreement;
-                    final termsText = l10n.termsOfService;
-                    final privacyText = l10n.privacyPolicy;
-
-                    final termsIndex = fullText.indexOf(termsText);
-                    final privacyIndex = fullText.indexOf(privacyText);
-
-                    if (termsIndex == -1 || privacyIndex == -1) {
-                      // Fallback if translations don't match
-                      return Text(
-                        fullText,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.textTertiaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      );
-                    }
-
-                    final part1 = fullText.substring(0, termsIndex);
-                    final part2 = fullText.substring(
-                      termsIndex + termsText.length,
-                      privacyIndex,
-                    );
-                    final part3 = fullText.substring(
-                      privacyIndex + privacyText.length,
-                    );
-
-                    return RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.textTertiaryColor,
-                        ),
-                        children: [
-                          TextSpan(text: part1),
-                          TextSpan(
-                            text: termsText,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap =
-                                      () => context.push('/settings/terms'),
-                          ),
-                          TextSpan(text: part2),
-                          TextSpan(
-                            text: privacyText,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap =
-                                      () => context.push('/settings/privacy'),
-                          ),
-                          TextSpan(text: part3),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
+      footer: AuthFooterLink(
+        question: l10n.alreadyHaveAccount,
+        action: l10n.signIn,
+        onTap: () => context.pop(),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AuthTitle(l10n.createAccount),
+            const SizedBox(height: 10),
+            Text(
+              l10n.joinCommunity,
+              style: TextStyle(
+                fontSize: 14.5,
+                height: 1.45,
+                color: context.textSecondaryColor,
+              ),
             ),
-          ),
+
+            const SizedBox(height: 24),
+
+            AuthFieldLabel(l10n.fullName),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _nameController,
+              hintText: l10n.fullName,
+              keyboardType: TextInputType.name,
+              textCapitalization: TextCapitalization.words,
+              enabled: !isLoading,
+              validator: (value) {
+                if (value == null || value.isEmpty) return l10n.enterName;
+                if (value.length < 2) return l10n.nameTooShort;
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 18),
+
+            AuthFieldLabel(l10n.emailAddressLabel),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _emailController,
+              hintText: l10n.emailAddressLabel,
+              keyboardType: TextInputType.emailAddress,
+              enabled: !isLoading,
+              validator: (value) {
+                if (value == null || value.isEmpty) return l10n.enterEmail;
+                // Erreurs en langage clair (§15b).
+                final v = value.trim();
+                if (!v.contains('@')) return l10n.emailMissingAt;
+                final parts = v.split('@');
+                if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+                  return l10n.invalidEmail;
+                }
+                if (!parts[1].contains('.')) return l10n.emailMissingDomain;
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 18),
+
+            AuthFieldLabel(l10n.password),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _passwordController,
+              hintText: l10n.password,
+              obscureText: _obscurePassword,
+              enabled: !isLoading,
+              onChanged: (_) => setState(() {}),
+              suffix: AuthObscureToggle(
+                obscured: _obscurePassword,
+                onChanged: (v) => setState(() => _obscurePassword = v),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return l10n.enterAPassword;
+                if (value.length < 6) return l10n.passwordTooShort;
+                return null;
+              },
+            ),
+
+            // Jauge de robustesse en 3 segments (§15b).
+            if (_passwordController.text.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _PasswordStrengthGauge(password: _passwordController.text),
+            ],
+
+            const SizedBox(height: 18),
+
+            AuthFieldLabel(l10n.confirmPassword),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _confirmPasswordController,
+              hintText: l10n.confirmPassword,
+              obscureText: _obscureConfirm,
+              enabled: !isLoading,
+              onChanged: (_) => setState(() {}),
+              suffix:
+                  _confirmMatches
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: Icon(
+                          Icons.check_circle_outline,
+                          size: 21,
+                          color: context.successColor,
+                        ),
+                      )
+                      : AuthObscureToggle(
+                        obscured: _obscureConfirm,
+                        onChanged: (v) => setState(() => _obscureConfirm = v),
+                      ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.confirmPasswordRequired;
+                }
+                if (value != _passwordController.text) {
+                  return l10n.passwordsDoNotMatch;
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 26),
+
+            AuthPrimaryButton(
+              onPressed: _handleRegister,
+              label: l10n.createMyAccount,
+              isLoading: isLoading,
+            ),
+
+            const SizedBox(height: 16),
+
+            _TermsNotice(),
+          ],
         ),
       ),
     );
   }
 }
 
+/// Mention légale sous le bouton, avec les deux liens cliquables.
+class _TermsNotice extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final fullText = l10n.termsAgreement;
+    final termsText = l10n.termsOfService;
+    final privacyText = l10n.privacyPolicy;
+
+    final base = TextStyle(
+      fontSize: 12,
+      height: 1.45,
+      color: context.textTertiaryColor,
+    );
+    final link = base.copyWith(
+      color: context.adaptivePrimaryColor,
+      fontWeight: FontWeight.w700,
+    );
+
+    final termsIndex = fullText.indexOf(termsText);
+    final privacyIndex = fullText.indexOf(privacyText);
+
+    if (termsIndex == -1 || privacyIndex == -1 || privacyIndex < termsIndex) {
+      // Repli si la traduction ne contient pas les deux libellés tels quels.
+      return Text(fullText, style: base, textAlign: TextAlign.center);
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: base,
+        children: [
+          TextSpan(text: fullText.substring(0, termsIndex)),
+          TextSpan(
+            text: termsText,
+            style: link,
+            recognizer:
+                TapGestureRecognizer()
+                  ..onTap = () => context.push('/settings/terms'),
+          ),
+          TextSpan(
+            text: fullText.substring(
+              termsIndex + termsText.length,
+              privacyIndex,
+            ),
+          ),
+          TextSpan(
+            text: privacyText,
+            style: link,
+            recognizer:
+                TapGestureRecognizer()
+                  ..onTap = () => context.push('/settings/privacy'),
+          ),
+          TextSpan(
+            text: fullText.substring(privacyIndex + privacyText.length),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Jauge de robustesse du mot de passe en 3 segments (§15b) :
-/// faible (rouge) / moyen (orange) / fort (vert).
+/// faible / correct / fort, le libellé à droite des barres.
 class _PasswordStrengthGauge extends StatelessWidget {
   final String password;
 
@@ -329,42 +312,46 @@ class _PasswordStrengthGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final score = _score;
-    const labels = ['Faible', 'Moyen', 'Fort'];
-    final colors = [
-      const Color(0xFFC23E2D),
-      const Color(0xFFD9A441),
-      const Color(0xFF2D7D46),
+    final labels = [
+      l10n.passwordStrengthWeak,
+      l10n.passwordStrengthOk,
+      l10n.passwordStrengthStrong,
     ];
-    final color = score == 0 ? Colors.grey : colors[score - 1];
+    final colors = [
+      context.errorColor,
+      context.warningColor,
+      context.successColor,
+    ];
+    final color = score == 0 ? context.borderColor : colors[score - 1];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          children: List.generate(3, (i) {
-            final filled = i < score;
-            return Expanded(
-              child: Container(
-                height: 4,
-                margin: EdgeInsets.only(right: i < 2 ? 6 : 0),
-                decoration: BoxDecoration(
-                  color: filled
-                      ? color
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(999),
-                ),
+        for (var i = 0; i < 3; i++) ...[
+          Expanded(
+            child: Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: i < score ? color : context.borderColor,
+                borderRadius: BorderRadius.circular(999),
               ),
-            );
-          }),
-        ),
-        if (score > 0) ...[
-          const SizedBox(height: 4),
-          Text(
-            labels[score - 1],
-            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+            ),
           ),
+          const SizedBox(width: 6),
         ],
+        SizedBox(
+          width: 58,
+          child: Text(
+            score == 0 ? '' : labels[score - 1],
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.textSecondaryColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }

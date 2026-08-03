@@ -63,6 +63,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeTitle => 'Welcome';
 
   @override
+  String get welcomeBackTitle => 'Welcome back';
+
+  @override
+  String get createMyAccount => 'Create my account';
+
+  @override
+  String get passwordStrengthWeak => 'Weak';
+
+  @override
+  String get passwordStrengthOk => 'Good';
+
+  @override
+  String get passwordStrengthStrong => 'Strong';
+
+  @override
+  String get loginSubtitle =>
+      'Find the Nigerien community again: encrypted messages, local support, transfers home.';
+
+  @override
+  String get emailAddressLabel => 'Email address';
+
+  @override
+  String get forgotShort => 'Forgot?';
+
+  @override
+  String get passwordMinHelper => 'At least 6 characters';
+
+  @override
+  String get e2eeFooterNote => 'Your messages are end-to-end encrypted.';
+
+  @override
   String get joinDiaspora => 'Join the Nigerien diaspora';
 
   @override

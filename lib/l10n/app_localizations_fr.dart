@@ -63,6 +63,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcomeTitle => 'Bienvenue';
 
   @override
+  String get welcomeBackTitle => 'Bon retour';
+
+  @override
+  String get createMyAccount => 'Créer mon compte';
+
+  @override
+  String get passwordStrengthWeak => 'Faible';
+
+  @override
+  String get passwordStrengthOk => 'Correct';
+
+  @override
+  String get passwordStrengthStrong => 'Fort';
+
+  @override
+  String get loginSubtitle =>
+      'Retrouvez la communauté nigérienne : messages chiffrés, entraide locale, transferts vers le pays.';
+
+  @override
+  String get emailAddressLabel => 'Adresse e-mail';
+
+  @override
+  String get forgotShort => 'Oublié ?';
+
+  @override
+  String get passwordMinHelper => 'Au moins 6 caractères';
+
+  @override
+  String get e2eeFooterNote => 'Vos messages sont chiffrés de bout en bout.';
+
+  @override
   String get joinDiaspora => 'Rejoins la diaspora nigérienne';
 
   @override

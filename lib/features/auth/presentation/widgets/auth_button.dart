@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'auth_scaffold.dart';
 
+/// Bouton de connexion par fournisseur externe.
+///
+/// [iconAsset] rend le SVG tel quel, sans teinte : le logo Google est
+/// multicolore et `AppIcon` l'aplatirait en une seule couleur.
 class AuthButton extends StatelessWidget {
+  static const googleAsset = 'icon_google.svg';
+
   final VoidCallback onPressed;
-  final String icon;
+
+  /// Glyphe texte (ancien usage) — ignoré si [iconAsset] est fourni.
+  final String? icon;
+  final String? iconAsset;
   final String label;
 
   /// Null = suit le thème. Les valeurs par défaut étaient figées sur les
@@ -16,8 +27,9 @@ class AuthButton extends StatelessWidget {
   const AuthButton({
     super.key,
     required this.onPressed,
-    required this.icon,
     required this.label,
+    this.icon,
+    this.iconAsset,
     this.backgroundColor,
     this.textColor,
     this.isLoading = false,
@@ -29,50 +41,50 @@ class AuthButton extends StatelessWidget {
     final foreground = textColor ?? context.textPrimaryColor;
     return SizedBox(
       width: double.infinity,
+      height: kAuthControlHeight,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: background,
           foregroundColor: foreground,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(kAuthRadius),
           ),
-          side: BorderSide(
-            color: context.borderStrongColor,
-            width: 2,
-          ),
+          side: BorderSide(color: context.borderColor),
         ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(foreground),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    icon,
-                    style: const TextStyle(fontSize: 20),
+        child:
+            isLoading
+                ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(foreground),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: foreground,
+                )
+                : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (iconAsset != null)
+                      SvgPicture.asset(
+                        'assets/icons/$iconAsset',
+                        width: 19,
+                        height: 19,
+                      )
+                    else if (icon != null)
+                      Text(icon!, style: const TextStyle(fontSize: 20)),
+                    const SizedBox(width: 12),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w600,
+                        color: foreground,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
       ),
     );
   }

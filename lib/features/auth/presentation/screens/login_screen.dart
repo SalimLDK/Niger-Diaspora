@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_button.dart';
+import '../widgets/auth_scaffold.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -21,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -69,206 +69,118 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       orElse: () => false,
     );
 
-    return Scaffold(
-      backgroundColor: context.surfaceVariantColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
+    return AuthScaffold(
+      footer: const AuthEncryptionNote(),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AuthBrandMark(),
+            const SizedBox(height: 26),
 
-                // Logo
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'DN',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Title
-                Text(
-                  l10n.welcomeTitle,
-                  style: Theme.of(context).textTheme.displayMedium,
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  l10n.joinDiaspora,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: context.textSecondaryColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 48),
-
-                // Social Sign In
-                AuthButton(
-                  onPressed: _handleGoogleSignIn,
-                  icon: 'G',
-                  label: l10n.continueWithGoogle,
-                  // Fond et texte laissés au thème : un fond blanc figé
-                  // rendait le libellé illisible une fois le thème sombre
-                  // appliqué au texte.
-                  isLoading: isLoading,
-                ),
-
-                const SizedBox(height: 32),
-
-                // Divider
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        l10n.or,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Email Field
-                CustomTextField(
-                  controller: _emailController,
-                  label: l10n.email,
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterEmail;
-                    }
-                    // Erreurs en langage clair (§15a).
-                    final v = value.trim();
-                    if (!v.contains('@')) return l10n.emailMissingAt;
-                    final parts = v.split('@');
-                    if (parts.length != 2 ||
-                        parts[0].isEmpty ||
-                        parts[1].isEmpty) {
-                      return l10n.invalidEmail;
-                    }
-                    if (!parts[1].contains('.')) return l10n.emailMissingDomain;
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Libellé + « Oublié ? » sur la même ligne (§15a).
-                Row(
-                  children: [
-                    Text(
-                      l10n.password,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => context.push('/auth/forgot-password'),
-                      child: Text(
-                        'Oublié ?',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Password Field
-                CustomTextField(
-                  controller: _passwordController,
-                  label: l10n.password,
-                  showLabel: false,
-                  obscureText: true,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterPassword;
-                    }
-                    if (value.length < 6) {
-                      return l10n.passwordTooShort;
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                // Login Button
-                CustomButton(
-                  onPressed: _handleLogin,
-                  label: l10n.signIn,
-                  isLoading: isLoading,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l10n.noAccount,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: context.textTertiaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => context.push('/auth/register'),
-                      child: Text(
-                        l10n.signUp,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            AuthTitle(l10n.welcomeBackTitle),
+            const SizedBox(height: 10),
+            Text(
+              l10n.loginSubtitle,
+              style: TextStyle(
+                fontSize: 14.5,
+                height: 1.45,
+                color: context.textSecondaryColor,
+              ),
             ),
-          ),
+
+            const SizedBox(height: 26),
+
+            AuthButton(
+              onPressed: _handleGoogleSignIn,
+              iconAsset: AuthButton.googleAsset,
+              label: l10n.continueWithGoogle,
+              isLoading: isLoading,
+            ),
+
+            const SizedBox(height: 22),
+            AuthDivider(label: l10n.or),
+            const SizedBox(height: 22),
+
+            AuthFieldLabel(l10n.emailAddressLabel),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _emailController,
+              hintText: l10n.emailAddressLabel,
+              keyboardType: TextInputType.emailAddress,
+              enabled: !isLoading,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.enterEmail;
+                }
+                // Erreurs en langage clair (§15a).
+                final v = value.trim();
+                if (!v.contains('@')) return l10n.emailMissingAt;
+                final parts = v.split('@');
+                if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+                  return l10n.invalidEmail;
+                }
+                if (!parts[1].contains('.')) return l10n.emailMissingDomain;
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 18),
+
+            // Libellé + « Oublié ? » sur la même ligne (§15a).
+            AuthFieldLabel(
+              l10n.password,
+              trailing: GestureDetector(
+                onTap: () => context.push('/auth/forgot-password'),
+                child: Text(
+                  l10n.forgotShort,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: context.adaptivePrimaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 7),
+            AuthTextField(
+              controller: _passwordController,
+              hintText: l10n.password,
+              obscureText: _obscurePassword,
+              enabled: !isLoading,
+              helperText: l10n.passwordMinHelper,
+              suffix: AuthObscureToggle(
+                obscured: _obscurePassword,
+                onChanged: (v) => setState(() => _obscurePassword = v),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.enterPassword;
+                }
+                if (value.length < 6) {
+                  return l10n.passwordTooShort;
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 22),
+
+            AuthPrimaryButton(
+              onPressed: _handleLogin,
+              label: l10n.signIn,
+              isLoading: isLoading,
+            ),
+
+            const SizedBox(height: 16),
+
+            AuthFooterLink(
+              question: l10n.noAccount,
+              action: l10n.signUp,
+              onTap: () => context.push('/auth/register'),
+            ),
+          ],
         ),
       ),
     );

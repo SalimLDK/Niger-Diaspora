@@ -206,6 +206,66 @@ abstract class AppLocalizations {
   /// **'Bienvenue'**
   String get welcomeTitle;
 
+  /// No description provided for @welcomeBackTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon retour'**
+  String get welcomeBackTitle;
+
+  /// No description provided for @createMyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon compte'**
+  String get createMyAccount;
+
+  /// No description provided for @passwordStrengthWeak.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faible'**
+  String get passwordStrengthWeak;
+
+  /// No description provided for @passwordStrengthOk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correct'**
+  String get passwordStrengthOk;
+
+  /// No description provided for @passwordStrengthStrong.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fort'**
+  String get passwordStrengthStrong;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrouvez la communauté nigérienne : messages chiffrés, entraide locale, transferts vers le pays.'**
+  String get loginSubtitle;
+
+  /// No description provided for @emailAddressLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get emailAddressLabel;
+
+  /// No description provided for @forgotShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oublié ?'**
+  String get forgotShort;
+
+  /// No description provided for @passwordMinHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins 6 caractères'**
+  String get passwordMinHelper;
+
+  /// No description provided for @e2eeFooterNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos messages sont chiffrés de bout en bout.'**
+  String get e2eeFooterNote;
+
   /// No description provided for @joinDiaspora.
   ///
   /// In fr, this message translates to:

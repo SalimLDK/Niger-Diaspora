@@ -349,6 +349,37 @@ en solo.
 
 ## Profil & Accueil (avant la refonte design)
 
+## Refonte des maquettes d'authentification
+
+- [x] **Connexion et inscription refaites sur les maquettes** (`auth_scaffold.dart`
+  nouveau, `login_screen.dart`, `register_screen.dart`, `auth_button.dart`,
+  `assets/icons/icon_google.svg`, 2026-08-03) : vérifié sur le SM A515F, les
+  deux écrans rendent la structure des maquettes — pastille de marque en haut
+  à gauche, titre serif terminé par un point d'accent, bouton Google avec le
+  vrai logo multicolore, libellés au-dessus des champs, « Oublié ? » sur la
+  ligne du libellé, texte d'aide, bouton pleine largeur, lien de bas de page,
+  mention de chiffrement épinglée en bas. L'accent apparaît **vert** et non
+  terracotta : c'est la couleur d'accent choisie sur ce compte, pas un défaut.
+  **Piège rencontré** : un `Spacer` dans la colonne défilante d'`AuthScaffold`
+  donnait un écran entièrement noir, sans aucune exception dans `logcat` — le
+  pied de page est désormais hors du défilement.
+
+- [ ] **Reste des maquettes à implémenter** : configuration du profil 1/4
+  (« Faisons connaissance » — photo, nom d'utilisateur avec vérification de
+  disponibilité, profession), 2/4 localisation, 3/4 centres d'intérêt fusionnés
+  avec « Ce que vous recevrez », 4/4 thème ; nouvelle demande d'ambassade ;
+  création d'événement ; panier vide ; état vide des transferts. La structure
+  actuelle de `profile_config_screen.dart` a 4 étapes (localisation, intérêts,
+  notifications, thème) — les maquettes en ajoutent une d'identité en tête et
+  fusionnent intérêts + notifications.
+
+- [ ] **Sous-titre chiffré de l'inscription non implémenté** : la maquette
+  annonce « Rejoignez la communauté : 318 membres à Paris, 12 groupes actifs ».
+  Aucune source ne peut fournir ces nombres avant authentification (les
+  compteurs de `home_remote_datasource` demandent une session), et les inventer
+  irait contre l'audit « widgets alimentés en dur ». Le sous-titre générique est
+  conservé en attendant un compteur public.
+
 ## Thème sombre — jetons clairs codés en dur
 
 - [x] **Écrans d'authentification en thème sombre** (`login_screen.dart`,
