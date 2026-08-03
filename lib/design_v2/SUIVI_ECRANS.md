@@ -105,7 +105,8 @@ le composer et la carte.
 | 5d, 5h, 6f | Mon réseau | `feed/…/follows_screen.dart` | 190 l. | **prod** — système propre |
 | 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | fait (en-tête) — bulles à part, voir ci-dessous |
 | 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | fait |
-| 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
+| 7d | Carte : calques | `map/…/map_screen.dart` | 3549 l. | fait |
+| 7e | Carte : bascule Carte/Liste | idem | — | **bloqué** — maquette manquante |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
 | 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | fait |
@@ -135,6 +136,31 @@ fait, c'est le **langage visuel** que le suivi identifiait comme manquant
 qui relève de la mise en page propre à ces maquettes — disposition des
 bulles, barre d'actions sur un message, états d'enregistrement vocal —
 reste à faire et demande de reprendre les images.
+
+### Carte — ce qui est fait et ce qui bloque (2026-08-03)
+
+Passe visuelle faite directement en production, aucune copie `design_v2` :
+deux avatars de repli étaient peints en dégradé avec ombre portée, et cinq
+libellés posés sur l'accent étaient figés sur `AppColors.white`. En thème
+sombre l'accent s'éclaircit, donc le texte dessus doit s'assombrir :
+`context.onPrimaryColor` fait cette bascule, pas un blanc constant.
+
+Non touché volontairement : les couleurs des épingles et des cercles peints
+sur le fond cartographique (`AppColors.primary`, `.secondary`, `.success`
+dans les `CustomPainter`). Elles se lisent sur la carte Google, pas sur le
+fond de l'application, et n'ont donc pas à suivre le thème.
+
+**§7d est déjà implémenté** — le bouton « calques » et sa feuille de bascule
+(membres / commerces / ambassades) existent depuis une session précédente,
+le fichier cite `§7d` à la ligne 2512.
+
+⚠️ **§7e est bloqué, pas oublié.** Il n'existe aucune bascule Carte/Liste
+dans le fichier : ni `viewMode`, ni `_isListView`, rien. La feuille glissante
+du bas affiche bien les membres proches, mais ce n'est pas la bascule que
+le nom de la maquette décrit. Construire ce composant sans la maquette 7e
+reviendrait à inventer une disposition — segmenté en en-tête ? plein écran ?
+conservation du filtre courant ? Il faut la maquette avant d'écrire la
+moindre ligne.
 
 ### La famille « fil » a son propre système — ne pas lui appliquer la trousse
 

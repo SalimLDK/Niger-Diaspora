@@ -2062,18 +2062,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: context.adaptivePrimaryGradient,
-                    boxShadow:
-                        context.isDarkMode
-                            ? null
-                            : [
-                              BoxShadow(
-                                color: context.adaptivePrimaryColor
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
+                    color: context.adaptivePrimaryColor,
                   ),
                   child:
                       member.photoUrl != null &&
@@ -2700,7 +2689,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                foregroundColor: AppColors.white,
+                foregroundColor: context.onPrimaryColor,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -2822,19 +2811,19 @@ class _MapScreenState extends ConsumerState<MapScreen>
               height: 44,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                gradient: context.adaptivePrimaryGradient,
+                color: context.adaptivePrimaryColor,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: member.photoUrl != null
                   ? Image.network(
                       member.photoUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const AppIcon(
+                      errorBuilder: (_, __, ___) => AppIcon(
                         AppIcon.person,
-                        color: AppColors.white,
+                        color: context.onPrimaryColor,
                       ),
                     )
-                  : const AppIcon(AppIcon.person, color: AppColors.white),
+                  : AppIcon(AppIcon.person, color: context.onPrimaryColor),
             ),
             const SizedBox(width: 12),
             Expanded(
