@@ -278,6 +278,27 @@ en solo.
 
 ## Profil & Accueil (avant la refonte design)
 
+## Feature flags & accès aux écrans
+
+- [ ] **Déblocage des routes gardées par les flags** (`lib/core/router/app_router.dart`,
+  `lib/core/services/feature_flag_service.dart`,
+  `lib/features/admin/presentation/screens/admin_feature_flags_screen.dart`,
+  2026-08-03) : `FeatureFlagService.isFeatureEnabled` lisait un
+  `ProviderContainer()` neuf, donc toujours les valeurs par défaut de
+  `FeatureFlagsEntity` — `/transfers`, `/marketplace`, `/podcasts`,
+  `/payment-accounts`, `/payment-history` et `/audio-rooms` étaient renvoyés
+  sur `/home` quoi qu'en dise le back-office. Le gating ne s'appliquait en
+  plus qu'aux valeurs par défaut au démarrage à froid, et le back-office
+  n'exposait aucun interrupteur pour `audioRooms`/`podcasts`. **À vérifier sur
+  le téléphone** : ouvrir Salons audio et Podcasts depuis l'accueil et
+  confirmer qu'on n'est plus rejeté sur l'accueil ; basculer les deux nouveaux
+  interrupteurs dans Admin → Feature flags et confirmer que l'accès s'ouvre et
+  se referme sans redémarrer l'app ; enfin, tuer et relancer l'app pour
+  vérifier qu'on n'est pas éjecté d'un de ces écrans pendant le chargement des
+  réglages.
+
+## Profil & Accueil (avant la refonte design)
+
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
 
 ---

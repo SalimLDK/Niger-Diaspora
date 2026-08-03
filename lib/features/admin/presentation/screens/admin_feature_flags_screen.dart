@@ -490,6 +490,25 @@ class _AdminFeatureFlagsScreenState
           value: _flags.embassies,
           onChanged: (v) => _updateFlag(_flags.copyWith(embassies: v)),
         ),
+        // Sans ces deux interrupteurs, audioRooms et podcasts restaient bloques
+        // sur leur valeur par defaut (false) : /audio-rooms et /podcasts
+        // etaient renvoyes sur /home sans aucun moyen de les activer.
+        _buildFeatureToggle(
+          title: 'Salons audio',
+          subtitle: 'Salons audio en direct et replays',
+          icon: Icons.podcasts_rounded,
+          color: AdminColors.statusPurple,
+          value: _flags.audioRooms,
+          onChanged: (v) => _updateFlag(_flags.copyWith(audioRooms: v)),
+        ),
+        _buildFeatureToggle(
+          title: 'Podcasts',
+          subtitle: 'Emissions, episodes et enregistrement',
+          icon: Icons.mic_rounded,
+          color: AdminColors.actionBlueLight,
+          value: _flags.podcasts,
+          onChanged: (v) => _updateFlag(_flags.copyWith(podcasts: v)),
+        ),
       ],
     );
   }

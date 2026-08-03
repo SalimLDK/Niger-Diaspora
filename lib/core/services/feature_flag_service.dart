@@ -84,30 +84,39 @@ String? maintenanceMessage(Ref ref) {
   return flags.maintenanceMode ? flags.maintenanceMessage : null;
 }
 
-/// Static feature flag helper used outside Riverpod lifecycle (e.g. GoRouter).
+/// Flags tels qu'ils ont *réellement* été chargés depuis `app_config/settings`.
+///
+/// Vaut `null` tant que le chargement distant n'a pas abouti. Les appelants
+/// qui bloquent un accès (le routeur) doivent laisser passer dans ce cas :
+/// au démarrage à froid, `featureFlagsProvider` renvoie les valeurs par
+/// défaut de [FeatureFlagsEntity], où plusieurs modules sont à `false`.
+final loadedFeatureFlagsProvider = Provider<FeatureFlagsEntity?>((ref) {
+  return ref.watch(appSettingsNotifierProvider).valueOrNull?.featureFlags;
+});
+
+/// Feature flag helper utilisable hors du cycle Riverpod (ex. GoRouter).
 class FeatureFlagService {
   FeatureFlagService._();
 
-  /// Reads feature flags synchronously from the settings provider.
-  /// Falls back to enabled when the provider cannot be read.
-  static bool isFeatureEnabled(AppFeature feature) {
-    try {
-      final container = ProviderContainer();
-      final flags = container.read(featureFlagsProvider);
-      return switch (feature) {
-        AppFeature.moneyTransfer => flags.moneyTransfer,
-        AppFeature.marketplace => flags.marketplace,
-        AppFeature.businessDirectory => flags.businessDirectory,
-        AppFeature.podcasts => flags.podcasts,
-        AppFeature.audioRooms => flags.audioRooms,
-        AppFeature.events => flags.events,
-        AppFeature.groups => flags.groups,
-        AppFeature.embassies => flags.embassies,
-        AppFeature.feed => flags.feed,
-      };
-    } catch (_) {
-      return true;
-    }
+  /// Résout un [AppFeature] sur des flags déjà lus.
+  ///
+  /// Ne lit *pas* les flags lui-même : une version antérieure instanciait un
+  /// `ProviderContainer()` neuf à chaque appel, qui ne contenait évidemment
+  /// pas les réglages chargés par l'app — elle renvoyait donc toujours les
+  /// valeurs par défaut (salons audio et podcasts désactivés), et le routeur
+  /// renvoyait ces écrans sur /home quoi qu'en dise le back-office.
+  static bool isFeatureEnabled(FeatureFlagsEntity flags, AppFeature feature) {
+    return switch (feature) {
+      AppFeature.moneyTransfer => flags.moneyTransfer,
+      AppFeature.marketplace => flags.marketplace,
+      AppFeature.businessDirectory => flags.businessDirectory,
+      AppFeature.podcasts => flags.podcasts,
+      AppFeature.audioRooms => flags.audioRooms,
+      AppFeature.events => flags.events,
+      AppFeature.groups => flags.groups,
+      AppFeature.embassies => flags.embassies,
+      AppFeature.feed => flags.feed,
+    };
   }
 }
 

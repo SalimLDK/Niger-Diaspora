@@ -142,6 +142,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       isMaintenanceModeProvider,
       (_, __) => _cachedAuthNotifier!.notify(),
     );
+    ref.listen(
+      loadedFeatureFlagsProvider,
+      (_, __) => _cachedAuthNotifier!.notify(),
+    );
     return _cachedRouter!;
   }
 
@@ -151,6 +155,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen(authNotifierProvider, (_, __) => authNotifier.notify());
   ref.listen(onboardingNotifierProvider, (_, __) => authNotifier.notify());
   ref.listen(isMaintenanceModeProvider, (_, __) => authNotifier.notify());
+  // Réévalue le gating dès que les flags distants arrivent.
+  ref.listen(loadedFeatureFlagsProvider, (_, __) => authNotifier.notify());
 
   _cachedRouter = GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -235,32 +241,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 9. PHASE 2 FEATURE FLAGS — protect routes for transfers, marketplace, businesses, podcasts
-      // Using static flag checks (not Riverpod) to avoid lifecycle issues in redirect
-      final phase2Paths = <String, bool>{
-        '/transfers': FeatureFlagService.isFeatureEnabled(
-          AppFeature.moneyTransfer,
-        ),
-        '/marketplace': FeatureFlagService.isFeatureEnabled(
-          AppFeature.marketplace,
-        ),
-        '/businesses': FeatureFlagService.isFeatureEnabled(
-          AppFeature.businessDirectory,
-        ),
-        '/podcasts': FeatureFlagService.isFeatureEnabled(AppFeature.podcasts),
-        '/payment-accounts': FeatureFlagService.isFeatureEnabled(
-          AppFeature.moneyTransfer,
-        ),
-        '/payment-history': FeatureFlagService.isFeatureEnabled(
-          AppFeature.moneyTransfer,
-        ),
-        '/audio-rooms': FeatureFlagService.isFeatureEnabled(
-          AppFeature.audioRooms,
-        ),
-      };
-      for (final entry in phase2Paths.entries) {
-        if (state.matchedLocation.startsWith(entry.key) && !entry.value) {
-          return '/home';
+      // 9. PHASE 2 FEATURE FLAGS — protège transferts, marketplace, entreprises,
+      // podcasts et salons audio.
+      //
+      // `loadedFeatureFlagsProvider` vaut null tant que app_config/settings
+      // n'est pas revenu : on laisse alors passer. Bloquer pendant le
+      // chargement reviendrait à appliquer les valeurs par défaut de
+      // FeatureFlagsEntity (podcasts et salons audio à false) et à renvoyer
+      // ces écrans sur /home à chaque démarrage à froid.
+      final flags = ref.read(loadedFeatureFlagsProvider);
+      if (flags != null) {
+        final phase2Paths = <String, AppFeature>{
+          '/transfers': AppFeature.moneyTransfer,
+          '/marketplace': AppFeature.marketplace,
+          '/businesses': AppFeature.businessDirectory,
+          '/podcasts': AppFeature.podcasts,
+          '/payment-accounts': AppFeature.moneyTransfer,
+          '/payment-history': AppFeature.moneyTransfer,
+          '/audio-rooms': AppFeature.audioRooms,
+        };
+        for (final entry in phase2Paths.entries) {
+          if (state.matchedLocation.startsWith(entry.key) &&
+              !FeatureFlagService.isFeatureEnabled(flags, entry.value)) {
+            return '/home';
+          }
         }
       }
 
