@@ -1172,6 +1172,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get audioRoomHeritageArchivedNote => 'ce salon sera archivé';
 
   @override
+  String get audioRoomInviteCoHostTitle => 'Nommer un co-hôte';
+
+  @override
+  String audioRoomCoHostAdded(String name) {
+    return '$name est désormais co-hôte';
+  }
+
+  @override
+  String get audioRoomHandsRaisedLabel => 'Mains levées';
+
+  @override
+  String get audioRoomStatsLiveNote =>
+      'Valeurs de l\'instant — aucun historique n\'est conservé.';
+
+  @override
   String heritageRecordingsCount(int count) {
     return '$count ENREGISTREMENTS';
   }

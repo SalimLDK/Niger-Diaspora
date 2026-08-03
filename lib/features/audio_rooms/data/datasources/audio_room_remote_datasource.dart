@@ -18,6 +18,15 @@ abstract class AudioRoomRemoteDataSource {
   /// Update room status
   Future<void> updateRoomStatus(String roomId, String status);
 
+  /// Update the settings an host can change while the room is live.
+  /// Only non-null fields are written.
+  Future<void> updateRoomSettings(
+    String roomId, {
+    bool? isRecordingEnabled,
+    bool? isVideoEnabled,
+    bool? isPrivate,
+  });
+
   /// Start a scheduled room
   Future<void> startRoom(String roomId);
 
@@ -152,6 +161,29 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
       await _roomsTable.update({'status': status}).eq('id', roomId);
     } catch (e) {
       debugPrint('AudioRoomDataSource: Error updating room status: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateRoomSettings(
+    String roomId, {
+    bool? isRecordingEnabled,
+    bool? isVideoEnabled,
+    bool? isPrivate,
+  }) async {
+    // Seuls les champs fournis sont écrits : un `update` complet écraserait
+    // les réglages que l'appelant n'a pas touchés.
+    final patch = <String, dynamic>{
+      if (isRecordingEnabled != null) 'isRecordingEnabled': isRecordingEnabled,
+      if (isVideoEnabled != null) 'isVideoEnabled': isVideoEnabled,
+      if (isPrivate != null) 'isPrivate': isPrivate,
+    };
+    if (patch.isEmpty) return;
+    try {
+      await _roomsTable.update(patch).eq('id', roomId);
+    } catch (e) {
+      debugPrint('AudioRoomDataSource: Error updating room settings: $e');
       rethrow;
     }
   }

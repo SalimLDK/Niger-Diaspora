@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/services/feature_flag_service.dart';
@@ -15,6 +16,7 @@ class _InternalAd {
     required this.icon,
     required this.color,
     required this.feature,
+    required this.route,
   });
 
   final _AdStringGetter title;
@@ -23,6 +25,10 @@ class _InternalAd {
   final Widget icon;
   final Color color;
   final AppFeature? feature;
+
+  /// Destination du bouton d'appel à l'action. Sans elle le bouton était un
+  /// `onPressed: () {}` : l'encart vantait une fonctionnalité sans y mener.
+  final String route;
 }
 
 final _kAds = [
@@ -33,6 +39,7 @@ final _kAds = [
     icon: const AppIcon(AppIcon.send, color: Color(0xFF1A7A4A), size: 24),
     color: const Color(0xFF1A7A4A),
     feature: AppFeature.moneyTransfer,
+    route: '/transfers',
   ),
   _InternalAd(
     title: (l10n) => l10n.adGroupTitle,
@@ -41,6 +48,7 @@ final _kAds = [
     icon: const AppIcon(AppIcon.groups, color: Color(0xFF1565C0), size: 24),
     color: const Color(0xFF1565C0),
     feature: null,
+    route: '/groups',
   ),
   _InternalAd(
     title: (l10n) => l10n.adMarketplaceTitle,
@@ -49,6 +57,7 @@ final _kAds = [
     icon: const Icon(Icons.storefront_rounded, color: Color(0xFFE65100), size: 24),
     color: const Color(0xFFE65100),
     feature: AppFeature.marketplace,
+    route: '/marketplace',
   ),
   _InternalAd(
     title: (l10n) => l10n.adAudioRoomsTitle,
@@ -57,6 +66,7 @@ final _kAds = [
     icon: const AppIcon(AppIcon.mic, color: Color(0xFF6A1B9A), size: 24),
     color: const Color(0xFF6A1B9A),
     feature: AppFeature.audioRooms,
+    route: '/audio-rooms',
   ),
 ];
 
@@ -154,7 +164,7 @@ class InternalAdCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 FilledButton.tonal(
-                  onPressed: () {},
+                  onPressed: () => context.push(ad.route),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,

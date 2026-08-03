@@ -2240,6 +2240,30 @@ abstract class AppLocalizations {
   /// **'ce salon sera archivé'**
   String get audioRoomHeritageArchivedNote;
 
+  /// No description provided for @audioRoomInviteCoHostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nommer un co-hôte'**
+  String get audioRoomInviteCoHostTitle;
+
+  /// No description provided for @audioRoomCoHostAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} est désormais co-hôte'**
+  String audioRoomCoHostAdded(String name);
+
+  /// No description provided for @audioRoomHandsRaisedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mains levées'**
+  String get audioRoomHandsRaisedLabel;
+
+  /// No description provided for @audioRoomStatsLiveNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeurs de l\'instant — aucun historique n\'est conservé.'**
+  String get audioRoomStatsLiveNote;
+
   /// No description provided for @heritageRecordingsCount.
   ///
   /// In fr, this message translates to:

@@ -483,6 +483,17 @@
   "scheduleSlotMorning": "Matin · au réveil",
   "scheduleSlotNight": "Tard · risque de nuit",
   "audioRoomHeritageArchivedNote": "ce salon sera archivé",
+  "audioRoomInviteCoHostTitle": "Nommer un co-hôte",
+  "audioRoomCoHostAdded": "{name} est désormais co-hôte",
+  "@audioRoomCoHostAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "audioRoomHandsRaisedLabel": "Mains levées",
+  "audioRoomStatsLiveNote": "Valeurs de l'instant — aucun historique n'est conservé.",
   "heritageRecordingsCount": "{count} ENREGISTREMENTS",
   "@heritageRecordingsCount": {
     "placeholders": {

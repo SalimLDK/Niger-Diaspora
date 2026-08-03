@@ -816,6 +816,45 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     });
   }
 
+  /// Change les réglages du salon en cours (hôte uniquement).
+  ///
+  /// Seuls les champs fournis sont écrits. L'état local est mis à jour tout
+  /// de suite pour que l'interrupteur ne « rebondisse » pas en attendant le
+  /// retour du flux temps réel.
+  Future<void> updateRoomSettings({
+    bool? isRecordingEnabled,
+    bool? isVideoEnabled,
+    bool? isPrivate,
+  }) async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final room = state.room;
+    if (currentUser == null || room == null) return;
+    if (!room.isHost(currentUser.id)) return;
+
+    final previous = room;
+    state = state.copyWith(
+      room: room.copyWith(
+        isRecordingEnabled: isRecordingEnabled,
+        isVideoEnabled: isVideoEnabled,
+        isPrivate: isPrivate,
+      ),
+    );
+
+    try {
+      final dataSource = ref.read(audioRoomRemoteDataSourceProvider);
+      await dataSource.updateRoomSettings(
+        room.id,
+        isRecordingEnabled: isRecordingEnabled,
+        isVideoEnabled: isVideoEnabled,
+        isPrivate: isPrivate,
+      );
+    } catch (e) {
+      // L'écriture a échoué : on remet l'état d'avant, sinon l'interface
+      // afficherait un réglage qui n'existe pas côté serveur.
+      state = state.copyWith(room: previous, error: 'Erreur: $e');
+    }
+  }
+
   /// Relance la connexion SFU après une coupure, sans quitter le salon.
   ///
   /// La session Supabase/RTDB reste valide pendant une coupure audio : seul le

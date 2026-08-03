@@ -10,7 +10,9 @@ import '../../../../core/services/file_download_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/entities/participant_entity.dart';
 import '../../domain/entities/room_replay_entity.dart';
+import '../widgets/send_tip_bottom_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// /audio-rooms/:roomId/replay — replay player with waveform scrubber.
@@ -157,6 +159,31 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
       _playbackSpeed = _playbackSpeed < 2.0 ? _playbackSpeed + 0.5 : 1.0;
     });
     if (_isAudio) _audio.setSpeed(_playbackSpeed);
+  }
+
+  /// Envoie un pourboire à l'hôte du salon rejoué.
+  ///
+  /// Le replay ne porte pas de liste de participants : on reconstruit une
+  /// [ParticipantEntity] minimale à partir des champs `host*` de l'entité,
+  /// qui sont les seules informations dont la feuille a besoin (id, nom,
+  /// photo).
+  Future<void> _sendTipToHost() async {
+    final replay = widget.replay;
+    if (replay == null || replay.hostId.isEmpty) return;
+
+    await SendTipBottomSheet.show(
+      context,
+      roomId: replay.roomId,
+      roomTitle: replay.roomTitle,
+      recipient: ParticipantEntity(
+        userId: replay.hostId,
+        userName: replay.hostName,
+        photoUrl: replay.hostPhotoUrl,
+        role: ParticipantRole.host,
+        connectionState: ParticipantConnectionState.disconnected,
+        joinedAt: replay.recordedAt,
+      ),
+    );
   }
 
   Future<void> _checkDownloaded() async {
@@ -487,7 +514,18 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                       onTap: _showSleepMenu,
                     ),
                     const SizedBox(width: 8),
-                    _Pill(label: '🪙 ${AppLocalizations.of(context)!.audioRoomTipLabel}', ochre: true, onTap: () {}),
+                    // Le bouton était mort alors que SendTipBottomSheet
+                    // fonctionne déjà dans le salon en direct. Masqué si le
+                    // replay ne porte pas d'hôte : sans destinataire il n'y a
+                    // rien à envoyer.
+                    if ((widget.replay?.hostId ?? '').isNotEmpty) ...[
+                      _Pill(
+                        label:
+                            '🪙 ${AppLocalizations.of(context)!.audioRoomTipLabel}',
+                        ochre: true,
+                        onTap: _sendTipToHost,
+                      ),
+                    ],
                   ],
                 ),
               ),

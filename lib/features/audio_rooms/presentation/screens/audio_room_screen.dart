@@ -221,6 +221,7 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
         isMuted: session.isMuted,
         isCameraOff: session.isCameraOff,
         room: room,
+        session: session,
         currentUserId: currentUser?.id ?? '',
         onMute: () =>
             ref.read(audioRoomSessionProvider.notifier).toggleMute(),
@@ -879,6 +880,81 @@ class _ModerationPanel extends ConsumerStatefulWidget {
 class _ModerationPanelState extends ConsumerState<_ModerationPanel> {
   ParticipantEntity? _selected;
 
+  /// Initiale du co-hôte quand on connaît son nom, repli générique sinon —
+  /// un co-hôte peut avoir quitté la session sans quitter la liste.
+  String _initialFor(String userId, AppLocalizations l10n) {
+    final p = widget.session.participants
+        .where((p) => p.userId == userId)
+        .firstOrNull;
+    final name = p?.userName.trim() ?? '';
+    return name.isEmpty
+        ? l10n.moderatorInitialLabel
+        : name.characters.first.toUpperCase();
+  }
+
+  /// « + Inviter » : promeut un participant au rang de co-hôte, ce qui lui
+  /// donne les droits de modération. Le bouton n'était relié à rien.
+  Future<void> _pickCoHost() async {
+    final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+    // Ni l'hôte, ni les co-hôtes déjà nommés, ni les fantômes.
+    final candidates = widget.session.participants
+        .where((p) => !p.isGhostMode)
+        .where((p) => p.userId != widget.room.hostId)
+        .where((p) => !widget.room.coHostIds.contains(p.userId))
+        .toList();
+
+    if (candidates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.ghostNoParticipants)),
+      );
+      return;
+    }
+
+    final chosen = await showModalBottomSheet<ParticipantEntity>(
+      context: context,
+      backgroundColor: dn.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(l10n.audioRoomInviteCoHostTitle,
+                  style: DNText.serif(size: 16, color: dn.onSurface),),
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: candidates.length,
+                itemBuilder: (_, i) => ListTile(
+                  dense: true,
+                  title: Text(candidates[i].userName,
+                      style: DNText.sans(size: 14, color: dn.onSurface),),
+                  subtitle: Text(candidates[i].role.name,
+                      style: DNText.mono(size: 9, color: dn.onSurface3),),
+                  onTap: () => Navigator.pop(sheetContext, candidates[i]),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (chosen == null || !mounted) return;
+    await ref
+        .read(audioRoomSessionProvider.notifier)
+        .addCoHost(chosen.userId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.audioRoomCoHostAdded(chosen.userName))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_selected != null) {
@@ -913,18 +989,23 @@ class _ModerationPanelState extends ConsumerState<_ModerationPanel> {
         const SizedBox(height: 6),
         Row(
           children: [
-            ...widget.room.moderatorIds.take(3).map((id) => Container(
+            // Les co-hôtes, c'est-à-dire ceux que `canModerate` autorise.
+            // Cette ligne affichait `moderatorIds`, qui contient les admins
+            // en mode fantôme : leur arrivée faisait grossir la rangée sous
+            // les yeux de l'hôte, alors que le mode fantôme existe
+            // précisément pour être invisible.
+            ...widget.room.coHostIds.take(3).map((id) => Container(
                   width: 28,
                   height: 28,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
                       color: dn.surfaceVariant, shape: BoxShape.circle,),
                   alignment: Alignment.center,
-                  child: Text(l10n.moderatorInitialLabel,
+                  child: Text(_initialFor(id, l10n),
                       style: DNText.mono(size: 9, color: dn.onSurface2),),
                 ),),
             GestureDetector(
-              onTap: () {},
+              onTap: _pickCoHost,
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1073,13 +1154,17 @@ class _SelectedUserCard extends StatelessWidget {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
-class _RoomFooter extends StatelessWidget {
+class _RoomFooter extends ConsumerWidget {
   final bool isHost;
   final bool isSpeaker;
   final bool isGhost;
   final bool isMuted;
   final bool isCameraOff;
   final AudioRoomEntity room;
+
+  /// Nécessaire aux statistiques en direct du salon (auditeurs, intervenants,
+  /// mains levées) : ce sont des compteurs de session, pas du salon.
+  final AudioRoomSessionState session;
   final String currentUserId;
   final VoidCallback onMute;
   final VoidCallback onCamera;
@@ -1089,6 +1174,143 @@ class _RoomFooter extends StatelessWidget {
   final VoidCallback onLeave;
   final VoidCallback onEnd;
 
+  /// Réglages modifiables en direct par l'hôte. Le bouton ⚙ n'ouvrait rien.
+  ///
+  /// Volontairement limité aux trois champs que le salon peut réellement
+  /// changer en cours de route : le reste (catégorie, mode, tarif) est figé à
+  /// la création et le proposer ici serait mentir.
+  void _showSettings(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: dn.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => Consumer(
+        builder: (context, ref, _) {
+          // Relit le salon depuis le provider : les interrupteurs doivent
+          // refléter l'écriture, y compris son échec (état restauré).
+          final live = ref.watch(audioRoomSessionProvider).room ?? room;
+          final notifier = ref.read(audioRoomSessionProvider.notifier);
+
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Text(l10n.audioRoomSettingsLabel,
+                      style: DNText.serif(size: 16, color: dn.onSurface),),
+                ),
+                SwitchListTile.adaptive(
+                  title: Text(l10n.audioRoomEnableRecording,
+                      style: DNText.sans(size: 13, color: dn.onSurface),),
+                  subtitle: Text(l10n.audioRoomEnableRecordingHint,
+                      style: DNText.mono(size: 9, color: dn.onSurface3),),
+                  value: live.isRecordingEnabled,
+                  activeThumbColor: DNColors.terra,
+                  onChanged: (v) =>
+                      notifier.updateRoomSettings(isRecordingEnabled: v),
+                ),
+                SwitchListTile.adaptive(
+                  title: Text(l10n.audioRoomVideoEnabled,
+                      style: DNText.sans(size: 13, color: dn.onSurface),),
+                  subtitle: Text(l10n.audioRoomVideoEnabledHint,
+                      style: DNText.mono(size: 9, color: dn.onSurface3),),
+                  value: live.isVideoEnabled,
+                  activeThumbColor: DNColors.terra,
+                  onChanged: (v) =>
+                      notifier.updateRoomSettings(isVideoEnabled: v),
+                ),
+                SwitchListTile.adaptive(
+                  title: Text(l10n.audioRoomPrivateRoom,
+                      style: DNText.sans(size: 13, color: dn.onSurface),),
+                  subtitle: Text(l10n.audioRoomPrivateRoomHint,
+                      style: DNText.mono(size: 9, color: dn.onSurface3),),
+                  value: live.isPrivate,
+                  activeThumbColor: DNColors.terra,
+                  onChanged: (v) => notifier.updateRoomSettings(isPrivate: v),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Compteurs en direct du salon. Le bouton 📊 n'ouvrait rien, et il
+  /// n'existe aucun historique : ce sont des valeurs de l'instant, ce que la
+  /// feuille dit explicitement.
+  void _showStats(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: dn.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        Widget row(String label, String value) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(label,
+                        style:
+                            DNText.sans(size: 13, color: dn.onSurface2),),
+                  ),
+                  Text(value,
+                      style: DNText.serif(size: 18, color: dn.onSurface),),
+                ],
+              ),
+            );
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Text(l10n.audioRoomStatsLabel,
+                    style: DNText.serif(size: 16, color: dn.onSurface),),
+              ),
+              row(l10n.ghostListeners, '${session.visibleListeners.length}'),
+              row(l10n.ghostSpeakers, '${session.visibleSpeakers.length}'),
+              row(l10n.audioRoomHandsRaisedLabel,
+                  '${session.handRaised.length}',),
+              row(
+                l10n.ghostDuration,
+                room.startedAt == null
+                    ? '--'
+                    : l10n.audioRoomElapsedMinutes(
+                        DateTime.now().difference(room.startedAt!).inMinutes,
+                      ),
+              ),
+              if (room.hasActiveCollection)
+                row(
+                  l10n.audioRoomFundraisingGoal,
+                  '${(room.collectionAmount / 100).toStringAsFixed(0)} / '
+                      '${((room.collectionGoal ?? 0) / 100).toStringAsFixed(0)}',
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
+                child: Text(l10n.audioRoomStatsLiveNote,
+                    style: DNText.mono(size: 9, color: dn.onSurface3),),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   const _RoomFooter({
     required this.isHost,
     required this.isSpeaker,
@@ -1096,6 +1318,7 @@ class _RoomFooter extends StatelessWidget {
     required this.isMuted,
     required this.isCameraOff,
     required this.room,
+    required this.session,
     required this.currentUserId,
     required this.onMute,
     required this.onCamera,
@@ -1107,7 +1330,7 @@ class _RoomFooter extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final dn = context.dn;
     final bg = isGhost ? DNColors.ink2 : dn.surface2;
@@ -1119,8 +1342,16 @@ class _RoomFooter extends StatelessWidget {
           active: !isMuted,
           onTap: onMute,
         ),
-        _FootBtn(label: '⚙', sublabel: l10n.audioRoomSettingsLabel, onTap: () {}),
-        _FootBtn(label: '📊', sublabel: l10n.audioRoomStatsLabel, onTap: () {}),
+        _FootBtn(
+          label: '⚙',
+          sublabel: l10n.audioRoomSettingsLabel,
+          onTap: () => _showSettings(context, ref),
+        ),
+        _FootBtn(
+          label: '📊',
+          sublabel: l10n.audioRoomStatsLabel,
+          onTap: () => _showStats(context),
+        ),
         _FootBtn(
           label: l10n.audioRoomEndLabel,
           sublabel: '',

@@ -85,18 +85,27 @@ familles :
    3 des 4 actions de la modération fantôme, la loupe de la liste des salons,
    les entrées « Modifier » / « Statistiques » de « Mes podcasts ».
 
-   ⚠ **Encore ouverts au 2026-08-03**, trouvés par ce grep et non repérés par
-   l'audit initial :
-   - `audio_room_screen.dart:1122` — pied de page, bouton **⚙ Réglages** ;
-   - `audio_room_screen.dart:1123` — pied de page, bouton **📊 Statistiques** ;
-   - `audio_room_screen.dart:927` — puce du panneau de modération ;
-   - `replay_player_screen.dart:490` — bouton **🪙 Pourboire** du replay,
-     alors que `SendTipBottomSheet` existe et fonctionne ailleurs ;
-   - `internal_ad_card.dart:157` — bouton d'appel à l'action de l'encart
-     publicitaire interne.
+   Les 5 trouvés par ce grep et non repérés par l'audit initial sont **tous
+   corrigés** (2026-08-03) :
+   - **⚙ Réglages** du pied de salon → feuille avec les trois réglages qu'un
+     salon peut réellement changer en direct (enregistrement, vidéo, privé).
+     A demandé un `updateRoomSettings` côté datasource, qui n'existait pas ;
+   - **📊 Statistiques** du pied de salon → compteurs de l'instant
+     (auditeurs, intervenants, mains levées, durée, collecte si active). La
+     feuille dit explicitement qu'aucun historique n'est conservé ;
+   - **+ Inviter** du panneau de modération → sélecteur de participant puis
+     `addCoHost`. Au passage, la rangée au-dessus affichait `moderatorIds`,
+     qui contient les admins en mode fantôme : leur arrivée faisait grossir
+     la rangée sous les yeux de l'hôte, alors que ce mode existe pour être
+     invisible. Elle affiche désormais `coHostIds` ;
+   - **🪙 Pourboire** du replay → `SendTipBottomSheet`, avec l'hôte du replay
+     comme destinataire. Masqué si le replay ne porte pas d'hôte ;
+   - **CTA de l'encart publicitaire interne** → chaque encart porte
+     maintenant sa route (`/transfers`, `/groups`, `/marketplace`,
+     `/audio-rooms`). Il vantait une fonctionnalité sans y mener.
 
    (`group_call_screen.dart:706` est un faux positif : le `onTap` vide y
-   absorbe volontairement les taps sur la modale.)
+   absorbe volontairement les taps sur la modale. C'est le seul restant.)
 
    Un `grep -rn "onTap: () {}\|onPressed: () {}" lib` est instantané et
    devrait faire partie de toute revue.
