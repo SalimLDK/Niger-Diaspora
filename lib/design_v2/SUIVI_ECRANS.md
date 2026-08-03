@@ -309,11 +309,21 @@ depuis `MessageEntity.fileSize`. Sur un réseau 2G, savoir ce qu'on va
 télécharger compte. Affiché seulement quand le serveur a renvoyé la valeur —
 pas de « 0 Ko » inventé.
 
-**Non fait, et volontairement** : le bouton **« TRANSCRIRE »** des maquettes
-3b/3c. La transcription n'existe nulle part pour les messages — seulement
-pour les podcasts (`podcast_episode_entity`). Ajouter le bouton donnerait un
-widget mort de plus, exactement la famille de trous de câblage déjà soldée
-ailleurs. Il faut d'abord un service de transcription côté serveur.
+**Bouton « TRANSCRIRE » : écarté sur décision.** Il apparaît dans 3b et 3c,
+mais la transcription n'existe nulle part pour les messages — seulement pour
+les podcasts (`podcast_episode_entity`). Le poser donnerait un widget mort
+au clic. Écarté explicitement, à ne pas ré-ouvrir comme un oubli.
+
+**La bulle audio suit la §4a, pas la §3b.** Les deux diffèrent : la 3b
+empile une seconde rangée `[1,5×][TRANSCRIRE][86 Ko]`, la 4a garde la
+pastille de vitesse en bout de waveform et réserve la ligne du bas à la
+position, l'état d'écoute et le téléchargement. Deux écarts corrigés :
+
+- **Pastille de vitesse en contour** au lieu d'un aplat teinté. Pleine, elle
+  se lisait comme un état actif alors que c'est un bouton de cycle.
+- **Poids du fichier retiré de la note vocale.** La 4a le porte sur la pièce
+  jointe (« aperçu flouté · 240 Ko »), pas sur l'audio. L'information reste
+  donc affichée là où elle sert au téléchargement, sur `document_bubble`.
 
 ### Carte — §7d faite, §7e à faire
 
