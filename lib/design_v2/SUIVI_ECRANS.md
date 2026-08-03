@@ -781,15 +781,24 @@ Migration **terminée** : `create_podcast_screen`, `my_podcasts_screen`,
 `podcast_detail_screen`, `podcast_stats_screen`, `podcasts_home_screen`,
 `record_episode_screen`.
 
-**`episode_detail_screen` est écarté**, et c'est délibéré. Il contient un
-`_playerTheme()` — un lecteur **volontairement sombre en permanence**, dont
-le commentaire dit qu'il suit la maquette au titre de « pièce plein écran
-média », comme le viewer de stories. Même catégorie que les écrans d'appel :
-lui imposer les surfaces DN casserait ce que le code cherche à obtenir.
-Une première passe de 18 conversions avait été appliquée puis **annulée** :
-`flutter analyze` passait, mais rien ne garantissait que les jetons n'avaient
-pas atterri dans la zone sombre. Le migrer demande de lire le fichier et de
-distinguer la coque du lecteur — pas des remplacements. Restent, par ordre de coût croissant :
+**`episode_detail_screen` est hors périmètre**, et c'est maintenant vérifié
+plutôt que supposé. Son `build()` enveloppe **l'écran entier** dans
+`Theme(data: _playerTheme())` — il n'y a pas de « coque » à migrer à côté du
+lecteur, tout l'écran *est* le lecteur. Le commentaire du code le dit sans
+ambiguïté :
+
+> Le `Theme` englobe tout l'écran : les enfants qui lisent
+> `Theme.of(context)` basculent avec lui, sans couleur en dur à maintenir.
+
+C'est un choix de conception assumé — une pièce « plein écran média », au
+même titre que le viewer de stories et les écrans d'appel. Le migrer vers DN
+signifierait **supprimer `_playerTheme()`**, donc défaire ce que la maquette
+demande. Ce n'est pas une migration en attente : c'est un écran qui n'a pas
+à être migré.
+
+Une première passe de 18 conversions y avait été appliquée puis **annulée**.
+`flutter analyze` passait au vert — mais l'écran entier étant sous le thème
+du lecteur, ces jetons tombaient forcément dedans. Restent, par ordre de coût croissant :
 
 | Écran | Lignes | Ce qu'il porte |
 |---|---|---|
@@ -798,7 +807,7 @@ distinguer la coque du lecteur — pas des remplacements. Restent, par ordre de 
 | ~~`podcast_detail_screen`~~ | 531 | **fait** |
 | ~~`podcasts_home_screen`~~ | 704 | **fait** |
 | ~~`record_episode_screen`~~ | 718 | **fait** |
-| `episode_detail_screen` | 996 | **écarté** — voir ci-dessous |
+| `episode_detail_screen` | 996 | **hors périmètre** — vérifié, voir ci-dessous |
 
 Aucun n'est *cassé* : `adaptive_colors` comme `colorScheme` sont déjà
 theme-aware. Cette migration est une unification visuelle avec les salons,
