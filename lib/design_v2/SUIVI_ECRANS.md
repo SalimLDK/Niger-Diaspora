@@ -380,6 +380,30 @@ position, l'état d'écoute et le téléchargement. Deux écarts corrigés :
   jointe (« aperçu flouté · 240 Ko »), pas sur l'audio. L'information reste
   donc affichée là où elle sert au téléchargement, sur `document_bubble`.
 
+### Nocturnes — rien à implémenter
+
+Vérifié : `app.dart:142` déclare `darkTheme: AppTheme.darkTheme`, donc chaque
+écran hérite du thème sombre. Les maquettes 19a, 19b, 2g, 4b et 4c ne
+décrivent **pas de nouveaux écrans** — ce sont les versions sombres de 17c,
+17a, 1c et 1e.
+
+Trois mécanismes de couleur coexistent et tous les trois adaptent :
+`colorScheme` Material (annuaire, ambassades), les jetons `context.dn`
+(salons), et `adaptive_colors` (le reste).
+
+Deux couleurs figées ont été corrigées :
+
+- `embassies_screen.dart` — le statut ouvert/fermé était codé en
+  `0xFFC23E2D` / `0xFF2D7D46`, les variantes **foncées**, illisibles sur
+  fond nuit. Remplacées par `context.errorColor` / `context.successColor` :
+  le sens est conservé, le contraste suit le thème.
+- `audio_rooms_list_screen.dart` — l'icône micro du bouton « Ouvrir un
+  salon » était en `Colors.white` alors que **son propre libellé** utilise
+  `DNColors.paper`. Les deux se répondent désormais sur l'aplat terra.
+
+⚠️ Cette vérification est **statique**. Que les jetons soient adaptatifs ne
+garantit pas que le contraste tienne : seul un vrai appareil le dira.
+
 ### Carte — §7d faite, §7e à faire
 
 Vérifié sur `lib/features/map/presentation/screens/map_screen.dart` (3549 l.),
@@ -472,8 +496,8 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 19a | Annuaire Business — nocturne (= 17c) | `businesses/…/businesses_screen.dart` | 407 l. | à faire |
-| 19b | Ambassades — nocturne (= 17a) | `embassies/…/embassies_screen.dart` | 594 l. | à faire |
+| 19a | Annuaire Business — nocturne (= 17c) | `businesses/…/businesses_screen.dart` | 407 l. | prod — voir « Nocturnes » |
+| 19b | Ambassades — nocturne (= 17a) | `embassies/…/embassies_screen.dart` | 594 l. | prod — voir « Nocturnes » |
 | 19c | Mes entreprises (propriétaire) | `businesses/…/my_businesses_screen.dart` | 487 l. | ✅ câblée |
 | 25a | Fiche d'un événement | `events/…/event_detail_screen.dart` | 1084 l. | ✅ câblée |
 | 25b | Ma boutique — annonces et commandes | `marketplace/…/my_products_screen.dart` (119 l.), `my_orders_screen.dart` | 745 l. | à faire |
@@ -554,7 +578,7 @@ reste à appliquer partout.
 | 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | à faire |
 | 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | à faire |
 | 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | à faire |
-| 2g | Salons — nocturne | `audio_rooms_list_screen.dart` | — | à faire |
+| 2g | Salons — nocturne | `audio_rooms_list_screen.dart` | — | prod — voir « Nocturnes » |
 
 ### Documents 3 et 4 — gérer, modérer, mesurer
 
@@ -565,8 +589,8 @@ reste à appliquer partout.
 | 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | à faire |
 | — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | à faire |
 | 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | à faire |
-| 4b | Lecteur — nocturne | même écran que 1e | — | à faire |
-| 4c | Patrimoine oral — nocturne | même écran que 1c | — | à faire |
+| 4b | Lecteur — nocturne | même écran que 1e | — | prod — voir « Nocturnes » |
+| 4c | Patrimoine oral — nocturne | même écran que 1c | — | prod — voir « Nocturnes » |
 
 ### ⚠️ Ces maquettes reposent sur de l'argent qui ne circule pas encore
 

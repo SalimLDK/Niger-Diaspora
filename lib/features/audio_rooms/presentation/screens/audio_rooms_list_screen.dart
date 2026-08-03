@@ -627,7 +627,9 @@ class _OpenRoomButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const AppIcon(AppIcon.mic, color: Colors.white, size: 18),
+              // Même blanc que le libellé du bouton, qui utilise déjà
+              // DNColors.paper : les deux se répondent sur l'aplat terra.
+              const AppIcon(AppIcon.mic, color: DNColors.paper, size: 18),
               const SizedBox(width: 8),
               Text(
                 AppLocalizations.of(context)!.audioRoomOpenRoom,

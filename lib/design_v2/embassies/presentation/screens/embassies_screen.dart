@@ -354,8 +354,10 @@ class _NearestEmbassyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final closed = embassy.isTemporarilyClosed;
-    final statusColor =
-        closed ? const Color(0xFFC23E2D) : const Color(0xFF2D7D46);
+    // Ouvert / fermé : jetons sémantiques plutôt que teintes figées. Les
+    // deux valeurs d'origine étaient les variantes foncées, illisibles sur
+    // fond nuit — le sens est conservé, le contraste suit le thème.
+    final statusColor = closed ? context.errorColor : context.successColor;
     final distanceLabel =
         distanceKm < 1
             ? '< 1 km'
