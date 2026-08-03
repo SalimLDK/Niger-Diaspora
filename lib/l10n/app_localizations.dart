@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings.
   ///
   /// In fr, this message translates to:
-  /// **'Paramètres'**
+  /// **'Réglages'**
   String get settings;
 
   /// No description provided for @account.
@@ -4001,7 +4001,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLabel.
   ///
   /// In fr, this message translates to:
-  /// **'Paramètres'**
+  /// **'Réglages'**
   String get settingsLabel;
 
   /// No description provided for @modifyYourInfo.
@@ -17309,7 +17309,7 @@ abstract class AppLocalizations {
   /// No description provided for @callSettings.
   ///
   /// In fr, this message translates to:
-  /// **'Paramètres'**
+  /// **'Réglages'**
   String get callSettings;
 
   /// No description provided for @callEnd.
@@ -22397,7 +22397,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileSettings.
   ///
   /// In fr, this message translates to:
-  /// **'Paramètres'**
+  /// **'Réglages'**
   String get profileSettings;
 
   /// No description provided for @profileSendingRequest.

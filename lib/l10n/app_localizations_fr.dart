@@ -166,7 +166,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'En vous inscrivant, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.';
 
   @override
-  String get settings => 'Paramètres';
+  String get settings => 'Réglages';
 
   @override
   String get account => 'Compte';
@@ -2167,7 +2167,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unableToGetLocation => 'Impossible d\'obtenir la position';
 
   @override
-  String get settingsLabel => 'Paramètres';
+  String get settingsLabel => 'Réglages';
 
   @override
   String get modifyYourInfo => 'Modifier vos informations';
@@ -9367,7 +9367,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get callPermissionRequired => 'Permission requise';
 
   @override
-  String get callSettings => 'Paramètres';
+  String get callSettings => 'Réglages';
 
   @override
   String get callEnd => 'Terminer';
@@ -12114,7 +12114,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileReport => 'Signaler';
 
   @override
-  String get profileSettings => 'Paramètres';
+  String get profileSettings => 'Réglages';
 
   @override
   String get profileSendingRequest => 'Envoi en cours...';
