@@ -18,6 +18,35 @@ libellé à des fonctionnalités entièrement absentes ou non câblées.
 
 ---
 
+## État au 2026-08-03 (mise à jour après remédiation)
+
+Les 9 écarts critiques sont **tous traités**, ainsi que les écarts qui
+étaient de vrais défauts fonctionnels. Détail par commit dans `git log`.
+
+| Écart critique | État |
+|---|---|
+| #1 Bibliothèque du patrimoine orpheline | ✅ route `/audio-rooms/heritage` + 2 points d'entrée |
+| #2 Modération fantôme non fonctionnelle | ✅ sélecteur de participant + bypass `canModerate` + clause admin RTDB |
+| #3 Statistiques podcast absentes | ✅ écran + route (sans série temporelle : aucune donnée datée n'est stockée) |
+| #4 Pas d'enregistrement en direct | ✅ enregistrement micro (waveform et chapitrage en direct non faits) |
+| #5 Fil sans cache hors-ligne | ✅ cache Hive + bandeau daté |
+| #6 4 échecs réseau non distingués | ✅ les 4 cas, dont la publication non envoyée |
+| #7 État vide de la Carte minimal | ✅ Dézoomer / Voir les ambassades (« Inviter un proche » non fait) |
+| #8 Écran de reconnexion absent | ✅ bilan de reprise (Envoyé en priorité / Reçu pendant votre absence) |
+| #9 Transferts, 2 états manquants | ✅ taxonomie complète — **mais inatteignable** : rien ne remplit `failureReason` |
+
+**Écarté volontairement**, faute de backend : le bouton « M'alerter » de la
+recherche boutique (3c) — aucune table d'alertes ni déclencheur de
+notification, le bouton ne pourrait jamais se déclencher.
+
+**Reste ouvert** : le polish visuel pur (ordre des sections, libellés
+d'en-tête, structure onglets vs page unique de 1c/1d/2e, pastilles de
+chapitres, thème sombre forcé du lecteur d'épisode), plus deux éléments qui
+demandent un champ de données inexistant (invités d'un épisode, cloche de
+notification par podcast).
+
+---
+
 ## 🔴 Écarts critiques (bugs ou trous fonctionnels)
 
 Ce qui mérite un traitement prioritaire, au-delà du polish visuel :
