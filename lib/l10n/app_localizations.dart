@@ -2108,6 +2108,102 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @transferFailOperatorBlockedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bloqué par l\'opérateur'**
+  String get transferFailOperatorBlockedTitle;
+
+  /// No description provided for @transferFailOperatorBlockedDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'opérateur du bénéficiaire a refusé de créditer le compte (plafond atteint, pièces d\'identité manquantes ou compte gelé).'**
+  String get transferFailOperatorBlockedDesc;
+
+  /// No description provided for @transferFailDuplicateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublon évité'**
+  String get transferFailDuplicateTitle;
+
+  /// No description provided for @transferFailDuplicateDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un transfert identique était déjà en cours. Celui-ci a été arrêté avant tout prélèvement pour ne pas te débiter deux fois.'**
+  String get transferFailDuplicateDesc;
+
+  /// No description provided for @transferFailInvalidRecipientTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bénéficiaire introuvable'**
+  String get transferFailInvalidRecipientTitle;
+
+  /// No description provided for @transferFailInvalidRecipientDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le numéro ou le portefeuille indiqué n\'existe pas chez l\'opérateur.'**
+  String get transferFailInvalidRecipientDesc;
+
+  /// No description provided for @transferFailDeclinedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement refusé'**
+  String get transferFailDeclinedTitle;
+
+  /// No description provided for @transferFailDeclinedDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta banque a refusé le paiement. Ce refus vient de l\'émetteur de la carte, pas de l\'application.'**
+  String get transferFailDeclinedDesc;
+
+  /// No description provided for @transferFailInsufficientTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Provision insuffisante'**
+  String get transferFailInsufficientTitle;
+
+  /// No description provided for @transferFailInsufficientDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le moyen de paiement n\'avait pas assez de fonds pour couvrir le montant et les frais.'**
+  String get transferFailInsufficientDesc;
+
+  /// No description provided for @transferFailTimeoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traitement interrompu'**
+  String get transferFailTimeoutTitle;
+
+  /// No description provided for @transferFailTimeoutDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion a été coupée pendant le traitement. L\'issue n\'est pas encore connue.'**
+  String get transferFailTimeoutDesc;
+
+  /// No description provided for @transferDebitNotCharged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun montant n\'a été prélevé.'**
+  String get transferDebitNotCharged;
+
+  /// No description provided for @transferDebitCharged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant a été prélevé et n\'a pas encore été rendu.'**
+  String get transferDebitCharged;
+
+  /// No description provided for @transferDebitUncertain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous ne savons pas encore si le montant a été prélevé — ne relance pas le transfert avant vérification.'**
+  String get transferDebitUncertain;
+
+  /// No description provided for @transferActionFixRecipient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corriger le bénéficiaire'**
+  String get transferActionFixRecipient;
+
   /// No description provided for @audioRoomReconnecting.
   ///
   /// In fr, this message translates to:

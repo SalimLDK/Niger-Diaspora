@@ -8,8 +8,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/support_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
+import '../../domain/entities/transfer_failure_kind.dart';
 import '../providers/transfer_provider.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
@@ -80,7 +82,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildStatusCard(BuildContext context, TransactionEntity transaction) {
-    final statusInfo = _getStatusInfo(transaction.status);
+    final statusInfo = _getStatusInfo(context, transaction);
 
     return Card(
       child: Container(
@@ -113,6 +115,24 @@ class TransactionDetailScreen extends ConsumerWidget {
               ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
+            // L'état du débit est ce que l'utilisateur cherche en premier :
+            // il est affiché à part, pas noyé dans la description.
+            if (statusInfo.debitNotice != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: statusInfo.color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  statusInfo.debitNotice!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
             if (transaction.status.isActive) ...[
               const SizedBox(height: 16),
               const LinearProgressIndicator(),
@@ -449,15 +469,32 @@ class TransactionDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     TransactionEntity transaction,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+    // « Réessayer » n'est pas toujours le bon conseil : sur un doublon évité
+    // il est inutile, et sur un débit incertain il peut débiter deux fois.
+    final action = transaction.status == TransactionStatus.failed
+        ? TransferFailureKind.fromReason(transaction.failureReason).action
+        : null;
+
     return Column(
       children: [
-        if (transaction.status == TransactionStatus.failed) ...[
+        if (action == TransferFailureAction.retry) ...[
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => _retryTransaction(context, ref, transaction),
               icon: const Icon(Icons.refresh),
               label: const Text('Reessayer le transfert'),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ] else if (action == TransferFailureAction.fixRecipient) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context.push('/transfers/recipient'),
+              icon: const Icon(Icons.person_search),
+              label: Text(l10n.transferActionFixRecipient),
             ),
           ),
           const SizedBox(height: 12),
@@ -474,8 +511,81 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
   }
 
-  _StatusInfo _getStatusInfo(TransactionStatus status) {
-    switch (status) {
+  /// Un échec n'est plus rendu de façon générique : le motif est classé, et
+  /// l'écran dit ce qui est arrivé à l'argent. Voir [TransferFailureKind]
+  /// pour la réserve importante — rien ne remplit `failureReason` aujourd'hui,
+  /// donc en pratique on retombe sur le cas générique d'avant.
+  _StatusInfo _failureInfo(BuildContext context, String? reason) {
+    final l10n = AppLocalizations.of(context)!;
+    final kind = TransferFailureKind.fromReason(reason);
+
+    final debitNotice = switch (kind.debitState) {
+      TransferDebitState.notCharged => l10n.transferDebitNotCharged,
+      TransferDebitState.charged => l10n.transferDebitCharged,
+      TransferDebitState.uncertain => l10n.transferDebitUncertain,
+    };
+
+    return switch (kind) {
+      TransferFailureKind.operatorBlocked => _StatusInfo(
+          icon: Icons.block,
+          color: AppColors.error,
+          label: l10n.transferFailOperatorBlockedTitle,
+          description: l10n.transferFailOperatorBlockedDesc,
+          debitNotice: debitNotice,
+        ),
+      TransferFailureKind.duplicatePrevented => _StatusInfo(
+          icon: Icons.shield_outlined,
+          color: AppColors.info,
+          label: l10n.transferFailDuplicateTitle,
+          description: l10n.transferFailDuplicateDesc,
+          debitNotice: debitNotice,
+        ),
+      TransferFailureKind.invalidRecipient => _StatusInfo(
+          icon: Icons.person_off_outlined,
+          color: AppColors.warning,
+          label: l10n.transferFailInvalidRecipientTitle,
+          description: l10n.transferFailInvalidRecipientDesc,
+          debitNotice: debitNotice,
+        ),
+      TransferFailureKind.paymentDeclined => _StatusInfo(
+          icon: Icons.credit_card_off,
+          color: AppColors.error,
+          label: l10n.transferFailDeclinedTitle,
+          description: l10n.transferFailDeclinedDesc,
+          debitNotice: debitNotice,
+        ),
+      TransferFailureKind.insufficientFunds => _StatusInfo(
+          icon: Icons.account_balance_wallet_outlined,
+          color: AppColors.warning,
+          label: l10n.transferFailInsufficientTitle,
+          description: l10n.transferFailInsufficientDesc,
+          debitNotice: debitNotice,
+        ),
+      TransferFailureKind.networkTimeout => _StatusInfo(
+          icon: Icons.wifi_off,
+          color: AppColors.warning,
+          label: l10n.transferFailTimeoutTitle,
+          description: l10n.transferFailTimeoutDesc,
+          debitNotice: debitNotice,
+        ),
+      // Comportement historique conservé tel quel.
+      TransferFailureKind.unknown => _StatusInfo(
+          icon: Icons.error,
+          color: AppColors.error,
+          label: 'Echoue',
+          description: 'Le transfert a echoue. Veuillez reessayer.',
+        ),
+    };
+  }
+
+  _StatusInfo _getStatusInfo(
+    BuildContext context,
+    TransactionEntity transaction,
+  ) {
+    if (transaction.status == TransactionStatus.failed) {
+      return _failureInfo(context, transaction.failureReason);
+    }
+    switch (transaction.status) {
       case TransactionStatus.pending:
         return _StatusInfo(
           icon: Icons.schedule,
@@ -665,10 +775,15 @@ class _StatusInfo {
   final String label;
   final String description;
 
+  /// Phrase dédiée à l'état du débit — renseignée uniquement pour les échecs
+  /// dont le motif a pu être classé.
+  final String? debitNotice;
+
   _StatusInfo({
     required this.icon,
     required this.color,
     required this.label,
     required this.description,
+    this.debitNotice,
   });
 }

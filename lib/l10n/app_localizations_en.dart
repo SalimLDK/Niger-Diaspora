@@ -1082,6 +1082,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowEmbassies => 'Show embassies';
 
   @override
+  String get transferFailOperatorBlockedTitle => 'Blocked by the operator';
+
+  @override
+  String get transferFailOperatorBlockedDesc =>
+      'The recipient\'s operator refused to credit the account (limit reached, missing ID documents, or frozen account).';
+
+  @override
+  String get transferFailDuplicateTitle => 'Duplicate prevented';
+
+  @override
+  String get transferFailDuplicateDesc =>
+      'An identical transfer was already in progress. This one was stopped before any charge so you are not billed twice.';
+
+  @override
+  String get transferFailInvalidRecipientTitle => 'Recipient not found';
+
+  @override
+  String get transferFailInvalidRecipientDesc =>
+      'The number or wallet you entered does not exist at the operator.';
+
+  @override
+  String get transferFailDeclinedTitle => 'Payment declined';
+
+  @override
+  String get transferFailDeclinedDesc =>
+      'Your bank declined the payment. This refusal comes from the card issuer, not from the app.';
+
+  @override
+  String get transferFailInsufficientTitle => 'Insufficient funds';
+
+  @override
+  String get transferFailInsufficientDesc =>
+      'The payment method did not have enough funds to cover the amount and the fee.';
+
+  @override
+  String get transferFailTimeoutTitle => 'Processing interrupted';
+
+  @override
+  String get transferFailTimeoutDesc =>
+      'The connection dropped during processing. The outcome is not known yet.';
+
+  @override
+  String get transferDebitNotCharged => 'Nothing was charged.';
+
+  @override
+  String get transferDebitCharged =>
+      'The amount was charged and has not been returned yet.';
+
+  @override
+  String get transferDebitUncertain =>
+      'We don\'t know yet whether you were charged — don\'t resend the transfer before checking.';
+
+  @override
+  String get transferActionFixRecipient => 'Fix the recipient';
+
+  @override
   String get audioRoomReconnecting => 'Reconnecting…';
 
   @override

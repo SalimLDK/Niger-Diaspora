@@ -1095,6 +1095,62 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapShowEmbassies => 'Voir les ambassades';
 
   @override
+  String get transferFailOperatorBlockedTitle => 'Bloqué par l\'opérateur';
+
+  @override
+  String get transferFailOperatorBlockedDesc =>
+      'L\'opérateur du bénéficiaire a refusé de créditer le compte (plafond atteint, pièces d\'identité manquantes ou compte gelé).';
+
+  @override
+  String get transferFailDuplicateTitle => 'Doublon évité';
+
+  @override
+  String get transferFailDuplicateDesc =>
+      'Un transfert identique était déjà en cours. Celui-ci a été arrêté avant tout prélèvement pour ne pas te débiter deux fois.';
+
+  @override
+  String get transferFailInvalidRecipientTitle => 'Bénéficiaire introuvable';
+
+  @override
+  String get transferFailInvalidRecipientDesc =>
+      'Le numéro ou le portefeuille indiqué n\'existe pas chez l\'opérateur.';
+
+  @override
+  String get transferFailDeclinedTitle => 'Paiement refusé';
+
+  @override
+  String get transferFailDeclinedDesc =>
+      'Ta banque a refusé le paiement. Ce refus vient de l\'émetteur de la carte, pas de l\'application.';
+
+  @override
+  String get transferFailInsufficientTitle => 'Provision insuffisante';
+
+  @override
+  String get transferFailInsufficientDesc =>
+      'Le moyen de paiement n\'avait pas assez de fonds pour couvrir le montant et les frais.';
+
+  @override
+  String get transferFailTimeoutTitle => 'Traitement interrompu';
+
+  @override
+  String get transferFailTimeoutDesc =>
+      'La connexion a été coupée pendant le traitement. L\'issue n\'est pas encore connue.';
+
+  @override
+  String get transferDebitNotCharged => 'Aucun montant n\'a été prélevé.';
+
+  @override
+  String get transferDebitCharged =>
+      'Le montant a été prélevé et n\'a pas encore été rendu.';
+
+  @override
+  String get transferDebitUncertain =>
+      'Nous ne savons pas encore si le montant a été prélevé — ne relance pas le transfert avant vérification.';
+
+  @override
+  String get transferActionFixRecipient => 'Corriger le bénéficiaire';
+
+  @override
   String get audioRoomReconnecting => 'Reconnexion en cours…';
 
   @override
