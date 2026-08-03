@@ -444,6 +444,52 @@
   "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
   "mapZoomOut": "Zoom out",
   "mapShowEmbassies": "Show embassies",
+  "audioRoomReconnecting": "Reconnecting…",
+  "audioRoomReconnectingHint": "Audio is off while we find the room again.",
+  "audioRoomAudioLost": "Audio connection lost",
+  "audioRoomAudioLostHint": "You are still in the room, but you can't hear anyone.",
+  "podcastRecordMicTitle": "Record with the mic",
+  "podcastRecordMicHint": "Or record straight from the phone.",
+  "podcastRecordStart": "Record",
+  "podcastRecordStop": "Finish",
+  "podcastRecordPause": "Pause",
+  "podcastRecordResume": "Resume",
+  "podcastRecordDiscard": "Discard recording",
+  "podcastRecordPermissionDenied": "Microphone access denied. Allow the microphone in your phone settings.",
+  "podcastRecordFailed": "The recording could not be saved.",
+  "podcastRecordedFileName": "Mic recording",
+  "podcastStatsTitle": "Statistics",
+  "podcastStatsTotalPlays": "Plays",
+  "podcastStatsSubscribers": "Subscribers",
+  "podcastStatsEpisodes": "Episodes",
+  "podcastStatsTotalDuration": "Published duration",
+  "podcastStatsEngagementTitle": "Engagement",
+  "podcastStatsLikes": "Likes",
+  "podcastStatsShares": "Shares",
+  "podcastStatsDownloads": "Downloads",
+  "podcastStatsAvgPlaysPerEpisode": "Average per episode",
+  "podcastStatsTopEpisodesTitle": "Most played episodes",
+  "podcastStatsRhythmTitle": "Publishing rhythm",
+  "podcastStatsLastEpisode": "Latest episode",
+  "podcastStatsAvgInterval": "Average interval",
+  "podcastStatsIntervalDays": "{days} days",
+  "@podcastStatsIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "podcastStatsNoData": "No episode published yet — nothing to measure.",
+  "podcastStatsNoHistoryNote": "These are cumulative totals. The app does not keep dated history, so no change over time can be shown.",
+  "podcastStatsPlaysCount": "{count} plays",
+  "@podcastStatsPlaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupJoined": "You have joined the group",
   "leaveGroupTitle": "Leave group",
   "leaveGroupConfirm": "Do you really want to leave this group?",
@@ -5920,6 +5966,13 @@
   "startNowLabel": "Start now",
   "recipientReceives": "{name} receives",
   "@recipientReceives": { "placeholders": { "name": { "type": "String" } } },
+  "sendTipYouSend": "You send",
+  "sendTipShownInRoomNote": "Your tip appears in the room with your name.",
+  "ticketPaymentMethodCard": "Bank card",
+  "ticketPinRequired": "PIN code required to confirm",
+  "ticketReplayAccessNote": "The ticket gives access to the room and its replay.",
+  "ticketBuyAndJoin": "Pay {amount} and join",
+  "@ticketBuyAndJoin": { "placeholders": { "amount": { "type": "String" } } },
   "configCompleteLabel": "complete configuration",
   "familyEventLabel": "Family event",
   "eventLabel": "Event",

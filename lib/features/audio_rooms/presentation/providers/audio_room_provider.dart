@@ -816,6 +816,17 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     });
   }
 
+  /// Relance la connexion SFU après une coupure, sans quitter le salon.
+  ///
+  /// La session Supabase/RTDB reste valide pendant une coupure audio : seul le
+  /// transport LiveKit est à refaire, avec un jeton neuf.
+  void retryAudioConnection() {
+    final room = state.room;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (room == null || currentUser == null) return;
+    _connectToLiveKit(room.id, currentUser.displayName ?? currentUser.id);
+  }
+
   /// Force end a room (admin/moderator only)
   Future<void> forceEndRoom(String reason) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -849,6 +860,15 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     }
   }
 }
+
+/// État de la connexion SFU du salon en cours.
+///
+/// `LiveKitService` émettait déjà `reconnecting` / `disconnected`, mais aucun
+/// écran ne l'écoutait : une coupure était invisible pour l'utilisateur, qui
+/// voyait juste un salon devenu muet.
+final audioRoomConnectionProvider = StreamProvider.autoDispose<LiveKitRoomState>(
+  (ref) => LiveKitService.instance.connectionStateStream,
+);
 
 /// Provider to check if user is currently in a room
 final isInAudioRoomProvider = Provider<bool>((ref) {

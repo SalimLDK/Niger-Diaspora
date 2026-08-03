@@ -444,6 +444,52 @@
   "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
   "mapZoomOut": "Dézoomer",
   "mapShowEmbassies": "Voir les ambassades",
+  "audioRoomReconnecting": "Reconnexion en cours…",
+  "audioRoomReconnectingHint": "Le son est coupé le temps de retrouver le salon.",
+  "audioRoomAudioLost": "Connexion audio perdue",
+  "audioRoomAudioLostHint": "Tu es toujours dans le salon, mais tu n'entends plus personne.",
+  "podcastRecordMicTitle": "Enregistrer au micro",
+  "podcastRecordMicHint": "Ou enregistre directement depuis le téléphone.",
+  "podcastRecordStart": "Enregistrer",
+  "podcastRecordStop": "Terminer",
+  "podcastRecordPause": "Pause",
+  "podcastRecordResume": "Reprendre",
+  "podcastRecordDiscard": "Annuler l'enregistrement",
+  "podcastRecordPermissionDenied": "Accès au micro refusé. Autorise le micro dans les réglages du téléphone.",
+  "podcastRecordFailed": "L'enregistrement n'a pas pu être sauvegardé.",
+  "podcastRecordedFileName": "Enregistrement micro",
+  "podcastStatsTitle": "Statistiques",
+  "podcastStatsTotalPlays": "Écoutes",
+  "podcastStatsSubscribers": "Abonnés",
+  "podcastStatsEpisodes": "Épisodes",
+  "podcastStatsTotalDuration": "Durée publiée",
+  "podcastStatsEngagementTitle": "Engagement",
+  "podcastStatsLikes": "J'aime",
+  "podcastStatsShares": "Partages",
+  "podcastStatsDownloads": "Téléchargements",
+  "podcastStatsAvgPlaysPerEpisode": "Moyenne par épisode",
+  "podcastStatsTopEpisodesTitle": "Épisodes les plus écoutés",
+  "podcastStatsRhythmTitle": "Rythme de publication",
+  "podcastStatsLastEpisode": "Dernier épisode",
+  "podcastStatsAvgInterval": "Intervalle moyen",
+  "podcastStatsIntervalDays": "{days} jours",
+  "@podcastStatsIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "podcastStatsNoData": "Pas encore d'épisode publié — rien à mesurer.",
+  "podcastStatsNoHistoryNote": "Ces chiffres sont des totaux cumulés. L'application ne conserve pas d'historique daté, donc aucune évolution dans le temps ne peut être affichée.",
+  "podcastStatsPlaysCount": "{count} écoutes",
+  "@podcastStatsPlaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupJoined": "Vous avez rejoint le groupe",
   "leaveGroupTitle": "Quitter le groupe",
   "leaveGroupConfirm": "Voulez-vous vraiment quitter ce groupe ?",
@@ -6233,6 +6279,19 @@
   "embassiesHelperText": "Les ambassades et consulats disponibles apparaîtront ici.",
   "startNowLabel": "Démarrer maintenant",
   "recipientReceives": "{name} reçoit",
+  "sendTipYouSend": "Vous envoyez",
+  "sendTipShownInRoomNote": "Le don s'affiche dans le salon avec votre nom.",
+  "ticketPaymentMethodCard": "Carte bancaire",
+  "ticketPinRequired": "Code PIN demandé pour confirmer",
+  "ticketReplayAccessNote": "Le billet donne accès au salon et à son replay.",
+  "ticketBuyAndJoin": "Payer {amount} et rejoindre",
+  "@ticketBuyAndJoin": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "configCompleteLabel": "configuration complète",
   "familyEventLabel": "Événement familial",
   "eventLabel": "Événement",

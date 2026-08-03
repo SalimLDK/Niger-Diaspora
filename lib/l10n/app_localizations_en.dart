@@ -1082,6 +1082,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowEmbassies => 'Show embassies';
 
   @override
+  String get audioRoomReconnecting => 'Reconnecting…';
+
+  @override
+  String get audioRoomReconnectingHint =>
+      'Audio is off while we find the room again.';
+
+  @override
+  String get audioRoomAudioLost => 'Audio connection lost';
+
+  @override
+  String get audioRoomAudioLostHint =>
+      'You are still in the room, but you can\'t hear anyone.';
+
+  @override
+  String get podcastRecordMicTitle => 'Record with the mic';
+
+  @override
+  String get podcastRecordMicHint => 'Or record straight from the phone.';
+
+  @override
+  String get podcastRecordStart => 'Record';
+
+  @override
+  String get podcastRecordStop => 'Finish';
+
+  @override
+  String get podcastRecordPause => 'Pause';
+
+  @override
+  String get podcastRecordResume => 'Resume';
+
+  @override
+  String get podcastRecordDiscard => 'Discard recording';
+
+  @override
+  String get podcastRecordPermissionDenied =>
+      'Microphone access denied. Allow the microphone in your phone settings.';
+
+  @override
+  String get podcastRecordFailed => 'The recording could not be saved.';
+
+  @override
+  String get podcastRecordedFileName => 'Mic recording';
+
+  @override
+  String get podcastStatsTitle => 'Statistics';
+
+  @override
+  String get podcastStatsTotalPlays => 'Plays';
+
+  @override
+  String get podcastStatsSubscribers => 'Subscribers';
+
+  @override
+  String get podcastStatsEpisodes => 'Episodes';
+
+  @override
+  String get podcastStatsTotalDuration => 'Published duration';
+
+  @override
+  String get podcastStatsEngagementTitle => 'Engagement';
+
+  @override
+  String get podcastStatsLikes => 'Likes';
+
+  @override
+  String get podcastStatsShares => 'Shares';
+
+  @override
+  String get podcastStatsDownloads => 'Downloads';
+
+  @override
+  String get podcastStatsAvgPlaysPerEpisode => 'Average per episode';
+
+  @override
+  String get podcastStatsTopEpisodesTitle => 'Most played episodes';
+
+  @override
+  String get podcastStatsRhythmTitle => 'Publishing rhythm';
+
+  @override
+  String get podcastStatsLastEpisode => 'Latest episode';
+
+  @override
+  String get podcastStatsAvgInterval => 'Average interval';
+
+  @override
+  String podcastStatsIntervalDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get podcastStatsNoData =>
+      'No episode published yet — nothing to measure.';
+
+  @override
+  String get podcastStatsNoHistoryNote =>
+      'These are cumulative totals. The app does not keep dated history, so no change over time can be shown.';
+
+  @override
+  String podcastStatsPlaysCount(int count) {
+    return '$count plays';
+  }
+
+  @override
   String get groupJoined => 'You have joined the group';
 
   @override
@@ -13153,6 +13258,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String recipientReceives(String name) {
     return '$name receives';
+  }
+
+  @override
+  String get sendTipYouSend => 'You send';
+
+  @override
+  String get sendTipShownInRoomNote =>
+      'Your tip appears in the room with your name.';
+
+  @override
+  String get ticketPaymentMethodCard => 'Bank card';
+
+  @override
+  String get ticketPinRequired => 'PIN code required to confirm';
+
+  @override
+  String get ticketReplayAccessNote =>
+      'The ticket gives access to the room and its replay.';
+
+  @override
+  String ticketBuyAndJoin(String amount) {
+    return 'Pay $amount and join';
   }
 
   @override

@@ -6,6 +6,7 @@ import '../../../features/podcasts/presentation/screens/episode_detail_screen.da
 import '../../../features/podcasts/presentation/screens/create_podcast_screen.dart';
 import '../../../features/podcasts/presentation/screens/live_podcast_screen.dart';
 import '../../../features/podcasts/presentation/screens/my_podcasts_screen.dart';
+import '../../../features/podcasts/presentation/screens/podcast_stats_screen.dart';
 import '../../../features/podcasts/presentation/screens/record_episode_screen.dart';
 
 /// Routes for the podcasts feature
@@ -17,6 +18,7 @@ class PodcastsRoutes {
   static const String myPodcasts = '/podcasts/my';
   static const String recordEpisode = '/podcasts/:podcastId/record';
   static const String live = '/podcasts/:podcastId/live';
+  static const String stats = '/podcasts/:podcastId/stats';
 
   static List<RouteBase> get routes => [
         GoRoute(
@@ -44,6 +46,13 @@ class PodcastsRoutes {
               builder: (context, state) {
                 final podcastId = state.pathParameters['podcastId']!;
                 return RecordEpisodeScreen(podcastId: podcastId);
+              },
+            ),
+            GoRoute(
+              path: 'stats',
+              builder: (context, state) {
+                final podcastId = state.pathParameters['podcastId']!;
+                return PodcastStatsScreen(podcastId: podcastId);
               },
             ),
             GoRoute(

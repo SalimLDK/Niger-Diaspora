@@ -104,6 +104,11 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
                 children: [
                   if (isGhost) _GhostBar(roomId: room.id),
 
+                  // Reconnexion (maquette 3b) : la plomberie LiveKit émettait
+                  // déjà l'état, mais rien ne l'affichait — une coupure se
+                  // traduisait par un salon silencieux sans explication.
+                  const _ConnectionBanner(),
+
                   _RoomHeader(
                     room: room,
                     mode: mode,
@@ -234,6 +239,7 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
               context,
               roomId: room.id,
               recipient: target,
+              roomTitle: room.title,
             );
           }
         },
@@ -284,6 +290,83 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
 }
 
 // ─── Ghost bar ────────────────────────────────────────────────────────────────
+
+/// Bandeau d'état de la connexion audio (maquette 3b).
+///
+/// Invisible tant que la connexion tient — il n'apparaît que pendant une
+/// reconnexion ou après une coupure, avec dans ce dernier cas un bouton qui
+/// redemande réellement un jeton et rejoint le SFU.
+class _ConnectionBanner extends ConsumerWidget {
+  const _ConnectionBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final state = ref.watch(audioRoomConnectionProvider).valueOrNull;
+
+    if (state == null ||
+        state == LiveKitRoomState.connected ||
+        state == LiveKitRoomState.connecting) {
+      return const SizedBox.shrink();
+    }
+
+    final isReconnecting = state == LiveKitRoomState.reconnecting;
+    final color = isReconnecting ? DNColors.ochre : DNColors.danger;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          if (isReconnecting)
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2, color: color),
+            )
+          else
+            Icon(Icons.cloud_off_rounded, size: 16, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isReconnecting
+                      ? l10n.audioRoomReconnecting
+                      : l10n.audioRoomAudioLost,
+                  style: DNText.sans(size: 13, w: FontWeight.w600, color: color),
+                ),
+                Text(
+                  isReconnecting
+                      ? l10n.audioRoomReconnectingHint
+                      : l10n.audioRoomAudioLostHint,
+                  style: DNText.mono(size: 9, color: color),
+                ),
+              ],
+            ),
+          ),
+          if (!isReconnecting)
+            TextButton(
+              onPressed: () => ref
+                  .read(audioRoomSessionProvider.notifier)
+                  .retryAudioConnection(),
+              child: Text(
+                l10n.retry,
+                style: DNText.sans(size: 12, w: FontWeight.w600, color: color),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _GhostBar extends StatelessWidget {
   final String roomId;

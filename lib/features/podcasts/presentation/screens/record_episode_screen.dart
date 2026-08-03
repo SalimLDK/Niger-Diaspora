@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/services/video_upload_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/podcast_episode_entity.dart';
@@ -35,6 +37,16 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
   File? _audioFile;
   String? _audioFileName;
 
+  // Enregistrement micro en direct (le service est partagé avec les messages
+  // vocaux : on ne l'arrête jamais globalement, on annule seulement le nôtre).
+  final _recorder = AudioRecordingService();
+  bool _isRecording = false;
+  bool _isRecordingPaused = false;
+  int _recordSeconds = 0;
+  double _amplitude = 0;
+  StreamSubscription<int>? _durationSub;
+  StreamSubscription<double>? _amplitudeSub;
+
   // Video state
   File? _videoFile;
   String? _videoThumbnailUrl;
@@ -49,9 +61,102 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
 
   @override
   void dispose() {
+    _durationSub?.cancel();
+    _amplitudeSub?.cancel();
+    // Quitter l'écran en cours d'enregistrement doit libérer le micro.
+    if (_isRecording) _recorder.cancelRecording();
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _startRecording() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final path = await _recorder.startRecording();
+    if (path == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.podcastRecordPermissionDenied)),
+        );
+      }
+      return;
+    }
+
+    _durationSub = _recorder.durationStream.listen((s) {
+      if (mounted) setState(() => _recordSeconds = s);
+    });
+    _amplitudeSub = _recorder.amplitudeStream.listen((a) {
+      if (mounted) setState(() => _amplitude = a);
+    });
+
+    setState(() {
+      _isRecording = true;
+      _isRecordingPaused = false;
+      _recordSeconds = 0;
+      _amplitude = 0;
+      // Un nouvel enregistrement remplace le fichier importé précédemment.
+      _audioFile = null;
+      _audioFileName = null;
+    });
+  }
+
+  Future<void> _togglePauseRecording() async {
+    if (_isRecordingPaused) {
+      await _recorder.resumeRecording();
+    } else {
+      await _recorder.pauseRecording();
+    }
+    if (mounted) setState(() => _isRecordingPaused = !_isRecordingPaused);
+  }
+
+  Future<void> _stopRecording() async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await _recorder.stopRecording();
+    await _durationSub?.cancel();
+    await _amplitudeSub?.cancel();
+    _durationSub = null;
+    _amplitudeSub = null;
+
+    if (!mounted) return;
+
+    if (result == null) {
+      setState(() {
+        _isRecording = false;
+        _isRecordingPaused = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.podcastRecordFailed)),
+      );
+      return;
+    }
+
+    final (file, duration, _) = result;
+    setState(() {
+      _isRecording = false;
+      _isRecordingPaused = false;
+      _audioFile = file;
+      _audioFileName = l10n.podcastRecordedFileName;
+      // Durée exacte, contrairement à l'estimation par taille de fichier de
+      // l'import.
+      _durationSeconds = duration;
+    });
+  }
+
+  Future<void> _cancelRecording() async {
+    await _recorder.cancelRecording();
+    await _durationSub?.cancel();
+    await _amplitudeSub?.cancel();
+    _durationSub = null;
+    _amplitudeSub = null;
+    if (mounted) {
+      setState(() {
+        _isRecording = false;
+        _isRecordingPaused = false;
+        _recordSeconds = 0;
+        _amplitude = 0;
+      });
+    }
   }
 
   Future<void> _pickVideoFile() async {
@@ -247,6 +352,119 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
     }
   }
 
+  /// Carte d'enregistrement micro : bouton unique au repos, chrono + niveau
+  /// d'entrée + pause/terminer/annuler pendant l'enregistrement.
+  Widget _buildRecorderCard(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+
+    if (!_isRecording) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                l10n.podcastRecordMicHint,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _startRecording,
+                  icon: const Icon(Icons.mic_rounded),
+                  label: Text(l10n.podcastRecordStart),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      color: theme.colorScheme.errorContainer.withValues(alpha: 0.35),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _isRecordingPaused
+                      ? Icons.pause_circle_filled_rounded
+                      : Icons.fiber_manual_record,
+                  color: theme.colorScheme.error,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.podcastRecordMicTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                Text(
+                  _formatDuration(_recordSeconds),
+                  style: const TextStyle(
+                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Niveau d'entrée : la seule preuve visible que le micro capte.
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                value: _isRecordingPaused ? 0 : _amplitude,
+                minHeight: 6,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation(theme.colorScheme.error),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _togglePauseRecording,
+                    icon: Icon(
+                      _isRecordingPaused
+                          ? Icons.play_arrow_rounded
+                          : Icons.pause_rounded,
+                    ),
+                    label: Text(
+                      _isRecordingPaused
+                          ? l10n.podcastRecordResume
+                          : l10n.podcastRecordPause,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _stopRecording,
+                    icon: const Icon(Icons.stop_rounded),
+                    label: Text(l10n.podcastRecordStop),
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: _cancelRecording,
+              child: Text(
+                l10n.podcastRecordDiscard,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _formatDuration(int seconds) {
     final hours = seconds ~/ 3600;
     final minutes = (seconds % 3600) ~/ 60;
@@ -369,6 +587,10 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              // Enregistrement micro : seul l'import de fichier existait, on ne
+              // pouvait pas produire un épisode depuis le téléphone.
+              _buildRecorderCard(l10n),
             ],
             const SizedBox(height: 24),
 

@@ -2108,6 +2108,198 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @audioRoomReconnecting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reconnexion en cours…'**
+  String get audioRoomReconnecting;
+
+  /// No description provided for @audioRoomReconnectingHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le son est coupé le temps de retrouver le salon.'**
+  String get audioRoomReconnectingHint;
+
+  /// No description provided for @audioRoomAudioLost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion audio perdue'**
+  String get audioRoomAudioLost;
+
+  /// No description provided for @audioRoomAudioLostHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu es toujours dans le salon, mais tu n\'entends plus personne.'**
+  String get audioRoomAudioLostHint;
+
+  /// No description provided for @podcastRecordMicTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer au micro'**
+  String get podcastRecordMicTitle;
+
+  /// No description provided for @podcastRecordMicHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou enregistre directement depuis le téléphone.'**
+  String get podcastRecordMicHint;
+
+  /// No description provided for @podcastRecordStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get podcastRecordStart;
+
+  /// No description provided for @podcastRecordStop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get podcastRecordStop;
+
+  /// No description provided for @podcastRecordPause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pause'**
+  String get podcastRecordPause;
+
+  /// No description provided for @podcastRecordResume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get podcastRecordResume;
+
+  /// No description provided for @podcastRecordDiscard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler l\'enregistrement'**
+  String get podcastRecordDiscard;
+
+  /// No description provided for @podcastRecordPermissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès au micro refusé. Autorise le micro dans les réglages du téléphone.'**
+  String get podcastRecordPermissionDenied;
+
+  /// No description provided for @podcastRecordFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'enregistrement n\'a pas pu être sauvegardé.'**
+  String get podcastRecordFailed;
+
+  /// No description provided for @podcastRecordedFileName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrement micro'**
+  String get podcastRecordedFileName;
+
+  /// No description provided for @podcastStatsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get podcastStatsTitle;
+
+  /// No description provided for @podcastStatsTotalPlays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écoutes'**
+  String get podcastStatsTotalPlays;
+
+  /// No description provided for @podcastStatsSubscribers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abonnés'**
+  String get podcastStatsSubscribers;
+
+  /// No description provided for @podcastStatsEpisodes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épisodes'**
+  String get podcastStatsEpisodes;
+
+  /// No description provided for @podcastStatsTotalDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée publiée'**
+  String get podcastStatsTotalDuration;
+
+  /// No description provided for @podcastStatsEngagementTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Engagement'**
+  String get podcastStatsEngagementTitle;
+
+  /// No description provided for @podcastStatsLikes.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'aime'**
+  String get podcastStatsLikes;
+
+  /// No description provided for @podcastStatsShares.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partages'**
+  String get podcastStatsShares;
+
+  /// No description provided for @podcastStatsDownloads.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléchargements'**
+  String get podcastStatsDownloads;
+
+  /// No description provided for @podcastStatsAvgPlaysPerEpisode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moyenne par épisode'**
+  String get podcastStatsAvgPlaysPerEpisode;
+
+  /// No description provided for @podcastStatsTopEpisodesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épisodes les plus écoutés'**
+  String get podcastStatsTopEpisodesTitle;
+
+  /// No description provided for @podcastStatsRhythmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rythme de publication'**
+  String get podcastStatsRhythmTitle;
+
+  /// No description provided for @podcastStatsLastEpisode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier épisode'**
+  String get podcastStatsLastEpisode;
+
+  /// No description provided for @podcastStatsAvgInterval.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intervalle moyen'**
+  String get podcastStatsAvgInterval;
+
+  /// No description provided for @podcastStatsIntervalDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String podcastStatsIntervalDays(int days);
+
+  /// No description provided for @podcastStatsNoData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore d\'épisode publié — rien à mesurer.'**
+  String get podcastStatsNoData;
+
+  /// No description provided for @podcastStatsNoHistoryNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ces chiffres sont des totaux cumulés. L\'application ne conserve pas d\'historique daté, donc aucune évolution dans le temps ne peut être affichée.'**
+  String get podcastStatsNoHistoryNote;
+
+  /// No description provided for @podcastStatsPlaysCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} écoutes'**
+  String podcastStatsPlaysCount(int count);
+
   /// No description provided for @groupJoined.
   ///
   /// In fr, this message translates to:
@@ -24613,6 +24805,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{name} reçoit'**
   String recipientReceives(String name);
+
+  /// No description provided for @sendTipYouSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous envoyez'**
+  String get sendTipYouSend;
+
+  /// No description provided for @sendTipShownInRoomNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le don s\'affiche dans le salon avec votre nom.'**
+  String get sendTipShownInRoomNote;
+
+  /// No description provided for @ticketPaymentMethodCard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte bancaire'**
+  String get ticketPaymentMethodCard;
+
+  /// No description provided for @ticketPinRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code PIN demandé pour confirmer'**
+  String get ticketPinRequired;
+
+  /// No description provided for @ticketReplayAccessNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le billet donne accès au salon et à son replay.'**
+  String get ticketReplayAccessNote;
+
+  /// No description provided for @ticketBuyAndJoin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer {amount} et rejoindre'**
+  String ticketBuyAndJoin(String amount);
 
   /// No description provided for @configCompleteLabel.
   ///
