@@ -778,14 +778,14 @@ patron aux six autres. Trois gestes :
 3. `Theme.of(context).primaryColor` devient `DNColors.terra`.
 
 Migrés à ce jour : `create_podcast_screen`, `my_podcasts_screen`,
-`podcast_detail_screen`. Restent, par ordre de coût croissant :
+`podcast_detail_screen`, `podcast_stats_screen`, `podcasts_home_screen`. Restent, par ordre de coût croissant :
 
 | Écran | Lignes | Ce qu'il porte |
 |---|---|---|
-| `podcast_stats_screen` | 406 | déjà sur `adaptive_colors` (16) — unification seule |
+| ~~`podcast_stats_screen`~~ | 406 | **fait** |
 | ~~`my_podcasts_screen`~~ | 525 | **fait** |
 | ~~`podcast_detail_screen`~~ | 531 | **fait** |
-| `podcasts_home_screen` | 704 | déjà sur `adaptive_colors` (7) — unification seule |
+| ~~`podcasts_home_screen`~~ | 704 | **fait** |
 | `record_episode_screen` | 718 | 5 `Theme.of`, 5 `colorScheme` |
 | `episode_detail_screen` | 996 | **29 `Theme.of`, 19 `colorScheme`** — le plus gros |
 
