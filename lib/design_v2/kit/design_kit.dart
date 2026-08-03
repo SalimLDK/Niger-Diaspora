@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/constants/app_colors.dart';
 import '../../core/theme/adaptive_colors.dart';
+import '../../core/theme/app_shape.dart';
 
 /// Briques du nouveau design (maquettes 13d, 14a→14e, 15a→15d, 16f, 16g).
 ///
@@ -220,7 +222,11 @@ class _StripePainter extends CustomPainter {
     // Rayures à 45°, balayées sur toute la diagonale.
     const step = 18.0;
     for (double x = -size.height; x < size.width + size.height; x += step) {
-      canvas.drawLine(Offset(x, size.height), Offset(x + size.height, 0), paint);
+      canvas.drawLine(
+        Offset(x, size.height),
+        Offset(x + size.height, 0),
+        paint,
+      );
     }
   }
 
@@ -382,7 +388,11 @@ class DesignPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = context.onPrimaryColor;
+    // Le guide fixe l'état désactivé : aplat sable et libellé éteint, pas un
+    // accent translucide. Le chargement n'est pas un désactivé — l'action est
+    // en cours, la pilule garde donc sa couleur.
+    final disabled = !isLoading && onPressed == null;
+    final fg = disabled ? context.textDisabledColor : context.onPrimaryColor;
     final child =
         isLoading
             ? SizedBox(
@@ -420,9 +430,11 @@ class DesignPillButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: context.adaptivePrimaryColor,
           foregroundColor: fg,
-          disabledBackgroundColor: context.adaptivePrimaryColor.withValues(
-            alpha: 0.55,
-          ),
+          disabledBackgroundColor:
+              disabled
+                  ? context.surfaceVariantColor
+                  : context.adaptivePrimaryColor,
+          disabledForegroundColor: fg,
           elevation: 0,
           padding: EdgeInsets.symmetric(horizontal: expand ? 20 : 26),
           shape: RoundedRectangleBorder(
@@ -451,17 +463,77 @@ class DesignPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = context.onPrimaryColor;
+    return _DesignFilledButton(
+      label: label,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      fill: context.adaptivePrimaryColor,
+      onFill: context.onPrimaryColor,
+    );
+  }
+}
+
+/// Bouton destructif du guide (« Supprimer le compte », « Quitter le
+/// groupe ») : même gabarit que le bouton principal, aplat rouge danger.
+///
+/// Volontairement distinct de [DesignPrimaryButton] : le guide en fait une
+/// quatrième variante à part entière, pas une couleur passée en paramètre.
+class DesignDestructiveButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  const DesignDestructiveButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _DesignFilledButton(
+      label: label,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      fill: context.errorColor,
+      // En nocturne le danger est adouci (`#F87171`) : du blanc dessus
+      // passerait sous le seuil de lisibilité, on garde l'encre inverse.
+      onFill: context.isDarkMode ? AppColors.textInverseDark : AppColors.white,
+    );
+  }
+}
+
+/// Gabarit commun aux boutons pleins pleine largeur.
+class _DesignFilledButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final Color fill;
+  final Color onFill;
+
+  const _DesignFilledButton({
+    required this.label,
+    required this.onPressed,
+    required this.isLoading,
+    required this.fill,
+    required this.onFill,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = !isLoading && onPressed == null;
+    final fg = disabled ? context.textDisabledColor : onFill;
     return SizedBox(
       height: kDesignControlHeight,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: context.adaptivePrimaryColor,
+          backgroundColor: fill,
           foregroundColor: fg,
-          disabledBackgroundColor: context.adaptivePrimaryColor.withValues(
-            alpha: 0.55,
-          ),
+          disabledBackgroundColor:
+              disabled ? context.surfaceVariantColor : fill,
+          disabledForegroundColor: fg,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(kDesignRadius),
@@ -509,8 +581,11 @@ class DesignSecondaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: context.surfaceColor,
-          foregroundColor: context.textPrimaryColor,
-          side: BorderSide(color: context.borderColor),
+          foregroundColor: context.textSecondaryColor,
+          disabledForegroundColor: context.textDisabledColor,
+          // Guide : l'action secondaire se pose sur la bordure marquée
+          // (`#E0D6C6`), pas sur le filet fin des cartes.
+          side: BorderSide(color: context.borderStrongColor),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(kDesignRadius),
           ),
@@ -520,7 +595,10 @@ class DesignSecondaryButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 15.5,
             fontWeight: FontWeight.w600,
-            color: context.textPrimaryColor,
+            color:
+                onPressed == null
+                    ? context.textDisabledColor
+                    : context.textSecondaryColor,
           ),
         ),
       ),
@@ -539,9 +617,7 @@ class DesignTileGroup extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       if (i > 0) {
-        rows.add(
-          Divider(height: 1, thickness: 1, color: context.dividerColor),
-        );
+        rows.add(Divider(height: 1, thickness: 1, color: context.dividerColor));
       }
       rows.add(children[i]);
     }
@@ -722,16 +798,88 @@ class DesignTag extends StatelessWidget {
   }
 }
 
+/// Registre des pastilles de statut du guide de style.
+///
+/// Le guide n'en fixe que quatre — c'est volontaire : une pastille sert à
+/// distinguer un état de modération ou de cycle de vie, pas à colorer une
+/// catégorie. Pour une étiquette descriptive, utiliser [DesignTag].
+enum DesignBadgeTone {
+  /// Vert — profil, entreprise ou transfert validé.
+  verified,
+
+  /// Terracotta — en cours d'examen, en attente de décision.
+  review,
+
+  /// Rouge — refusé, échoué.
+  failed,
+
+  /// Gris — archivé, clos, sans suite.
+  archived,
+}
+
+/// Pastille de statut : chasse fixe en capitales, aplat pastel, rayon 8.
+///
+/// Les valeurs claires viennent de la ligne « Badges & statuts » du guide ;
+/// les valeurs nocturnes de sa palette ③, où les aplats pastel sont proscrits
+/// (fond sombre + texte accentué clair).
+class DesignBadge extends StatelessWidget {
+  final String label;
+  final DesignBadgeTone tone;
+
+  const DesignBadge(
+    this.label, {
+    super.key,
+    this.tone = DesignBadgeTone.verified,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.isDarkMode;
+    final (Color bg, Color fg) = switch (tone) {
+      DesignBadgeTone.verified =>
+        dark
+            ? (AppColors.successBackgroundDark, AppColors.successDark)
+            : (AppColors.successBackground, AppColors.success),
+      DesignBadgeTone.review =>
+        dark
+            ? (AppColors.surfaceElevatedDark, AppColors.primaryLight)
+            // `#FBF1E9` / `#8C491A` : le guide donne ici un pastel orange plus
+            // pâle que celui de la ligne « fonds pastel », et l'accent foncé
+            // de la palette Organic pour le texte.
+            : (const Color(0xFFFBF1E9), const Color(0xFF8C491A)),
+      DesignBadgeTone.failed =>
+        dark
+            ? (AppColors.errorBackgroundDark, AppColors.errorDark)
+            : (AppColors.errorBackground, const Color(0xFF9A2A1A)),
+      DesignBadgeTone.archived =>
+        dark
+            ? (AppColors.surfaceElevatedDark, AppColors.textTertiaryDark)
+            // Gris neutre partagé avec la palette ⑤ Admin.
+            : (const Color(0xFFF1F5F9), const Color(0xFF475569)),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadii.badgeRadius),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.robotoMono(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          height: 1.2,
+          color: fg,
+        ),
+      ),
+    );
+  }
+}
+
 /// Carte sable de récapitulatif (fin de configuration).
 class DesignSummaryCard extends StatelessWidget {
   final String title;
   final String body;
 
-  const DesignSummaryCard({
-    super.key,
-    required this.title,
-    required this.body,
-  });
+  const DesignSummaryCard({super.key, required this.title, required this.body});
 
   @override
   Widget build(BuildContext context) {
@@ -955,11 +1103,7 @@ class DesignSearchField extends StatelessWidget {
         hintText: hintText,
         prefix: Padding(
           padding: const EdgeInsets.fromLTRB(14, 0, 10, 0),
-          child: Icon(
-            Icons.search,
-            size: 19,
-            color: context.textTertiaryColor,
-          ),
+          child: Icon(Icons.search, size: 19, color: context.textTertiaryColor),
         ),
         suffix:
             hasText
@@ -1022,9 +1166,7 @@ class DesignFilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(kDesignPillRadius),
-            border: Border.all(
-              color: selected ? fill : context.borderColor,
-            ),
+            border: Border.all(color: selected ? fill : context.borderColor),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1119,7 +1261,11 @@ class DesignListCard extends StatelessWidget {
         rows.add(
           Padding(
             padding: const EdgeInsets.only(left: 16),
-            child: Divider(height: 1, thickness: 1, color: context.dividerColor),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: context.dividerColor,
+            ),
           ),
         );
       }

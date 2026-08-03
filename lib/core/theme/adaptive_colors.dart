@@ -32,10 +32,16 @@ extension AdaptiveColors on BuildContext {
       isDarkMode ? AppColors.white : AppColors.textPrimary;
 
   /// Couleur sur primaire (texte/icônes)
-  Color get onPrimaryColor => isDarkMode ? AppColors.black : AppColors.white;
+  ///
+  /// Règle nocturne du guide de style : sur l'accent `#F4A574` on pose du
+  /// **texte foncé, jamais blanc** — et l'encre inverse `#1C1815`, pas du noir
+  /// pur, pour rester dans le registre chaud de la palette.
+  Color get onPrimaryColor =>
+      isDarkMode ? AppColors.textInverseDark : AppColors.white;
 
   /// Couleur sur secondaire (texte/icônes)
-  Color get onSecondaryColor => isDarkMode ? AppColors.black : AppColors.white;
+  Color get onSecondaryColor =>
+      isDarkMode ? AppColors.textInverseDark : AppColors.white;
 
   // ============================================
   // BORDERS
@@ -112,6 +118,19 @@ extension AdaptiveColors on BuildContext {
   /// Fond d'information
   Color get infoBackgroundColor =>
       isDarkMode ? AppColors.infoBackgroundDark : AppColors.infoBackground;
+
+  /// Teal d'identité (guide § Sahel clair). Le guide n'en fixe pas de variante
+  /// nocturne : la même valeur sert dans les deux thèmes.
+  Color get identityColor => AppColors.identity;
+
+  /// Or — accent des contenus audio et des notes (guide § Sahel clair). Comme
+  /// le teal, valeur unique dans les deux thèmes.
+  Color get goldColor => AppColors.gold;
+
+  /// Fond pastel de l'or. En nocturne, le guide interdit les aplats clairs :
+  /// on retombe sur la surface accentuée `#252119`.
+  Color get goldBackgroundColor =>
+      isDarkMode ? AppColors.surfaceElevatedDark : AppColors.goldBackground;
 
   // ============================================
   // PRIMARY COLORS (adapté pour dark mode)

@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 /// Charte graphique premium Diaspo Niger
 /// Palette inspiree du drapeau nigerien et des tons saheliens
+///
+/// Source : « Guide de style » (Claude Design), palettes ② Sahel clair et
+/// ③ Nocturne. Les valeurs nommées par le guide font foi ; les jetons non
+/// listés par le guide ([warning], [primary], les dégradés) restent propres à
+/// l'app. Les trois autres palettes du système vivent ailleurs :
+/// ① Organic dans `features/feed/…/feed_tokens.dart`, ④ DNColors dans
+/// `core/theme/dn_colors.dart`, ⑤ Admin dans `core/theme/admin_colors.dart`.
 class AppColors {
   AppColors._();
 
@@ -16,9 +23,15 @@ class AppColors {
   static const Color primaryLight = Color(0xFFF4A574);
 
   /// Version tres claire - Dawn Mist (backgrounds)
-  static const Color primaryLighter = Color(0xFFFCEADE);
+  ///
+  /// Guide § Sahel clair, « Orange clair » des fonds pastel.
+  static const Color primaryLighter = Color(0xFFF7E9DE);
 
   /// Version foncee - Terracotta
+  ///
+  /// Guide § Sahel clair, « Orange — action » : c'est **cette** valeur qui
+  /// habille l'action principale, pas [primary] (qui reste la teinte d'accent
+  /// choisie par l'utilisateur dans le thème orange).
   static const Color primaryDark = Color(0xFFB85E24);
 
   /// Version tres foncee - Burnt Sienna
@@ -60,10 +73,10 @@ class AppColors {
   static const Color surfaceVariant = Color(0xFFF5F0E8);
 
   /// Bordure subtile - Dune
-  static const Color border = Color(0xFFE8DFD4);
+  static const Color border = Color(0xFFEFE7DB);
 
   /// Bordure marquee - Clay
-  static const Color borderStrong = Color(0xFFC9BBAB);
+  static const Color borderStrong = Color(0xFFE0D6C6);
 
   // ============================================
   // NEUTRAL COLORS - DARK THEME
@@ -82,7 +95,7 @@ class AppColors {
   static const Color surfaceVariantDark = Color(0xFF2D2820);
 
   /// Bordure dark
-  static const Color borderDark = Color(0xFF3D352C);
+  static const Color borderDark = Color(0xFF2A241E);
 
   /// Bordure marquee dark
   static const Color borderStrongDark = Color(0xFF544A3D);
@@ -100,8 +113,8 @@ class AppColors {
   /// Texte tertiaire
   static const Color textTertiary = Color(0xFF847A6E);
 
-  /// Texte desactive
-  static const Color textDisabled = Color(0xFFB8AFA3);
+  /// Texte desactive / icone desactivee
+  static const Color textDisabled = Color(0xFFA79C8E);
 
   /// Texte inverse (sur fond colore)
   static const Color textInverse = Color(0xFFFFFFFF);
@@ -129,33 +142,49 @@ class AppColors {
   // SEMANTIC COLORS
   // ============================================
 
-  // Success
-  static const Color success = Color(0xFF2D7D46);
+  // Success — guide : « Vert — succes / vrai »
+  static const Color success = Color(0xFF1B5E32);
   static const Color successLight = Color(0xFF5BA674);
-  static const Color successBackground = Color(0xFFE3F2E8);
+  static const Color successBackground = Color(0xFFE8F0EA);
   static const Color successDark = Color(0xFF5BA674);
   static const Color successBackgroundDark = Color(0xFF1A2B1F);
 
-  // Error
-  static const Color error = Color(0xFFC53030);
+  // Error — guide : « Danger », adouci en nocturne
+  static const Color error = Color(0xFFC23E2D);
   static const Color errorLight = Color(0xFFF87171);
-  static const Color errorBackground = Color(0xFFFEE2E2);
+  static const Color errorBackground = Color(0xFFFBE9E5);
   static const Color errorDark = Color(0xFFF87171);
   static const Color errorBackgroundDark = Color(0xFF2D1A1A);
 
-  // Warning
+  // Warning — role propre a l'app, le guide ne fixe pas d'ambre en Sahel
+  // clair (l'or [gold] couvre l'audio et les notes, pas l'avertissement).
   static const Color warning = Color(0xFFC78522);
   static const Color warningLight = Color(0xFFFBBF24);
   static const Color warningBackground = Color(0xFFFEF3C7);
   static const Color warningDark = Color(0xFFFBBF24);
   static const Color warningBackgroundDark = Color(0xFF2D2510);
 
-  // Info
-  static const Color info = Color(0xFF2563EB);
+  // Info — guide : « Bleu — officiel / verifie »
+  static const Color info = Color(0xFF1976D2);
   static const Color infoLight = Color(0xFF60A5FA);
-  static const Color infoBackground = Color(0xFFDBEAFE);
+  static const Color infoBackground = Color(0xFFE3EDF7);
   static const Color infoDark = Color(0xFF60A5FA);
   static const Color infoBackgroundDark = Color(0xFF1A2235);
+
+  /// Teal identite — guide § Sahel clair, « Teal — identite ».
+  ///
+  /// Le guide n'en fixe pas de variante nocturne : la meme valeur sert dans
+  /// les deux themes, comme le fait deja `DNColors.teal` (valeur identique)
+  /// sur les ecrans audio.
+  static const Color identity = Color(0xFF2D6E6A);
+
+  /// Or — guide § Sahel clair, « Or — audio / notes » (identique a
+  /// `DNColors.ochre`). Distinct de [warning] : c'est un accent de contenu,
+  /// pas un etat d'alerte.
+  static const Color gold = Color(0xFFD9A441);
+
+  /// Fond pastel de l'or (guide, « Or clair »).
+  static const Color goldBackground = Color(0xFFF7EBD6);
 
   // ============================================
   // BASE COLORS

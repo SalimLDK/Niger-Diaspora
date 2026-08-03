@@ -466,6 +466,52 @@ sont invisibles à `flutter analyze` :
   (`admin_create_admin_screen.dart:41`, `transfer_screen.dart:86`,
   `share_profile_modal.dart:447`). À trancher au cas par cas, pas en masse.
 
+## Guide de style — alignement des jetons (2026-08-03)
+
+- [ ] **11 couleurs d'`AppColors` réalignées sur le guide de style**
+  (`lib/core/constants/app_colors.dart`) : bordure `#E8DFD4`→`#EFE7DB`,
+  bordure forte `#C9BBAB`→`#E0D6C6`, texte désactivé `#B8AFA3`→`#A79C8E`,
+  bordure nocturne `#3D352C`→`#2A241E`, succès `#2D7D46`→`#1B5E32`, erreur
+  `#C53030`→`#C23E2D`, info `#2563EB`→`#1976D2`, et les quatre fonds pastel
+  réchauffés. Ces jetons irriguent **toute** l'app via `adaptive_colors.dart` :
+  c'est le changement le plus large de la session. **À vérifier sur le
+  téléphone** : la bordure forte s'éclaircit nettement — contrôler que les
+  puces de filtre et de centres d'intérêt au repos (`DesignFilterChip`,
+  `DesignSelectableChip`, accueil / messagerie / groupes) restent visibles sur
+  le fond crème, et qu'en nocturne les cartes se détachent encore avec la
+  bordure plus sombre.
+
+- [ ] **Texte sur accent en nocturne** (`lib/core/theme/adaptive_colors.dart`) :
+  `onPrimaryColor` rendait du noir pur en mode nuit, le guide impose l'encre
+  inverse `#1C1815`. Touche tous les boutons pleins et les pastilles d'accent.
+  **À vérifier** : ouvrir un écran d'onboarding et un bouton principal en mode
+  nuit, confirmer que le libellé reste franc (le changement est subtil, un
+  rendu délavé signalerait une erreur de jeton).
+
+- [ ] **État désactivé des boutons du kit**
+  (`lib/design_v2/kit/design_kit.dart`) : `DesignPrimaryButton` et
+  `DesignPillButton` passaient l'accent à 55 % d'opacité ; ils prennent
+  désormais l'aplat sable + libellé éteint du guide. Le **chargement** garde
+  volontairement la couleur d'accent. **À vérifier** : sur l'inscription et la
+  configuration du profil, enchaîner champ vide → bouton grisé → champ rempli →
+  bouton coloré → soumission → pilule colorée avec spinner clair.
+
+- [ ] **Bouton secondaire** (idem) : contour passé de `borderColor` à
+  `borderStrongColor` et libellé de `textPrimary` à `textSecondary`, comme le
+  guide. **À vérifier** : le « Précédent » de la configuration du profil ne
+  doit pas s'effacer sur le fond crème.
+
+- [ ] **`DesignBadge` — jamais rendu** (idem) : les quatre pastilles de statut
+  du guide (vérifié / en examen / échoué / archivé) sont écrites mais aucun
+  écran ne les appelle encore. À regarder dès le premier usage, dans les deux
+  thèmes.
+
+- [ ] **Valeurs figées désormais désalignées** : `_kStepUpcoming = #E8DFD4`
+  (`transfers/…/send_money_screen.dart`, les deux copies) et
+  `_kRecvBorderDark = #3D352C` (`messages/…/message_bubble.dart`, les deux
+  copies) recopiaient les anciennes valeurs des jetons. Elles n'ont pas été
+  touchées pour ne pas balayer en masse. À trancher au cas par cas.
+
 ## Feature flags & accès aux écrans
 
 - [ ] **Déblocage des routes gardées par les flags** (`lib/core/router/app_router.dart`,
