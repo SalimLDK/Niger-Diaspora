@@ -64,7 +64,12 @@ class ThemeColorNotifier extends _$ThemeColorNotifier {
   @override
   AppThemeColor build() {
     _loadColor();
-    return AppThemeColor.green;
+    // Terracotta par défaut : c'est la couleur des maquettes. Le vert
+    // restait le défaut alors que toute la refonte est dessinée en orange,
+    // donc une installation neuve affichait la refonte dans la mauvaise
+    // couleur. Le choix explicite d'un membre est préservé — il est relu
+    // juste en dessous.
+    return AppThemeColor.orange;
   }
 
   Future<void> _loadColor() async {
@@ -73,7 +78,7 @@ class ThemeColorNotifier extends _$ThemeColorNotifier {
     if (colorString != null) {
       final color = AppThemeColor.values.firstWhere(
         (e) => e.name == colorString,
-        orElse: () => AppThemeColor.green,
+        orElse: () => AppThemeColor.orange,
       );
       state = color;
     }

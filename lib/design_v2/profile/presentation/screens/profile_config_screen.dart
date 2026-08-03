@@ -109,7 +109,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   // Theme
   AppThemeMode _selectedThemeMode = AppThemeMode.system;
-  AppThemeColor _selectedThemeColor = AppThemeColor.green;
+  // Aligné sur le défaut du ThemeColorNotifier. Cette valeur est de toute
+  // façon écrasée par _themeInitialized au premier build de l'étape 4/4,
+  // mais un défaut divergent finirait par mentir un jour.
+  AppThemeColor _selectedThemeColor = AppThemeColor.orange;
   bool _themeInitialized = false;
 
   @override
