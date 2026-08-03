@@ -5,6 +5,8 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../../features/messages/presentation/providers/message_provider.dart';
 import '../../features/messages/presentation/screens/share_to_conversation_screen.dart';
+import '../../features/podcasts/presentation/providers/podcast_player_provider.dart';
+import '../../features/podcasts/presentation/widgets/podcast_mini_player.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
 import '../../shared/widgets/tablet_navigation_rail.dart';
@@ -83,6 +85,10 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
 
     final isWide = MediaQuery.of(context).size.width >= _kTabletBreakpoint;
+    // Le mini-lecteur ne s'affiche que si un épisode est chargé : la réserve
+    // basse doit suivre, sinon elle est fausse dans un sens ou dans l'autre.
+    final hasMiniPlayer =
+        ref.watch(podcastPlayerProvider.select((s) => s.hasEpisode));
 
     if (isWide) {
       // Tablette/desktop (tour 4b) : rail de navigation fixe 86px à gauche,
@@ -96,7 +102,14 @@ class _MainShellState extends ConsumerState<MainShell> {
               onTap: (index) => _onTap(context, index),
               unreadMessagesCount: unreadMessagesCount,
             ),
-            Expanded(child: widget.navigationShell),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(child: widget.navigationShell),
+                  const PodcastMiniPlayer(),
+                ],
+              ),
+            ),
           ],
         ),
       );
@@ -114,17 +127,31 @@ class _MainShellState extends ConsumerState<MainShell> {
           return MediaQuery(
             data: mq.copyWith(
               padding: mq.padding.copyWith(
-                bottom: mq.padding.bottom + 110,
+                // + la hauteur du mini-lecteur quand il est là, sinon il
+                // masquerait le dernier élément de chaque liste (le corps
+                // passe sous la barre, `extendBody: true`).
+                bottom: mq.padding.bottom + 110 + (hasMiniPlayer ? 64 : 0),
               ),
             ),
             child: widget.navigationShell,
           );
         },
       ),
-      bottomNavigationBar: CustomBottomNavigation(
-        currentIndex: widget.navigationShell.currentIndex,
-        onTap: (index) => _onTap(context, index),
-        unreadMessagesCount: unreadMessagesCount,
+      // Le mini-lecteur était un widget orphelin : la classe existait, le
+      // provider de lecture tournait, mais rien ne l'affichait — une lecture
+      // lancée depuis un épisode devenait invisible dès qu'on quittait
+      // l'écran. Il se place au-dessus de la barre de navigation et se
+      // masque tout seul quand aucun épisode n'est chargé.
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const PodcastMiniPlayer(),
+          CustomBottomNavigation(
+            currentIndex: widget.navigationShell.currentIndex,
+            onTap: (index) => _onTap(context, index),
+            unreadMessagesCount: unreadMessagesCount,
+          ),
+        ],
       ),
     );
   }
