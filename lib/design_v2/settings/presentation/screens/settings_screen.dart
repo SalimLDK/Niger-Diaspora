@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../../kit/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,15 +130,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
+      // En-tête plat (§10b) : flèche retour nue et titre serif sur le fond
+      // crème, au lieu de l'AppBar Material teintée.
       appBar: AppBar(
-        title: Text(l10n.settings),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.settings, size: 24),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
         children: [
           // 1. Qui vous voit
           _buildSectionHeader(l10n.whoSeesYou, Icons.visibility_outlined),
@@ -378,46 +385,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Libellé de section (§10b) : petites capitales en chasse fixe. La
+  /// pastille d'icône disparaît ; `isWarning` teinte encore « ZONE SENSIBLE ».
   Widget _buildSectionHeader(
     String title,
     IconData icon, {
     bool isWarning = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: (isWarning
-                      ? context.warningColor
-                      : context.adaptivePrimaryColor)
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              size: 16,
-              color:
-                  isWarning ? context.warningColor : context.adaptivePrimaryColor,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color:
-                  isWarning ? context.warningColor : context.textTertiaryColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
+    return DesignSectionLabel(title);
   }
+
 
   Future<void> _saveSettingsToProfile() async {
     final user = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -1524,25 +1501,15 @@ class _SettingsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border:
-            isDanger
-                ? Border.all(color: AppColors.error.withValues(alpha: 0.2))
-                : null,
-        boxShadow: [
-          BoxShadow(
-            color: (isDanger ? AppColors.error : Colors.black).withValues(
-              alpha: 0.06,
-            ),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(kDesignRadius),
+        border: Border.all(
+          color: isDanger
+              ? AppColors.error.withValues(alpha: 0.35)
+              : context.borderColor,
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(children: children),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
     );
   }
 }

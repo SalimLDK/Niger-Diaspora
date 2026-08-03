@@ -563,20 +563,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 170,
               pinned: true,
+              backgroundColor: context.backgroundColor,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
               leading: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: AppIcon(
+                icon: AppIcon(
                     AppIcon.arrowBack,
                     color: context.textPrimaryColor,
                   ),
-                ),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -588,17 +584,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
               actions: [
                 if (profile.displayName != 'Utilisateur supprimé')
                   IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: AppIcon(
+                    icon: AppIcon(
                         AppIcon.share,
                         color: context.textPrimaryColor,
                       ),
-                    ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       ShareProfileDialog.show(
@@ -666,10 +655,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 const SizedBox(width: 8),
               ],
               flexibleSpace: FlexibleSpaceBar(
+                // Fond crème : le bandeau dégradé disparaît, l'avatar se
+                // détache par sa bordure et non plus par une ombre portée.
                 background: Container(
-                  decoration: BoxDecoration(
-                    gradient: context.adaptivePrimaryGradient,
-                  ),
+                  color: context.backgroundColor,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -694,20 +683,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               width: 100,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: context.surfaceColor,
+                                color: context.surfaceVariantColor,
                                 borderRadius: BorderRadius.circular(28),
-                                boxShadow:
-                                    context.isDarkMode
-                                        ? null
-                                        : [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 10),
-                                          ),
-                                        ],
+                                border: Border.all(
+                                  color: context.borderColor,
+                                  width: 2,
+                                ),
                               ),
                               child:
                                   profile.photoUrl != null
