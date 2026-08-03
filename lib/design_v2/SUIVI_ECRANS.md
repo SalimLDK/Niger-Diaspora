@@ -315,6 +315,30 @@ pour les podcasts (`podcast_episode_entity`). Ajouter le bouton donnerait un
 widget mort de plus, exactement la famille de trous de câblage déjà soldée
 ailleurs. Il faut d'abord un service de transcription côté serveur.
 
+### Carte — §7d faite, §7e à faire
+
+Vérifié sur `lib/features/map/presentation/screens/map_screen.dart` (3549 l.),
+après les commits `94d721c` et `bdcd795` : **zéro dégradé**, aplats et jetons
+adaptatifs partout, bouton de couches présent, panneau à trois positions
+(`snapSizes: [0.18, 0.45, 0.92]`). `flutter analyze` passe. Le §7d est bon.
+
+Le **§7e n'est pas commencé**. Quatre manques :
+
+| Manque | Maquette | Pourquoi ça compte |
+|---|---|---|
+| Bascule **Carte / Liste** | 7e | Consulter les membres proches sans charger la carte |
+| Badge **« tuiles allégées · 2G »** | 7e | Dire *pourquoi* la carte est dégradée, au lieu de laisser croire à un bug |
+| Bouton **« Plein écran »** | 7e | Rendre la carte au premier plan depuis le mode liste |
+| Contrôle **« Trier »** / « Les plus proches » | 7d, 7e | La liste est ordonnée sans que l'ordre soit dit ni modifiable |
+
+La plomberie existe déjà : `PreferencesService.instance.dataSaverMode` est
+câblé dans les réglages (`settings_screen.dart:53`). Il manque le
+branchement côté carte.
+
+⚠️ Ces quatre points sont développés dans **`design_v2/map/`**, pas dans
+`lib/features/`, parce qu'une session parallèle travaille sur le fichier de
+production. Il faudra reporter, pas écraser.
+
 ### Transferts — état
 
 - **§12a (envoi)** : déjà fait par une session précédente — montant en très
