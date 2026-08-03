@@ -114,12 +114,19 @@ Route **`/design-v2`** — une galerie qui liste les écrans redessinés et
 ouvre la copie, pas l'écran de production.
 
 ```bash
-adb shell am start -a android.intent.action.VIEW -d "diaspo://design-v2"
+adb shell am start -a android.intent.action.VIEW -d "diasponiger://design-v2"
 ```
 
-Ou, plus simplement, depuis l'app : **Réglages → Refonte → Galerie design
-v2**. Cette entrée est sous `kDebugMode` — c'est un outil de travail, elle
-n'apparaît pas dans une version publiée.
+Le schéma est **`diasponiger://`**, déjà déclaré dans le manifeste — pas
+`diaspo://`. Rien à ajouter côté Android.
+
+Ou depuis l'app : **Réglages → Refonte → Galerie design v2**.
+
+La route **échappe au garde d'authentification** : elle ne montre que des
+copies d'écrans, sans donnée réelle, et devoir se connecter pour vérifier
+un rendu n'a pas de sens. Route, entrée de réglages et exemption sont
+toutes trois sous `kDebugMode` — rien de tout ça n'existe dans une version
+publiée.
 
 Les écrans qui ont besoin d'un compte ou d'une conversation peuvent rester
 vides : c'est le **rendu** qu'on regarde ici, pas les données.

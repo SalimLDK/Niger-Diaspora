@@ -191,6 +191,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
+      // La galerie de la refonte échappe au garde : elle ne montre que des
+      // copies d'écrans, sans donnée réelle, et devoir se connecter pour
+      // vérifier un rendu n'a pas de sens. En debug uniquement — la route
+      // n'existe pas autrement.
+      if (kDebugMode && state.matchedLocation == '/design-v2') return null;
+
       final isSplashRoute = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isConsentRoute = state.matchedLocation == '/consent';
@@ -299,10 +305,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Galerie de test de la refonte (design_v2). Sans ce point d'entrée,
       // rien de la refonte n'est visible sur un vrai téléphone. À retirer,
       // avec lib/design_v2/, quand la refonte est basculée en production.
-      GoRoute(
-        path: '/design-v2',
-        builder: (context, state) => const DesignV2Gallery(),
-      ),
+      if (kDebugMode)
+        GoRoute(
+          path: '/design-v2',
+          builder: (context, state) => const DesignV2Gallery(),
+        ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
