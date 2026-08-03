@@ -777,13 +777,14 @@ patron aux six autres. Trois gestes :
 2. Les gris figés (`Colors.grey[600]`) deviennent `dn.onSurface3`.
 3. `Theme.of(context).primaryColor` devient `DNColors.terra`.
 
-Restent, par ordre de coût croissant :
+Migrés à ce jour : `create_podcast_screen`, `my_podcasts_screen`,
+`podcast_detail_screen`. Restent, par ordre de coût croissant :
 
 | Écran | Lignes | Ce qu'il porte |
 |---|---|---|
 | `podcast_stats_screen` | 406 | déjà sur `adaptive_colors` (16) — unification seule |
-| `my_podcasts_screen` | 525 | 7 `Theme.of` |
-| `podcast_detail_screen` | 531 | 6 `Theme.of` |
+| ~~`my_podcasts_screen`~~ | 525 | **fait** |
+| ~~`podcast_detail_screen`~~ | 531 | **fait** |
 | `podcasts_home_screen` | 704 | déjà sur `adaptive_colors` (7) — unification seule |
 | `record_episode_screen` | 718 | 5 `Theme.of`, 5 `colorScheme` |
 | `episode_detail_screen` | 996 | **29 `Theme.of`, 19 `colorScheme`** — le plus gros |
