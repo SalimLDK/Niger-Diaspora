@@ -428,10 +428,35 @@ Les salons sont convertis à 8 écrans sur 9 ; **les podcasts ne le sont
 presque pas** — 1 sur 7. La cible n'est donc pas `design_kit` mais **DN**,
 et le travail est une migration interne, pas une refonte visuelle.
 
-⚠️ `replay_player_screen` et `live_podcast_screen` sont **mixtes** : ils
-utilisent `DNText` sans `context.dn`, donc leur typographie suit le système
-mais pas leurs couleurs. À finir en priorité, c'est là que le thème sombre
-peut casser.
+⚠️ Correction de mon constat précédent : **`live_podcast_screen` n'est pas
+un candidat**. Fond noir, surimpressions blanches sur le flux vidéo — même
+cas que les écrans d'appel, le blanc y est le seul contraste tenable. Ses
+5 `DNText` suffisent. Reste `replay_player_screen`, vraiment mixte.
+
+### Migration des podcasts vers DN — motif établi
+
+`create_podcast_screen` est migré (dans `design_v2/podcasts/`), et sert de
+patron aux six autres. Trois gestes :
+
+1. `Scaffold` + `AppBar` prennent `dn.surface`, et le titre passe en
+   `DNText.serif(size: 22, color: dn.onSurface)`.
+2. Les gris figés (`Colors.grey[600]`) deviennent `dn.onSurface3`.
+3. `Theme.of(context).primaryColor` devient `DNColors.terra`.
+
+Restent, par ordre de coût croissant :
+
+| Écran | Lignes | Ce qu'il porte |
+|---|---|---|
+| `podcast_stats_screen` | 406 | déjà sur `adaptive_colors` (16) — unification seule |
+| `my_podcasts_screen` | 525 | 7 `Theme.of` |
+| `podcast_detail_screen` | 531 | 6 `Theme.of` |
+| `podcasts_home_screen` | 704 | déjà sur `adaptive_colors` (7) — unification seule |
+| `record_episode_screen` | 718 | 5 `Theme.of`, 5 `colorScheme` |
+| `episode_detail_screen` | 996 | **29 `Theme.of`, 19 `colorScheme`** — le plus gros |
+
+Aucun n'est *cassé* : `adaptive_colors` comme `colorScheme` sont déjà
+theme-aware. Cette migration est une unification visuelle avec les salons,
+pas une correction de bug.
 
 ### Appels — les blancs et les dégradés sont légitimes
 
