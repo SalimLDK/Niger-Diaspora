@@ -397,6 +397,29 @@ suite.
   rester lisible sur la puce sélectionnée. Vérifier aussi la pastille de la
   légende, passée d'un dégradé à un aplat.
 
+- [ ] **Brouillon d'épisode de podcast** (`record_episode_screen.dart`,
+  `podcast_provider.dart`, §2d). Le chemin est neuf de bout en bout, et rien
+  ici n'est vérifiable sans base réelle :
+  - enregistrer un épisode puis appuyer sur **« Brouillon »** : la
+    confirmation doit dire « enregistré en brouillon », **pas** « publié » ;
+  - vérifier en base que la ligne a bien `status = 'draft'` **et**
+    `published_at` **nul** — c'est le point le plus facile à casser, le
+    provider posait la date dès qu'il n'y avait pas de programmation ;
+  - le brouillon **ne doit pas apparaître** comme épisode publié dans la
+    fiche du podcast (§3b) ni pour un abonné ;
+  - il **ne doit pas compter** dans la section « Rythme de publication » des
+    statistiques (§4a) — c'est exactement à quoi sert `published_at` nul ;
+  - contre-test : « Terminer et publier » doit toujours produire
+    `status = 'published'` avec une date. Une régression ici rendrait la
+    publication silencieusement inopérante.
+
+- [ ] **Note « muet en silence » de la modération fantôme** (§3c,
+  `ghost_moderator_screen.dart`). Vérifier que la phrase apparaît bien sous
+  la grille des quatre actions et reste lisible — elle est en chasse fixe
+  taille 9. C'est la seule chose qui distingue cette action d'un mute
+  ordinaire : si elle déborde ou passe inaperçue à `font_scale = 1.1`, elle
+  ne remplit pas son rôle.
+
 ### Non testable tant que `design_v2` n'est pas basculé
 
 Pour mémoire, ce qui attend la bascule : onboarding 5 écrans, configuration
