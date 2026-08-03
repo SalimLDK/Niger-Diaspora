@@ -240,6 +240,26 @@ en solo.
 - [ ] **Relais TURN en 4G/5G sans wifi** (report du 2026-07-16) : coturn répond
   bien sur 3478/5349 et `getTurnCredentials` est déployée et appelée avec succès,
   mais le relais n'a jamais été validé sur un NAT symétrique réel.
+- [ ] **Enchaîner deux appels après un raccrochage en réseau dégradé**
+  (`webrtc_service.dart`, 2026-08-03) : `hangUp()` n'avait pas de try/finally et
+  posait `_isEndingCall` avant une suppression RÉSEAU en RTDB. Une exception en
+  route laissait le singleton WebRTC coincé pour toute la session — plus aucun
+  raccrochage, et `startCall` levant « Already in a call » sur tous les appels
+  suivants. Le test qui compte : couper la donnée en plein appel, raccrocher,
+  rétablir, puis **passer un second appel** — il doit partir normalement.
+- [ ] **Micro refusé au moment de décrocher** (`call_provider.dart`, 2026-08-03) :
+  révoquer la permission micro dans les réglages Android, puis accepter un appel.
+  L'écran doit échouer **immédiatement** avec « Micro ou caméra inaccessible »
+  au lieu de rester sur « Connexion… » pendant 30 s. Vérifier aussi le chemin
+  inverse : accepter depuis la bannière CallKit (l'échec n'était capturé nulle
+  part sur ce chemin).
+- [ ] **Service de localisation en arrière-plan**
+  (`background_location_service.dart`, 2026-08-03) : la classe portait ses
+  `@pragma('vm:entry-point')` sur les méthodes statiques mais pas sur la classe
+  elle-même, que le natif traverse pour les atteindre — le VM refusait au
+  démarrage et le service ne pouvait jamais tourner. À vérifier : activer le
+  partage de position, mettre l'app en arrière-plan, et confirmer que la
+  notification persistante du service apparaît et que la position remonte.
 
 ## Lecture audio en arrière-plan (podcasts)
 
