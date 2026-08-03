@@ -15711,4 +15711,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get moreActions => 'Autres actions';
+
+  @override
+  String get ghostMuteSilentNote =>
+      '« Muet en silence » ne prévient pas la personne : son micro cesse d’être diffusé, sans message d’erreur.';
 }

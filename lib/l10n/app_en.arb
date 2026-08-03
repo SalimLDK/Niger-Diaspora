@@ -7469,5 +7469,9 @@
   "moreActions": "More actions",
   "@moreActions": {
     "description": "Revele les actions secondaires de la feuille"
+  },
+  "ghostMuteSilentNote": "\"Silent mute\" does not notify the person: their mic simply stops being broadcast, with no error message.",
+  "@ghostMuteSilentNote": {
+    "description": "Avertit le moderateur que l action est invisible pour la cible"
   }
 }

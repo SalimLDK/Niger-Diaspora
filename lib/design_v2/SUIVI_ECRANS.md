@@ -608,7 +608,30 @@ le document des maquettes** : encre `#1A1410`, papier `#FAF6EF`, sable
 dans `audio_rooms_list_screen` ni `audio_room_screen`.
 
 Restent réellement à faire : §1f (revenus créateur), §2b, §2c, §2d, §2g,
-§3c, §4b, §4c et le lecteur de replay.
+§4b, §4c et le lecteur de replay.
+
+### §3c — modération fantôme : la phrase qui manquait
+
+L'écran portait déjà tout : bandeau d'invisibilité, les trois compteurs
+(auditeurs visibles, intervenants visibles, chrono), les quatre actions et
+la fermeture forcée avec sa mention de journal d'audit.
+
+Il manquait la phrase que la maquette pose sous la grille d'actions :
+
+> « Muet en silence » ne prévient pas la personne : son micro cesse d'être
+> diffusé, sans message d'erreur.
+
+Elle n'est pas décorative. C'est **la seule chose qui distingue cette action
+d'un mute ordinaire**, et sans elle un modérateur peut croire que la personne
+est avertie. Ajoutée sous la grille, en chasse fixe comme le reste des notes
+de cet écran.
+
+**Dette repérée au passage, non corrigée** :
+`ghost_moderator_screen.dart:273` appelle `warnHost('Avertissement
+modérateur')` avec une chaîne française en dur. Ce texte part vers l'hôte,
+il devrait donc passer par l'ARB. Non touché parce que c'est une charge
+utile envoyée au serveur, pas un libellé d'écran — à trancher avant de le
+déplacer.
 
 ### Document 1 — écouter
 
@@ -642,7 +665,7 @@ Restent réellement à faire : §1f (revenus créateur), §2b, §2c, §2d, §2g,
 |---|---|---|---|---|
 | 3a | Mes podcasts (créateur) | `podcasts/…/my_podcasts_screen.dart` | 525 l. | ✅ câblée |
 | 3b | Fiche d'un podcast | `podcasts/…/podcast_detail_screen.dart` | 531 l. | ✅ câblée |
-| 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | à faire |
+| 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | ✅ câblée |
 | — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | à faire |
 | 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | ✅ câblée |
 | 4b | Lecteur — nocturne | même écran que 1e | — | prod — voir « Nocturnes » |

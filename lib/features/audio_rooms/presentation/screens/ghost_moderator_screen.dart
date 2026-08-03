@@ -274,6 +274,32 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                         ),
                       ],
                     ),
+
+                    // Ce que « muet en silence » fait vraiment (§3c). La
+                    // maquette pose cette phrase sous la grille, et elle n'est
+                    // pas décorative : c'est la seule chose qui distingue
+                    // cette action d'un mute ordinaire. Sans elle, un
+                    // modérateur peut croire que la personne est prévenue.
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '🔇',
+                          style: DNText.mono(size: 9, color: DNColors.ink3),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.ghostMuteSilentNote,
+                            style: DNText.mono(
+                              size: 9,
+                              color: DNColors.ink3,
+                            ).copyWith(height: 1.45),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 20),
 
                     // Force close

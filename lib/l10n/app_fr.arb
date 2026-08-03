@@ -7963,5 +7963,9 @@
   "moreActions": "Autres actions",
   "@moreActions": {
     "description": "Revele les actions secondaires de la feuille"
+  },
+  "ghostMuteSilentNote": "« Muet en silence » ne prévient pas la personne : son micro cesse d’être diffusé, sans message d’erreur.",
+  "@ghostMuteSilentNote": {
+    "description": "Avertit le moderateur que l action est invisible pour la cible"
   }
 }

@@ -15563,4 +15563,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moreActions => 'More actions';
+
+  @override
+  String get ghostMuteSilentNote =>
+      '\"Silent mute\" does not notify the person: their mic simply stops being broadcast, with no error message.';
 }

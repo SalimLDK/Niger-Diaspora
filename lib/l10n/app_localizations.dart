@@ -28771,6 +28771,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autres actions'**
   String get moreActions;
+
+  /// Avertit le moderateur que l action est invisible pour la cible
+  ///
+  /// In fr, this message translates to:
+  /// **'« Muet en silence » ne prévient pas la personne : son micro cesse d’être diffusé, sans message d’erreur.'**
+  String get ghostMuteSilentNote;
 }
 
 class _AppLocalizationsDelegate
