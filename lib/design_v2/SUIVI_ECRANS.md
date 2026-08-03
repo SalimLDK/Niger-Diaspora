@@ -915,10 +915,10 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 | 23b | Appel de groupe | `group_calls/…/group_call_screen.dart` | 852 l. | fait |
 | 23c | Détail d'un post et commentaires | `feed/…/post_detail_screen.dart` | 357 l. | famille « fil » |
 | 23d | Créer une publication | `feed/…/create_post_screen.dart` | 823 l. | famille « fil » |
-| 24a | Galerie de la conversation | `messages/…/media_gallery_screen.dart` | 895 l. | à faire |
-| 24b | Messages favoris | `messages/…/starred_messages_screen.dart` | 313 l. | à faire |
-| 24c | Nouvelle conversation | `messages/…/new_conversation_screen.dart` | 1042 l. | à faire |
-| 24d | Résultats d'un sondage | `polls/…/poll_results_screen.dart` | 257 l. | à faire |
+| 24a | Galerie de la conversation | `messages/…/media_gallery_screen.dart` | 895 l. | ✅ écartée, motivée (`a02c764`) — mais **non localisée** |
+| 24b | Messages favoris | `messages/…/starred_messages_screen.dart` | 310 l. | ✅ faite (`a02c764`) |
+| 24c | Nouvelle conversation | `messages/…/new_conversation_screen.dart` | 1041 l. | ✅ faite (`a02c764`) |
+| 24d | Résultats d'un sondage | `polls/…/poll_results_screen.dart` | 257 l. | ✅ rien à corriger, vérifié — mais **non localisée** |
 | 26b | Stickers et GIF du composer | `messages/…/widgets/gif_picker_content.dart`, `emoji_sticker_picker.dart` | 579 l. | ✅ câblée |
 
 ### Services
@@ -947,8 +947,8 @@ pas séparément.
 | 27d | Joindre un média | `messages/…/media_batch_preview_screen.dart` | ✅ câblée |
 | 28a | Actions sur une publication | fil | famille « fil » |
 | 28b | Qui peut voir cette publication | créer une publication | famille « fil » |
-| 28c | Confirmer un transfert | transferts | à faire |
-| 28d | Partager dans l'app | fil, discussion | à faire |
+| 28c | Confirmer un transfert | transferts | partiel — dialogue, pas feuille ; voir l'audit |
+| 28d | Partager dans l'app | fil, discussion | partiel — `share_post_sheet.dart` existe, **branché sur le fil seul** |
 
 ### États — la partie la plus utile de la vague
 
@@ -1270,6 +1270,66 @@ comportement d'origine — il ne doit pas faire clignoter la liste.
 Appliqué **des deux côtés** : la copie `design_v2` et la production
 `lib/features/home/…` portent le même correctif, vérifié identique. Ce point
 ne créera donc pas d'écart à la bascule.
+
+## Audit des sept écrans « à faire » (2026-08-03)
+
+Vérification des sept lignes que le suivi donnait à faire. **Quatre étaient
+fausses**, dans la continuité des cinq corrigées plus tôt dans la journée.
+
+| Ligne | Verdict mesuré |
+|---|---|
+| §24b, §24c | **faits** par `a02c764` — barre plate et titre Playfair pour les favoris, avatars de repli en aplat et `onPrimaryColor` pour la nouvelle conversation |
+| §24d | **rien à corriger**, et c'était déjà vérifié : 0 dégradé, 0 couleur brute, 0 `AppColors` sur 257 lignes |
+| §24a | **écartée avec motif** dans le même commit : ses noirs et blancs sont des voiles de contraste sur les vignettes média, même rôle que sur l'écran d'appel. Les aplatir rendrait la durée d'une vidéo illisible sur une image claire |
+| `episode_tile` | **à faire, confirmé** — 0 usage DN, 12 `Theme.of`. Ce n'est pas un écran à redessiner, c'est le 7ᵉ fichier de la migration podcasts → DN |
+| §28c | **partiel** — voir ci-dessous |
+| §28d | **partiel** — voir ci-dessous |
+
+### §28c — la confirmation existe, mais pas sous la forme de la maquette
+
+`send_money_screen` a bien une étape « Confirmer » (3ᵉ du parcours,
+`_buildConfirmationStep`) **et** un `AlertDialog` avant envoi
+(`_showConfirmationDialog`). La 28c décrit une **feuille**. La différence
+n'est pas cosmétique : un dialogue centré interrompt, une feuille se lit dans
+la continuité du montant qu'on vient de saisir.
+
+⚠️ **Défaut trouvé au passage, plus grave que la forme** : cet écran n'est
+**pas localisé du tout**, et une partie de ses chaînes a perdu ses accents —
+« Reinitialiser », « Ajouter un beneficiaire », « Ou selectionnez un
+beneficiaire existant », « Aucun beneficiaire enregistre », « les conditions
+generales de transfert ». D'autres chaînes du même fichier portent des
+échappements `é` corrects : c'est la signature d'une réparation
+d'encodage passée qui a traité une partie des chaînes et pas l'autre.
+
+Ce n'est pas la bascule qui l'a introduit — la copie portait déjà ces
+chaînes, seule la barre de titre a changé. Mais c'est visible par
+l'utilisateur, sur l'écran qui déplace de l'argent.
+
+### §28d — la feuille existe, la moitié du câblage manque
+
+`feed/…/share_post_sheet.dart` (392 l.) est bien la feuille « partager dans
+l'app », correctement localisée (17 clés). Deux manques :
+
+- **Elle n'est ouverte que depuis le fil** (`post_card.dart`). La maquette
+  dit « fil, discussion » : aucune référence dans `lib/features/messages`.
+- **Elle n'adhère à aucun des deux systèmes de sa famille** — 3 `Theme.of`,
+  4 `colorScheme`, 3 `Colors.` bruts, zéro `FeedTokens`. Or elle s'ouvre
+  par-dessus le fil, qui bascule entre Organic et Nocturne.
+
+### Localisation : le trou n'est pas là où le suivi le dit
+
+La section « Localisation » de ce fichier se déclare terminée. Elle l'est
+**pour `design_v2`**. Trois écrans de production audités ici n'ont
+strictement aucune localisation :
+
+| Écran | `AppLocalizations` | Exemples de chaînes |
+|---|---|---|
+| `media_gallery_screen` | 0 | « Médias partagés », « Cette semaine », « Aucune photo » |
+| `poll_results_screen` | 0 | « Résultats du sondage », « Votre choix », « Aucun vote pour le moment » |
+| `send_money_screen` | 0 | tout le tunnel, accents compris |
+
+C'est un chantier distinct du design, à ne pas confondre avec lui : ces
+écrans sont visuellement corrects et linguistiquement figés en français.
 
 ## Écrans hors maquettes
 
