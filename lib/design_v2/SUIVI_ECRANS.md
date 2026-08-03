@@ -145,6 +145,22 @@ libellés posés sur l'accent étaient figés sur `AppColors.white`. En thème
 sombre l'accent s'éclaircit, donc le texte dessus doit s'assombrir :
 `context.onPrimaryColor` fait cette bascule, pas un blanc constant.
 
+**Second passage (même jour).** Il restait un jeu distinct du précédent :
+cinq libellés figés non pas sur `AppColors.white` mais sur `Colors.white`,
+eux aussi posés sur l'accent — trois `foregroundColor` de bouton et deux
+puces sélectionnées (rayon, filtre). Un `grep AppColors.white` les ratait
+tous. Ils passent à `context.onPrimaryColor`.
+
+La légende gardait par ailleurs le dernier dégradé de la feature : sa
+pastille de couleur était peinte en dégradé avec ombre colorée. Elle devient
+un aplat — une légende sert à rapprocher une couleur d'un libellé, la nuancer
+brouille précisément ce rapprochement. Le liseré blanc reste, il détache la
+pastille du fond cartographique. La feature entière est maintenant à zéro
+dégradé.
+
+Restent volontairement blancs : les remplissages de `CustomPainter` et le
+texte du badge « vérifié », posés sur des fonds de couleur fixes.
+
 Non touché volontairement : les couleurs des épingles et des cercles peints
 sur le fond cartographique (`AppColors.primary`, `.secondary`, `.success`
 dans les `CustomPainter`). Elles se lisent sur la carte Google, pas sur le
@@ -219,6 +235,28 @@ sans teinte Material). Restent les **bulles de message** des maquettes
 « TRANSCRIRE », pièce jointe floutée avec « Télécharger ». Ces briques
 vivent dans `message_bubble.dart` et `audio_message_bubble.dart`, pas dans
 l'écran — c'est un lot à part, non copié à ce jour.
+
+### Bulles de message (3b, 3c) — état
+
+`message_bubble.dart` (2908 l.) et `audio_message_bubble.dart` (587 l.) sont
+copiés dans `design_v2`. Deux des trois briques des maquettes existaient
+déjà :
+
+- **Citation à liseré** — `_buildReplyPreview` a bien son filet de 4 px à
+  gauche, teinté accent, avec le nom de l'auteur cité. Rien à faire.
+- **Vitesse de lecture** — la pastille `1× → 1,5× → 2×` est câblée sur la
+  même ligne que la waveform, comme au §3b.
+
+Ajouté : le **poids du fichier** (« 86 Ko », « 1,2 Mo ») à côté de la durée,
+depuis `MessageEntity.fileSize`. Sur un réseau 2G, savoir ce qu'on va
+télécharger compte. Affiché seulement quand le serveur a renvoyé la valeur —
+pas de « 0 Ko » inventé.
+
+**Non fait, et volontairement** : le bouton **« TRANSCRIRE »** des maquettes
+3b/3c. La transcription n'existe nulle part pour les messages — seulement
+pour les podcasts (`podcast_episode_entity`). Ajouter le bouton donnerait un
+widget mort de plus, exactement la famille de trous de câblage déjà soldée
+ailleurs. Il faut d'abord un service de transcription côté serveur.
 
 ### Transferts, ce qui reste
 
