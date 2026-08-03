@@ -1,0 +1,1259 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+
+import '../../../../core/services/location_service.dart';
+import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/services/preferences_service.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/providers/connectivity_provider.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/geo_utils.dart';
+import '../../../../features/profile/domain/entities/profile_entity.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../../features/profile/presentation/providers/profile_provider.dart';
+import '../../../../features/events/presentation/providers/event_provider.dart';
+import '../../../../features/onboarding/presentation/providers/onboarding_provider.dart';
+import '../../../../features/onboarding/presentation/widgets/coach_mark_content.dart';
+import '../../../../features/notifications/presentation/providers/notification_provider.dart';
+import '../../../../features/messages/presentation/providers/message_provider.dart';
+import '../../../../features/events/domain/entities/event_entity.dart';
+import '../../../../features/settings/presentation/providers/blocked_users_provider.dart';
+import '../../../../features/home/presentation/providers/home_provider.dart';
+
+import '../../../../features/home/presentation/widgets/home_section_header.dart';
+import '../../../../features/home/presentation/widgets/home_empty_state_card.dart';
+import '../../../../features/home/presentation/widgets/home_event_card.dart';
+
+part 'home_screen_widgets.dart';
+
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  // GlobalKeys for coach marks
+  final GlobalKey _profilePictureKey = GlobalKey();
+  final GlobalKey _notificationBellKey = GlobalKey();
+  final GlobalKey _searchBarKey = GlobalKey();
+  final GlobalKey _statsRowKey = GlobalKey();
+  final GlobalKey _servicesKey = GlobalKey();
+  final GlobalKey _nearbyMembersKey = GlobalKey();
+  final GlobalKey _upcomingEventsKey = GlobalKey();
+
+  late TutorialCoachMark _tutorialCoachMark;
+  bool _coachMarksShown = false;
+  String? _locationError;
+  DateTime? _lastNearbyUpdate;
+
+  // Timers pour mise à jour automatique
+  Timer? _nearbyRefreshTimer;
+  Timer? _uiRefreshTimer;
+  static const int _nearbyRefreshIntervalSeconds = 60; // Rafraîchir les membres toutes les 60s
+  static const int _uiRefreshIntervalSeconds = 10; // Rafraîchir l'affichage du temps toutes les 10s
+  static const double _nearbyRadiusDefaultKm = 50; // Rayon initial « Autour de vous »
+  static const double _nearbyRadiusWideKm = 200; // Rayon élargi à la demande
+
+  // Rayon courant : élargi de 50 à 200 km via le bouton de l'état vide.
+  double _nearbyRadiusKm = _nearbyRadiusDefaultKm;
+
+  // Position actuelle pour le rafraîchissement
+  double? _currentLat;
+  double? _currentLng;
+
+  // Ville / pays résolus par géocodage inverse de la position GPS. Servent de
+  // repli dans la ligne de contexte quand le profil n'a pas ces champs.
+  String? _geoCity;
+  String? _geoCountry;
+
+  // Bandeau hors-ligne masqué manuellement (« Lire hors ligne ») ; réaffiché
+  // à la prochaine coupure réseau.
+  bool _offlineDismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+      _checkAndShowCoachMarks();
+    });
+  }
+
+  @override
+  void dispose() {
+    _nearbyRefreshTimer?.cancel();
+    _uiRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Démarre les timers de rafraîchissement automatique
+  void _startRefreshTimers() {
+    // Timer pour rafraîchir les membres à proximité
+    _nearbyRefreshTimer?.cancel();
+    _nearbyRefreshTimer = Timer.periodic(
+      Duration(seconds: _nearbyRefreshIntervalSeconds),
+      (_) => _refreshNearbyMembers(),
+    );
+
+    // Timer pour rafraîchir l'affichage du temps relatif
+    _uiRefreshTimer?.cancel();
+    _uiRefreshTimer = Timer.periodic(
+      Duration(seconds: _uiRefreshIntervalSeconds),
+      (_) {
+        if (mounted && _lastNearbyUpdate != null) {
+          setState(() {}); // Rebuild pour mettre à jour l'affichage du temps
+        }
+      },
+    );
+  }
+
+  /// Rafraîchit les membres à proximité (appelé par le timer)
+  Future<void> _refreshNearbyMembers() async {
+    if (!mounted || _currentLat == null || _currentLng == null) return;
+
+    try {
+      await ref
+          .read(nearbyProfilesNotifierProvider.notifier)
+          .loadNearbyProfiles(_currentLat!, _currentLng!,
+              radiusKm: _nearbyRadiusKm);
+
+      if (mounted) {
+        setState(() {
+          _lastNearbyUpdate = DateTime.now();
+        });
+      }
+    } catch (e) {
+      // Ignorer les erreurs silencieusement pour le rafraîchissement automatique
+    }
+  }
+
+  void _checkAndShowCoachMarks() {
+    if (_coachMarksShown) return;
+
+    final onboardingState = ref.read(onboardingNotifierProvider);
+
+    // Show coach marks only if intro was seen but coach marks weren't
+    if (onboardingState.hasSeenIntro && !onboardingState.hasSeenCoachMarks) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _showCoachMarks();
+        }
+      });
+    }
+  }
+
+  void _showCoachMarks() {
+    _coachMarksShown = true;
+    _tutorialCoachMark = TutorialCoachMark(
+      targets: _createTargets(),
+      textSkip: "Passer",
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      colorShadow: context.textPrimaryColor,
+      onFinish: () {
+        ref.read(onboardingNotifierProvider.notifier).completeCoachMarks();
+      },
+      onSkip: () {
+        ref.read(onboardingNotifierProvider.notifier).completeCoachMarks();
+        return true;
+      },
+    );
+    _tutorialCoachMark.show(context: context);
+  }
+
+  List<TargetFocus> _createTargets() {
+    // Check feature flags
+    final hasMoneyTransfer = ref.read(isMoneyTransferEnabledProvider);
+    final hasMarketplace = ref.read(isMarketplaceEnabledProvider);
+    final hasBusinessDirectory = ref.read(isBusinessDirectoryEnabledProvider);
+    final hasEmbassies = ref.read(isEmbassiesEnabledProvider);
+    final hasEvents = ref.read(isEventsEnabledProvider);
+    final hasGroups = ref.read(isGroupsEnabledProvider);
+
+    final hasServices =
+        hasMoneyTransfer || hasMarketplace || hasBusinessDirectory || hasEmbassies;
+
+    // Build dynamic services description based on enabled features
+    String buildServicesDescription() {
+      final services = <String>[];
+      if (hasMoneyTransfer) services.add('transferts d\'argent');
+      if (hasMarketplace) services.add('boutique');
+      if (hasBusinessDirectory) services.add('annuaire des entreprises');
+      if (hasEmbassies) services.add('ambassades');
+
+      if (services.isEmpty) return '';
+      if (services.length == 1) return 'Acces rapide au service: ${services.first}.';
+
+      final lastService = services.removeLast();
+      return 'Acces rapide aux services: ${services.join(', ')} et $lastService.';
+    }
+
+    // Build dynamic search description based on enabled features
+    String buildSearchDescription() {
+      final searchables = <String>['membres'];
+      if (hasGroups) searchables.add('groupes');
+      if (hasEvents) searchables.add('evenements');
+
+      if (searchables.length == 1) return 'Trouvez des ${searchables.first} facilement.';
+
+      final last = searchables.removeLast();
+      return 'Trouvez des ${searchables.join(', ')} et des $last facilement.';
+    }
+
+    // Build dynamic stats description
+    String buildStatsDescription() {
+      final stats = <String>['membres'];
+      if (hasGroups) stats.add('groupes');
+      if (hasEvents) stats.add('evenements');
+
+      return 'Decouvrez la communaute: nombre de ${stats.join(', ')}. Appuyez pour explorer.';
+    }
+
+    // Determine which is the last coach mark for isLast flag
+    final hasEventsCoachMark = hasEvents;
+
+    return [
+      TargetFocus(
+        identify: "profile",
+        keyTarget: _profilePictureKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return const CoachMarkContent(
+                title: "Votre profil",
+                description:
+                    "Appuyez ici pour acceder a votre profil et le completer avec vos informations.",
+              );
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "notifications",
+        keyTarget: _notificationBellKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return const CoachMarkContent(
+                title: "Notifications",
+                description:
+                    "Restez informe des nouveaux messages et activites de la communaute.",
+              );
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "search",
+        keyTarget: _searchBarKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return CoachMarkContent(
+                title: "Recherche",
+                description: buildSearchDescription(),
+              );
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "stats",
+        keyTarget: _statsRowKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 20,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return CoachMarkContent(
+                title: "Statistiques",
+                description: buildStatsDescription(),
+              );
+            },
+          ),
+        ],
+      ),
+      // Services section (only if at least one service is enabled)
+      if (hasServices)
+        TargetFocus(
+          identify: "services",
+          keyTarget: _servicesKey,
+          alignSkip: Alignment.topRight,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return CoachMarkContent(
+                  title: "Services",
+                  description: buildServicesDescription(),
+                );
+              },
+            ),
+          ],
+        ),
+      TargetFocus(
+        identify: "nearbyMembers",
+        keyTarget: _nearbyMembersKey,
+        alignSkip: Alignment.topRight,
+        shape: ShapeLightFocus.RRect,
+        radius: 20,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return CoachMarkContent(
+                title: "Membres proches",
+                description:
+                    "Decouvrez les Nigeriens dans votre region. Faites glisser pour voir plus de profils.",
+                // Last if events feature is disabled
+                isLast: !hasEventsCoachMark,
+              );
+            },
+          ),
+        ],
+      ),
+      // Events section (only if events feature is enabled)
+      if (hasEventsCoachMark)
+        TargetFocus(
+          identify: "events",
+          keyTarget: _upcomingEventsKey,
+          alignSkip: Alignment.topRight,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return const CoachMarkContent(
+                  title: "Evenements a venir",
+                  description:
+                      "Participez aux rencontres et activites de la diaspora. Appuyez pour voir les details.",
+                  isLast: true,
+                );
+              },
+            ),
+          ],
+        ),
+    ];
+  }
+
+  Future<void> _loadData() async {
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    if (currentUser != null) {
+      // Le profil est chargé automatiquement par le provider family si écouté
+      // Mais ici on veut peut-être forcer le rafraichissement ou juste lire
+      // On s'assure juste que c'est init
+      final profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+
+      // Mettre à jour les stats en fonction du pays de l'utilisateur
+      if (profile?.currentCountry != null) {
+        ref.read(homeStatsNotifierProvider.notifier).setCountry(profile!.currentCountry);
+      }
+
+      // Déterminer la localisation
+      double lat = 13.5116; // Par défaut: Niamey
+      double lng = 2.1254;
+      double radius = _nearbyRadiusKm;
+
+      // Tenter d'obtenir la position actuelle pour mettre à jour
+      try {
+        final position = await LocationService.instance.getCurrentPosition();
+        lat = position.latitude;
+        lng = position.longitude;
+
+        if (mounted) {
+          setState(() {
+            _locationError = null;
+          });
+
+          // Mettre à jour la position du profil
+          // updateLocation prend (lat, lng), userId est dans le provider
+          ref
+              .read(profileNotifierProvider(currentUser.id).notifier)
+              .updateLocation(lat, lng);
+
+          // Charger les profils à proximité UNIQUEMENT si la localisation est active
+          await ref
+              .read(nearbyProfilesNotifierProvider.notifier)
+              .loadNearbyProfiles(lat, lng, radiusKm: radius);
+
+          // Mettre à jour le timestamp et sauvegarder la position
+          if (mounted) {
+            setState(() {
+              _lastNearbyUpdate = DateTime.now();
+              _currentLat = lat;
+              _currentLng = lng;
+            });
+
+            // Démarrer les timers de rafraîchissement automatique
+            _startRefreshTimers();
+          }
+
+          // Résoudre ville/pays depuis la position (repli pour la ligne stats).
+          _resolvePlaceName(lat, lng);
+        }
+      } catch (e) {
+        // debugPrint('Erreur de localisation HomeScreen: $e');
+
+        if (mounted) {
+          setState(() {
+            _locationError = e.toString();
+          });
+        }
+
+        // La règle de réciprocité: si pas de localisation, pas de membres à proximité
+        // On ne fait PAS de fallback sur la localisation du profil pour le chargement des autres
+      }
+    }
+  }
+
+  /// Formate un DateTime en temps relatif (ex: "il y a 2 min")
+  String _formatRelativeTime(DateTime? dateTime, AppLocalizations l10n) {
+    if (dateTime == null) return l10n.loading;
+
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 10) {
+      return l10n.justNow;
+    } else if (difference.inSeconds < 60) {
+      return l10n.secondsAgo(difference.inSeconds);
+    } else if (difference.inMinutes < 60) {
+      return l10n.minutesAgo(difference.inMinutes);
+    } else {
+      return l10n.hoursAgo(difference.inHours);
+    }
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  Widget _buildAvatarPlaceholder(BuildContext context, String? name) {
+    return Container(
+      color: context.adaptivePrimaryColor,
+      child: Center(
+        child: Text(
+          _getInitials(name),
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final authState = ref.watch(authNotifierProvider);
+    final authUser = authState.maybeWhen(
+      authenticated: (user) => user,
+      orElse: () => null,
+    );
+    final profileAsync =
+        authUser != null
+            ? ref.watch(profileNotifierProvider(authUser.id))
+            : const AsyncValue.data(null);
+    final homeStats = ref.watch(homeStatsNotifierProvider);
+    final nearbyProfiles = ref.watch(nearbyProfilesNotifierProvider);
+
+    final upcomingEvents = ref.watch(eventsNotifierProvider);
+
+    // Écouter les changements d'utilisateur pour recharger les données si nécessaire
+    ref.listen(currentUserAsyncProvider, (previous, next) {
+      final user = next.valueOrNull;
+      if (user != null) {
+        // Si l'utilisateur vient d'être chargé ou a changé, on recharge les données
+        // On vérifie si c'est la première connexion (previous.value était null)
+        // ou si l'ID a changé
+        if (previous?.valueOrNull == null ||
+            previous!.valueOrNull!.id != user.id) {
+          _loadData();
+        }
+      }
+    });
+
+    // Écouter les changements de profil pour mettre à jour les stats par pays
+    if (authUser != null) {
+      ref.listen(profileNotifierProvider(authUser.id), (previous, next) {
+        final newCountry = next.valueOrNull?.currentCountry;
+        final oldCountry = previous?.valueOrNull?.currentCountry;
+        if (newCountry != oldCountry && newCountry != null) {
+          ref.read(homeStatsNotifierProvider.notifier).setCountry(newCountry);
+        }
+      });
+    }
+
+    // Priorité aux données du profil, sinon fallback sur auth
+    final profile = profileAsync.valueOrNull;
+
+    final userName = profile?.displayName ?? authUser?.displayName ?? l10n.user;
+    final userPhotoUrl = profile?.photoUrl ?? authUser?.photoUrl;
+
+    // Complétude du profil (premier lancement — maquette 8a). Les cartes
+    // d'onboarding restent affichées tant que le profil est incomplet.
+    final placeCity = (profile?.currentCity?.trim().isNotEmpty ?? false)
+        ? profile!.currentCity
+        : _geoCity;
+    final completion = _computeCompletion(profile, placeCity);
+    final showOnboarding = profile != null && completion.filled < completion.total;
+
+    // Hors-ligne : bandeau explicatif (contenu en cache) — maquette 2d.
+    final isOnline = ref.watch(connectivityNotifierProvider);
+    final showOffline = !isOnline && !_offlineDismissed;
+
+    // Événement passé le plus récent, pour l'état vide « rien à venir, mais un
+    // passé » des Événements (maquette 1c/CAS 3).
+    final recentPastEvent = ref.watch(recentPastEventProvider).valueOrNull;
+    // Topic FCM pour « M'avertir du prochain » (par pays si connu).
+    final rawCc = (profile?.countryCode?.trim().isNotEmpty ?? false)
+        ? profile!.countryCode!.trim()
+        : (profile?.currentCountry?.trim().isNotEmpty ?? false)
+            ? profile!.currentCountry!.trim()
+            : 'all';
+    final eventsTopic =
+        'events_${rawCc.replaceAll(RegExp(r"[^A-Za-z0-9_-]"), "")}';
+
+    // Retour du réseau : réarmer le bandeau et rafraîchir le contenu.
+    ref.listen(connectivityNotifierProvider, (previous, next) {
+      if (next == true) {
+        if (_offlineDismissed && mounted) {
+          setState(() => _offlineDismissed = false);
+        }
+        ref.read(homeStatsNotifierProvider.notifier).refresh();
+        _loadData();
+      }
+    });
+
+    return Scaffold(
+      backgroundColor: context.backgroundColor,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(homeStatsNotifierProvider.notifier).refresh();
+          _loadData();
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // En-tête plat (le dégradé orange disparaît — refonte 8a).
+            SliverToBoxAdapter(
+              child: Container(
+                color: context.backgroundColor,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            GestureDetector(
+                              key: _profilePictureKey,
+                              onTap: () => context.go('/profile'),
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: context.borderColor,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child:
+                                      userPhotoUrl != null
+                                          ? CachedNetworkImage(
+                                            imageUrl: userPhotoUrl,
+                                            fit: BoxFit.cover,
+                                            placeholder:
+                                                (_, __) => _buildAvatarPlaceholder(
+                                                  context,
+                                                  userName,
+                                                ),
+                                            errorWidget:
+                                                (_, __, ___) => _buildAvatarPlaceholder(
+                                                  context,
+                                                  userName,
+                                                ),
+                                          )
+                                          : _buildAvatarPlaceholder(
+                                            context,
+                                            userName,
+                                          ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${l10n.hello},',
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      color: context.textSecondaryColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    userName.split(' ').first,
+                                    style: GoogleFonts.playfairDisplay(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.1,
+                                      color: context.textPrimaryColor,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            GestureDetector(
+                              onTap: () => context.push('/qr-scanner'),
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: context.surfaceColor,
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(color: context.borderColor),
+                                ),
+                                child: Icon(
+                                  Icons.qr_code_scanner,
+                                  color: context.textPrimaryColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+
+                            GestureDetector(
+                              key: _notificationBellKey,
+                              onTap: () => context.push('/notifications'),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: context.surfaceVariantColor,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Icon(
+                                      Icons.notifications_outlined,
+                                      color: context.textSecondaryColor,
+                                      size: 22,
+                                    ),
+                                  ),
+                                  if (ref.watch(
+                                        unreadNotificationsCountProvider,
+                                      ) >
+                                      0)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 16,
+                                          minHeight: 16,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            ref.watch(
+                                                      unreadNotificationsCountProvider,
+                                                    ) >
+                                                    99
+                                                ? '99+'
+                                                : ref
+                                                    .watch(
+                                                      unreadNotificationsCountProvider,
+                                                    )
+                                                    .toString(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              height: 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        // Search Bar
+                        GestureDetector(
+                          key: _searchBarKey,
+                          onTap: () => context.push('/search'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.surfaceColor,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: context.borderColor),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.search,
+                                  color: context.textTertiaryColor,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    l10n.searchMembersGroups,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: context.textTertiaryColor,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.tune,
+                                  color: context.adaptivePrimaryColor,
+                                  size: 22,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Contenu principal
+            SliverPadding(
+              padding: const EdgeInsets.all(20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // Bandeau hors-ligne : contenu en cache + réessayer (2d).
+                  if (showOffline) ...[
+                    _OfflineBanner(
+                      onRetry: () {
+                        ref
+                            .read(connectivityNotifierProvider.notifier)
+                            .checkConnectivity();
+                        ref.read(homeStatsNotifierProvider.notifier).refresh();
+                        _loadData();
+                      },
+                      onDismiss: () =>
+                          setState(() => _offlineDismissed = true),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Premier lancement : progression du profil, masquée dès qu'il
+                  // est complet (maquette 8a).
+                  if (showOnboarding) ...[
+                    _ProfileCompletionCard(
+                      filled: completion.filled,
+                      total: completion.total,
+                      ctaLabel: completion.ctaLabel,
+                      message: completion.message,
+                      onTap: () => context.push('/profile/edit'),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Ligne de contexte : ville + compteurs (remplace les trois
+                  // cartes de stats — refonte 8a).
+                  Container(
+                    key: _statsRowKey,
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _ContextLine(
+                      city: (profile?.currentCity?.trim().isNotEmpty ?? false)
+                          ? profile!.currentCity
+                          : _geoCity,
+                      country:
+                          (profile?.currentCountry?.trim().isNotEmpty ?? false)
+                              ? profile!.currentCountry
+                              : _geoCountry,
+                      members: homeStats.valueOrNull?.membersCount,
+                      groups: homeStats.valueOrNull?.groupsCount,
+                    ),
+                  ),
+
+                  // Premier lancement : raccourcis d'onboarding (maquette 8a).
+                  if (showOnboarding) ...[
+                    _PourCommencerCard(
+                      groupsCount: homeStats.valueOrNull?.groupsCount ?? 0,
+                      onFindFriends: () => context.push('/qr-scanner'),
+                      onJoinGroup: () => context.push('/groups'),
+                      onActivateMap: _locationError != null
+                          ? _enableLocation
+                          : () => context.go('/map'),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Bloc « Aujourd'hui » : messages non lus, prochain
+                  // événement, membres proches.
+                  _TodayCard(
+                    unread: ref.watch(totalUnreadCountProvider),
+                    nextEvent: _nextEvent(upcomingEvents.valueOrNull),
+                    nearbyCount: _locationError != null
+                        ? null
+                        : nearbyProfiles.valueOrNull?.length,
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Quick Actions - Services (le Fil d'actualité est toujours
+                  // disponible, la section est donc toujours affichée)
+                  Column(
+                      key: _servicesKey,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HomeSectionHeader(
+                          title: 'Services',
+                          onSeeAll: () => context.push('/services'),
+                          seeAllText: l10n.seeAll,
+                        ),
+                        const SizedBox(height: 16),
+                        // Grille adaptative (3 ou 4 colonnes selon le nombre de
+                        // services) — remplace le carrousel horizontal.
+                        const _ServicesGrid(),
+                      ],
+                    ),
+
+                  // Espace réduit avant « Autour de vous » (demande accueil).
+                  const SizedBox(height: 20),
+
+                  // Section « Autour de vous » : rangée d'avatars circulaires
+                  // avec la distance (remplace les grandes cartes membres —
+                  // refonte accueil).
+                  Column(
+                    key: _nearbyMembersKey,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HomeSectionHeader(
+                        title: l10n.aroundYou,
+                        onSeeAll: () => context.go('/map'),
+                        seeAllText: l10n.theMap,
+                      ),
+                      // Indicateur de dernière mise à jour
+                      if (_lastNearbyUpdate != null && _locationError == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.update,
+                                size: 12,
+                                color: context.textTertiaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatRelativeTime(_lastNearbyUpdate, l10n),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.textTertiaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        const SizedBox(height: 16),
+                      if (_locationError != null)
+                        _NoPositionCard(onActivate: _enableLocation)
+                      else
+                        nearbyProfiles.when(
+                          skipLoadingOnRefresh: true,
+                          data: (profiles) {
+                            // Filter out blocked users (both ways)
+                            final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
+                            final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+                            final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+
+                            final filteredProfiles = profiles.where((p) {
+                              // Skip if I blocked them
+                              if (blockedUserIds.contains(p.id)) return false;
+                              // Skip if they blocked me
+                              if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) return false;
+                              return true;
+                            }).toList();
+
+                            if (filteredProfiles.isEmpty) {
+                              // État vide « position active, personne autour » :
+                              // on explique la cause et on propose des issues
+                              // plutôt qu'un simple libellé (maquette 1b/CAS 1).
+                              return _NearbyEmptyCard(
+                                radiusKm: _nearbyRadiusKm,
+                                city: (profile?.currentCity?.trim().isNotEmpty ??
+                                        false)
+                                    ? profile!.currentCity
+                                    : _geoCity,
+                                canWiden:
+                                    _nearbyRadiusKm < _nearbyRadiusWideKm,
+                                onWiden: _widenRadius,
+                                onInvite: _inviteFriend,
+                              );
+                            }
+
+                            // On affiche au plus 8 avatars, puis une pastille
+                            // « +N / La carte » qui renvoie vers la carte.
+                            const maxAvatars = 8;
+                            final visible =
+                                filteredProfiles.take(maxAvatars).toList();
+                            final remaining =
+                                filteredProfiles.length - visible.length;
+
+                            return SizedBox(
+                              height: 120,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: visible.length + (remaining > 0 ? 1 : 0),
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 16),
+                                itemBuilder: (context, index) {
+                                  if (index >= visible.length) {
+                                    return _SeeAllAvatar(
+                                      count: remaining,
+                                      label: l10n.seeAll,
+                                      onTap: () => context.go('/map'),
+                                    );
+                                  }
+                                  final p = visible[index];
+                                  return _NearbyAvatar(
+                                    name: p.displayName ?? 'Membre',
+                                    photoUrl: p.photoUrl,
+                                    distance:
+                                        _distanceLabel(p.latitude, p.longitude),
+                                    color: _avatarColor(p.id),
+                                    onTap: () => context.push(
+                                      '/profile/${p.id}',
+                                      extra: p,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                          loading: () => SizedBox(
+                            height: 120,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 4,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 16),
+                              itemBuilder: (_, __) => const _NearbyAvatarLoading(),
+                            ),
+                          ),
+                          error:
+                              (_, __) => HomeEmptyStateCard(
+                                icon: Icons.error_outline,
+                                message: l10n.loadingError,
+                              ),
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Section Événements
+                  Column(
+                    key: _upcomingEventsKey,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HomeSectionHeader(
+                        title: l10n.upcomingEvents,
+                        onSeeAll: () => context.push('/events'),
+                        seeAllText: l10n.seeAll,
+                      ),
+                      const SizedBox(height: 16),
+                      upcomingEvents.when(
+                        skipLoadingOnRefresh: true,
+                        data: (events) {
+                          final upcoming = events.take(3).toList();
+
+                          if (upcoming.isNotEmpty) {
+                            final hasPhysical =
+                                upcoming.any((e) => !e.isOnline);
+                            // CAS 1 : rien en présentiel, mais des événements en
+                            // ligne accessibles (maquette 1c/CAS 1).
+                            if (!hasPhysical) {
+                              return _EventsOnlineOnlyCard(
+                                events: upcoming,
+                                city: placeCity,
+                                subtitleOf: (e) => _eventSubtitle(e, l10n),
+                              );
+                            }
+                            // Cartes normales (badge « EN LIGNE » si en ligne).
+                            return Column(
+                              children: upcoming
+                                  .map(
+                                    (event) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: GestureDetector(
+                                        onTap: () => context.push(
+                                          '/events/${event.id}',
+                                          extra: event,
+                                        ),
+                                        child: HomeEventCard(
+                                          title: event.title,
+                                          date: event.startDate,
+                                          subtitle: _eventSubtitle(event, l10n),
+                                          isOnline: event.isOnline,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            );
+                          }
+
+                          // Rien à venir : CAS 3 si un événement passé existe,
+                          // sinon CAS 2 (créer le premier).
+                          if (recentPastEvent != null) {
+                            return _EventsPastCard(
+                              event: recentPastEvent,
+                              subtitle:
+                                  'Terminé · ${l10n.participants(recentPastEvent.attendeeIds.length)}',
+                              notifyTopic: eventsTopic,
+                            );
+                          }
+                          return _EventsEmptyCard(city: placeCity);
+                        },
+                        loading:
+                            () => Column(
+                              children: List.generate(
+                                2,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: HomeEventCardLoading(),
+                                ),
+                              ),
+                            ),
+                        error:
+                            (_, __) => HomeEmptyStateCard(
+                              icon: Icons.error_outline,
+                              message: l10n.loadingError,
+                            ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+                ]),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Prochain événement à venir (le plus proche dans le futur) parmi la liste
+  /// chargée, ou `null`.
+  EventEntity? _nextEvent(List<EventEntity>? events) {
+    if (events == null || events.isEmpty) return null;
+    final now = DateTime.now();
+    final upcoming =
+        events.where((e) => e.startDate.isAfter(now)).toList()
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    return upcoming.isNotEmpty ? upcoming.first : null;
+  }
+
+  /// Ligne de contexte de l'événement : « Paris 18e · 14 h · 62 participants ».
+  String _eventSubtitle(EventEntity e, AppLocalizations l10n) {
+    final parts = <String>[];
+    if (e.location.trim().isNotEmpty) parts.add(e.location.trim());
+    final minute = e.startDate.minute;
+    parts.add(
+      minute == 0
+          ? '${e.startDate.hour} h'
+          : '${e.startDate.hour} h ${minute.toString().padLeft(2, '0')}',
+    );
+    parts.add(l10n.participants(e.attendeeIds.length));
+    return parts.join(' · ');
+  }
+
+  /// Géocode inverse de la position en ville + pays, mémorisés pour la ligne
+  /// de contexte. Silencieux en cas d'échec (réseau, quota).
+  Future<void> _resolvePlaceName(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (!mounted || placemarks.isEmpty) return;
+      final p = placemarks.first;
+      final city = (p.locality?.trim().isNotEmpty ?? false)
+          ? p.locality!.trim()
+          : (p.subAdministrativeArea?.trim().isNotEmpty ?? false)
+              ? p.subAdministrativeArea!.trim()
+              : null;
+      final country =
+          (p.country?.trim().isNotEmpty ?? false) ? p.country!.trim() : null;
+      if (city == null && country == null) return;
+      setState(() {
+        _geoCity = city;
+        _geoCountry = country;
+      });
+    } catch (_) {
+      // Géocodage indisponible : on garde les champs du profil s'ils existent.
+    }
+  }
+
+  /// Calcule la complétude du profil sur 5 champs clés et prépare le libellé
+  /// d'action + le message contextuel (premier lancement — maquette 8a).
+  _ProfileCompletion _computeCompletion(ProfileEntity? profile, String? city) {
+    final items = <({bool done, String cta, String name})>[
+      (
+        done: (profile?.photoUrl?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter une photo',
+        name: 'photo',
+      ),
+      (
+        done: (profile?.currentCity?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter ma ville',
+        name: 'ville',
+      ),
+      (
+        done: (profile?.currentCountry?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter mon pays',
+        name: 'pays',
+      ),
+      (
+        done: (profile?.profession?.trim().isNotEmpty ?? false),
+        cta: 'Ajouter mon métier',
+        name: 'métier',
+      ),
+      (
+        done: (profile?.bio?.trim().isNotEmpty ?? false),
+        cta: 'Compléter ma bio',
+        name: 'bio',
+      ),
+    ];
+
+    final filled = items.where((e) => e.done).length;
+    final missing = items.where((e) => !e.done).toList();
+
+    if (missing.isEmpty) {
+      return const _ProfileCompletion(
+        filled: 5,
+        total: 5,
+        ctaLabel: '',
+        message: '',
+      );
+    }
+
+    final names = missing.take(2).map((e) => 'votre ${e.name}').toList();
+    final list = names.length == 2 ? '${names[0]} et ${names[1]}' : names[0];
+    final verb = names.length == 2 ? 'rendent' : 'rend';
+    final cap = list[0].toUpperCase() + list.substring(1);
+    final cityPart = (city != null && city.trim().isNotEmpty)
+        ? ' de ${city.trim()}'
+        : '';
+
+    return _ProfileCompletion(
+      filled: filled,
+      total: 5,
+      ctaLabel: missing.first.cta,
+      message: '$cap vous $verb visible auprès de la communauté$cityPart.',
+    );
+  }
+
+  /// Élargit le rayon de recherche des membres proches (50 → 200 km) et
+  /// recharge, depuis l'état vide « Personne à moins de 50 km ».
+  void _widenRadius() {
+    if (_nearbyRadiusKm >= _nearbyRadiusWideKm) return;
+    setState(() => _nearbyRadiusKm = _nearbyRadiusWideKm);
+    if (_currentLat != null && _currentLng != null) {
+      ref
+          .read(nearbyProfilesNotifierProvider.notifier)
+          .loadNearbyProfiles(_currentLat!, _currentLng!,
+              radiusKm: _nearbyRadiusKm);
+    }
+  }
+
+  /// Partage un lien d'invitation à rejoindre l'app (« Inviter un proche »).
+  Future<void> _inviteFriend() async {
+    final uid = ref.read(currentUserProvider).valueOrNull?.id;
+    final link = DeepLinkService.instance.generateInviteLink(referrerId: uid);
+    await DeepLinkService.instance.shareLink(
+      link: link,
+      title: 'Rejoignez Diaspo Niger',
+      text: 'Rejoins-moi sur Diaspo Niger, la communauté nigérienne à '
+          'travers le monde.',
+    );
+  }
+
+  /// Ouvre les réglages de localisation, puis recharge (« Activer ma position »).
+  Future<void> _enableLocation() async {
+    await LocationService.instance.openLocationSettings();
+    await Future.delayed(const Duration(seconds: 1));
+    _loadData();
+  }
+
+  /// Distance formatée « 1,2 km » entre l'utilisateur et un profil, ou `null`
+  /// si la position (de l'un ou l'autre) est indisponible.
+  String? _distanceLabel(double? lat, double? lng) {
+    if (_currentLat == null || _currentLng == null) return null;
+    if (lat == null || lng == null) return null;
+    final d = GeoUtils.calculateDistance(_currentLat!, _currentLng!, lat, lng);
+    return GeoUtils.formatDistance(d).replaceAll('.', ',');
+  }
+}
