@@ -16,6 +16,17 @@
     <!-- Permissions for audio recording -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Appels WebRTC : routage audio (écouteur / haut-parleur / Bluetooth).
+         MODIFY_AUDIO_SETTINGS est requis par flutter_webrtc pour piloter
+         AudioManager ; sans elle, setSpeakerEnabled() échoue sur certains OEM.
+         flutter_webrtc ne déclare aucune permission dans son propre manifeste,
+         c'est donc à l'app de le faire. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Les permissions d'appel restantes (USE_FULL_SCREEN_INTENT,
+         MANAGE_OWN_CALLS, FOREGROUND_SERVICE_PHONE_CALL, WAKE_LOCK, VIBRATE)
+         sont fusionnées depuis le manifeste de flutter_callkit_incoming. -->
+
     <!-- Permissions for saving files to gallery -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" tools:replace="android:maxSdkVersion" />
     <!-- Lecture galerie (Android 13+) pour la galerie intégrée photo_manager -->
@@ -54,12 +65,19 @@
             android:enabled="true"
             />
 
+        <!-- showWhenLocked / turnScreenOn : quand l'utilisateur accepte un appel
+             depuis la bannière CallKit sur l'écran verrouillé, MainActivity doit
+             pouvoir s'afficher par-dessus le verrouillage et rallumer l'écran.
+             Sans ça l'appel était accepté mais l'écran d'appel restait invisible
+             derrière le keyguard. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">

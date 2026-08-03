@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -56,12 +56,12 @@ class _IncomingCallOverlayState extends ConsumerState<IncomingCallOverlay>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // D├®marrer la sonnerie et la vibration
+    // Démarrer la sonnerie et la vibration
     _ringtoneService.startRinging(
       isVideoCall: widget.call.type == CallType.video,
     );
 
-    // D├®marrer le timeout d'appel manqu├® (45 secondes)
+    // Démarrer le timeout d'appel manqué (45 secondes)
     _startMissedCallTimeout();
   }
 
@@ -80,7 +80,7 @@ class _IncomingCallOverlayState extends ConsumerState<IncomingCallOverlay>
     _isDismissing = true;
     _ringtoneService.stopRinging();
     _missedCallTimer?.cancel();
-    // L'overlay sera retir├® automatiquement car incomingCallProvider retournera null
+    // L'overlay sera retiré automatiquement car incomingCallProvider retournera null
   }
 
   @override
@@ -96,8 +96,8 @@ class _IncomingCallOverlayState extends ConsumerState<IncomingCallOverlay>
     final l10n = AppLocalizations.of(context)!;
     final isVideoCall = widget.call.type == CallType.video;
 
-    // ├ëcouter les changements de status de l'appel pour d├®tecter
-    // si l'appelant a annul├® l'appel
+    // Écouter les changements de status de l'appel pour détecter
+    // si l'appelant a annulé l'appel
     ref.listen<AsyncValue<CallEntity?>>(callByIdProvider(widget.call.id), (
       previous,
       next,
@@ -105,13 +105,13 @@ class _IncomingCallOverlayState extends ConsumerState<IncomingCallOverlay>
       final call = next.valueOrNull;
 
       if (call == null) {
-        // Appel supprim├® de la base de donn├®es
+        // Appel supprimé de la base de données
         debugPrint('IncomingCallOverlay: Call document deleted, dismissing');
         _dismissOverlay();
         return;
       }
 
-      // L'appelant a annul├® l'appel (status terminal)
+      // L'appelant a annulé l'appel (status terminal)
       if (call.status == CallStatus.ended ||
           call.status == CallStatus.missed ||
           call.status == CallStatus.declined) {

@@ -140,6 +140,53 @@ explicitement tracé.
 - [ ] **Feuille de don — deux lignes de montant** (`send_tip_bottom_sheet.dart`, 2026-08-03) : « Vous envoyez » puis « <nom> reçoit … (95 %) ». Le sous-titre du destinataire affiche désormais le titre du salon : vérifier l'ellipse sur un titre long.
 - [ ] **Bouton Stripe Connect des moyens de paiement** (`add_payment_account_screen.dart`, 2026-08-03) : pointait sur `/audio-rooms/monetization`, route inexistante qui ouvrait un salon vide nommé « monetization ». Doit maintenant ouvrir l'écran des revenus créateur.
 
+## Appels 1-à-1 (correctifs du 2026-08-03)
+
+Tout ce bloc demande **deux comptes sur deux téléphones** : rien n'est vérifiable
+en solo.
+
+- [ ] **Raccrochage réseau coupé** (`call_provider.dart`, 2026-08-03) : `endCall()`
+  libère maintenant WebRTC, l'UI native et l'état local **avant** d'archiver
+  l'appel dans Firestore (le distant est best effort, plafonné à 10 s). Le test
+  qui compte : se mettre en mode avion **pendant** un appel connecté puis
+  raccrocher — l'écran d'appel doit se fermer immédiatement et un nouvel appel
+  doit redevenir possible. Avant le correctif l'écran restait bloqué pour de bon.
+- [ ] **Refus avec réseau dégradé** (`call_provider.dart`) : même scénario sur
+  `declineCall()` — la bannière CallKit doit s'éteindre tout de suite.
+- [ ] **Double acceptation** (`call_provider.dart`) : appuyer sur « Accepter »
+  dans l'app pendant que la bannière CallKit est encore affichée (ou l'inverse).
+  WebRTC ne doit démarrer qu'une fois — avant, le même appel pouvait être
+  répondu deux fois.
+- [ ] **Appel reçu app tuée** (`native_call_service.dart`, `notification_service.dart`) :
+  l'UUID CallKit est désormais dérivé du `callId` (v5) des deux côtés. À vérifier :
+  (a) une seule bannière, pas deux empilées, quand l'app revient au premier plan ;
+  (b) si l'appelant raccroche pendant la sonnerie, la bannière s'éteint bien
+  (avant, l'app ne connaissait pas l'UUID généré par l'isolate d'arrière-plan et
+  la sonnerie continuait).
+- [ ] **Acceptation depuis l'écran verrouillé** (`AndroidManifest.xml`) :
+  `showWhenLocked` + `turnScreenOn` ajoutés à `MainActivity`. Accepter un appel
+  téléphone verrouillé doit allumer l'écran et afficher l'écran d'appel
+  par-dessus le keyguard, pas juste derrière.
+- [ ] **Routage audio** (`AndroidManifest.xml`) : `MODIFY_AUDIO_SETTINGS` et
+  `BLUETOOTH_CONNECT` ajoutés. Vérifier le basculement écouteur ↔ haut-parleur
+  en cours d'appel, et un casque Bluetooth appairé.
+- [ ] **Accents dans les messages d'erreur** (7 fichiers du module appels,
+  2026-08-03) : les chaînes étaient doublement encodées et s'affichaient
+  « Utilisateur non connect├® », « ├ëchec de la connexion », « X est d├®j├á en
+  appel ». À relire à l'écran : historique d'appels, écran d'appel, overlay
+  d'appel entrant.
+- [ ] **Sonnerie côté appelé (push d'appel entrant)** — *bloquant, à faire en
+  premier* : le trigger Cloud Function `onCallCreated` n'a plus aucune exécution
+  loguée depuis le 2026-07-19 alors qu'un appel réel a bien eu lieu le
+  2026-07-29 (`getTurnCredentials` et `onCallUpdated` ont tourné à la même
+  seconde). Si le push n'est pas envoyé, l'appelé ne sonne jamais en
+  arrière-plan, quels que soient les correctifs client ci-dessus. À refaire :
+  redéployer `onCallCreated`, passer un appel, puis
+  `firebase functions:log --only onCallCreated`.
+- [ ] **Relais TURN en 4G/5G sans wifi** (report du 2026-07-16) : coturn répond
+  bien sur 3478/5349 et `getTurnCredentials` est déployée et appelée avec succès,
+  mais le relais n'a jamais été validé sur un NAT symétrique réel.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

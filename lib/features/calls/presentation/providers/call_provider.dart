@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
@@ -228,6 +228,12 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
   static const Duration _heartbeatInterval = Duration(seconds: 5);
   static const Duration _heartbeatTimeout = Duration(seconds: 15);
 
+  /// Plafond appliqué aux écritures distantes de fin d'appel (archivage
+  /// Firestore, message de conversation). Ces écritures ne sont que du
+  /// bookkeeping : au-delà, on abandonne plutôt que de faire attendre
+  /// l'utilisateur sur un écran d'appel déjà terminé.
+  static const Duration _remoteBookkeepingTimeout = Duration(seconds: 10);
+
   @override
   CurrentCallState build() {
     ref.onDispose(() {
@@ -285,7 +291,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
 
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) {
-      state = state.copyWith(error: 'Utilisateur non connect├®');
+      state = state.copyWith(error: 'Utilisateur non connecté');
       return null;
     }
 
@@ -341,7 +347,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
           state = state.copyWith(
             isConnecting: false,
             isInitiating: false,
-            error: '$calleeName est d├®j├á en appel',
+            error: '$calleeName est déjà en appel',
             errorCode: 'callee_busy',
           );
           return null;
@@ -403,7 +409,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       if (state.isConnecting && state.call?.id == callId && !state.isConnected) {
         // Connection timeout - WebRTC failed to establish connection
         state = state.copyWith(
-          error: '├ëchec de la connexion',
+          error: 'Échec de la connexion',
           errorCode: 'connection_timeout',
         );
         endCall(reason: 'connection_timeout');
@@ -419,9 +425,20 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
 
   /// Answer an incoming call
   Future<bool> answerCall(CallEntity call) async {
-    // Guard: prevent answering if already in a call or ending
-    if (state.isEnding || (state.call != null && state.call!.id != call.id)) {
-      debugPrint('CurrentCallNotifier: Cannot answer - ending or in another call');
+    if (state.isEnding) {
+      debugPrint('CurrentCallNotifier: answerCall ignoré - fin en cours');
+      return false;
+    }
+    // L'acceptation arrive par DEUX chemins qui peuvent se déclencher tous les
+    // deux : le bouton in-app et l'évènement `accepted` de CallKit. L'ancien
+    // garde ne rejetait que « un AUTRE appel est en cours », donc une double
+    // acceptation du MÊME appel passait et démarrait WebRTC deux fois.
+    if (state.call != null &&
+        (state.call!.id != call.id || state.isConnecting || state.isConnected)) {
+      debugPrint(
+        'CurrentCallNotifier: answerCall ignoré - appel ${state.call!.id} '
+        'déjà en cours (demandé: ${call.id})',
+      );
       return false;
     }
 
@@ -749,98 +766,119 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     );
   }
 
-  /// Decline an incoming call
+  /// Refuse un appel entrant.
+  ///
+  /// Même ordre que [endCall] : on coupe l'UI native et on libère l'état
+  /// AVANT le réseau, pour qu'un Firestore lent ne laisse pas la bannière
+  /// CallKit sonner après que l'utilisateur a refusé.
   Future<bool> declineCall(String callId) async {
+    if (state.isEnding) {
+      debugPrint('CurrentCallNotifier: declineCall ignoré - fin déjà en cours');
+      return false;
+    }
+
     final call = state.call;
-    final result = await ref.read(callRepositoryProvider).declineCall(callId);
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final repository = ref.read(callRepositoryProvider);
+    final messageService = ref.read(callMessageServiceProvider);
+    final nativeCallService = ref.read(nativeCallServiceProvider);
 
-    // End native call UI
-    await ref.read(nativeCallServiceProvider).endCall();
+    state = state.copyWith(isEnding: true);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(error: failure.message);
-        return false;
-      },
-      (_) async {
-        // Create call message in conversation
-        if (call != null) {
-          final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-          if (currentUser != null) {
-            final messageService = ref.read(callMessageServiceProvider);
-            await messageService.createCallMessage(
-              callId: call.id,
-              callerId: call.callerId,
-              callerName: call.callerName,
-              calleeId: call.calleeId,
-              calleeName: call.calleeName,
-              callType: call.type == CallType.video ? 'video' : 'audio',
-              callStatus: 'declined',
-              callDuration: null,
-              currentUserId: currentUser.id,
-              currentUserName: currentUser.displayName ?? 'Utilisateur',
-            );
-          }
-        }
+    // 1. Libération locale — ne doit jamais dépendre du réseau.
+    await _closeNativeCallUi(nativeCallService);
+    _resetState();
 
-        _resetState();
-        return true;
-      },
+    // 2. Bookkeeping distant — best effort et borné dans le temps.
+    final declined = await _guardRemote(
+      'declineCall',
+      () => repository.declineCall(callId),
     );
+
+    if (call != null && currentUser != null) {
+      await _guardRemote(
+        'createCallMessage(declined)',
+        () => messageService.createCallMessage(
+          callId: call.id,
+          callerId: call.callerId,
+          callerName: call.callerName,
+          calleeId: call.calleeId,
+          calleeName: call.calleeName,
+          callType: call.type == CallType.video ? 'video' : 'audio',
+          callStatus: 'declined',
+          callDuration: null,
+          currentUserId: currentUser.id,
+          currentUserName: currentUser.displayName ?? 'Utilisateur',
+        ),
+      );
+    }
+
+    return declined;
   }
 
-  /// End the current call
+  /// Termine l'appel en cours.
+  ///
+  /// L'ORDRE des opérations est le cœur du correctif « appel fantôme ».
+  /// Auparavant tout le travail distant (Firestore + message de conversation)
+  /// était fait AVANT `_resetState()`, alors que `isEnding` était déjà posé et
+  /// que le garde de réentrance rejetait tout nouvel appel. Si une écriture
+  /// traînait ou échouait — réseau coupé, Firestore injoignable — la méthode
+  /// n'atteignait jamais `_resetState()` : l'écran d'appel restait ouvert
+  /// indéfiniment et plus aucun raccrochage n'était possible.
+  ///
+  /// Désormais : on libère WebRTC, l'UI native et l'état local d'abord, puis
+  /// on archive l'appel en best effort.
   Future<void> endCall({String? reason}) async {
-    // Guard: prevent multiple endCall invocations
-    if (state.isEnding || state.call == null) {
-      debugPrint('CurrentCallNotifier: endCall ignored - isEnding=${state.isEnding}, call=${state.call?.id}');
+    final call = state.call;
+    if (state.isEnding || call == null) {
+      debugPrint('CurrentCallNotifier: endCall ignoré - isEnding=${state.isEnding}, call=${state.call?.id}');
       return;
+    }
+
+    final duration = state.duration;
+    final wasRinging = state.isRinging;
+    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final repository = ref.read(callRepositoryProvider);
+    final messageService = ref.read(callMessageServiceProvider);
+    final nativeCallService = ref.read(nativeCallServiceProvider);
+    final webrtc = ref.read(webRTCServiceProvider);
+
+    // Statut à archiver, calculé tant que l'état est encore intact.
+    final String callStatus;
+    if (reason == 'missed' || reason == 'no_answer') {
+      callStatus = 'missed';
+    } else if (wasRinging && (duration == null || duration.inSeconds == 0)) {
+      // Fin pendant la sonnerie : annulé si c'est l'appelant qui raccroche,
+      // manqué si c'est l'appelé.
+      callStatus = (currentUser != null && call.callerId == currentUser.id)
+          ? 'cancelled'
+          : 'missed';
+    } else {
+      callStatus = 'ended';
     }
 
     state = state.copyWith(isEnding: true);
 
-    // Cancel all timers
-    _durationTimer?.cancel();
-    _ringingTimeoutTimer?.cancel();
-    _connectionTimeoutTimer?.cancel();
-    _connectionStateSubscription?.cancel();
+    // 1. Libération locale.
+    _cancelAllTimers();
+    try {
+      await webrtc.hangUp();
+    } catch (e) {
+      debugPrint('CurrentCallNotifier: hangUp a échoué: $e');
+    }
+    await _closeNativeCallUi(nativeCallService);
+    _resetState();
 
-    final webrtc = ref.read(webRTCServiceProvider);
-    await webrtc.hangUp();
+    // 2. Bookkeeping distant — best effort.
+    await _guardRemote(
+      'endCall',
+      () => repository.endCall(call.id, reason: reason ?? 'completed'),
+    );
 
-    // End native call UI
-    await ref.read(nativeCallServiceProvider).endCall();
-
-    final call = state.call;
-    final duration = state.duration;
-
-    if (call != null) {
-      // Determine the actual call status
-      String callStatus;
-      if (reason == 'missed' || reason == 'no_answer') {
-        callStatus = 'missed';
-      } else if (state.isRinging && (duration == null || duration.inSeconds == 0)) {
-        // Call ended during ringing phase (not answered)
-        // Check if caller is ending (outgoing call cancelled)
-        final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-        if (currentUser != null && call.callerId == currentUser.id) {
-          callStatus = 'cancelled'; // Outgoing call cancelled by caller
-        } else {
-          callStatus = 'missed'; // Incoming call not answered
-        }
-      } else {
-        callStatus = 'ended';
-      }
-
-      await ref
-          .read(callRepositoryProvider)
-          .endCall(call.id, reason: reason ?? 'completed');
-
-      // Create call message in conversation
-      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-      if (currentUser != null) {
-        final messageService = ref.read(callMessageServiceProvider);
-        await messageService.createCallMessage(
+    if (currentUser != null) {
+      await _guardRemote(
+        'createCallMessage($callStatus)',
+        () => messageService.createCallMessage(
           callId: call.id,
           callerId: call.callerId,
           callerName: call.callerName,
@@ -851,11 +889,43 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
           callDuration: duration?.inSeconds,
           currentUserId: currentUser.id,
           currentUserName: currentUser.displayName ?? 'Utilisateur',
+        ),
+      );
+    }
+  }
+
+  /// Ferme l'UI d'appel native sans jamais propager d'erreur : c'est une
+  /// étape de libération, elle ne doit pas empêcher la suite.
+  Future<void> _closeNativeCallUi(NativeCallService service) async {
+    try {
+      await service.endCall();
+    } catch (e) {
+      debugPrint('CurrentCallNotifier: fermeture de l\'UI native échouée: $e');
+    }
+  }
+
+  /// Exécute une écriture distante de fin d'appel en best effort : bornée dans
+  /// le temps et sans propagation d'erreur, pour qu'aucune latence réseau ne
+  /// puisse bloquer la libération de l'appel.
+  /// Renvoie false si l'écriture a échoué (exception, timeout, ou [Failure]
+  /// renvoyée par le repository).
+  Future<bool> _guardRemote(String label, Future<Object?> Function() op) async {
+    try {
+      final result = await op().timeout(_remoteBookkeepingTimeout);
+      if (result is Either) {
+        return result.fold(
+          (failure) {
+            debugPrint('CurrentCallNotifier: $label a échoué: $failure');
+            return false;
+          },
+          (_) => true,
         );
       }
+      return true;
+    } catch (e) {
+      debugPrint('CurrentCallNotifier: $label a échoué (ignoré): $e');
+      return false;
     }
-
-    _resetState();
   }
 
   /// Toggle microphone mute
@@ -972,16 +1042,10 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
         'CurrentCallNotifier: Successfully converted to group call ${groupCall.id}',
       );
 
-      // Clean up the 1:1 call state (but don't dispose WebRTC - it's being reused)
-      _durationTimer?.cancel();
-      _connectionStateSubscription?.cancel();
-      _videoUpgradeRequestSubscription?.cancel();
-      _videoUpgradeResponseSubscription?.cancel();
-      _networkDegradationSubscription?.cancel();
-      _stopHeartbeat();
-
-      // Reset state without ending the call
-      state = const CurrentCallState();
+      // Nettoie l'état de l'appel 1-à-1 sans toucher à WebRTC (le flux local
+      // est réutilisé par l'appel de groupe). _resetState fait exactement ça :
+      // timers + souscriptions + heartbeat, sans hangUp.
+      _resetState();
 
       return groupCall;
     } catch (e) {
@@ -990,13 +1054,35 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     }
   }
 
+  /// Annule tous les timers de l'appel en cours.
+  ///
+  /// Regroupés ici parce que chaque chemin de sortie (raccrochage, refus,
+  /// conversion en appel de groupe) doit les couper TOUS. Les oublis passés
+  /// laissaient le timer de sonnerie ou celui de durée survivre à la fin de
+  /// l'appel et retomber sur l'appel suivant.
+  void _cancelAllTimers() {
+    _durationTimer?.cancel();
+    _durationTimer = null;
+    _networkMessageTimer?.cancel();
+    _networkMessageTimer = null;
+    _cancelRingingTimeout();
+    _cancelConnectionTimeout();
+  }
+
   /// Reset state
   void _resetState() {
     _callStartTime = null;
-    _networkMessageTimer?.cancel();
+    _cancelAllTimers();
+    // La souscription à l'état WebRTC doit mourir avec l'appel : sinon un
+    // évènement `disconnected` tardif rappelait endCall() sur l'appel SUIVANT.
+    _connectionStateSubscription?.cancel();
+    _connectionStateSubscription = null;
     _videoUpgradeRequestSubscription?.cancel();
+    _videoUpgradeRequestSubscription = null;
     _videoUpgradeResponseSubscription?.cancel();
+    _videoUpgradeResponseSubscription = null;
     _networkDegradationSubscription?.cancel();
+    _networkDegradationSubscription = null;
     _stopHeartbeat();
     state = const CurrentCallState();
   }
@@ -1178,10 +1264,10 @@ class CallNotificationHandler extends Notifier<void> {
           debugPrint('CallNotificationHandler: Call not found');
           return;
         }
-        // Ne r├®pondre qu'├á un appel ENCORE actif ET r├®cent. Sans ce garde, un
-        // record d'appel obsol├¿te (termin├®/manqu├®, ou vieux de plusieurs
-        // heures) ├®tait r├®-┬½ answered ┬╗ ├á chaque d├®marrage : l'app relan├ºait
-        // WebRTC et prenait le micro pour un appel fant├┤me.
+        // Ne répondre qu'à un appel ENCORE actif ET récent. Sans ce garde, un
+        // record d'appel obsolète (terminé/manqué, ou vieux de plusieurs
+        // heures) était ré-« answered » à chaque démarrage : l'app relançait
+        // WebRTC et prenait le micro pour un appel fantôme.
         const answerable = {
           CallStatus.ringing,
           CallStatus.connecting,
@@ -1196,7 +1282,7 @@ class CallNotificationHandler extends Notifier<void> {
             'CallNotificationHandler: Ignoring stale call $callId '
             '(status=${call.status}, age=${age.inSeconds}s) + CallKit cleanup',
           );
-          // Purge l'entr├®e CallKit r├®siduelle pour stopper la r├®currence.
+          // Purge l'entrée CallKit résiduelle pour stopper la récurrence.
           ref.read(nativeCallServiceProvider).endAllCalls();
           return;
         }

@@ -19,6 +19,7 @@ import 'package:path_provider/path_provider.dart';
 import '../constants/app_colors.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
+import 'native_call_service.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
@@ -509,7 +510,10 @@ Future<void> _showIncomingCallNotificationBackground(
   // Use flutter_callkit_incoming for native call UI
   // This works even when the app is killed and shows on lock screen
   final params = CallKitParams(
-    id: callId,
+    // MÊME UUID que celui utilisé par NativeCallService dans l'isolate de
+    // l'app : sans ça, l'app est incapable d'éteindre la bannière affichée
+    // depuis l'arrière-plan et en empile une seconde au retour au premier plan.
+    id: NativeCallService.callKitUuidFor(callId),
     nameCaller: callerName,
     appName: 'Diaspo Niger',
     avatar: callerPhotoUrl,

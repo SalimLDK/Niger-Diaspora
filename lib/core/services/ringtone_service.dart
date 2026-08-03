@@ -3,7 +3,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
-/// Service pour g├®rer la sonnerie et la vibration des appels entrants
+/// Service pour gérer la sonnerie et la vibration des appels entrants
 class RingtoneService {
   static final RingtoneService _instance = RingtoneService._internal();
   factory RingtoneService() => _instance;
@@ -14,7 +14,7 @@ class RingtoneService {
   bool _isVibrating = false;
   bool _isRingbackPlaying = false;
 
-  /// D├®marre la sonnerie syst├¿me et la vibration pour un appel entrant
+  /// Démarre la sonnerie système et la vibration pour un appel entrant
   Future<void> startRinging({bool isVideoCall = false}) async {
     if (_isPlaying) return;
 
@@ -22,14 +22,14 @@ class RingtoneService {
       _isPlaying = true;
       _isVibrating = true;
 
-      // Jouer la sonnerie syst├¿me de l'appareil
+      // Jouer la sonnerie système de l'appareil
       await FlutterRingtonePlayer().playRingtone(
         looping: true,
         volume: 1.0,
         asAlarm: false,
       );
 
-      // D├®marrer la vibration en boucle
+      // Démarrer la vibration en boucle
       _startVibrationLoop();
     } catch (e) {
       // Si erreur, utiliser la vibration seule
@@ -38,7 +38,7 @@ class RingtoneService {
     }
   }
 
-  /// Arr├¬te la sonnerie et la vibration
+  /// Arrête la sonnerie et la vibration
   Future<void> stopRinging() async {
     _isPlaying = false;
     _isVibrating = false;
@@ -80,8 +80,8 @@ class RingtoneService {
     HapticFeedback.mediumImpact();
   }
 
-  /// D├®marre la tonalit├® d'attente (ringback) pour l'appelant
-  /// C'est le "bip... bip..." que l'appelant entend en attendant que le destinataire r├®ponde
+  /// Démarre la tonalité d'attente (ringback) pour l'appelant
+  /// C'est le "bip... bip..." que l'appelant entend en attendant que le destinataire réponde
   Future<void> startRingback() async {
     if (_isRingbackPlaying) return;
 
@@ -89,25 +89,25 @@ class RingtoneService {
       _isRingbackPlaying = true;
       _ringbackPlayer = AudioPlayer();
 
-      // Essayer de charger le fichier de tonalit├® d'attente
+      // Essayer de charger le fichier de tonalité d'attente
       await _ringbackPlayer!.setAsset('assets/sounds/ringback.mp3');
       await _ringbackPlayer!.setLoopMode(LoopMode.one);
-      await _ringbackPlayer!.setVolume(0.5); // Volume mod├®r├®
+      await _ringbackPlayer!.setVolume(0.5); // Volume modéré
       await _ringbackPlayer!.play();
     } catch (e) {
-      // Si pas de fichier, g├®n├®rer une tonalit├® synth├®tique
+      // Si pas de fichier, générer une tonalité synthétique
       _isRingbackPlaying = false;
       _startSyntheticRingback();
     }
   }
 
-  /// Tonalit├® d'attente synth├®tique (sans fichier audio)
+  /// Tonalité d'attente synthétique (sans fichier audio)
   /// Simule le pattern classique: bip (1s) - silence (3s) - bip (1s) - ...
   void _startSyntheticRingback() async {
     _isRingbackPlaying = true;
 
     while (_isRingbackPlaying) {
-      // Vibration l├®g├¿re pour simuler le "bip"
+      // Vibration légère pour simuler le "bip"
       HapticFeedback.lightImpact();
       await Future.delayed(const Duration(milliseconds: 100));
       if (!_isRingbackPlaying) break;
@@ -123,7 +123,7 @@ class RingtoneService {
     }
   }
 
-  /// Arr├¬te la tonalit├® d'attente
+  /// Arrête la tonalité d'attente
   Future<void> stopRingback() async {
     _isRingbackPlaying = false;
 
@@ -136,10 +136,10 @@ class RingtoneService {
     }
   }
 
-  /// V├®rifie si la sonnerie est en cours
+  /// Vérifie si la sonnerie est en cours
   bool get isPlaying => _isPlaying;
 
-  /// V├®rifie si la tonalit├® d'attente est en cours
+  /// Vérifie si la tonalité d'attente est en cours
   bool get isRingbackPlaying => _isRingbackPlaying;
 }
 

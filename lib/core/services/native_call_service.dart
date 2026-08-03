@@ -43,7 +43,21 @@ class NativeCallService {
 
   static NativeCallService get instance => _instance;
 
-  final _uuid = const Uuid();
+  /// UUID CallKit **déterministe** dérivé du callId logique.
+  ///
+  /// La notification d'appel entrant peut être créée depuis DEUX isolates qui
+  /// ne partagent aucun état : celui de l'app (ce service) et celui du handler
+  /// FCM d'arrière-plan ([firebaseMessagingBackgroundHandler] dans
+  /// `notification_service.dart`). Tant que chacun tirait son propre
+  /// `uuid.v4()`, les deux identifiants divergeaient :
+  ///  - l'app ne pouvait plus éteindre une bannière affichée en arrière-plan
+  ///    (`_activeCallUuid` valait null) → sonnerie fantôme ;
+  ///  - au retour au premier plan elle en empilait une SECONDE pour le même
+  ///    appel.
+  /// CallKit (iOS) exige un vrai UUID, d'où le v5 plutôt que le callId brut.
+  static String callKitUuidFor(String callId) =>
+      const Uuid().v5(Namespace.url.value, 'diasponiger.call/$callId');
+
   final _eventController = StreamController<NativeCallEventData>.broadcast();
 
   /// Stream of native call events
@@ -115,8 +129,25 @@ class NativeCallService {
       await initialize();
     }
 
-    // Generate a UUID for this call (required by CallKit)
-    _activeCallUuid = _uuid.v4();
+    _activeCallUuid = callKitUuidFor(callId);
+
+    // L'appel peut déjà être affiché par l'isolate d'arrière-plan (push FCM
+    // reçu app fermée). Comme l'UUID est maintenant identique des deux côtés,
+    // on le détecte et on évite de relancer la sonnerie par-dessus.
+    try {
+      final active = await FlutterCallkitIncoming.activeCalls();
+      final alreadyShown = active is List &&
+          active.any((c) => c is Map && c['id'] == _activeCallUuid);
+      if (alreadyShown) {
+        debugPrint(
+          'NativeCallService: $callId déjà affiché par l\'arrière-plan, pas de doublon',
+        );
+        await WakelockHelper.enable();
+        return;
+      }
+    } catch (e) {
+      debugPrint('NativeCallService: activeCalls() indisponible: $e');
+    }
 
     final params = CallKitParams(
       id: _activeCallUuid,
@@ -189,7 +220,8 @@ class NativeCallService {
       await initialize();
     }
 
-    _activeCallUuid = _uuid.v4();
+    _activeCallUuid = callKitUuidFor(callId);
+    _activeCallId = callId;
 
     final params = CallKitParams(
       id: _activeCallUuid,
@@ -239,6 +271,11 @@ class NativeCallService {
   Future<void> endCall() async {
     if (_activeCallUuid != null) {
       await FlutterCallkitIncoming.endCall(_activeCallUuid!);
+    } else {
+      // Cas « app relancée après un appel affiché par l'isolate d'arrière-plan » :
+      // aucun UUID en mémoire alors que la bannière CallKit, elle, existe bien.
+      // Sans ce repli elle restait affichée et continuait à sonner.
+      await FlutterCallkitIncoming.endAllCalls();
     }
 
     // Allow screen to turn off

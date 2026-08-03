@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -42,7 +42,7 @@ class CallRepositoryImpl implements CallRepository {
       return Right(result.toEntity());
     } catch (e) {
       debugPrint('CallRepository: Error initiating call: $e');
-      return const Left(ServerFailure('Impossible de d├®marrer l\'appel'));
+      return const Left(ServerFailure('Impossible de démarrer l\'appel'));
     }
   }
 
@@ -53,7 +53,7 @@ class CallRepositoryImpl implements CallRepository {
       return Right(result?.toEntity());
     } catch (e) {
       debugPrint('CallRepository: Error getting call: $e');
-      return const Left(ServerFailure('Impossible de r├®cup├®rer l\'appel'));
+      return const Left(ServerFailure('Impossible de récupérer l\'appel'));
     }
   }
 
@@ -64,7 +64,7 @@ class CallRepositoryImpl implements CallRepository {
       return const Right(null);
     } catch (e) {
       debugPrint('CallRepository: Error answering call: $e');
-      return const Left(ServerFailure('Impossible de r├®pondre ├á l\'appel'));
+      return const Left(ServerFailure('Impossible de répondre à l\'appel'));
     }
   }
 
@@ -100,7 +100,7 @@ class CallRepositoryImpl implements CallRepository {
       return const Right(null);
     } catch (e) {
       debugPrint('CallRepository: Error updating call status: $e');
-      return const Left(ServerFailure('Impossible de mettre ├á jour le statut'));
+      return const Left(ServerFailure('Impossible de mettre à jour le statut'));
     }
   }
 

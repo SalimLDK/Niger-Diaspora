@@ -4,12 +4,12 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
-/// Service pour d├®tecter et g├®rer les appels GSM (t├®l├®phoniques traditionnels).
+/// Service pour détecter et gérer les appels GSM (téléphoniques traditionnels).
 ///
 /// Permet de mettre en pause les appels VoIP quand un appel GSM arrive
 /// et de les reprendre quand l'appel GSM se termine.
 ///
-/// Android uniquement - sur iOS, CallKit g├¿re cela automatiquement.
+/// Android uniquement - sur iOS, CallKit gère cela automatiquement.
 class GsmCallService {
   static const _channel = EventChannel('com.diasponiger.diaspo_niger/gsm_state');
 
@@ -21,15 +21,15 @@ class GsmCallService {
   StreamSubscription? _subscription;
   final _gsmCallController = StreamController<GsmCallEvent>.broadcast();
 
-  /// Stream des ├®v├®nements d'appels GSM
+  /// Stream des événements d'appels GSM
   Stream<GsmCallEvent> get gsmCallEvents => _gsmCallController.stream;
 
-  /// D├®marre l'├®coute des ├®v├®nements d'appels GSM
+  /// Démarre l'écoute des événements d'appels GSM
   void startListening() {
-    // GSM call detection n'est support├® que sur Android
+    // GSM call detection n'est supporté que sur Android
     if (!Platform.isAndroid) return;
 
-    // ├ëviter les doublons
+    // Éviter les doublons
     if (_subscription != null) return;
 
     debugPrint('GsmCallService: Starting to listen for GSM call events');
@@ -76,7 +76,7 @@ class GsmCallService {
     }
   }
 
-  /// Arr├¬te l'├®coute des ├®v├®nements d'appels GSM
+  /// Arrête l'écoute des événements d'appels GSM
   /// Can be called from dispose() - handles async cleanup safely
   void stopListening() {
     debugPrint('GsmCallService: Stopping GSM call event listener');
@@ -86,21 +86,21 @@ class GsmCallService {
     _subscription = null;
   }
 
-  /// Lib├¿re les ressources
+  /// Libère les ressources
   void dispose() {
     stopListening();
     _gsmCallController.close();
   }
 }
 
-/// ├ëv├®nements d'appels GSM possibles
+/// Événements d'appels GSM possibles
 enum GsmCallEvent {
   /// Un appel GSM entrant (sonnerie)
   incoming,
 
-  /// Un appel GSM est actif (d├®croch├®)
+  /// Un appel GSM est actif (décroché)
   active,
 
-  /// L'appel GSM s'est termin├®
+  /// L'appel GSM s'est terminé
   ended,
 }

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -107,13 +107,13 @@ class _CallScreenState extends ConsumerState<CallScreen>
       }
     });
 
-    // V├®rifier les permissions avant d'initialiser l'appel
+    // Vérifier les permissions avant d'initialiser l'appel
     _checkPermissionsAndInitialize();
   }
 
-  /// V├®rifie les permissions micro/cam├®ra avant d'initialiser l'appel
+  /// Vérifie les permissions micro/caméra avant d'initialiser l'appel
   Future<void> _checkPermissionsAndInitialize() async {
-    // D├®terminer les permissions requises
+    // Déterminer les permissions requises
     final permissions = <Permission>[Permission.microphone];
     if (widget.isVideo) {
       permissions.add(Permission.camera);
@@ -122,7 +122,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Demander les permissions
     final statuses = await permissions.request();
 
-    // V├®rifier si toutes les permissions sont accord├®es
+    // Vérifier si toutes les permissions sont accordées
     final allGranted = statuses.values.every((s) => s.isGranted);
 
     if (!allGranted) {
@@ -164,7 +164,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
           await openAppSettings();
         }
 
-        // Fermer l'├®cran d'appel car les permissions ne sont pas accord├®es
+        // Fermer l'écran d'appel car les permissions ne sont pas accordées
         if (mounted) {
           Navigator.of(context).pop();
         }
@@ -176,9 +176,9 @@ class _CallScreenState extends ConsumerState<CallScreen>
     _initializeCall();
   }
 
-  /// Initialise l'appel apr├¿s v├®rification des permissions
+  /// Initialise l'appel après vérification des permissions
   void _initializeCall() {
-    // D├®marrer la tonalit├® d'attente si on est l'appelant
+    // Démarrer la tonalité d'attente si on est l'appelant
     if (widget.isInitiator) {
       _ringbackStarted = true;
       _ringtoneService.startRingback();
@@ -211,7 +211,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
       if (!mounted) return;
       debugPrint('CallScreen: WebRTC state changed to $state');
 
-      // Arr├¬ter la tonalit├® d'attente quand connect├®
+      // Arrêter la tonalité d'attente quand connecté
       if (state == WebRTCConnectionState.connected && _ringbackStarted) {
         _ringbackStarted = false;
         _ringtoneService.stopRingback();
@@ -225,7 +225,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
       setState(() {});
     });
 
-    // V├®rifier p├®riodiquement si la vid├®o locale est pr├¬te et d├®clencher rebuild
+    // Vérifier périodiquement si la vidéo locale est prête et déclencher rebuild
     _videoCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (
       timer,
     ) {
@@ -234,10 +234,10 @@ class _CallScreenState extends ConsumerState<CallScreen>
         return;
       }
 
-      // D├®clencher rebuild pour mettre ├á jour l'UI
+      // Déclencher rebuild pour mettre à jour l'UI
       setState(() {});
 
-      // Arr├¬ter le timer une fois que la vid├®o est pr├¬te
+      // Arrêter le timer une fois que la vidéo est prête
       final hasVideo =
           (_localRendererReady &&
               _webrtcService.localRenderer.srcObject != null) ||
@@ -246,14 +246,14 @@ class _CallScreenState extends ConsumerState<CallScreen>
         timer.cancel();
       }
 
-      // Arr├¬ter apr├¿s 20 secondes maximum
+      // Arrêter après 20 secondes maximum
       if (timer.tick > 40) {
         timer.cancel();
       }
     });
 
-    // ├ëcouter les ├®v├®nements d'appels GSM (Android uniquement)
-    // pour mettre en pause l'appel VoIP quand un appel t├®l├®phonique arrive
+    // Écouter les événements d'appels GSM (Android uniquement)
+    // pour mettre en pause l'appel VoIP quand un appel téléphonique arrive
     _gsmCallService.startListening();
     _gsmSubscription = _gsmCallService.gsmCallEvents.listen((event) {
       if (!mounted) return;
@@ -282,7 +282,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     }
 
     try {
-      // Attendre que le service WebRTC soit initialis├®
+      // Attendre que le service WebRTC soit initialisé
       int attempts = 0;
       while (!_webrtcService.isInitialized && attempts < 30) {
         // Check disposal state BEFORE and AFTER each delay
@@ -307,7 +307,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
       if (_webrtcService.isInitialized) {
         debugPrint('CallScreen: WebRTC service initialized');
 
-        // Attendre que le localStream soit pr├¬t
+        // Attendre que le localStream soit prêt
         attempts = 0;
         while (_webrtcService.localStream == null && attempts < 30) {
           // Check disposal state BEFORE and AFTER each delay
@@ -329,7 +329,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
           return;
         }
 
-        // Utiliser le renderer du service (d├®j├á initialis├®)
+        // Utiliser le renderer du service (déjà initialisé)
         // Final check BEFORE any stream assignment to prevent camera init during cleanup
         if (_webrtcService.localStream != null &&
             !_isDisposing && !_isEnding && mounted) {
@@ -365,14 +365,14 @@ class _CallScreenState extends ConsumerState<CallScreen>
 
   /// Met en pause l'appel VoIP quand un appel GSM arrive
   void _pauseCallForGsm() {
-    if (_wasCallPausedByGsm) return; // D├®j├á en pause
+    if (_wasCallPausedByGsm) return; // Déjà en pause
 
     debugPrint('CallScreen: Pausing VoIP call for GSM call');
     _wasCallPausedByGsm = true;
 
     final callState = ref.read(currentCallProvider);
 
-    // Sauvegarder l'├®tat de la cam├®ra avant de la d├®sactiver
+    // Sauvegarder l'état de la caméra avant de la désactiver
     _wasCameraEnabledBeforeGsm = !callState.isCameraOff;
 
     // Couper le micro
@@ -380,7 +380,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
       ref.read(currentCallProvider.notifier).toggleMute();
     }
 
-    // D├®sactiver la cam├®ra si elle ├®tait activ├®e
+    // Désactiver la caméra si elle était activée
     if (_wasCameraEnabledBeforeGsm) {
       ref.read(currentCallProvider.notifier).toggleCamera();
     }
@@ -391,9 +391,9 @@ class _CallScreenState extends ConsumerState<CallScreen>
     }
   }
 
-  /// Reprend l'appel VoIP apr├¿s la fin de l'appel GSM
+  /// Reprend l'appel VoIP après la fin de l'appel GSM
   void _resumeCallAfterGsm() {
-    if (!_wasCallPausedByGsm) return; // N'├®tait pas en pause ├á cause d'un GSM
+    if (!_wasCallPausedByGsm) return; // N'était pas en pause à cause d'un GSM
 
     debugPrint('CallScreen: Resuming VoIP call after GSM call');
     _wasCallPausedByGsm = false;
@@ -405,12 +405,12 @@ class _CallScreenState extends ConsumerState<CallScreen>
       ref.read(currentCallProvider.notifier).toggleHold();
     }
 
-    // R├®activer le micro
+    // Réactiver le micro
     if (callState.isMuted) {
       ref.read(currentCallProvider.notifier).toggleMute();
     }
 
-    // R├®activer la cam├®ra si elle ├®tait activ├®e avant
+    // Réactiver la caméra si elle était activée avant
     if (_wasCameraEnabledBeforeGsm && callState.isCameraOff) {
       ref.read(currentCallProvider.notifier).toggleCamera();
     }
@@ -425,7 +425,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  /// Texte de statut selon l'├®tat de la connexion et le statut en ligne du destinataire
+  /// Texte de statut selon l'état de la connexion et le statut en ligne du destinataire
   String _getStatusText(AppLocalizations l10n) {
     final currentCallState = ref.read(currentCallProvider);
     if (currentCallState.isOnHold) {
@@ -500,11 +500,11 @@ class _CallScreenState extends ConsumerState<CallScreen>
   }
 
   Future<void> _endCall() async {
-    // ├ëviter les appels multiples
+    // Éviter les appels multiples
     if (_isEnding) return;
     _isEnding = true;
 
-    // Arr├¬ter la tonalit├® d'attente
+    // Arrêter la tonalité d'attente
     if (_ringbackStarted) {
       _ringbackStarted = false;
       _ringtoneService.stopRingback();
@@ -516,12 +516,12 @@ class _CallScreenState extends ConsumerState<CallScreen>
     }
   }
 
-  /// G├®rer la fin d'appel distante avec feedback utilisateur appropri├®
+  /// Gérer la fin d'appel distante avec feedback utilisateur approprié
   void _handleRemoteEnd(String status) {
     if (_isEnding) return;
     _isEnding = true;
 
-    // Arr├¬ter la tonalit├® d'attente si en cours
+    // Arrêter la tonalité d'attente si en cours
     if (_ringbackStarted) {
       _ringbackStarted = false;
       _ringtoneService.stopRingback();
@@ -545,7 +545,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     final webrtc = ref.read(webRTCServiceProvider);
     webrtc.hangUp();
 
-    // Afficher un snackbar bref et fermer l'├®cran
+    // Afficher un snackbar bref et fermer l'écran
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -653,10 +653,10 @@ class _CallScreenState extends ConsumerState<CallScreen>
 
     _connectionSubscription?.cancel();
     _videoCheckTimer?.cancel();
-    // Arr├¬ter l'├®coute des ├®v├®nements GSM
+    // Arrêter l'écoute des événements GSM
     _gsmSubscription?.cancel();
     _gsmCallService.stopListening();
-    // Arr├¬ter la tonalit├® d'attente si elle est en cours
+    // Arrêter la tonalité d'attente si elle est en cours
     if (_ringbackStarted) {
       _ringtoneService.stopRingback();
     }
@@ -757,11 +757,11 @@ class _CallScreenState extends ConsumerState<CallScreen>
       return _buildSystemPipModeUI(callState);
     }
 
-    // TOUJOURS activer la vid├®o si widget.isVideo est true
-    // Ne pas d├®pendre uniquement de callState.isVideoEnabled qui peut ├¬tre retard├®
+    // TOUJOURS activer la vidéo si widget.isVideo est true
+    // Ne pas dépendre uniquement de callState.isVideoEnabled qui peut être retardé
     final isVideoActive = widget.isVideo || callState.isVideoEnabled;
 
-    // D├®tecter si on a une vid├®o distante active
+    // Détecter si on a une vidéo distante active
     final hasRemoteVideo =
         _webrtcService.remoteStream?.getVideoTracks().isNotEmpty ?? false;
     final remoteVideoEnabled =
@@ -770,19 +770,19 @@ class _CallScreenState extends ConsumerState<CallScreen>
     final showRemoteVideo =
         hasRemoteVideo && remoteVideoEnabled && callState.isConnected;
 
-    // ├ëcouter ce appel sp├®cifique par ID pour d├®tecter les changements de statut
+    // Écouter ce appel spécifique par ID pour détecter les changements de statut
     // Cela inclut les statuts terminaux (ended, declined, missed) que activeCallProvider filtre
     ref.listen<AsyncValue<CallEntity?>>(callByIdProvider(widget.callId), (previous, next) {
       final call = next.valueOrNull;
 
       if (call == null) {
-        // Appel supprim├® de Firebase
+        // Appel supprimé de Firebase
         debugPrint('CallScreen: Call document deleted');
         _handleRemoteEnd('ended');
         return;
       }
 
-      // Arr├¬ter la tonalit├® d'attente quand l'appel est connect├®
+      // Arrêter la tonalité d'attente quand l'appel est connecté
       if ((call.status == CallStatus.connecting ||
               call.status == CallStatus.connected) &&
           _ringbackStarted) {
@@ -790,7 +790,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
         _ringtoneService.stopRingback();
       }
 
-      // D├®tecter si l'AUTRE partie a termin├® l'appel
+      // Détecter si l'AUTRE partie a terminé l'appel
       if (call.status == CallStatus.ended ||
           call.status == CallStatus.declined ||
           call.status == CallStatus.missed) {
@@ -799,7 +799,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
       }
     });
 
-    // V├®rifier si la vid├®o locale est pr├¬te
+    // Vérifier si la vidéo locale est prête
     final hasLocalVideo =
         _webrtcService.localStream != null &&
         _webrtcService.localStream!.getVideoTracks().isNotEmpty;
