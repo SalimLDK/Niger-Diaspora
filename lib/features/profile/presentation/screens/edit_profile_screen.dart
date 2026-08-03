@@ -1,5 +1,5 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -543,27 +543,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             physics: const BouncingScrollPhysics(),
             slivers: [
               // Header avec photo de profil
+              // §20a : barre plate sur le fond crème. Le héros terracotta
+              // de 240 px mangeait un quart d'un écran qu'on ouvre pour
+              // remplir des champs.
               SliverAppBar(
-                expandedHeight: 240,
                 pinned: true,
-                stretch: true,
-                backgroundColor: AppColors.primary,
+                backgroundColor: context.backgroundColor,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                title: Text(
+                  l10n.editProfile,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
                 leading: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const AppIcon(AppIcon.close, color: Colors.white),
+                  icon: AppIcon(
+                    AppIcon.close,
+                    color: context.textPrimaryColor,
                   ),
                   onPressed: () => context.pop(),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.visibility_outlined,
-                      color: Colors.white,
+                      color: context.textSecondaryColor,
                     ),
                     tooltip: AppLocalizations.of(context)!.previewTooltip,
                     onPressed: () {
@@ -575,40 +582,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       );
                     },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: TextButton.icon(
-                      onPressed: _isLoading ? null : _saveProfile,
-                      icon:
-                          _isLoading
-                              ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    AppColors.white,
-                                  ),
-                                ),
-                              )
-                              : const AppIcon(AppIcon.check, color: Colors.white),
-                      label: Text(
-                        l10n.save,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                  TextButton(
+                    onPressed: _isLoading ? null : _saveProfile,
+                    child: _isLoading
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(
+                                context.adaptivePrimaryColor,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            l10n.save,
+                            style: TextStyle(
+                              color: context.adaptivePrimaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
                   ),
+                  const SizedBox(width: 4),
                 ],
-                flexibleSpace: FlexibleSpaceBar(background: _buildHeader()),
               ),
 
               // Contenu du formulaire
@@ -616,6 +613,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+
                     // Section Informations de base
                     _buildAnimatedSection(
                       delay: 0,
@@ -1055,180 +1055,87 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
   }
 
+  /// Avatar du formulaire (§20a) : aplat terracotta, sans dégradé, sans
+  /// cercles décoratifs ni ombre portée. La photo se change en touchant
+  /// l'avatar ou le lien sous lui.
   Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
-      child: Stack(
-        children: [
-          // Motifs décoratifs
-          Positioned(
-            top: -30,
-            right: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.white.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 40,
-            left: -30,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.white.withValues(alpha: 0.03),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 80,
-            left: 40,
-            child: Transform.rotate(
-              angle: math.pi / 4,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: AppColors.white.withValues(alpha: 0.08),
+    final initiales = _getInitials(
+      _displayNameController.text.isNotEmpty
+          ? _displayNameController.text
+          : 'U',
+    );
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _showImagePickerOptions,
+          child: Stack(
+            children: [
+              Hero(
+                tag: 'profile_avatar',
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: context.adaptivePrimaryColor,
+                    image: _photoUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(_photoUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _photoUrl == null
+                      ? Center(
+                          child: Text(
+                            initiales,
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              color: context.onPrimaryColor,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
               ),
-            ),
-          ),
-
-          // Avatar au centre
-          SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  GestureDetector(
-                    onTap: _showImagePickerOptions,
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.white.withValues(alpha: 0.4),
-                                AppColors.white.withValues(alpha: 0.1),
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: Hero(
-                            tag: 'profile_avatar',
-                            child: Container(
-                              width: 110,
-                              height: 110,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.white.withValues(alpha: 0.2),
-                                border: Border.all(
-                                  color: AppColors.white,
-                                  width: 3,
-                                ),
-                                image:
-                                    _photoUrl != null
-                                        ? DecorationImage(
-                                          image: NetworkImage(_photoUrl!),
-                                          fit: BoxFit.cover,
-                                        )
-                                        : null,
-                              ),
-                              child:
-                                  _photoUrl == null
-                                      ? Center(
-                                        child: Text(
-                                          _getInitials(
-                                            _displayNameController
-                                                    .text
-                                                    .isNotEmpty
-                                                ? _displayNameController.text
-                                                : 'U',
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.white,
-                                          ),
-                                        ),
-                                      )
-                                      : null,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        if (_isLoading)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.5),
-                              ),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
-                                    AppColors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: context.backgroundColor,
+                      width: 3,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Modifier la photo',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.white.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Icon(
+                    Icons.photo_camera_outlined,
+                    size: 15,
+                    color: context.onPrimaryColor,
                   ),
-                ],
+                ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: _showImagePickerOptions,
+          child: Text(
+            AppLocalizations.of(context)!.changePhoto,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.adaptivePrimaryColor,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1861,11 +1768,8 @@ class _PrivacyToggle extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                (value ? primaryColor : tertiaryColor).withValues(alpha: 0.15),
-                (value ? primaryColor : tertiaryColor).withValues(alpha: 0.05),
-              ],
+            color: (value ? primaryColor : tertiaryColor).withValues(
+              alpha: 0.12,
             ),
             borderRadius: BorderRadius.circular(14),
           ),
