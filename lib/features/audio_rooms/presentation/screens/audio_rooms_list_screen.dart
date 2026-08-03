@@ -288,6 +288,7 @@ class _LiveCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dn = context.dn;
     final mode = roomModeFrom(room.mode.name);
+    final isAdmin = ref.watch(currentUserProvider).valueOrNull?.isAdmin ?? false;
     return GestureDetector(
       onTap: () => _handleTap(context, ref),
       child: Container(
@@ -310,6 +311,28 @@ class _LiveCard extends ConsumerWidget {
                   style: DNText.mono(size: 9, color: DNColors.terra),
                 ),
                 const Spacer(),
+                // Seul point d'entrée vers la vue fantôme : la route existait
+                // mais aucun écran n'y menait, donc toute la modération
+                // invisible était inatteignable.
+                if (isAdmin) ...[
+                  Tooltip(
+                    message: AppLocalizations.of(context)!.ghostSuperAdminBadge,
+                    child: InkWell(
+                      onTap: () =>
+                          context.push('/audio-rooms/${room.id}/ghost'),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.visibility_off_outlined,
+                          size: 15,
+                          color: dn.onSurface3,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 ModeChip(mode: mode),
               ],
             ),

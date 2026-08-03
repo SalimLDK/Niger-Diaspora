@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,16 +15,121 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 enum _GhostModAction { mute, kick, block }
 
 /// /audio-rooms/:roomId/ghost — dark admin view, invisible to room participants.
-class GhostModeratorScreen extends ConsumerWidget {
+///
+/// L'écran doit ouvrir lui-même la session fantôme : sans
+/// [AudioRoomSessionNotifier.joinAsGhostModerator], `state.isGhostMode` reste
+/// faux, le bypass `canModerate` du provider ne se déclenche jamais et les
+/// trois actions ne trouvent aucun participant à cibler.
+class GhostModeratorScreen extends ConsumerStatefulWidget {
   final String roomId;
 
   const GhostModeratorScreen({super.key, required this.roomId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GhostModeratorScreen> createState() =>
+      _GhostModeratorScreenState();
+}
+
+class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
+  late final AudioRoomSessionNotifier _notifier;
+
+  /// Vrai seulement si c'est cet écran qui a ouvert la session fantôme. Un
+  /// admin déjà présent dans le salon ne doit pas en être sorti à la fermeture.
+  bool _joinedHere = false;
+  bool _joining = true;
+  String? _joinError;
+
+  /// La durée du salon est calculée à l'affichage : sans réveil périodique elle
+  /// resterait figée à la valeur du premier build.
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifier = ref.read(audioRoomSessionProvider.notifier);
+    _ticker = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => setState(() {}),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _joinAsGhost());
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    if (_joinedHere) {
+      // Sinon l'admin resterait rattaché au salon (et présent dans
+      // moderatorIds) après la fermeture de l'écran.
+      _notifier.leaveRoom();
+    }
+    super.dispose();
+  }
+
+  Future<void> _joinAsGhost() async {
+    final session = ref.read(audioRoomSessionProvider);
+
+    // Déjà en session fantôme sur ce salon : ne pas rejoindre deux fois.
+    if (session.isGhostMode && session.room?.id == widget.roomId) {
+      if (mounted) setState(() => _joining = false);
+      return;
+    }
+
+    final ok = await _notifier.joinAsGhostModerator(widget.roomId);
+    if (!mounted) return;
+    setState(() {
+      _joining = false;
+      _joinedHere = ok;
+      _joinError = ok ? null : ref.read(audioRoomSessionProvider).error;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final session = ref.watch(audioRoomSessionProvider);
     final room = session.room;
+
+    if (_joining) {
+      return const Scaffold(
+        backgroundColor: DNColors.ink,
+        body: Center(
+          child: CircularProgressIndicator(color: DNColors.terra),
+        ),
+      );
+    }
+
+    // Salon introuvable, compte non admin, échec réseau : sans ça l'écran
+    // s'affichait avec des compteurs à zéro et des actions sans cible.
+    if (_joinError != null) {
+      return Scaffold(
+        backgroundColor: DNColors.ink,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('⚠', style: TextStyle(fontSize: 32)),
+                const SizedBox(height: 12),
+                Text(
+                  _joinError!,
+                  textAlign: TextAlign.center,
+                  style: DNText.sans(size: 14, color: DNColors.paper),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: Text(
+                    l10n.cancel,
+                    style: DNText.sans(color: DNColors.ochre),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: DNColors.ink,
@@ -58,7 +165,7 @@ class GhostModeratorScreen extends ConsumerWidget {
                         ],
                       ),
                       Text(
-                        room?.title ?? 'Salon audio',
+                        room?.title ?? l10n.audioRoomsTitle,
                         style: DNText.serif(size: 16, color: DNColors.paper),
                       ),
                     ],
@@ -146,8 +253,6 @@ class GhostModeratorScreen extends ConsumerWidget {
                           label: '🔇 ${l10n.ghostMuteSilent}',
                           color: DNColors.ink2,
                           onTap: () => _pickAndApply(
-                            context,
-                            ref,
                             action: _GhostModAction.mute,
                           ),
                         ),
@@ -155,8 +260,6 @@ class GhostModeratorScreen extends ConsumerWidget {
                           label: '👢 ${l10n.ghostExclude}',
                           color: DNColors.ink2,
                           onTap: () => _pickAndApply(
-                            context,
-                            ref,
                             action: _GhostModAction.kick,
                           ),
                         ),
@@ -164,8 +267,6 @@ class GhostModeratorScreen extends ConsumerWidget {
                           label: '🚫 ${l10n.ghostBlockGlobal}',
                           color: DNColors.danger.withValues(alpha: 0.8),
                           onTap: () => _pickAndApply(
-                            context,
-                            ref,
                             action: _GhostModAction.block,
                           ),
                         ),
@@ -182,7 +283,7 @@ class GhostModeratorScreen extends ConsumerWidget {
 
                     // Force close
                     GestureDetector(
-                      onTap: () => _confirmForceClose(context, ref),
+                      onTap: _confirmForceClose,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -216,11 +317,7 @@ class GhostModeratorScreen extends ConsumerWidget {
 
   /// Les trois actions de modération ciblent un participant : on ouvre la
   /// liste des participants visibles, puis on applique l'action au choix fait.
-  Future<void> _pickAndApply(
-    BuildContext context,
-    WidgetRef ref, {
-    required _GhostModAction action,
-  }) async {
+  Future<void> _pickAndApply({required _GhostModAction action}) async {
     final l10n = AppLocalizations.of(context)!;
     final session = ref.read(audioRoomSessionProvider);
     final targets = [...session.visibleSpeakers, ...session.visibleListeners];
@@ -261,7 +358,7 @@ class GhostModeratorScreen extends ConsumerWidget {
                       style: DNText.sans(size: 14, color: DNColors.paper),
                     ),
                     subtitle: Text(
-                      p.role.name,
+                      p.roleLabel,
                       style: DNText.mono(size: 9, color: DNColors.ink3),
                     ),
                     onTap: () => Navigator.pop(sheetContext, p),
@@ -274,7 +371,7 @@ class GhostModeratorScreen extends ConsumerWidget {
       ),
     );
 
-    if (target == null || !context.mounted) return;
+    if (target == null || !mounted) return;
 
     final notifier = ref.read(audioRoomSessionProvider.notifier);
     switch (action) {
@@ -286,7 +383,7 @@ class GhostModeratorScreen extends ConsumerWidget {
         await notifier.blockUser(target.userId);
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     final error = ref.read(audioRoomSessionProvider).error;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -304,7 +401,7 @@ class GhostModeratorScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmForceClose(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmForceClose() async {
     final l10n = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
@@ -329,11 +426,11 @@ class GhostModeratorScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (ok == true && context.mounted) {
+    if (ok == true && mounted) {
       await ref
           .read(audioRoomSessionProvider.notifier)
           .forceEndRoom('Force-closed by admin ghost moderator');
-      if (context.mounted) context.pop();
+      if (mounted) context.pop();
     }
   }
 
