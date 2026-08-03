@@ -171,6 +171,38 @@ discussion à moitié refaite.
 sûr, si les commits de production ont été reportés dans la copie au fil de
 l'eau.
 
+## Bascule — famille 2 : profil et configuration (2026-08-03)
+
+**4 fichiers sur 5.** `profile_config_screen`, `profile_view_screen`,
+`edit_profile_screen` et `handle_field` sont passés en production.
+
+⛔ **`profile_screen.dart` est exclu, et il ne faut pas le basculer en
+l'état.** La production porte un repli d'en-tête au défilement —
+`_headerCollapsed`, un `NotificationListener<ScrollNotification>` et
+`_buildCollapsedHeaderTitle`, soit 7 occurrences. La copie n'en a **aucune** :
+elle est plus ancienne que ce travail. L'écraser supprimerait une
+fonctionnalité qui marche.
+
+Méthode qui l'a détecté, à réutiliser pour les familles suivantes : extraire
+les identifiants des lignes que la production perdrait, puis vérifier s'ils
+existent **ailleurs** dans la copie. Un identifiant présent ailleurs = du
+code réécrit, sans risque. Un identifiant absent partout = du travail fait en
+production depuis la copie, qui serait supprimé. C'est ce test, et non `diff`,
+qui distingue « remplacé » de « perdu ».
+
+Résultat du test sur cette famille :
+
+| Fichier | Identifiants absents | Lecture |
+|---|---|---|
+| `profile_config_screen` | `_ThemeModeOption`, `_ThemeColorOption`, `_buildNotificationsStep`, 3 dropdowns | l'ancienne version en 4 étapes, remplacée par la refonte — voulu |
+| `profile_view_screen` | `_buildLocationString`, `_buildOriginString`, 2 clés | anciens helpers de localisation, remplacés par les puces §10c — voulu |
+| `edit_profile_screen` | `l10n.editProfile` | titre changé — voulu |
+| `handle_field` | aucun | réécriture pure |
+| `profile_screen` | **`_headerCollapsed`, `NotificationListener`, `_buildCollapsedHeaderTitle`** | ⛔ **régression** |
+
+Pour débloquer `profile_screen` : reporter le repli d'en-tête dans la copie,
+refaire le test, puis basculer.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

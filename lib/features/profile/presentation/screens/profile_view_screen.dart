@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../friends/domain/repositories/friend_repository.dart';
-import '../../../friends/presentation/providers/friend_provider.dart';
-import '../../../messages/presentation/providers/message_provider.dart';
-import '../../../messages/presentation/providers/media_gallery_provider.dart';
-import '../../../messages/presentation/widgets/media_gallery_grid.dart';
-import '../../domain/entities/profile_entity.dart';
+import '../../../../features/friends/domain/repositories/friend_repository.dart';
+import '../../../../features/friends/presentation/providers/friend_provider.dart';
+import '../../../../features/messages/presentation/providers/message_provider.dart';
+import '../../../../features/messages/presentation/providers/media_gallery_provider.dart';
+import '../../../../features/messages/presentation/widgets/media_gallery_grid.dart';
+import '../../../../features/profile/domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../providers/online_status_provider.dart';
-import '../../../groups/presentation/providers/common_groups_provider.dart';
+import '../../../../features/groups/presentation/providers/common_groups_provider.dart';
 import '../widgets/online_status_indicator.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -22,10 +23,10 @@ import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
-import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
-import '../../../settings/presentation/providers/blocked_users_provider.dart';
-import '../../../reports/domain/entities/report_entity.dart';
-import '../../../reports/presentation/widgets/report_content_modal.dart';
+import '../../../../features/messages/presentation/widgets/full_screen_image_viewer.dart';
+import '../../../../features/settings/presentation/providers/blocked_users_provider.dart';
+import '../../../../features/reports/domain/entities/report_entity.dart';
+import '../../../../features/reports/presentation/widgets/report_content_modal.dart';
 import '../../../../shared/widgets/app_icon.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
@@ -136,15 +137,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _startConversation() async {
+    final l10n = AppLocalizations.of(context)!;
     // Use the same provider as the screen display (userStreamProvider)
     // instead of profileNotifierProvider to avoid desync issues
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
 
-    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
+    if (profile == null || profile.displayName == l10n.deletedUser) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible de discuter avec un utilisateur supprimé'),
+        SnackBar(
+          content: Text(l10n.profileCannotChatDeleted),
           backgroundColor: AppColors.error,
         ),
       );
@@ -171,11 +173,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
   Future<void> _sendFriendRequest() async {
     if (_isSendingRequest) return;
+    final l10n = AppLocalizations.of(context)!;
 
     // Use the same provider as the screen display (userStreamProvider)
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
-    if (profile == null || profile.displayName == 'Utilisateur supprimé') {
+    if (profile == null || profile.displayName == l10n.deletedUser) {
       return;
     }
 
@@ -183,7 +186,6 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       _isSendingRequest = true;
     });
 
-    final l10n = AppLocalizations.of(context)!;
     final success = await ref
         .read(friendRequestNotifierProvider.notifier)
         .sendRequest(
@@ -199,7 +201,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Demande d\'ami envoyée' : 'Échec de l\'envoi',
+            success ? l10n.profileFriendRequestSent : l10n.profileFriendRequestFailed,
           ),
           backgroundColor: success ? AppColors.success : AppColors.error,
         ),
@@ -208,13 +210,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   }
 
   Future<void> _blockUser(ProfileEntity profile) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Bloquer l\'utilisateur'),
         content: Text(
-          'Voulez-vous vraiment bloquer ${profile.displayName ?? 'cet utilisateur'} ? '
-          'Vous ne recevrez plus de messages de sa part.',
+          l10n.profileBlockConfirm(profile.displayName ?? l10n.user),
         ),
         actions: [
           TextButton(
@@ -244,7 +246,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Utilisateur bloqué' : 'Erreur lors du blocage',
+            success ? l10n.userBlocked : l10n.blockError,
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
@@ -259,46 +261,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     }
   }
 
-  String _buildLocationString(AppLocalizations l10n, ProfileEntity? profile) {
-    if (profile == null) return '';
-    final city = profile.currentCity;
-    final region = profile.currentRegion;
-    final country = profile.currentCountry;
 
-    final parts = <String>[];
 
-    if (city != null && city.isNotEmpty) {
-      parts.add(city);
-    }
 
-    if (region != null && region.isNotEmpty) {
-      parts.add(region);
-    }
-
-    if (country != null && country.isNotEmpty) {
-      parts.add(country);
-    }
-
-    return parts.join(', ');
-  }
-
-  String _buildOriginString(AppLocalizations l10n, ProfileEntity? profile) {
-    if (profile == null) return '';
-    final region = profile.originRegion;
-    final city = profile.originCity;
-
-    if (region != null &&
-        region.isNotEmpty &&
-        city != null &&
-        city.isNotEmpty) {
-      return '${l10n.fromCity(city)} ($region)';
-    } else if (region != null && region.isNotEmpty) {
-      return l10n.fromRegion(region);
-    } else if (city != null && city.isNotEmpty) {
-      return l10n.fromCity(city);
-    }
-    return '';
-  }
 
   String _getInitials(String? name) {
     if (name == null || name.trim().isEmpty) return '?';
@@ -490,9 +455,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   Widget _buildCommonGroups(BuildContext context, String userId) {
     final common = ref.watch(commonGroupsProvider(userId)).valueOrNull ?? [];
     if (common.isEmpty) return const SizedBox.shrink();
-    final label = common.length == 1
-        ? '1 groupe en commun'
-        : '${common.length} groupes en commun';
+    final label = AppLocalizations.of(
+      context,
+    )!.profileCommonGroups(common.length);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Center(
@@ -540,8 +505,17 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final isBlocked = isBlockedByMe || isBlockedByThem;
 
     // Hide location if blocked
-    final locationString = isBlocked ? '' : _buildLocationString(l10n, profile);
-    final originString = _buildOriginString(l10n, profile);
+
+    // Puce « origine → ville actuelle » (§10c), à partir des villes brutes.
+    final originCity = profile.originCity?.trim();
+    final currentCity = isBlocked ? null : profile.currentCity?.trim();
+    final journeyTag = (originCity != null && originCity.isNotEmpty)
+        ? ((currentCity != null && currentCity.isNotEmpty)
+            ? '$originCity → $currentCity'
+            : originCity)
+        : ((currentCity != null && currentCity.isNotEmpty)
+            ? currentCity
+            : null);
 
     return PopScope(
       canPop: false,
@@ -563,20 +537,15 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 200,
               pinned: true,
+              backgroundColor: context.backgroundColor,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
               leading: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: AppIcon(
+                icon: AppIcon(
                     AppIcon.arrowBack,
                     color: context.textPrimaryColor,
                   ),
-                ),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -586,19 +555,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 },
               ),
               actions: [
-                if (profile.displayName != 'Utilisateur supprimé')
+                if (profile.displayName != l10n.deletedUser)
                   IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: AppIcon(
+                    icon: AppIcon(
                         AppIcon.share,
                         color: context.textPrimaryColor,
                       ),
-                    ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       ShareProfileDialog.show(
@@ -609,7 +571,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       );
                     },
                   ),
-                if (!_isCurrentUser && profile.displayName != 'Utilisateur supprimé')
+                if (!_isCurrentUser && profile.displayName != l10n.deletedUser)
                   PopupMenuButton<String>(
                     icon: Container(
                       padding: const EdgeInsets.all(8),
@@ -665,16 +627,19 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   ),
                 const SizedBox(width: 8),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: context.adaptivePrimaryGradient,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Identité alignée à gauche (§10c) : l'avatar quitte
+                    // la bannière-héros et vient se poser à côté du nom, du
+                    // statut et des puces — même gabarit que « Mon profil ».
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 40),
                         GestureDetector(
                           onTap: () {
                             if (profile.photoUrl != null) {
@@ -691,37 +656,28 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                           child: Hero(
                             tag: 'profile_view_avatar_${profile.id}',
                             child: Container(
-                              width: 100,
-                              height: 100,
+                              width: 76,
+                              height: 76,
                               decoration: BoxDecoration(
-                                color: context.surfaceColor,
-                                borderRadius: BorderRadius.circular(28),
-                                boxShadow:
-                                    context.isDarkMode
-                                        ? null
-                                        : [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 10),
-                                          ),
-                                        ],
+                                color: context.surfaceVariantColor,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: context.borderColor,
+                                  width: 2,
+                                ),
                               ),
+                              clipBehavior: Clip.antiAlias,
                               child:
                                   profile.photoUrl != null
-                                      ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(28),
-                                        child: Image.network(
-                                          profile.photoUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (_, __, ___) => _buildProfileInitials(
-                                                context,
-                                                profile.displayName,
-                                              ),
-                                        ),
+                                      ? Image.network(
+                                        profile.photoUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) =>
+                                                _buildProfileInitials(
+                                                  context,
+                                                  profile.displayName,
+                                                ),
                                       )
                                       : _buildProfileInitials(
                                         context,
@@ -730,139 +686,67 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             ),
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              DesignTitle(
+                                profile.displayName?.isNotEmpty == true
+                                    ? profile.displayName!
+                                    : 'Nouvel utilisateur',
+                                size: 22,
+                              ),
+
+                              // Poignée publique @handle (§10c)
+                              if (profile.handle != null &&
+                                  profile.handle!.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  '@${profile.handle}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: context.adaptivePrimaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+
+                              // Statut en ligne (masqué si bloqué)
+                              if (!isBlocked) ...[
+                                const SizedBox(height: 6),
+                                OnlineStatusIndicator(
+                                  userId: profile.id,
+                                  showText: true,
+                                  dotSize: 9,
+                                ),
+                              ],
+
+                              // Puces du §10c : trajet migratoire et métier
+                              // remplacent les lignes à pictogramme centrées.
+                              if (journeyTag != null ||
+                                  (profile.profession?.isNotEmpty ?? false)) ...[
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    if (journeyTag != null)
+                                      DesignTag(journeyTag),
+                                    if (profile.profession?.isNotEmpty ?? false)
+                                      DesignTag(profile.profession!),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Nom
-                    Center(
-                      child: Text(
-                        profile.displayName?.isNotEmpty == true
-                            ? profile.displayName!
-                            : 'Nouvel utilisateur',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: context.textPrimaryColor,
-                        ),
-                      ),
-                    ),
-
-                    // Poignée publique @handle (§10c)
-                    if (profile.handle != null &&
-                        profile.handle!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Center(
-                        child: Text(
-                          '@${profile.handle}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.adaptivePrimaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Online Status Indicator (hidden if blocked)
-                    if (!isBlocked) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: OnlineStatusIndicator(
-                          userId: profile.id,
-                          showText: true,
-                          dotSize: 10,
-                        ),
-                      ),
-                    ],
-
-                    if (profile.profession != null &&
-                        profile.profession!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            profile.profession!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
 
                     // Groupes en commun (§10c)
                     if (!isBlocked) _buildCommonGroups(context, profile.id),
-
-                    // Current location (city, country)
-                    if (locationString.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AppIcon(
-                              AppIcon.location,
-                              size: 18,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              locationString,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.textSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    // Origin (region, city in Niger)
-                    if (originString.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.home_outlined,
-                              size: 18,
-                              color: context.adaptiveSecondaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              originString,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.textTertiaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
 
                     const SizedBox(height: 24),
 
@@ -886,7 +770,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       child: Text(
                         profile.bio?.isNotEmpty == true
                             ? profile.bio!
-                            : 'Aucune biographie',
+                            : l10n.profileNoBio,
                         style: TextStyle(
                           fontSize: 14,
                           color:
@@ -946,7 +830,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   .toList(),
                         )
                         : Text(
-                          'Aucune compétence ajoutée',
+                          l10n.profileNoSkillsAdded,
                           style: TextStyle(
                             fontSize: 14,
                             color: context.textTertiaryColor,
@@ -993,7 +877,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   .toList(),
                         )
                         : Text(
-                          'Aucun intérêt ajouté',
+                          l10n.profileNoInterestsAdded,
                           style: TextStyle(
                             fontSize: 14,
                             color: context.textTertiaryColor,
@@ -1111,7 +995,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  'Erreur lors de la mise à jour: $e',
+                                                  l10n.profileUpdateError(e.toString()),
                                                 ),
                                                 backgroundColor:
                                                     AppColors.error,
@@ -1175,7 +1059,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
             switch (status) {
               case FriendshipStatus.friends:
-                buttonText = 'Envoyer un message';
+                buttonText = l10n.sendMessage;
                 buttonIcon = const AppIcon(AppIcon.chatBubble);
                 onPressed = _startConversation;
                 backgroundColor = context.adaptivePrimaryColor;
@@ -1225,16 +1109,16 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                         if (context.mounted && success) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Demande d\'ami annulée'),
+                            SnackBar(
+                              content: Text(l10n.profileRequestCancelled),
                             ),
                           );
                         }
                       } on StateError {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Cette demande n\'existe plus.'),
+                            SnackBar(
+                              content: Text(l10n.profileRequestNotExist),
                               backgroundColor: AppColors.error,
                             ),
                           );
@@ -1251,7 +1135,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       }
                     },
                     icon: const AppIcon(AppIcon.close),
-                    label: const Text('Annuler la demande'),
+                    label: Text(l10n.cancelRequest),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
@@ -1308,8 +1192,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                               if (context.mounted && success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Demande d\'ami refusée'),
+                                  SnackBar(
+                                    content: Text(l10n.profileRequestDeclined),
                                     backgroundColor: AppColors.error,
                                   ),
                                 );
@@ -1317,9 +1201,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             } on StateError {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Cette demande n\'existe plus.',
+                                      l10n.profileRequestNotExist,
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1369,8 +1253,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
                               if (context.mounted && success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Demande d\'ami acceptée'),
+                                  SnackBar(
+                                    content: Text(l10n.profileRequestAccepted),
                                     backgroundColor: AppColors.success,
                                   ),
                                 );
@@ -1378,10 +1262,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             } on StateError {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Cette demande n\'existe plus. '
-                                      'Elle a peut-être déjà été acceptée ou annulée.',
+                                      l10n.profileRequestGoneDetail,
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1392,7 +1275,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Erreur lors de l\'acceptation: $e',
+                                      l10n.profileAcceptError(e.toString()),
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -1414,7 +1297,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 );
 
               case FriendshipStatus.none:
-                buttonText = 'Envoyer une demande d\'ami';
+                buttonText = l10n.profileSendFriendRequest;
                 buttonIcon = const AppIcon(AppIcon.personAdd);
                 onPressed = _isSendingRequest ? null : _sendFriendRequest;
                 backgroundColor = context.adaptivePrimaryColor;
@@ -1453,7 +1336,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         ),
                       )
                     : buttonIcon,
-                label: Text(_isSendingRequest ? 'Envoi en cours...' : buttonText),
+                label: Text(_isSendingRequest ? l10n.adminSending : buttonText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: backgroundColor,
                   foregroundColor: AppColors.white,

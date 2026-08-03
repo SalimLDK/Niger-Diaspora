@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/profile_provider.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Champ de saisie de la poignée publique @handle (§16f) avec vérification de
 /// disponibilité débouncée. Réutilisable (config d'onboarding + édition profil).
@@ -89,6 +91,7 @@ class _HandleFieldState extends ConsumerState<HandleField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Widget? suffix;
     switch (_status) {
       case _HandleStatus.checking:
@@ -102,53 +105,76 @@ class _HandleFieldState extends ConsumerState<HandleField> {
         );
         break;
       case _HandleStatus.available:
-        suffix = const Icon(Icons.check_circle, color: Color(0xFF1B5E32));
+        suffix = Icon(
+          Icons.check_circle_outline,
+          size: 20,
+          color: context.successColor,
+        );
         break;
       case _HandleStatus.taken:
       case _HandleStatus.invalid:
-        suffix = const Icon(Icons.error_outline, color: Color(0xFFC23E2D));
+        suffix = Icon(
+          Icons.error_outline,
+          size: 20,
+          color: context.errorColor,
+        );
         break;
       case _HandleStatus.idle:
         suffix = null;
         break;
     }
 
+    // Le texte d'aide dit à quoi sert la poignée tant qu'elle n'est pas
+    // vérifiée, puis rend le verdict (§16f : chaque champ dit à quoi il sert).
     String helper;
-    Color helperColor = context.textTertiaryColor;
+    Color? helperColor;
     switch (_status) {
       case _HandleStatus.available:
-        helper = 'Disponible';
-        helperColor = const Color(0xFF1B5E32);
+        helper = l10n.handleAvailableHint;
+        helperColor = context.successColor;
         break;
       case _HandleStatus.taken:
-        helper = 'Cette poignée est déjà prise';
-        helperColor = const Color(0xFFC23E2D);
+        helper = l10n.handleTaken;
+        helperColor = context.errorColor;
         break;
       case _HandleStatus.invalid:
-        helper = '3 à 20 caractères : lettres, chiffres, _';
-        helperColor = const Color(0xFFC23E2D);
+        helper = l10n.handleFormat;
+        helperColor = context.errorColor;
         break;
       default:
-        helper = 'Votre identifiant public unique (optionnel)';
+        helper = l10n.handleHint;
     }
 
-    return TextFormField(
-      controller: _controller,
-      onChanged: _onChanged,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DesignFieldLabel(l10n.handleLabel),
+        TextFormField(
+          controller: _controller,
+          onChanged: _onChanged,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+          ],
+          style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
+          decoration: designInputDecoration(
+            context,
+            hintText: l10n.handleExample,
+            helperText: helper,
+            helperColor: helperColor,
+            prefix: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+              child: Text(
+                '@',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  color: context.textTertiaryColor,
+                ),
+              ),
+            ),
+            suffix: suffix,
+          ),
+        ),
       ],
-      style: TextStyle(color: context.textPrimaryColor),
-      decoration: InputDecoration(
-        labelText: 'Nom d\'utilisateur',
-        prefixText: '@',
-        prefixStyle: TextStyle(color: context.textSecondaryColor, fontSize: 16),
-        prefixIcon: const Icon(Icons.alternate_email),
-        suffixIcon: suffix,
-        helperText: helper,
-        helperStyle: TextStyle(color: helperColor),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
     );
   }
 }
