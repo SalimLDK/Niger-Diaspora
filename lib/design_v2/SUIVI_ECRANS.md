@@ -106,12 +106,12 @@ le composer et la carte.
 | 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | à faire |
 | 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | à faire |
 | 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
-| 12a, 16c, 16i | Transferts | `transfers/…` (pas d'écran unique) | — | à cadrer |
-| 12b | Boutique | `marketplace/…/marketplace_screen.dart` | 557 l. | fait (16a/16b/16h : écrans séparés, à faire) |
-| 13a | Événements | `events/…/events_screen.dart` | 1082 l. | fait (16e : création, à faire) |
-| 17a | Ambassades | `embassies/…/embassies_screen.dart` | 594 l. | fait (13b/16d/17b : écrans séparés, à faire) |
+| 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
+| 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
+| 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | fait |
+| 13b, 16d, 17a, 17b | Ambassades, fiche, demande, contact | `embassies/…` (4 écrans) | 2420 l. | fait |
 | 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | fait |
-| 17c, 18a | Annuaire Business | `businesses/…/businesses_screen.dart` | 407 l. | fait (17d/18b/18c/18d : écrans séparés, à faire) |
+| 17c, 17d, 18a→18d | Annuaire, fiche, création, avis, mise en avant | `businesses/…` (5 écrans) | 3018 l. | fait |
 
 ### La famille « fil » a son propre système — ne pas lui appliquer la trousse
 
@@ -153,6 +153,14 @@ fond de balayage en `Colors.red` avec une icône `Colors.white`. C'est
 lisible et l'idiome est universel, mais aucune des deux palettes ne
 contient ce rouge, et `FeedTokens` n'a pas de jeton `danger`. À trancher
 avant de traiter « Enregistrés ».
+
+### Transferts, ce qui reste
+
+Les trois écrans ont l'en-tête plat, mais les maquettes 12a et 16c décrivent
+aussi du **contenu** que je n'ai pas touché : le montant en très grand avec le
+détail des frais et le taux garanti (12a), et la frise d'état
+« Débité → En route → Disponible » de l'historique (16c). C'est du travail de
+composition, pas d'habillage — à traiter à part.
 
 Ordre d'attaque retenu, la famille « fil » étant hors périmètre :
 services d'abord (annuaire 407 l., boutique 557 l., ambassades 594 l.,

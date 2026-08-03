@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../kit/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/embassies/data/models/embassy_message_model.dart';
 import '../../../../features/embassies/data/datasources/embassy_remote_datasource.dart';
@@ -103,8 +105,10 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacter l\'ambassade'),
-        backgroundColor: theme.colorScheme.surface,
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Contacter l\'ambassade', size: 22),
       ),
       body: Form(
         key: _formKey,
