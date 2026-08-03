@@ -133,8 +133,111 @@ services d'abord (annuaire 407 l., boutique 557 l., ambassades 594 l.,
 appels 748 l., événements 1082 l.), puis discussion, composer et carte —
 les trois plus gros fichiers du dépôt, 9 200 lignes à eux seuls.
 
+## Quatrième vague (écrans secondaires, feuilles et états)
+
+Cette vague descend d'un cran : ce ne sont plus les onglets, mais les écrans
+où l'on va une fois, les **feuilles modales** posées par-dessus un écran
+existant, et les **états** (vide, hors ligne, échec).
+
+**12 des 44 sont déjà câblées** — les fichiers de production citent déjà
+leur `§`, signe qu'une session précédente les a traitées. Comme pour la
+troisième vague, cela vaut pour la **structure** : le langage visuel
+(titre serif, fond crème, trousse) reste à appliquer partout.
+
+Vérification faite par `grep -rl "§<num>" lib/features` : c'est ce grep,
+et non une supposition, qui remplit la colonne « structure ».
+
+### Réglages et compte
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 20a | Modifier mon profil | `profile/…/edit_profile_screen.dart` | 2400 l. | à faire |
+| 20b | Appareils connectés | `settings/…/devices_screen.dart` | 550 l. | à faire |
+| 20c | Sauvegarde des clés | `settings/…/security_backup_screen.dart` | 601 l. | à faire |
+| 20d | Réglages de notifications | `notifications/…/notification_settings_screen.dart` | 525 l. | à faire |
+| 21a | Partager mon profil (QR) | `profile/…/widgets/share_profile_modal.dart` | 825 l. | ✅ câblée |
+| 21b | Comptes bloqués et mes signalements | `settings/…/widgets/blocked_users_modal.dart`, `reports/…/my_reports_screen.dart` | 402 l. | ✅ câblée |
+| 21c | Apparence, langue, fond d'écran | `messages/…/widgets/chat_background_picker_modal.dart` | — | ✅ câblée |
+| 21d | Aide et à propos (FAQ en accordéon) | `settings/…/settings_screen.dart` | 2286 l. | ✅ câblée |
+| 26c | Document légal en lecture | `legal/…/legal_documents_screen.dart` + `legal_essentials_card.dart` | 75 l. | ✅ câblée |
+
+### Support
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 22a | Nous contacter — nouveau ticket | `support/…/create_ticket_screen.dart` | 266 l. | à faire |
+| 22b | Mes demandes | `support/…/support_tickets_screen.dart` | 300 l. | à faire |
+| 22c | Suivi d'une demande | `support/…/ticket_detail_screen.dart` | 421 l. | à faire |
+| 22d | Aucune demande en cours | idem (état vide) | — | à faire |
+
+### Fil, discussion et appels
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 23a | Appel en cours 1-à-1 | `calls/…/call_screen.dart` | 2031 l. | à faire |
+| 23b | Appel de groupe | `group_calls/…/group_call_screen.dart` | 852 l. | à faire |
+| 23c | Détail d'un post et commentaires | `feed/…/post_detail_screen.dart` | 357 l. | famille « fil » |
+| 23d | Créer une publication | `feed/…/create_post_screen.dart` | 823 l. | famille « fil » |
+| 24a | Galerie de la conversation | `messages/…/media_gallery_screen.dart` | 895 l. | à faire |
+| 24b | Messages favoris | `messages/…/starred_messages_screen.dart` | 313 l. | à faire |
+| 24c | Nouvelle conversation | `messages/…/new_conversation_screen.dart` | 1042 l. | à faire |
+| 24d | Résultats d'un sondage | `polls/…/poll_results_screen.dart` | 257 l. | à faire |
+| 26b | Stickers et GIF du composer | `messages/…/widgets/gif_picker_content.dart`, `emoji_sticker_picker.dart` | 579 l. | ✅ câblée |
+
+### Services
+
+| Maquette | Écran | Fichier de production | Taille | Structure |
+|---|---|---|---|---|
+| 19a | Annuaire Business — nocturne (= 17c) | `businesses/…/businesses_screen.dart` | 407 l. | à faire |
+| 19b | Ambassades — nocturne (= 17a) | `embassies/…/embassies_screen.dart` | 594 l. | à faire |
+| 19c | Mes entreprises (propriétaire) | `businesses/…/my_businesses_screen.dart` | 487 l. | ✅ câblée |
+| 25a | Fiche d'un événement | `events/…/event_detail_screen.dart` | 1084 l. | ✅ câblée |
+| 25b | Ma boutique — annonces et commandes | `marketplace/…/my_products_screen.dart` (119 l.), `my_orders_screen.dart` | 745 l. | à faire |
+| 25c | Détail d'un transfert et moyens de paiement | `transfers/…/transaction_detail_screen.dart` | 797 l. | à faire |
+| 26a | Mes amis et demandes | `friends/…/friends_screen.dart` + `widgets/friend_request_item.dart` | 236 l. | ✅ câblée |
+
+### Feuilles modales et confirmations
+
+Ces sept maquettes ne sont pas des écrans : ce sont des feuilles posées
+sur un écran existant. Elles se traitent **avec l'écran qui les ouvre**,
+pas séparément.
+
+| Maquette | Feuille | Fichier | Structure |
+|---|---|---|---|
+| 27a | Actions sur un message | discussion | à faire |
+| 27b | Confirmation destructive | `messages/…/widgets/delete_message_modal.dart` | ✅ câblée |
+| 27c | Signaler un contenu | `reports/…/widgets/report_content_modal.dart` | ✅ câblée |
+| 27d | Joindre un média | `messages/…/media_batch_preview_screen.dart` | ✅ câblée |
+| 28a | Actions sur une publication | fil | famille « fil » |
+| 28b | Qui peut voir cette publication | créer une publication | famille « fil » |
+| 28c | Confirmer un transfert | transferts | à faire |
+| 28d | Partager dans l'app | fil, discussion | à faire |
+
+### États — la partie la plus utile de la vague
+
+Les maquettes 2a→3d ne décrivent aucun écran neuf : elles décrivent **ce
+qui s'affiche quand ça se passe mal**, et elles distinguent des cas que
+l'app confond aujourd'hui. C'est là que le gain fonctionnel est le plus
+fort, indépendamment du visuel.
+
+| Maquette | Ce qu'elle exige |
+|---|---|
+| 2a | Le fil garde son cache hors ligne, avec la date du dernier chargement |
+| 2b | **Quatre échecs distincts** : pas de réseau, panne serveur, réseau lent, action refusée — aujourd'hui traités comme un seul |
+| 2c | Carte sans repère : dire que la position est active mais la zone vide |
+| 3a | **Transfert en quatre états** selon où est l'argent : refusé avant débit, incertain, débité non reçu, remboursé |
+| 3b | Reconnexion : file d'attente par ordre d'importance, et ce qui est arrivé pendant l'absence |
+| 3c | Boutique : trois vides différents (rien en vente, rien commandé, recherche sans résultat) |
+| 3d | Groupes : trois vides différents (aucun rejoint, rien dans ma ville, recherche vide) |
+
+⚠️ La maquette 3a laisse trois trous explicites — « délai à définir »,
+« schéma à définir », « frais remboursés en cas d'échec ? À trancher ».
+Ce sont des **décisions produit**, pas du design : elles doivent être
+tranchées avant d'implémenter cet écran, sinon on affichera des délais
+inventés.
+
 ## Écrans hors maquettes
 
-Aucune maquette fournie à ce jour pour : conversation (fil de discussion),
-fil/publications, événements, transferts, boutique, ambassades, salons audio,
-podcasts, back-office. Ces écrans gardent leur habillage actuel.
+Restent sans maquette à ce jour, et hors périmètre annoncé : les salons
+audio (8 écrans), les podcasts (7 écrans) et le back-office admin
+(19 écrans). Ces écrans gardent leur habillage actuel.
