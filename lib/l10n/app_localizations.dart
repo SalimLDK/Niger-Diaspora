@@ -2087,13 +2087,13 @@ abstract class AppLocalizations {
   /// No description provided for @groupsNoneInYourAreaTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Rien dans ta région pour l\'instant'**
+  /// **'Rien dans votre région pour l\'instant'**
   String get groupsNoneInYourAreaTitle;
 
   /// No description provided for @groupsNoneInYourAreaBody.
   ///
   /// In fr, this message translates to:
-  /// **'Aucun groupe ne correspond encore à ton pays de résidence ni à ta région d\'origine. Tu peux ouvrir le premier, ou élargir ta recherche.'**
+  /// **'Aucun groupe ne correspond encore à votre pays de résidence ni à votre région d\'origine. Tu peux ouvrir le premier, ou élargir votre recherche.'**
   String get groupsNoneInYourAreaBody;
 
   /// No description provided for @groupsBrowseAll.
@@ -2117,13 +2117,13 @@ abstract class AppLocalizations {
   /// No description provided for @searchTipSpelling.
   ///
   /// In fr, this message translates to:
-  /// **'Vérifie l\'orthographe'**
+  /// **'Vérifiez l\'orthographe'**
   String get searchTipSpelling;
 
   /// No description provided for @searchTipFewerWords.
   ///
   /// In fr, this message translates to:
-  /// **'Essaie avec moins de mots, ou un mot plus général'**
+  /// **'Essayez avec moins de mots, ou un mot plus général'**
   String get searchTipFewerWords;
 
   /// No description provided for @searchTipRemoveFilters.
@@ -2459,7 +2459,7 @@ abstract class AppLocalizations {
   /// No description provided for @myProductsEmptyHint.
   ///
   /// In fr, this message translates to:
-  /// **'Choisis une catégorie pour commencer :'**
+  /// **'Choisissez une catégorie pour commencer :'**
   String get myProductsEmptyHint;
 
   /// No description provided for @ordersEmptyEscrowNote.
@@ -2795,7 +2795,7 @@ abstract class AppLocalizations {
   /// No description provided for @audioRoomAudioLostHint.
   ///
   /// In fr, this message translates to:
-  /// **'Tu es toujours dans le salon, mais tu n\'entends plus personne.'**
+  /// **'Vous êtes toujours dans le salon, mais vous n\'entendez plus personne.'**
   String get audioRoomAudioLostHint;
 
   /// No description provided for @podcastRecordMicTitle.

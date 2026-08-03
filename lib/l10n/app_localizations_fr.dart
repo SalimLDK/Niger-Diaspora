@@ -1078,11 +1078,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noGroupsToDiscover => 'Aucun nouveau groupe à découvrir';
 
   @override
-  String get groupsNoneInYourAreaTitle => 'Rien dans ta région pour l\'instant';
+  String get groupsNoneInYourAreaTitle =>
+      'Rien dans votre région pour l\'instant';
 
   @override
   String get groupsNoneInYourAreaBody =>
-      'Aucun groupe ne correspond encore à ton pays de résidence ni à ta région d\'origine. Tu peux ouvrir le premier, ou élargir ta recherche.';
+      'Aucun groupe ne correspond encore à votre pays de résidence ni à votre région d\'origine. Tu peux ouvrir le premier, ou élargir votre recherche.';
 
   @override
   String get groupsBrowseAll => 'Voir tous les groupes';
@@ -1096,11 +1097,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchTipsTitle => 'Quelques pistes';
 
   @override
-  String get searchTipSpelling => 'Vérifie l\'orthographe';
+  String get searchTipSpelling => 'Vérifiez l\'orthographe';
 
   @override
   String get searchTipFewerWords =>
-      'Essaie avec moins de mots, ou un mot plus général';
+      'Essayez avec moins de mots, ou un mot plus général';
 
   @override
   String get searchTipRemoveFilters =>
@@ -1303,7 +1304,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sois le premier à proposer quelque chose à la diaspora.';
 
   @override
-  String get myProductsEmptyHint => 'Choisis une catégorie pour commencer :';
+  String get myProductsEmptyHint => 'Choisissez une catégorie pour commencer :';
 
   @override
   String get ordersEmptyEscrowNote =>
@@ -1507,7 +1508,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get audioRoomAudioLostHint =>
-      'Tu es toujours dans le salon, mais tu n\'entends plus personne.';
+      'Vous êtes toujours dans le salon, mais vous n\'entendez plus personne.';
 
   @override
   String get podcastRecordMicTitle => 'Enregistrer au micro';

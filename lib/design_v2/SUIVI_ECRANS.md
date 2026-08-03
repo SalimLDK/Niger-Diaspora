@@ -23,6 +23,25 @@ Légende de l'état :
 | 15b | Inscription | `auth/…/register_screen.dart` | fait |
 | — | Gabarit auth + boutons | `auth/…/widgets/auth_scaffold.dart`, `auth_button.dart` | fait |
 
+## Registre d'adresse — l'app vouvoie, sauf à six endroits (corrigé)
+
+Vu sur l'écran de recherche : les pistes tutoyaient (« Vérifie
+l'orthographe », « Essaie avec moins de mots ») alors que toute l'app
+vouvoie — « Complétez votre profil », « Vous n'avez rejoint aucun groupe »,
+« Présentez-vous à la communauté ».
+
+Un balayage de l'ARB a trouvé 9 clés au tutoiement. **Six** étaient
+fautives et sont repassées au vouvoiement : les deux pistes de recherche,
+le titre et le corps du vide « aucun groupe dans votre région », l'invite
+de la boutique, et l'avertissement de perte audio des salons.
+
+⚠️ **Trois ne sont pas des défauts** et ne doivent pas être « corrigées » :
+
+| Clé | Pourquoi le tutoiement est juste |
+|---|---|
+| `homeShareInvite` | « Rejoins-moi sur Diaspo Niger » — texte **écrit par la personne à un proche**, pas l'app qui parle |
+| `joinDiaspora`, `joinCommunity` | à vérifier : accroche marketing ou texte d'invitation ? Le registre dépend du destinataire |
+
 ## §12c Notifications — écarts avec la maquette, relevés sur appareil
 
 L'écran rend et ne lève aucune exception, mais il lui manque trois choses
