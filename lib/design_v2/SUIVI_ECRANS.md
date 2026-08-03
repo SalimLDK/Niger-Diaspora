@@ -88,6 +88,51 @@ Deux corrections de fond faites au passage :
 - Les **énumérations** (« a, b et c ») ne concaténaient plus avec un `' et '`
   en dur : la liaison finale vient de l'ARB, elle n'est pas la même partout.
 
+## Troisième vague de maquettes (fil, discussion, Mon espace, services)
+
+Même constat que la deuxième vague : la **structure** de ces maquettes est
+déjà en production (les fichiers citent `§5a`, `§5b`, `§4a`, `§7d`, `§12b`,
+`§13a`, `§17a`, `§13c`…). Ce qui manque est le **langage visuel** — aucun
+titre serif nulle part, et des dégradés qui subsistent dans la discussion,
+le composer et la carte.
+
+| Maquettes | Écran | Fichier de production | Taille | État |
+|---|---|---|---|---|
+| 3a, 4g, 6a | Le fil | `feed/…/feed_screen.dart` | 966 l. | **prod** — système propre |
+| 5a, 5f | Mon espace | `feed/…/mon_espace_screen.dart` | 363 l. | **prod** — système propre |
+| 5b, 5g, 6d | Mes publications | `feed/…/my_posts_screen.dart` | 180 l. | **prod** — système propre |
+| 5c, 5e, 6e | Enregistrés | `feed/…/saved_posts_screen.dart` | 336 l. | **prod** — système propre |
+| 5d, 5h, 6f | Mon réseau | `feed/…/follows_screen.dart` | 190 l. | **prod** — système propre |
+| 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | à faire |
+| 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | à faire |
+| 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
+| 12a, 16c, 16i | Transferts | `transfers/…` (pas d'écran unique) | — | à cadrer |
+| 12b, 16a, 16b, 16h | Boutique | `marketplace/…/marketplace_screen.dart` | 557 l. | à faire |
+| 13a, 16e | Événements | `events/…/events_screen.dart` | 1082 l. | à faire |
+| 13b, 16d, 17a, 17b | Ambassades | `embassies/…/embassies_screen.dart` | 594 l. | à faire |
+| 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | à faire |
+| 17c, 17d, 18a→18d | Annuaire Business | `businesses/…/businesses_screen.dart` | 407 l. | à faire |
+
+### La famille « fil » a son propre système — ne pas lui appliquer la trousse
+
+`lib/features/feed/presentation/theme/` définit `FeedTokens` et `FeedText`,
+qui implémentent **exactement** les deux systèmes des maquettes :
+
+- `nocturne` — sombre, accent indigo `#9184D9`, rayons serrés, titrage Inter.
+  C'est littéralement ce que montrent 6a→6f.
+- `organic` — clair, accent terracotta, rayons généreux, titrage **Caprasimo**.
+  C'est le gros display des maquettes 3a, 5a→5h.
+
+Ces écrans sont donc **déjà à jour**. Leur appliquer `design_kit`
+(Playfair Display, jetons `adaptive_colors`) serait une régression : ça
+écraserait la bascule Organic/Nocturne que les maquettes elles-mêmes
+montrent. Aucune copie n'a été faite pour eux.
+
+Ordre d'attaque retenu, la famille « fil » étant hors périmètre :
+services d'abord (annuaire 407 l., boutique 557 l., ambassades 594 l.,
+appels 748 l., événements 1082 l.), puis discussion, composer et carte —
+les trois plus gros fichiers du dépôt, 9 200 lignes à eux seuls.
+
 ## Écrans hors maquettes
 
 Aucune maquette fournie à ce jour pour : conversation (fil de discussion),
