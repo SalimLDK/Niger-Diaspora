@@ -56,6 +56,61 @@ sinon la trousse existera en double.
 est réellement affichable dans l'app — `TESTS_APPAREIL_A_FAIRE.md` liste quoi
 regarder, en tête le thème sombre et `font_scale = 1.1`.
 
+## Bascule — la carte des risques, à consulter avant chaque famille
+
+Le danger de la bascule n'est pas technique, il est chronologique : la copie
+a été prise en `8f8db62`, et **la production a continué d'avancer depuis**.
+Écraser un fichier dont la production a bougé après la copie fait perdre ce
+travail-là, silencieusement.
+
+La liste se recalcule en une commande — ne pas la recopier de mémoire, elle
+change à chaque commit :
+
+```bash
+git log --oneline 8f8db62..HEAD --name-only | grep '^lib/features/' | sort -u
+```
+
+Au 2026-08-03, les copies dont la production a bougé depuis, donc **à ne pas
+écraser sans lire le diff ligne à ligne** :
+
+`call_screen`, `home_screen`, `home_screen_widgets`, `map_screen`,
+`message_bubble`, `notification_settings_screen`, `edit_profile_screen`,
+`devices_screen`, `security_backup_screen`, `settings_screen`,
+`send_money_screen`.
+
+Tous les autres sont sûrs au sens strict : leur production est restée à
+l'identique depuis la copie, donc la copie est la production **plus** la
+refonte.
+
+⚠️ `map_screen` est le cas le plus délicat : la copie porte le §7e (bascule
+Carte/Liste) que la production n'a pas, et la production porte deux passes
+de couleur que la copie n'a pas. Ce fichier se **fusionne**, il ne se copie
+pas.
+
+## Bascule vers la production — famille 2 : les services (2026-08-03)
+
+**Faite.** Onze écrans : annuaire Business (5), ambassades (4),
+événements (2). Choisis parce qu'ils sont hors de la carte des risques
+ci-dessus — aucun de leurs fichiers de production n'avait bougé depuis la
+copie — et parce qu'une session parallèle travaillait au même moment sur la
+famille du profil.
+
+Vérification avant écrasement, la même qu'en famille 1 mais outillée :
+comparaison des **membres déclarés** de chaque côté (méthodes, widgets,
+getters). Un membre présent en production et absent de la copie est le
+signe d'un correctif fait depuis la copie ; il y en a eu **zéro sur les
+onze fichiers**. Les copies sont des supersets.
+
+Imports remis à l'idiome de production — `../providers/`, `../../domain/`,
+`../../../<autre feature>/`, kit sur `../../../../core/theme/design_kit.dart`.
+`flutter analyze` sur les trois features : **No issues found**.
+
+⚠️ **Ce que cette vérification ne couvre pas.** Comparer les membres attrape
+une méthode supprimée, pas une ligne changée à l'intérieur d'une méthode. Sur
+ces onze fichiers c'est suffisant parce que la production n'a reçu **aucun
+commit** depuis la copie — c'est cette condition qui fait la sûreté, pas la
+comparaison. Sur un fichier de la carte des risques, elle ne suffirait pas.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |
@@ -142,10 +197,10 @@ le composer et la carte.
 | 7e | Carte : bascule Carte/Liste | idem | — | fait dans `design_v2/map/` — **à reporter en prod**, voir « Carte — §7d faite, §7e à faire » |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
-| 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | fait |
-| 13b, 16d, 17a, 17b | Ambassades, fiche, demande, contact | `embassies/…` (4 écrans) | 2420 l. | fait |
+| 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | **basculé** (famille 2) |
+| 13b, 16d, 17a, 17b | Ambassades, fiche, demande, contact | `embassies/…` (4 écrans) | 2420 l. | **basculé** (famille 2) |
 | 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | fait |
-| 17c, 17d, 18a→18d | Annuaire, fiche, création, avis, mise en avant | `businesses/…` (5 écrans) | 3018 l. | fait |
+| 17c, 17d, 18a→18d | Annuaire, fiche, création, avis, mise en avant | `businesses/…` (5 écrans) | 3018 l. | **basculé** (famille 2) |
 
 ### Discussion et composer — ce qui est fait, ce qui ne l'est pas
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/administrative_request_model.dart';
 import '../../data/datasources/embassy_remote_datasource.dart';
@@ -311,8 +313,10 @@ class _AdministrativeRequestScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouvelle demande'),
-        backgroundColor: theme.colorScheme.surface,
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Nouvelle demande', size: 22),
       ),
       body: Form(
         key: _formKey,

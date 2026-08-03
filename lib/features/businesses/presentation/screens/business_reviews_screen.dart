@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -174,7 +176,10 @@ class BusinessReviewsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(business?.name ?? 'Avis'),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: DesignTitle(business?.name ?? 'Avis', size: 22),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref

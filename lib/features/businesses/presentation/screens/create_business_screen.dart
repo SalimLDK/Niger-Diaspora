@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/image_upload_service.dart';
@@ -132,7 +134,10 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouvelle entreprise'),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Nouvelle entreprise', size: 22),
       ),
       body: Form(
         key: _formKey,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -63,21 +64,23 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
+      // En-tête plat (§13a) : titre serif et création en action carrée
+      // terracotta pleine, au lieu de la pastille sable.
       appBar: AppBar(
-        title: Text(l10n.eventsTitle),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 20,
+        automaticallyImplyLeading: false,
+        title: DesignTitle(l10n.eventsTitle, size: 24),
         actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: context.surfaceVariantColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.add, color: context.adaptivePrimaryColor),
-            ),
+          DesignSquareAction(
+            icon: Icons.add,
+            filled: true,
+            tooltip: l10n.createEvent,
             onPressed: () => context.push('/events/create'),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
         bottom: TabBar(
           controller: _tabController,

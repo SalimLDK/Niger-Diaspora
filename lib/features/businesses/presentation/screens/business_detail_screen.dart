@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -285,13 +286,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Name
-                Text(
-                  business.name,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                // Nom de l'entreprise (§17d) : serif à point terracotta,
+                // sous la photo de couverture qui sert déjà d'en-tête.
+                DesignTitle(business.name, size: 24),
                 const SizedBox(height: 8),
                 // Rating
                 if (business.averageRating > 0)

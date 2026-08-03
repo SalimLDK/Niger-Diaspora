@@ -1,9 +1,10 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
 import '../widgets/business_card.dart';
@@ -17,7 +18,6 @@ class BusinessesScreen extends ConsumerStatefulWidget {
 
 class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
   final _searchController = TextEditingController();
-  bool _isSearching = false;
   bool _showLocationFilter = false;
 
   @override
@@ -41,57 +41,41 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title:
-            _isSearching
-                ? CompactSearchBar(
-                  controller: _searchController,
-                  hintText: 'Rechercher une entreprise...',
-                  autofocus: true,
-                  onSubmitted: (query) {
-                    ref
-                        .read(businessesNotifierProvider.notifier)
-                        .searchBusinesses(query);
-                  },
-                )
-                : const Text('Annuaire Business'),
-        actions: [
-          IconButton(
-            icon: AppIcon(_isSearching ? AppIcon.close : AppIcon.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  ref
-                      .read(businessesNotifierProvider.notifier)
-                      .loadBusinesses();
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              _showLocationFilter ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: ref.watch(selectedBusinessLocationProvider).hasFilter
-                  ? theme.colorScheme.primary
-                  : null,
-            ),
-            onPressed: () {
-              setState(() {
-                _showLocationFilter = !_showLocationFilter;
-              });
-            },
-          ),
-          IconButton(
-            tooltip: 'Mes entreprises',
-            icon: const Icon(Icons.storefront_outlined),
-            onPressed: () => context.push('/businesses/mine'),
-          ),
-        ],
-      ),
-      body: Column(
+      backgroundColor: context.backgroundColor,
+      // En-tête plat (§17c) : grand titre serif et recherche toujours
+      // visible, au lieu du mode recherche à bascule dans l'AppBar.
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
+          DesignScreenHeader(
+            title: 'Annuaire Business',
+            actions: [
+              DesignSquareAction(
+                icon: Icons.storefront_outlined,
+                tooltip: 'Mes entreprises',
+                onPressed: () => context.push('/businesses/mine'),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: DesignSearchField(
+              controller: _searchController,
+              hintText: 'Rechercher une entreprise',
+              onChanged: (query) => ref
+                  .read(businessesNotifierProvider.notifier)
+                  .searchBusinesses(query),
+              onClear: () {
+                _searchController.clear();
+                ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+                setState(() {});
+              },
+              onFilterTap: () => setState(
+                () => _showLocationFilter = !_showLocationFilter,
+              ),
+            ),
+          ),
           // Location filter (collapsible)
           if (_showLocationFilter) _buildLocationFilter(theme),
           // Category filter chips
@@ -103,28 +87,23 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: const Text('Tous'),
+                  child: DesignFilterChip(
+                    label: 'Tous',
                     selected: selectedCategory == null,
-                    onSelected: (_) {
-                      ref
-                          .read(selectedBusinessCategoryProvider.notifier)
-                          .clear();
-                    },
+                    onTap: () => ref
+                        .read(selectedBusinessCategoryProvider.notifier)
+                        .clear(),
                   ),
                 ),
                 ...BusinessCategory.values.map((category) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      avatar: Icon(category.icon, size: 18),
-                      label: Text(category.label),
+                    child: DesignFilterChip(
+                      label: category.label,
                       selected: selectedCategory == category,
-                      onSelected: (_) {
-                        ref
-                            .read(selectedBusinessCategoryProvider.notifier)
-                            .select(category);
-                      },
+                      onTap: () => ref
+                          .read(selectedBusinessCategoryProvider.notifier)
+                          .select(category),
                     ),
                   );
                 }),
@@ -222,6 +201,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
             ),
           ),
         ],
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(

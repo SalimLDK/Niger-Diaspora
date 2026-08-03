@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/business_entity.dart';
@@ -66,7 +68,12 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Booster votre entreprise')),
+      appBar: AppBar(
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Booster votre entreprise', size: 22),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

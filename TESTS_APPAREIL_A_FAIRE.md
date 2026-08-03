@@ -707,6 +707,28 @@ vers le haut.
   désactive), la grille ne casse pas son passage 3↔4 colonnes avec deux tuiles
   de plus, et les trois destinations s'ouvrent réellement.
 
+## Bascule design_v2 → production, famille 2 : les services (2026-08-03)
+
+Onze écrans sont passés de `lib/design_v2/` à `lib/features/` : annuaire
+Business (5), ambassades (4), événements (2). Ils étaient jusqu'ici
+inatteignables autrement que par la galerie `/design-v2` ; ils sont
+maintenant **ceux que l'app ouvre pour de bon**. Rien n'a été vu tourner.
+
+- [ ] **Annuaire Business** (§17c, §17d, §18a→18d) : liste, fiche, création,
+  avis et mise en avant. Vérifier surtout la **fiche** (`business_detail`),
+  qui empile en-tête, posts, avis et actions — c'est là qu'un débordement à
+  `font_scale = 1.1` est le plus probable.
+- [ ] **Ambassades** (§13b, §16d, §17a, §17b) : liste, fiche, demande
+  administrative, message. Le statut ouvert/fermé est passé aux jetons
+  `errorColor`/`successColor` : **regarder en thème sombre**, c'est
+  exactement ce que ce changement corrige.
+- [ ] **Événements** (§13a, §16e) : liste et création. La création est le
+  formulaire le plus long des trois features (sélection de médias,
+  localisation, date) — vérifier qu'aucun champ ne passe sous le clavier.
+- [ ] **Thème sombre des onze écrans**, en priorité. C'est la famille de
+  défauts la plus récurrente du projet, et ces écrans n'ont jamais été
+  affichés ailleurs que dans la galerie de debug.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
