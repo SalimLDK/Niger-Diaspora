@@ -39,6 +39,68 @@ Les 9 écarts critiques sont **tous traités**, ainsi que les écarts qui
 recherche boutique (3c) — aucune table d'alertes ni déclencheur de
 notification, le bouton ne pourrait jamais se déclencher.
 
+### Écart #10 — trouvé pendant la remédiation, absent de l'audit initial
+
+**Le mini-lecteur podcast n'était monté nulle part.** `PodcastMiniPlayer`
+existait, `podcastPlayerProvider` tournait, mais aucun écran ne l'affichait :
+une lecture lancée depuis un épisode devenait invisible dès qu'on quittait
+l'écran, sans moyen de la mettre en pause autrement qu'en y revenant.
+
+Les 4 agents de l'audit comparaient chaque maquette au fichier correspondant.
+Un widget qui existe et qui est correct passe cette comparaison — c'est son
+**absence de point de montage** qui était le défaut, et rien dans la méthode
+ne pouvait la voir. Même angle mort que pour l'écart #1 (bibliothèque du
+patrimoine), qui n'avait été repéré que parce qu'une maquette pointait
+explicitement vers l'écran orphelin.
+
+✅ Monté dans `MainShell`, au-dessus de la barre de navigation (sous la
+colonne centrale en tablette), et forcé en sombre comme le lecteur plein
+écran. La réserve basse du corps suit sa présence (110 → 174 px) : sans ça il
+masquait le dernier élément de chaque liste de l'app, `extendBody` étant
+actif.
+
+**Leçon pour un prochain audit** : comparer maquette et fichier ne suffit
+pas, il faut aussi chercher ce qui n'est **branché nulle part**. Deux
+familles :
+
+1. **Widgets jamais référencés** — nom de classe absent de tout autre
+   fichier. Passe balayé le 2026-08-03 : **55 widgets publics sur 262**.
+   ⚠ Ce n'est **pas** une liste de défauts : les 55 se répartissent en trois
+   cas qu'on ne distingue qu'en regardant chacun.
+   - *Joignable quand même*, via une fonction helper du même fichier —
+     `CreatePollSheet` (`showCreatePollSheet`), les trois pickers de
+     `content_pickers.dart` (`showEventPicker`…). Rien à corriger.
+   - *Remplacé*, l'ancien n'ayant jamais été supprimé — `IncomingCallOverlay`
+     (les appels entrants passent par CallKit via `NativeCallService`),
+     `StickerPicker` (remplacé par `EmojiStickerPicker`). Du code mort à
+     nettoyer, pas une fonctionnalité manquante.
+   - *Vraiment perdu*, une fonctionnalité écrite qui n'atteint jamais
+     l'utilisateur — `PodcastMiniPlayer` (corrigé ici), `OfflineBanner` et
+     `heritage_library_screen` (corrigés plus tôt), `HomeStatCard` /
+     `HomeMemberCard` / `quick_action_card` (déjà signalés en annexe de 2d).
+   Le signe distinctif du troisième cas : un provider ou un service **vivant**
+   qui alimente le widget dans le vide.
+
+2. **Contrôles morts** — `onTap: () {}` / `onPressed: () {}`. Déjà corrigés :
+   3 des 4 actions de la modération fantôme, la loupe de la liste des salons,
+   les entrées « Modifier » / « Statistiques » de « Mes podcasts ».
+
+   ⚠ **Encore ouverts au 2026-08-03**, trouvés par ce grep et non repérés par
+   l'audit initial :
+   - `audio_room_screen.dart:1122` — pied de page, bouton **⚙ Réglages** ;
+   - `audio_room_screen.dart:1123` — pied de page, bouton **📊 Statistiques** ;
+   - `audio_room_screen.dart:927` — puce du panneau de modération ;
+   - `replay_player_screen.dart:490` — bouton **🪙 Pourboire** du replay,
+     alors que `SendTipBottomSheet` existe et fonctionne ailleurs ;
+   - `internal_ad_card.dart:157` — bouton d'appel à l'action de l'encart
+     publicitaire interne.
+
+   (`group_call_screen.dart:706` est un faux positif : le `onTap` vide y
+   absorbe volontairement les taps sur la modale.)
+
+   Un `grep -rn "onTap: () {}\|onPressed: () {}" lib` est instantané et
+   devrait faire partie de toute revue.
+
 **Polish visuel : fait le 2026-08-03** (commits `polish(...)`). Couvre 3c
 (textes fantôme, 3 cartes, « Avertir l'hôte »), 2a (en-tête + ✕, ordre des
 sections, sous-titres d'interrupteurs, « Programmer »), 2b (introduction,
