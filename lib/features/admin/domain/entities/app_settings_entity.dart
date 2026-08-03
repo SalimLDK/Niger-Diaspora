@@ -664,6 +664,13 @@ class AudioRoomsSettingsEntity extends Equatable {
   final List<String> heritageRegions;
 
   // Commission rates (in percentage)
+  //
+  // ⚠ **Indicatifs — le serveur ne les lit pas.** Les Edge Functions
+  // `process-tip` et `process-room-ticket` prélèvent un `PLATFORM_COMMISSION_RATE`
+  // codé en dur (15 %). Modifier ces valeurs en back-office ne change donc
+  // rien à ce qui est réellement prélevé, tant que les fonctions ne viennent
+  // pas les chercher ici. Les défauts sont alignés sur le taux serveur pour
+  // qu'un administrateur ne se fie pas à un chiffre faux.
   final int ticketCommissionPercent;
   final int tipCommissionPercent;
   final int replayCommissionPercent;
@@ -769,7 +776,9 @@ class AudioRoomsSettingsEntity extends Equatable {
       'Tillabéri',
     ],
     this.ticketCommissionPercent = 15,
-    this.tipCommissionPercent = 20,
+    // 20 % auparavant : aucun taux de ce nom n'existe côté serveur, qui
+    // prélève 15 % sur les pourboires comme sur les billets.
+    this.tipCommissionPercent = 15,
     this.replayCommissionPercent = 15,
     this.subscriptionCommissionPercent = 20,
     this.minTicketPrice = 500,

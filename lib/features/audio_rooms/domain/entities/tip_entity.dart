@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/services/currency_service.dart';
+import '../monetization_rates.dart';
+
 /// Status of a tip
 enum TipStatus {
   /// Payment pending
@@ -56,7 +59,7 @@ class TipEntity extends Equatable {
   /// Stripe Payment Intent ID
   final String? stripePaymentIntentId;
 
-  /// Platform commission amount in cents (20%)
+  /// Platform commission amount in minor units (15%)
   final int commissionAmount;
 
   /// Recipient's net amount in cents
@@ -84,14 +87,22 @@ class TipEntity extends Equatable {
     this.isDisplayed = false,
   });
 
-  /// Calculate commission (20%)
-  static int calculateCommission(int amount) => (amount * 0.20).round();
+  /// Commission de la plateforme (15 %).
+  ///
+  /// Doit rester alignée sur `PLATFORM_COMMISSION_RATE` de l'Edge Function
+  /// `process-tip`, qui fait foi : c'est elle qui calcule et stocke le montant
+  /// réellement prélevé. Cette constante valait 20 % — un taux qui n'existait
+  /// nulle part côté serveur.
+  static int calculateCommission(int amount) =>
+      (amount * kAudioRoomsCommissionRate).round();
 
-  /// Calculate recipient amount (80%)
-  static int calculateRecipientAmount(int amount) => amount - calculateCommission(amount);
+  /// Calculate recipient amount (85%)
+  static int calculateRecipientAmount(int amount) =>
+      amount - calculateCommission(amount);
 
   /// Format amount for display
-  String get formattedAmount => '${(amount / 100).toStringAsFixed(0)} $currency';
+  String get formattedAmount => CurrencyService.instance
+      .formatMinor(amount, CurrencyExtension.fromCode(currency));
 
   /// Predefined tip amounts in XOF
   static const List<int> predefinedAmountsXOF = [500, 1000, 2000, 5000, 10000];

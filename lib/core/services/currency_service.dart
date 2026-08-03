@@ -835,6 +835,33 @@ class CurrencyService {
     return amount * getRate(from, to);
   }
 
+  /// Facteur entre unité mineure et unité d'affichage pour cette devise.
+  ///
+  /// 100 pour l'euro (centimes), **1 pour le FCFA** : XOF et XAF n'ont pas de
+  /// subdivision. Les montants de monétisation sont stockés en unité mineure,
+  /// comme le veut Stripe, et le code divisait partout par 100 en dur — un
+  /// pourboire de 500 FCFA s'affichait donc « 5 FCFA ».
+  static int minorUnitFactor(Currency currency) {
+    var factor = 1;
+    for (var i = 0; i < currency.decimals; i++) {
+      factor *= 10;
+    }
+    return factor;
+  }
+
+  /// Unité mineure (stockage, Stripe) → unité d'affichage.
+  static double toMajor(int minorAmount, Currency currency) =>
+      minorAmount / minorUnitFactor(currency);
+
+  /// Unité d'affichage → unité mineure (stockage, Stripe).
+  static int toMinor(double majorAmount, Currency currency) =>
+      (majorAmount * minorUnitFactor(currency)).round();
+
+  /// Formate un montant donné en unité mineure.
+  String formatMinor(int minorAmount, Currency currency,
+          {bool showSymbol = true}) =>
+      format(toMajor(minorAmount, currency), currency, showSymbol: showSymbol);
+
   /// Format amount with currency symbol
   String format(double amount, Currency currency, {bool showSymbol = true}) {
     final formatted = amount.toStringAsFixed(currency.decimals);

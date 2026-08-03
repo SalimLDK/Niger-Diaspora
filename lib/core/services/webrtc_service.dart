@@ -1891,21 +1891,97 @@ class WebRTCService {
     _isEndingCall = true;
     debugPrint('WebRTCService: Hanging up');
 
-    // Cancel any ongoing reconnection attempt
-    _cancelReconnection();
+    // Tout le corps est encadré : `_isEndingCall` vient d'être posé et le garde
+    // d'entrée rejette tout nouvel appel tant qu'il est vrai. Sans ce
+    // try/finally, la moindre exception en cours de route — fermeture de la
+    // peer connection, dispose du flux, et surtout la suppression RÉSEAU des
+    // données de signalisation en RTDB — laissait le service définitivement
+    // coincé : `_currentCallId` non nul, `_isEndingCall` bloqué à vrai, donc
+    // plus aucun raccrochage possible ET `startCall` qui lève « Already in a
+    // call » pour tous les appels suivants, jusqu'au redémarrage de l'app.
+    try {
+      // Cancel any ongoing reconnection attempt
+      _cancelReconnection();
 
-    // Stop quality monitoring
-    _stopQualityMonitoring();
+      // Stop quality monitoring
+      _stopQualityMonitoring();
 
-    // Cancel subscriptions
-    await _offerSubscription?.cancel();
-    await _answerSubscription?.cancel();
-    await _candidateSubscription?.cancel();
-    await _videoUpgradeSubscription?.cancel();
-    await _renegotiateOfferSubscription?.cancel();
-    await _renegotiateAnswerSubscription?.cancel();
-    await _iceRestartOfferSubscription?.cancel();
-    await _iceRestartAnswerSubscription?.cancel();
+      await _cancelSignalingSubscriptions();
+
+      try {
+        await _peerConnection?.close();
+      } catch (e) {
+        debugPrint('WebRTCService: Error closing peer connection: $e');
+      }
+      _peerConnection = null;
+
+      try {
+        _localStream?.getTracks().forEach((track) {
+          track.stop();
+        });
+        await _localStream?.dispose();
+      } catch (e) {
+        debugPrint('WebRTCService: Error disposing local stream: $e');
+      }
+      _localStream = null;
+
+      // Clear remote stream
+      _remoteStream = null;
+
+      // Clear renderers (may fail if not initialized)
+      try {
+        localRenderer.srcObject = null;
+        remoteRenderer.srcObject = null;
+      } catch (e) {
+        // Ignore - renderers may not be initialized
+      }
+
+      // Nettoyage des données de signalisation : appel réseau, donc borné dans
+      // le temps et best effort. Un RTDB injoignable ne doit pas empêcher la
+      // libération locale — au pire quelques noeuds orphelins restent, que
+      // cleanupStaleCalls balaie.
+      final callId = _currentCallId;
+      if (callId != null) {
+        try {
+          await _database.ref('calls/$callId').remove().timeout(_signalingTimeout);
+        } catch (e) {
+          debugPrint('WebRTCService: Signaling cleanup failed for $callId: $e');
+        }
+      }
+    } finally {
+      // Reset state
+      _currentCallId = null;
+      _isInitiator = false;
+      _isMuted = false;
+      _isCameraOff = false;
+      _isSpeakerOn = true;
+      _isOnHold = false;
+      _videoDisabledDueToNetwork = false;
+      _poorQualityCount = 0;
+      _currentAdaptiveQuality = CallQualityLevel.good;
+      _isEndingCall = false;
+      _isStartingCall = false;
+      _updateConnectionState(WebRTCConnectionState.idle);
+    }
+
+    debugPrint('WebRTCService: Hung up successfully');
+  }
+
+  /// Annule et oublie toutes les souscriptions de signalisation.
+  ///
+  /// Chacune est annulée indépendamment : un échec sur l'une ne doit pas
+  /// laisser les suivantes vivantes et écouter l'appel précédent.
+  Future<void> _cancelSignalingSubscriptions() async {
+    final subscriptions = <StreamSubscription?>[
+      _offerSubscription,
+      _answerSubscription,
+      _candidateSubscription,
+      _videoUpgradeSubscription,
+      _renegotiateOfferSubscription,
+      _renegotiateAnswerSubscription,
+      _iceRestartOfferSubscription,
+      _iceRestartAnswerSubscription,
+    ];
     _offerSubscription = null;
     _answerSubscription = null;
     _candidateSubscription = null;
@@ -1915,48 +1991,13 @@ class WebRTCService {
     _iceRestartOfferSubscription = null;
     _iceRestartAnswerSubscription = null;
 
-    // Close peer connection
-    await _peerConnection?.close();
-    _peerConnection = null;
-
-    // Stop local stream tracks
-    _localStream?.getTracks().forEach((track) {
-      track.stop();
-    });
-    await _localStream?.dispose();
-    _localStream = null;
-
-    // Clear remote stream
-    _remoteStream = null;
-
-    // Clear renderers (may fail if not initialized)
-    try {
-      localRenderer.srcObject = null;
-      remoteRenderer.srcObject = null;
-    } catch (e) {
-      // Ignore - renderers may not be initialized
+    for (final subscription in subscriptions) {
+      try {
+        await subscription?.cancel();
+      } catch (e) {
+        debugPrint('WebRTCService: Error cancelling signaling subscription: $e');
+      }
     }
-
-    // Cleanup Firebase signaling data
-    if (_currentCallId != null) {
-      await _database.ref('calls/$_currentCallId').remove();
-    }
-
-    // Reset state
-    _currentCallId = null;
-    _isInitiator = false;
-    _isMuted = false;
-    _isCameraOff = false;
-    _isSpeakerOn = true;
-    _isOnHold = false;
-    _videoDisabledDueToNetwork = false;
-    _poorQualityCount = 0;
-    _currentAdaptiveQuality = CallQualityLevel.good;
-    _isEndingCall = false;
-    _isStartingCall = false;
-    _updateConnectionState(WebRTCConnectionState.idle);
-
-    debugPrint('WebRTCService: Hung up successfully');
   }
 
   /// Dispose resources

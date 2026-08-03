@@ -7,6 +7,7 @@ import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/audio_room_entity.dart';
+import '../../domain/entities/room_ticket_entity.dart';
 import '../providers/monetization_provider.dart';
 
 /// Bottom sheet for buying a room ticket — Sahel design.
@@ -36,17 +37,24 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
   String _paymentMethod = 'stripe';
   bool _isPurchasing = false;
 
-  double get _price => (widget.room.ticketPrice ?? 0) / 100;
-  double get _commission => _price * 0.05;
-  double get _hostPayout => _price - _commission;
+  /// Prix en **unité mineure**, tel que le stocke l'entité et tel que Stripe
+  /// l'attend. Le `/ 100` d'affichage était faux pour le FCFA, qui n'a pas de
+  /// subdivision : un billet à 5 000 FCFA s'annonçait « 50 FCFA ».
+  int get _priceMinor => widget.room.ticketPrice ?? 0;
+
+  /// Commission réellement prélevée par `process-room-ticket` (15 %). La
+  /// feuille annonçait 5 %, donc « 95 % » à l'hôte, pour un prélèvement réel
+  /// de 15 %.
+  int get _commissionMinor => RoomTicketEntity.calculateCommission(_priceMinor);
+  int get _hostPayoutMinor => _priceMinor - _commissionMinor;
 
   /// Devise réelle du billet : le prix s'affichait en € en dur, y compris pour
   /// un salon facturé en XOF.
   Currency get _currency =>
       CurrencyExtension.fromCode(widget.room.ticketCurrency ?? 'EUR');
 
-  String _money(double amount) =>
-      CurrencyService.instance.format(amount, _currency);
+  String _money(int minorAmount) =>
+      CurrencyService.instance.formatMinor(minorAmount, _currency);
 
   Future<void> _purchase() async {
     setState(() => _isPurchasing = true);
@@ -70,7 +78,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final dn = context.dn;
-    final price = _price;
+    final price = _priceMinor;
     return Container(
       decoration: BoxDecoration(
         color: dn.surface,
@@ -151,7 +159,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
                   children: [
                     Text(l10n.platformCommission,
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
-                    Text('-${_money(_commission)}',
+                    Text('-${_money(_commissionMinor)}',
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
                   ],
                 ),
@@ -160,7 +168,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
                   children: [
                     Text(l10n.hostShareLabel,
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
-                    Text('+${_money(_hostPayout)}',
+                    Text('+${_money(_hostPayoutMinor)}',
                         style: DNText.mono(size: 8, color: DNColors.leaf),),
                   ],
                 ),

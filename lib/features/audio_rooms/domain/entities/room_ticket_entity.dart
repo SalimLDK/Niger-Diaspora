@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/services/currency_service.dart';
+import '../monetization_rates.dart';
+
 /// Status of a room ticket
 enum RoomTicketStatus {
   /// Payment pending
@@ -79,11 +82,14 @@ class RoomTicketEntity extends Equatable {
     required this.sellerAmount,
   });
 
-  /// Calculate commission (15%)
-  static int calculateCommission(int amount) => (amount * 0.15).round();
+  /// Commission de la plateforme (15 %), alignée sur l'Edge Function
+  /// `process-room-ticket`, qui fait foi.
+  static int calculateCommission(int amount) =>
+      (amount * kAudioRoomsCommissionRate).round();
 
   /// Calculate seller amount (85%)
-  static int calculateSellerAmount(int amount) => amount - calculateCommission(amount);
+  static int calculateSellerAmount(int amount) =>
+      amount - calculateCommission(amount);
 
   /// Whether the ticket can be used
   bool get canUse => status == RoomTicketStatus.active;
@@ -92,7 +98,8 @@ class RoomTicketEntity extends Equatable {
   bool get isUsed => status == RoomTicketStatus.used;
 
   /// Format price for display
-  String get formattedPrice => '${(priceAmount / 100).toStringAsFixed(0)} $currency';
+  String get formattedPrice => CurrencyService.instance
+      .formatMinor(priceAmount, CurrencyExtension.fromCode(currency));
 
   RoomTicketEntity copyWith({
     String? id,

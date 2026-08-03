@@ -551,18 +551,42 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       state = state.copyWith(isVideoEnabled: true);
     }
 
-    await webrtc.startCall(
-      callId: callId,
-      isInitiator: isInitiator,
-      enableVideo: enableVideo,
-    );
+    // startCall() relance ses erreurs : micro/caméra refusés, getUserMedia en
+    // timeout, StateError « Already in a call ». Ces appels n'étaient gardés
+    // nulle part — ni ici, ni chez les appelants (l'évènement CallKit `accepted`
+    // lance answerCall() sans await ni catch). L'échec partait donc en
+    // exception non capturée et laissait l'utilisateur sur « Connexion… »
+    // jusqu'à ce que le timeout de 30 ou 45 s finisse par retomber dessus.
+    // On échoue franchement et tout de suite à la place.
+    try {
+      await webrtc.startCall(
+        callId: callId,
+        isInitiator: isInitiator,
+        enableVideo: enableVideo,
+      );
+    } catch (e) {
+      debugPrint('CurrentCallNotifier: démarrage WebRTC échoué: $e');
+      final message = e is TimeoutException
+          ? 'Micro ou caméra inaccessible'
+          : 'Impossible d\'établir la connexion';
+      await endCall(reason: 'webrtc_start_failed');
+      // Le motif se pose APRÈS endCall : celui-ci passe par _resetState(), qui
+      // remet un CurrentCallState vierge et effacerait l'erreur posée avant.
+      state = state.copyWith(error: message, errorCode: 'webrtc_start_failed');
+      return;
+    }
 
     // Initialize audio route:
     // - Video calls: speaker ON (so both can see and hear clearly)
     // - Audio calls: earpiece (prevents Larsen effect when devices are close)
     final useSpeaker = enableVideo;
-    await webrtc.setSpeakerEnabled(useSpeaker);
-    state = state.copyWith(isSpeakerOn: useSpeaker);
+    try {
+      await webrtc.setSpeakerEnabled(useSpeaker);
+      state = state.copyWith(isSpeakerOn: useSpeaker);
+    } catch (e) {
+      // Le routage audio est un confort : son échec ne doit pas couper l'appel.
+      debugPrint('CurrentCallNotifier: routage audio échoué: $e');
+    }
   }
 
   /// Called when WebRTC connection is established

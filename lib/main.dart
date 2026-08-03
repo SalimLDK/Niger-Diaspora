@@ -68,8 +68,20 @@ void main() async {
   await EncryptionService.instance.initialize();
 
   // Initialize Stripe for payments (skip on web as flutter_stripe is not web-compatible)
+  //
+  // Isolé dans un try/catch : StripeService.initialize() relance ses erreurs, et
+  // cet await n'était pas gardé. Un échec du SDK natif (constaté sur appareil :
+  // « PlatformException(flutter_stripe initialization failed) ») interrompait
+  // donc TOUT le reste de main() — App Check, les handlers Crashlytics, Google
+  // Maps — pour une fonctionnalité optionnelle. Le paiement ne dépend pas de
+  // cette initialisation précoce : processPayment() réinitialise le SDK à la
+  // demande via validateConfiguration().
   if (!kIsWeb) {
-    await StripeService.instance.initialize();
+    try {
+      await StripeService.instance.initialize();
+    } catch (e) {
+      debugPrint('main: initialisation Stripe échouée, paiements différés: $e');
+    }
   }
 
   // Initialize Google Maps renderer FIRST (fixes visual glitches)

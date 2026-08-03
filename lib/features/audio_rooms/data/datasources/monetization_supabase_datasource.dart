@@ -26,8 +26,11 @@ class MonetizationSupabaseDataSource implements MonetizationRemoteDataSource {
     required String currency,
   }) async {
     try {
+      // Le nom invoqué était `purchase-room-ticket`, la fonction déployée
+      // s'appelle `process-room-ticket` : l'appel partait en 404 et aucun
+      // achat de billet n'a jamais pu aboutir.
       final response = await _supabase.functions.invoke(
-        'purchase-room-ticket',
+        'process-room-ticket',
         body: {
           'room_id': roomId,
           'room_title': roomTitle,
@@ -135,8 +138,9 @@ class MonetizationSupabaseDataSource implements MonetizationRemoteDataSource {
     String? message,
   }) async {
     try {
+      // Idem : `send-tip` n'existe pas, la fonction déployée est `process-tip`.
       final response = await _supabase.functions.invoke(
-        'send-tip',
+        'process-tip',
         body: {
           'room_id': roomId,
           'recipient_id': recipientId,

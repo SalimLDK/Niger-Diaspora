@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/services/currency_service.dart';
+
 /// Status of a creator subscription
 enum CreatorSubscriptionStatus {
   /// Subscription is active
@@ -99,7 +101,13 @@ class CreatorSubscriptionEntity extends Equatable {
     this.monthsSubscribed = 0,
   });
 
-  /// Calculate commission (20%)
+  /// Commission de la plateforme sur un abonnement créateur (20 %).
+  ///
+  /// ⚠ **Volontairement laissée à 20 %, contrairement aux 15 % des salons.**
+  /// Aucune Edge Function ne traite les abonnements : il n'existe aucun taux
+  /// serveur qui ferait foi ici, et l'écart peut être délibéré (économie
+  /// différente sur du revenu récurrent). À confirmer au moment d'écrire le
+  /// backend — l'aligner d'office aurait été inventer une règle métier.
   static int calculateCommission(int amount) => (amount * 0.20).round();
 
   /// Calculate creator amount (80%)
@@ -121,7 +129,8 @@ class CreatorSubscriptionEntity extends Equatable {
   }
 
   /// Format price for display
-  String get formattedPrice => '${(monthlyPrice / 100).toStringAsFixed(0)} $currency/mois';
+  String get formattedPrice =>
+      '${CurrencyService.instance.formatMinor(monthlyPrice, CurrencyExtension.fromCode(currency))}/mois';
 
   /// Suggested subscription prices in XOF
   static const List<int> suggestedPricesXOF = [1000, 2000, 5000, 10000];

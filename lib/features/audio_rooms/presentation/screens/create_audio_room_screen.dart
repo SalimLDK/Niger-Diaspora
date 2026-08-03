@@ -7,6 +7,7 @@ import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/audio_room_entity.dart';
+import '../../domain/monetization_rates.dart';
 import '../providers/audio_room_provider.dart';
 import '../widgets/content_pickers.dart';
 
@@ -257,8 +258,12 @@ class _CreateAudioRoomScreenState
                             : null,
                       ),
                       const SizedBox(height: 6),
+                      // Le taux annoncé à l'hôte doit être celui que la
+                      // plateforme prélève réellement : « ~95% » était écrit
+                      // en dur alors que `process-room-ticket` retient 15 %.
                       Text(
-                        'Estimation reversée : ~95% après commission',
+                        'Estimation reversée : ~$kAudioRoomsCreatorSharePercent% '
+                        'après commission',
                         style: DNText.mono(size: 8, color: DNColors.leaf),
                       ),
                     ],

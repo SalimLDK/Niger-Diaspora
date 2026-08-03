@@ -9,12 +9,6 @@ const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
 // Platform commission rate: 15%
 const PLATFORM_COMMISSION_RATE = 0.15
 
-// Currencies where amount is NOT multiplied by 100 (XOF = Franc CFA)
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  'bif', 'clp', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg',
-  'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf',
-])
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders() })
@@ -46,8 +40,13 @@ Deno.serve(async (req) => {
     // Input validation
     if (!room_id) return errorResponse(400, 'room_id is required')
     if (!seller_id) return errorResponse(400, 'seller_id is required')
-    if (!price_amount || typeof price_amount !== 'number' || price_amount <= 0) {
-      return errorResponse(400, 'price_amount must be a positive number')
+    // `price_amount` est en UNITÉ MINEURE (centimes pour EUR, francs entiers
+    // pour XOF) — convention Stripe et convention des entités Dart. La
+    // fonction attendait des unités majeures et multipliait par 100 : le
+    // client envoyant déjà des centimes, le billet aurait été facturé 100
+    // fois trop cher.
+    if (!Number.isInteger(price_amount) || price_amount <= 0) {
+      return errorResponse(400, 'price_amount must be a positive integer in minor units')
     }
     if (!currency) return errorResponse(400, 'currency is required')
     if (seller_id === user.id) {
@@ -104,16 +103,15 @@ Deno.serve(async (req) => {
       return errorResponse(400, 'Seller payment account is not active')
     }
 
-    // Calculate commission amounts
-    const commissionAmount = Math.round(price_amount * PLATFORM_COMMISSION_RATE * 100) / 100
-    const sellerAmount = Math.round((price_amount - commissionAmount) * 100) / 100
+    // Commission en unité mineure elle aussi : le montant reste entier, ce que
+    // le client relit en `int`. L'ancien calcul produisait un décimal que le
+    // cast Dart `as int?` faisait retomber à 0.
+    const commissionAmount = Math.round(price_amount * PLATFORM_COMMISSION_RATE)
+    const sellerAmount = price_amount - commissionAmount
 
-    // Convert to Stripe amount units
-    const isZeroDecimal = ZERO_DECIMAL_CURRENCIES.has(normalizedCurrency)
-    const stripeAmount = isZeroDecimal ? Math.round(price_amount) : Math.round(price_amount * 100)
-    const stripeSellerAmount = isZeroDecimal
-      ? Math.round(sellerAmount)
-      : Math.round(sellerAmount * 100)
+    // Stripe attend déjà l'unité mineure : plus aucune conversion ici.
+    const stripeAmount = price_amount
+    const stripeSellerAmount = sellerAmount
 
     // Insert ticket record (pending)
     const { data: ticket, error: ticketInsertError } = await serviceSupabase

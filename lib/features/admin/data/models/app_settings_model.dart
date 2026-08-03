@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/app_settings_entity.dart';
+import 'audio_rooms_settings_model.dart';
 
 /// Model for app settings with Firebase serialization
 class AppSettingsModel {
@@ -12,6 +13,12 @@ class AppSettingsModel {
   final SystemIntervalsModel intervals;
   final SystemUrlsModel urls;
   final FeatureFlagsModel featureFlags;
+
+  /// Réglages des salons audio. Ce champ manquait : l'entité correspondante
+  /// était consommée par l'app mais jamais désérialisée, donc figée sur ses
+  /// valeurs par défaut.
+  final AudioRoomsSettingsEntity audioRooms;
+
   final DateTime? lastUpdated;
   final String? updatedBy;
 
@@ -25,6 +32,7 @@ class AppSettingsModel {
     SystemIntervalsModel? intervals,
     SystemUrlsModel? urls,
     FeatureFlagsModel? featureFlags,
+    AudioRoomsSettingsEntity? audioRooms,
     this.lastUpdated,
     this.updatedBy,
   }) : fees = fees ?? FeeSettingsModel(),
@@ -35,7 +43,8 @@ class AppSettingsModel {
        validation = validation ?? ValidationRulesModel(),
        intervals = intervals ?? SystemIntervalsModel(),
        urls = urls ?? SystemUrlsModel(),
-       featureFlags = featureFlags ?? FeatureFlagsModel();
+       featureFlags = featureFlags ?? FeatureFlagsModel(),
+       audioRooms = audioRooms ?? const AudioRoomsSettingsEntity();
 
   factory AppSettingsModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
@@ -92,6 +101,12 @@ class AppSettingsModel {
                 json['featureFlags'] as Map<String, dynamic>,
               )
               : null,
+      audioRooms:
+          json['audioRooms'] != null
+              ? AudioRoomsSettingsModel.fromJson(
+                json['audioRooms'] as Map<String, dynamic>,
+              )
+              : null,
       lastUpdated:
           json['lastUpdated'] is Timestamp
               ? (json['lastUpdated'] as Timestamp).toDate()
@@ -110,6 +125,7 @@ class AppSettingsModel {
     'intervals': intervals.toJson(),
     'urls': urls.toJson(),
     'featureFlags': featureFlags.toJson(),
+    'audioRooms': AudioRoomsSettingsModel.toJson(audioRooms),
     'lastUpdated':
         lastUpdated != null
             ? Timestamp.fromDate(lastUpdated!)
@@ -127,6 +143,7 @@ class AppSettingsModel {
     intervals: intervals.toEntity(),
     urls: urls.toEntity(),
     featureFlags: featureFlags.toEntity(),
+    audioRooms: audioRooms,
     lastUpdated: lastUpdated,
     updatedBy: updatedBy,
   );
@@ -142,6 +159,7 @@ class AppSettingsModel {
         intervals: SystemIntervalsModel.fromEntity(entity.intervals),
         urls: SystemUrlsModel.fromEntity(entity.urls),
         featureFlags: FeatureFlagsModel.fromEntity(entity.featureFlags),
+        audioRooms: entity.audioRooms,
         lastUpdated: entity.lastUpdated,
         updatedBy: entity.updatedBy,
       );

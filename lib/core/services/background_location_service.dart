@@ -11,6 +11,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../firebase_options.dart';
 
+/// Service de localisation en arrière-plan.
+///
+/// La CLASSE doit porter `@pragma('vm:entry-point')`, pas seulement ses
+/// méthodes statiques : quand le code natif résout `onStart` /
+/// `onIosBackground` comme point d'entrée d'isolate, il passe d'abord par la
+/// classe englobante. Sans l'annotation ici, le VM refusait au démarrage avec
+/// « To access '...::BackgroundLocationService' from native code, it must be
+/// annotated » — le service ne pouvait jamais démarrer.
+@pragma('vm:entry-point')
 class BackgroundLocationService {
   static const String notificationChannelId = 'background_location_channel';
   static const String notificationChannelName = 'Diaspo Niger Location Service';

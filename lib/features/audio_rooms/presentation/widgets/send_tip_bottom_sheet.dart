@@ -7,6 +7,8 @@ import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/participant_entity.dart';
+import '../../domain/entities/tip_entity.dart';
+import '../../domain/monetization_rates.dart';
 import '../providers/monetization_provider.dart';
 import '../widgets/_shared/tip_coin_animation.dart';
 
@@ -54,22 +56,42 @@ class SendTipBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
-  static const _amounts = [1.0, 2.0, 5.0, 10.0, 20.0, 50.0];
-  double _selected = 5.0;
+  /// Montant retenu, en **unité mineure** — comme le stockent les entités et
+  /// comme l'attend Stripe. La feuille travaillait en unités majeures et
+  /// multipliait par 100 à l'envoi, ce qui faisait d'un don de 500 FCFA un
+  /// don de 50 000 : le FCFA n'a pas de subdivision.
+  int? _selectedMinor;
+
   final _msgCtrl = TextEditingController();
   bool _isSending = false;
 
-  double get _platformFee => _selected * 0.05;
-  double get _recipientGets => _selected - _platformFee;
-
-  /// Part réellement perçue, calculée plutôt que codée en dur à « 95 % ».
-  int get _recipientSharePercent =>
-      _selected == 0 ? 0 : ((_recipientGets / _selected) * 100).round();
-
   Currency get _currency => CurrencyExtension.fromCode(widget.currency);
 
-  String _money(double amount) =>
-      CurrencyService.instance.format(amount, _currency);
+  /// Montants proposés : ceux des réglages d'administration
+  /// (`getPredefinedTipAmounts`), plus une repli par devise si les réglages ne
+  /// sont pas chargés. La feuille imposait une échelle en euros codée en dur.
+  List<int> get _amounts =>
+      ref.watch(predefinedTipAmountsProvider(widget.currency));
+
+  /// Montant retenu. `_selectedOrFirst` est aussi lu depuis `_send()`, hors
+  /// `build` : la liste y est relue avec `ref.read`, un `ref.watch` hors build
+  /// levant une assertion Riverpod.
+  int get _selectedOrFirst {
+    if (_selectedMinor != null) return _selectedMinor!;
+    final amounts = ref.read(predefinedTipAmountsProvider(widget.currency));
+    return amounts.isEmpty ? 0 : amounts[amounts.length ~/ 2];
+  }
+
+  /// Commission réellement prélevée par `process-tip` (15 %). La feuille
+  /// annonçait 5 %, donc « 95 % » au destinataire, pour un prélèvement réel
+  /// de 15 %.
+  int get _platformFeeMinor => TipEntity.calculateCommission(_selectedOrFirst);
+  int get _recipientGetsMinor => _selectedOrFirst - _platformFeeMinor;
+
+  int get _recipientSharePercent => kAudioRoomsCreatorSharePercent;
+
+  String _money(int minorAmount) =>
+      CurrencyService.instance.formatMinor(minorAmount, _currency);
 
   @override
   void dispose() {
@@ -86,7 +108,7 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
             roomId: widget.roomId,
             recipientId: widget.recipient.userId,
             recipientName: widget.recipient.userName,
-            amount: (_selected * 100).round(),
+            amount: _selectedOrFirst,
             currency: widget.currency,
             message: _msgCtrl.text.trim().isNotEmpty ? _msgCtrl.text.trim() : null,
           );
@@ -180,9 +202,9 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
                 children: _amounts.map((amt) {
-                  final active = _selected == amt;
+                  final active = _selectedOrFirst == amt;
                   return GestureDetector(
-                    onTap: () => setState(() => _selected = amt),
+                    onTap: () => setState(() => _selectedMinor = amt),
                     child: Container(
                       decoration: BoxDecoration(
                         color: active ? DNColors.ochre : dn.surface2,
@@ -247,7 +269,7 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                           style: DNText.mono(size: 9, color: dn.onSurface3),
                         ),
                         Text(
-                          _money(_selected),
+                          _money(_selectedOrFirst),
                           style: DNText.mono(size: 9, color: dn.onSurface),
                         ),
                       ],
@@ -266,7 +288,7 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${_money(_recipientGets)} ($_recipientSharePercent%)',
+                          '${_money(_recipientGetsMinor)} ($_recipientSharePercent%)',
                           style: DNText.mono(size: 9, color: DNColors.leaf),
                         ),
                       ],
@@ -294,7 +316,7 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                             color: Colors.white, strokeWidth: 2,),
                       )
                     : Text(
-                        '🪙 ${l10n.sendTipSend(_money(_selected))}',
+                        '🪙 ${l10n.sendTipSend(_money(_selectedOrFirst))}',
                         style: DNText.sans(
                             size: 15,
                             w: FontWeight.w600,

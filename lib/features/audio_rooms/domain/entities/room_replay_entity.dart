@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/services/currency_service.dart';
+import '../monetization_rates.dart';
+
 /// Status of a room replay
 enum RoomReplayStatus {
   /// Recording in progress
@@ -146,11 +149,19 @@ class RoomReplayEntity extends Equatable {
     this.chapters = const [],
   });
 
-  /// Calculate commission (15%)
-  static int calculateCommission(int amount) => (amount * 0.15).round();
+  /// Commission de la plateforme (15 %).
+  ///
+  /// ⚠ Aucun chemin de paiement serveur n'existe pour les replays payants :
+  /// contrairement aux pourboires et aux billets, il n'y a pas d'Edge
+  /// Function correspondante. Ce taux n'est donc prélevé nulle part — il est
+  /// aligné sur celui des salons pour rester cohérent le jour où le backend
+  /// sera écrit.
+  static int calculateCommission(int amount) =>
+      (amount * kAudioRoomsCommissionRate).round();
 
   /// Calculate host amount (85%)
-  static int calculateHostAmount(int amount) => amount - calculateCommission(amount);
+  static int calculateHostAmount(int amount) =>
+      amount - calculateCommission(amount);
 
   /// Whether the replay is free
   bool get isFree => price == 0;
@@ -165,7 +176,10 @@ class RoomReplayEntity extends Equatable {
   bool canAccess(String userId) => hostId == userId || hasPurchased(userId) || isFree;
 
   /// Format price for display
-  String get formattedPrice => isFree ? 'Gratuit' : '${(price / 100).toStringAsFixed(0)} $currency';
+  String get formattedPrice => isFree
+      ? 'Gratuit'
+      : CurrencyService.instance
+          .formatMinor(price, CurrencyExtension.fromCode(currency));
 
   /// Format duration for display (HH:MM:SS or MM:SS)
   String get formattedDuration {

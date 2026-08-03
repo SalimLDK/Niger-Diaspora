@@ -9,12 +9,6 @@ const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
 // Platform commission rate: 15%
 const PLATFORM_COMMISSION_RATE = 0.15
 
-// Currencies where amount is NOT multiplied by 100 (XOF = Franc CFA)
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  'bif', 'clp', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg',
-  'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf',
-])
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders() })
@@ -46,8 +40,13 @@ Deno.serve(async (req) => {
     // Input validation
     if (!room_id) return errorResponse(400, 'room_id is required')
     if (!recipient_id) return errorResponse(400, 'recipient_id is required')
-    if (!amount || typeof amount !== 'number' || amount <= 0) {
-      return errorResponse(400, 'amount must be a positive number')
+    // `amount` est en UNITÉ MINEURE (centimes pour EUR, francs entiers pour
+    // XOF qui n'a pas de subdivision) — la convention Stripe, et celle des
+    // entités Dart. La fonction attendait auparavant des unités majeures et
+    // multipliait elle-même par 100 : le client envoyant déjà des centimes,
+    // tout montant aurait été facturé 100 fois trop cher.
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return errorResponse(400, 'amount must be a positive integer in minor units')
     }
     if (!currency) return errorResponse(400, 'currency is required')
     if (recipient_id === user.id) {
@@ -85,17 +84,16 @@ Deno.serve(async (req) => {
       return errorResponse(400, 'Recipient payment account is not active')
     }
 
-    // Calculate commission amounts
+    // Commission, en unité mineure elle aussi : le montant reste entier, ce
+    // que le client relit en `int`. L'ancien calcul produisait un décimal
+    // (0.75) que le cast Dart `as int?` faisait retomber à 0.
     const normalizedCurrency = currency.toLowerCase()
-    const commissionAmount = Math.round(amount * PLATFORM_COMMISSION_RATE * 100) / 100
-    const recipientAmount = Math.round((amount - commissionAmount) * 100) / 100
+    const commissionAmount = Math.round(amount * PLATFORM_COMMISSION_RATE)
+    const recipientAmount = amount - commissionAmount
 
-    // Convert to Stripe amount units
-    const isZeroDecimal = ZERO_DECIMAL_CURRENCIES.has(normalizedCurrency)
-    const stripeAmount = isZeroDecimal ? Math.round(amount) : Math.round(amount * 100)
-    const stripeRecipientAmount = isZeroDecimal
-      ? Math.round(recipientAmount)
-      : Math.round(recipientAmount * 100)
+    // Stripe attend déjà l'unité mineure : plus aucune conversion ici.
+    const stripeAmount = amount
+    const stripeRecipientAmount = recipientAmount
 
     // Create a tip record first (pending) so we have the ID for idempotency
     const { data: tip, error: tipInsertError } = await serviceSupabase
