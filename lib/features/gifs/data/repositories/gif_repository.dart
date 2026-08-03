@@ -1,19 +1,19 @@
-﻿import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/gif_entity.dart';
 import '../datasources/gif_remote_datasource.dart';
 
-/// Agr├¿ge les fournisseurs de GIFs derri├¿re une seule API.
+/// Agrège les fournisseurs de GIFs derrière une seule API.
 ///
-/// Les sources sont interrog├®es dans l'ordre fourni (Tenor puis Giphy) : la
-/// premi├¿re configur├®e qui r├®pond gagne. Si elle ├®choue (r├®seau, quota, cl├®
-/// invalide), on bascule silencieusement sur la suivante ÔÇö l'utilisateur voit
-/// des GIFs tant qu'au moins un fournisseur r├®pond.
+/// Les sources sont interrogées dans l'ordre fourni (Tenor puis Giphy) : la
+/// première configurée qui répond gagne. Si elle échoue (réseau, quota, clé
+/// invalide), on bascule silencieusement sur la suivante — l'utilisateur voit
+/// des GIFs tant qu'au moins un fournisseur répond.
 class GifRepository {
   final List<GifRemoteDataSource> _sources;
 
   GifRepository(this._sources);
 
-  /// True si au moins un fournisseur a une cl├® API.
+  /// True si au moins un fournisseur a une clé API.
   bool get isConfigured => _sources.any((s) => s.isConfigured);
 
   Future<List<GifEntity>> trending({
@@ -43,7 +43,7 @@ class GifRepository {
     final configured = _sources.where((s) => s.isConfigured).toList();
     if (configured.isEmpty) {
       throw ServerException(
-        'Aucun fournisseur de GIFs configur├® (TENOR_API_KEY ou GIPHY_API_KEY)',
+        'Aucun fournisseur de GIFs configuré (TENOR_API_KEY ou GIPHY_API_KEY)',
       );
     }
 

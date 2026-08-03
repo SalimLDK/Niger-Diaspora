@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -140,7 +140,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible de cr├®er le sondage')),
+        const SnackBar(content: Text('Impossible de créer le sondage')),
       );
     }
   }
@@ -169,7 +169,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                   const AppIcon(AppIcon.poll, size: 20, color: _pollAccent),
                   const SizedBox(width: 8),
                   Text(
-                    'Cr├®er un sondage',
+                    'Créer un sondage',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -228,7 +228,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Dur├®e du sondage',
+                'Durée du sondage',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -242,7 +242,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                   _durationChip('24h', const Duration(hours: 24)),
                   _durationChip('3 jours', const Duration(days: 3)),
                   _durationChip('7 jours', const Duration(days: 7)),
-                  _durationChip('Illimit├®', null),
+                  _durationChip('Illimité', null),
                 ],
               ),
               const SizedBox(height: 20),

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,8 +45,8 @@ class StickerSupabaseDataSource {
     }).toEntity();
   }
 
-  /// Attache ├á chaque pack ses stickers. Les stickers de tous les packs sont
-  /// charg├®s en une seule requ├¬te (et non une par pack) pour ├®viter le N+1.
+  /// Attache à chaque pack ses stickers. Les stickers de tous les packs sont
+  /// chargés en une seule requête (et non une par pack) pour éviter le N+1.
   Future<List<StickerPackEntity>> _attachStickers(
     List<Map<String, dynamic>> packRows,
   ) async {
@@ -76,7 +76,7 @@ class StickerSupabaseDataSource {
 
   // ============ Sticker Packs ============
 
-  /// Stickers d'un pack donn├®, tri├®s par `sort_order`.
+  /// Stickers d'un pack donné, triés par `sort_order`.
   Future<List<StickerEntity>> getStickersByPack(String packId) async {
     final rows = await _supabase
         .from('stickers')
@@ -351,7 +351,7 @@ class StickerSupabaseDataSource {
     return controller.stream;
   }
 
-  /// Toggle sticker as favorite ÔÇö returns true if added, false if removed
+  /// Toggle sticker as favorite — returns true if added, false if removed
   Future<bool> toggleFavorite(String userId, StickerEntity sticker) async {
     final existing = await _supabase
         .from('user_favorite_stickers')
@@ -410,7 +410,7 @@ class StickerSupabaseDataSource {
     );
   }
 
-  /// Not implemented ÔÇö see [createStickerPack].
+  /// Not implemented — see [createStickerPack].
   Future<String> uploadStickerFile({
     required String packId,
     required String fileName,

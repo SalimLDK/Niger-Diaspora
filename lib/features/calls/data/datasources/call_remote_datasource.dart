@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
@@ -323,7 +323,7 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
 
   @override
   Stream<CallModel?> getActiveCallStream(String userId) {
-    // Firestore rules require callerId or calleeId filter ÔÇö a bare status query
+    // Firestore rules require callerId or calleeId filter — a bare status query
     // is denied because the rule checks resource.data fields at list time.
     // Use two separate queries and merge them.
     final activeStatuses = ['ringing', 'connecting', 'connected'];

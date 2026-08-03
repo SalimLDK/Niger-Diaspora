@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 import '../../l10n/app_localizations.dart';
 import 'failures.dart';
 
-/// Classe utilitaire pour convertir les Failures en messages user-friendly localis├®s
+/// Classe utilitaire pour convertir les Failures en messages user-friendly localisés
 class FailureMapper {
-  /// Convertit un Failure en message user-friendly localis├®
+  /// Convertit un Failure en message user-friendly localisé
   static String toUserFriendlyMessage(Failure failure, BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -13,7 +13,7 @@ class FailureMapper {
       CacheFailure() => l10n.errorCache,
       AuthFailure() => l10n.errorAuth,
       ServerFailure() => _mapServerFailure(failure, l10n),
-      ValidationFailure() => failure.message, // Messages de validation d├®j├á user-friendly
+      ValidationFailure() => failure.message, // Messages de validation déjà user-friendly
       _ => l10n.errorUnknown,
     };
   }
@@ -23,7 +23,7 @@ class FailureMapper {
     final l10n = AppLocalizations.of(context)!;
     final lowerMsg = technicalMessage.toLowerCase();
 
-    // Erreurs r├®seau
+    // Erreurs réseau
     if (lowerMsg.contains('socketexception') ||
         lowerMsg.contains('no internet') ||
         lowerMsg.contains('connection') ||
@@ -52,7 +52,7 @@ class FailureMapper {
       return l10n.errorCache;
     }
 
-    // Si le message est d├®j├á en fran├ºais et lisible, le garder
+    // Si le message est déjà en français et lisible, le garder
     if (_isUserFriendlyMessage(technicalMessage)) {
       return technicalMessage;
     }
@@ -63,7 +63,7 @@ class FailureMapper {
   static String _mapServerFailure(ServerFailure failure, AppLocalizations l10n) {
     final msg = failure.message.toLowerCase();
 
-    // Mapper les messages techniques courants vers les messages localis├®s
+    // Mapper les messages techniques courants vers les messages localisés
     if (msg.contains('network') || msg.contains('connexion')) {
       return l10n.errorNetwork;
     }
@@ -74,7 +74,7 @@ class FailureMapper {
       return l10n.errorAuth;
     }
 
-    // Si le message semble d├®j├á user-friendly (pas de termes techniques), le garder
+    // Si le message semble déjà user-friendly (pas de termes techniques), le garder
     if (_isUserFriendlyMessage(failure.message)) {
       return failure.message;
     }
@@ -82,7 +82,7 @@ class FailureMapper {
     return l10n.errorServer;
   }
 
-  /// V├®rifie si un message est d├®j├á user-friendly (pas de jargon technique)
+  /// Vérifie si un message est déjà user-friendly (pas de jargon technique)
   static bool _isUserFriendlyMessage(String message) {
     final technicalTerms = [
       'exception',
@@ -109,8 +109,8 @@ class FailureMapper {
       }
     }
 
-    // Un message user-friendly commence g├®n├®ralement par une majuscule
-    // et ne contient pas de caract├¿res techniques comme {}[]
+    // Un message user-friendly commence généralement par une majuscule
+    // et ne contient pas de caractères techniques comme {}[]
     return !message.contains('{') &&
            !message.contains('[') &&
            !message.contains('Exception');

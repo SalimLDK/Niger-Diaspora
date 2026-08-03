@@ -1,14 +1,14 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
-/// Ouvre le sheet de composition d'un ┬½ brouillon de sondage ┬╗ pour ┬½ Mes notes ┬╗.
+/// Ouvre le sheet de composition d'un « brouillon de sondage » pour « Mes notes ».
 ///
-/// Ne cr├®e AUCUN sondage votable : renvoie simplement une note texte structur├®e
-/// (question + options), ├á recopier/publier ailleurs. Retourne `null` si annul├®.
+/// Ne crée AUCUN sondage votable : renvoie simplement une note texte structurée
+/// (question + options), à recopier/publier ailleurs. Retourne `null` si annulé.
 Future<String?> showNotePollDraftSheet(BuildContext context) {
   return showModalBottomSheet<String>(
     context: context,
@@ -61,7 +61,7 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
     return filled >= 2;
   }
 
-  /// Construit la note texte structur├®e ├á partir de la question et des options.
+  /// Construit la note texte structurée à partir de la question et des options.
   String _buildDraft() {
     final question = _questionController.text.trim();
     final options = _optionControllers
@@ -70,11 +70,11 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
         .toList();
 
     final buffer = StringBuffer()
-      ..writeln('­ƒôè Sondage (brouillon)')
+      ..writeln('📊 Sondage (brouillon)')
       ..writeln(question)
       ..writeln();
     for (final option in options) {
-      buffer.writeln('Ôù╗´©Å $option');
+      buffer.writeln('◻️ $option');
     }
     return buffer.toString().trimRight();
   }
@@ -119,7 +119,7 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Enregistr├® comme note. Pas de vote ÔÇö ├á recopier ou publier ailleurs.',
+                  'Enregistré comme note. Pas de vote — à recopier ou publier ailleurs.',
                   style: TextStyle(
                     fontSize: 12,
                     color: context.textSecondaryColor,

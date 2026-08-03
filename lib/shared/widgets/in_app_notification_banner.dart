@@ -8,7 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
-/// Donn├®es d'une notification in-app
+/// Données d'une notification in-app
 class InAppNotificationData {
   final String id;
   final String senderName;
@@ -51,7 +51,7 @@ class InAppNotificationData {
 }
 
 /// Widget banner de notification in-app style WhatsApp/Messenger
-/// Glisse depuis le haut, reste visible ~4 secondes, peut ├¬tre swip├® pour dismiss
+/// Glisse depuis le haut, reste visible ~4 secondes, peut être swipé pour dismiss
 class InAppNotificationBanner extends StatefulWidget {
   final InAppNotificationData notification;
   final VoidCallback onTap;
@@ -103,10 +103,10 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    // D├®marrer l'animation d'entr├®e
+    // Démarrer l'animation d'entrée
     _animationController.forward();
 
-    // Feedback haptique l├®ger
+    // Feedback haptique léger
     if (widget.vibrate) {
       HapticFeedback.lightImpact();
     }
@@ -249,10 +249,10 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
                                 ),
                                 const SizedBox(height: 4),
 
-                                // Aper├ºu du message
+                                // Aperçu du message
                                 Row(
                                   children: [
-                                    // En groupe, afficher le nom de l'exp├®diteur
+                                    // En groupe, afficher le nom de l'expéditeur
                                     if (notification.isGroup) ...[
                                       Text(
                                         '${notification.senderName}: ',

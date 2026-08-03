@@ -1,11 +1,11 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/gif_entity.dart';
 import 'gif_remote_datasource.dart';
 
-/// Fournisseur Giphy ÔÇö API v1. Utilis├® en repli de [TenorDataSource].
+/// Fournisseur Giphy — API v1. Utilisé en repli de [TenorDataSource].
 ///
 /// Docs : https://developers.giphy.com/docs/api/endpoint
 class GiphyDataSource implements GifRemoteDataSource {
@@ -62,7 +62,7 @@ class GiphyDataSource implements GifRemoteDataSource {
     Map<String, dynamic> extraQuery = const {},
   }) async {
     if (!isConfigured) {
-      throw ServerException('Cl├® API Giphy absente (GIPHY_API_KEY)');
+      throw ServerException('Clé API Giphy absente (GIPHY_API_KEY)');
     }
 
     try {
@@ -97,7 +97,7 @@ class GiphyDataSource implements GifRemoteDataSource {
     final previewUrl = preview?['url'] as String?;
     if (fullUrl == null || previewUrl == null) return null;
 
-    // Giphy renvoie les dimensions sous forme de cha├«nes.
+    // Giphy renvoie les dimensions sous forme de chaînes.
     final width = double.tryParse(full?['width']?.toString() ?? '');
     final height = double.tryParse(full?['height']?.toString() ?? '');
     final aspectRatio =

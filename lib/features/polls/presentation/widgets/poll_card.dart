@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -204,9 +204,9 @@ class _PollCardState extends ConsumerState<PollCard> {
                 style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
               ),
               if (poll.isExpired) ...[
-                const Text(' ┬À '),
+                const Text(' · '),
                 Text(
-                  'Termin├®',
+                  'Terminé',
                   style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
                 ),
               ],
@@ -225,7 +225,7 @@ class _PollCardState extends ConsumerState<PollCard> {
               else
                 TextButton(
                   onPressed: () => context.push('/polls/${poll.id}/results'),
-                  child: const Text('Voir les r├®sultats'),
+                  child: const Text('Voir les résultats'),
                 ),
             ],
           ),

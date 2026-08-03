@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +41,7 @@ class _ForwardConversationPickerState
   String _searchQuery = '';
   bool _isSending = false;
 
-  // Pour la s├®lection multiple
+  // Pour la sélection multiple
   final Set<String> _selectedConversationIds = {};
   bool _isSelectionMode = false;
 
@@ -80,7 +80,7 @@ class _ForwardConversationPickerState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Transf├®rer ├á...',
+                        'Transférer à...',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -89,7 +89,7 @@ class _ForwardConversationPickerState
                       ),
                       Text(
                         isMultiSelectMode
-                            ? 'S├®lectionnez les conversations'
+                            ? 'Sélectionnez les conversations'
                             : 'Appuyez pour envoyer',
                         style: TextStyle(
                           fontSize: 11,
@@ -121,7 +121,7 @@ class _ForwardConversationPickerState
                     ),
                   ),
                 const SizedBox(width: 8),
-                // Bouton S├®lectionner / Annuler
+                // Bouton Sélectionner / Annuler
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -204,7 +204,7 @@ class _ForwardConversationPickerState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${_selectedConversationIds.length} conversation(s) s├®lectionn├®e(s)',
+                    '${_selectedConversationIds.length} conversation(s) sélectionnée(s)',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -220,7 +220,7 @@ class _ForwardConversationPickerState
                       });
                     },
                     child: Text(
-                      'Tout d├®s├®lectionner',
+                      'Tout désélectionner',
                       style: TextStyle(color: context.textSecondaryColor),
                     ),
                   ),
@@ -428,10 +428,10 @@ class _ForwardConversationPickerState
               allSuccess
                   ? conversations.length == 1
                       ? widget.messages.length > 1
-                          ? '${widget.messages.length} messages transf├®r├®s'
-                          : 'Message transf├®r├®'
-                      : '${widget.messages.length} message(s) envoy├®(s) ├á ${conversations.length} conversation(s)'
-                  : 'Certains messages n\'ont pas pu ├¬tre envoy├®s',
+                          ? '${widget.messages.length} messages transférés'
+                          : 'Message transféré'
+                      : '${widget.messages.length} message(s) envoyé(s) à ${conversations.length} conversation(s)'
+                  : 'Certains messages n\'ont pas pu être envoyés',
             ),
             backgroundColor:
                 allSuccess ? context.adaptivePrimaryColor : Colors.orange,
@@ -550,7 +550,7 @@ class _ConversationTile extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        conversation.isGroup ? 'Groupe' : 'Message priv├®',
+        conversation.isGroup ? 'Groupe' : 'Message privé',
         style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
       ),
       trailing:

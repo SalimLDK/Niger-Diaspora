@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,7 +30,7 @@ class PollResultsScreen extends ConsumerWidget {
           icon: const AppIcon(AppIcon.arrowBack, color: _pollAccent),
           onPressed: () => context.pop(),
         ),
-        title: const Text('R├®sultats du sondage'),
+        title: const Text('Résultats du sondage'),
       ),
       body: pollAsync.when(
         loading: () => const LoadingIndicator(),

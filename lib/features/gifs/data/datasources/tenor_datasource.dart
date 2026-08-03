@@ -1,11 +1,11 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/gif_entity.dart';
 import 'gif_remote_datasource.dart';
 
-/// Fournisseur Tenor (Google) ÔÇö API v2.
+/// Fournisseur Tenor (Google) — API v2.
 ///
 /// Docs : https://developers.google.com/tenor/guides/endpoints
 class TenorDataSource implements GifRemoteDataSource {
@@ -60,7 +60,7 @@ class TenorDataSource implements GifRemoteDataSource {
     Map<String, dynamic> extraQuery = const {},
   }) async {
     if (!isConfigured) {
-      throw ServerException('Cl├® API Tenor absente (TENOR_API_KEY)');
+      throw ServerException('Clé API Tenor absente (TENOR_API_KEY)');
     }
 
     try {

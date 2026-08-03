@@ -1,4 +1,4 @@
-﻿import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -65,7 +65,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     String? userId,
   }) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non ├®tablie ÔÇô reconnectez-vous');
+      throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
 
     final pollRow = await _supabase
@@ -179,10 +179,10 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
   @override
   Future<void> vote(String pollId, List<String> optionIds, {String? userId}) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non ├®tablie ÔÇô reconnectez-vous');
+      throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
     if (userId == null) {
-      throw ServerException('Utilisateur non authentifi├®');
+      throw ServerException('Utilisateur non authentifié');
     }
 
     await _supabase
@@ -215,7 +215,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
   @override
   Future<void> deletePoll(String pollId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non ├®tablie ÔÇô reconnectez-vous');
+      throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
     await _supabase.from('post_polls').delete().eq('id', pollId);
   }

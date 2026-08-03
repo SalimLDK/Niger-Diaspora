@@ -8,7 +8,7 @@ import '../../shared/widgets/in_app_notification_banner.dart';
 
 /// State pour les notifications in-app
 class InAppNotificationState {
-  /// Notification actuellement affich├®e (null si aucune)
+  /// Notification actuellement affichée (null si aucune)
   final InAppNotificationData? currentNotification;
 
   /// File d'attente des notifications en attente
@@ -17,13 +17,13 @@ class InAppNotificationState {
   /// ID de la conversation actuellement ouverte (pour filtrer)
   final String? currentOpenConversationId;
 
-  /// Si les notifications in-app sont activ├®es globalement
+  /// Si les notifications in-app sont activées globalement
   final bool enabled;
 
-  /// Si le son est activ├®
+  /// Si le son est activé
   final bool soundEnabled;
 
-  /// Si la vibration est activ├®e
+  /// Si la vibration est activée
   final bool vibrationEnabled;
 
   const InAppNotificationState({
@@ -59,7 +59,7 @@ class InAppNotificationState {
   }
 }
 
-/// Queue vide constante pour ├®viter les cr├®ations inutiles
+/// Queue vide constante pour éviter les créations inutiles
 class _EmptyQueue<T> implements Queue<T> {
   const _EmptyQueue();
 
@@ -187,7 +187,7 @@ class _EmptyQueue<T> implements Queue<T> {
   Queue<R> cast<R>() => Queue<R>();
 }
 
-/// Provider pour g├®rer les notifications in-app
+/// Provider pour gérer les notifications in-app
 final inAppNotificationProvider =
     NotifierProvider<InAppNotificationNotifier, InAppNotificationState>(
   InAppNotificationNotifier.new,
@@ -198,7 +198,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
 
   @override
   InAppNotificationState build() {
-    // Charger les pr├®f├®rences
+    // Charger les préférences
     _loadPreferences();
     return const InAppNotificationState();
   }
@@ -216,12 +216,12 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
         vibrationEnabled: vibrationEnabled,
       );
     } catch (_) {
-      // Utiliser les valeurs par d├®faut en cas d'erreur
+      // Utiliser les valeurs par défaut en cas d'erreur
     }
   }
 
-  /// D├®finir la conversation actuellement ouverte
-  /// Les notifications pour cette conversation ne seront pas affich├®es
+  /// Définir la conversation actuellement ouverte
+  /// Les notifications pour cette conversation ne seront pas affichées
   void setCurrentConversation(String? conversationId) {
     state = state.copyWith(
       currentOpenConversationId: conversationId,
@@ -230,9 +230,9 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
   }
 
   /// Afficher une notification in-app
-  /// Retourne false si la notification a ├®t├® filtr├®e (conversation ouverte, mute, etc.)
+  /// Retourne false si la notification a été filtrée (conversation ouverte, mute, etc.)
   bool showNotification(InAppNotificationData notification) {
-    // V├®rifier si les notifications sont activ├®es
+    // Vérifier si les notifications sont activées
     if (!state.enabled) {
       return false;
     }
@@ -243,7 +243,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
       return false;
     }
 
-    // Si une notification est d├®j├á affich├®e, ajouter ├á la queue
+    // Si une notification est déjà affichée, ajouter à la queue
     if (state.currentNotification != null) {
       final newQueue = Queue<InAppNotificationData>.from(state.queue);
       newQueue.add(notification);
@@ -256,7 +256,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
     return true;
   }
 
-  /// Afficher une notification depuis les donn├®es FCM
+  /// Afficher une notification depuis les données FCM
   bool showFromFcmData(Map<String, dynamic> data) {
     final notification = InAppNotificationData.fromFcmData(data);
     return showNotification(notification);
@@ -266,7 +266,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
   void dismissCurrent() {
     _displayTimer?.cancel();
 
-    // V├®rifier s'il y a des notifications en attente
+    // Vérifier s'il y a des notifications en attente
     if (state.queue.isNotEmpty) {
       final newQueue = Queue<InAppNotificationData>.from(state.queue);
       final nextNotification = newQueue.removeFirst();
@@ -289,7 +289,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
     );
   }
 
-  /// V├®rifier si une conversation est mut├®e
+  /// Vérifier si une conversation est mutée
   Future<bool> isConversationMuted(String conversationId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -301,7 +301,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
   }
 }
 
-/// Provider simple pour acc├®der ├á l'ID de conversation ouverte
+/// Provider simple pour accéder à l'ID de conversation ouverte
 final currentOpenConversationProvider = Provider<String?>((ref) {
   return ref.watch(inAppNotificationProvider).currentOpenConversationId;
 });

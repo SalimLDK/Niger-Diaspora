@@ -1,4 +1,4 @@
-﻿import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart';
 
 enum PostMediaType { none, images, video }
 
@@ -47,10 +47,10 @@ class PostEntity extends Equatable {
   final String? authorCountry;
   final String? authorCity;
 
-  /// Miniature de la vid├®o (uniquement si [mediaType] == video).
+  /// Miniature de la vidéo (uniquement si [mediaType] == video).
   final String? videoThumbnailUrl;
 
-  /// Dur├®e de la vid├®o en secondes (uniquement si [mediaType] == video).
+  /// Durée de la vidéo en secondes (uniquement si [mediaType] == video).
   final int? videoDurationSeconds;
 
   /// Lieu joint au post (§13/23d), optionnel — les trois champs vont

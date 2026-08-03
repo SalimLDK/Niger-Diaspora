@@ -1,6 +1,6 @@
-﻿import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart';
 
-/// Contexte dans lequel un poll est publi├® (post du feed ou groupe).
+/// Contexte dans lequel un poll est publié (post du feed ou groupe).
 enum PollContextType { post, group }
 
 class PollOptionEntity extends Equatable {
