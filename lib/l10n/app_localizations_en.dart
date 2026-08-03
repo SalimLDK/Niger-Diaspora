@@ -15583,4 +15583,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterUnreadFeminine => 'Unread';
+
+  @override
+  String get whoCanSeeMyNumber => 'Who can see my number?';
 }

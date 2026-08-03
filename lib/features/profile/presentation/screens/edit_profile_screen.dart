@@ -1450,7 +1450,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Qui peut voir mon numero?',
+                  AppLocalizations.of(context)!.whoCanSeeMyNumber,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

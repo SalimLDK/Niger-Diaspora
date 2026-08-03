@@ -1793,7 +1793,7 @@
   "dateLabel": "Date",
   "completedOn": "Complété le",
   "referenceLabel": "Référence",
-  "copied": "Copié!",
+  "copied": "Copié !",
   "descriptionLabel": "Description",
   "paymentTypeTicket": "Ticket",
   "paymentTypeTip": "Tip",
@@ -1993,7 +1993,7 @@
       }
     }
   },
-  "transferIrreversibleWarning": "Cette action est irréversible. Voulez-vous continuer?",
+  "transferIrreversibleWarning": "Cette action est irréversible. Voulez-vous continuer ?",
   "transferInitiatedSuccess": "Transfert initié avec succès",
   "transferSecureTitle": "Transfert sécurisé",
   "transferSecureMessage": "Les transferts d'argent nécessitent l'installation de l'application depuis Google Play Store pour garantir la sécurité de vos transactions.",
@@ -2496,7 +2496,7 @@
   "searchGroupHint": "Rechercher un groupe...",
   "searchEmbassyHint": "Rechercher une ambassade...",
   "pleaseAddCoverImage": "Veuillez ajouter une image de couverture",
-  "podcastCreatedSuccess": "Podcast créé avec succès!",
+  "podcastCreatedSuccess": "Podcast créé avec succès !",
   "createPodcast": "Créer un podcast",
   "languageFrench": "Français",
   "languageEnglish": "Anglais",
@@ -2658,7 +2658,7 @@
   "contact": "Contact",
   "servicesOffered": "Services proposés",
   "createTheBusiness": "Créer l'entreprise",
-  "businessCreatedSuccess": "Entreprise créée avec succès!",
+  "businessCreatedSuccess": "Entreprise créée avec succès !",
   "creationError": "Erreur lors de la création",
   "boost": "Booster",
   "writeReview": "Écrire un avis",
@@ -2965,7 +2965,7 @@
   "makePrivate": "Rendre privé",
   "adminEmailLabel": "Email",
   "adminEmailHint": "utilisateur@exemple.com",
-  "adminEmbassyCreated": "Ambassade créée avec succès!",
+  "adminEmbassyCreated": "Ambassade créée avec succès !",
   "adminConnectionError": "Erreur lors de la connexion au salon",
   "adminSearchPlaceholder": "Rechercher par nom, raison, ID...",
   "adminAllActions": "Toutes les actions",
@@ -3259,7 +3259,7 @@
   "embassyEmail": "Email",
   "embassyWebsite": "Site Web",
   "embassyDirections": "Y aller",
-  "embassyMessageSent": "Message envoyé avec succès!",
+  "embassyMessageSent": "Message envoyé avec succès !",
   "embassyContactTitle": "Contacter l'ambassade",
   "embassySubjectHint": "Ex: Demande de renseignements sur le passeport",
   "embassyMessageHint": "Décrivez votre demande en détail...",
@@ -3787,7 +3787,7 @@
   "shareMyProfileTitle": "Partager mon profil",
   "generatingLink": "Génération du lien...",
   "unableToGenerateShareLink": "Impossible de générer le lien de partage",
-  "oops": "Oups!",
+  "oops": "Oups !",
   "errorOccurred": "Une erreur est survenue",
   "scanToFindMe": "Scannez pour me retrouver",
   "scanQrCode": "Scanner un QR code",
@@ -4398,7 +4398,7 @@
   "audioRoomCraftLabel": "Artisanat",
   "audioRoomRecipesLabel": "Recettes",
   "audioRoomMedicineLabel": "Médecine",
-  "businessBoostActivated": "Boost activé avec succès!",
+  "businessBoostActivated": "Boost activé avec succès !",
   "businessBoostError": "Erreur lors de l'achat du boost",
   "businessBoostTitle": "Booster votre entreprise",
   "businessTypeLabel": "Type:",
@@ -4789,7 +4789,7 @@
     }
   },
   "marketplaceNoProductAvailable": "Aucun produit disponible",
-  "marketplaceBeFirstToSell": "Soyez le premier à vendre!",
+  "marketplaceBeFirstToSell": "Soyez le premier à vendre !",
   "marketplaceTodayLabel": "Aujourd'hui",
   "marketplaceYesterdayLabel": "Hier",
   "marketplaceDaysAgoLabel": "Il y a {days} jours",
@@ -4916,7 +4916,7 @@
   "podcastsSeconds": "Secondes",
   "podcastsAdd": "Ajouter",
   "podcastsSelectAudioFile": "Veuillez sélectionner un fichier audio",
-  "podcastsEpisodePublished": "Épisode publié avec succès!",
+  "podcastsEpisodePublished": "Épisode publié avec succès !",
   "podcastsAudioFileTitle": "Sélectionner un fichier audio",
   "podcastsFileSelected": "Fichier sélectionné",
   "podcastsNoChaptersAdded": "Aucun chapitre ajouté",
@@ -7979,5 +7979,9 @@
   "filterUnreadFeminine": "Non lues",
   "@filterUnreadFeminine": {
     "description": "Filtre « non lues » au feminin (notifications) ; filterUnread reste au masculin pour les messages"
+  },
+  "whoCanSeeMyNumber": "Qui peut voir mon numéro ?",
+  "@whoCanSeeMyNumber": {
+    "description": "Titre du reglage de visibilite du numero de telephone"
   }
 }

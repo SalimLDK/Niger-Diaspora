@@ -7485,5 +7485,9 @@
   "filterUnreadFeminine": "Unread",
   "@filterUnreadFeminine": {
     "description": "Filtre « non lues » au feminin (notifications) ; filterUnread reste au masculin pour les messages"
+  },
+  "whoCanSeeMyNumber": "Who can see my number?",
+  "@whoCanSeeMyNumber": {
+    "description": "Titre du reglage de visibilite du numero de telephone"
   }
 }

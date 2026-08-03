@@ -7439,7 +7439,7 @@ abstract class AppLocalizations {
   /// No description provided for @copied.
   ///
   /// In fr, this message translates to:
-  /// **'Copié!'**
+  /// **'Copié !'**
   String get copied;
 
   /// No description provided for @descriptionLabel.
@@ -8063,7 +8063,7 @@ abstract class AppLocalizations {
   /// No description provided for @transferIrreversibleWarning.
   ///
   /// In fr, this message translates to:
-  /// **'Cette action est irréversible. Voulez-vous continuer?'**
+  /// **'Cette action est irréversible. Voulez-vous continuer ?'**
   String get transferIrreversibleWarning;
 
   /// No description provided for @transferInitiatedSuccess.
@@ -9725,7 +9725,7 @@ abstract class AppLocalizations {
   /// No description provided for @podcastCreatedSuccess.
   ///
   /// In fr, this message translates to:
-  /// **'Podcast créé avec succès!'**
+  /// **'Podcast créé avec succès !'**
   String get podcastCreatedSuccess;
 
   /// No description provided for @createPodcast.
@@ -10385,7 +10385,7 @@ abstract class AppLocalizations {
   /// No description provided for @businessCreatedSuccess.
   ///
   /// In fr, this message translates to:
-  /// **'Entreprise créée avec succès!'**
+  /// **'Entreprise créée avec succès !'**
   String get businessCreatedSuccess;
 
   /// No description provided for @creationError.
@@ -11975,7 +11975,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminEmbassyCreated.
   ///
   /// In fr, this message translates to:
-  /// **'Ambassade créée avec succès!'**
+  /// **'Ambassade créée avec succès !'**
   String get adminEmbassyCreated;
 
   /// No description provided for @adminConnectionError.
@@ -12971,7 +12971,7 @@ abstract class AppLocalizations {
   /// No description provided for @embassyMessageSent.
   ///
   /// In fr, this message translates to:
-  /// **'Message envoyé avec succès!'**
+  /// **'Message envoyé avec succès !'**
   String get embassyMessageSent;
 
   /// No description provided for @embassyContactTitle.
@@ -15089,7 +15089,7 @@ abstract class AppLocalizations {
   /// No description provided for @oops.
   ///
   /// In fr, this message translates to:
-  /// **'Oups!'**
+  /// **'Oups !'**
   String get oops;
 
   /// No description provided for @errorOccurred.
@@ -17147,7 +17147,7 @@ abstract class AppLocalizations {
   /// No description provided for @businessBoostActivated.
   ///
   /// In fr, this message translates to:
-  /// **'Boost activé avec succès!'**
+  /// **'Boost activé avec succès !'**
   String get businessBoostActivated;
 
   /// No description provided for @businessBoostError.
@@ -18653,7 +18653,7 @@ abstract class AppLocalizations {
   /// No description provided for @marketplaceBeFirstToSell.
   ///
   /// In fr, this message translates to:
-  /// **'Soyez le premier à vendre!'**
+  /// **'Soyez le premier à vendre !'**
   String get marketplaceBeFirstToSell;
 
   /// No description provided for @marketplaceTodayLabel.
@@ -19145,7 +19145,7 @@ abstract class AppLocalizations {
   /// No description provided for @podcastsEpisodePublished.
   ///
   /// In fr, this message translates to:
-  /// **'Épisode publié avec succès!'**
+  /// **'Épisode publié avec succès !'**
   String get podcastsEpisodePublished;
 
   /// No description provided for @podcastsAudioFileTitle.
@@ -28795,6 +28795,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Non lues'**
   String get filterUnreadFeminine;
+
+  /// Titre du reglage de visibilite du numero de telephone
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui peut voir mon numéro ?'**
+  String get whoCanSeeMyNumber;
 }
 
 class _AppLocalizationsDelegate

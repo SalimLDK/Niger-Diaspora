@@ -3996,7 +3996,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get referenceLabel => 'Référence';
 
   @override
-  String get copied => 'Copié!';
+  String get copied => 'Copié !';
 
   @override
   String get descriptionLabel => 'Description';
@@ -4357,7 +4357,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transferIrreversibleWarning =>
-      'Cette action est irréversible. Voulez-vous continuer?';
+      'Cette action est irréversible. Voulez-vous continuer ?';
 
   @override
   String get transferInitiatedSuccess => 'Transfert initié avec succès';
@@ -5277,7 +5277,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pleaseAddCoverImage => 'Veuillez ajouter une image de couverture';
 
   @override
-  String get podcastCreatedSuccess => 'Podcast créé avec succès!';
+  String get podcastCreatedSuccess => 'Podcast créé avec succès !';
 
   @override
   String get createPodcast => 'Créer un podcast';
@@ -5627,7 +5627,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get createTheBusiness => 'Créer l\'entreprise';
 
   @override
-  String get businessCreatedSuccess => 'Entreprise créée avec succès!';
+  String get businessCreatedSuccess => 'Entreprise créée avec succès !';
 
   @override
   String get creationError => 'Erreur lors de la création';
@@ -6476,7 +6476,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminEmailHint => 'utilisateur@exemple.com';
 
   @override
-  String get adminEmbassyCreated => 'Ambassade créée avec succès!';
+  String get adminEmbassyCreated => 'Ambassade créée avec succès !';
 
   @override
   String get adminConnectionError => 'Erreur lors de la connexion au salon';
@@ -7014,7 +7014,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get embassyDirections => 'Y aller';
 
   @override
-  String get embassyMessageSent => 'Message envoyé avec succès!';
+  String get embassyMessageSent => 'Message envoyé avec succès !';
 
   @override
   String get embassyContactTitle => 'Contacter l\'ambassade';
@@ -8153,7 +8153,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de générer le lien de partage';
 
   @override
-  String get oops => 'Oups!';
+  String get oops => 'Oups !';
 
   @override
   String get errorOccurred => 'Une erreur est survenue';
@@ -9287,7 +9287,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get audioRoomMedicineLabel => 'Médecine';
 
   @override
-  String get businessBoostActivated => 'Boost activé avec succès!';
+  String get businessBoostActivated => 'Boost activé avec succès !';
 
   @override
   String get businessBoostError => 'Erreur lors de l\'achat du boost';
@@ -10104,7 +10104,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marketplaceNoProductAvailable => 'Aucun produit disponible';
 
   @override
-  String get marketplaceBeFirstToSell => 'Soyez le premier à vendre!';
+  String get marketplaceBeFirstToSell => 'Soyez le premier à vendre !';
 
   @override
   String get marketplaceTodayLabel => 'Aujourd\'hui';
@@ -10366,7 +10366,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Veuillez sélectionner un fichier audio';
 
   @override
-  String get podcastsEpisodePublished => 'Épisode publié avec succès!';
+  String get podcastsEpisodePublished => 'Épisode publié avec succès !';
 
   @override
   String get podcastsAudioFileTitle => 'Sélectionner un fichier audio';
@@ -15732,4 +15732,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get filterUnreadFeminine => 'Non lues';
+
+  @override
+  String get whoCanSeeMyNumber => 'Qui peut voir mon numéro ?';
 }
