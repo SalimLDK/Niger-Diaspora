@@ -17,6 +17,31 @@ const {
 
 admin.initializeApp();
 
+/**
+ * Vrai si la valeur ressemble à un placeholder de `.env.example` plutôt qu'à un
+ * vrai secret.
+ *
+ * Un secret non renseigné est facile à détecter ; un secret laissé à sa valeur
+ * d'exemple est truthy et franchit tous les gardes `if (!secret)`, pour aller
+ * échouer beaucoup plus loin avec un message trompeur. C'est ce qui se passait
+ * avec STRIPE_WEBHOOK_SECRET, resté à `whsec_your_webhook_secret_here` en
+ * production : chaque webhook Stripe repartait en 400 « signature invalide ».
+ *
+ * Voir docs/ops/secrets_production.md.
+ */
+function isPlaceholderSecret(value) {
+    if (typeof value !== "string" || value.trim() === "") return true;
+    const v = value.toLowerCase();
+    return (
+        v.includes("your_") ||
+        v.includes("_here") ||
+        v.includes("replace") ||
+        v.includes("changeme") ||
+        v.includes("xxx") ||
+        v.endsWith("...")
+    );
+}
+
 // Stripe zero-decimal currencies — amounts must NOT be multiplied by 100
 // See: https://stripe.com/docs/currencies#zero-decimal
 const ZERO_DECIMAL_CURRENCIES = new Set([
@@ -1821,8 +1846,17 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const sig = req.headers["stripe-signature"];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    if (!webhookSecret) {
-        // console.error("Webhook secret not configured");
+    // Le test « absent » ne suffisait pas : la valeur déployée est le
+    // placeholder livré avec .env.example, qui est parfaitement truthy. On
+    // passait donc le garde pour aller échouer plus loin sur la vérification de
+    // signature, avec un 400 indistinguable d'une vraie requête falsifiée —
+    // Stripe réessaie, abandonne, et aucun paiement n'est jamais confirmé côté
+    // serveur. Mieux vaut refuser tout de suite en le disant.
+    if (!webhookSecret || isPlaceholderSecret(webhookSecret)) {
+        console.error(
+            "STRIPE_WEBHOOK_SECRET absent ou laissé au placeholder — " +
+            "voir docs/ops/secrets_production.md"
+        );
         return res.status(500).send("Webhook secret not configured");
     }
 
