@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/adaptive_colors.dart';
+
+import '../../../../core/services/e2ee_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -1585,19 +1588,67 @@ class _CallScreenState extends ConsumerState<CallScreen>
     );
   }
 
+  /// Initiales du correspondant pour l'avatar de repli (§23a).
+  String _callInitials(String nom) {
+    final parts = nom.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return nom.isNotEmpty ? nom[0].toUpperCase() : '?';
+  }
+
   Widget _buildAudioCallUI() {
     final l10n = AppLocalizations.of(context)!;
+    final nom = widget.calleeName ?? l10n.callTitle;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Avatar
+          // §23a : la mention de chiffrement n'est affichée que si la clé
+          // est réellement posée sur ce flux. Un badge inconditionnel
+          // affirmerait une garantie que le code ne peut pas tenir.
+          if (E2EEService.instance.isE2EEEnabled) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const AppIcon(
+                    AppIcon.lock,
+                    size: 12,
+                    color: Colors.white70,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    l10n.endToEndEncrypted.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+
+          // Avatar : aplat d'accent et initiales, plutôt qu'un cercle gris
+          // et un pictogramme générique (§23a).
           Container(
             width: 120,
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey[800],
+              color: context.adaptivePrimaryColor,
               image:
                   widget.calleePhotoUrl != null
                       ? DecorationImage(
@@ -1608,15 +1659,25 @@ class _CallScreenState extends ConsumerState<CallScreen>
             ),
             child:
                 widget.calleePhotoUrl == null
-                    ? const AppIcon(AppIcon.person, size: 60, color: Colors.white54)
+                    ? Center(
+                      child: Text(
+                        _callInitials(nom),
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w700,
+                          color: context.onPrimaryColor,
+                        ),
+                      ),
+                    )
                     : null,
           ),
           const SizedBox(height: 24),
-          // Nom de l'interlocuteur en serif (§23a). Le blanc reste : cet
-          // écran se peint sur le flux vidéo ou un fond sombre, ce n'est
-          // pas une couleur figée par oubli mais le seul contraste tenable.
+          // Nom de l'interlocuteur en serif (§23a), comme tous les titres de
+          // la série. Le blanc reste : cet écran se peint sur le flux vidéo
+          // ou un fond sombre, ce n'est pas une couleur figée par oubli mais
+          // le seul contraste tenable.
           Text(
-            widget.calleeName ?? l10n.callTitle,
+            nom,
             style: GoogleFonts.playfairDisplay(
               color: Colors.white,
               fontSize: 28,
