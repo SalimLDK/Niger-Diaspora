@@ -398,6 +398,41 @@ position, l'état d'écoute et le téléchargement. Deux écarts corrigés :
   jointe. Rétabli le 2026-08-03, affiché seulement quand le serveur a
   renvoyé la valeur.
 
+### Salons audio & podcasts — un système propre, appliqué à moitié
+
+`lib/core/theme/` définit un **troisième système de design**, à côté de
+`adaptive_colors` et de `FeedTokens` : `DNTheme` (`context.dn`), `DNColors`
+et `DNText`. Il est theme-aware — chaque jeton a sa variante sombre — et son
+titrage est **Instrument Serif**. C'est exactement l'esprit des maquettes.
+
+Leur appliquer `design_kit` (Playfair Display + `adaptive_colors`) serait la
+même régression que pour la famille « fil ». **Ne pas le faire.**
+
+Mais l'adoption est **inégale**, et c'est ça le vrai travail :
+
+| Sur le système DN — rien à faire | Hors système — à convertir vers DN |
+|---|---|
+| `audio_room_screen` (64) | `creator_earnings_screen` |
+| `audio_rooms_list_screen` (35) | `heritage_library_screen` |
+| `schedule_room_screen` (24) | `create_podcast_screen` |
+| `create_audio_room_screen` (23) | `episode_detail_screen` |
+| `ghost_moderator_screen` (20) | `my_podcasts_screen` |
+| `save_as_podcast_screen` (18) | `podcast_detail_screen` |
+| `replay_player_screen` (16) | `podcast_stats_screen` |
+| `live_podcast_screen` (5) | `podcasts_home_screen` |
+| | `record_episode_screen` |
+
+(le chiffre = nombre d'usages `DNText.` / `context.dn`)
+
+Les salons sont convertis à 8 écrans sur 9 ; **les podcasts ne le sont
+presque pas** — 1 sur 7. La cible n'est donc pas `design_kit` mais **DN**,
+et le travail est une migration interne, pas une refonte visuelle.
+
+⚠️ `replay_player_screen` et `live_podcast_screen` sont **mixtes** : ils
+utilisent `DNText` sans `context.dn`, donc leur typographie suit le système
+mais pas leurs couleurs. À finir en priorité, c'est là que le thème sombre
+peut casser.
+
 ### Appels — les blancs et les dégradés sont légitimes
 
 Les deux écrans d'appel comptent 48 et 26 usages de blanc, et trois
