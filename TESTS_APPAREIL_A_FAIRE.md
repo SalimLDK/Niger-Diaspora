@@ -80,6 +80,29 @@ lancement d'un compte sans ville renseignée.
       français zéro prend le singulier, « 0 message » est correct. Ne pas les
       « corriger ».
 
+**Discussion (§3b/§4a) — le correctif visuel tient, mais l'E2EE ne dit rien**
+
+- [x] Les séparateurs rendent en pastille plate avec filet plein, sans
+      dégradé ni ombre : le correctif de `_buildThreadSeparator` est vérifié
+      sur appareil (« 26 juil. 2026 », « lundi »).
+- [x] En-tête, sous-barre « Médias / ÉCO », composer et accusés de lecture
+      rendent sans incident.
+- [ ] ⛔ **Cinq bulles affichent « 🔒 Message chiffré » sans explication.**
+      Ce sont des messages que l'appareil n'a pas pu déchiffrer — très
+      probablement parce que les réinstallations de cette session ont effacé
+      les clés locales (comportement déjà connu de `adb install -r`).
+
+      Le problème n'est donc pas la perte de clés, attendue en test, mais ce
+      que la personne voit : **cinq fois le même libellé, aucune cause,
+      aucune issue**. Or l'ARB contient déjà exactement le bon message —
+      `e2eeRestoreNudgeMessage`, « Restaurez vos clés de chiffrement pour
+      lire vos messages chiffrés sur cet appareil. »
+
+      ⚠️ **Cette clé n'est référencée nulle part dans `lib/features`**
+      (vérifié par grep). Elle a été écrite puis jamais branchée : le
+      message d'aide existe, il ne s'affiche jamais. À câbler — c'est un
+      trou de câblage de la même famille que le mode Éco.
+
 **Reste à exercer sur cet appareil** : tous les autres écrans basculés
 (profil, config profil, réglages, carte, notifications, recherche,
 messagerie), le mode Éco en réception, le brouillon d'épisode, et
