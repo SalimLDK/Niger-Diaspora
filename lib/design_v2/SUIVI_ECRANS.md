@@ -103,8 +103,8 @@ le composer et la carte.
 | 5b, 5g, 6d | Mes publications | `feed/…/my_posts_screen.dart` | 180 l. | **prod** — système propre |
 | 5c, 5e, 6e | Enregistrés | `feed/…/saved_posts_screen.dart` | 336 l. | **prod** — système propre |
 | 5d, 5h, 6f | Mon réseau | `feed/…/follows_screen.dart` | 190 l. | **prod** — système propre |
-| 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | à faire |
-| 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | à faire |
+| 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | dégradés purgés — voir ci-dessous |
+| 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | dégradés purgés — voir ci-dessous |
 | 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
@@ -112,6 +112,29 @@ le composer et la carte.
 | 13b, 16d, 17a, 17b | Ambassades, fiche, demande, contact | `embassies/…` (4 écrans) | 2420 l. | fait |
 | 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | fait |
 | 17c, 17d, 18a→18d | Annuaire, fiche, création, avis, mise en avant | `businesses/…` (5 écrans) | 3018 l. | fait |
+
+### Discussion et composer — ce qui est fait, ce qui ne l'est pas
+
+Les deux fichiers sont copiés dans `design_v2` et **purgés de leurs
+dégradés** : 7 dans la discussion, 6 dans le composer, tous à zéro.
+
+| Ce qui a changé | Avant | Après |
+|---|---|---|
+| Séparateur de jour | filet en fondu + pastille dégradée + bordure + ombre portée | filet plein, pastille plate — un repère de date n'a pas à se détacher comme un bouton |
+| Séparateur « non lus » | même empilement, en terracotta | même gabarit, aplat terracotta — c'est le seul repère du fil qui doit accrocher l'œil |
+| Illustration d'état vide | cercle dégradé primaire → secondaire | aplat teinté |
+| Bouton d'envoi | 4 dégradés selon l'état | 4 aplats, **couleurs signifiantes conservées** : rouge annulation/limite, terracotta enregistrement, bleu E2EE envoi, vert vocal |
+
+Les deux séparateurs étaient deux copies du même empilement : ils passent par
+un gabarit commun, `_buildThreadSeparator`.
+
+⚠️ **Ce n'est pas « la maquette appliquée ».** Je n'avais pas les visuels
+3b, 3c, 4a, 6b, 4c→4f et 6c sous les yeux en faisant ce passage : ce qui est
+fait, c'est le **langage visuel** que le suivi identifiait comme manquant
+(« des dégradés qui subsistent dans la discussion, le composer »). Tout ce
+qui relève de la mise en page propre à ces maquettes — disposition des
+bulles, barre d'actions sur un message, états d'enregistrement vocal —
+reste à faire et demande de reprendre les images.
 
 ### La famille « fil » a son propre système — ne pas lui appliquer la trousse
 
