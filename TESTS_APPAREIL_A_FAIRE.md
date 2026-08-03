@@ -347,6 +347,60 @@ en solo.
   ceux de l'écran verrouillé (`MediaButtonReceiver`), et que la reprise depuis la
   notification ramène bien sur le lecteur.
 
+## Galerie design_v2 sur appareil (2026-08-03)
+
+Premier passage réel sur le SM A515F. Trois choses ont été **vérifiées**,
+et il faut le noter parce que la plupart des points de ce fichier ne l'ont
+jamais été :
+
+- [x] **L'accent est terracotta**, plus vert. `ThemeColorNotifier` retournait
+  `AppThemeColor.green` par défaut, donc une installation neuve affichait
+  toute la refonte dans la mauvaise couleur — sur les 40 écrans. Corrigé et
+  constaté à l'écran (pastille « D », point du titre, bouton principal).
+- [x] **Le thème sombre de l'écran de connexion (§15a) est lisible.** Aucun
+  texte perdu, contrastes tenus. Le piège du commit `78b720e` n'a pas été
+  réintroduit sur cet écran.
+- [x] **La structure du §15a est conforme** à la maquette : titre serif à
+  point d'accent, sous-titre, bouton Google, libellés au-dessus des champs,
+  mention de chiffrement en pied.
+
+### Ce qui reste à faire, et le chemin pour y arriver
+
+L'accès à la galerie **par deep link ne fonctionne pas**. Deux tentatives,
+documentées pour ne pas les refaire :
+
+1. `diasponiger://design-v2` — l'intent lance bien l'activité, mais l'URI
+   n'atteint jamais Dart : le log montre `setting initial location /splash`.
+2. `flutter_deeplinking_enabled` dans le manifeste — **casse le démarrage**,
+   le moteur Dart ne se lance plus du tout. Probablement parce que
+   `MainActivity` étend `AudioServiceFragmentActivity` (héritage CallKit).
+   Le drapeau a été retiré, l'APK reconstruit et l'app vérifiée comme
+   redémarrant.
+
+**Le seul chemin encore crédible est Réglages → Refonte → Galerie design
+v2**, qui ne dépend d'aucun intent — mais demande d'être connecté, et
+`adb install -r` vide les données à chaque pose d'APK.
+
+- [ ] Se connecter une fois, puis ouvrir la galerie par les réglages.
+- [ ] Parcourir les **19 écrans**, en **clair et en sombre** (le thème suit
+  le système : basculer depuis le volet Android).
+- [ ] Regarder en priorité l'**onboarding** et la **configuration du profil**,
+  les deux écrans les plus restructurés, donc les plus susceptibles de
+  déborder sur un écran réel.
+- [ ] Vérifier les **bulles de message** : le poids du fichier s'ajoute à une
+  ligne déjà chargée (durée, point « non écouté », erreur éventuelle).
+
+### Méthode, pour la prochaine fois
+
+- **Toujours `adb shell am force-stop` avant un deep link.** Sur un démarrage
+  à chaud, l'intent est livré sans que le routeur rejoue sa redirection.
+- **Le signal fiable est `GoRouter: INFO` dans `adb logcat -s flutter`**, pas
+  la capture d'écran. Un écran noir peut être le splash (bénin) ou un moteur
+  Dart mort (grave) — seule l'absence de log distingue les deux. J'ai
+  confondu les deux pendant cette session.
+- L'arbre de routes que go_router imprime au démarrage liste **toutes** les
+  routes déclarées. Y voir `/design-v2` ne prouve **pas** qu'on y est.
+
 ## Profil & Accueil (avant la refonte design)
 
 ## Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion
