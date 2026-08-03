@@ -1306,6 +1306,28 @@ Ce n'est pas la bascule qui l'a introduit — la copie portait déjà ces
 chaînes, seule la barre de titre a changé. Mais c'est visible par
 l'utilisateur, sur l'écran qui déplace de l'argent.
 
+**Réparé le 2026-08-03** : 15 chaînes de `send_money_screen`, des deux côtés
+(production et copie, pour qu'un re-basculement ne réintroduise pas le
+défaut). Les deux échappements `é` du même fichier deviennent des
+accents littéraux au passage — trois styles cohabitaient dans un seul
+fichier, il n'en reste qu'un.
+
+⚠️ **Le défaut n'est pas isolé : 28 occurrences ailleurs dans `lib/`.** Le
+même balayage remonte « Utilisateur non connecte » (onboarding ×4,
+marketplace, salons, transferts ×2), « ... avec succes » (admin, auth,
+entreprises ×3, boutique), « Beneficiaire modifie/ajoute »,
+« Choisir/Rechercher un beneficiaire ». Deux natures à ne pas traiter
+pareil :
+
+- les **libellés vus par l'utilisateur** (SnackBars, titres, boutons) —
+  à corriger ;
+- les **messages d'exception et de journal** (`'_upsertUserToSupabase:
+  upsert effectue avec succes'`) — cosmétique, aucune urgence.
+
+Non corrigés dans cette passe : plusieurs de ces fichiers appartiennent à des
+features que d'autres sessions touchent, et la correction se fait mieux
+feature par feature qu'en un balayage global.
+
 ### §28d — la feuille existe, la moitié du câblage manque
 
 `feed/…/share_post_sheet.dart` (392 l.) est bien la feuille « partager dans

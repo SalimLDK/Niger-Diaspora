@@ -56,7 +56,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 ref.read(transferStateNotifierProvider.notifier).reset();
                 setState(() => _currentStep = 0);
               },
-              child: const Text('Reinitialiser'),
+              child: const Text('Réinitialiser'),
             ),
         ],
       ),
@@ -269,7 +269,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         OutlinedButton.icon(
           onPressed: () => context.push('/transfers/recipient/add'),
           icon: const Icon(Icons.person_add),
-          label: const Text('Ajouter un beneficiaire'),
+          label: const Text('Ajouter un bénéficiaire'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
           ),
@@ -278,7 +278,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         const Divider(),
         const SizedBox(height: 8),
         Text(
-          'Ou selectionnez un beneficiaire existant',
+          'Ou sélectionnez un bénéficiaire existant',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -301,7 +301,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Aucun beneficiaire enregistre',
+                        'Aucun bénéficiaire enregistré',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
@@ -366,7 +366,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'R\u00e9cemment utilis\u00e9s',
+                            'Récemment utilisés',
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -391,7 +391,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 8, bottom: 8),
                       child: Text(
-                        'Autres b\u00e9n\u00e9ficiaires',
+                        'Autres bénéficiaires',
                         style: theme.textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -659,14 +659,14 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Recapitulatif',
+              'Récapitulatif',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             _buildFeeRow(
-              'Montant envoye',
+              'Montant envoyé',
               '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
             ),
             if (transferState.fee != null)
@@ -676,7 +676,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               ),
             const Divider(),
             _buildFeeRow(
-              'Total debite',
+              'Total débité',
               '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
               isBold: true,
             ),
@@ -820,7 +820,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             child: Column(
               children: [
                 Text(
-                  'Montant a recevoir',
+                  'Montant à recevoir',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -844,7 +844,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Total debite: ${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
+                    'Total débité: ${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -870,7 +870,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
         // Terms
         Text(
-          'En confirmant, vous acceptez les conditions generales de transfert. '
+          'En confirmant, vous acceptez les conditions générales de transfert. '
           'Les fonds seront disponibles sous 24h.',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
@@ -888,7 +888,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       case 0:
         if (transferState.selectedRecipient == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Selectionnez un beneficiaire')),
+            const SnackBar(content: Text('Sélectionnez un bénéficiaire')),
           );
           return;
         }
@@ -1097,7 +1097,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       }
 
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-      if (currentUser == null) throw Exception('Utilisateur non connecte');
+      if (currentUser == null) throw Exception('Utilisateur non connecté');
 
       final transferState = ref.read(transferStateNotifierProvider);
       final selectedCurrency = ref.read(selectedCurrencyProvider);
@@ -1120,7 +1120,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Transfert initie avec succes'),
+            content: Text('Transfert initié avec succès'),
             backgroundColor: Colors.green,
           ),
         );

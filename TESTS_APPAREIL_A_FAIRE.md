@@ -836,6 +836,15 @@ mais c'est exactement ce qu'il faut regarder en premier :
 - [ ] **Envoi d'argent** (§12a) : la barre de titre passe en serif plat. Le
   reste de l'écran (montant en très grand, frais, total, taux) était déjà en
   production — vérifier qu'il n'a pas bougé.
+- [ ] **Accents du tunnel d'envoi** (2026-08-03) : 15 chaînes réparées —
+  « Réinitialiser », « Ajouter un bénéficiaire », « Récapitulatif », « Montant
+  envoyé », « Total débité », « conditions générales », « Transfert initié
+  avec succès ». À relire **sur l'appareil**, aux trois étapes du parcours :
+  un accent qui sort en tofu (□) ou en mojibake ne se voit pas dans le code,
+  seulement au rendu. Vérifier au passage que « Récapitulatif » et « Montant
+  à recevoir » tiennent toujours sur une ligne à `font_scale = 1.1` — un
+  accent ajoute de la hauteur, pas de la largeur, mais les libellés
+  s'allongent d'un caractère.
 
 ## Bascule design_v2 → production : la carte (§7e, 2026-08-03)
 
