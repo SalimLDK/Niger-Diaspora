@@ -256,6 +256,21 @@ reviendrait à inventer une disposition — segmenté en en-tête ? plein écran
 conservation du filtre courant ? Il faut la maquette avant d'écrire la
 moindre ligne.
 
+### Composer : la pilule « MAINTENIR » est écartée, pas oubliée
+
+Les maquettes 3b et 4a montrent le bouton vocal sous forme de **pilule verte
+portant le mot « MAINTENIR »**. Le code garde un bouton **rond sans
+libellé** : c'est un choix, confirmé le 2026-08-03.
+
+Je l'avais implémentée avant que la décision soit connue, puis annulée :
+bouton rond restauré, clé ARB `composerHoldToRecord` retirée des deux
+fichiers, parité vérifiée (0 écart de clé, 0 écart de `@clé`).
+
+**Ne pas la ré-ajouter** en la prenant pour un écart au design. Si la
+question revient, l'argument en sa faveur était que le libellé nomme le
+geste — une icône de micro seule laisse croire à un appui simple alors qu'il
+faut maintenir. Il n'a pas emporté la décision.
+
 ### Mode données réduites (« ÉCO ») — câblé pour de bon
 
 La puce `⊙ Éco` de la sous-barre de discussion bascule
