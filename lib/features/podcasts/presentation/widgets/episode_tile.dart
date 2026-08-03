@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 
 import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +67,7 @@ class EpisodeTile extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: context.surfaceColor,
+          color: context.dn.surface2,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: context.borderColor.withValues(alpha: 0.5)),
         ),
@@ -105,7 +107,7 @@ class EpisodeTile extends ConsumerWidget {
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.podcastsEpisodeNumber(episode.episodeNumber),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                               color: Colors.orange,
                               fontWeight: FontWeight.w600,
                             ),
@@ -134,7 +136,7 @@ class EpisodeTile extends ConsumerWidget {
                                 premiumPriceLabel != null
                                     ? 'Premium · $premiumPriceLabel'
                                     : 'Premium',
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                                   color: Colors.amber[700],
                                   fontWeight: FontWeight.w600,
                                   fontSize: 10,
@@ -149,7 +151,7 @@ class EpisodeTile extends ConsumerWidget {
                   // Title
                   Text(
                     episode.title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    style: DNText.sans(size: 14, w: FontWeight.w600, color: context.dn.onSurface).copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 2,
@@ -161,7 +163,7 @@ class EpisodeTile extends ConsumerWidget {
                   if (episode.description != null && episode.description!.isNotEmpty)
                     Text(
                       episode.description!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: DNText.sans(size: 12.5, color: context.dn.onSurface2).copyWith(
                         color: context.onSurfaceColor.withValues(alpha: 0.6),
                       ),
                       maxLines: 2,
@@ -179,7 +181,7 @@ class EpisodeTile extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Text(
                         _formatDuration(episode.durationSeconds),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                           color: context.onSurfaceColor.withValues(alpha: 0.5),
                         ),
                       ),
@@ -192,7 +194,7 @@ class EpisodeTile extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${episode.playCount}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                           color: context.onSurfaceColor.withValues(alpha: 0.5),
                         ),
                       ),
@@ -206,7 +208,7 @@ class EpisodeTile extends ConsumerWidget {
                         const SizedBox(width: 4),
                         Text(
                           AppLocalizations.of(context)!.podcastsLiveLabel,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                             color: Colors.deepPurple,
                             fontWeight: FontWeight.w500,
                           ),
@@ -263,7 +265,7 @@ class EpisodeTile extends ConsumerWidget {
           ? Center(
               child: Text(
                 '${episode.episodeNumber}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: DNText.serif(size: 20, color: context.dn.onSurface).copyWith(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
                 ),
@@ -301,7 +303,7 @@ class EpisodeTile extends ConsumerWidget {
               color: Colors.orange,
             ),
             IconButton(
-              icon: AppIcon(AppIcon.close, color: Theme.of(context).iconTheme.color!, size: 16),
+              icon: AppIcon(AppIcon.close, color: context.dn.onSurface2, size: 16),
               onPressed: () {
                 ref.read(downloadManagerProvider.notifier).cancelDownload(episode.id);
               },
@@ -361,7 +363,7 @@ class EpisodeTile extends ConsumerWidget {
   void _showDownloadOptions(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: context.surfaceColor,
+      backgroundColor: context.dn.surface2,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -444,7 +446,7 @@ class EpisodeTile extends ConsumerWidget {
                       context.push('/podcasts/${episode.podcastId}');
                     }
                   },
-                  icon: AppIcon(AppIcon.star, color: Theme.of(context).iconTheme.color!),
+                  icon: AppIcon(AppIcon.star, color: context.dn.onSurface2),
                   label: Text(AppLocalizations.of(ctx)!.subscribeButton),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber[700],
@@ -504,7 +506,7 @@ class EpisodeTileCompact extends ConsumerWidget {
         child: Center(
           child: Text(
             '${episode.episodeNumber}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: DNText.serif(size: 17, color: context.dn.onSurface).copyWith(
               color: Colors.orange,
               fontWeight: FontWeight.bold,
             ),

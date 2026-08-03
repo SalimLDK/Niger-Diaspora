@@ -1302,7 +1302,7 @@ fausses**, dans la continuité des cinq corrigées plus tôt dans la journée.
 | §24b, §24c | **faits** par `a02c764` — barre plate et titre Playfair pour les favoris, avatars de repli en aplat et `onPrimaryColor` pour la nouvelle conversation |
 | §24d | **rien à corriger**, et c'était déjà vérifié : 0 dégradé, 0 couleur brute, 0 `AppColors` sur 257 lignes |
 | §24a | **écartée avec motif** dans le même commit : ses noirs et blancs sont des voiles de contraste sur les vignettes média, même rôle que sur l'écran d'appel. Les aplatir rendrait la durée d'une vidéo illisible sur une image claire |
-| `episode_tile` | **à faire, confirmé** — 0 usage DN, 12 `Theme.of`. Ce n'est pas un écran à redessiner, c'est le 7ᵉ fichier de la migration podcasts → DN |
+| `episode_tile` | **fait (2026-08-03)** — migration podcasts → DN terminée, 7ᵉ et dernier fichier. Production passée de 0 DN / 12 `Theme.of` à 9 DN / 1 |
 | §28c | **partiel** — voir ci-dessous |
 | §28d | **partiel** — voir ci-dessous |
 
