@@ -77,6 +77,32 @@ exceptions assumées et commentées : les vignettes d'aperçu de thème
 (étape 4/4), qui *représentent* le clair et le sombre et ne doivent donc
 pas suivre le thème courant.
 
+## Où en est la reprise du design
+
+Fait dans ce bac à sable, vérifié par `flutter analyze lib/design_v2` :
+
+| Maquettes | Écran | État |
+|---|---|---|
+| 14a→14e | Onboarding | fait |
+| 15a, 15b | Connexion, inscription | fait (repris du WIP, commit `85741a9`) |
+| 16f, 15c, 15d, 16g | Configuration du profil | fait |
+| 9a, 9e | Messagerie | fait |
+| 9c, 9f | Groupes | fait |
+| 9d | Fiche de groupe | fait |
+| 8a | Accueil | fait |
+| 8b, 8c | Carte | **déjà en production**, pas de copie ici |
+| 10a, 10c | Profil, profil public | **reste à faire** |
+| 10b | Réglages | **reste à faire** |
+| 12c | Notifications | **reste à faire** |
+| 12d | Recherche | **reste à faire** |
+
+Sur les quatre derniers, une session précédente a déjà posé la **structure**
+des maquettes (sections, états vides, ordre des blocs — les fichiers de
+production citent `refonte 10a`, `§10b`, `refonte 12c`, `refonte 12d`).
+Ce qui manque est le **langage visuel** : aucun titre serif, et des
+dégradés encore présents dans `profile_screen`, `settings_screen` et
+`search_screen`. C'est un travail d'habillage, pas de restructuration.
+
 ## Écarts connus avec les maquettes
 
 - **Textes en dur.** Les écrans redessinés portent la copie française des
