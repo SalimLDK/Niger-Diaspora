@@ -12,6 +12,10 @@ import '../../../stories/domain/entities/story_entity.dart';
 import '../../../stories/presentation/providers/story_provider.dart';
 import '../theme/feed_tokens.dart';
 
+/// Taille du libellé sous chaque avatar du rail. Partagée avec le calcul de
+/// hauteur du rail (`StoryRail._railHeight`) pour qu'ils ne divergent pas.
+const double _labelFontSize = 11.5;
+
 /// Rail de stories/actus (§4) — cercles d'avatars en haut du fil, anneau
 /// accent pour les non-vues. Mon avatar en premier, avec « + » si je n'ai
 /// pas de story active. Se replie en barre compacte au défilement
@@ -26,14 +30,25 @@ class StoryRail extends ConsumerWidget {
     required this.onExpand,
   });
 
+  /// Hauteur du rail déplié : marge verticale (2 × 8) + anneau (60) + écart (6)
+  /// + la ligne de libellé, qui grandit avec le réglage d'accessibilité du
+  /// système. Elle était figée à 96 px : dès `font_scale = 1.1` le libellé
+  /// « Ajouter » débordait de 6 px (constaté sur SM A515F, 2026-08-03).
+  static double _railHeight(BuildContext context) {
+    final labelHeight =
+        MediaQuery.textScalerOf(context).scale(_labelFontSize) * 1.35;
+    return 16 + 60 + 6 + labelHeight.ceilToDouble();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = FeedTokens.of(context);
     final groupsAsync = ref.watch(activeStoriesProvider);
     final myUid = FirebaseAuth.instance.currentUser?.uid;
+    final railHeight = _railHeight(context);
 
     return groupsAsync.when(
-      loading: () => const SizedBox(height: 96),
+      loading: () => SizedBox(height: railHeight),
       error: (_, __) => const SizedBox.shrink(),
       data: (groups) {
         // Rien à montrer et personne n'a de story : le rail reste discret
@@ -49,7 +64,7 @@ class StoryRail extends ConsumerWidget {
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
           firstChild: SizedBox(
-            height: 96,
+            height: railHeight,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding:
@@ -334,7 +349,10 @@ class _MyStoryAvatar extends ConsumerWidget {
               hasStory ? 'Ma story' : 'Ajouter',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: tokens.mutedText),
+              style: TextStyle(
+                fontSize: _labelFontSize,
+                color: tokens.mutedText,
+              ),
             ),
           ],
         ),
@@ -370,7 +388,10 @@ class _StoryAvatar extends StatelessWidget {
               group.authorName.split(' ').first,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: tokens.mutedText),
+              style: TextStyle(
+                fontSize: _labelFontSize,
+                color: tokens.mutedText,
+              ),
             ),
           ],
         ),

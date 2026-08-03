@@ -81,7 +81,39 @@ service firebase.storage {
       allow read: if true; // Businesses are public
       allow write: if isAuthenticated() && isImage() && isValidSize(10);
     }
-    
+
+    // Post media (image, video, thumbnail) — ImageUploadType.post et
+    // VideoUploadService.uploadPostVideo écrivent ici. Sans cette règle le
+    // chemin tombait dans le deny-all final : toute publication avec média
+    // échouait en `unauthorized`.
+    match /posts/{postId}/{allPaths=**} {
+      allow read: if true; // Posts are public
+      allow write: if isAuthenticated() && (
+        (isImage() && isValidSize(10)) ||
+        (isVideo() && isValidSize(100))
+      );
+    }
+
+    // Story media (image, video, thumbnail) — même problème que /posts :
+    // la création de story était impossible, l'échec étant avalé côté app.
+    match /stories/{storyId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (
+        (isImage() && isValidSize(10)) ||
+        (isVideo() && isValidSize(100))
+      );
+    }
+
+    // Pièces jointes chiffrées E2EE (MediaEncryptionService). Le contenu est
+    // un blob opaque `application/octet-stream` : on ne peut donc pas valider
+    // le type, seulement la taille et le propriétaire du sous-dossier.
+    // La lecture reste ouverte aux comptes connectés — sans la clé de
+    // conversation, l'octet-stream n'est pas exploitable.
+    match /encrypted_media/{conversationId}/{senderId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(senderId) && isValidSize(100);
+    }
+
     // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
