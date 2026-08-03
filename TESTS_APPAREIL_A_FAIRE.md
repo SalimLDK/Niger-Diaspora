@@ -529,11 +529,19 @@ sont invisibles à `flutter analyze` :
   écran ne les appelle encore. À regarder dès le premier usage, dans les deux
   thèmes.
 
-- [ ] **Valeurs figées désormais désalignées** : `_kStepUpcoming = #E8DFD4`
-  (`transfers/…/send_money_screen.dart`, les deux copies) et
-  `_kRecvBorderDark = #3D352C` (`messages/…/message_bubble.dart`, les deux
-  copies) recopiaient les anciennes valeurs des jetons. Elles n'ont pas été
-  touchées pour ne pas balayer en masse. À trancher au cas par cas.
+- [ ] **Indicateur d'étapes du transfert** (`transfers/…/send_money_screen.dart`,
+  les deux copies) : `_kStepUpcoming` recopiait l'ancienne bordure `#E8DFD4`
+  et restait donc en beige clair en nocturne ; l'étape à venir passe par
+  `colorScheme.outline`. **À vérifier** : ouvrir « Envoyer de l'argent » en
+  mode nuit — le rond et la barre des étapes non atteintes deviennent
+  nettement plus discrets (`#2A241E` sur `#0F0D0A`). Confirmer qu'on distingue
+  encore la piste ; si elle disparaît, basculer sur `outlineVariant`.
+
+- [ ] **Bordure des bulles reçues** (`messages/…/message_bubble.dart`, les deux
+  copies) : `_kRecvBorderLight/Dark` figeaient `#EFE7DB` / `#3D352C` ; passe
+  par `context.borderColor`. Seul le nocturne change (`#2A241E`). **À
+  vérifier** : dans une conversation en mode nuit, la bulle reçue doit encore
+  se détacher du fond.
 
 ## Feature flags & accès aux écrans
 
