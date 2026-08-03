@@ -76,8 +76,14 @@
         },
         "calls": {
             "$callId": {
-                ".read": "auth != null",
-                ".write": "auth != null",
+                ".read": "auth != null && (data.child('callerId').val() === auth.uid || data.child('calleeId').val() === auth.uid)",
+                ".write": "auth != null && (!data.exists() || data.child('callerId').val() === auth.uid || data.child('calleeId').val() === auth.uid)",
+                "callerId": {
+                    ".validate": "newData.isString() && (data.exists() ? data.val() === newData.val() : newData.val() === auth.uid)"
+                },
+                "calleeId": {
+                    ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
+                },
                 "offer": {
                     ".validate": "newData.hasChildren(['type', 'sdp'])"
                 },
@@ -115,19 +121,22 @@
         },
         "group_calls": {
             "$callId": {
-                ".read": "auth != null",
-                ".write": "auth != null",
+                ".read": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
+                ".write": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
                 "participants": {
                     ".indexOn": [
                         "joinedAt"
                     ],
                     "$participantId": {
+                        ".write": "auth != null && $participantId === auth.uid",
                         ".validate": "newData.hasChildren(['joinedAt']) || !newData.exists()"
                     }
                 },
                 "signaling": {
                     "$fromId": {
                         "$toId": {
+                            ".read": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
+                            ".write": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
                             ".validate": "newData.hasChildren(['type'])"
                         }
                     }
@@ -138,15 +147,19 @@
                     ".validate": "newData.hasChildren(['keyId', 'encryptedKey'])"
                 },
                 "hostId": {
+                    ".read": "auth != null",
                     ".validate": "newData.isString()"
                 },
                 "status": {
+                    ".read": "auth != null",
                     ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'active' || newData.val() === 'ended')"
                 },
                 "mode": {
+                    ".read": "auth != null",
                     ".validate": "newData.isString() && (newData.val() === 'mesh' || newData.val() === 'sfu')"
                 },
                 "maxParticipants": {
+                    ".read": "auth != null",
                     ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 50"
                 }
             }

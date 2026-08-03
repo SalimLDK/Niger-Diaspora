@@ -162,6 +162,19 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
 
       final docRef = await _callsCollection.add(call.toFirestore());
       final doc = await docRef.get();
+
+      // Les participants d'un appel vivent dans Firestore, alors que la
+      // signalisation vit en Realtime Database — et les règles RTDB ne savent
+      // pas interroger Firestore. Sans ces deux champs dans le nœud, elles ne
+      // peuvent qu'autoriser « tout compte connecté », ce qui laisse n'importe
+      // qui lire ou injecter du SDP dans l'appel d'autrui.
+      // Écrit ici, avant toute signalisation : l'appelé lit le nœud dès la
+      // sonnerie.
+      await _callSignalingRef(docRef.id).update({
+        'callerId': call.callerId,
+        'calleeId': call.calleeId,
+      });
+
       return CallModel.fromFirestore(doc);
     } catch (e) {
       debugPrint('CallRemoteDataSource: Error creating call: $e');
