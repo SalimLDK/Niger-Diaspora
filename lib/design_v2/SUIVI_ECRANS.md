@@ -364,9 +364,9 @@ et le squelette (`NearbyLoadingRow`) passe devant les résultats précédents
 pour ce cas-là seulement. Le rafraîchissement automatique des 60 s garde son
 comportement d'origine — il ne doit pas faire clignoter la liste.
 
-⚠️ `lib/features/home/…/home_screen.dart` porte **le même défaut** : la
-correction est dans la copie `design_v2` uniquement, elle partira à la
-bascule.
+Appliqué **des deux côtés** : la copie `design_v2` et la production
+`lib/features/home/…` portent le même correctif, vérifié identique. Ce point
+ne créera donc pas d'écart à la bascule.
 
 ## Écrans hors maquettes
 
