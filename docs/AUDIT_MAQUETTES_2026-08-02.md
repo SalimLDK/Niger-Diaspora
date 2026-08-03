@@ -112,6 +112,62 @@ familles :
    Un `grep -rn "onTap: () {}\|onPressed: () {}" lib` est instantané et
    devrait faire partie de toute revue.
 
+### Écart #11 — monétisation des salons : chemin de paiement jamais fonctionnel
+
+Trouvé le 2026-08-03 en remontant la piste des taux de commission. Rien de
+tout cela n'était visible depuis une maquette : le défaut est à l'interface
+entre l'app et les Edge Functions.
+
+**L'app appelait deux fonctions qui n'existent pas.** `purchase-room-ticket`
+et `send-tip`, alors que les fonctions déployées s'appellent
+`process-room-ticket` et `process-tip` (`git log --diff-filter=A` confirme
+qu'elles n'ont jamais porté d'autre nom). Les 6 autres `functions.invoke()`
+de l'app correspondaient bien. Les deux appels partaient donc en 404 :
+**aucun achat de billet ni pourboire n'a jamais pu aboutir.**
+
+Deux autres désaccords sur la même interface, chacun suffisant à casser
+l'appel même avec le bon nom :
+- **unité** — les fonctions traitaient le montant en unité majeure et
+  multipliaient elles-mêmes par 100 pour Stripe, alors que l'app envoie des
+  unités mineures : facteur 100 sur le débit ;
+- **type** — la commission était renvoyée en décimal (`0.75`) et relue côté
+  Dart en `as int?`, donc systématiquement retombée à `0`.
+
+Trois désaccords indépendants : les deux côtés n'ont jamais tourné ensemble.
+
+**Taux réel : 15 %**, pourboires comme billets (`PLATFORM_COMMISSION_RATE`).
+Trois valeurs coexistaient sans se rencontrer — 5 % affiché dans les deux
+feuilles (« 95 % pour l'hôte »), 15 % ou 20 % selon l'entité Dart, 15 % côté
+serveur. Les feuilles promettaient donc 95 % au créateur pour un prélèvement
+réel de 15 %.
+
+✅ Corrigé : noms des fonctions, unité mineure de bout en bout (convention
+Stripe, qui règle au passage le FCFA — devise sans subdivision, que le `/100`
+d'affichage divisait à tort), commission entière, taux unifié via
+`kAudioRoomsCommissionRate`, montants de pourboire pris dans les réglages
+plutôt qu'en dur. Ajout de `AudioRoomsSettingsModel` : `AppSettingsModel`
+n'avait aucun champ `audioRooms`, donc ces réglages — pourtant lus par l'app —
+n'étaient jamais chargés depuis le backend.
+
+⚠️ **Attribution** : ces changements ont été emportés par le `git add -A` de
+l'agent Jules et se trouvent dans le commit `0b414ca`
+(« fix(appels,demarrage)… »), dont le message ne les mentionne pas. Commit
+déjà poussé, non réécrit.
+
+⚠️ **Restent ouverts, et volontairement non tranchés ici** :
+- **Les valeurs XOF par défaut sont probablement 100× trop grandes.** Elles
+  ont été écrites pour l'ancien affichage fautif qui divisait le FCFA par
+  100 : `minPayoutXOF = 500000` fait 762 € de retrait minimum,
+  `predefinedTipAmountsXOF` commence à 50 000 FCFA (~76 €) de pourboire. Sous
+  la sémantique désormais correcte, ces chiffres s'affichent tels quels. Les
+  rediviser est une décision métier, pas une correction.
+- **Abonnements créateur et replays payants n'ont aucun backend** — pas
+  d'Edge Function, donc aucun taux serveur. `CreatorSubscriptionEntity` garde
+  ses 20 %, délibérément non alignés sur les 15 % des salons.
+- **Les `*CommissionPercent` des réglages ne sont lus par personne** : les
+  Edge Functions codent leur taux en dur. Un administrateur qui les modifie
+  ne change rien au prélèvement réel.
+
 **Polish visuel : fait le 2026-08-03** (commits `polish(...)`). Couvre 3c
 (textes fantôme, 3 cartes, « Avertir l'hôte »), 2a (en-tête + ✕, ordre des
 sections, sous-titres d'interrupteurs, « Programmer »), 2b (introduction,
