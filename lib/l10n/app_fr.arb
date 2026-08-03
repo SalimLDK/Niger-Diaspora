@@ -492,6 +492,8 @@
     }
   },
   "heritageDownloadHint": "Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.",
+  "homeSeeOnlineEvents": "Voir les événements en ligne",
+  "homeCreateEvent": "Créer",
   "podcastsSortRecent": "Plus récents",
   "podcastsSortOldest": "Plus anciens",
   "savePodcastHeritageNote": "Un salon patrimoine reste aussi dans la bibliothèque du patrimoine, même publié en podcast.",
@@ -855,7 +857,7 @@
   "disableNearbyMembers": "Désactiver les membres à proximité",
   "nearbyMembersDisabled": "Mode privé activé",
   "nearbyMembersDisabledHint": "Activez pour voir les membres à proximité et apparaître sur leur carte",
-  "searchMembersGroups": "Rechercher des membres, groupes...",
+  "searchMembersGroups": "Rechercher un membre, un groupe…",
   "createOrJoinEvents": "Créez ou rejoignez des événements",
   "upcomingEvents": "Événements à venir",
   "popularGroups": "Groupes populaires",

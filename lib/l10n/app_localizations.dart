@@ -2252,6 +2252,18 @@ abstract class AppLocalizations {
   /// **'Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.'**
   String get heritageDownloadHint;
 
+  /// No description provided for @homeSeeOnlineEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les événements en ligne'**
+  String get homeSeeOnlineEvents;
+
+  /// No description provided for @homeCreateEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer'**
+  String get homeCreateEvent;
+
   /// No description provided for @podcastsSortRecent.
   ///
   /// In fr, this message translates to:
@@ -3383,7 +3395,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchMembersGroups.
   ///
   /// In fr, this message translates to:
-  /// **'Rechercher des membres, groupes...'**
+  /// **'Rechercher un membre, un groupe…'**
   String get searchMembersGroups;
 
   /// No description provided for @createOrJoinEvents.

@@ -1228,7 +1228,9 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _HomeActionButton(
-                  label: 'Voir en ligne',
+                  // « Voir en ligne » pouvait se lire « consulter sur le
+                  // web » : le libellé nomme les événements.
+                  label: AppLocalizations.of(context)!.homeSeeOnlineEvents,
                   filled: false,
                   onTap: () =>
                       context.push('/events/${first.id}', extra: first),
@@ -1237,7 +1239,7 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _HomeActionButton(
-                  label: 'Créer',
+                  label: AppLocalizations.of(context)!.homeCreateEvent,
                   filled: true,
                   onTap: () => context.push('/events/create'),
                 ),

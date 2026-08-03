@@ -492,6 +492,8 @@
     }
   },
   "heritageDownloadHint": "Download before a trip: recordings stay listenable without a connection.",
+  "homeSeeOnlineEvents": "See online events",
+  "homeCreateEvent": "Create",
   "podcastsSortRecent": "Newest first",
   "podcastsSortOldest": "Oldest first",
   "savePodcastHeritageNote": "A heritage room also stays in the heritage library, even once published as a podcast.",
@@ -859,7 +861,7 @@
   "disableNearbyMembers": "Disable nearby members",
   "nearbyMembersDisabled": "Private mode enabled",
   "nearbyMembersDisabledHint": "Turn on to see nearby members and appear on their map",
-  "searchMembersGroups": "Search members, groups...",
+  "searchMembersGroups": "Search for a member, a group…",
   "createOrJoinEvents": "Create or join events",
   "upcomingEvents": "Upcoming events",
   "popularGroups": "Popular groups",

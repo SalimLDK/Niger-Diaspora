@@ -1167,6 +1167,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Download before a trip: recordings stay listenable without a connection.';
 
   @override
+  String get homeSeeOnlineEvents => 'See online events';
+
+  @override
+  String get homeCreateEvent => 'Create';
+
+  @override
   String get podcastsSortRecent => 'Newest first';
 
   @override
@@ -1807,7 +1813,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn on to see nearby members and appear on their map';
 
   @override
-  String get searchMembersGroups => 'Search members, groups...';
+  String get searchMembersGroups => 'Search for a member, a group…';
 
   @override
   String get createOrJoinEvents => 'Create or join events';

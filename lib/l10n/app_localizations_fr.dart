@@ -1181,6 +1181,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.';
 
   @override
+  String get homeSeeOnlineEvents => 'Voir les événements en ligne';
+
+  @override
+  String get homeCreateEvent => 'Créer';
+
+  @override
   String get podcastsSortRecent => 'Plus récents';
 
   @override
@@ -1827,7 +1833,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Activez pour voir les membres à proximité et apparaître sur leur carte';
 
   @override
-  String get searchMembersGroups => 'Rechercher des membres, groupes...';
+  String get searchMembersGroups => 'Rechercher un membre, un groupe…';
 
   @override
   String get createOrJoinEvents => 'Créez ou rejoignez des événements';
