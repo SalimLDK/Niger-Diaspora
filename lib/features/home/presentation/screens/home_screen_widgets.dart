@@ -38,7 +38,12 @@ class _ContextLine extends StatelessWidget {
     if (groups != null) {
       parts.add('${formatCount(groups!)} ${l10n.groupsTitle.toLowerCase()}');
     }
-    final trailing = parts.isEmpty ? '' : '· ${parts.join(' · ')}';
+    // La puce d'ouverture ne sert qu'à séparer du lieu : sans lieu, elle
+    // s'affichait seule en tête (« · 0 membres · 0 groupes »), vu sur
+    // appareil au premier lancement d'un compte sans ville.
+    final compte = parts.join(' · ');
+    final trailing =
+        parts.isEmpty ? '' : (place.isEmpty ? compte : '· $compte');
 
     if (place.isEmpty && trailing.isEmpty) return const SizedBox.shrink();
 

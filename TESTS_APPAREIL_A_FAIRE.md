@@ -14,6 +14,40 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée
+
+**Première exécution de la refonte sur appareil.** Build `assembleDebug` en
+90 s, installation et lancement sans incident, **zéro exception Flutter**
+au démarrage (`E/flutter`, `EXCEPTION CAUGHT`, `RenderFlex overflowed` :
+aucun).
+
+**Vérifié sur l'écran d'accueil, en thème sombre :**
+
+- [x] Le titrage serif rend correctement (« Bonjour, **Sim** »).
+- [x] Le bandeau de complétude (§11f) s'affiche : barre terracotta, « 2/5 »,
+      message contextuel et action « Ajouter ma ville ».
+- [x] La carte « POUR COMMENCER » rend ses trois amorces avec leurs
+      sous-titres — c'est la localisation ARB de cette session, en vrai.
+- [x] Grille de services, barre de navigation basse, ligne de contexte.
+- [x] Le thème sombre est lisible partout sur cet écran : aucun jeton clair
+      figé n'est ressorti.
+
+**Défaut trouvé et corrigé dans la foulée** — puce orpheline en tête de la
+ligne de contexte (« · 0 membres · 0 groupes ») pendant la fenêtre où la
+géolocalisation n'a pas encore résolu. La puce ne sert qu'à séparer du lieu ;
+sans lieu, elle s'affichait seule. Corrigé dans `home_screen_widgets.dart`.
+Une fois Montréal résolu, la ligne est correcte.
+
+**Ni analyze ni relecture ne pouvaient trouver ça** : il fallait le premier
+lancement d'un compte sans ville renseignée.
+
+**Reste à exercer sur cet appareil** : tous les autres écrans basculés
+(profil, config profil, réglages, carte, notifications, recherche,
+messagerie), le mode Éco en réception, le brouillon d'épisode, et
+`font_scale = 1.1`.
+
+---
+
 ## Session du 2026-08-03 — SM A515F, build de `118b61e`
 
 Ce qui a été réellement exercé sur l'appareil, et ce que ça a révélé.
