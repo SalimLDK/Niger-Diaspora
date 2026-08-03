@@ -490,6 +490,51 @@ sont invisibles à `flutter analyze` :
 - l'onboarding à `font_scale = 1.1`, où les titres serif sur deux lignes et
   les puces de réassurance peuvent déborder.
 
+## Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1
+
+Premier passage réel sur téléphone de toute la reprise du design. Le
+téléphone était déjà dans les deux conditions les plus risquées : nuit et
+échelle de police 1.1.
+
+**Cinq défauts trouvés, aucun visible à `flutter analyze`.**
+
+- [x] Puce de filtre des notifications : fond `adaptivePrimaryColor` (qui
+  s'éclaircit en nuit) + texte `Colors.white` figé → blanc sur orange clair.
+  Corrigé en `onPrimaryColor`. **Vérifié à l'écran après reconstruction.**
+- [x] « Précédent » tronqué en « Précéd » à l'étape 3/4 de la configuration
+  du profil : ratio 1:2 trop serré à font_scale 1.1. Passé à 3:4.
+- [ ] Empreinte de clé quasi invisible (écran des appareils) : le texte
+  utilisait `theme.colorScheme.outline`, une couleur de **bordure**.
+  Corrigé vers `textSecondaryColor` — **non vérifié à l'écran**, l'app a
+  redémarré avant que j'y revienne. À confirmer.
+- [ ] Texte codé en dur et sans accents sur ce même écran (« jusqu'a 5
+  appareils connectes simultanement ») alors que la clé localisée existait
+  et n'était pas utilisée. Corrigé — **non vérifié à l'écran**.
+
+### ⚠ Anomalie observée, non reproduite : configuration du profil en clair
+
+À 5:04, l'étape 3/4 de la configuration du profil s'est affichée en
+**crème avec des cartes blanches**, alors que l'app était en thème sombre
+avant et après (accueil, paramètres, notifications tous en nuit).
+
+Ce qui a été écarté par vérification :
+
+- l'écran utilise bien `context.backgroundColor` (`profile_config_screen.dart:314`) ;
+- `design_kit.dart` branche correctement sur `context.isDarkMode` ;
+- le routeur n'enveloppe pas la route dans un `Theme` ;
+- le splash Flutter rend en sombre, donc le thème est chargé tôt.
+
+Non reproduit après `force-stop` + relance. **Cause inconnue.** À
+retenter en passant par le parcours normal (bandeau « Complétez votre
+profil » de l'accueil), et à regarder en priorité si l'étape 4/4 —
+celle qui applique le thème en direct — laisse un état incohérent
+quand on revient en arrière.
+
+Ce que je croyais avoir vu et qui est faux : « écran de lancement blanc
+en thème sombre ». Au relancement suivant il était noir, et le splash
+Flutter aussi. Le blanc vu à 5:01 suivait immédiatement un
+`adb install -r` et n'a pas été reproduit.
+
 ## Quatrième vague — écrans repris en production (2026-08-03)
 
 Contrairement au bloc ci-dessus, **tout ce qui suit est dans
