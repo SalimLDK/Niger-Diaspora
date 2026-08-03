@@ -134,8 +134,35 @@ un gabarit commun, `_buildThreadSeparator`.
 fait, c'est le **langage visuel** que le suivi identifiait comme manquant
 (« des dégradés qui subsistent dans la discussion, le composer »). Tout ce
 qui relève de la mise en page propre à ces maquettes — disposition des
-bulles, barre d'actions sur un message, états d'enregistrement vocal —
-reste à faire et demande de reprendre les images.
+bulles, états d'enregistrement vocal — reste à faire et demande de
+reprendre les images.
+
+#### Feuille d'actions sur un message (§27a) — fait
+
+La maquette 27a, elle, était disponible. Elle pose une **rangée de
+réactions rapides** en tête de feuille : cinq émojis atteignables d'un
+geste (👍 ❤️ 😂 🙏 😮) plus un « + » qui ouvre le sélecteur complet.
+Avant, réagir demandait trois gestes — ouvrir la feuille, toucher
+« Réagir », choisir dans un second écran.
+
+Deux décisions à connaître :
+
+- **Aucune action n'a été retirée.** 27a n'en montre que cinq (Répondre,
+  Copier, Transférer, Favoris, Supprimer) là où la feuille en a treize.
+  Faire disparaître épingler, signaler, modifier, télécharger et partager
+  serait une régression fonctionnelle déguisée en choix de design. Si le
+  raccourcissement est voulu, c'est une décision produit à prendre
+  explicitement — et il faudra dire où vont les actions retirées.
+- **La pastille ne prétend pas savoir quelle réaction est la vôtre.**
+  `MessageEntity.reactions` est une `List<String>` d'émojis sans auteur
+  (le fichier porte encore le commentaire « ready for future use when
+  MessageEntity supports reactions »). La mise en avant dit donc « cette
+  réaction est présente sur le message », ce qui est vrai, et non « c'est
+  la mienne », ce qui serait inventé. Rattacher l'auteur demande de
+  changer le modèle et la table.
+
+Le rouge de la ligne « Supprimer » passe de `Colors.red` à
+`context.errorColor` au passage.
 
 ### Carte — ce qui est fait et ce qui bloque (2026-08-03)
 

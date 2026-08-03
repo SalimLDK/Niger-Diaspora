@@ -867,15 +867,16 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   /// Rangée de réactions rapides de la feuille d'actions (§27a).
   ///
-  /// L'émoji déjà posé par l'utilisateur est mis en avant : le toucher
-  /// à nouveau retire la réaction, comme partout ailleurs dans l'app.
+  /// Un émoji déjà posé sur le message est mis en avant.
+  ///
+  /// `MessageEntity.reactions` est une simple `List<String>` sans auteur :
+  /// on peut donc dire « cette réaction est présente », mais pas
+  /// « c'est la mienne ». Tant que le modèle ne porte pas l'auteur, la
+  /// pastille ne le prétend pas.
   Widget _buildQuickReactions(BuildContext sheetContext) {
     const emojis = ['\u{1F44D}', '\u{2764}\u{FE0F}', '\u{1F602}',
         '\u{1F64F}', '\u{1F62E}'];
-    final mien = widget.message.reactions.entries
-        .where((e) => e.value.contains(widget.currentUserId))
-        .map((e) => e.key)
-        .toSet();
+    final posees = widget.message.reactions.toSet();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -883,7 +884,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         for (final emoji in emojis)
           _QuickReactionButton(
             emoji: emoji,
-            selected: mien.contains(emoji),
+            selected: posees.contains(emoji),
             onTap: () {
               Navigator.pop(sheetContext);
               HapticFeedback.lightImpact();
