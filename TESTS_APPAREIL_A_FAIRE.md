@@ -436,6 +436,89 @@ sont invisibles à `flutter analyze` :
 - l'onboarding à `font_scale = 1.1`, où les titres serif sur deux lignes et
   les puces de réassurance peuvent déborder.
 
+## Quatrième vague — écrans repris en production (2026-08-03)
+
+Contrairement au bloc ci-dessus, **tout ce qui suit est dans
+`lib/features/` et donc exerçable tout de suite**. Aucun de ces écrans n'a
+été vu tourner : les jetons de thème ont été raisonnés, pas observés.
+
+### À vérifier en thème sombre en priorité
+
+C'est la famille de défauts la plus récurrente du projet, et cette vague a
+converti une centaine de couleurs figées en jetons adaptatifs.
+
+- [ ] **Appareils connectés** (`devices_screen.dart`) et **Sauvegarde des
+  clés** (`security_backup_screen.dart`) — 26 couleurs routées, dont des
+  fonds `shade50` presque blancs. Ce sont les écrans qu'on ouvre dans le
+  noir après avoir perdu son téléphone : vérifier que la carte « sauvegarde
+  active », l'avertissement de passphrase et le bouton « Révoquer » restent
+  lisibles.
+- [ ] **Détail d'un transfert** (`transaction_detail_screen.dart`) — les 20
+  couleurs d'état, dont celles qui distinguent « débité mais bloqué » de
+  « refusé avant débit ». Provoquer au moins un échec pour voir la couleur
+  réelle, pas seulement le cas nominal.
+- [ ] **Mes commandes** (`my_orders_screen.dart`) — 9 statuts routés ;
+  **teal et violet sont restés figés** faute de jeton équivalent. Regarder
+  s'ils jurent en nuit.
+- [ ] **Modifier le profil**, **Réglages de notifications**, **Messages
+  favoris**, **Nouvelle conversation** — mêmes conversions.
+
+### Les trois blancs volontairement conservés (`edit_profile_screen.dart`)
+
+Ils sont posés sur un aplat saturé et **doivent** rester blancs. Le
+raisonnement dit qu'ils passent ; seul l'écran le prouve.
+
+- [ ] SnackBar de succès après enregistrement du profil — glyphe blanc sur
+  le vert de succès, en clair **et** en nuit.
+- [ ] Pastille de code langue (FR, HA…) dans « Langues parlées », état
+  sélectionné et non sélectionné.
+
+### Les voiles de contraste laissés en place
+
+Trois écrans gardent des noirs semi-transparents parce qu'ils sont posés
+sur du contenu arbitraire. À vérifier **sur une image claire**, cas où un
+voile trop faible devient illisible :
+
+- [ ] **Galerie de conversation** — la durée d'une vidéo (« 0:12 ») sur une
+  vignette surexposée.
+- [ ] **Écrans d'appel** — les commandes blanches sur un flux vidéo clair.
+- [ ] **Carte** — les épingles et cercles de rayon, laissés en couleurs
+  fixes parce qu'ils se lisent sur le fond Google Maps et non sur le fond
+  de l'app.
+
+### Points qui ne se voient qu'à l'exécution
+
+- [ ] **Mention « CHIFFRÉ DE BOUT EN BOUT » de l'appel 1-à-1.** Elle est
+  conditionnée à `E2EEService.instance.isE2EEEnabled`. Vérifier les deux
+  sens : qu'elle **apparaît** sur un appel réellement chiffré, et qu'elle
+  **n'apparaît pas** si la clé n'est pas posée. Un badge qui ment sur le
+  chiffrement est pire que pas de badge.
+- [ ] **Fil et Mon espace en thème clair (mode « organic »).** 13 libellés
+  sont passés de la police de l'app à **Figtree** via `FeedText`. Le défaut
+  était invisible en nuit et ne se voit qu'en clair, à côté des titres
+  Caprasimo. Prévoir un premier lancement **avec réseau** : `google_fonts`
+  télécharge les fontes.
+- [ ] **Modifier le profil — l'avatar a changé de place.** Il quitte
+  l'en-tête héros pour rejoindre le formulaire. Vérifier que l'animation
+  `Hero` (tag `profile_avatar`) depuis l'écran de profil ne saute pas, et
+  que la barre repliée reste lisible au défilement.
+- [ ] **Réglages de notifications** — les libellés de section sont passés en
+  chasse fixe capitales. À `font_scale = 1.1`, vérifier qu'ils ne coupent
+  pas (« CE QUI VOUS ALERTE » est long).
+
+### Non testable — reste dans `design_v2`
+
+Feuille d'actions sur un message ramenée à cinq entrées avec révélateur
+« Autres actions » et rangée de réactions rapides ; états d'enregistrement
+vocal (« Glisser ‹ pour annuler · ↑ pour verrouiller », « Relâcher pour
+annuler », « Mains libres ») ; deux familles de couleur dans la grille du
+composer.
+
+Au moment de la bascule, tester en priorité **les trois états vocaux avec
+le doigt**, seule façon de vérifier que le bon libellé s'affiche au bon
+moment : le seuil d'annulation est à ~70 px et le verrouillage se fait
+vers le haut.
+
 ## Refonte des maquettes d'authentification
 
 - [x] **Connexion et inscription refaites sur les maquettes** (`auth_scaffold.dart`
