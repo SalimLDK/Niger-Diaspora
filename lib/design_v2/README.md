@@ -84,11 +84,14 @@ tenir à jour dans le même commit que le changement.
 
 ## Écarts connus avec les maquettes
 
-- **Textes en dur.** Les écrans redessinés portent la copie française des
-  maquettes directement dans le code. Les faire passer par `app_fr.arb` /
-  `app_en.arb` est le dernier geste avant la bascule en production (et il
-  faut la parité des métadonnées `@clé`, sinon `gen-l10n` échoue en
-  silence).
+- ~~**Textes en dur.**~~ Fait : la copie des maquettes est passée par
+  `app_fr.arb` / `app_en.arb` (63 nouvelles clés, métadonnées `@clé` à
+  parité des deux côtés). Trois littéraux restent volontairement dans le
+  code : les deux **sentinelles d'erreur** (`_kProfileMissing`,
+  `_kNotSignedIn`), qui servent à reconnaître le cas et ne doivent donc pas
+  dépendre de la langue, et les valeurs de **centres d'intérêt**, qui sont
+  ce que le profil enregistre en base — seul leur libellé affiché est
+  localisé.
 - **Couleur d'accent « Teal ».** La maquette 16g propose trois pastilles,
   `AppThemeColor` n'en connaît que deux (`green`, `orange`). L'écran
   n'affiche donc que Orange et Vert ; ajouter Teal veut dire toucher

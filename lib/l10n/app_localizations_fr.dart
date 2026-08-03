@@ -15125,4 +15125,262 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exportError => 'Erreur lors de l\'export';
+
+  @override
+  String get onbCitiesEyebrow => 'Niamey · Paris · Montréal · Abidjan';
+
+  @override
+  String get onbWelcomeTitle => 'Bienvenue sur\nDiaspo Niger';
+
+  @override
+  String get onbWelcomeBody =>
+      'La communauté nigérienne, où qu\'elle soit : retrouvez vos proches, entraidez-vous, restez au pays même de loin.';
+
+  @override
+  String get onbWelcomeIllustration => 'illustration — la diaspora';
+
+  @override
+  String get onbMembersTitle => 'Découvrez\nles membres';
+
+  @override
+  String get onbMembersBody =>
+      'Voyez qui vit près de chez vous : métier, ville d\'origine, langues parlées — de quoi trouver la bonne personne au bon moment.';
+
+  @override
+  String get onbMembersIllustration => 'illustration — carte des membres';
+
+  @override
+  String get onbMembersBullet1 =>
+      'Position approximative, jamais l\'adresse exacte';
+
+  @override
+  String get onbMembersBullet2 =>
+      'Vous voyez ceux qui partagent, et réciproquement';
+
+  @override
+  String get onbGroupsTitle => 'Rejoignez\ndes groupes';
+
+  @override
+  String get onbGroupsBody =>
+      'Entraide de quartier, associations, promos d\'étudiants : trouvez les vôtres près de chez vous ou au pays.';
+
+  @override
+  String get onbGroupsIllustration => 'illustration — rejoindre un groupe';
+
+  @override
+  String get onbGroupsBullet1 => 'Groupes publics ou privés, à vous de choisir';
+
+  @override
+  String get onbGroupsBullet2 => 'Discussions chiffrées de bout en bout';
+
+  @override
+  String get onbEventsTitle => 'Participez aux\névénements';
+
+  @override
+  String get onbEventsBody =>
+      'Fêtes, permanences administratives, rencontres sportives : inscrivez-vous en un geste et ajoutez la date à votre agenda.';
+
+  @override
+  String get onbEventsIllustration => 'illustration — fête de la République';
+
+  @override
+  String get onbEventsBullet1 => 'En présentiel ou en ligne';
+
+  @override
+  String get onbEventsBullet2 => 'Rappel avant le jour J';
+
+  @override
+  String get onbConnectedTitle => 'Restez\nconnectés';
+
+  @override
+  String get onbConnectedBody =>
+      'Deux autorisations et vous êtes prêt. Vous pourrez les changer à tout moment dans Réglages.';
+
+  @override
+  String get onbConnectedIllustration => 'illustration — rester connectés';
+
+  @override
+  String get onbNotificationsSubtitle =>
+      'Messages, invitations, rappels d\'événement';
+
+  @override
+  String get onbLocationSubtitle =>
+      'Réciproque : vous voyez ceux qui partagent';
+
+  @override
+  String get onbLaterWithoutPermissions => 'Plus tard, sans autorisations';
+
+  @override
+  String get setupIdentityTitle => 'Faisons connaissance';
+
+  @override
+  String get setupIdentityBody =>
+      'Votre nom et votre métier aident les membres à savoir qui vous êtes — et à vous solliciter au bon moment.';
+
+  @override
+  String get setupFullNameHint => 'Moussa Adamou';
+
+  @override
+  String get setupProfessionHint => 'Choisissez dans la liste';
+
+  @override
+  String get setupProfessionHelper =>
+      'Choisie dans la liste : Entrepreneur, Ingénieur, Médecin, Étudiant…';
+
+  @override
+  String get setupAddPhoto => 'Ajouter une photo';
+
+  @override
+  String get setupPhotoHint => 'Optionnel · vos initiales sinon';
+
+  @override
+  String get setupYourPhoto => 'Votre photo';
+
+  @override
+  String get setupLocationBody =>
+      'C\'est ce qui vous place sur la carte des membres et fait remonter les groupes et événements de votre ville.';
+
+  @override
+  String get setupCityHint => 'Paris, Niamey, New York…';
+
+  @override
+  String get setupOriginCityHint => 'Précisez votre ville d\'origine';
+
+  @override
+  String get setupShareLocationSubtitle =>
+      'Réciproque : vous voyez les membres proches, ils vous voient';
+
+  @override
+  String get setupLocationPrivacyNote =>
+      'Position approximative uniquement · modifiable dans Réglages';
+
+  @override
+  String get setupInterestsBody =>
+      'Ils personnalisent le fil et les suggestions de groupes. Choisissez-en au moins deux.';
+
+  @override
+  String get setupNoneSelected => 'Aucun sélectionné';
+
+  @override
+  String setupSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnés',
+      one: '1 sélectionné',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setupWhatYouGet => 'Ce que vous recevrez';
+
+  @override
+  String get setupThemeBody =>
+      'Le mode sombre économise la batterie sur écran OLED. Modifiable à tout moment dans Réglages.';
+
+  @override
+  String get setupAccentColor => 'Couleur d\'accent';
+
+  @override
+  String get setupAllSet => 'Tout est prêt';
+
+  @override
+  String setupAllSetNamed(String name) {
+    return 'Tout est prêt, $name';
+  }
+
+  @override
+  String setupCompletionSummary(int percent) {
+    return 'Profil complété à $percent % : vous êtes visible sur la carte des membres et dans la recherche.';
+  }
+
+  @override
+  String setupCompletionSummaryCity(int percent, String city) {
+    return 'Profil complété à $percent % : vous êtes visible sur la carte des membres de $city et dans la recherche.';
+  }
+
+  @override
+  String get setupHandleInvalid => 'Choisissez un nom d\'utilisateur libre';
+
+  @override
+  String get setupErrorConnection =>
+      'Erreur de connexion. Vérifiez votre connexion internet.';
+
+  @override
+  String get setupErrorNotSignedIn =>
+      'Utilisateur non connecté. Veuillez vous reconnecter.';
+
+  @override
+  String get setupErrorProfileMissing =>
+      'Profil introuvable. Veuillez redémarrer l\'application.';
+
+  @override
+  String setupErrorGeneric(String details) {
+    return 'Erreur : $details';
+  }
+
+  @override
+  String get handleLabel => 'Nom d\'utilisateur';
+
+  @override
+  String get handleExample => 'moussa';
+
+  @override
+  String get handleHint =>
+      'Sert à vous retrouver et à vous mentionner · optionnel';
+
+  @override
+  String get handleAvailableHint =>
+      'Disponible · sert à vous retrouver et à vous mentionner';
+
+  @override
+  String get handleTaken => 'Ce nom d\'utilisateur est déjà pris';
+
+  @override
+  String get handleFormat => '3 à 20 caractères : lettres, chiffres, _';
+
+  @override
+  String messagesActiveGroups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groupes actifs',
+      one: '1 groupe actif',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String groupsJoinedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rejoints',
+      one: '1 rejoint',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String groupsPendingInvites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invitations',
+      one: '1 invitation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notificationsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count non lues',
+      one: '1 non lue',
+    );
+    return '$_temp0';
+  }
 }

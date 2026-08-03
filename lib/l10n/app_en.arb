@@ -6731,5 +6731,305 @@
   "exportFormatJson": "JSON (.json)",
   "exportFormatHtml": "HTML (.html)",
   "noMessagesToExport": "No messages to export",
-  "exportError": "Export error"
+  "exportError": "Export error",
+  "onbCitiesEyebrow": "Niamey · Paris · Montreal · Abidjan",
+  "@onbCitiesEyebrow": {
+    "description": "Surtitre du premier ecran d onboarding"
+  },
+  "onbWelcomeTitle": "Welcome to\nDiaspo Niger",
+  "@onbWelcomeTitle": {
+    "description": "Titre 1/5"
+  },
+  "onbWelcomeBody": "The Nigerien community, wherever it is: find your people, help each other out, stay close to home even from far away.",
+  "@onbWelcomeBody": {
+    "description": "Promesse 1/5"
+  },
+  "onbWelcomeIllustration": "illustration — the diaspora",
+  "@onbWelcomeIllustration": {
+    "description": "Legende de l emplacement d illustration 1/5"
+  },
+  "onbMembersTitle": "Discover\nthe members",
+  "@onbMembersTitle": {
+    "description": "Titre 2/5"
+  },
+  "onbMembersBody": "See who lives near you: occupation, home town, languages spoken — everything you need to find the right person at the right time.",
+  "@onbMembersBody": {
+    "description": "Promesse 2/5"
+  },
+  "onbMembersIllustration": "illustration — member map",
+  "@onbMembersIllustration": {
+    "description": "Legende de l emplacement d illustration 2/5"
+  },
+  "onbMembersBullet1": "Approximate location, never the exact address",
+  "@onbMembersBullet1": {
+    "description": "Reassurance 2/5"
+  },
+  "onbMembersBullet2": "You see those who share, and they see you",
+  "@onbMembersBullet2": {
+    "description": "Reassurance 2/5"
+  },
+  "onbGroupsTitle": "Join\ngroups",
+  "@onbGroupsTitle": {
+    "description": "Titre 3/5"
+  },
+  "onbGroupsBody": "Neighbourhood support, associations, student cohorts: find your own near you or back home.",
+  "@onbGroupsBody": {
+    "description": "Promesse 3/5"
+  },
+  "onbGroupsIllustration": "illustration — joining a group",
+  "@onbGroupsIllustration": {
+    "description": "Legende de l emplacement d illustration 3/5"
+  },
+  "onbGroupsBullet1": "Public or private groups, your call",
+  "@onbGroupsBullet1": {
+    "description": "Reassurance 3/5"
+  },
+  "onbGroupsBullet2": "End-to-end encrypted conversations",
+  "@onbGroupsBullet2": {
+    "description": "Reassurance 3/5"
+  },
+  "onbEventsTitle": "Take part in\nevents",
+  "@onbEventsTitle": {
+    "description": "Titre 4/5"
+  },
+  "onbEventsBody": "Celebrations, admin help desks, sports meet-ups: sign up in one tap and add the date to your calendar.",
+  "@onbEventsBody": {
+    "description": "Promesse 4/5"
+  },
+  "onbEventsIllustration": "illustration — Republic Day",
+  "@onbEventsIllustration": {
+    "description": "Legende de l emplacement d illustration 4/5"
+  },
+  "onbEventsBullet1": "In person or online",
+  "@onbEventsBullet1": {
+    "description": "Reassurance 4/5"
+  },
+  "onbEventsBullet2": "A reminder before the day",
+  "@onbEventsBullet2": {
+    "description": "Reassurance 4/5"
+  },
+  "onbConnectedTitle": "Stay\nconnected",
+  "@onbConnectedTitle": {
+    "description": "Titre 5/5"
+  },
+  "onbConnectedBody": "Two permissions and you are ready. You can change them at any time in Settings.",
+  "@onbConnectedBody": {
+    "description": "Promesse 5/5"
+  },
+  "onbConnectedIllustration": "illustration — staying connected",
+  "@onbConnectedIllustration": {
+    "description": "Legende de l emplacement d illustration 5/5"
+  },
+  "onbNotificationsSubtitle": "Messages, invitations, event reminders",
+  "@onbNotificationsSubtitle": {
+    "description": "Sous-titre de l autorisation notifications"
+  },
+  "onbLocationSubtitle": "Reciprocal: you see those who share",
+  "@onbLocationSubtitle": {
+    "description": "Sous-titre de l autorisation localisation"
+  },
+  "onbLaterWithoutPermissions": "Later, without permissions",
+  "@onbLaterWithoutPermissions": {
+    "description": "Entrer sans accorder les autorisations"
+  },
+  "setupIdentityTitle": "Let us get acquainted",
+  "@setupIdentityTitle": {
+    "description": "Titre etape 1/4"
+  },
+  "setupIdentityBody": "Your name and occupation help members know who you are — and reach out at the right moment.",
+  "@setupIdentityBody": {
+    "description": "Explication etape 1/4"
+  },
+  "setupFullNameHint": "Moussa Adamou",
+  "@setupFullNameHint": {
+    "description": "Exemple de nom complet"
+  },
+  "setupProfessionHint": "Choose from the list",
+  "@setupProfessionHint": {
+    "description": "Invite du champ profession"
+  },
+  "setupProfessionHelper": "Chosen from the list: Entrepreneur, Engineer, Doctor, Student…",
+  "@setupProfessionHelper": {
+    "description": "Aide du champ profession"
+  },
+  "setupAddPhoto": "Add a photo",
+  "@setupAddPhoto": {
+    "description": "Invite photo de profil"
+  },
+  "setupPhotoHint": "Optional · your initials otherwise",
+  "@setupPhotoHint": {
+    "description": "Aide photo de profil"
+  },
+  "setupYourPhoto": "Your photo",
+  "@setupYourPhoto": {
+    "description": "Titre du selecteur de photo"
+  },
+  "setupLocationBody": "This is what puts you on the member map and surfaces the groups and events in your city.",
+  "@setupLocationBody": {
+    "description": "Explication etape 2/4"
+  },
+  "setupCityHint": "Paris, Niamey, New York…",
+  "@setupCityHint": {
+    "description": "Exemples de ville actuelle"
+  },
+  "setupOriginCityHint": "Specify your home town",
+  "@setupOriginCityHint": {
+    "description": "Invite ville d origine libre"
+  },
+  "setupShareLocationSubtitle": "Reciprocal: you see nearby members, they see you",
+  "@setupShareLocationSubtitle": {
+    "description": "Sous-titre du partage de position"
+  },
+  "setupLocationPrivacyNote": "Approximate location only · changeable in Settings",
+  "@setupLocationPrivacyNote": {
+    "description": "Garantie de confidentialite etape 2/4"
+  },
+  "setupInterestsBody": "They personalise your feed and group suggestions. Pick at least two.",
+  "@setupInterestsBody": {
+    "description": "Explication etape 3/4"
+  },
+  "setupNoneSelected": "None selected",
+  "@setupNoneSelected": {
+    "description": "Compteur de centres d interet a zero"
+  },
+  "setupSelectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@setupSelectedCount": {
+    "description": "Compteur de centres d interet",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setupWhatYouGet": "What you will receive",
+  "@setupWhatYouGet": {
+    "description": "Intertitre notifications etape 3/4"
+  },
+  "setupThemeBody": "Dark mode saves battery on OLED screens. Changeable at any time in Settings.",
+  "@setupThemeBody": {
+    "description": "Explication etape 4/4"
+  },
+  "setupAccentColor": "Accent colour",
+  "@setupAccentColor": {
+    "description": "Intertitre couleur d accent"
+  },
+  "setupAllSet": "All set",
+  "@setupAllSet": {
+    "description": "Recapitulatif de fin"
+  },
+  "setupAllSetNamed": "All set, {name}",
+  "@setupAllSetNamed": {
+    "description": "Recapitulatif de fin, avec le prenom",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "setupCompletionSummary": "Profile {percent}% complete: you are visible on the member map and in search.",
+  "@setupCompletionSummary": {
+    "description": "Recapitulatif de fin de configuration",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "setupCompletionSummaryCity": "Profile {percent}% complete: you are visible on the member map for {city} and in search.",
+  "@setupCompletionSummaryCity": {
+    "description": "Recapitulatif de fin de configuration, ville connue",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "setupHandleInvalid": "Choose an available username",
+  "@setupHandleInvalid": {
+    "description": "Blocage a l etape 1/4 si la poignee est prise"
+  },
+  "setupErrorConnection": "Connection error. Check your internet connection.",
+  "@setupErrorConnection": {
+    "description": "Echec d enregistrement du profil"
+  },
+  "setupErrorNotSignedIn": "Not signed in. Please sign in again.",
+  "@setupErrorNotSignedIn": {
+    "description": "Echec d enregistrement du profil"
+  },
+  "setupErrorProfileMissing": "Profile not found. Please restart the app.",
+  "@setupErrorProfileMissing": {
+    "description": "Echec d enregistrement du profil"
+  },
+  "setupErrorGeneric": "Error: {details}",
+  "@setupErrorGeneric": {
+    "description": "Echec d enregistrement du profil, message brut",
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "handleLabel": "Username",
+  "@handleLabel": {
+    "description": "Libelle du champ poignee"
+  },
+  "handleExample": "moussa",
+  "@handleExample": {
+    "description": "Exemple de poignee"
+  },
+  "handleHint": "Used to find and mention you · optional",
+  "@handleHint": {
+    "description": "Aide du champ poignee au repos"
+  },
+  "handleAvailableHint": "Available · used to find and mention you",
+  "@handleAvailableHint": {
+    "description": "Aide du champ poignee, disponible"
+  },
+  "handleTaken": "This username is already taken",
+  "@handleTaken": {
+    "description": "Aide du champ poignee, deja prise"
+  },
+  "handleFormat": "3 to 20 characters: letters, digits, _",
+  "@handleFormat": {
+    "description": "Aide du champ poignee, format invalide"
+  },
+  "messagesActiveGroups": "{count, plural, =1{1 active group} other{{count} active groups}}",
+  "@messagesActiveGroups": {
+    "description": "Ligne de contexte de la messagerie",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupsJoinedCount": "{count, plural, =1{1 joined} other{{count} joined}}",
+  "@groupsJoinedCount": {
+    "description": "Ligne de contexte des groupes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupsPendingInvites": "{count, plural, =1{1 invitation} other{{count} invitations}}",
+  "@groupsPendingInvites": {
+    "description": "Ligne de contexte des groupes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsUnreadCount": "{count, plural, =1{1 unread} other{{count} unread}}",
+  "@notificationsUnreadCount": {
+    "description": "Ligne de contexte des notifications",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

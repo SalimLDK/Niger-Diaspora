@@ -27877,6 +27877,384 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur lors de l\'export'**
   String get exportError;
+
+  /// Surtitre du premier ecran d onboarding
+  ///
+  /// In fr, this message translates to:
+  /// **'Niamey · Paris · Montréal · Abidjan'**
+  String get onbCitiesEyebrow;
+
+  /// Titre 1/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur\nDiaspo Niger'**
+  String get onbWelcomeTitle;
+
+  /// Promesse 1/5
+  ///
+  /// In fr, this message translates to:
+  /// **'La communauté nigérienne, où qu\'elle soit : retrouvez vos proches, entraidez-vous, restez au pays même de loin.'**
+  String get onbWelcomeBody;
+
+  /// Legende de l emplacement d illustration 1/5
+  ///
+  /// In fr, this message translates to:
+  /// **'illustration — la diaspora'**
+  String get onbWelcomeIllustration;
+
+  /// Titre 2/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrez\nles membres'**
+  String get onbMembersTitle;
+
+  /// Promesse 2/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyez qui vit près de chez vous : métier, ville d\'origine, langues parlées — de quoi trouver la bonne personne au bon moment.'**
+  String get onbMembersBody;
+
+  /// Legende de l emplacement d illustration 2/5
+  ///
+  /// In fr, this message translates to:
+  /// **'illustration — carte des membres'**
+  String get onbMembersIllustration;
+
+  /// Reassurance 2/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Position approximative, jamais l\'adresse exacte'**
+  String get onbMembersBullet1;
+
+  /// Reassurance 2/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous voyez ceux qui partagent, et réciproquement'**
+  String get onbMembersBullet2;
+
+  /// Titre 3/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejoignez\ndes groupes'**
+  String get onbGroupsTitle;
+
+  /// Promesse 3/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Entraide de quartier, associations, promos d\'étudiants : trouvez les vôtres près de chez vous ou au pays.'**
+  String get onbGroupsBody;
+
+  /// Legende de l emplacement d illustration 3/5
+  ///
+  /// In fr, this message translates to:
+  /// **'illustration — rejoindre un groupe'**
+  String get onbGroupsIllustration;
+
+  /// Reassurance 3/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes publics ou privés, à vous de choisir'**
+  String get onbGroupsBullet1;
+
+  /// Reassurance 3/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussions chiffrées de bout en bout'**
+  String get onbGroupsBullet2;
+
+  /// Titre 4/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Participez aux\névénements'**
+  String get onbEventsTitle;
+
+  /// Promesse 4/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Fêtes, permanences administratives, rencontres sportives : inscrivez-vous en un geste et ajoutez la date à votre agenda.'**
+  String get onbEventsBody;
+
+  /// Legende de l emplacement d illustration 4/5
+  ///
+  /// In fr, this message translates to:
+  /// **'illustration — fête de la République'**
+  String get onbEventsIllustration;
+
+  /// Reassurance 4/5
+  ///
+  /// In fr, this message translates to:
+  /// **'En présentiel ou en ligne'**
+  String get onbEventsBullet1;
+
+  /// Reassurance 4/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel avant le jour J'**
+  String get onbEventsBullet2;
+
+  /// Titre 5/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Restez\nconnectés'**
+  String get onbConnectedTitle;
+
+  /// Promesse 5/5
+  ///
+  /// In fr, this message translates to:
+  /// **'Deux autorisations et vous êtes prêt. Vous pourrez les changer à tout moment dans Réglages.'**
+  String get onbConnectedBody;
+
+  /// Legende de l emplacement d illustration 5/5
+  ///
+  /// In fr, this message translates to:
+  /// **'illustration — rester connectés'**
+  String get onbConnectedIllustration;
+
+  /// Sous-titre de l autorisation notifications
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages, invitations, rappels d\'événement'**
+  String get onbNotificationsSubtitle;
+
+  /// Sous-titre de l autorisation localisation
+  ///
+  /// In fr, this message translates to:
+  /// **'Réciproque : vous voyez ceux qui partagent'**
+  String get onbLocationSubtitle;
+
+  /// Entrer sans accorder les autorisations
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard, sans autorisations'**
+  String get onbLaterWithoutPermissions;
+
+  /// Titre etape 1/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Faisons connaissance'**
+  String get setupIdentityTitle;
+
+  /// Explication etape 1/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre nom et votre métier aident les membres à savoir qui vous êtes — et à vous solliciter au bon moment.'**
+  String get setupIdentityBody;
+
+  /// Exemple de nom complet
+  ///
+  /// In fr, this message translates to:
+  /// **'Moussa Adamou'**
+  String get setupFullNameHint;
+
+  /// Invite du champ profession
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez dans la liste'**
+  String get setupProfessionHint;
+
+  /// Aide du champ profession
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisie dans la liste : Entrepreneur, Ingénieur, Médecin, Étudiant…'**
+  String get setupProfessionHelper;
+
+  /// Invite photo de profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une photo'**
+  String get setupAddPhoto;
+
+  /// Aide photo de profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel · vos initiales sinon'**
+  String get setupPhotoHint;
+
+  /// Titre du selecteur de photo
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre photo'**
+  String get setupYourPhoto;
+
+  /// Explication etape 2/4
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est ce qui vous place sur la carte des membres et fait remonter les groupes et événements de votre ville.'**
+  String get setupLocationBody;
+
+  /// Exemples de ville actuelle
+  ///
+  /// In fr, this message translates to:
+  /// **'Paris, Niamey, New York…'**
+  String get setupCityHint;
+
+  /// Invite ville d origine libre
+  ///
+  /// In fr, this message translates to:
+  /// **'Précisez votre ville d\'origine'**
+  String get setupOriginCityHint;
+
+  /// Sous-titre du partage de position
+  ///
+  /// In fr, this message translates to:
+  /// **'Réciproque : vous voyez les membres proches, ils vous voient'**
+  String get setupShareLocationSubtitle;
+
+  /// Garantie de confidentialite etape 2/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Position approximative uniquement · modifiable dans Réglages'**
+  String get setupLocationPrivacyNote;
+
+  /// Explication etape 3/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Ils personnalisent le fil et les suggestions de groupes. Choisissez-en au moins deux.'**
+  String get setupInterestsBody;
+
+  /// Compteur de centres d interet a zero
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun sélectionné'**
+  String get setupNoneSelected;
+
+  /// Compteur de centres d interet
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 sélectionné} other{{count} sélectionnés}}'**
+  String setupSelectedCount(int count);
+
+  /// Intertitre notifications etape 3/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que vous recevrez'**
+  String get setupWhatYouGet;
+
+  /// Explication etape 4/4
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mode sombre économise la batterie sur écran OLED. Modifiable à tout moment dans Réglages.'**
+  String get setupThemeBody;
+
+  /// Intertitre couleur d accent
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur d\'accent'**
+  String get setupAccentColor;
+
+  /// Recapitulatif de fin
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est prêt'**
+  String get setupAllSet;
+
+  /// Recapitulatif de fin, avec le prenom
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est prêt, {name}'**
+  String setupAllSetNamed(String name);
+
+  /// Recapitulatif de fin de configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil complété à {percent} % : vous êtes visible sur la carte des membres et dans la recherche.'**
+  String setupCompletionSummary(int percent);
+
+  /// Recapitulatif de fin de configuration, ville connue
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil complété à {percent} % : vous êtes visible sur la carte des membres de {city} et dans la recherche.'**
+  String setupCompletionSummaryCity(int percent, String city);
+
+  /// Blocage a l etape 1/4 si la poignee est prise
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un nom d\'utilisateur libre'**
+  String get setupHandleInvalid;
+
+  /// Echec d enregistrement du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de connexion. Vérifiez votre connexion internet.'**
+  String get setupErrorConnection;
+
+  /// Echec d enregistrement du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateur non connecté. Veuillez vous reconnecter.'**
+  String get setupErrorNotSignedIn;
+
+  /// Echec d enregistrement du profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil introuvable. Veuillez redémarrer l\'application.'**
+  String get setupErrorProfileMissing;
+
+  /// Echec d enregistrement du profil, message brut
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur : {details}'**
+  String setupErrorGeneric(String details);
+
+  /// Libelle du champ poignee
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom d\'utilisateur'**
+  String get handleLabel;
+
+  /// Exemple de poignee
+  ///
+  /// In fr, this message translates to:
+  /// **'moussa'**
+  String get handleExample;
+
+  /// Aide du champ poignee au repos
+  ///
+  /// In fr, this message translates to:
+  /// **'Sert à vous retrouver et à vous mentionner · optionnel'**
+  String get handleHint;
+
+  /// Aide du champ poignee, disponible
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible · sert à vous retrouver et à vous mentionner'**
+  String get handleAvailableHint;
+
+  /// Aide du champ poignee, deja prise
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce nom d\'utilisateur est déjà pris'**
+  String get handleTaken;
+
+  /// Aide du champ poignee, format invalide
+  ///
+  /// In fr, this message translates to:
+  /// **'3 à 20 caractères : lettres, chiffres, _'**
+  String get handleFormat;
+
+  /// Ligne de contexte de la messagerie
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 groupe actif} other{{count} groupes actifs}}'**
+  String messagesActiveGroups(int count);
+
+  /// Ligne de contexte des groupes
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 rejoint} other{{count} rejoints}}'**
+  String groupsJoinedCount(int count);
+
+  /// Ligne de contexte des groupes
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 invitation} other{{count} invitations}}'**
+  String groupsPendingInvites(int count);
+
+  /// Ligne de contexte des notifications
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 non lue} other{{count} non lues}}'**
+  String notificationsUnreadCount(int count);
 }
 
 class _AppLocalizationsDelegate

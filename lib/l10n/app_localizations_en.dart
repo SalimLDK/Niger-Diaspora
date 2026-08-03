@@ -14982,4 +14982,257 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportError => 'Export error';
+
+  @override
+  String get onbCitiesEyebrow => 'Niamey · Paris · Montreal · Abidjan';
+
+  @override
+  String get onbWelcomeTitle => 'Welcome to\nDiaspo Niger';
+
+  @override
+  String get onbWelcomeBody =>
+      'The Nigerien community, wherever it is: find your people, help each other out, stay close to home even from far away.';
+
+  @override
+  String get onbWelcomeIllustration => 'illustration — the diaspora';
+
+  @override
+  String get onbMembersTitle => 'Discover\nthe members';
+
+  @override
+  String get onbMembersBody =>
+      'See who lives near you: occupation, home town, languages spoken — everything you need to find the right person at the right time.';
+
+  @override
+  String get onbMembersIllustration => 'illustration — member map';
+
+  @override
+  String get onbMembersBullet1 =>
+      'Approximate location, never the exact address';
+
+  @override
+  String get onbMembersBullet2 => 'You see those who share, and they see you';
+
+  @override
+  String get onbGroupsTitle => 'Join\ngroups';
+
+  @override
+  String get onbGroupsBody =>
+      'Neighbourhood support, associations, student cohorts: find your own near you or back home.';
+
+  @override
+  String get onbGroupsIllustration => 'illustration — joining a group';
+
+  @override
+  String get onbGroupsBullet1 => 'Public or private groups, your call';
+
+  @override
+  String get onbGroupsBullet2 => 'End-to-end encrypted conversations';
+
+  @override
+  String get onbEventsTitle => 'Take part in\nevents';
+
+  @override
+  String get onbEventsBody =>
+      'Celebrations, admin help desks, sports meet-ups: sign up in one tap and add the date to your calendar.';
+
+  @override
+  String get onbEventsIllustration => 'illustration — Republic Day';
+
+  @override
+  String get onbEventsBullet1 => 'In person or online';
+
+  @override
+  String get onbEventsBullet2 => 'A reminder before the day';
+
+  @override
+  String get onbConnectedTitle => 'Stay\nconnected';
+
+  @override
+  String get onbConnectedBody =>
+      'Two permissions and you are ready. You can change them at any time in Settings.';
+
+  @override
+  String get onbConnectedIllustration => 'illustration — staying connected';
+
+  @override
+  String get onbNotificationsSubtitle =>
+      'Messages, invitations, event reminders';
+
+  @override
+  String get onbLocationSubtitle => 'Reciprocal: you see those who share';
+
+  @override
+  String get onbLaterWithoutPermissions => 'Later, without permissions';
+
+  @override
+  String get setupIdentityTitle => 'Let us get acquainted';
+
+  @override
+  String get setupIdentityBody =>
+      'Your name and occupation help members know who you are — and reach out at the right moment.';
+
+  @override
+  String get setupFullNameHint => 'Moussa Adamou';
+
+  @override
+  String get setupProfessionHint => 'Choose from the list';
+
+  @override
+  String get setupProfessionHelper =>
+      'Chosen from the list: Entrepreneur, Engineer, Doctor, Student…';
+
+  @override
+  String get setupAddPhoto => 'Add a photo';
+
+  @override
+  String get setupPhotoHint => 'Optional · your initials otherwise';
+
+  @override
+  String get setupYourPhoto => 'Your photo';
+
+  @override
+  String get setupLocationBody =>
+      'This is what puts you on the member map and surfaces the groups and events in your city.';
+
+  @override
+  String get setupCityHint => 'Paris, Niamey, New York…';
+
+  @override
+  String get setupOriginCityHint => 'Specify your home town';
+
+  @override
+  String get setupShareLocationSubtitle =>
+      'Reciprocal: you see nearby members, they see you';
+
+  @override
+  String get setupLocationPrivacyNote =>
+      'Approximate location only · changeable in Settings';
+
+  @override
+  String get setupInterestsBody =>
+      'They personalise your feed and group suggestions. Pick at least two.';
+
+  @override
+  String get setupNoneSelected => 'None selected';
+
+  @override
+  String setupSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setupWhatYouGet => 'What you will receive';
+
+  @override
+  String get setupThemeBody =>
+      'Dark mode saves battery on OLED screens. Changeable at any time in Settings.';
+
+  @override
+  String get setupAccentColor => 'Accent colour';
+
+  @override
+  String get setupAllSet => 'All set';
+
+  @override
+  String setupAllSetNamed(String name) {
+    return 'All set, $name';
+  }
+
+  @override
+  String setupCompletionSummary(int percent) {
+    return 'Profile $percent% complete: you are visible on the member map and in search.';
+  }
+
+  @override
+  String setupCompletionSummaryCity(int percent, String city) {
+    return 'Profile $percent% complete: you are visible on the member map for $city and in search.';
+  }
+
+  @override
+  String get setupHandleInvalid => 'Choose an available username';
+
+  @override
+  String get setupErrorConnection =>
+      'Connection error. Check your internet connection.';
+
+  @override
+  String get setupErrorNotSignedIn => 'Not signed in. Please sign in again.';
+
+  @override
+  String get setupErrorProfileMissing =>
+      'Profile not found. Please restart the app.';
+
+  @override
+  String setupErrorGeneric(String details) {
+    return 'Error: $details';
+  }
+
+  @override
+  String get handleLabel => 'Username';
+
+  @override
+  String get handleExample => 'moussa';
+
+  @override
+  String get handleHint => 'Used to find and mention you · optional';
+
+  @override
+  String get handleAvailableHint => 'Available · used to find and mention you';
+
+  @override
+  String get handleTaken => 'This username is already taken';
+
+  @override
+  String get handleFormat => '3 to 20 characters: letters, digits, _';
+
+  @override
+  String messagesActiveGroups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active groups',
+      one: '1 active group',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String groupsJoinedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count joined',
+      one: '1 joined',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String groupsPendingInvites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invitations',
+      one: '1 invitation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notificationsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread',
+      one: '1 unread',
+    );
+    return '$_temp0';
+  }
 }

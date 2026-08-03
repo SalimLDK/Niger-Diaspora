@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -90,6 +91,7 @@ class _HandleFieldState extends ConsumerState<HandleField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Widget? suffix;
     switch (_status) {
       case _HandleStatus.checking:
@@ -128,25 +130,25 @@ class _HandleFieldState extends ConsumerState<HandleField> {
     Color? helperColor;
     switch (_status) {
       case _HandleStatus.available:
-        helper = 'Disponible · sert à vous retrouver et à vous mentionner';
+        helper = l10n.handleAvailableHint;
         helperColor = context.successColor;
         break;
       case _HandleStatus.taken:
-        helper = 'Ce nom d\'utilisateur est déjà pris';
+        helper = l10n.handleTaken;
         helperColor = context.errorColor;
         break;
       case _HandleStatus.invalid:
-        helper = '3 à 20 caractères : lettres, chiffres, _';
+        helper = l10n.handleFormat;
         helperColor = context.errorColor;
         break;
       default:
-        helper = 'Sert à vous retrouver et à vous mentionner · optionnel';
+        helper = l10n.handleHint;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const DesignFieldLabel('Nom d\'utilisateur'),
+        DesignFieldLabel(l10n.handleLabel),
         TextFormField(
           controller: _controller,
           onChanged: _onChanged,
@@ -156,7 +158,7 @@ class _HandleFieldState extends ConsumerState<HandleField> {
           style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
           decoration: designInputDecoration(
             context,
-            hintText: 'moussa',
+            hintText: l10n.handleExample,
             helperText: helper,
             helperColor: helperColor,
             prefix: Padding(

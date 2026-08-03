@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -38,60 +39,48 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
     AnalyticsService.instance.logEvent(name: 'onboarding_begin');
   }
 
-  final List<OnboardingPageData> _pages = const [
+  /// Nombre d'ecrans, constant : le contenu depend de la langue, pas le
+  /// nombre de pages.
+  static const int _pageCount = 5;
+
+  List<OnboardingPageData> _buildPages(AppLocalizations l10n) => [
     OnboardingPageData(
-      eyebrow: 'Niamey · Paris · Montréal · Abidjan',
-      title: 'Bienvenue sur\nDiaspo Niger',
-      description:
-          'La communauté nigérienne, où qu\'elle soit : retrouvez vos '
-          'proches, entraidez-vous, restez au pays même de loin.',
-      illustrationCaption: 'illustration — la diaspora',
+      eyebrow: l10n.onbCitiesEyebrow,
+      title: l10n.onbWelcomeTitle,
+      description: l10n.onbWelcomeBody,
+      illustrationCaption: l10n.onbWelcomeIllustration,
       brandMark: true,
     ),
     OnboardingPageData(
-      title: 'Découvrez\nles membres',
-      description:
-          'Voyez qui vit près de chez vous : métier, ville d\'origine, '
-          'langues parlées — de quoi trouver la bonne personne au bon moment.',
-      illustrationCaption: 'illustration — carte des membres',
+      title: l10n.onbMembersTitle,
+      description: l10n.onbMembersBody,
+      illustrationCaption: l10n.onbMembersIllustration,
       icon: Icons.people_outline,
-      bullets: [
-        'Position approximative, jamais l\'adresse exacte',
-        'Vous voyez ceux qui partagent, et réciproquement',
-      ],
+      bullets: [l10n.onbMembersBullet1, l10n.onbMembersBullet2],
     ),
     OnboardingPageData(
-      title: 'Rejoignez\ndes groupes',
-      description:
-          'Entraide de quartier, associations, promos d\'étudiants : '
-          'trouvez les vôtres près de chez vous ou au pays.',
-      illustrationCaption: 'illustration — rejoindre un groupe',
+      title: l10n.onbGroupsTitle,
+      description: l10n.onbGroupsBody,
+      illustrationCaption: l10n.onbGroupsIllustration,
       icon: Icons.groups_outlined,
-      bullets: [
-        'Groupes publics ou privés, à vous de choisir',
-        'Discussions chiffrées de bout en bout',
-      ],
+      bullets: [l10n.onbGroupsBullet1, l10n.onbGroupsBullet2],
     ),
     OnboardingPageData(
-      title: 'Participez aux\névénements',
-      description:
-          'Fêtes, permanences administratives, rencontres sportives : '
-          'inscrivez-vous en un geste et ajoutez la date à votre agenda.',
-      illustrationCaption: 'illustration — fête de la République',
+      title: l10n.onbEventsTitle,
+      description: l10n.onbEventsBody,
+      illustrationCaption: l10n.onbEventsIllustration,
       icon: Icons.event_outlined,
-      bullets: ['En présentiel ou en ligne', 'Rappel avant le jour J'],
+      bullets: [l10n.onbEventsBullet1, l10n.onbEventsBullet2],
     ),
     OnboardingPageData(
-      title: 'Restez\nconnectés',
-      description:
-          'Deux autorisations et vous êtes prêt. Vous pourrez les changer '
-          'à tout moment dans Réglages.',
-      illustrationCaption: 'illustration — rester connectés',
+      title: l10n.onbConnectedTitle,
+      description: l10n.onbConnectedBody,
+      illustrationCaption: l10n.onbConnectedIllustration,
       icon: Icons.chat_bubble_outline,
     ),
   ];
 
-  bool get _isLastPage => _currentPage == _pages.length - 1;
+  bool get _isLastPage => _currentPage == _pageCount - 1;
 
   void _onPageChanged(int page) {
     setState(() => _currentPage = page);
@@ -148,7 +137,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   }
 
   /// Carte des deux autorisations + mention chiffrement (écran 5/5).
-  Widget _buildPermissionsCard() {
+  Widget _buildPermissionsCard(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -156,8 +145,8 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
           children: [
             DesignToggleTile(
               icon: Icons.notifications_none_rounded,
-              title: 'Notifications',
-              subtitle: 'Messages, invitations, rappels d\'événement',
+              title: l10n.notifications,
+              subtitle: l10n.onbNotificationsSubtitle,
               value: _wantNotifications,
               onChanged:
                   _requestingPermissions
@@ -166,8 +155,8 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
             ),
             DesignToggleTile(
               icon: Icons.location_on_outlined,
-              title: 'Localisation',
-              subtitle: 'Réciproque : vous voyez ceux qui partagent',
+              title: l10n.locationTitle,
+              subtitle: l10n.onbLocationSubtitle,
               value: _wantLocation,
               onChanged:
                   _requestingPermissions
@@ -177,9 +166,9 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
           ],
         ),
         const SizedBox(height: 14),
-        const DesignInfoLine(
+        DesignInfoLine(
           icon: Icons.lock_outline,
-          text: 'Vos messages sont chiffrés de bout en bout.',
+          text: l10n.e2eeFooterNote,
         ),
       ],
     );
@@ -187,6 +176,9 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _buildPages(l10n);
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
@@ -201,7 +193,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                 child: TextButton(
                   onPressed: _requestingPermissions ? null : _skip,
                   child: Text(
-                    'Passer',
+                    l10n.skip,
                     style: TextStyle(
                       color: context.textSecondaryColor,
                       fontSize: 14.5,
@@ -216,12 +208,12 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 itemBuilder: (context, index) {
-                  final isLast = index == _pages.length - 1;
+                  final isLast = index == pages.length - 1;
                   return OnboardingPage(
-                    data: _pages[index],
-                    footer: isLast ? _buildPermissionsCard() : null,
+                    data: pages[index],
+                    footer: isLast ? _buildPermissionsCard(l10n) : null,
                   );
                 },
               ),
@@ -235,12 +227,12 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DesignPageDots(
-                            count: _pages.length,
+                            count: pages.length,
                             index: _currentPage,
                           ),
                           const SizedBox(height: 18),
                           DesignPillButton(
-                            label: 'Commencer',
+                            label: l10n.start,
                             expand: true,
                             isLoading: _requestingPermissions,
                             onPressed: _nextPage,
@@ -253,7 +245,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                                       ? null
                                       : _completeIntro,
                               child: Text(
-                                'Plus tard, sans autorisations',
+                                l10n.onbLaterWithoutPermissions,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: context.textTertiaryColor,
@@ -267,12 +259,12 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                       : Row(
                         children: [
                           DesignPageDots(
-                            count: _pages.length,
+                            count: pages.length,
                             index: _currentPage,
                           ),
                           const Spacer(),
                           DesignPillButton(
-                            label: 'Suivant',
+                            label: l10n.next,
                             onPressed: _nextPage,
                           ),
                         ],

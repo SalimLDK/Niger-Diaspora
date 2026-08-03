@@ -257,7 +257,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             .length;
     final subtitleParts = <String>[
       if (unreadTotal > 0) l10n.unreadConversations(unreadTotal),
-      if (activeGroups > 0) '$activeGroups groupe${activeGroups > 1 ? 's' : ''} actif${activeGroups > 1 ? 's' : ''}',
+      if (activeGroups > 0) l10n.messagesActiveGroups(activeGroups),
     ];
 
     return Scaffold(

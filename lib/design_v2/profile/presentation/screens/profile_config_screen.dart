@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -12,6 +13,12 @@ import '../../../../features/profile/presentation/providers/profile_provider.dar
 import '../widgets/handle_field.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../kit/design_kit.dart';
+
+/// Sentinelles d'erreur : le message affiché est localisé, mais la
+/// reconnaissance du cas repose sur ces marqueurs bruts, qui ne doivent pas
+/// dépendre de la langue.
+const String _kProfileMissing = 'Profil introuvable';
+const String _kNotSignedIn = 'Utilisateur non connecté';
 
 /// Configuration du profil en quatre étapes (maquettes 16f, 15c, 15d, 16g).
 ///
@@ -58,7 +65,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   // Interests
   final Set<String> _selectedInterests = {};
-  final List<String> _availableInterests = [
+
+  /// Centres d'intérêt : la valeur stockée reste la chaîne française (c'est
+  /// ce que le profil enregistre), seul le libellé affiché est localisé.
+  static const List<String> _availableInterests = [
     'Culture',
     'Sport',
     'Business',
@@ -68,6 +78,29 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     'Santé',
     'Politique',
   ];
+
+  String _interestLabel(AppLocalizations l10n, String value) {
+    switch (value) {
+      case 'Culture':
+        return l10n.interestCulture;
+      case 'Sport':
+        return l10n.interestSport;
+      case 'Business':
+        return l10n.interestBusiness;
+      case 'Education':
+        return l10n.interestEducation;
+      case 'Technologie':
+        return l10n.interestTechnology;
+      case 'Arts':
+        return l10n.interestArts;
+      case 'Santé':
+        return l10n.interestHealth;
+      case 'Politique':
+        return l10n.interestPolitics;
+      default:
+        return value;
+    }
+  }
 
   // Notifications
   bool _enableNotifications = true;
@@ -141,9 +174,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
 
       if (profile == null) {
-        throw Exception(
-          'Profil introuvable. Veuillez redémarrer l\'application.',
-        );
+        throw Exception(_kProfileMissing);
       }
 
       // Get final origin city
@@ -184,24 +215,25 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           .markProfileConfigComplete();
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        final texte = e.toString();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              e.toString().contains('SSL') ||
-                      e.toString().contains('Connection')
-                  ? 'Erreur de connexion. Vérifiez votre connexion internet.'
-                  : e.toString().contains('Utilisateur non connecté')
-                  ? 'Utilisateur non connecté. Veuillez vous reconnecter.'
-                  : e.toString().contains('Profil introuvable')
-                  ? 'Profil introuvable. Veuillez redémarrer l\'application.'
-                  : 'Erreur: $e',
+              texte.contains('SSL') || texte.contains('Connection')
+                  ? l10n.setupErrorConnection
+                  : texte.contains(_kNotSignedIn)
+                  ? l10n.setupErrorNotSignedIn
+                  : texte.contains(_kProfileMissing)
+                  ? l10n.setupErrorProfileMissing
+                  : l10n.setupErrorGeneric(texte),
             ),
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 5),
             action:
                 currentUser != null
                     ? SnackBarAction(
-                      label: 'Réessayer',
+                      label: l10n.retry,
                       textColor: Colors.white,
                       onPressed: () => _handleComplete(currentUser),
                     )
@@ -221,8 +253,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     // déjà prise.
     if (_currentStep == 0 && !_handleValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Choisissez un nom d\'utilisateur libre'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.setupHandleInvalid),
         ),
       );
       return;
@@ -273,6 +305,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     }
 
     final isLastStep = _currentStep == _stepCount - 1;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -292,7 +325,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   if (_currentStep > 0) ...[
                     Expanded(
                       child: DesignSecondaryButton(
-                        label: 'Précédent',
+                        label: l10n.profilePrevious,
                         onPressed:
                             _isLoading
                                 ? null
@@ -304,7 +337,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   Expanded(
                     flex: _currentStep > 0 ? 2 : 1,
                     child: DesignPrimaryButton(
-                      label: isLastStep ? 'Terminer' : 'Suivant',
+                      label: isLastStep ? l10n.finish : l10n.next,
                       isLoading: _isLoading,
                       onPressed:
                           currentUser == null ? null : () => _goNext(currentUser),
@@ -322,6 +355,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// En-tête : retour, titre de section, compteur d'étape, puis les quatre
   /// segments de progression.
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 24, 0),
       child: Column(
@@ -343,7 +377,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               else
                 const SizedBox(width: 12),
               Text(
-                'Configuration du profil',
+                l10n.profileConfigTitle,
                 style: TextStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.w600,
@@ -390,6 +424,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   /// « Faisons connaissance » (§16f) : photo, nom, poignée, métier.
   Widget _buildIdentityStep() {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
     final displayName =
         _displayNameController.text.trim().isNotEmpty
@@ -401,18 +436,15 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DesignTitle('Faisons connaissance'),
+          DesignTitle(l10n.setupIdentityTitle),
           const SizedBox(height: 10),
-          const DesignBody(
-            'Votre nom et votre métier aident les membres à savoir qui vous '
-            'êtes — et à vous solliciter au bon moment.',
-          ),
+          DesignBody(l10n.setupIdentityBody),
           const SizedBox(height: 26),
 
           Center(child: _buildAvatarPicker(displayName)),
           const SizedBox(height: 26),
 
-          const DesignFieldLabel('Nom complet'),
+          DesignFieldLabel(l10n.fullName),
           TextField(
             controller: _displayNameController,
             textCapitalization: TextCapitalization.words,
@@ -423,7 +455,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
             decoration: designInputDecoration(
               context,
-              hintText: 'Moussa Adamou',
+              hintText: l10n.setupFullNameHint,
             ),
           ),
           const SizedBox(height: 18),
@@ -439,13 +471,11 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           ),
           const SizedBox(height: 18),
 
-          const DesignFieldLabel('Profession'),
+          DesignFieldLabel(l10n.profession),
           DesignDropdown<String>(
             value: _selectedProfession,
-            hintText: 'Choisissez dans la liste',
-            helperText:
-                'Choisie dans la liste : Entrepreneur, Ingénieur, Médecin, '
-                'Étudiant…',
+            hintText: l10n.setupProfessionHint,
+            helperText: l10n.setupProfessionHelper,
             items:
                 ProfileOptions.professions.map((profession) {
                   return DropdownMenuItem(
@@ -463,6 +493,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// Avatar rond terracotta avec pastille appareil photo, puis l'invitation
   /// « Ajouter une photo · optionnel ».
   Widget _buildAvatarPicker(String displayName) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Stack(
@@ -512,7 +543,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
         GestureDetector(
           onTap: _showImagePickerOptions,
           child: Text(
-            _photoUrl == null ? 'Ajouter une photo' : 'Changer la photo',
+            _photoUrl == null ? l10n.setupAddPhoto : l10n.changePhoto,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -522,7 +553,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
         ),
         const SizedBox(height: 3),
         Text(
-          'Optionnel · vos initiales sinon',
+          l10n.setupPhotoHint,
           style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
         ),
       ],
@@ -542,6 +573,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// « Votre localisation » (§15c) : ce que la position sert à faire est dit
   /// avant de la demander.
   Widget _buildLocationStep() {
+    final l10n = AppLocalizations.of(context)!;
     final needsCustomOriginCity =
         _selectedOriginRegion == 'Autre' || _selectedOriginCity == 'Autre';
     final originCities =
@@ -554,18 +586,15 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DesignTitle('Votre localisation'),
+          DesignTitle(l10n.yourLocation),
           const SizedBox(height: 10),
-          const DesignBody(
-            'C\'est ce qui vous place sur la carte des membres et fait '
-            'remonter les groupes et événements de votre ville.',
-          ),
+          DesignBody(l10n.setupLocationBody),
           const SizedBox(height: 26),
 
-          const DesignFieldLabel('Pays actuel'),
+          DesignFieldLabel(l10n.currentCountry),
           DesignDropdown<CountryOption>(
             value: _selectedCountry,
-            hintText: 'Sélectionnez votre pays',
+            hintText: l10n.profileSelectCountry,
             items:
                 ProfileOptions.countries.map((country) {
                   return DropdownMenuItem(
@@ -577,22 +606,22 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           ),
           const SizedBox(height: 18),
 
-          const DesignFieldLabel('Ville actuelle'),
+          DesignFieldLabel(l10n.currentCity),
           TextField(
             controller: _selectedCityController,
             textCapitalization: TextCapitalization.words,
             style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
             decoration: designInputDecoration(
               context,
-              hintText: 'Paris, Niamey, New York…',
+              hintText: l10n.setupCityHint,
             ),
           ),
           const SizedBox(height: 20),
 
           DesignFieldLabel(
-            'Origine au Niger',
+            l10n.originAtNiger,
             trailing: Text(
-              'Optionnel',
+              l10n.optional,
               style: TextStyle(fontSize: 12.5, color: context.textTertiaryColor),
             ),
           ),
@@ -602,7 +631,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               Expanded(
                 child: DesignDropdown<String>(
                   value: _selectedOriginRegion,
-                  hintText: 'Région',
+                  hintText: l10n.profileRegion,
                   items:
                       ProfileOptions.regions.map((region) {
                         return DropdownMenuItem(value: region, child: Text(region));
@@ -620,7 +649,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               Expanded(
                 child: DesignDropdown<String>(
                   value: _selectedOriginCity,
-                  hintText: 'Ville',
+                  hintText: l10n.city,
                   items:
                       originCities.map((city) {
                         return DropdownMenuItem(value: city, child: Text(city));
@@ -650,7 +679,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
               decoration: designInputDecoration(
                 context,
-                hintText: 'Précisez votre ville d\'origine',
+                hintText: l10n.setupOriginCityHint,
               ),
             ),
           ],
@@ -660,19 +689,17 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             children: [
               DesignToggleTile(
                 icon: Icons.location_on_outlined,
-                title: 'Partager ma position',
-                subtitle:
-                    'Réciproque : vous voyez les membres proches, ils vous voient',
+                title: l10n.shareLocation,
+                subtitle: l10n.setupShareLocationSubtitle,
                 value: _shareLocation,
                 onChanged: (value) => setState(() => _shareLocation = value),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const DesignInfoLine(
+          DesignInfoLine(
             icon: Icons.info_outline,
-            text:
-                'Position approximative uniquement · modifiable dans Réglages',
+            text: l10n.setupLocationPrivacyNote,
           ),
         ],
       ),
@@ -684,6 +711,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// « Vos centres d'intérêt » (§15d) + « Ce que vous recevrez » : les deux
   /// réglages qui personnalisent le fil vivent sur le même écran.
   Widget _buildInterestsStep() {
+    final l10n = AppLocalizations.of(context)!;
     final count = _selectedInterests.length;
 
     return SingleChildScrollView(
@@ -691,12 +719,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DesignTitle('Vos centres d\'intérêt'),
+          DesignTitle(l10n.interestsTitle),
           const SizedBox(height: 10),
-          const DesignBody(
-            'Ils personnalisent le fil et les suggestions de groupes. '
-            'Choisissez-en au moins deux.',
-          ),
+          DesignBody(l10n.setupInterestsBody),
           const SizedBox(height: 22),
 
           Wrap(
@@ -706,7 +731,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 _availableInterests.map((interest) {
                   final isSelected = _selectedInterests.contains(interest);
                   return DesignSelectableChip(
-                    label: interest,
+                    label: _interestLabel(l10n, interest),
                     selected: isSelected,
                     onTap: () {
                       setState(() {
@@ -723,8 +748,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           const SizedBox(height: 14),
           Text(
             count == 0
-                ? 'Aucun sélectionné'
-                : '$count sélectionné${count > 1 ? 's' : ''}',
+                ? l10n.setupNoneSelected
+                : l10n.setupSelectedCount(count),
             style: TextStyle(fontSize: 12.5, color: context.textTertiaryColor),
           ),
 
@@ -732,14 +757,14 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           Divider(height: 1, color: context.dividerColor),
           const SizedBox(height: 22),
 
-          const DesignSectionTitle('Ce que vous recevrez'),
+          DesignSectionTitle(l10n.setupWhatYouGet),
           const SizedBox(height: 14),
           DesignTileGroup(
             children: [
               DesignToggleTile(
                 icon: Icons.chat_bubble_outline,
-                title: 'Messages',
-                subtitle: 'Nouveaux messages et conversations',
+                title: l10n.messages,
+                subtitle: l10n.profileNewMessagesNotifications,
                 value: _enableMessageNotifications,
                 onChanged:
                     (value) => setState(() {
@@ -749,8 +774,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               ),
               DesignToggleTile(
                 icon: Icons.event_outlined,
-                title: 'Événements',
-                subtitle: 'Nouveaux événements dans votre ville',
+                title: l10n.eventsTitle,
+                subtitle: l10n.profileNewEventsInCity,
                 value: _enableEventNotifications,
                 onChanged:
                     (value) => setState(() {
@@ -777,6 +802,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// « Thème de l'application » (§16g) : trois aperçus de mode, la couleur
   /// d'accent, puis le récapitulatif de fin de configuration.
   Widget _buildThemeStep() {
+    final l10n = AppLocalizations.of(context)!;
     // Use current theme values directly
     final currentThemeMode = ref.watch(themeModeNotifierProvider);
     final currentThemeColor = ref.watch(themeColorNotifierProvider);
@@ -793,12 +819,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DesignTitle('Thème de l\'application'),
+          DesignTitle(l10n.themeAppTitle),
           const SizedBox(height: 10),
-          const DesignBody(
-            'Le mode sombre économise la batterie sur écran OLED. '
-            'Modifiable à tout moment dans Réglages.',
-          ),
+          DesignBody(l10n.setupThemeBody),
           const SizedBox(height: 24),
 
           Row(
@@ -806,7 +829,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               Expanded(
                 child: _ThemeModeCard(
                   mode: AppThemeMode.light,
-                  label: 'Clair',
+                  label: l10n.light,
                   isSelected: _selectedThemeMode == AppThemeMode.light,
                   onTap: () => _selectThemeMode(AppThemeMode.light),
                 ),
@@ -815,7 +838,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               Expanded(
                 child: _ThemeModeCard(
                   mode: AppThemeMode.dark,
-                  label: 'Sombre',
+                  label: l10n.dark,
                   isSelected: _selectedThemeMode == AppThemeMode.dark,
                   onTap: () => _selectThemeMode(AppThemeMode.dark),
                 ),
@@ -824,7 +847,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               Expanded(
                 child: _ThemeModeCard(
                   mode: AppThemeMode.system,
-                  label: 'Auto',
+                  label: l10n.autoLabel,
                   isSelected: _selectedThemeMode == AppThemeMode.system,
                   onTap: () => _selectThemeMode(AppThemeMode.system),
                 ),
@@ -833,19 +856,19 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           ),
           const SizedBox(height: 24),
 
-          const DesignFieldLabel('Couleur d\'accent'),
+          DesignFieldLabel(l10n.setupAccentColor),
           Row(
             children: [
               _AccentSwatch(
                 color: AppColors.primary,
-                label: 'Orange',
+                label: l10n.orangeColor,
                 isSelected: _selectedThemeColor == AppThemeColor.orange,
                 onTap: () => _selectThemeColor(AppThemeColor.orange),
               ),
               const SizedBox(width: 18),
               _AccentSwatch(
                 color: AppColors.secondary,
-                label: 'Vert',
+                label: l10n.greenColor,
                 isSelected: _selectedThemeColor == AppThemeColor.green,
                 onTap: () => _selectThemeColor(AppThemeColor.green),
               ),
@@ -872,6 +895,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   /// Récapitulatif de fin : le pourcentage est calculé sur les champs
   /// réellement remplis, jamais annoncé d'avance.
   Widget _buildCompletionSummary() {
+    final l10n = AppLocalizations.of(context)!;
     final filled = <bool>[
       _displayNameController.text.trim().isNotEmpty,
       (_handle ?? '').isNotEmpty,
@@ -888,16 +912,19 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     final city = _selectedCityController.text.trim();
 
     return DesignSummaryCard(
-      title: firstName == null ? 'Tout est prêt' : 'Tout est prêt, $firstName',
-      body:
-          'Profil complété à $percent % : vous êtes visible sur la carte des '
-          'membres${city.isEmpty ? '' : ' de $city'} et dans la recherche.',
+      title: firstName == null
+          ? l10n.setupAllSet
+          : l10n.setupAllSetNamed(firstName),
+      body: city.isEmpty
+          ? l10n.setupCompletionSummary(percent)
+          : l10n.setupCompletionSummaryCity(percent, city),
     );
   }
 
   // ------------------------------------------------------------------- photo
 
   Future<void> _showImagePickerOptions() async {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -915,9 +942,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               children: [
                 const SheetHandle(),
                 const SizedBox(height: 20),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: DesignSectionTitle('Votre photo'),
+                  child: DesignSectionTitle(l10n.setupYourPhoto),
                 ),
                 const SizedBox(height: 18),
                 _ImagePickerOption(
@@ -925,8 +952,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     Icons.camera_alt_outlined,
                     color: context.adaptivePrimaryColor,
                   ),
-                  title: 'Prendre une photo',
-                  subtitle: 'Utiliser l\'appareil photo',
+                  title: l10n.takePhotoTitle,
+                  subtitle: l10n.takePhotoSubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.camera);
@@ -937,8 +964,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     Icons.photo_library_outlined,
                     color: context.adaptivePrimaryColor,
                   ),
-                  title: 'Choisir dans la galerie',
-                  subtitle: 'Sélectionner une image existante',
+                  title: l10n.galleryTitle,
+                  subtitle: l10n.gallerySubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.gallery);
@@ -947,8 +974,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 if (_photoUrl != null)
                   _ImagePickerOption(
                     icon: const AppIcon(AppIcon.delete, color: AppColors.error),
-                    title: 'Supprimer la photo',
-                    subtitle: 'Utiliser les initiales par défaut',
+                    title: l10n.deletePhoto,
+                    subtitle: l10n.deletePhotoSubtitle,
                     isDestructive: true,
                     onTap: () {
                       Navigator.pop(context);

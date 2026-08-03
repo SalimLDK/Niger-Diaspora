@@ -220,9 +220,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     final pendingInvites =
         ref.watch(receivedGroupInvitesProvider).valueOrNull?.length ?? 0;
     final subtitleParts = <String>[
-      '$joinedCount rejoint${joinedCount > 1 ? 's' : ''}',
-      if (pendingInvites > 0)
-        '$pendingInvites invitation${pendingInvites > 1 ? 's' : ''}',
+      l10n.groupsJoinedCount(joinedCount),
+      if (pendingInvites > 0) l10n.groupsPendingInvites(pendingInvites),
     ];
 
     return Scaffold(

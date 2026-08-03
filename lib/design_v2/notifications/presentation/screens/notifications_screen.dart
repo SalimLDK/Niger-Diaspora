@@ -154,10 +154,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           children: [
             DesignScreenHeader(
               title: l10n.notificationsTitle,
-              // Pas de clé ARB pour ce pluriel : texte en dur comme le reste
-              // du bac à sable, à passer en l10n avant la bascule.
               subtitle: unreadCount > 0
-                  ? '$unreadCount non lue${unreadCount > 1 ? 's' : ''}'
+                  ? l10n.notificationsUnreadCount(unreadCount)
                   : '',
               actions: [
                 if (unreadCount > 0)

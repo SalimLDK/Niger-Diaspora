@@ -65,6 +65,16 @@ Les maquettes 11a→11f sont les versions sombres des écrans ci-dessus, pas des
 Ce qui reste à faire est de **les regarder sur un vrai téléphone** — c'est
 suivi dans `TESTS_APPAREIL_A_FAIRE.md`, pas ici.
 
+## Localisation
+
+La copie des maquettes est passée en ARB (63 clés, `app_fr.arb` template +
+`app_en.arb`, métadonnées `@clé` à parité). Les écrans repris d'un état
+déjà existant (accueil, carte, messagerie, groupes, profil, réglages,
+notifications, recherche) gardent en revanche les **littéraux qu'ils
+avaient déjà en production** — ce n'est pas une dette introduite par la
+refonte, et les convertir ferait diverger la copie de l'original juste
+avant la bascule.
+
 ## Écrans hors maquettes
 
 Aucune maquette fournie à ce jour pour : conversation (fil de discussion),
