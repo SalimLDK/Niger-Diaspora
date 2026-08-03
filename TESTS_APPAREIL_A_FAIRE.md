@@ -211,6 +211,21 @@ en solo.
   bien sur 3478/5349 et `getTurnCredentials` est déployée et appelée avec succès,
   mais le relais n'a jamais été validé sur un NAT symétrique réel.
 
+## Lecture audio en arrière-plan (podcasts)
+
+- [ ] **Câblage `audio_service`** (`MainActivity.java` + `AndroidManifest.xml`,
+  2026-08-03) : `MainActivity` étendait `FlutterFragmentActivity` au lieu de
+  `AudioServiceFragmentActivity`, et le manifeste ne déclarait ni le service
+  `com.ryanheise.audioservice.AudioService` ni `MediaButtonReceiver` (le plugin
+  ne déclare rien lui-même). `AudioService.init()` échouait donc à chaque
+  démarrage — la lecture en arrière-plan n'a jamais pu fonctionner. Corrigé et
+  vérifié sur le SM A515F : plus d'erreur d'init au lancement, service et
+  receiver bien enregistrés dans le paquet installé. **Reste à tester en vrai** :
+  lancer un épisode, quitter l'app, vérifier que le son continue et que la
+  notification média apparaît avec les contrôles ; puis les boutons du casque et
+  ceux de l'écran verrouillé (`MediaButtonReceiver`), et que la reprise depuis la
+  notification ramène bien sur le lecteur.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

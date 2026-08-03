@@ -47,6 +47,13 @@
     <!-- Notifications for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Lecture audio en arrière-plan (podcasts, audio_service).
+         Le plugin audio_service ne déclare RIEN dans son propre manifeste : la
+         permission, le service et le receiver ci-dessous doivent être portés par
+         l'app. FOREGROUND_SERVICE_MEDIA_PLAYBACK est requise à partir du SDK 34. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <!-- Explicitly opt-out of Advertising ID -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
 
@@ -111,6 +118,29 @@
                 <data android:scheme="https" android:host="diasponiger.com" />
             </intent-filter>
         </activity>
+        <!-- audio_service : service de lecture en arrière-plan et réception des
+             boutons média (casque, écran de verrouillage, Bluetooth).
+             MainActivity étend AudioServiceFragmentActivity, qui fournit le
+             FlutterEngine partagé avec ce service. -->
+        <service
+            android:name="com.ryanheise.audioservice.AudioService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true"
+            tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+            android:exported="true"
+            tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
