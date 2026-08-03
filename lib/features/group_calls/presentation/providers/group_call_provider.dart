@@ -146,6 +146,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
   DateTime? _callStartTime;
   StreamSubscription? _callSubscription;
   StreamSubscription? _participantsSubscription;
+  StreamSubscription<Set<String>>? _speakingSubscription;
 
   // Firestore and RTDB references
   final _firestore = FirebaseFirestore.instance;
@@ -157,7 +158,20 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       _durationTimer?.cancel();
       _callSubscription?.cancel();
       _participantsSubscription?.cancel();
+      _speakingSubscription?.cancel();
     });
+
+    // `speakingParticipantIds` était déclaré dans l'état, lu par
+    // `group_call_screen` pour la bordure « parle en ce moment », mais jamais
+    // alimenté : le set restait vide en permanence. LiveKit publie déjà
+    // l'information, il suffisait de s'y abonner.
+    //
+    // NB : seul le mode SFU passe par LiveKit. En mesh (< 5 participants) le
+    // flux n'émet rien et le set reste vide — la détection d'orateur actif
+    // n'existe pas côté flutter_webrtc.
+    _speakingSubscription = LiveKitService.instance.speakingParticipantsStream
+        .listen((ids) => state = state.copyWith(speakingParticipantIds: ids));
+
     return const GroupCallState();
   }
 

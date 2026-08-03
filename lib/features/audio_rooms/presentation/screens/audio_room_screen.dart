@@ -146,7 +146,8 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
                       current: room.collectionAmount / 100,
                       goal: (room.collectionGoal ?? 0) / 100,
                       beneficiary: room.collectionBeneficiary ?? '',
-                      contributors: 0,
+                      roomId: room.id,
+                      currencyCode: room.ticketCurrency,
                     ),
 
                   Expanded(
@@ -596,7 +597,7 @@ class _ModeBanner extends StatelessWidget {
 
 // ─── Speakers section ─────────────────────────────────────────────────────────
 
-class _SpeakersSection extends StatelessWidget {
+class _SpeakersSection extends ConsumerWidget {
   final AudioRoomSessionState session;
   final AudioRoomEntity room;
   final String? currentUserId;
@@ -612,9 +613,13 @@ class _SpeakersSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final speakers = session.visibleSpeakers;
+    // Qui parle en ce moment, d'après LiveKit. Vide tant que le SFU n'a rien
+    // émis (avant connexion, ou sur un salon sans audio actif).
+    final speaking =
+        ref.watch(audioRoomSpeakingProvider).valueOrNull ?? const <String>{};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -669,7 +674,7 @@ class _SpeakersSection extends StatelessWidget {
                         mic: !p.isMuted,
                         video: true,
                         host: p.role == ParticipantRole.host,
-                        talking: false,
+                        talking: speaking.contains(p.userId),
                         size: 88,
                         videoTrack: videoTrack,
                       );
@@ -686,7 +691,7 @@ class _SpeakersSection extends StatelessWidget {
                     role: p.roleLabel,
                     mic: !p.isMuted,
                     host: p.role == ParticipantRole.host,
-                    talking: false,
+                    talking: speaking.contains(p.userId),
                     size: 52,
                   );
                 }).toList(),

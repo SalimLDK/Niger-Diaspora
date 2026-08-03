@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
@@ -404,7 +405,10 @@ class _LiveCard extends ConsumerWidget {
                   ),
                 ),
                 if (room.isPaid)
-                  _PricePill(price: (room.ticketPrice ?? 0) / 100),
+                  _PricePill(
+                    price: (room.ticketPrice ?? 0) / 100,
+                    currencyCode: room.ticketCurrency,
+                  ),
               ],
             ),
             // Métriques (§1a) : intervenants sur max + tags + Participer.
@@ -554,7 +558,8 @@ class _ScheduledCard extends StatelessWidget {
               current: room.collectionAmount / 100,
               goal: (room.collectionGoal ?? 0) / 100,
               beneficiary: room.collectionBeneficiary ?? '',
-              contributors: 0,
+              roomId: room.id,
+              currencyCode: room.ticketCurrency,
             ),
           ],
           const SizedBox(height: 10),
@@ -705,7 +710,12 @@ class _AvatarStack extends StatelessWidget {
 class _PricePill extends StatelessWidget {
   final double price;
 
-  const _PricePill({required this.price});
+  /// Devise du billet (`AudioRoomEntity.ticketCurrency`). Le prix s'affichait
+  /// en € en dur : un salon facturé en XOF s'annonçait en € dans la liste puis
+  /// en XOF dans la feuille d'achat, qui elle respecte déjà la devise réelle.
+  final String? currencyCode;
+
+  const _PricePill({required this.price, this.currencyCode});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -715,7 +725,10 @@ class _PricePill extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
-          '€${price.toStringAsFixed(2)}',
+          CurrencyService.instance.format(
+            price,
+            CurrencyExtension.fromCode(currencyCode ?? 'EUR'),
+          ),
           style: DNText.mono(size: 9, color: DNColors.paper),
         ),
       );

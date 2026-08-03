@@ -909,6 +909,19 @@ final audioRoomConnectionProvider = StreamProvider.autoDispose<LiveKitRoomState>
   (ref) => LiveKitService.instance.connectionStateStream,
 );
 
+/// Identifiants des participants qui parlent en ce moment.
+///
+/// Même angle mort que la connexion ci-dessus : `LiveKitService` publiait déjà
+/// `speakingParticipantsStream` depuis `ActiveSpeakersChangedEvent`, mais rien
+/// ne s'y abonnait — les tuiles d'intervenants recevaient `talking: false` en
+/// dur et l'anneau « parle » ne s'allumait jamais.
+///
+/// L'identité LiveKit est l'`userId` : le set se compare directement à
+/// `ParticipantEntity.userId`.
+final audioRoomSpeakingProvider = StreamProvider.autoDispose<Set<String>>(
+  (ref) => LiveKitService.instance.speakingParticipantsStream,
+);
+
 /// Provider to check if user is currently in a room
 final isInAudioRoomProvider = Provider<bool>((ref) {
   final session = ref.watch(audioRoomSessionProvider);
