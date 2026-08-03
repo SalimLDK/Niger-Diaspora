@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -21,21 +20,19 @@ class StarredMessagesScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.surfaceColor,
+      // §24b : écran crème ordinaire. La barre terracotta à texte blanc
+      // faisait de la liste des favoris un écran « spécial » alors que
+      // c'est une consultation comme une autre.
       appBar: AppBar(
-        backgroundColor: context.adaptivePrimaryColor,
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const AppIcon(AppIcon.arrowBack, color: AppColors.white),
+          icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
         ),
-        title: Text(
-          AppLocalizations.of(context)!.starredMessages,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        // Le titre prend le Playfair du thème : pas de style en dur.
+        title: Text(AppLocalizations.of(context)!.starredMessages),
       ),
       body: starredAsync.when(
         loading:

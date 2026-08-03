@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
@@ -240,7 +239,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: context.errorColor,
           ),
         );
       }
@@ -365,7 +364,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                               width: 50,
                               height: 50,
                               decoration: BoxDecoration(
-                                gradient: context.adaptivePrimaryGradient,
+                                color: context.adaptivePrimaryColor,
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child:
@@ -378,8 +377,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                                           errorBuilder: (_, __, ___) => Center(
                                             child: Text(
                                               _getInitials(user.displayName),
-                                              style: const TextStyle(
-                                                color: AppColors.white,
+                                              style: TextStyle(
+                                                color: context.onPrimaryColor,
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -390,8 +389,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                                       : Center(
                                         child: Text(
                                           _getInitials(user.displayName),
-                                          style: const TextStyle(
-                                            color: AppColors.white,
+                                          style: TextStyle(
+                                            color: context.onPrimaryColor,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -701,7 +700,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: context.adaptivePrimaryGradient,
+                    color: context.adaptivePrimaryColor,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -771,8 +770,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   Widget _nearbyInitials(ProfileEntity p) => Center(
         child: Text(
           _getInitials(p.displayName),
-          style: const TextStyle(
-            color: AppColors.white,
+          style: TextStyle(
+            color: context.onPrimaryColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -859,7 +858,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                gradient: context.adaptivePrimaryGradient,
+                color: context.adaptivePrimaryColor,
                 borderRadius: BorderRadius.circular(14),
               ),
               clipBehavior: Clip.antiAlias,
@@ -870,8 +869,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                       errorBuilder: (_, __, ___) => Center(
                         child: Text(
                           _getInitials(name),
-                          style: const TextStyle(
-                            color: AppColors.white,
+                          style: TextStyle(
+                            color: context.onPrimaryColor,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -881,8 +880,8 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                   : Center(
                       child: Text(
                         _getInitials(name),
-                        style: const TextStyle(
-                          color: AppColors.white,
+                        style: TextStyle(
+                          color: context.onPrimaryColor,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -961,7 +960,7 @@ class _UserListItem extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                gradient: context.adaptivePrimaryGradient,
+                color: context.adaptivePrimaryColor,
                 borderRadius: BorderRadius.circular(14),
               ),
               child:
@@ -975,8 +974,8 @@ class _UserListItem extends StatelessWidget {
                               (_, __, ___) => Center(
                                 child: Text(
                                   _getInitials(user.displayName),
-                                  style: const TextStyle(
-                                    color: AppColors.white,
+                                  style: TextStyle(
+                                    color: context.onPrimaryColor,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -987,8 +986,8 @@ class _UserListItem extends StatelessWidget {
                       : Center(
                         child: Text(
                           _getInitials(user.displayName),
-                          style: const TextStyle(
-                            color: AppColors.white,
+                          style: TextStyle(
+                            color: context.onPrimaryColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
