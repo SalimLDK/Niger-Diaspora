@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/onboarding_provider.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../widgets/onboarding_page.dart';
 
+/// Onboarding en cinq écrans (maquettes 14a → 14e).
+///
+/// Une promesse par écran, formulée du point de vue du membre, et les deux
+/// autorisations regroupées sur le dernier écran avec leurs interrupteurs :
+/// on ne déclenche plus les demandes système en aveugle, seules celles que
+/// la personne laisse activées sont demandées.
 class OnboardingIntroScreen extends ConsumerStatefulWidget {
   const OnboardingIntroScreen({super.key});
 
@@ -20,61 +27,68 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  /// Choix affichés sur le dernier écran, avant la demande système.
+  bool _wantNotifications = true;
+  bool _wantLocation = true;
+
+  bool _requestingPermissions = false;
+
   @override
   void initState() {
     super.initState();
     AnalyticsService.instance.logEvent(name: 'onboarding_begin');
   }
 
-  final List<OnboardingPageData> _pages = const [
+  /// Nombre d'ecrans, constant : le contenu depend de la langue, pas le
+  /// nombre de pages.
+  static const int _pageCount = 5;
+
+  List<OnboardingPageData> _buildPages(AppLocalizations l10n) => [
     OnboardingPageData(
-      title: 'Bienvenue sur\nDiaspo Niger',
-      description:
-          'Connectez-vous avec la diaspora nigerienne partout dans le monde. Retrouvez vos compatriotes et partagez ensemble.',
+      eyebrow: l10n.onbCitiesEyebrow,
+      title: l10n.onbWelcomeTitle,
+      description: l10n.onbWelcomeBody,
+      illustrationCaption: l10n.onbWelcomeIllustration,
+      brandMark: true,
+    ),
+    OnboardingPageData(
+      title: l10n.onbMembersTitle,
+      description: l10n.onbMembersBody,
+      illustrationCaption: l10n.onbMembersIllustration,
       icon: Icons.people_outline,
-      color: AppColors.primary,
+      bullets: [l10n.onbMembersBullet1, l10n.onbMembersBullet2],
     ),
     OnboardingPageData(
-      title: 'Decouvrez les membres',
-      description:
-          'Trouvez des Nigeriens pres de chez vous grace a notre carte interactive. Voyez qui habite dans votre region.',
-      icon: Icons.map_outlined,
-      color: AppColors.secondary,
-    ),
-    OnboardingPageData(
-      title: 'Rejoignez des groupes',
-      description:
-          'Participez a des communautes thematiques: professionnels, etudiants, entrepreneurs... Echangez et entraidez-vous.',
+      title: l10n.onbGroupsTitle,
+      description: l10n.onbGroupsBody,
+      illustrationCaption: l10n.onbGroupsIllustration,
       icon: Icons.groups_outlined,
-      color: AppColors.primaryDark,
+      bullets: [l10n.onbGroupsBullet1, l10n.onbGroupsBullet2],
     ),
     OnboardingPageData(
-      title: 'Participez aux evenements',
-      description:
-          'Organisez ou participez a des rencontres, conferences et activites culturelles de la diaspora.',
+      title: l10n.onbEventsTitle,
+      description: l10n.onbEventsBody,
+      illustrationCaption: l10n.onbEventsIllustration,
       icon: Icons.event_outlined,
-      color: AppColors.primary,
+      bullets: [l10n.onbEventsBullet1, l10n.onbEventsBullet2],
     ),
     OnboardingPageData(
-      title: 'Restez connectes',
-      description:
-          'Discutez en prive avec les membres de la communaute. Creez des liens durables avec la diaspora.',
+      title: l10n.onbConnectedTitle,
+      description: l10n.onbConnectedBody,
+      illustrationCaption: l10n.onbConnectedIllustration,
       icon: Icons.chat_bubble_outline,
-      color: AppColors.secondary,
     ),
   ];
 
+  bool get _isLastPage => _currentPage == _pageCount - 1;
+
   void _onPageChanged(int page) {
-    setState(() {
-      _currentPage = page;
-    });
+    setState(() => _currentPage = page);
     ref.read(onboardingNotifierProvider.notifier).setCurrentPage(page);
   }
 
-  bool _requestingPermissions = false;
-
   void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
+    if (!_isLastPage) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -84,18 +98,21 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
     }
   }
 
-  /// Dernier écran (§14) : demande notifications + localisation (réciprocité
-  /// expliquée dans le contenu de l'écran), puis termine. Les refus ne bloquent
-  /// pas l'entrée dans l'app.
+  /// Dernier écran : ne demande que les autorisations laissées activées. Un
+  /// refus système ne bloque jamais l'entrée dans l'application.
   Future<void> _completeWithPermissions() async {
     if (_requestingPermissions) return;
     setState(() => _requestingPermissions = true);
-    try {
-      await LocationService.instance.requestNotificationPermission();
-    } catch (_) {}
-    try {
-      await LocationService.instance.requestLocationPermission();
-    } catch (_) {}
+    if (_wantNotifications) {
+      try {
+        await LocationService.instance.requestNotificationPermission();
+      } catch (_) {}
+    }
+    if (_wantLocation) {
+      try {
+        await LocationService.instance.requestLocationPermission();
+      } catch (_) {}
+    }
     if (!mounted) return;
     setState(() => _requestingPermissions = false);
     _completeIntro();
@@ -119,119 +136,139 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
     super.dispose();
   }
 
+  /// Carte des deux autorisations + mention chiffrement (écran 5/5).
+  Widget _buildPermissionsCard(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DesignTileGroup(
+          children: [
+            DesignToggleTile(
+              icon: Icons.notifications_none_rounded,
+              title: l10n.notifications,
+              subtitle: l10n.onbNotificationsSubtitle,
+              value: _wantNotifications,
+              onChanged:
+                  _requestingPermissions
+                      ? null
+                      : (v) => setState(() => _wantNotifications = v),
+            ),
+            DesignToggleTile(
+              icon: Icons.location_on_outlined,
+              title: l10n.locationTitle,
+              subtitle: l10n.onbLocationSubtitle,
+              value: _wantLocation,
+              onChanged:
+                  _requestingPermissions
+                      ? null
+                      : (v) => setState(() => _wantLocation = v),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        DesignInfoLine(
+          icon: Icons.lock_outline,
+          text: l10n.e2eeFooterNote,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _buildPages(l10n);
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Skip button
+            // « Passer » discret, aligné à droite.
             Align(
-              alignment: Alignment.topRight,
+              alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(0, 4, 12, 0),
                 child: TextButton(
-                  onPressed: _skip,
+                  onPressed: _requestingPermissions ? null : _skip,
                   child: Text(
-                    'Passer',
+                    l10n.skip,
                     style: TextStyle(
-                      color: context.textTertiaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      color: context.textSecondaryColor,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
             ),
-            // Pages
+
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 itemBuilder: (context, index) {
-                  return OnboardingPage(data: _pages[index]);
+                  final isLast = index == pages.length - 1;
+                  return OnboardingPage(
+                    data: pages[index],
+                    footer: isLast ? _buildPermissionsCard(l10n) : null,
+                  );
                 },
               ),
             ),
-            // Indicators and buttons
+
             Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                children: [
-                  // Page indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: _currentPage == index ? 32 : 8,
-                        decoration: BoxDecoration(
-                          color:
-                              _currentPage == index
-                                  ? AppColors.primary
-                                  : AppColors.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Next/Start button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: _requestingPermissions ? null : _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child:
-                          _requestingPermissions
-                              ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.white,
-                                ),
-                              )
-                              : Text(
-                                _currentPage == _pages.length - 1
-                                    ? 'Commencer'
-                                    : 'Suivant',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+              child:
+                  _isLastPage
+                      ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DesignPageDots(
+                            count: pages.length,
+                            index: _currentPage,
+                          ),
+                          const SizedBox(height: 18),
+                          DesignPillButton(
+                            label: l10n.start,
+                            expand: true,
+                            isLoading: _requestingPermissions,
+                            onPressed: _nextPage,
+                          ),
+                          const SizedBox(height: 4),
+                          Center(
+                            child: TextButton(
+                              onPressed:
+                                  _requestingPermissions
+                                      ? null
+                                      : _completeIntro,
+                              child: Text(
+                                l10n.onbLaterWithoutPermissions,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: context.textTertiaryColor,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                    ),
-                  ),
-                  // Entrer sans accorder les autorisations (§14).
-                  if (_currentPage == _pages.length - 1) ...[
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _requestingPermissions ? null : _completeIntro,
-                      child: Text(
-                        'Plus tard, sans autorisations',
-                        style: TextStyle(
-                          color: context.textTertiaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
+                            ),
+                          ),
+                        ],
+                      )
+                      : Row(
+                        children: [
+                          DesignPageDots(
+                            count: pages.length,
+                            index: _currentPage,
+                          ),
+                          const Spacer(),
+                          DesignPillButton(
+                            label: l10n.next,
+                            onPressed: _nextPage,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
             ),
           ],
         ),

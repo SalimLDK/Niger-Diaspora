@@ -23,6 +23,39 @@ Légende de l'état :
 | 15b | Inscription | `auth/…/register_screen.dart` | fait |
 | — | Gabarit auth + boutons | `auth/…/widgets/auth_scaffold.dart`, `auth_button.dart` | fait |
 
+## Bascule vers la production — famille 1 : onboarding + auth (2026-08-03)
+
+**Faite.** Première des familles prévues. La trousse `design_kit.dart` rejoint
+`lib/core/theme/` : elle n'appartient à aucune feature, et la laisser sous
+`design_v2/` aurait fait dépendre la production du bac à sable.
+
+| Fichier | Contenu perdu par la production | Verdict |
+|---|---|---|
+| `auth/…/login_screen.dart` | 0 | copie = superset |
+| `auth/…/register_screen.dart` | 0 | copie = superset |
+| `auth/…/widgets/auth_button.dart` | 0 | copie = superset |
+| `auth/…/widgets/auth_scaffold.dart` | 82 | ancienne implémentation inline d'`AuthTitle`, remplacée par la délégation au kit |
+| `onboarding/…/onboarding_intro_screen.dart` | 121 | ancienne copie sans accents (« nigerienne ») et `AppColors` figés |
+| `onboarding/…/widgets/onboarding_page.dart` | 70 | ancien `OnboardingPageData` (icône + couleur) |
+
+**Les trois écarts ont été lus avant écrasement**, pas supposés : dans les
+trois cas les lignes perdues sont bien le code que la refonte remplace, pas
+un correctif fait en production depuis la copie. C'est la seule vérification
+qui compte, et aucune mesure automatique ne la remplace — `diff` ne
+distingue pas « remplacé » de « perdu ».
+
+Imports remis en relatif court (`../providers/`), kit pointé sur
+`../../../../core/theme/design_kit.dart`. `flutter analyze` propre sur tout
+le dépôt.
+
+⚠️ **`lib/design_v2/kit/` reste en place** : les autres copies non encore
+basculées en dépendent. À supprimer quand la dernière famille sera passée,
+sinon la trousse existera en double.
+
+⚠️ **Rien n'est vérifié sur appareil.** C'est la première fois que la refonte
+est réellement affichable dans l'app — `TESTS_APPAREIL_A_FAIRE.md` liste quoi
+regarder, en tête le thème sombre et `font_scale = 1.1`.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

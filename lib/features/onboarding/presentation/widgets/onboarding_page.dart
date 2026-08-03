@@ -1,96 +1,78 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/theme/adaptive_colors.dart';
 
+import '../../../../core/theme/design_kit.dart';
+
+/// Contenu d'un écran d'onboarding (maquettes 14a → 14e).
+///
+/// Les maquettes ont abandonné le grand pictogramme centré et le texte
+/// centré : chaque écran est désormais un bloc d'illustration en haut, puis
+/// un titre serif aligné à gauche, une promesse, et deux puces de réassurance.
 class OnboardingPageData {
+  /// Surtitre en petites capitales (« NIAMEY · PARIS · … »), écran 1 seulement.
+  final String? eyebrow;
+
+  /// Titre, coupé manuellement pour reproduire la césure des maquettes.
   final String title;
+
   final String description;
-  final IconData icon;
-  final Color color;
+
+  /// Légende de l'emplacement d'illustration.
+  final String illustrationCaption;
+
+  /// Pictogramme de l'emplacement, ignoré si [brandMark] est vrai.
+  final IconData? icon;
+
+  /// Écran de bienvenue : pastille de marque au lieu du pictogramme.
+  final bool brandMark;
+
+  /// Puces de réassurance sous la promesse (aucune sur le 1er et le dernier).
+  final List<String> bullets;
 
   const OnboardingPageData({
     required this.title,
     required this.description,
-    required this.icon,
-    required this.color,
+    required this.illustrationCaption,
+    this.eyebrow,
+    this.icon,
+    this.brandMark = false,
+    this.bullets = const [],
   });
 }
 
 class OnboardingPage extends StatelessWidget {
   final OnboardingPageData data;
 
-  const OnboardingPage({super.key, required this.data});
+  /// Bloc libre affiché à la place des puces (carte d'autorisations du
+  /// dernier écran).
+  final Widget? footer;
+
+  const OnboardingPage({super.key, required this.data, this.footer});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 2),
-          // Icon container with gradient
-          Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  data.color.withValues(alpha: 0.2),
-                  data.color.withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [data.color, data.color.withValues(alpha: 0.8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: data.color.withValues(alpha: 0.4),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Icon(data.icon, size: 60, color: AppColors.white),
-              ),
-            ),
+          DesignIllustration(
+            caption: data.illustrationCaption,
+            icon: data.icon,
+            brandMark: data.brandMark,
           ),
-          const Spacer(),
-          // Title
-          Text(
-            data.title,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: context.textPrimaryColor,
-              height: 1.2,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          // Description
-          Text(
-            data.description,
-            style: TextStyle(
-              fontSize: 16,
-              color: context.textSecondaryColor,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(flex: 2),
+          const SizedBox(height: 28),
+          if (data.eyebrow != null) ...[
+            DesignEyebrow(data.eyebrow!),
+            const SizedBox(height: 12),
+          ],
+          DesignTitle(data.title, size: 30),
+          const SizedBox(height: 12),
+          DesignBody(data.description),
+          if (data.bullets.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            ...data.bullets.map(DesignCheckBullet.new),
+          ],
+          if (footer != null) ...[const SizedBox(height: 20), footer!],
         ],
       ),
     );
