@@ -340,6 +340,25 @@ class PodcastNotifier extends AsyncNotifier<void> {
     }
   }
 
+  /// Comptabilise un partage. Silencieux en cas d'échec : le partage lui-même
+  /// a déjà eu lieu, ce n'est pas à la statistique de le faire échouer.
+  Future<void> recordShare(String episodeId) async {
+    try {
+      await _dataSource.recordShare(episodeId);
+    } catch (e) {
+      debugPrint('PodcastNotifier: Error recording share: $e');
+    }
+  }
+
+  /// Comptabilise un téléchargement, même logique.
+  Future<void> recordDownload(String episodeId) async {
+    try {
+      await _dataSource.recordDownload(episodeId);
+    } catch (e) {
+      debugPrint('PodcastNotifier: Error recording download: $e');
+    }
+  }
+
   /// Update listen progress
   Future<void> updateProgress({
     required String episodeId,

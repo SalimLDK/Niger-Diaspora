@@ -732,6 +732,9 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
       episodeId: episode.id,
       audioUrl: episode.audioUrl,
     );
+    // Sans ça, « Téléchargements » restait à 0 dans les statistiques du
+    // créateur quel que soit l'usage réel.
+    ref.read(podcastNotifierProvider.notifier).recordDownload(episode.id);
   }
 
   void _shareEpisode(PodcastEpisodeEntity episode) {
@@ -741,6 +744,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
       imageUrl: episode.coverImageUrl,
       duration: Duration(seconds: episode.durationSeconds),
     );
+    ref.read(podcastNotifierProvider.notifier).recordShare(episode.id);
   }
 
   void _showSleepTimerDialog() {

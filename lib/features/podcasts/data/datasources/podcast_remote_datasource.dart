@@ -40,6 +40,11 @@ abstract class PodcastRemoteDataSource {
   Stream<List<Map<String, dynamic>>> getUserSubscriptionsStream(String userId);
 
   Future<void> recordPlay(String episodeId, String podcastId);
+
+  /// Compteurs d'engagement : les boutons Partager et Télécharger
+  /// n'enregistraient rien, donc les statistiques affichaient 0 en permanence.
+  Future<void> recordShare(String episodeId);
+  Future<void> recordDownload(String episodeId);
   Future<void> likeEpisode(String episodeId, String userId);
   Future<void> unlikeEpisode(String episodeId, String userId);
   Future<void> updateListenProgress({

@@ -43,6 +43,12 @@ Map<String, dynamic> _mapEpisode(Map<String, dynamic> row) => {
   'status': row['status'] ?? 'published',
   'playCount': row['play_count'] ?? 0,
   'likeCount': row['like_count'] ?? 0,
+  // Ces trois colonnes n'étaient pas lues : l'écran de statistiques affichait
+  // donc 0 partage, 0 téléchargement et aucune date de publication, quoi
+  // qu'il y ait en base.
+  'shareCount': row['share_count'] ?? 0,
+  'downloadCount': row['download_count'] ?? 0,
+  'publishedAt': row['published_at'],
   'isLive': row['is_live'] ?? false,
   'livekitRoomName': row['livekit_room_name'],
   'liveViewerCount': row['live_viewer_count'] ?? 0,
@@ -188,6 +194,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
 
   @override
   Future<PodcastEpisodeModel> createEpisode(PodcastEpisodeModel episode) async {
+    final status = episode.status.isEmpty ? 'published' : episode.status;
     final data = await _supabase
         .from('podcast_episodes')
         .insert({
@@ -197,8 +204,12 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
           'audio_url': episode.audioUrl,
           'duration_seconds': episode.durationSeconds,
           'episode_number': episode.episodeNumber,
-          'status': episode.status.isEmpty ? 'published' : episode.status,
+          'status': status,
           'thumbnail_url': episode.thumbnailUrl,
+          // Sans date de publication, la section « Rythme de publication » des
+          // statistiques n'a rien à mesurer. Un brouillon n'en a pas.
+          if (status == 'published')
+            'published_at': DateTime.now().toIso8601String(),
         })
         .select()
         .single();
@@ -221,7 +232,14 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
     final updates = <String, dynamic>{};
     if (data['title'] != null) updates['title'] = data['title'];
     if (data['description'] != null) updates['description'] = data['description'];
-    if (data['status'] != null) updates['status'] = data['status'];
+    if (data['status'] != null) {
+      updates['status'] = data['status'];
+      // Publication différée (brouillon -> publié) : dater le passage, sinon
+      // l'épisode compterait comme publié sans date.
+      if (data['status'] == 'published') {
+        updates['published_at'] = DateTime.now().toIso8601String();
+      }
+    }
     if (data['audioUrl'] != null) updates['audio_url'] = data['audioUrl'];
     await _supabase.from('podcast_episodes').update(updates).eq('id', episodeId);
   }
@@ -338,14 +356,31 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
   }
 
   @override
+  Future<void> recordShare(String episodeId) async {
+    await _supabase.rpc(
+      'increment_podcast_share',
+      params: {'p_episode_id': episodeId},
+    );
+  }
+
+  @override
+  Future<void> recordDownload(String episodeId) async {
+    await _supabase.rpc(
+      'increment_podcast_download',
+      params: {'p_episode_id': episodeId},
+    );
+  }
+
+  @override
   Future<void> likeEpisode(String episodeId, String userId) async {
     await _supabase.from('podcast_user_data').upsert({
       'episode_id': episodeId,
       'user_id': userId,
-      'podcast_id': _getPodcastIdForEpisode(episodeId),
+      'podcast_id': await _podcastIdForEpisode(episodeId),
       'liked': true,
       'updated_at': DateTime.now().toIso8601String(),
     }, onConflict: 'user_id,episode_id',);
+    await _refreshLikeCount(episodeId);
   }
 
   @override
@@ -355,6 +390,16 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
         .update({'liked': false, 'updated_at': DateTime.now().toIso8601String()})
         .eq('episode_id', episodeId)
         .eq('user_id', userId);
+    await _refreshLikeCount(episodeId);
+  }
+
+  /// Le « j'aime » ne vivait que dans podcast_user_data : l'agrégat porté par
+  /// l'épisode n'était jamais recalculé, donc affiché à 0 en permanence.
+  Future<void> _refreshLikeCount(String episodeId) async {
+    await _supabase.rpc(
+      'refresh_episode_like_count',
+      params: {'p_episode_id': episodeId},
+    );
   }
 
   @override
@@ -367,7 +412,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
     await _supabase.from('podcast_user_data').upsert({
       'episode_id': episodeId,
       'user_id': userId,
-      'podcast_id': _getPodcastIdForEpisode(episodeId),
+      'podcast_id': await _podcastIdForEpisode(episodeId),
       'progress_seconds': progressSeconds,
       'completed': completed,
       'updated_at': DateTime.now().toIso8601String(),
@@ -413,6 +458,18 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
     throw UnimplementedError('Episode audio upload uses Firebase Storage');
   }
 
-  // Helper — podcast_id lookup (lazy, used only for upserts without podcast_id)
-  String _getPodcastIdForEpisode(String episodeId) => episodeId; // fallback UUID
+  /// Résout le podcast d'un épisode.
+  ///
+  /// L'ancienne version renvoyait l'identifiant d'épisode tel quel
+  /// (`=> episodeId`, commenté « fallback UUID ») : la colonne podcast_id de
+  /// podcast_user_data recevait donc un id d'épisode, et toute agrégation par
+  /// podcast fondée sur cette table était fausse.
+  Future<String?> _podcastIdForEpisode(String episodeId) async {
+    final row = await _supabase
+        .from('podcast_episodes')
+        .select('podcast_id')
+        .eq('id', episodeId)
+        .maybeSingle();
+    return row?['podcast_id'] as String?;
+  }
 }
