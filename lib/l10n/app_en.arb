@@ -7452,5 +7452,22 @@
   "pollLabel": "Poll",
   "@pollLabel": {
     "description": "Tuile de la grille de pieces jointes"
+  },
+  "mediaBlurredPreview": "blurred preview",
+  "@mediaBlurredPreview": {
+    "description": "Etat mode donnees reduites : le media n est pas telecharge"
+  },
+  "mediaBlurredPreviewSize": "blurred preview · {size}",
+  "@mediaBlurredPreviewSize": {
+    "description": "Idem, avec le poids du fichier quand le serveur l a renvoye",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "moreActions": "More actions",
+  "@moreActions": {
+    "description": "Revele les actions secondaires de la feuille"
   }
 }

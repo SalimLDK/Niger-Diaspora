@@ -27,6 +27,7 @@ import '../../../reports/presentation/widgets/report_content_modal.dart';
 import 'audio_file_bubble.dart';
 import 'audio_message_bubble.dart';
 import 'blurhash_image.dart';
+import 'data_saver_gate.dart';
 import 'call_message_bubble.dart';
 import 'e2ee_session_required_bubble.dart';
 import 'delete_message_modal.dart';
@@ -1812,7 +1813,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     switch (widget.message.type) {
       case MessageType.image:
-        return OptimizedImageBubble(
+        // Mode données réduites (§4a) : rien n'est téléchargé tant que la
+        // personne n'a pas demandé le média.
+        return DataSaverGate(
+          messageId: widget.message.id,
+          isMe: widget.isMe,
+          blurhash: widget.message.blurhash,
+          fileSize: widget.message.fileSize,
+          builder: (context) => OptimizedImageBubble(
           imageUrl: widget.message.fileUrl ?? '',
           caption:
               widget.message.content == widget.message.fileName ||
@@ -1842,6 +1850,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une photo, etc.).
           onLongPress: _onLongPress,
+          ),
         );
 
       case MessageType.file:
@@ -1859,7 +1868,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         );
 
       case MessageType.video:
-        return VideoBubble(
+        return DataSaverGate(
+          messageId: widget.message.id,
+          isMe: widget.isMe,
+          blurhash: widget.message.blurhash,
+          fileSize: widget.message.fileSize,
+          builder: (context) => VideoBubble(
           videoUrl: widget.message.fileUrl ?? '',
           thumbnailUrl: widget.message.thumbnailUrl,
           duration: widget.message.videoDuration,
@@ -1889,6 +1903,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une vidéo, etc.).
           onLongPress: _onLongPress,
+          ),
         );
 
       case MessageType.audio:

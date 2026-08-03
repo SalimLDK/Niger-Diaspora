@@ -28753,6 +28753,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sondage'**
   String get pollLabel;
+
+  /// Etat mode donnees reduites : le media n est pas telecharge
+  ///
+  /// In fr, this message translates to:
+  /// **'aperçu flouté'**
+  String get mediaBlurredPreview;
+
+  /// Idem, avec le poids du fichier quand le serveur l a renvoye
+  ///
+  /// In fr, this message translates to:
+  /// **'aperçu flouté · {size}'**
+  String mediaBlurredPreviewSize(String size);
+
+  /// Revele les actions secondaires de la feuille
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres actions'**
+  String get moreActions;
 }
 
 class _AppLocalizationsDelegate

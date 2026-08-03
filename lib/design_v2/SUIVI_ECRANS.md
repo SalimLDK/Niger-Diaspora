@@ -256,6 +256,40 @@ reviendrait à inventer une disposition — segmenté en en-tête ? plein écran
 conservation du filtre courant ? Il faut la maquette avant d'écrire la
 moindre ligne.
 
+### Mode données réduites (« ÉCO ») — câblé pour de bon
+
+La puce `⊙ Éco` de la sous-barre de discussion bascule
+`PreferencesService.dataSaverMode`, la même préférence que l'interrupteur
+des Réglages (§10b). Elle était **à moitié câblée** :
+
+| Côté | Avant | Après |
+|---|---|---|
+| Envoi | respecté — `media_preview_screen` et `media_batch_preview_screen` pré-cochent « réduire la qualité » (1 280 px) | inchangé |
+| Réception | **ignoré** — `optimized_image_bubble`, `video_bubble` et `blurhash_image` ne consultaient jamais la préférence | barrière `DataSaverGate` |
+
+Le libellé des Réglages promet « Médias non téléchargés automatiquement en
+discussion ». C'est exactement ce que le code ne faisait pas : seul l'envoi
+était concerné, la réception téléchargeait quoi qu'il arrive. Pour quelqu'un
+en 2G — le réseau qu'affichent les maquettes — c'est l'inverse de ce qui
+compte : on subit ce qu'on reçoit, pas ce qu'on envoie.
+
+`data_saver_gate.dart` tient la promesse en n'appelant son `builder` qu'une
+fois le téléchargement demandé : avant, `CachedNetworkImage` n'est jamais
+construit, donc aucun octet ne part. Le rendu est celui de la §4a — aperçu
+flou (le vrai blurhash quand le serveur l'a renvoyé), légende
+« aperçu flouté · 240 Ko », bouton « Télécharger ».
+
+Trois choix à connaître :
+
+- **Le média que j'envoie n'est jamais masqué.** Il est déjà local, le cacher
+  ne ferait économiser aucun octet.
+- **Le poids n'est affiché que s'il est connu** — pas de « 0 Ko » inventé.
+- **Le dévoilement vit en mémoire**, par identifiant de message. Sans ça le
+  recyclage de la liste re-masquerait le média à chaque défilement. Au
+  prochain lancement, le mode reprend la main.
+
+Câblé des deux côtés, production et copie `design_v2`.
+
 ### La famille « fil » a son propre système — ne pas lui appliquer la trousse
 
 `lib/features/feed/presentation/theme/` définit `FeedTokens` et `FeedText`,

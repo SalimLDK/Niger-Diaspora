@@ -15700,4 +15700,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pollLabel => 'Sondage';
+
+  @override
+  String get mediaBlurredPreview => 'aperçu flouté';
+
+  @override
+  String mediaBlurredPreviewSize(String size) {
+    return 'aperçu flouté · $size';
+  }
+
+  @override
+  String get moreActions => 'Autres actions';
 }

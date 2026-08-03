@@ -15552,4 +15552,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pollLabel => 'Poll';
+
+  @override
+  String get mediaBlurredPreview => 'blurred preview';
+
+  @override
+  String mediaBlurredPreviewSize(String size) {
+    return 'blurred preview · $size';
+  }
+
+  @override
+  String get moreActions => 'More actions';
 }
