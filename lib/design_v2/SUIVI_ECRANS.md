@@ -353,18 +353,27 @@ après les commits `94d721c` et `bdcd795` : **zéro dégradé**, aplats et jeton
 adaptatifs partout, bouton de couches présent, panneau à trois positions
 (`snapSizes: [0.18, 0.45, 0.92]`). `flutter analyze` passe. Le §7d est bon.
 
-Le **§7e n'est pas commencé**. Quatre manques :
+Le **§7e est traité dans `design_v2/map/`**. Les quatre manques :
 
 | Manque | Maquette | Pourquoi ça compte |
 |---|---|---|
-| Bascule **Carte / Liste** | 7e | Consulter les membres proches sans charger la carte |
-| Badge **« tuiles allégées · 2G »** | 7e | Dire *pourquoi* la carte est dégradée, au lieu de laisser croire à un bug |
-| Bouton **« Plein écran »** | 7e | Rendre la carte au premier plan depuis le mode liste |
-| Contrôle **« Trier »** / « Les plus proches » | 7d, 7e | La liste est ordonnée sans que l'ordre soit dit ni modifiable |
+| Bascule **Carte / Liste** | 7e | fait — dans l'en-tête du panneau |
+| Badge **« tuiles allégées »** | 7e | fait — sur l'aplat qui remplace la carte |
+| Bouton **« Plein écran »** | 7e | fait — sortie du mode liste |
+| Contrôle de **tri** | 7d, 7e | fait — « Les plus proches » ⇄ « Par nom » |
 
-La plomberie existe déjà : `PreferencesService.instance.dataSaverMode` est
-câblé dans les réglages (`settings_screen.dart:53`). Il manque le
-branchement côté carte.
+Deux choix de fond :
+
+- En mode liste, la carte **n'est pas chargée du tout** — un aplat la
+  remplace. Sur un forfait compté, ne pas télécharger de tuiles vaut mieux
+  que les télécharger et les cacher.
+- Le mode démarre **allumé si « données réduites » est actif** dans les
+  réglages. `PreferencesService.instance.dataSaverMode` existait déjà mais
+  n'était jamais lu par la carte : le réglage promettait un comportement
+  qu'il n'obtenait pas.
+
+Le tri par distance ne s'applique que si la position est connue ; sinon
+l'ordre d'arrivée est conservé plutôt qu'un classement inventé.
 
 ⚠️ Ces quatre points sont développés dans **`design_v2/map/`**, pas dans
 `lib/features/`, parce qu'une session parallèle travaille sur le fichier de
