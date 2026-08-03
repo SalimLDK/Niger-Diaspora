@@ -14,17 +14,71 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Session du 2026-08-03 — SM A515F, build de `118b61e`
+
+Ce qui a été réellement exercé sur l'appareil, et ce que ça a révélé.
+
+**Défauts trouvés, corrigés et vérifiés**
+
+- **Aucun média ne pouvait être envoyé sur Storage** — `storage.rules` ne
+  déclarait aucun bloc pour `stories/`, `posts/` ni `encrypted_media/` : les
+  trois tombaient dans le `deny all` final. Donc **création de story
+  impossible, média de publication impossible, pièce jointe E2EE impossible**,
+  tous en `unauthorized`. Les trois blocs ont été ajoutés et déployés
+  (`firebase deploy --only storage`), après quoi la story part et s'affiche.
+- **Débordement de 6 px du rail de stories** à `font_scale = 1.1` (le libellé
+  « Ajouter » était coupé) : hauteur figée à 96 px, désormais calculée depuis
+  le `textScaler`.
+
+**Défauts trouvés, non corrigés**
+
+- **L'échec d'upload est totalement silencieux** : `_createPhotoStory`
+  (`story_rail.dart`) n'attrape rien autour de `uploadImage`. La feuille se
+  referme, aucun message, l'exception ne ressort que dans Crashlytics —
+  l'utilisateur croit avoir publié.
+- **Le compteur de vues d'une story ne bouge pas** : la feuille « qui a vu »
+  liste bien la vue enregistrée, mais la pastille du viewer continue
+  d'afficher « Aucune vue ». Deux sources qui ne concordent pas. Accessoirement
+  la vue de l'auteur lui-même est comptée.
+- **Le nom d'auteur vient de Firebase Auth, pas du profil** : story et écran
+  d'accueil affichent « Sim A » (`user.displayName`) alors que le profil
+  applicatif est « Salim L. ». Même inversion de priorité dans
+  `profile_config_screen.dart:90` — relancer l'assistant renomme donc le profil
+  avec la valeur Firebase Auth.
+- **Écran de connexion illisible quand le système est en thème sombre** : fond
+  crème (valeurs claires) mais titre « Bienvenue » et libellé « Email » en
+  blanc, donc invisibles, pendant que les champs de saisie sont sombres.
+  Reproduit deux fois, en rendu complet et non en flash de transition.
+  À instrumenter : deux sources de vérité pour la luminosité cohabitent dans
+  la même passe de build.
+- **Les drapeaux d'onboarding ne survivent pas à une réinstallation** :
+  `hasGivenConsent` / `profileConfigComplete` sont lus dans Firestore
+  `users/{uid}`, où ils n'existent pas pour ce compte. Toute réinstallation
+  (ou tout nouvel appareil) repasse donc par consentement **et** assistant de
+  profil complet.
+- **Accents manquants dans les coach marks** : « Appuyez ici pour acceder a
+  votre profil et le completer ».
+- L'écran d'introduction (`onboarding_intro_screen`) est en orange quel que
+  soit le thème choisi à l'étape précédente de l'assistant.
+
+**Interrompu** — la session Firebase du compte de test s'est invalidée en cours
+de route (le routeur redirige vers `/auth/login`). Tout ce qui suit la partie
+Stories n'a donc **pas** pu être exercé cette session : salons, podcasts,
+messagerie, hors-ligne, écrans divers.
+
+---
+
 # 1. Refonte Fil & Discussion (28 tours + salons/podcasts)
 
 ## Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)
 
-- [ ] **Viewer de stories** (`story_viewer_screen.dart`) : barre de progression segmentée, auto-avance 5s, tap gauche/droite (précédent/suivant), swipe vers le bas pour fermer, enchaînement automatique sur l'auteur suivant du rail.
-- [ ] **Création de story** (`story_rail.dart`) : permission caméra (première demande), permission galerie, upload, apparition dans le rail avec l'anneau correct. *(partiellement vérifié le 2026-08-03 sur SM A515F : tap sur l'avatar "+" ouvre bien le bottom sheet à 3 options — Prendre une photo / Choisir depuis la galerie / Choisir une vidéo 30s max — et "Choisir depuis la galerie" ouvre correctement le picker photo système. Flux annulé avant sélection réelle, donc upload + apparition dans le rail restent non vérifiés.)*
-- [ ] **Rail de stories** : anneau dégradé (non vues) vs anneau gris (tout vu), avatar "+" quand pas de story active, défilement horizontal. *(partiellement vérifié le 2026-08-03 sur SM A515F : le rail s'affiche bien en haut du fil, avatar "+" correct quand aucune story active. Compte de test sans story existante ni abonnement avec story → anneau dégradé/gris et défilement horizontal multi-avatars non vérifiables en l'état.)*
-- [ ] **Repli du rail au défilement** (`feed_screen.dart`/`story_rail.dart`, ajouté 2026-07-31) : `AnimatedCrossFade` déclenché à `scrollOffset > 24`, bascule vers la barre compacte (3 avatars superposés + « N récits aujourd'hui » + « Afficher »), tap sur « Afficher » qui scrolle en haut et redéplie.
-- [ ] **Story vidéo** (ajouté 2026-07-31) : sélection galerie (max 30s), upload + compression + génération de miniature, lecture avec `video_player` dans le viewer (autoplay, barre de progression synchronisée sur la position réelle au lieu du minuteur fixe 5s, passage automatique à la story suivante en fin de lecture).
-- [ ] **« Qui a vu » ma story** (ajouté 2026-07-31) : le tap « N vues » (visible seulement pour l'auteur) met la lecture en pause, ouvre la feuille avec la liste (avatar/nom/heure + emoji de réaction le cas échéant), la reprise de lecture à la fermeture de la feuille.
-- [ ] **Réactions sur une story** (ajouté 2026-07-31) : barre de 6 emojis en bas du viewer (stories des autres uniquement), tap = pose la réaction, retaper le même emoji la retire (toggle), l'emoji actif doit rester visuellement mis en évidence.
+- [x] **Viewer de stories** (`story_viewer_screen.dart`) : barre de progression segmentée, auto-avance 5s, tap gauche/droite (précédent/suivant), swipe vers le bas pour fermer, enchaînement automatique sur l'auteur suivant du rail. *(2026-08-03, SM A515F : l'image s'affiche, l'en-tête porte avatar / nom / « il y a moins d'une minute » / croix, le minuteur de 5 s tourne et ferme le viewer en fin de rail, et le glissement vers le bas ferme immédiatement. **Tap gauche/droite et enchaînement sur l'auteur suivant restent non vérifiés** : une seule story, un seul auteur — il faut un deuxième compte publiant une story.)*
+- [x] **Création de story** (`story_rail.dart`) : permission caméra (première demande), permission galerie, upload, apparition dans le rail avec l'anneau correct. *(2026-08-03, SM A515F, bout en bout depuis la galerie : sélection → upload → la story apparaît dans le rail, l'avatar « + » cède la place à l'anneau accent, et le viewer la relit. **A d'abord échoué** en `unauthorized` : `storage.rules` n'avait pas de bloc `stories/`, corrigé et déployé (voir le bloc de session en tête de fichier). Aucune permission runtime n'est demandée pour la galerie — l'app passe par le photo picker système, qui n'en exige pas. **Le chemin caméra reste non testé** (permission caméra première demande).)*
+- [x] **Rail de stories** : anneau dégradé (non vues) vs anneau gris (tout vu), avatar "+" quand pas de story active, défilement horizontal. *(2026-08-03, SM A515F : avatar « + » correct sans story, remplacé par l'anneau accent dès qu'une story est active. **L'anneau gris « tout vu » n'est toujours pas distinguable** — ma propre story ne bascule pas en gris après lecture, et il n'y a aucun autre auteur ; défilement horizontal multi-avatars idem. Un débordement de 6 px à `font_scale = 1.1` a été trouvé ici et corrigé.)*
+- [ ] **Repli du rail au défilement** (`feed_screen.dart`/`story_rail.dart`, ajouté 2026-07-31) : `AnimatedCrossFade` déclenché à `scrollOffset > 24`, bascule vers la barre compacte (3 avatars superposés + « N récits aujourd'hui » + « Afficher »), tap sur « Afficher » qui scrolle en haut et redéplie. *(2026-08-03 : **non atteignable en l'état, faute de données** — le fil du compte de test ne contient qu'une seule publication sur les trois onglets, donc la liste ne défile pas et `scrollOffset` ne dépasse jamais 24. Il faut un fil d'au moins un écran et demi.)*
+- [ ] **Story vidéo** (ajouté 2026-07-31) : sélection galerie (max 30s), upload + compression + génération de miniature, lecture avec `video_player` dans le viewer (autoplay, barre de progression synchronisée sur la position réelle au lieu du minuteur fixe 5s, passage automatique à la story suivante en fin de lecture). *(2026-08-03 : non testé, mais le blocage Storage qui l'aurait fait échouer — `stories/…/video_*.mp4` — est levé.)*
+- [x] **« Qui a vu » ma story** (ajouté 2026-07-31) : le tap « N vues » (visible seulement pour l'auteur) met la lecture en pause, ouvre la feuille avec la liste (avatar/nom/heure + emoji de réaction le cas échéant), la reprise de lecture à la fermeture de la feuille. *(2026-08-03, SM A515F : la pastille est bien réservée à l'auteur, le tap met la lecture en pause — le viewer reste ouvert bien au-delà des 5 s — la feuille liste avatar / nom / heure, et la fermeture relance le minuteur, qui va au bout et ferme le viewer. **Deux réserves** : la pastille continue d'afficher « Aucune vue » alors que la feuille liste une vue, et la vue de l'auteur lui-même est comptée. L'emoji de réaction dans la liste n'est pas vérifiable en solo.)*
+- [ ] **Réactions sur une story** (ajouté 2026-07-31) : barre de 6 emojis en bas du viewer (stories des autres uniquement), tap = pose la réaction, retaper le même emoji la retire (toggle), l'emoji actif doit rester visuellement mis en évidence. *(2026-08-03 : **non testable en solo par construction** — la barre n'est rendue que sur la story d'un autre auteur. Demande un deuxième compte.)*
 - [ ] **Envoi groupé de médias en message** (`media_batch_preview_screen.dart`, ajouté 2026-07-31, §27d) : sélection multiple dans la galerie → pellicule de revue avec case à cocher par média, poids total qui se recalcule au décochage, bascule « qualité réduite » qui compresse réellement à l'envoi, CTA qui nomme le nombre. Le cas 1 seul média doit toujours passer par l'éditeur mono-fichier existant (non touché) — vérifier qu'aucune régression n'est apparue là.
 - [ ] **Composer un sondage sur un post** (`create_post_screen.dart` → icône Sondage) : ouverture du sheet, saisie, publication du post d'abord puis création du sondage — vérifier que le sondage apparaît bien après coup sur le post publié.
 - [ ] **Composer un lieu sur un post** : `LocationPickerModal` (permission localisation, recherche d'adresse, sélection sur carte), aperçu de la carte statique sur `post_card.dart`.
@@ -47,7 +101,7 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 - [ ] **Rail de navigation tablette 86px** (`tablet_navigation_rail.dart`, seuil 700px) : bascule téléphone/tablette, badges non lus.
 - [ ] **Filtres rapides événements** (Près de moi/En ligne/Gratuits) : calcul de distance réel avec ma position.
 - [ ] **En-tête carte unifié** (`map_screen.dart`, §7d) : recherche + bouton calques sur une ligne, chips profession en dessous — zone à risque de chevauchement avec l'overlay Google Maps.
-- [ ] **`font_scale` élevé** (accessibilité système) : plusieurs `SizedBox` à hauteur fixe ont déjà débordé par le passé (ex. `BOTTOM OVERFLOWED BY 4px` à `font_scale=1.1`) — revérifier sur les écrans récents (checklist pièces à joindre, puces sondage/lieu, carte "plus proche" ambassade).
+- [ ] **`font_scale` élevé** (accessibilité système) : plusieurs `SizedBox` à hauteur fixe ont déjà débordé par le passé (ex. `BOTTOM OVERFLOWED BY 4px` à `font_scale=1.1`) — revérifier sur les écrans récents (checklist pièces à joindre, puces sondage/lieu, carte "plus proche" ambassade). *(2026-08-03 : l'appareil de test est en permanence à `font_scale = 1.1`, donc **toutes** les captures de cette session sont déjà à cette échelle. Un nouveau débordement trouvé et corrigé : `BOTTOM OVERFLOWED BY 6.0 PIXELS` sur le rail de stories du fil. Deux zones à surveiller, vues serrées sans bandeau d'erreur : la 3ᵉ carte de l'écran de consentement, coupée en pleine phrase par le bouton « Continuer », et les pastilles de couleur de la dernière étape de l'assistant de profil, dont seule la moitié haute est visible. Les écrans nommés ci-dessus n'ont pas été atteints.)*
 - [ ] **Cinq contrôles morts recâblés** (2026-08-03) : **⚙ Réglages** du pied de salon (les 3 interrupteurs doivent écrire pour de vrai dans Supabase et revenir en arrière si l'écriture échoue — à tester en coupant la donnée), **📊 Statistiques** du pied de salon, **+ Inviter** du panneau de modération (le participant choisi doit apparaître dans la rangée des co-hôtes), **🪙 Pourboire** du replay (destinataire = hôte du replay ; vérifier que la puce disparaît si le replay n'a pas d'hôte), et le **CTA de l'encart publicitaire** du fil (chaque encart doit mener à sa section). Vérifier aussi qu'un admin qui rejoint en mode fantôme ne fait **plus** grossir la rangée de modérateurs vue par l'hôte.
 - [ ] **Mini-lecteur podcast enfin affiché** (`main_shell.dart` + `podcast_mini_player.dart`, 2026-08-03) : la classe existait mais n'était montée nulle part — une lecture lancée depuis un épisode devenait invisible dès qu'on quittait l'écran. Il apparaît maintenant au-dessus de la barre de navigation, en **sombre même en thème clair**. À vérifier : qu'il apparaît bien au lancement d'une lecture et disparaît au Stop, que le tap ouvre l'épisode en cours, que la barre de progression avance, et surtout **que le dernier élément des listes reste atteignable** (la réserve basse passe de 110 à 174 px quand il est présent). Vérifier aussi le rendu tablette (il est sous la colonne centrale, à droite du rail) et que la barre sombre ne détonne pas trop sur les écrans clairs — c'est le compromis assumé.
 - [ ] **Lecteur d'épisode forcé en sombre** (`episode_detail_screen.dart`, 2026-08-03, maquettes 1e/4b) : l'écran est sombre **même en thème clair**. À vérifier en mode clair : fond, cartes, curseur de progression, pastilles de chapitres, chips de statistiques, bandeau « depuis un salon live » (violet éclairci pour rester lisible), et surtout que la feuille de minuterie et celle de signalement s'ouvrent bien en sombre au lieu de flasher en clair. Vérifier aussi les icônes de la barre de statut au retour vers un écran clair, et la palette orange (le lecteur reprend `orangeDarkTheme` si ce thème est choisi).
@@ -288,6 +342,30 @@ en solo.
   notification ramène bien sur le lecteur.
 
 ## Profil & Accueil (avant la refonte design)
+
+## Thème sombre — jetons clairs codés en dur
+
+- [x] **Écran de connexion illisible en thème sombre** (`login_screen.dart`,
+  `auth_button.dart`, + 13 autres fichiers, 2026-08-03) : **constaté sur le
+  SM A515F**, téléphone en mode nuit. Capture avant correction : fond crème
+  clair (`AppColors.surfaceVariant` figé sur le `Scaffold`), champs de saisie
+  quasi noirs (venant du thème sombre), titre « Bienvenue » et libellé
+  « Email » invisibles — texte clair du thème sombre posé sur le fond clair
+  figé. 48 occurrences de jetons clairs (`AppColors.textPrimary`,
+  `textSecondary`, `textTertiary`, `background`, `surfaceVariant`, `border`)
+  remplacées par les accesseurs adaptatifs de `adaptive_colors.dart` sur
+  15 fichiers : les 5 écrans d'auth, les 4 écrans de transferts, 3 écrans de
+  profil, la carte, et `friend_list_item`. **Reste à vérifier** : les écrans
+  de transferts et de profil, non atteignables sans session (la
+  réinstallation déconnecte l'app).
+
+- [ ] **Blancs bruts restants** : ~587 `Colors.white` / `AppColors.white` et
+  184 `Colors.black*` subsistent dans `lib/features`. La grande majorité est
+  légitime (texte blanc sur surface colorée, écrans immersifs comme l'appel ou
+  le viewer de stories, fond blanc obligatoire des QR codes) — seuls 14 sont
+  des `backgroundColor`, dont 3 méritent un examen
+  (`admin_create_admin_screen.dart:41`, `transfer_screen.dart:86`,
+  `share_profile_modal.dart:447`). À trancher au cas par cas, pas en masse.
 
 ## Feature flags & accès aux écrans
 
