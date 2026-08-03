@@ -670,6 +670,43 @@ dans `audio_rooms_list_screen` ni `audio_room_screen`.
 Restent réellement à faire : §1f (revenus créateur), §2b, §2c, §2d, §2g,
 §4b, §4c et le lecteur de replay.
 
+### Audit du reste de la vague audio (2026-08-03)
+
+Mesuré, pas supposé : nombre de clés ARB distinctes, adhérence au système
+`DNColors`/`DNText`, dégradés restants, et chaînes françaises encore en dur
+(litt��raux de 4+ caractères contenant un accent ou un mot-outil).
+
+| Maquette | Fichier | Clés | DN | Dégradés | Chaînes en dur | Verdict |
+|---|---|---|---|---|---|---|
+| §2b | `timezone_display_widget` (536 l.) | **0** | **0** | 1 | **25** | le vrai chantier |
+| — | `replay_player_screen` (771 l.) | 5 | 32 | 1 | 9 | partiel |
+| §4c | `heritage_library_screen` (1432 l.) | 41 | 28 | **3** | 0 | dégradés seuls |
+| §4b / §1e | `episode_detail_screen` (996 l.) | 17 | 0 | **3** | 1 | dégradés + système |
+| §1f | `creator_earnings_screen` (545 l.) | 25 | 0 | 0 | 0 | propre, hors système |
+| §2c | `save_as_podcast_screen` (366 l.) | 17 | 27 | 0 | 0 | **fait** |
+
+**Ce que ça dit, dans l'ordre d'attaque :**
+
+1. **§2b est le seul écran réellement pas fait.** Zéro clé ARB pour 536
+   lignes, 25 chaînes françaises en dur, un dégradé, et il n'adhère à aucun
+   système de thème. C'est là que se trouve tout le travail restant.
+2. **8 dégradés subsistent** sur 4 fichiers — heritage (3), episode_detail
+   (3), replay (1), timezone (1). Purge mécanique, faible risque.
+3. **`replay_player_screen` traîne 9 chaînes en dur** pour 5 clés seulement,
+   alors qu'il est par ailleurs sur le système DN.
+4. **§1f et §4b/§1e utilisent `Theme.of` et non `DNColors`.** À trancher
+   plutôt qu'à corriger d'office : `creator_earnings_screen` est par ailleurs
+   irréprochable (0 chaîne en dur, 0 dégradé). Basculer un écran propre vers
+   un autre système n'est un gain que si la cohérence visuelle le réclame —
+   à regarder côte à côte sur appareil avant de décider.
+5. **§2g n'a rien à faire.** C'est la variante nocturne de la liste des
+   salons, dont le fichier est déjà propre (0 dégradé, système DN) : elle
+   suit automatiquement, comme les autres variantes sombres.
+
+Rappel de méthode, après m'être trompé trois fois : **chercher les clés ARB
+et les noms de classes, jamais les chaînes françaises**. Sur ces fichiers,
+un `grep "Sur scène"` renvoie zéro alors que l'écran est complet.
+
 ### §2d — bouton « Brouillon »
 
 L'écran portait déjà le mode audio/vidéo, les chapitres numérotés, la durée
