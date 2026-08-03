@@ -163,6 +163,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   // Reactions popup
   bool _showReactionsPopup = false;
 
+  /// Révélateur « Autres actions » de la feuille (§27a).
+  bool _moreOptionsOpen = false;
+
   // Cached emoji-only check (computed once)
   late final bool _cachedIsEmojiOnly;
 
@@ -1092,12 +1095,20 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         widget.message.status != MessageStatus.sending;
   }
 
+  /// Ouvre la feuille d'actions (§27a).
+  ///
+  /// Cinq entrées visibles, les autres derrière « Autres actions » : la
+  /// maquette impose la brièveté, mais épingler, modifier, enregistrer et
+  /// signaler restent des fonctions réelles qu'on ne fait pas disparaître.
   void _showOptionsModal(BuildContext context) {
+    _moreOptionsOpen = false;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (ctx) => Container(
+      builder: (ctx) => StatefulBuilder(
+        builder: (_, setSheetState) {
+          final secondaires = _secondaryOptionRows(ctx);
+          return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: context.surfaceColor,
@@ -1112,8 +1123,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   const SheetHandle(),
                   const SizedBox(height: 16),
 
-                  // Réactions rapides (§27a) : cinq émojis d'un geste, le
-                  // « + » ouvre le sélecteur complet.
+                  // Réactions rapides : cinq émojis d'un geste, le « + »
+                  // ouvre le sélecteur complet. Remplace l'ancienne ligne
+                  // « Réagir », qui demandait un écran de plus.
                   if (widget.onReact != null) ...[
                     _buildQuickReactions(ctx),
                     const SizedBox(height: 8),
@@ -1122,322 +1134,294 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ] else
                     const SizedBox(height: 4),
 
-                  // Reply option
-                  if (widget.onReply != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.reply,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.reply,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        widget.onReply?.call(widget.message);
-                      },
-                    ),
+                  ..._primaryOptionRows(ctx),
 
-                  // React option
-                  if (widget.onReact != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.add_reaction_outlined,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.react,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        setState(() {
-                          _showReactionsPopup = true;
-                        });
-                      },
-                    ),
-
-                  // Message info option (sender only)
-                  if (widget.isMe &&
-                      !widget.message.deletedForEveryone &&
-                      widget.conversationId != null)
-                    ListTile(
-                      leading: AppIcon(
-                        AppIcon.info,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.messageInfoTitle,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _showMessageInfoSheet(context);
-                      },
-                    ),
-
-                  // Star option
-                  if (widget.onToggleStar != null &&
-                      !widget.message.deletedForEveryone) ...[
-                    Builder(
-                      builder: (_) {
-                        final isStarred =
-                            widget.currentUserId != null &&
-                            widget.message.isStarredBy(widget.currentUserId!);
-                        return ListTile(
-                          leading:
-                              isStarred
-                                  ? const AppIcon(
-                                    AppIcon.star,
-                                    color: Colors.amber,
-                                  )
-                                  : AppIcon(
-                                    AppIcon.starBorder,
-                                    color: context.textPrimaryColor,
-                                  ),
-                          title: Text(
-                            isStarred
-                                ? AppLocalizations.of(context)!.unstarMessage
-                                : AppLocalizations.of(context)!.starMessage,
-                            style: TextStyle(color: context.textPrimaryColor),
-                          ),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            widget.onToggleStar?.call(widget.message);
-                          },
-                        );
-                      },
-                    ),
-                  ],
-
-                  // Épingler / Détacher (groupes : selon permission)
-                  if (widget.canPin && !widget.message.deletedForEveryone)
-                    if (widget.isPinned && widget.onUnpin != null)
-                      ListTile(
-                        leading: AppIcon(
-                          AppIcon.pin,
-                          size: 20,
-                          color: context.textPrimaryColor,
-                        ),
-                        title: Text(
-                          'Détacher',
-                          style: TextStyle(color: context.textPrimaryColor),
-                        ),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          widget.onUnpin?.call(widget.message);
-                        },
-                      )
-                    else if (!widget.isPinned && widget.onPin != null)
-                      ListTile(
-                        leading: AppIcon(
-                          AppIcon.pin,
-                          size: 20,
-                          color: context.textPrimaryColor,
-                        ),
-                        title: Text(
-                          'Épingler',
-                          style: TextStyle(color: context.textPrimaryColor),
-                        ),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          widget.onPin?.call(widget.message);
-                        },
-                      ),
-
-                  // Forward option
-                  if (!widget.message.deletedForEveryone)
-                    ListTile(
-                      leading: Icon(
-                        Icons.shortcut,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.forwardTo,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        widget.onForward?.call(widget.message);
-                      },
-                    ),
-
-                  // Enregistrer (photo/vidéo) — le menu complet remplace
-                  // désormais le petit menu média, on y remet donc « Enregistrer ».
-                  if (!widget.message.deletedForEveryone &&
-                      widget.message.fileUrl != null &&
-                      (widget.message.type == MessageType.image ||
-                          widget.message.type == MessageType.video))
-                    ListTile(
-                      leading: Icon(
-                        Icons.download_rounded,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        'Enregistrer',
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        if (widget.message.type == MessageType.image) {
-                          _saveImageToGallery(widget.message.fileUrl!);
-                        } else {
-                          _saveVideoToDevice(widget.message.fileUrl!);
-                        }
-                      },
-                    ),
-
-                  // Share to external apps
-                  if (!widget.message.deletedForEveryone &&
-                      (widget.message.type == MessageType.text ||
-                          widget.message.type == MessageType.image ||
-                          widget.message.type == MessageType.video ||
-                          widget.message.type == MessageType.file))
-                    ListTile(
-                      leading: AppIcon(
-                        AppIcon.share,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.share,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _shareMessage();
-                      },
-                    ),
-
-                  // Select option (enter multi-selection mode)
-                  if (widget.onSelect != null)
-                    ListTile(
-                      leading: AppIcon(
-                        AppIcon.checkCircle,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.select,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        widget.onSelect?.call(widget.message);
-                      },
-                    ),
-
-                  // Copy option (for text messages)
-                  if (widget.message.type == MessageType.text)
-                    ListTile(
-                      leading: Icon(
-                        Icons.copy,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.copy,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        Clipboard.setData(
-                          ClipboardData(text: widget.message.content),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              AppLocalizations.of(context)!.messageCopied,
-                            ),
-                            backgroundColor: context.adaptivePrimaryColor,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                    ),
-
-                  // Edit option (for sender's text messages within 25 min)
-                  if (widget.isMe &&
-                      widget.message.type == MessageType.text &&
-                      !widget.message.deletedForEveryone &&
-                      widget.onEdit != null &&
-                      widget.currentUserId != null &&
-                      widget.message.canEdit(widget.currentUserId!))
-                    ListTile(
-                      leading: Icon(
-                        Icons.edit_outlined,
-                        color: context.textPrimaryColor,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.edit,
-                        style: TextStyle(color: context.textPrimaryColor),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _showEditDialog(context);
-                      },
-                    ),
-
-                  // Filet : actions destructives isolées en bas (§16).
-                  if (_canShowDeleteOption() ||
-                      (!widget.isMe && !widget.message.deletedForEveryone))
+                  if (secondaires.isNotEmpty) ...[
                     Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
                       color: context.borderColor,
                     ),
-
-                  // Delete option
-                  if (_canShowDeleteOption())
-                    ListTile(
-                      leading: AppIcon(AppIcon.delete, color: context.errorColor),
-                      title: Text(
-                        AppLocalizations.of(context)!.delete,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _showDeleteModal(context);
-                      },
-                    ),
-
-                  // Report option (for messages from other users)
-                  if (!widget.isMe && !widget.message.deletedForEveryone)
-                    ListTile(
-                      leading: const AppIcon(
-                        AppIcon.flag,
-                        color: Colors.orange,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.report,
-                        style: const TextStyle(color: Colors.orange),
-                      ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        // Créer le snapshot du contenu
-                        final snapshot = _createMessageSnapshot();
-                        ReportContentModal.show(
-                          context,
-                          targetType: ReportTargetType.message,
-                          targetId: widget.message.id,
-                          targetName: widget.message.senderName,
-                          targetPreview:
-                              widget.message.type == MessageType.text
-                                  ? widget.message.content
-                                  : null,
-                          conversationId: widget.conversationId,
-                          contentSnapshot: snapshot,
-                          reportedUserId: widget.message.senderId,
-                        );
-                      },
-                    ),
+                    if (!_moreOptionsOpen)
+                      ListTile(
+                        leading: Icon(
+                          Icons.more_horiz,
+                          color: context.textSecondaryColor,
+                        ),
+                        title: Text(
+                          AppLocalizations.of(context)!.moreActions,
+                          style: TextStyle(color: context.textSecondaryColor),
+                        ),
+                        onTap: () =>
+                            setSheetState(() => _moreOptionsOpen = true),
+                      )
+                    else
+                      ...secondaires,
+                  ],
 
                   SizedBox(height: MediaQuery.of(ctx).padding.bottom),
                 ],
               ),
             ),
-          ),
+          );
+        },
+      ),
     );
+  }
+
+  /// Les cinq entrées de la maquette, dans son ordre.
+  List<Widget> _primaryOptionRows(BuildContext ctx) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      if (widget.onReply != null)
+        ListTile(
+          leading: Icon(Icons.reply, color: context.textPrimaryColor),
+          title: Text(
+            l10n.reply,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            widget.onReply?.call(widget.message);
+          },
+        ),
+
+      if (widget.message.type == MessageType.text)
+        ListTile(
+          leading: Icon(Icons.copy, color: context.textPrimaryColor),
+          title: Text(
+            l10n.copy,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            Clipboard.setData(ClipboardData(text: widget.message.content));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.messageCopied),
+                backgroundColor: context.adaptivePrimaryColor,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+          },
+        ),
+
+      if (!widget.message.deletedForEveryone)
+        ListTile(
+          leading: Icon(Icons.shortcut, color: context.textPrimaryColor),
+          title: Text(
+            l10n.forwardTo,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            widget.onForward?.call(widget.message);
+          },
+        ),
+
+      if (widget.onToggleStar != null && !widget.message.deletedForEveryone)
+        Builder(
+          builder: (_) {
+            final isStarred = widget.currentUserId != null &&
+                widget.message.isStarredBy(widget.currentUserId!);
+            return ListTile(
+              leading: isStarred
+                  ? const AppIcon(AppIcon.star, color: Colors.amber)
+                  : AppIcon(
+                      AppIcon.starBorder,
+                      color: context.textPrimaryColor,
+                    ),
+              title: Text(
+                isStarred ? l10n.unstarMessage : l10n.starMessage,
+                style: TextStyle(color: context.textPrimaryColor),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onToggleStar?.call(widget.message);
+              },
+            );
+          },
+        ),
+
+      // Action destructive isolée par un filet.
+      if (_canShowDeleteOption()) ...[
+        Divider(
+          height: 1,
+          indent: 16,
+          endIndent: 16,
+          color: context.borderColor,
+        ),
+        ListTile(
+          leading: AppIcon(AppIcon.delete, color: context.errorColor),
+          title: Text(
+            l10n.delete,
+            style: TextStyle(color: context.errorColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showDeleteModal(context);
+          },
+        ),
+      ],
+    ];
+  }
+
+  /// Ce que la maquette ne montre pas mais que l'app sait faire.
+  List<Widget> _secondaryOptionRows(BuildContext ctx) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      if (widget.isMe &&
+          !widget.message.deletedForEveryone &&
+          widget.conversationId != null)
+        ListTile(
+          leading: AppIcon(AppIcon.info, color: context.textPrimaryColor),
+          title: Text(
+            l10n.messageInfoTitle,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showMessageInfoSheet(context);
+          },
+        ),
+
+      if (widget.canPin && !widget.message.deletedForEveryone)
+        if (widget.isPinned && widget.onUnpin != null)
+          ListTile(
+            leading: AppIcon(
+              AppIcon.pin,
+              size: 20,
+              color: context.textPrimaryColor,
+            ),
+            title: Text(
+              l10n.unpin,
+              style: TextStyle(color: context.textPrimaryColor),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              widget.onUnpin?.call(widget.message);
+            },
+          )
+        else if (!widget.isPinned && widget.onPin != null)
+          ListTile(
+            leading: AppIcon(
+              AppIcon.pin,
+              size: 20,
+              color: context.textPrimaryColor,
+            ),
+            title: Text(
+              l10n.pin,
+              style: TextStyle(color: context.textPrimaryColor),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              widget.onPin?.call(widget.message);
+            },
+          ),
+
+      if (!widget.message.deletedForEveryone &&
+          widget.message.fileUrl != null &&
+          (widget.message.type == MessageType.image ||
+              widget.message.type == MessageType.video))
+        ListTile(
+          leading: Icon(
+            Icons.download_rounded,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.save,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            if (widget.message.type == MessageType.image) {
+              _saveImageToGallery(widget.message.fileUrl!);
+            } else {
+              _saveVideoToDevice(widget.message.fileUrl!);
+            }
+          },
+        ),
+
+      if (!widget.message.deletedForEveryone &&
+          (widget.message.type == MessageType.text ||
+              widget.message.type == MessageType.image ||
+              widget.message.type == MessageType.video ||
+              widget.message.type == MessageType.file))
+        ListTile(
+          leading: AppIcon(AppIcon.share, color: context.textPrimaryColor),
+          title: Text(
+            l10n.share,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _shareMessage();
+          },
+        ),
+
+      if (widget.onSelect != null)
+        ListTile(
+          leading: AppIcon(
+            AppIcon.checkCircle,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.select,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            widget.onSelect?.call(widget.message);
+          },
+        ),
+
+      if (widget.isMe &&
+          widget.message.type == MessageType.text &&
+          !widget.message.deletedForEveryone &&
+          widget.onEdit != null &&
+          widget.currentUserId != null &&
+          widget.message.canEdit(widget.currentUserId!))
+        ListTile(
+          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
+          title: Text(
+            l10n.edit,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showEditDialog(context);
+          },
+        ),
+
+      // Signaler reste accessible : c'est le recours d'une personne
+      // harcelée, il ne disparaît pas d'un écran.
+      if (!widget.isMe && !widget.message.deletedForEveryone)
+        ListTile(
+          leading: AppIcon(AppIcon.flag, color: context.warningColor),
+          title: Text(
+            l10n.report,
+            style: TextStyle(color: context.warningColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            final snapshot = _createMessageSnapshot();
+            ReportContentModal.show(
+              context,
+              targetType: ReportTargetType.message,
+              targetId: widget.message.id,
+              targetName: widget.message.senderName,
+              targetPreview: widget.message.type == MessageType.text
+                  ? widget.message.content
+                  : null,
+              conversationId: widget.conversationId,
+              contentSnapshot: snapshot,
+              reportedUserId: widget.message.senderId,
+            );
+          },
+        ),
+    ];
   }
 
   void _showMessageInfoSheet(BuildContext context) {
