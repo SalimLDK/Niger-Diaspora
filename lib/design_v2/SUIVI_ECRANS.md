@@ -415,10 +415,10 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 22a | Nous contacter — nouveau ticket | `support/…/create_ticket_screen.dart` | 266 l. | à faire |
-| 22b | Mes demandes | `support/…/support_tickets_screen.dart` | 300 l. | à faire |
-| 22c | Suivi d'une demande | `support/…/ticket_detail_screen.dart` | 421 l. | à faire |
-| 22d | Aucune demande en cours | idem (état vide) | — | à faire |
+| 22a | Nous contacter — nouveau ticket | `support/…/create_ticket_screen.dart` | 266 l. | fait |
+| 22b | Mes demandes | `support/…/support_tickets_screen.dart` | 300 l. | fait |
+| 22c | Suivi d'une demande | `support/…/ticket_detail_screen.dart` | 421 l. | fait |
+| 22d | Aucune demande en cours | idem (état vide) | — | fait |
 
 ### Fil, discussion et appels
 

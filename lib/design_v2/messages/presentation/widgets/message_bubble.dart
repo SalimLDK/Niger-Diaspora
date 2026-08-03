@@ -27,6 +27,7 @@ import '../../../../features/reports/presentation/widgets/report_content_modal.d
 import '../../../../features/messages/presentation/widgets/audio_file_bubble.dart';
 import 'audio_message_bubble.dart';
 import '../../../../features/messages/presentation/widgets/blurhash_image.dart';
+import '../../../../features/messages/presentation/widgets/data_saver_gate.dart';
 import '../../../../features/messages/presentation/widgets/call_message_bubble.dart';
 import '../../../../features/messages/presentation/widgets/e2ee_session_required_bubble.dart';
 import '../../../../features/messages/presentation/widgets/delete_message_modal.dart';
@@ -1863,7 +1864,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     switch (widget.message.type) {
       case MessageType.image:
-        return OptimizedImageBubble(
+        return DataSaverGate(
+          messageId: widget.message.id,
+          isMe: widget.isMe,
+          blurhash: widget.message.blurhash,
+          fileSize: widget.message.fileSize,
+          builder: (context) => OptimizedImageBubble(
           imageUrl: widget.message.fileUrl ?? '',
           caption:
               widget.message.content == widget.message.fileName ||
@@ -1893,6 +1899,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une photo, etc.).
           onLongPress: _onLongPress,
+          ),
         );
 
       case MessageType.file:
@@ -1910,7 +1917,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         );
 
       case MessageType.video:
-        return VideoBubble(
+        return DataSaverGate(
+          messageId: widget.message.id,
+          isMe: widget.isMe,
+          blurhash: widget.message.blurhash,
+          fileSize: widget.message.fileSize,
+          builder: (context) => VideoBubble(
           videoUrl: widget.message.fileUrl ?? '',
           thumbnailUrl: widget.message.thumbnailUrl,
           duration: widget.message.videoDuration,
@@ -1940,6 +1952,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une vidéo, etc.).
           onLongPress: _onLongPress,
+          ),
         );
 
       case MessageType.audio:
