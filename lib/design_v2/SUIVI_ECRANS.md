@@ -477,10 +477,10 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 20a | Modifier mon profil | `profile/…/edit_profile_screen.dart` | 2400 l. | à faire |
-| 20b | Appareils connectés | `settings/…/devices_screen.dart` | 550 l. | à faire |
-| 20c | Sauvegarde des clés | `settings/…/security_backup_screen.dart` | 601 l. | à faire |
-| 20d | Réglages de notifications | `notifications/…/notification_settings_screen.dart` | 525 l. | à faire |
+| 20a | Modifier mon profil | `profile/…/edit_profile_screen.dart` | 2400 l. | fait |
+| 20b | Appareils connectés | `settings/…/devices_screen.dart` | 550 l. | fait |
+| 20c | Sauvegarde des clés | `settings/…/security_backup_screen.dart` | 601 l. | fait |
+| 20d | Réglages de notifications | `notifications/…/notification_settings_screen.dart` | 525 l. | fait |
 | 21a | Partager mon profil (QR) | `profile/…/widgets/share_profile_modal.dart` | 825 l. | ✅ câblée |
 | 21b | Comptes bloqués et mes signalements | `settings/…/widgets/blocked_users_modal.dart`, `reports/…/my_reports_screen.dart` | 402 l. | ✅ câblée |
 | 21c | Apparence, langue, fond d'écran | `messages/…/widgets/chat_background_picker_modal.dart` | — | ✅ câblée |
