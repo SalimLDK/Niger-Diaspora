@@ -2132,6 +2132,126 @@ abstract class AppLocalizations {
   /// **'Billet'**
   String get audioRoomTicketAction;
 
+  /// No description provided for @ghostModerationHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'MODÉRATION · {duration}'**
+  String ghostModerationHeader(String duration);
+
+  /// No description provided for @ghostWarnHost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertir l\'hôte'**
+  String get ghostWarnHost;
+
+  /// No description provided for @audioRoomPrivateRoomHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seules les personnes invitées pourront entrer.'**
+  String get audioRoomPrivateRoomHint;
+
+  /// No description provided for @audioRoomVideoEnabledHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les intervenants pourront activer leur caméra.'**
+  String get audioRoomVideoEnabledHint;
+
+  /// No description provided for @audioRoomEnableRecordingHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le salon pourra être republié en podcast après coup.'**
+  String get audioRoomEnableRecordingHint;
+
+  /// No description provided for @audioRoomPaidRoomHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'entrée demande l\'achat d\'un billet.'**
+  String get audioRoomPaidRoomHint;
+
+  /// No description provided for @audioRoomEnableFundraisingHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une barre de collecte s\'affiche pendant le salon.'**
+  String get audioRoomEnableFundraisingHint;
+
+  /// No description provided for @audioRoomHeritageContentHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le salon est archivé dans la bibliothèque du patrimoine.'**
+  String get audioRoomHeritageContentHint;
+
+  /// No description provided for @audioRoomScheduleAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmer'**
+  String get audioRoomScheduleAction;
+
+  /// No description provided for @scheduleRoomIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un créneau qui tombe bien pour tout le monde : l\'heure est convertie dans le fuseau de chaque membre.'**
+  String get scheduleRoomIntro;
+
+  /// No description provided for @scheduleMembersLocalTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'HEURE LOCALE DES MEMBRES'**
+  String get scheduleMembersLocalTime;
+
+  /// No description provided for @scheduleRemindMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me le rappeler'**
+  String get scheduleRemindMe;
+
+  /// No description provided for @scheduleRemindMeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notification 15 min avant le début.'**
+  String get scheduleRemindMeHint;
+
+  /// No description provided for @scheduleSlotEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonne heure · soirée'**
+  String get scheduleSlotEvening;
+
+  /// No description provided for @scheduleSlotMidday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Midi · en journée'**
+  String get scheduleSlotMidday;
+
+  /// No description provided for @scheduleSlotMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matin · au réveil'**
+  String get scheduleSlotMorning;
+
+  /// No description provided for @scheduleSlotNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tard · risque de nuit'**
+  String get scheduleSlotNight;
+
+  /// No description provided for @audioRoomHeritageArchivedNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'ce salon sera archivé'**
+  String get audioRoomHeritageArchivedNote;
+
+  /// No description provided for @audioRoomSeeAllListeners.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
+  String get audioRoomSeeAllListeners;
+
+  /// No description provided for @audioRoomHandsRaisedCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} mains levées'**
+  String audioRoomHandsRaisedCount(int count);
+
   /// No description provided for @audioRoomElapsedMinutes.
   ///
   /// In fr, this message translates to:
@@ -24182,12 +24302,6 @@ abstract class AppLocalizations {
   /// **'Auditeurs · {count}'**
   String audioRoomListenersCount(int count);
 
-  /// No description provided for @audioRoomHandsRaisedCount.
-  ///
-  /// In fr, this message translates to:
-  /// **'{count} mains levées'**
-  String audioRoomHandsRaisedCount(int count);
-
   /// No description provided for @audioRoomHandsRaisedSection.
   ///
   /// In fr, this message translates to:
@@ -24737,13 +24851,13 @@ abstract class AppLocalizations {
   /// No description provided for @ghostListeners.
   ///
   /// In fr, this message translates to:
-  /// **'Auditeurs'**
+  /// **'auditeurs visibles'**
   String get ghostListeners;
 
   /// No description provided for @ghostSpeakers.
   ///
   /// In fr, this message translates to:
-  /// **'Speakers'**
+  /// **'intervenants visibles'**
   String get ghostSpeakers;
 
   /// No description provided for @ghostReports.
@@ -25763,7 +25877,7 @@ abstract class AppLocalizations {
   /// No description provided for @ghostInvisibleNotice.
   ///
   /// In fr, this message translates to:
-  /// **'Vous êtes invisible. Actions loggées.'**
+  /// **'Vous êtes invisible : ni l\'hôte ni les participants ne voient votre présence. Toutes vos actions sont journalisées.'**
   String get ghostInvisibleNotice;
 
   /// No description provided for @ghostActionsTitle.

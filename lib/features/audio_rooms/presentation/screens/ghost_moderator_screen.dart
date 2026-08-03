@@ -149,20 +149,16 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: DNColors.terra,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              l10n.ghostSuperAdminBadge,
-                              style: DNText.mono(size: 9, color: DNColors.paper),
-                            ),
-                          ),
-                        ],
+                      // « MODÉRATION · 42:18 » : le rôle et depuis combien de
+                      // temps le salon tourne, au lieu d'une pastille qui ne
+                      // disait que le rôle.
+                      Text(
+                        l10n.ghostModerationHeader(
+                          room?.startedAt != null
+                              ? _elapsed(room!.startedAt!)
+                              : '--:--',
+                        ),
+                        style: DNText.mono(size: 9, color: DNColors.terra),
                       ),
                       Text(
                         room?.title ?? l10n.audioRoomsTitle,
@@ -201,11 +197,15 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                 child: Column(
                   children: [
                     // Live data 2×2 grid
+                    // Trois cartes, comme la maquette. La quatrième
+                    // (« Signalements ») affichait un `0` codé en dur : rien
+                    // ne compte les signalements d'un salon, elle annonçait
+                    // donc « aucun problème » sans rien savoir.
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      childAspectRatio: 1.8,
+                      crossAxisCount: 3,
+                      childAspectRatio: 1.15,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
                       children: [
@@ -218,11 +218,6 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                           label: l10n.ghostSpeakers,
                           value: '${session.visibleSpeakers.length}',
                           color: DNColors.terra,
-                        ),
-                        _StatCard(
-                          label: l10n.ghostReports,
-                          value: '0',
-                          color: DNColors.danger,
                         ),
                         _StatCard(
                           label: l10n.ghostDuration,
@@ -271,7 +266,7 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                           ),
                         ),
                         _GhostAction(
-                          label: '⚠ ${l10n.audioRoomWarnLabel}',
+                          label: '⚠ ${l10n.ghostWarnHost}',
                           color: DNColors.ink2,
                           onTap: () => ref
                               .read(audioRoomSessionProvider.notifier)
@@ -464,9 +459,20 @@ class _StatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(value,
-                style: DNText.serif(size: 28, color: color),),
-            Text(label, style: DNText.mono(size: 9, color: DNColors.ink3)),
+            // La valeur rétrécit plutôt que de déborder : les cartes sont
+            // plus étroites depuis le passage à trois colonnes.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value, style: DNText.serif(size: 26, color: color)),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: DNText.mono(size: 8, color: DNColors.ink3),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       );

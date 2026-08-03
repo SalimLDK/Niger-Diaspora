@@ -133,9 +133,11 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
                     )
                   else if (mode == RoomMode.heritage)
                     _ModeBanner(
-                      emoji: '📚',
-                      label:
-                          'Patrimoine · ${room.heritageLanguage ?? 'Langue locale'} · ${room.heritageRegion ?? ''}',
+                      emoji: '★',
+                      // La mention d'archivage manquait : c'est la
+                      // conséquence concrète du mode patrimoine, et elle
+                      // engage l'hôte comme les intervenants.
+                      label: _heritageBannerLabel(l10n, room),
                       color: DNColors.ochre,
                     ),
 
@@ -406,6 +408,20 @@ class _GhostBar extends StatelessWidget {
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
+
+/// « ★ Patrimoine · Zarma · Tillabéri — ce salon sera archivé ».
+/// La langue et la région ne sont ajoutées que si elles sont renseignées :
+/// « Langue locale » en repli n'apprenait rien à personne.
+String _heritageBannerLabel(AppLocalizations l10n, AudioRoomEntity room) {
+  final parts = <String>[l10n.audioRoomModeHeritage];
+  if (room.heritageLanguage != null && room.heritageLanguage!.isNotEmpty) {
+    parts.add(room.heritageLanguage!);
+  }
+  if (room.heritageRegion != null && room.heritageRegion!.isNotEmpty) {
+    parts.add(room.heritageRegion!);
+  }
+  return '${parts.join(' · ')} — ${l10n.audioRoomHeritageArchivedNote}';
+}
 
 /// Durée écoulée depuis le début du salon, rafraîchie toute seule — sans
 /// minuteur elle resterait figée sur la valeur du premier build.
@@ -686,6 +702,53 @@ class _ListenersSection extends StatelessWidget {
 
   const _ListenersSection({required this.session});
 
+  void _showAllListeners(
+    BuildContext context,
+    List<ParticipantEntity> listeners,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.dn.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, controller) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                l10n.audioRoomListenersCount(listeners.length),
+                style: DNText.serif(
+                    size: 16, color: sheetContext.dn.onSurface,),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: controller,
+                itemCount: listeners.length,
+                itemBuilder: (_, i) => ListTile(
+                  dense: true,
+                  title: Text(
+                    listeners[i].userName,
+                    style: DNText.sans(
+                        size: 13, color: sheetContext.dn.onSurface,),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -702,10 +765,21 @@ class _ListenersSection extends StatelessWidget {
             if (handCount > 0) ...[
               const SizedBox(width: 8),
               Text(
-                '+ $handCount mains levées ✋',
+                l10n.audioRoomHandsRaisedCount(handCount),
                 style: DNText.mono(size: 9, color: DNColors.terra),
               ),
             ],
+            const Spacer(),
+            // La grille se contentait d'un « +N » : rien ne permettait de
+            // voir qui sont les auditeurs au-delà des premiers.
+            if (listeners.isNotEmpty)
+              GestureDetector(
+                onTap: () => _showAllListeners(context, listeners),
+                child: Text(
+                  l10n.audioRoomSeeAllListeners,
+                  style: DNText.mono(size: 9, color: DNColors.terra),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),

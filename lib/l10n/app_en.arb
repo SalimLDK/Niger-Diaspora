@@ -458,6 +458,40 @@
   "scheduleRoomTitleLabel": "Room title",
   "scheduleRoomTitleHint": "What will you talk about?",
   "audioRoomTicketAction": "Ticket",
+  "ghostModerationHeader": "MODERATION · {duration}",
+  "@ghostModerationHeader": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostWarnHost": "Warn the host",
+  "audioRoomPrivateRoomHint": "Only invited people will be able to enter.",
+  "audioRoomVideoEnabledHint": "Speakers will be able to turn their camera on.",
+  "audioRoomEnableRecordingHint": "The room can be republished as a podcast afterwards.",
+  "audioRoomPaidRoomHint": "Entry requires buying a ticket.",
+  "audioRoomEnableFundraisingHint": "A fundraising bar is shown during the room.",
+  "audioRoomHeritageContentHint": "The room is archived in the heritage library.",
+  "audioRoomScheduleAction": "Schedule",
+  "scheduleRoomIntro": "Pick a slot that works for everyone: the time is converted into each member's own timezone.",
+  "scheduleMembersLocalTime": "MEMBERS' LOCAL TIME",
+  "scheduleRemindMe": "Remind me",
+  "scheduleRemindMeHint": "Notification 15 min before it starts.",
+  "scheduleSlotEvening": "Good time · evening",
+  "scheduleSlotMidday": "Midday · during the day",
+  "scheduleSlotMorning": "Morning · just waking up",
+  "scheduleSlotNight": "Late · likely night",
+  "audioRoomHeritageArchivedNote": "this room will be archived",
+  "audioRoomSeeAllListeners": "See all",
+  "audioRoomHandsRaisedCount": "+ {count} raised hands ✋",
+  "@audioRoomHandsRaisedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomElapsedMinutes": "{minutes} MIN",
   "@audioRoomElapsedMinutes": {
     "placeholders": {
@@ -6059,8 +6093,8 @@
   "audioRoomForceCloseLabel": "Force close",
   "audioRoomForceCloseDesc": "The room will be immediately closed and the action will be audited.",
   "audioRoomForceCloseAuditNote": "Irreversible action · audit log",
-  "ghostListeners": "Listeners",
-  "ghostSpeakers": "Speakers",
+  "ghostListeners": "visible listeners",
+  "ghostSpeakers": "visible speakers",
   "ghostReports": "Reports",
   "ghostDuration": "Duration",
   "creatorEarningsTitle": "My Earnings",
@@ -6273,7 +6307,7 @@
   "@maxTipAmountError": { "placeholders": { "amount": { "type": "int" }, "currency": { "type": "String" } } },
 
   "ghostSuperAdminBadge": "GHOST · SuperAdmin",
-  "ghostInvisibleNotice": "You are invisible. Actions are logged.",
+  "ghostInvisibleNotice": "You are invisible: neither the host nor the participants can see you. Every action you take is logged.",
   "ghostActionsTitle": "GHOST ACTIONS",
   "ghostMuteSilent": "Silent mute",
   "ghostExclude": "Exclude",

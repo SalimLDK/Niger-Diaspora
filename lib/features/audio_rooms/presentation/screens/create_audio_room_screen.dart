@@ -122,10 +122,7 @@ class _CreateAudioRoomScreenState
     final dn = context.dn;
     return Scaffold(
       backgroundColor: dn.surface,
-      appBar: _ArHeader(
-        title: l10n.audioRoomCreateRoom,
-        subtitle: l10n.configCompleteLabel,
-      ),
+      appBar: _ArHeader(title: l10n.audioRoomOpenRoom),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -197,15 +194,41 @@ class _CreateAudioRoomScreenState
             ),
 
             // § 5–7 — Switches
-            _SwitchRow(label: l10n.audioRoomPrivateRoom, value: _isPrivate,
+            _SwitchRow(label: l10n.audioRoomPrivateRoom,
+                hint: l10n.audioRoomPrivateRoomHint, value: _isPrivate,
                 onChanged: (v) => setState(() => _isPrivate = v),),
-            _SwitchRow(label: l10n.audioRoomVideoEnabled, value: _isVideoEnabled,
+            _SwitchRow(label: l10n.audioRoomVideoEnabled,
+                hint: l10n.audioRoomVideoEnabledHint, value: _isVideoEnabled,
                 onChanged: (v) => setState(() => _isVideoEnabled = v),),
-            _SwitchRow(label: l10n.audioRoomEnableRecording, value: _isRecordingEnabled,
+            _SwitchRow(label: l10n.audioRoomEnableRecording,
+                hint: l10n.audioRoomEnableRecordingHint,
+                value: _isRecordingEnabled,
                 onChanged: (v) => setState(() => _isRecordingEnabled = v),),
 
+            // § 8 — Patrimoine (avant « payant » : ordre de la maquette 2a)
+            _SwitchRow(label: l10n.audioRoomHeritageContent,
+                hint: l10n.audioRoomHeritageContentHint, value: _isHeritage,
+                onChanged: (v) => setState(() => _isHeritage = v),),
+            if (_isHeritage) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _heritageLanguages.map((lang) {
+                    final sel = _heritageLanguage == lang;
+                    return GestureDetector(
+                      onTap: () => setState(() => _heritageLanguage = lang),
+                      child: _Pill(label: lang, active: sel, activeColor: DNColors.ochre),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+
             // § 8 — Salon payant
-            _SwitchRow(label: l10n.audioRoomPaidRoom, value: _isPaid,
+            _SwitchRow(label: l10n.audioRoomPaidRoom,
+                hint: l10n.audioRoomPaidRoomHint, value: _isPaid,
                 onChanged: (v) => setState(() => _isPaid = v),),
             if (_isPaid) ...[
               Padding(
@@ -247,6 +270,7 @@ class _CreateAudioRoomScreenState
             // § 9 — Collecte
             _SwitchRow(
               label: l10n.audioRoomEnableFundraising,
+              hint: l10n.audioRoomEnableFundraisingHint,
               value: _collectionType != CollectionType.none,
               onChanged: (v) => setState(() =>
                   _collectionType =
@@ -291,25 +315,6 @@ class _CreateAudioRoomScreenState
               ),
             ],
 
-            // § 10 — Patrimoine
-            _SwitchRow(label: l10n.audioRoomHeritageContent, value: _isHeritage,
-                onChanged: (v) => setState(() => _isHeritage = v),),
-            if (_isHeritage) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _heritageLanguages.map((lang) {
-                    final sel = _heritageLanguage == lang;
-                    return GestureDetector(
-                      onTap: () => setState(() => _heritageLanguage = lang),
-                      child: _Pill(label: lang, active: sel, activeColor: DNColors.ochre),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
 
             // § 11 — Lié à
             _FormSection(
@@ -435,9 +440,8 @@ class _CreateAudioRoomScreenState
 
 class _ArHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final String subtitle;
 
-  const _ArHeader({required this.title, required this.subtitle});
+  const _ArHeader({required this.title});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -449,12 +453,15 @@ class _ArHeader extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: dn.surface,
       elevation: 0,
       titleSpacing: 4,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: DNText.serif(size: 18, color: dn.onSurface)),
-          Text(subtitle, style: DNText.mono(size: 9, color: dn.onSurface3)),
-        ],
+      // Le sous-titre « configuration complète » décrivait le formulaire, pas
+      // ce qu'on est en train de faire — il est retiré.
+      title: Text(title, style: DNText.serif(size: 18, color: dn.onSurface)),
+      // Croix de fermeture : la flèche de retour par défaut ne dit pas qu'on
+      // abandonne une création en cours.
+      leading: IconButton(
+        icon: Icon(Icons.close_rounded, color: dn.onSurface, size: 22),
+        tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+        onPressed: () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
       ),
     );
   }
@@ -483,6 +490,11 @@ class _FormSection extends StatelessWidget {
 
 class _SwitchRow extends StatelessWidget {
   final String label;
+
+  /// Ligne d'explication sous le libellé (maquette 2a). Les interrupteurs
+  /// n'avaient qu'un intitulé : « Enregistrement activé » ne dit pas ce qui
+  /// est enregistré, ni pour combien de temps.
+  final String? hint;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -490,15 +502,28 @@ class _SwitchRow extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.hint,
   });
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: DNText.sans(size: 13, color: context.dn.onSurface)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: DNText.sans(
+                          size: 13, color: context.dn.onSurface,),),
+                  if (hint != null)
+                    Text(hint!,
+                        style: DNText.mono(
+                            size: 9, color: context.dn.onSurface3,),),
+                ],
+              ),
+            ),
             Switch.adaptive(
               value: value,
               onChanged: onChanged,
@@ -573,7 +598,10 @@ class _CreateFooter extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              child: Text(l10n.later, style: DNText.sans(size: 14, color: dn.onSurface)),
+              // « Programmer » dit ce que fait le bouton ; « Plus tard »
+              // laissait croire à un abandon du formulaire.
+              child: Text(l10n.audioRoomScheduleAction,
+                  style: DNText.sans(size: 14, color: dn.onSurface),),
             ),
           ),
           const SizedBox(width: 12),

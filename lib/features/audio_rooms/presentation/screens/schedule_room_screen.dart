@@ -8,6 +8,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/audio_room_provider.dart';
@@ -45,6 +46,20 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
 
   late final TextEditingController _titleController =
       TextEditingController(text: widget.initialTitle ?? '');
+
+  /// Rappel local 15 min avant le début, programmé à la création.
+  bool _remindMe = true;
+
+  /// Qualifie une heure convertie (« 19:30 ») pour la zone concernée.
+  String _slotQualifier(BuildContext context, String hhmm) {
+    final l10n = AppLocalizations.of(context)!;
+    final hour = int.tryParse(hhmm.split(':').first);
+    if (hour == null) return '';
+    if (hour >= 18 && hour < 23) return l10n.scheduleSlotEvening;
+    if (hour >= 11 && hour < 15) return l10n.scheduleSlotMidday;
+    if (hour >= 6 && hour < 11) return l10n.scheduleSlotMorning;
+    return l10n.scheduleSlotNight;
+  }
 
   @override
   void initState() {
@@ -99,6 +114,13 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Text(
+              AppLocalizations.of(context)!.scheduleRoomIntro,
+              style: DNText.sans(size: 12, color: dn.onSurface2),
+            ),
+          ),
           // Le titre était figé à « Nouveau salon » : tous les salons
           // programmés portaient le même nom. Il est saisissable ici, et
           // pré-rempli quand on vient de « Ouvrir un salon ».
@@ -151,7 +173,9 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
           ),
           const SizedBox(height: 16),
 
-          Text(AppLocalizations.of(context)!.timezonesLabel,
+          // « HEURE LOCALE DES MEMBRES » dit à quoi sert la liste ;
+          // « FUSEAUX HORAIRES » nommait seulement la donnée.
+          Text(AppLocalizations.of(context)!.scheduleMembersLocalTime,
               style: DNText.mono(size: 9, color: dn.onSurface3),),
           const SizedBox(height: 8),
           ..._zones.map((z) => _TimezoneRow(
@@ -159,9 +183,24 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
                 label: z.$2,
                 color: z.$3,
                 convertedTime: _convertTime(_selectedDateTime, z.$1),
+                // Qualificatif du créneau : une heure convertie seule ne dit
+                // pas si elle tombe bien pour les gens de cette zone.
+                qualifier: _slotQualifier(
+                  context,
+                  _convertTime(_selectedDateTime, z.$1),
+                ),
                 enabled: _enabledZones[z.$1] ?? false,
                 onToggle: (v) => setState(() => _enabledZones[z.$1] = v),
               ),),
+
+          const SizedBox(height: 12),
+          // Rappel local (la maquette parle de « prévenir mes abonnés », ce
+          // qui demanderait un push serveur qui n'existe pas — on s'en tient
+          // à ce qu'on sait vraiment faire : rappeler l'hôte).
+          _RemindToggle(
+            value: _remindMe,
+            onChanged: (v) => setState(() => _remindMe = v),
+          ),
 
           const SizedBox(height: 12),
           Container(
@@ -181,15 +220,30 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
         scheduledAt: _selectedDateTime,
         onSchedule: () async {
           final session = ref.read(audioRoomSessionProvider.notifier);
+          final l10n = AppLocalizations.of(context)!;
           final typed = _titleController.text.trim();
-          await session.createRoom(
+          final title =
+              typed.isEmpty ? l10n.scheduleNewRoomLabel : typed;
+          final room = await session.createRoom(
             // Le titre saisi prime ; le libellé générique n'est plus qu'un
             // dernier recours si le champ est resté vide.
-            title: typed.isEmpty
-                ? AppLocalizations.of(context)!.scheduleNewRoomLabel
-                : typed,
+            title: title,
             scheduledAt: _selectedDateTime,
           );
+
+          // Le rappel est programmé 15 min avant, et seulement si ce moment
+          // est encore dans le futur.
+          final remindAt =
+              _selectedDateTime.subtract(const Duration(minutes: 15));
+          if (_remindMe && room != null && remindAt.isAfter(DateTime.now())) {
+            await NotificationService().scheduleNotification(
+              id: room.id.hashCode & 0x7fffffff,
+              title: title,
+              body: l10n.audioRoomsStartingSoon,
+              scheduledDate: remindAt,
+            );
+          }
+
           if (context.mounted) context.pop();
         },
       ),
@@ -356,6 +410,9 @@ class _TimezoneRow extends StatelessWidget {
   final String label;
   final Color color;
   final String convertedTime;
+
+  /// « Bonne heure · soirée », « Tard · risque de nuit »…
+  final String qualifier;
   final bool enabled;
   final ValueChanged<bool> onToggle;
 
@@ -364,6 +421,7 @@ class _TimezoneRow extends StatelessWidget {
     required this.label,
     required this.color,
     required this.convertedTime,
+    required this.qualifier,
     required this.enabled,
     required this.onToggle,
   });
@@ -384,7 +442,18 @@ class _TimezoneRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(label, style: DNText.sans(size: 13, color: dn.onSurface))),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: DNText.sans(size: 13, color: dn.onSurface),),
+                if (qualifier.isNotEmpty)
+                  Text(qualifier,
+                      style: DNText.mono(size: 8, color: dn.onSurface3),),
+              ],
+            ),
+          ),
           Text(convertedTime, style: DNText.mono(size: 12, color: dn.onSurface2)),
           const SizedBox(width: 10),
           Switch.adaptive(
@@ -394,6 +463,40 @@ class _TimezoneRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Rappel local avant le début du salon.
+class _RemindToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _RemindToggle({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.scheduleRemindMe,
+                  style: DNText.sans(size: 13, color: dn.onSurface),),
+              Text(l10n.scheduleRemindMeHint,
+                  style: DNText.mono(size: 9, color: dn.onSurface3),),
+            ],
+          ),
+        ),
+        Switch.adaptive(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: DNColors.terra,
+        ),
+      ],
     );
   }
 }

@@ -458,6 +458,40 @@
   "scheduleRoomTitleLabel": "Titre du salon",
   "scheduleRoomTitleHint": "De quoi allez-vous parler ?",
   "audioRoomTicketAction": "Billet",
+  "ghostModerationHeader": "MODÉRATION · {duration}",
+  "@ghostModerationHeader": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostWarnHost": "Avertir l'hôte",
+  "audioRoomPrivateRoomHint": "Seules les personnes invitées pourront entrer.",
+  "audioRoomVideoEnabledHint": "Les intervenants pourront activer leur caméra.",
+  "audioRoomEnableRecordingHint": "Le salon pourra être republié en podcast après coup.",
+  "audioRoomPaidRoomHint": "L'entrée demande l'achat d'un billet.",
+  "audioRoomEnableFundraisingHint": "Une barre de collecte s'affiche pendant le salon.",
+  "audioRoomHeritageContentHint": "Le salon est archivé dans la bibliothèque du patrimoine.",
+  "audioRoomScheduleAction": "Programmer",
+  "scheduleRoomIntro": "Choisissez un créneau qui tombe bien pour tout le monde : l'heure est convertie dans le fuseau de chaque membre.",
+  "scheduleMembersLocalTime": "HEURE LOCALE DES MEMBRES",
+  "scheduleRemindMe": "Me le rappeler",
+  "scheduleRemindMeHint": "Notification 15 min avant le début.",
+  "scheduleSlotEvening": "Bonne heure · soirée",
+  "scheduleSlotMidday": "Midi · en journée",
+  "scheduleSlotMorning": "Matin · au réveil",
+  "scheduleSlotNight": "Tard · risque de nuit",
+  "audioRoomHeritageArchivedNote": "ce salon sera archivé",
+  "audioRoomSeeAllListeners": "Voir tout",
+  "audioRoomHandsRaisedCount": "+ {count} mains levées ✋",
+  "@audioRoomHandsRaisedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomElapsedMinutes": "{minutes} MIN",
   "@audioRoomElapsedMinutes": {
     "placeholders": {
@@ -6360,8 +6394,8 @@
   "audioRoomForceCloseLabel": "Forcer la fermeture",
   "audioRoomForceCloseDesc": "Le salon sera immédiatement fermé et l'action sera auditée.",
   "audioRoomForceCloseAuditNote": "Action irréversible · log audit",
-  "ghostListeners": "Auditeurs",
-  "ghostSpeakers": "Speakers",
+  "ghostListeners": "auditeurs visibles",
+  "ghostSpeakers": "intervenants visibles",
   "ghostReports": "Signalements",
   "ghostDuration": "Durée",
   "creatorEarningsTitle": "Mes Gains",
@@ -6562,7 +6596,7 @@
   "minTipAmountError": "Montant minimum: {amount} {currency}",
   "maxTipAmountError": "Montant maximum: {amount} {currency}",
   "ghostSuperAdminBadge": "GHOST · SuperAdmin",
-  "ghostInvisibleNotice": "Vous êtes invisible. Actions loggées.",
+  "ghostInvisibleNotice": "Vous êtes invisible : ni l'hôte ni les participants ne voient votre présence. Toutes vos actions sont journalisées.",
   "ghostActionsTitle": "ACTIONS GHOST",
   "ghostMuteSilent": "Muet silencieux",
   "ghostExclude": "Exclure",

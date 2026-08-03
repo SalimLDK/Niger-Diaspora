@@ -87,15 +87,26 @@ class _AudioRoomsListScreenState extends ConsumerState<AudioRoomsListScreen>
                 ),
               ],
             ),
+            // Le CTA principal était un petit rond de 52 px avec une icône
+            // seule, moins visible que le bouton secondaire à côté. Il
+            // devient une pilule large qui se nomme (maquette 1a/2g).
             Positioned(
+              left: 14,
               right: 14,
               bottom: 18,
-              child: _CreateFab(onTap: () => context.push('/audio-rooms/create')),
-            ),
-            Positioned(
-              right: 78,
-              bottom: 22,
-              child: _ScheduleButton(onTap: () => context.push('/audio-rooms/schedule')),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _OpenRoomButton(
+                      onTap: () => context.push('/audio-rooms/create'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _ScheduleButton(
+                    onTap: () => context.push('/audio-rooms/schedule'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -248,6 +259,20 @@ class _LiveList extends ConsumerWidget {
   }
 }
 
+/// « Patrimoine · Zarma · Tillabéri » quand le salon est marqué patrimoine.
+/// `null` sinon — on n'affiche pas une ligne vide.
+String? _heritageSubtitle(BuildContext context, AudioRoomEntity room) {
+  if (!room.isHeritageContent) return null;
+  final parts = <String>[AppLocalizations.of(context)!.audioRoomModeHeritage];
+  if (room.heritageLanguage != null && room.heritageLanguage!.isNotEmpty) {
+    parts.add(room.heritageLanguage!);
+  }
+  if (room.heritageRegion != null && room.heritageRegion!.isNotEmpty) {
+    parts.add(room.heritageRegion!);
+  }
+  return parts.join(' · ');
+}
+
 class _LiveCard extends ConsumerWidget {
   final AudioRoomEntity room;
 
@@ -310,6 +335,18 @@ class _LiveCard extends ConsumerWidget {
                   AppLocalizations.of(context)!.audioRoomsLiveListeners(room.listenerCount),
                   style: DNText.mono(size: 9, color: DNColors.terra),
                 ),
+                // Depuis combien de temps ça tourne : ce qui dit si on
+                // arrive au début d'un salon ou à sa fin.
+                if (room.startedAt != null) ...[
+                  Text(' · ',
+                      style: DNText.mono(size: 9, color: DNColors.terra),),
+                  Text(
+                    AppLocalizations.of(context)!.audioRoomElapsedMinutes(
+                      DateTime.now().difference(room.startedAt!).inMinutes,
+                    ),
+                    style: DNText.mono(size: 9, color: DNColors.terra),
+                  ),
+                ],
                 const Spacer(),
                 // Seul point d'entrée vers la vue fantôme : la route existait
                 // mais aucun écran n'y menait, donc toute la modération
@@ -343,6 +380,17 @@ class _LiveCard extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+            // « Patrimoine · Zarma · Tillabéri » : la langue et la région
+            // d'un salon patrimoine étaient stockées sans jamais être vues.
+            if (_heritageSubtitle(context, room) != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                _heritageSubtitle(context, room)!,
+                style: DNText.mono(size: 9, color: DNColors.ochre),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [
@@ -556,19 +604,33 @@ class _ScheduledCard extends StatelessWidget {
 
 // ─── FAB & schedule button ────────────────────────────────────────────────────
 
-class _CreateFab extends StatelessWidget {
+class _OpenRoomButton extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _CreateFab({required this.onTap});
+  const _OpenRoomButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 52,
-          height: 52,
-          decoration: const BoxDecoration(color: DNColors.terra, shape: BoxShape.circle),
-          child: const AppIcon(AppIcon.mic, color: Colors.white, size: 22),
+          height: 50,
+          decoration: BoxDecoration(
+            color: DNColors.terra,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const AppIcon(AppIcon.mic, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.of(context)!.audioRoomOpenRoom,
+                style: DNText.sans(
+                    size: 14, w: FontWeight.w600, color: DNColors.paper,),
+              ),
+            ],
+          ),
         ),
       );
 }
@@ -584,12 +646,14 @@ class _ScheduleButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: dn.surface2,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(color: dn.onSurface4),
         ),
+        alignment: Alignment.center,
         child: Text(
           '📅 ${AppLocalizations.of(context)!.audioRoomsScheduleButton}',
           style: DNText.sans(size: 12, w: FontWeight.w500, color: dn.onSurface),

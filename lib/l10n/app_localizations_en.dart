@@ -1096,6 +1096,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioRoomTicketAction => 'Ticket';
 
   @override
+  String ghostModerationHeader(String duration) {
+    return 'MODERATION · $duration';
+  }
+
+  @override
+  String get ghostWarnHost => 'Warn the host';
+
+  @override
+  String get audioRoomPrivateRoomHint =>
+      'Only invited people will be able to enter.';
+
+  @override
+  String get audioRoomVideoEnabledHint =>
+      'Speakers will be able to turn their camera on.';
+
+  @override
+  String get audioRoomEnableRecordingHint =>
+      'The room can be republished as a podcast afterwards.';
+
+  @override
+  String get audioRoomPaidRoomHint => 'Entry requires buying a ticket.';
+
+  @override
+  String get audioRoomEnableFundraisingHint =>
+      'A fundraising bar is shown during the room.';
+
+  @override
+  String get audioRoomHeritageContentHint =>
+      'The room is archived in the heritage library.';
+
+  @override
+  String get audioRoomScheduleAction => 'Schedule';
+
+  @override
+  String get scheduleRoomIntro =>
+      'Pick a slot that works for everyone: the time is converted into each member\'s own timezone.';
+
+  @override
+  String get scheduleMembersLocalTime => 'MEMBERS\' LOCAL TIME';
+
+  @override
+  String get scheduleRemindMe => 'Remind me';
+
+  @override
+  String get scheduleRemindMeHint => 'Notification 15 min before it starts.';
+
+  @override
+  String get scheduleSlotEvening => 'Good time · evening';
+
+  @override
+  String get scheduleSlotMidday => 'Midday · during the day';
+
+  @override
+  String get scheduleSlotMorning => 'Morning · just waking up';
+
+  @override
+  String get scheduleSlotNight => 'Late · likely night';
+
+  @override
+  String get audioRoomHeritageArchivedNote => 'this room will be archived';
+
+  @override
+  String get audioRoomSeeAllListeners => 'See all';
+
+  @override
+  String audioRoomHandsRaisedCount(int count) {
+    return '$count hands raised';
+  }
+
+  @override
   String audioRoomElapsedMinutes(int minutes) {
     return '$minutes MIN';
   }
@@ -12972,11 +13042,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String audioRoomHandsRaisedCount(int count) {
-    return '$count hands raised';
-  }
-
-  @override
   String audioRoomHandsRaisedSection(int count) {
     return 'Hands raised · $count';
   }
@@ -13259,10 +13324,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioRoomForceCloseAuditNote => 'Irreversible action · audit log';
 
   @override
-  String get ghostListeners => 'Listeners';
+  String get ghostListeners => 'visible listeners';
 
   @override
-  String get ghostSpeakers => 'Speakers';
+  String get ghostSpeakers => 'visible speakers';
 
   @override
   String get ghostReports => 'Reports';
@@ -13823,7 +13888,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ghostSuperAdminBadge => 'GHOST · SuperAdmin';
 
   @override
-  String get ghostInvisibleNotice => 'You are invisible. Actions are logged.';
+  String get ghostInvisibleNotice =>
+      'You are invisible: neither the host nor the participants can see you. Every action you take is logged.';
 
   @override
   String get ghostActionsTitle => 'GHOST ACTIONS';
