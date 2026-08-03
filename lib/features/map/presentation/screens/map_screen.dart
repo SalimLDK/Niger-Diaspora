@@ -3419,15 +3419,19 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                                         .textTertiaryColor,
                                                   ),
                                                   const SizedBox(width: 4),
-                                                  Text(
-                                                    _formatRelativeTime(
-                                                      _lastMembersUpdate,
-                                                      l10n,
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      color: context
-                                                          .textTertiaryColor,
+                                                  Flexible(
+                                                    child: Text(
+                                                      _formatRelativeTime(
+                                                        _lastMembersUpdate,
+                                                        l10n,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: context
+                                                            .textTertiaryColor,
+                                                      ),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 12),
@@ -3438,15 +3442,19 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                                         .textTertiaryColor,
                                                   ),
                                                   const SizedBox(width: 4),
-                                                  Text(
-                                                    _formatRelativeTime(
-                                                      _lastPositionUpdate,
-                                                      l10n,
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      color: context
-                                                          .textTertiaryColor,
+                                                  Flexible(
+                                                    child: Text(
+                                                      _formatRelativeTime(
+                                                        _lastPositionUpdate,
+                                                        l10n,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: context
+                                                            .textTertiaryColor,
+                                                      ),
                                                     ),
                                                   ),
                                                 ],

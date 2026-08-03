@@ -41,6 +41,25 @@ Une fois Montréal résolu, la ligne est correcte.
 **Ni analyze ni relecture ne pouvaient trouver ça** : il fallait le premier
 lancement d'un compte sans ville renseignée.
 
+**Carte (§7d) — trois incidents à l'ouverture, deux traités**
+
+- [x] `RenderFlex overflowed by 179 pixels on the right`
+      (`map_screen.dart:3413`) : la rangée du volet des membres alignait deux
+      libellés de temps relatif (« mis à jour il y a… ») côte à côte, sans
+      possibilité de rétrécir. Les deux passent en `Flexible` + ellipse.
+- [ ] `RenderFlex overflowed by 146 pixels on the bottom` : non localisé, le
+      journal ne donne pas le widget fautif. À reprendre avec DevTools ouvert
+      sur l'écran.
+- [ ] ⛔ **`assets/map_styles/light.json` et `dark.json` n'existent pas.**
+      Ni les fichiers, ni le dossier, ni la déclaration dans `pubspec.yaml` —
+      seul l'appel `rootBundle.loadString` existe (`map_screen.dart:228-229`).
+      La carte tourne donc **sans style**, en rendu Google Maps par défaut,
+      alors que la maquette 8b montre explicitement un style nuit.
+      L'échec est attrapé et journalisé, donc rien ne casse — mais la
+      fonctionnalité est morte depuis toujours. Créer ces styles est une
+      **décision de design** (quelles couleurs, quels POI masqués) : à ne pas
+      inventer.
+
 **Reste à exercer sur cet appareil** : tous les autres écrans basculés
 (profil, config profil, réglages, carte, notifications, recherche,
 messagerie), le mode Éco en réception, le brouillon d'épisode, et
