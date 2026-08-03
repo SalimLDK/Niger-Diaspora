@@ -28777,6 +28777,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'« Muet en silence » ne prévient pas la personne : son micro cesse d’être diffusé, sans message d’erreur.'**
   String get ghostMuteSilentNote;
+
+  /// Confirmation apres enregistrement sans publication
+  ///
+  /// In fr, this message translates to:
+  /// **'Épisode enregistré en brouillon'**
+  String get podcastsEpisodeSavedDraft;
 }
 
 class _AppLocalizationsDelegate

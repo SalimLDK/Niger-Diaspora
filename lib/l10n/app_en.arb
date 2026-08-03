@@ -7473,5 +7473,9 @@
   "ghostMuteSilentNote": "\"Silent mute\" does not notify the person: their mic simply stops being broadcast, with no error message.",
   "@ghostMuteSilentNote": {
     "description": "Avertit le moderateur que l action est invisible pour la cible"
+  },
+  "podcastsEpisodeSavedDraft": "Episode saved as a draft",
+  "@podcastsEpisodeSavedDraft": {
+    "description": "Confirmation apres enregistrement sans publication"
   }
 }

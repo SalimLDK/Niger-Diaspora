@@ -670,6 +670,32 @@ dans `audio_rooms_list_screen` ni `audio_room_screen`.
 Restent réellement à faire : §1f (revenus créateur), §2b, §2c, §2d, §2g,
 §4b, §4c et le lecteur de replay.
 
+### §2d — bouton « Brouillon »
+
+L'écran portait déjà le mode audio/vidéo, les chapitres numérotés, la durée
+estimée et l'état vide. Manquait la **seconde sortie du pied de page** :
+sans brouillon, un enregistrement long n'avait qu'une issue — publier ou
+tout perdre.
+
+Chaîne complète, du bouton à la base :
+
+- `createEpisode` prend `asDraft` et écrit `status: 'draft'` ;
+- `publishedAt` reste **nul** pour un brouillon, sinon il compterait dans le
+  rythme de publication des statistiques (le datasource ne pose déjà
+  `published_at` que sur un épisode publié) ;
+- la confirmation ne dit plus « publié » pour un brouillon — c'est
+  précisément ce que la personne a choisi de ne pas faire.
+
+**Fausse alerte corrigée.** J'avais annoncé au tour précédent que « Terminer
+et publier » créait des brouillons, en me fondant sur le défaut de l'entité
+(`EpisodeStatus.draft`). C'était faux : l'entité n'est pas le véhicule
+d'écriture. Le provider construit un `PodcastEpisodeModel` en fixant
+explicitement `'published'`, et l'insert envoie toujours la colonne — le
+défaut SQL n'entre jamais en jeu. **Il n'y avait pas de bug de publication.**
+
+Reste non fait sur cette maquette : la mention « max 100 Mo » sur la
+sélection vidéo.
+
 ### §3c — modération fantôme : la phrase qui manquait
 
 L'écran portait déjà tout : bandeau d'invisibilité, les trois compteurs
@@ -714,7 +740,7 @@ déplacer.
 | 2a | Ouvrir un salon | `audio_rooms/…/create_audio_room_screen.dart` | 638 l. | ✅ câblée |
 | 2b | Programmer — multi-fuseaux | `audio_rooms/…/widgets/timezone_display_widget.dart` | 536 l. | à faire |
 | 2c | Publier en podcast | `audio_rooms/…/save_as_podcast_screen.dart` | 366 l. | à faire |
-| 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | à faire |
+| 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | ✅ câblée |
 | 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | ✅ câblée |
 | 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | ✅ câblée |
 | 2g | Salons — nocturne | `audio_rooms_list_screen.dart` | — | prod — voir « Nocturnes » |

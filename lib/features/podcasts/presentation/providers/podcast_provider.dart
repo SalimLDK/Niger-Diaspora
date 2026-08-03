@@ -219,6 +219,10 @@ class PodcastNotifier extends AsyncNotifier<void> {
     String mediaType = 'audio',
     String? videoUrl,
     String? thumbnailUrl,
+    /// Enregistre sans publier (§2d). Un brouillon n'obtient pas de date de
+    /// publication : le datasource ne pose `published_at` que sur un épisode
+    /// publié, et les statistiques de rythme n'ont donc rien à mesurer.
+    bool asDraft = false,
   }) async {
     try {
       state = const AsyncLoading();
@@ -256,11 +260,18 @@ class PodcastNotifier extends AsyncNotifier<void> {
         fileSizeBytes: fileSizeBytes,
         sourceRoomId: sourceRoomId,
         chapters: chapters.map((c) => ChapterModel.fromEntity(c)).toList(),
-        status: scheduledPublishAt != null ? 'scheduled' : 'published',
+        status:
+            asDraft
+                ? 'draft'
+                : scheduledPublishAt != null
+                ? 'scheduled'
+                : 'published',
         scheduledPublishAt: scheduledPublishAt?.toIso8601String(),
-        publishedAt: scheduledPublishAt == null
-            ? DateTime.now().toIso8601String()
-            : null,
+        // Un brouillon n'est pas publié : pas de date de publication, sinon
+        // il compterait dans le rythme de publication des statistiques.
+        publishedAt: (asDraft || scheduledPublishAt != null)
+            ? null
+            : DateTime.now().toIso8601String(),
         createdAt: DateTime.now().toIso8601String(),
         isPremium: isPremium,
         mediaType: mediaType,

@@ -7967,5 +7967,9 @@
   "ghostMuteSilentNote": "« Muet en silence » ne prévient pas la personne : son micro cesse d’être diffusé, sans message d’erreur.",
   "@ghostMuteSilentNote": {
     "description": "Avertit le moderateur que l action est invisible pour la cible"
+  },
+  "podcastsEpisodeSavedDraft": "Épisode enregistré en brouillon",
+  "@podcastsEpisodeSavedDraft": {
+    "description": "Confirmation apres enregistrement sans publication"
   }
 }

@@ -15567,4 +15567,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ghostMuteSilentNote =>
       '\"Silent mute\" does not notify the person: their mic simply stops being broadcast, with no error message.';
+
+  @override
+  String get podcastsEpisodeSavedDraft => 'Episode saved as a draft';
 }

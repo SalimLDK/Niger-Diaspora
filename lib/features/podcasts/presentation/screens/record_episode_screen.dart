@@ -273,7 +273,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
     );
   }
 
-  Future<void> _publishEpisode() async {
+  Future<void> _publishEpisode({bool asDraft = false}) async {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (!_isVideoMode && _audioFile == null) {
@@ -325,11 +325,20 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
             mediaType: _isVideoMode ? 'video' : 'audio',
             videoUrl: uploadedVideoUrl,
             thumbnailUrl: uploadedThumbnailUrl,
+            asDraft: asDraft,
           );
 
       if (episode != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.podcastsEpisodePublished)),
+          SnackBar(
+            content: Text(
+              // Ne pas annoncer « publié » pour un brouillon : c'est
+              // précisément ce que la personne a choisi de ne pas faire.
+              asDraft
+                  ? l10n.podcastsEpisodeSavedDraft
+                  : l10n.podcastsEpisodePublished,
+            ),
+          ),
         );
         context.pop();
       }
@@ -692,8 +701,27 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Publish button
-            SizedBox(
+            // Pied de page à deux sorties (§2d) : enregistrer sans publier,
+            // ou publier. Sans le brouillon, un enregistrement long n'avait
+            // qu'une issue — publier ou tout perdre.
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () => _publishEpisode(asDraft: true),
+                      child: Text(l10n.podcastsStatusDraft),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : _publishEpisode,
@@ -706,9 +734,14 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
                         )
                         : const Icon(Icons.publish),
                 label: Text(
-                  _isLoading ? l10n.podcastsPublishing : l10n.podcastsPublishEpisode,
+                  _isLoading
+                      ? l10n.podcastsPublishing
+                      : l10n.podcastsPublishEpisode,
                 ),
               ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
