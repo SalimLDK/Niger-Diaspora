@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/podcast_download_service.dart';
@@ -86,12 +88,40 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     });
   }
 
+  /// Thème sombre de l'app, appliqué en dur au lecteur (maquettes 1e/4b).
+  ///
+  /// L'écran suivait le thème système et se retrouvait mi-sombre (le
+  /// `SliverAppBar` l'est toujours), mi-clair. Le lecteur est délibérément
+  /// sombre en permanence, comme la maquette — c'est une pièce « plein
+  /// écran média », au même titre que le viewer de stories.
+  ThemeData _playerTheme() {
+    final themeColor = ref.watch(themeColorNotifierProvider);
+    return themeColor == AppThemeColor.orange
+        ? AppTheme.orangeDarkTheme
+        : AppTheme.darkTheme;
+  }
+
   @override
   Widget build(BuildContext context) {
     final episodeAsync = ref.watch(episodeProvider(widget.episodeId));
     final l10n = AppLocalizations.of(context)!;
 
+    // Le `Theme` englobe tout l'écran : les enfants qui lisent
+    // `Theme.of(context)` (cartes, curseurs, boutons, pastilles de chapitres)
+    // basculent avec lui, sans couleur en dur à maintenir.
+    return Theme(
+      data: _playerTheme(),
+      child: Builder(builder: (context) => _buildScaffold(context, episodeAsync, l10n)),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    AsyncValue<PodcastEpisodeEntity?> episodeAsync,
+    AppLocalizations l10n,
+  ) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: episodeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -119,7 +149,9 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const AppIcon(AppIcon.podcasts, size: 48, color: Colors.grey),
+                  AppIcon(AppIcon.podcasts,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,),
                   const SizedBox(height: 16),
                   Text(l10n.episodeNotFound),
                   const SizedBox(height: 16),
@@ -206,7 +238,8 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
               onPressed: () => _shareEpisode(episode),
             ),
             PopupMenuButton<String>(
-              onSelected: (value) => _handleMenuAction(value, episode, l10n),
+              onSelected: (value) =>
+                  _handleMenuAction(context, value, episode, l10n),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'download',
@@ -257,7 +290,10 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                     const SizedBox(width: 8),
                     Text(
                       episode.formattedDuration,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                     if (episode.isPremium) ...[
                       const SizedBox(width: 8),
@@ -349,7 +385,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                   Text(
                     episode.description!,
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),
@@ -379,18 +415,18 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withValues(alpha: 0.1),
+                      color: Colors.purple.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.record_voice_over, color: Colors.purple[700]),
+                        Icon(Icons.record_voice_over, color: Colors.purple[200]),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.podcastsFromLiveRoom,
-                            style: TextStyle(color: Colors.purple[700]),
+                            style: TextStyle(color: Colors.purple[200]),
                           ),
                         ),
                       ],
@@ -412,7 +448,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                         child: Text(
                           episode.transcription!,
                           style: TextStyle(
-                            color: Colors.grey[700],
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             height: 1.6,
                           ),
                         ),
@@ -459,11 +495,17 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                 children: [
                   Text(
                     _formatDuration(_currentPosition),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                   ),
                   Text(
                     _formatDuration(_totalDuration),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                   ),
                 ],
               ),
@@ -504,7 +546,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                   child: IconButton(
                     icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
                     iconSize: 40,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     onPressed: () => _togglePlayPause(episode),
                   ),
                 ),
@@ -627,11 +669,13 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
             leading: CircleAvatar(
               backgroundColor: isCurrentChapter
                   ? Theme.of(context).primaryColor
-                  : Colors.grey[300],
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Text(
                 '${index + 1}',
                 style: TextStyle(
-                  color: isCurrentChapter ? Colors.white : Colors.grey[700],
+                  color: isCurrentChapter
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -646,7 +690,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
             trailing: Text(
               chapter.formattedStartTime,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontFamily: 'monospace',
               ),
             ),
@@ -660,11 +704,15 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
   Widget _buildStatChip(IconData icon, String value) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
+        Icon(icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,),
         const SizedBox(width: 4),
         Text(
           value,
-          style: TextStyle(color: Colors.grey[600]),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -676,7 +724,8 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     Color? color,
     required VoidCallback onPressed,
   }) {
-    final resolvedColor = color ?? Colors.grey[700]!;
+    final resolvedColor =
+        color ?? Theme.of(context).colorScheme.onSurfaceVariant;
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(8),
@@ -809,68 +858,60 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
   }
 
   void _showSleepTimerDialog() {
-    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                l10n.podcastsSleepTimerTitle,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+      // La feuille est poussée sur le Navigator, donc au-dessus du `Theme`
+      // local de l'écran : sans ce rappel explicite elle s'ouvrirait en clair
+      // au milieu d'un lecteur sombre.
+      backgroundColor: _playerTheme().colorScheme.surface,
+      builder: (sheetContext) => Theme(
+        data: _playerTheme(),
+        child: _buildSleepTimerSheet(sheetContext),
+      ),
+    );
+  }
+
+  Widget _buildSleepTimerSheet(BuildContext sheetContext) {
+    final l10n = AppLocalizations.of(sheetContext)!;
+
+    Widget option(IconData icon, String label, VoidCallback onTap) => ListTile(
+          leading: Icon(icon),
+          title: Text(label),
+          onTap: () {
+            Navigator.pop(sheetContext);
+            onTap();
+          },
+        );
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              l10n.podcastsSleepTimerTitle,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            ListTile(
-              leading: const Icon(Icons.timer_off),
-              title: Text(l10n.podcastsSleepTimerDisabled),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.timer),
-              title: Text(l10n.podcastsSleepTimer15),
-              onTap: () {
-                Navigator.pop(context);
-                _startSleepTimer(15);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.timer),
-              title: Text(l10n.podcastsSleepTimer30),
-              onTap: () {
-                Navigator.pop(context);
-                _startSleepTimer(30);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.timer),
-              title: Text(l10n.podcastsSleepTimer45),
-              onTap: () {
-                Navigator.pop(context);
-                _startSleepTimer(45);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.timer),
-              title: Text(l10n.podcastsSleepTimer60),
-              onTap: () {
-                Navigator.pop(context);
-                _startSleepTimer(60);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.stop_circle_outlined),
-              title: Text(l10n.podcastsSleepTimerEnd),
-              onTap: () {
-                Navigator.pop(context);
-                _setStopAtEndOfEpisode();
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.timer_off),
+            title: Text(l10n.podcastsSleepTimerDisabled),
+            onTap: () => Navigator.pop(sheetContext),
+          ),
+          option(Icons.timer, l10n.podcastsSleepTimer15,
+              () => _startSleepTimer(15),),
+          option(Icons.timer, l10n.podcastsSleepTimer30,
+              () => _startSleepTimer(30),),
+          option(Icons.timer, l10n.podcastsSleepTimer45,
+              () => _startSleepTimer(45),),
+          option(Icons.timer, l10n.podcastsSleepTimer60,
+              () => _startSleepTimer(60),),
+          option(Icons.stop_circle_outlined, l10n.podcastsSleepTimerEnd,
+              _setStopAtEndOfEpisode,),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
@@ -928,14 +969,22 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     );
   }
 
-  void _handleMenuAction(String action, PodcastEpisodeEntity episode, AppLocalizations l10n) {
+  /// `menuContext` vient du bouton, donc de sous l'arbre du `Theme` sombre :
+  /// la feuille de signalement s'ouvre dans le même thème que le lecteur au
+  /// lieu de flasher en clair.
+  void _handleMenuAction(
+    BuildContext menuContext,
+    String action,
+    PodcastEpisodeEntity episode,
+    AppLocalizations l10n,
+  ) {
     switch (action) {
       case 'download':
         _downloadEpisode(episode, l10n);
         break;
       case 'report':
         ReportContentModal.show(
-          context,
+          menuContext,
           targetType: ReportTargetType.message,
           targetId: episode.id,
           targetName: episode.title,

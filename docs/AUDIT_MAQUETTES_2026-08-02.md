@@ -45,7 +45,8 @@ sections, sous-titres d'interrupteurs, « Programmer »), 2b (introduction,
 « HEURE LOCALE DES MEMBRES », qualificatifs de créneau, rappel local), 1a/2g
 (durée et sous-titre patrimoine sur les cartes, CTA en pilule large), 1b
 (bandeau ★ + archivage, « Voir tout »), 1c (compteur, bandeau
-téléchargement, pastille de langue), 1e (pastilles de chapitres), 3b (tri),
+téléchargement, pastille de langue), 1e/4b (pastilles de chapitres, thème
+sombre forcé sur tout le lecteur), 3b (tri),
 2c (note patrimoine), 1d (sous-titre), 1a accueil (placeholder au singulier,
 « Voir les événements en ligne »).
 
@@ -57,8 +58,6 @@ téléchargement, pastille de langue), 1e (pastilles de chapitres), 3b (tri),
   chiffre inventé serait pire que son absence.
 - **Structure onglets vs page unique** (1c/1d/2e) : refonte de navigation,
   pas du polish. À décider séparément.
-- **Thème sombre forcé du lecteur d'épisode** (1e/4b) : l'app suit le thème
-  système ; forcer le sombre sur un seul écran irait contre ce choix.
 - **Invités d'un épisode** et **cloche de notification par podcast** :
   demandent un champ de données et un backend qui n'existent pas.
 
