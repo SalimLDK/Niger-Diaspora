@@ -106,7 +106,7 @@ le composer et la carte.
 | 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | fait (en-tête) — bulles à part, voir ci-dessous |
 | 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | fait |
 | 7d | Carte : calques | `map/…/map_screen.dart` | 3549 l. | fait |
-| 7e | Carte : bascule Carte/Liste | idem | — | **bloqué** — maquette manquante |
+| 7e | Carte : bascule Carte/Liste | idem | — | fait dans `design_v2/map/` — **à reporter en prod**, voir « Carte — §7d faite, §7e à faire » |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
 | 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | fait |
@@ -594,8 +594,8 @@ de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 | 19b | Ambassades — nocturne (= 17a) | `embassies/…/embassies_screen.dart` | 594 l. | prod — voir « Nocturnes » |
 | 19c | Mes entreprises (propriétaire) | `businesses/…/my_businesses_screen.dart` | 487 l. | ✅ câblée |
 | 25a | Fiche d'un événement | `events/…/event_detail_screen.dart` | 1084 l. | ✅ câblée |
-| 25b | Ma boutique — annonces et commandes | `marketplace/…/my_products_screen.dart` (119 l.), `my_orders_screen.dart` | 745 l. | à faire |
-| 25c | Détail d'un transfert et moyens de paiement | `transfers/…/transaction_detail_screen.dart` | 797 l. | à faire |
+| 25b | Ma boutique — annonces et commandes | `marketplace/…/my_products_screen.dart` (119 l.), `my_orders_screen.dart` | 745 l. | fait (`4a6ed72`) |
+| 25c | Détail d'un transfert et moyens de paiement | `transfers/…/transaction_detail_screen.dart` | 797 l. | fait (`4a6ed72`) |
 | 26a | Mes amis et demandes | `friends/…/friends_screen.dart` + `widgets/friend_request_item.dart` | 236 l. | ✅ câblée |
 
 ### Feuilles modales et confirmations
@@ -825,8 +825,8 @@ déplacer.
 | 1c | Bibliothèque du patrimoine | `audio_rooms/…/heritage_library_screen.dart` | 1432 l. | ✅ câblée |
 | 1d | Podcasts — accueil | `podcasts/…/podcasts_home_screen.dart` | 704 l. | ✅ câblée |
 | 1e | Lecteur d'épisode | `podcasts/…/episode_detail_screen.dart` | 996 l. | ✅ câblée |
-| — | Lecteur de replay (même gabarit que 1e) | `audio_rooms/…/replay_player_screen.dart` | 771 l. | à faire |
-| 1f | Revenus créateur | `audio_rooms/…/creator_earnings_screen.dart` | 545 l. | à faire |
+| — | Lecteur de replay (même gabarit que 1e) | `audio_rooms/…/replay_player_screen.dart` | 771 l. | fait — 0 dégradé, 0 chaîne en dur (voir « Audit du reste de la vague audio ») |
+| 1f | Revenus créateur | `audio_rooms/…/creator_earnings_screen.dart` | 545 l. | fait, **sauf « prochain versement »** — bloqué backend, voir §1f |
 | 1g | Envoyer un don | `audio_rooms/…/widgets/send_tip_bottom_sheet.dart` | 340 l. | ✅ câblée |
 | 1h | Acheter un billet | `audio_rooms/…/widgets/buy_ticket_bottom_sheet.dart` | 336 l. | ✅ câblée |
 
@@ -835,8 +835,8 @@ déplacer.
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
 | 2a | Ouvrir un salon | `audio_rooms/…/create_audio_room_screen.dart` | 638 l. | ✅ câblée |
-| 2b | Programmer — multi-fuseaux | `audio_rooms/…/widgets/timezone_display_widget.dart` | 536 l. | à faire |
-| 2c | Publier en podcast | `audio_rooms/…/save_as_podcast_screen.dart` | 366 l. | à faire |
+| 2b | Programmer — multi-fuseaux | `audio_rooms/…/widgets/timezone_display_widget.dart` | 536 l. | fait — 5 sites passés aux jetons adaptatifs, dégradé aplati (voir l'audit) |
+| 2c | Publier en podcast | `audio_rooms/…/save_as_podcast_screen.dart` | 366 l. | fait |
 | 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | ✅ câblée |
 | 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | ✅ câblée |
 | 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | ✅ câblée |
