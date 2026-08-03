@@ -137,6 +137,36 @@ qui relève de la mise en page propre à ces maquettes — disposition des
 bulles, états d'enregistrement vocal — reste à faire et demande de
 reprendre les images.
 
+#### Les images sont arrivées : ce qu'elles ont confirmé et corrigé
+
+**Les bulles étaient déjà conformes.** 3b/3c exigent « vous = vert
+`#1B5E32`, reçus = surface blanche bordée » et « le terracotta ne sert plus
+qu'aux repères, jamais aux bulles ». Le code portait déjà exactement ces
+valeurs (`_kSentBubbleLight = 0xFF1B5E32`, `_kRecvBubbleLight = 0xFFFFFFFF`).
+Rien à faire — vérifié, pas supposé.
+
+**Les états vocaux, eux, ne l'étaient pas.** 4d demande que « les deux
+gestes possibles soient écrits sous la barre au lieu d'être devinés », et
+4e qu'il n'y ait « aucune suppression silencieuse — l'état est lisible
+avant de lâcher ». Or les deux états affichaient le **même mot**,
+« Annuler » : impossible de savoir si on informait d'un geste possible ou
+si on annonçait une suppression imminente.
+
+| État | Avant | Après (maquette) |
+|---|---|---|
+| Enregistrement en cours (§4d) | « Annuler » | « Glisser ‹ pour annuler · ↑ pour verrouiller » |
+| Seuil franchi (§4e) | « Annuler » | « Relâcher pour annuler » + « L'enregistrement sera supprimé », corbeille au lieu de la flèche |
+| Verrouillé (§4f) | badge seul | badge + « Mains libres — vous pouvez lâcher l'écran » |
+
+Cinq clés ARB ajoutées (fr + en, `@clé` à parité). Deux `Colors.red` de
+plus passent à `context.errorColor`.
+
+**Reste à faire sur le composer** : 4c décrit trois changements de
+structure que je n'ai pas faits — le « + » qui sort du champ en cible de
+40 px, la feuille « + » en grille ancrée de six tuiles (au lieu du menu
+caché), et le panneau unique Emojis/GIF/Stickers avec les récents en
+premier. Ce sont des remaniements de disposition, pas des libellés.
+
 #### Feuille d'actions sur un message (§27a) — fait
 
 La maquette 27a, elle, était disponible. Elle pose une **rangée de

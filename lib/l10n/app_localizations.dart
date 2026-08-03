@@ -28717,6 +28717,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'bio'**
   String get homeFieldBio;
+
+  /// Gestes possibles pendant l enregistrement, ecrits sous la barre
+  ///
+  /// In fr, this message translates to:
+  /// **'Glisser ‹ pour annuler · ↑ pour verrouiller'**
+  String get recordingGestureHints;
+
+  /// Annulation armee : le doigt a franchi le seuil
+  ///
+  /// In fr, this message translates to:
+  /// **'Relâcher pour annuler'**
+  String get releaseToCancelNow;
+
+  /// Consequence de l annulation, dite avant de lacher
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'enregistrement sera supprimé'**
+  String get recordingWillBeDeleted;
+
+  /// Badge de l enregistrement mains libres
+  ///
+  /// In fr, this message translates to:
+  /// **'Verrouillé'**
+  String get recordingLockedBadge;
+
+  /// Explique pourquoi l enregistrement continue sans le doigt
+  ///
+  /// In fr, this message translates to:
+  /// **'Mains libres — vous pouvez lâcher l’écran'**
+  String get recordingHandsFree;
 }
 
 class _AppLocalizationsDelegate

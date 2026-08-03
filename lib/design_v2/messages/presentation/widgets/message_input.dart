@@ -1483,17 +1483,32 @@ class _MessageInputState extends State<MessageInput>
       key: const ValueKey('cancel'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.arrow_back_ios_rounded, color: Colors.red, size: 24),
-        const SizedBox(width: 4),
+        Icon(Icons.delete_outline, color: context.errorColor, size: 22),
+        const SizedBox(width: 6),
         Flexible(
-          child: Text(
-            AppLocalizations.of(context)!.releaseToCancel,
-            style: const TextStyle(
-              color: Colors.red,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.releaseToCancelNow,
+                style: TextStyle(
+                  color: context.errorColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                AppLocalizations.of(context)!.recordingWillBeDeleted,
+                style: TextStyle(
+                  color: context.errorColor,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],
@@ -1508,17 +1523,18 @@ class _MessageInputState extends State<MessageInput>
       children: [
         Icon(
           Icons.arrow_back_ios_rounded,
-          color: context.textSecondaryColor,
-          size: 22,
+          color: context.textTertiaryColor,
+          size: 16,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Flexible(
           child: Text(
-            AppLocalizations.of(context)!.slideToCancel,
+            AppLocalizations.of(context)!.recordingGestureHints,
             style: TextStyle(
-              color: context.textSecondaryColor,
-              fontSize: 15,
+              color: context.textTertiaryColor,
+              fontSize: 12.5,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -1626,14 +1642,30 @@ class _MessageInputState extends State<MessageInput>
               ),
               const SizedBox(width: 6),
               Text(
-                AppLocalizations.of(context)!.recordingLocked,
+                AppLocalizations.of(context)!.recordingLockedBadge,
                 style: TextStyle(
                   color: context.adaptivePrimaryColor,
                   fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
+          ),
+        ),
+
+        // Le badge seul ne dit pas pourquoi l'enregistrement continue sans
+        // le doigt (§4f) : la phrase le dit.
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            AppLocalizations.of(context)!.recordingHandsFree,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: context.textTertiaryColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
 
@@ -1650,7 +1682,7 @@ class _MessageInputState extends State<MessageInput>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.15),
+                  color: context.errorColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const AppIcon(

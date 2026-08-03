@@ -7428,5 +7428,25 @@
   "homeFieldBio": "bio",
   "@homeFieldBio": {
     "description": "Nom du champ bio, en minuscules"
+  },
+  "recordingGestureHints": "Slide ‹ to cancel · ↑ to lock",
+  "@recordingGestureHints": {
+    "description": "Gestes possibles pendant l enregistrement, ecrits sous la barre"
+  },
+  "releaseToCancelNow": "Release to cancel",
+  "@releaseToCancelNow": {
+    "description": "Annulation armee : le doigt a franchi le seuil"
+  },
+  "recordingWillBeDeleted": "The recording will be deleted",
+  "@recordingWillBeDeleted": {
+    "description": "Consequence de l annulation, dite avant de lacher"
+  },
+  "recordingLockedBadge": "Locked",
+  "@recordingLockedBadge": {
+    "description": "Badge de l enregistrement mains libres"
+  },
+  "recordingHandsFree": "Hands free — you can let go of the screen",
+  "@recordingHandsFree": {
+    "description": "Explique pourquoi l enregistrement continue sans le doigt"
   }
 }

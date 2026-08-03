@@ -15534,4 +15534,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeFieldBio => 'bio';
+
+  @override
+  String get recordingGestureHints => 'Slide ‹ to cancel · ↑ to lock';
+
+  @override
+  String get releaseToCancelNow => 'Release to cancel';
+
+  @override
+  String get recordingWillBeDeleted => 'The recording will be deleted';
+
+  @override
+  String get recordingLockedBadge => 'Locked';
+
+  @override
+  String get recordingHandsFree => 'Hands free — you can let go of the screen';
 }
