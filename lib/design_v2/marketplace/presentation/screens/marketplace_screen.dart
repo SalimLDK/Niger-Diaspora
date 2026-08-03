@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../kit/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/search_empty_state.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../../../features/marketplace/domain/entities/order_entity.dart';
 import '../../../../features/marketplace/domain/entities/product_entity.dart';

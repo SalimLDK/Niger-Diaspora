@@ -98,8 +98,8 @@ le composer et la carte.
 
 | Maquettes | Écran | Fichier de production | Taille | État |
 |---|---|---|---|---|
-| 3a, 4g, 6a | Le fil | `feed/…/feed_screen.dart` | 966 l. | **prod** — système propre |
-| 5a, 5f | Mon espace | `feed/…/mon_espace_screen.dart` | 363 l. | **prod** — système propre |
+| 3a, 4g, 6a | Le fil | `feed/…/feed_screen.dart` | 966 l. | **prod** — fuites de fonte corrigées |
+| 5a, 5f | Mon espace | `feed/…/mon_espace_screen.dart` | 363 l. | **prod** — fuites de fonte corrigées |
 | 5b, 5g, 6d | Mes publications | `feed/…/my_posts_screen.dart` | 180 l. | **prod** — système propre |
 | 5c, 5e, 6e | Enregistrés | `feed/…/saved_posts_screen.dart` | 336 l. | **prod** — système propre |
 | 5d, 5h, 6f | Mon réseau | `feed/…/follows_screen.dart` | 190 l. | **prod** — système propre |
@@ -123,10 +123,36 @@ qui implémentent **exactement** les deux systèmes des maquettes :
 - `organic` — clair, accent terracotta, rayons généreux, titrage **Caprasimo**.
   C'est le gros display des maquettes 3a, 5a→5h.
 
-Ces écrans sont donc **déjà à jour**. Leur appliquer `design_kit`
-(Playfair Display, jetons `adaptive_colors`) serait une régression : ça
-écraserait la bascule Organic/Nocturne que les maquettes elles-mêmes
-montrent. Aucune copie n'a été faite pour eux.
+Ces écrans sont donc **déjà à jour** sur la structure et les couleurs.
+Leur appliquer `design_kit` (Playfair Display, jetons `adaptive_colors`)
+serait une régression : ça écraserait la bascule Organic/Nocturne que les
+maquettes elles-mêmes montrent. Aucune copie n'a été faite pour eux — ils
+se corrigent **directement en production**.
+
+#### Ce qui restait quand même à corriger (fait le 2026-08-03)
+
+L'audit du fil et de Mon espace a trouvé une fuite que le mot « déjà à
+jour » masquait : **13 libellés utilisaient un `TextStyle(` brut**. Leurs
+couleurs étaient correctes (`tokens.*`), donc rien ne se voyait en
+nocturne — mais un `TextStyle` brut n'hérite pas de la fonte de
+`FeedText` : il prend celle du thème global de l'app.
+
+Conséquence : en mode **organic**, ces libellés rendaient dans la police
+de l'app au lieu de **Figtree**, à côté de titres en Caprasimo. C'est-à-dire
+précisément dans le mode que montrent 3a et 5a. Les 13 sites passent
+maintenant par `FeedText.body(tokens, …)`.
+
+Deux exceptions volontaires :
+
+- `fontFamily: 'monospace'` dans `feed_screen.dart` — c'est le libellé
+  mono voulu par les maquettes, il ne doit pas passer par `FeedText` ;
+- `Colors.transparent`, qui n'est pas une couleur de thème.
+
+Reste ouvert, hors périmètre demandé : `saved_posts_screen.dart` peint son
+fond de balayage en `Colors.red` avec une icône `Colors.white`. C'est
+lisible et l'idiome est universel, mais aucune des deux palettes ne
+contient ce rouge, et `FeedTokens` n'a pas de jeton `danger`. À trancher
+avant de traiter « Enregistrés ».
 
 Ordre d'attaque retenu, la famille « fil » étant hors périmètre :
 services d'abord (annuaire 407 l., boutique 557 l., ambassades 594 l.,

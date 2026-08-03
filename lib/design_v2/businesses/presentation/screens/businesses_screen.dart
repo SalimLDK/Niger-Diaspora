@@ -1,10 +1,10 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../kit/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/businesses/domain/entities/business_entity.dart';
 import '../../../../features/businesses/presentation/providers/business_provider.dart';
 import '../../../../features/businesses/presentation/widgets/business_card.dart';
@@ -18,7 +18,6 @@ class BusinessesScreen extends ConsumerStatefulWidget {
 
 class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
   final _searchController = TextEditingController();
-  bool _isSearching = false;
   bool _showLocationFilter = false;
 
   @override
@@ -202,6 +201,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
             ),
           ),
         ],
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(
