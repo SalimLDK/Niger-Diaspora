@@ -610,7 +610,25 @@ Rien à corriger côté fonctionnalité ; c'est du code mort à supprimer.
 | `TipAnimationWidget`, `TipNotificationBanner` | `TipCoinAnimation` (`_shared/tip_coin_animation.dart`) |
 | `UploadingMessageOverlay` | `conversation_screen` lit `mediaUploadProvider` et rend son propre affichage |
 | `HomeStatCard`, `HomeMemberCard` | remplacés lors d'une refonte antérieure (déjà noté en annexe de 2d) |
-| `message_e2ee_helper`, `notification_decryption_service` | la messagerie déchiffre via `_encryptionService` dans `message_remote_datasource` ; ces deux-là ne sont atteints que par le baril `e2ee/e2ee.dart`, lui-même inatteignable |
+
+**Supprimés le 2026-08-03** (`flutter analyze` et les 62 tests passent après
+coup) : les 9 fichiers de widgets ci-dessus. Rien d'autre n'a été retiré.
+
+> ⚠ **Correction de classement.** `message_e2ee_helper` et
+> `notification_decryption_service` figuraient dans ce groupe A à la première
+> rédaction. C'était faux, et ils n'ont **pas** été supprimés :
+> - `NotificationDecryptionService` n'est remplacé par rien. Il est prévu
+>   pour être branché sur `NotificationService.setE2EEDecryptionCallback()`
+>   — méthode qui existe mais que **personne n'appelle**. Résultat :
+>   `_e2eeDecryptionCallback` reste nul et les aperçus de notification E2EE
+>   retombent toujours sur un texte générique. C'est un cas **C (perdu)**,
+>   pas A, et une fonctionnalité à finir de câbler.
+> - `MessageE2EEHelper` fait partie de la pile Signal
+>   (`MessagingE2EEService`, `SenderKeyService`, `MediaEncryptionService`).
+>   La messagerie passe aujourd'hui par `EncryptionService` (clé AES
+>   partagée avec les Cloud Functions), mais je n'ai pas établi le statut
+>   exact de la pile Signal — la supprimer sur cette base serait
+>   irresponsable. À trancher séparément, avec le contexte E2EE en main.
 
 ### B. Couches d'architecture jamais branchées — *vérifié*
 
