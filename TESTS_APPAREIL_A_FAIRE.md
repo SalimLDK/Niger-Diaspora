@@ -177,14 +177,16 @@ en solo.
   « Utilisateur non connect├® », « ├ëchec de la connexion », « X est d├®j├á en
   appel ». À relire à l'écran : historique d'appels, écran d'appel, overlay
   d'appel entrant.
-- [ ] **Sonnerie côté appelé (push d'appel entrant)** — *bloquant, à faire en
-  premier* : le trigger Cloud Function `onCallCreated` n'a plus aucune exécution
-  loguée depuis le 2026-07-19 alors qu'un appel réel a bien eu lieu le
-  2026-07-29 (`getTurnCredentials` et `onCallUpdated` ont tourné à la même
-  seconde). Si le push n'est pas envoyé, l'appelé ne sonne jamais en
-  arrière-plan, quels que soient les correctifs client ci-dessus. À refaire :
-  redéployer `onCallCreated`, passer un appel, puis
-  `firebase functions:log --only onCallCreated`.
+- [ ] **Sonnerie côté appelé (push d'appel entrant)** — *le test le plus
+  important* : le trigger `onCallCreated` était **mort au chargement** depuis le
+  2026-07-19 (`require("dotenv")` et `require("livekit-server-sdk")` absents des
+  dépendances de `functions/package.json` — ça passait en local, pas dans le
+  conteneur). Trigger enregistré, fonction jamais exécutée, donc aucun push
+  d'appel entrant pendant six semaines. Corrigé et redéployé le 2026-08-03
+  (commit `a82c6b5`, démarrage à froid propre). À confirmer sur appareil :
+  téléphone B en arrière-plan puis app tuée, appeler depuis A → B doit sonner
+  avec la bannière plein écran. Puis `firebase functions:log --only onCallCreated`
+  doit montrer « Successfully sent 1/1 call notifications ».
 - [ ] **Relais TURN en 4G/5G sans wifi** (report du 2026-07-16) : coturn répond
   bien sur 3478/5349 et `getTurnCredentials` est déployée et appelée avec succès,
   mais le relais n'a jamais été validé sur un NAT symétrique réel.
