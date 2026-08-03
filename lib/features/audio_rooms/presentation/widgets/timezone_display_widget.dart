@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../admin/presentation/providers/app_settings_provider.dart';
 
 /// Widget to display a time in multiple timezones for diaspora users
@@ -112,10 +112,10 @@ class _TimezoneDisplayWidgetState extends ConsumerState<TimezoneDisplayWidget> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.05),
+            color: context.adaptiveSecondaryColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.secondary.withValues(alpha: 0.1),
+              color: context.adaptiveSecondaryColor.withValues(alpha: 0.1),
             ),
           ),
           child: Column(
@@ -188,10 +188,10 @@ class _TimezoneDisplayWidgetState extends ConsumerState<TimezoneDisplayWidget> {
           children: [
             Text(
               info.formattedTime,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: AppColors.secondary,
+                color: context.adaptiveSecondaryColor,
               ),
             ),
             if (widget.showDate)
@@ -464,12 +464,9 @@ class DiasporaTimeHeader extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.secondary.withValues(alpha: 0.1),
-            AppColors.primary.withValues(alpha: 0.05),
-          ],
-        ),
+        // Aplat : le système n'utilise plus de dégradé décoratif, et celui-ci
+        // était figé sur les jetons clairs — invisible en thème sombre.
+        color: context.surfaceVariantColor,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

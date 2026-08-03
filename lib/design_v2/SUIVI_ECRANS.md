@@ -678,12 +678,27 @@ Mesuré, pas supposé : nombre de clés ARB distinctes, adhérence au système
 
 | Maquette | Fichier | Clés | DN | Dégradés | Chaînes en dur | Verdict |
 |---|---|---|---|---|---|---|
-| §2b | `timezone_display_widget` (536 l.) | **0** | **0** | 1 | **25** | le vrai chantier |
+| §2b | `timezone_display_widget` (536 l.) | 0 (rien à traduire) | 0 | 0 ✅ | 0 ✅ | **fait** |
 | — | `replay_player_screen` (771 l.) | 5 | 32 | 1 | 9 | partiel |
 | §4c | `heritage_library_screen` (1432 l.) | 41 | 28 | **3** | 0 | dégradés seuls |
 | §4b / §1e | `episode_detail_screen` (996 l.) | 17 | 0 | **3** | 1 | dégradés + système |
 | §1f | `creator_earnings_screen` (545 l.) | 25 | 0 | 0 | 0 | propre, hors système |
 | §2c | `save_as_podcast_screen` (366 l.) | 17 | 27 | 0 | 0 | **fait** |
+
+⚠️ **La ligne §2b de ce tableau était fausse quand je l'ai écrite.** Les
+« 25 chaînes en dur » comptées par mon heuristique sont des **noms de villes
+et des drapeaux** (Montréal, Genève, 🇳🇪, 🇫🇷…) — mon filtre les retenait
+parce qu'ils portent des accents. Ce ne sont pas des libellés d'interface :
+Montréal s'écrit Montréal dans toutes les langues. Le fichier n'a **aucune
+copie à traduire**, seulement des formats de date et des identifiants de
+fuseau. « 0 clé ARB » y était donc normal, pas un manque.
+
+Le vrai défaut était ailleurs, et l'audit le montrait aussi : **zéro jeton
+adaptatif**. Le widget peignait directement sur `AppColors.secondary` et
+`AppColors.primary`, c'est-à-dire les constantes du thème clair — la carte
+teintée, sa bordure, l'heure en gras et un dégradé d'en-tête. C'est la
+famille de défauts la plus récurrente du projet. Corrigé : 5 sites passés en
+`context.adaptiveSecondaryColor`, dégradé aplati en `surfaceVariantColor`.
 
 **Ce que ça dit, dans l'ordre d'attaque :**
 
