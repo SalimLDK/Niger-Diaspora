@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -175,7 +177,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.errorColor),
             child: Text(l10n.delete),
           ),
         ],
@@ -214,7 +216,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: context.errorColor,
       ),
     );
   }
@@ -224,7 +226,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: context.successColor,
       ),
     );
   }
@@ -290,7 +292,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                     ),
                     const SizedBox(height: 8),
                     Card(
-                      color: Colors.green.shade50,
+                      color: context.successBackgroundColor,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -300,14 +302,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                               children: [
                                 Icon(
                                   Icons.cloud_done,
-                                  color: Colors.green.shade700,
+                                  color: context.successColor,
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
                                   l10n.backupActive,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade700,
+                                    color: context.successColor,
                                   ),
                                 ),
                               ],
@@ -334,7 +336,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                                     icon: AppIcon(AppIcon.delete, color: theme.colorScheme.primary),
                                     label: Text(AppLocalizations.of(context)!.delete),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.red,
+                                      foregroundColor: context.errorColor,
                                     ),
                                   ),
                                 ),
@@ -417,14 +419,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade50,
+                                color: context.warningBackgroundColor,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
                                   AppIcon(
                                     AppIcon.warning,
-                                    color: Colors.orange.shade700,
+                                    color: context.warningColor,
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -432,7 +434,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                                       'N\'oubliez pas votre passphrase ! '
                                       '${l10n.passphraseRequiredNote}',
                                       style: TextStyle(
-                                        color: Colors.orange.shade900,
+                                        color: context.warningColor,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -559,17 +561,17 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
     switch (_passphraseStrength) {
       case PassphraseStrength.weak:
-        color = Colors.red;
+        color = context.errorColor;
         text = l10n.weak;
         progress = 0.33;
         break;
       case PassphraseStrength.medium:
-        color = Colors.orange;
+        color = context.warningColor;
         text = l10n.medium;
         progress = 0.66;
         break;
       case PassphraseStrength.strong:
-        color = Colors.green;
+        color = context.successColor;
         text = l10n.strong;
         progress = 1.0;
         break;
@@ -580,7 +582,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       children: [
         LinearProgressIndicator(
           value: progress,
-          backgroundColor: Colors.grey.shade200,
+          backgroundColor: context.surfaceVariantColor,
           valueColor: AlwaysStoppedAnimation<Color>(color),
         ),
         const SizedBox(height: 4),

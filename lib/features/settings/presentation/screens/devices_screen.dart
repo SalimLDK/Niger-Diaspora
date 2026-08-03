@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -116,19 +118,19 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: context.warningBackgroundColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    AppIcon(AppIcon.warning, color: Colors.orange.shade700),
+                    AppIcon(AppIcon.warning, color: context.warningColor),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         dialogL10n.revokeDeviceWarning,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.orange.shade900,
+                          color: context.warningColor,
                         ),
                       ),
                     ),
@@ -144,7 +146,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: context.errorColor),
               child: Text(dialogL10n.revokeDevice),
             ),
           ],
@@ -180,7 +182,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: context.errorColor,
       ),
     );
   }
@@ -190,7 +192,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: context.successColor,
       ),
     );
   }
@@ -307,14 +309,14 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
+                  color: context.warningBackgroundColor,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   'Limite atteinte',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.orange.shade900,
+                    color: context.warningColor,
                   ),
                 ),
               ),
@@ -389,7 +391,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade100,
+                                color: context.successBackgroundColor,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -397,7 +399,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade900,
+                                  color: context.successColor,
                                 ),
                               ),
                             ),
@@ -446,11 +448,11 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         value: 'revoke',
                         child: Row(
                           children: [
-                            const AppIcon(AppIcon.delete, color: Colors.red),
+                            AppIcon(AppIcon.delete, color: context.errorColor),
                             const SizedBox(width: 12),
                             Text(
                               menuL10n.revokeDevice,
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: context.errorColor),
                             ),
                           ],
                         ),
