@@ -205,18 +205,17 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                       else
                         Container(
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Theme.of(context).primaryColor,
-                                Theme.of(context).primaryColor.withValues(alpha: 0.6),
-                              ],
-                            ),
+                            // Aplat : pochette de repli quand l'épisode n'a
+                            // pas d'image.
+                            color: Theme.of(context).primaryColor,
                           ),
                           child: const AppIcon(AppIcon.podcasts, size: 80, color: Colors.white54),
                         ),
-                      // Gradient overlay
+                      // Voile de lisibilité — à conserver. Ce n'est pas
+                      // un dégradé décoratif : il assombrit le bas de la
+                      // pochette pour que le titre reste lisible quelle que
+                      // soit l'image. L'aplatir rendrait le texte illisible
+                      // sur une photo claire.
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(

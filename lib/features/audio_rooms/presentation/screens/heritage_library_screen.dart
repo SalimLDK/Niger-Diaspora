@@ -228,14 +228,8 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                DNColors.terra,
-                DNColors.terra2,
-              ],
-            ),
+            // Aplat : le système n'utilise plus de dégradé décoratif.
+            color: DNColors.terra,
           ),
           child: SafeArea(
             child: Padding(
@@ -619,16 +613,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
         width: 160,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              _getContentTypeColor(recording.contentType),
-              _getContentTypeColor(
-                recording.contentType,
-              ).withValues(alpha: 0.7),
-            ],
-          ),
+          color: _getContentTypeColor(recording.contentType),
           boxShadow: [
             BoxShadow(
               color: _getContentTypeColor(
@@ -1133,11 +1118,7 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                     width: 180,
                     height: 180,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [color, color.withValues(alpha: 0.7)],
-                      ),
+                      color: color,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(

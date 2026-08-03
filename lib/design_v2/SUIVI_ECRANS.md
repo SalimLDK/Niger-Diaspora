@@ -700,6 +700,14 @@ teintée, sa bordure, l'heure en gras et un dégradé d'en-tête. C'est la
 famille de défauts la plus récurrente du projet. Corrigé : 5 sites passés en
 `context.adaptiveSecondaryColor`, dégradé aplati en `surfaceVariantColor`.
 
+**Dégradés : soldés (2026-08-03).** Les 8 relevés sont traités — timezone
+(1), heritage (3), episode_detail (1), replay (1) aplatis ; il en reste
+**un seul, délibérément** : le voile de `episode_detail_screen`. Ce n'est
+pas de la décoration mais un **voile de lisibilité**, qui assombrit le bas
+de la pochette pour que le titre reste lisible quelle que soit l'image.
+L'aplatir rendrait le texte illisible sur une photo claire. Commenté comme
+tel dans le fichier pour qu'aucune passe future ne le supprime.
+
 **Ce que ça dit, dans l'ordre d'attaque :**
 
 1. **§2b est le seul écran réellement pas fait.** Zéro clé ARB pour 536

@@ -342,11 +342,8 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [DNColors.ink, DNColors.terra2],
-          ),
+          // Aplat : le système n'utilise plus de dégradé décoratif.
+          color: DNColors.ink,
         ),
         child: SafeArea(
           child: Column(
