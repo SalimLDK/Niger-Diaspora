@@ -79,33 +79,19 @@ class _LegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Indicateur de couleur avec effet de profondeur
+        // Pastille de couleur : aplat, comme les repères posés sur la carte.
+        //
+        // Le dégradé et l'ombre colorée ont sauté — une légende sert à
+        // rapprocher une couleur d'un libellé, la nuancer brouille justement
+        // ce rapprochement. Le liseré blanc reste : il détache la pastille du
+        // fond de carte, clair comme sombre.
         Container(
           width: 14,
           height: 14,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color,
-                HSLColor.fromColor(color).withLightness(
-                  (HSLColor.fromColor(color).lightness - 0.15).clamp(0.0, 1.0),
-                ).toColor(),
-              ],
-            ),
+            color: color,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.35),
-                blurRadius: 4,
-                spreadRadius: 0.5,
-              ),
-            ],
+            border: Border.all(color: Colors.white, width: 2),
           ),
         ),
         const SizedBox(width: 6),

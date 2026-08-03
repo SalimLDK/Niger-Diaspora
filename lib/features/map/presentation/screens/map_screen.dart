@@ -1331,7 +1331,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: context.onPrimaryColor,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -1739,7 +1739,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: context.onPrimaryColor,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -2274,7 +2274,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             label: Text(l10n.message),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: context.onPrimaryColor,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -2426,7 +2426,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                 fontWeight: FontWeight.w600,
                                 color:
                                     isSelected
-                                        ? Colors.white
+                                        ? context.onPrimaryColor
                                         : context.textPrimaryColor,
                               ),
                             ),
@@ -3451,7 +3451,7 @@ class _FilterChip extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: isSelected ? Colors.white : context.textSecondaryColor,
+          color: isSelected ? context.onPrimaryColor : context.textSecondaryColor,
         ),
       ),
     );
