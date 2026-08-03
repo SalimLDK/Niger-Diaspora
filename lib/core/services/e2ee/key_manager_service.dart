@@ -515,9 +515,51 @@ class KeyManagerService {
 
   /// Vérifie et recharge les One-Time Pre-Keys si nécessaire
   Future<void> checkAndRefillOneTimePreKeys(String userId) async {
-    final count = await _storage.getOneTimePreKeyCount(userId);
-    if (count < _oneTimePreKeyMinThreshold) {
+    final localCount = await _storage.getOneTimePreKeyCount(userId);
+
+    // Le compteur local ne dit rien de ce que le serveur expose réellement.
+    // Un appareil dont la publication initiale a échoué — session Supabase pas
+    // prête, ou policy RLS qui refusait l'insertion — garde ses clés en local
+    // et ne repasse donc jamais sous le seuil : il resterait sans aucune
+    // prékey publiée à vie, et ses correspondants ouvriraient leurs sessions
+    // sans DH4, donc sans la protection du message initial.
+    final publishedCount = await _countPublishedOneTimePreKeys(userId);
+
+    final localTooLow = localCount < _oneTimePreKeyMinThreshold;
+    // `null` = comptage impossible (réseau, session) : on ne republie pas sur
+    // une simple incertitude, sinon une coupure suffirait à régénérer un lot
+    // complet à chaque démarrage.
+    final serverTooLow = publishedCount != null &&
+        publishedCount < _oneTimePreKeyMinThreshold;
+
+    if (localTooLow || serverTooLow) {
+      if (serverTooLow && !localTooLow) {
+        debugPrint(
+          'KeyManagerService: $localCount prékeys en local mais '
+          '$publishedCount publiées — republication',
+        );
+      }
       await refillOneTimePreKeys(userId);
+    }
+  }
+
+  /// Nombre de prékeys réellement exposées par le serveur pour l'appareil
+  /// courant, ou `null` si le compte n'a pas pu être établi.
+  Future<int?> _countPublishedOneTimePreKeys(String userId) async {
+    try {
+      final deviceId = await _storage.getDeviceId(userId);
+      if (deviceId == null) return null;
+
+      final rows = await _supabase
+          .from('e2ee_one_time_prekeys')
+          .select('key_id')
+          .eq('user_id', userId)
+          .eq('device_id', deviceId);
+
+      return (rows as List).length;
+    } catch (e) {
+      debugPrint('KeyManagerService: comptage serveur des prékeys impossible: $e');
+      return null;
     }
   }
 
