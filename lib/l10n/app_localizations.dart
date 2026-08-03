@@ -22703,7 +22703,7 @@ abstract class AppLocalizations {
   /// No description provided for @storiesTodayCount.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 récit aujourd\'hui} other{{count} récits aujourd\'hui}}'**
+  /// **'{count, plural, =0{Aucun récit aujourd’hui} =1{1 récit aujourd\'hui} other{{count} récits aujourd\'hui}}'**
   String storiesTodayCount(int count);
 
   /// No description provided for @storiesShow.
@@ -22745,7 +22745,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedNewPostsPill.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 nouvelle publication} other{{count} nouvelles publications}}'**
+  /// **'{count, plural, =0{Aucune nouvelle publication} =1{1 nouvelle publication} other{{count} nouvelles publications}}'**
   String feedNewPostsPill(int count);
 
   /// No description provided for @createPost.
@@ -28121,7 +28121,7 @@ abstract class AppLocalizations {
   /// Compteur de centres d interet
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 sélectionné} other{{count} sélectionnés}}'**
+  /// **'{count, plural, =0{Aucun sélectionné} =1{1 sélectionné} other{{count} sélectionnés}}'**
   String setupSelectedCount(int count);
 
   /// Intertitre notifications etape 3/4
@@ -28235,25 +28235,25 @@ abstract class AppLocalizations {
   /// Ligne de contexte de la messagerie
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 groupe actif} other{{count} groupes actifs}}'**
+  /// **'{count, plural, =0{Aucun groupe actif} =1{1 groupe actif} other{{count} groupes actifs}}'**
   String messagesActiveGroups(int count);
 
   /// Ligne de contexte des groupes
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 rejoint} other{{count} rejoints}}'**
+  /// **'{count, plural, =0{0 rejoint} =1{1 rejoint} other{{count} rejoints}}'**
   String groupsJoinedCount(int count);
 
   /// Ligne de contexte des groupes
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 invitation} other{{count} invitations}}'**
+  /// **'{count, plural, =0{Aucune invitation} =1{1 invitation} other{{count} invitations}}'**
   String groupsPendingInvites(int count);
 
   /// Ligne de contexte des notifications
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 non lue} other{{count} non lues}}'**
+  /// **'{count, plural, =0{Aucune non lue} =1{1 non lue} other{{count} non lues}}'**
   String notificationsUnreadCount(int count);
 
   /// Tuile de service : le fil

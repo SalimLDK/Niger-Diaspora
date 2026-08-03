@@ -12283,6 +12283,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count récits aujourd\'hui',
       one: '1 récit aujourd\'hui',
+      zero: 'Aucun récit aujourd’hui',
     );
     return '$_temp0';
   }
@@ -12322,6 +12323,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count nouvelles publications',
       one: '1 nouvelle publication',
+      zero: 'Aucune nouvelle publication',
     );
     return '$_temp0';
   }
@@ -15268,6 +15270,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count sélectionnés',
       one: '1 sélectionné',
+      zero: 'Aucun sélectionné',
     );
     return '$_temp0';
   }
@@ -15347,6 +15350,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count groupes actifs',
       one: '1 groupe actif',
+      zero: 'Aucun groupe actif',
     );
     return '$_temp0';
   }
@@ -15358,6 +15362,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count rejoints',
       one: '1 rejoint',
+      zero: '0 rejoint',
     );
     return '$_temp0';
   }
@@ -15369,6 +15374,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count invitations',
       one: '1 invitation',
+      zero: 'Aucune invitation',
     );
     return '$_temp0';
   }
@@ -15380,6 +15386,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count non lues',
       one: '1 non lue',
+      zero: 'Aucune non lue',
     );
     return '$_temp0';
   }

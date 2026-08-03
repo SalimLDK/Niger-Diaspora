@@ -5753,7 +5753,7 @@
   "feedTitle": "Fil d'actualité",
   "storyTakePhoto": "Prendre une photo",
   "storyChooseFromGallery": "Choisir depuis la galerie",
-  "storiesTodayCount": "{count, plural, =1{1 récit aujourd'hui} other{{count} récits aujourd'hui}}",
+  "storiesTodayCount": "{count, plural, =0{Aucun récit aujourd’hui} =1{1 récit aujourd'hui} other{{count} récits aujourd'hui}}",
   "@storiesTodayCount": {
     "placeholders": {
       "count": {
@@ -5774,7 +5774,7 @@
   },
   "storyNoViewersYet": "Personne n'a encore vu cette story",
   "feedEmpty": "Aucune publication pour le moment.\nSoyez le premier à partager !",
-  "feedNewPostsPill": "{count, plural, =1{1 nouvelle publication} other{{count} nouvelles publications}}",
+  "feedNewPostsPill": "{count, plural, =0{Aucune nouvelle publication} =1{1 nouvelle publication} other{{count} nouvelles publications}}",
   "@feedNewPostsPill": {
     "placeholders": {
       "count": {
@@ -7386,7 +7386,7 @@
   "@setupNoneSelected": {
     "description": "Compteur de centres d interet a zero"
   },
-  "setupSelectedCount": "{count, plural, =1{1 sélectionné} other{{count} sélectionnés}}",
+  "setupSelectedCount": "{count, plural, =0{Aucun sélectionné} =1{1 sélectionné} other{{count} sélectionnés}}",
   "@setupSelectedCount": {
     "description": "Compteur de centres d interet",
     "placeholders": {
@@ -7490,7 +7490,7 @@
   "@handleFormat": {
     "description": "Aide du champ poignee, format invalide"
   },
-  "messagesActiveGroups": "{count, plural, =1{1 groupe actif} other{{count} groupes actifs}}",
+  "messagesActiveGroups": "{count, plural, =0{Aucun groupe actif} =1{1 groupe actif} other{{count} groupes actifs}}",
   "@messagesActiveGroups": {
     "description": "Ligne de contexte de la messagerie",
     "placeholders": {
@@ -7499,7 +7499,7 @@
       }
     }
   },
-  "groupsJoinedCount": "{count, plural, =1{1 rejoint} other{{count} rejoints}}",
+  "groupsJoinedCount": "{count, plural, =0{0 rejoint} =1{1 rejoint} other{{count} rejoints}}",
   "@groupsJoinedCount": {
     "description": "Ligne de contexte des groupes",
     "placeholders": {
@@ -7508,7 +7508,7 @@
       }
     }
   },
-  "groupsPendingInvites": "{count, plural, =1{1 invitation} other{{count} invitations}}",
+  "groupsPendingInvites": "{count, plural, =0{Aucune invitation} =1{1 invitation} other{{count} invitations}}",
   "@groupsPendingInvites": {
     "description": "Ligne de contexte des groupes",
     "placeholders": {
@@ -7517,7 +7517,7 @@
       }
     }
   },
-  "notificationsUnreadCount": "{count, plural, =1{1 non lue} other{{count} non lues}}",
+  "notificationsUnreadCount": "{count, plural, =0{Aucune non lue} =1{1 non lue} other{{count} non lues}}",
   "@notificationsUnreadCount": {
     "description": "Ligne de contexte des notifications",
     "placeholders": {

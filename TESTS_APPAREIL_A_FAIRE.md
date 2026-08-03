@@ -60,6 +60,26 @@ lancement d'un compte sans ville renseignée.
       **décision de design** (quelles couleurs, quels POI masqués) : à ne pas
       inventer.
 
+**Groupes (§9c/§9f) — un bug de pluriel français, trouvé par contradiction**
+
+- [x] L'écran affichait trois valeurs incompatibles : sous-titre « 1 rejoint »,
+      puce « Mes groupes · 0 », corps « Vous n'avez rejoint aucun groupe ».
+      Une sonde temporaire a montré `joinedCount=0` de façon stable — donc
+      c'était le **rendu** du pluriel qui mentait, pas la donnée.
+
+      Cause : `=1{…}` dans l'ARB est compilé par `gen-l10n` en `one:`. Or en
+      **français, la catégorie CLDR `one` couvre 0 et 1**. Toute clé dont la
+      branche `=1` code le chiffre « 1 » en dur affiche donc « 1 … » quand le
+      compte vaut zéro.
+
+      7 clés étaient concernées ; toutes ont reçu un cas `=0` explicite.
+      Vérifié sur appareil après correction : « 0 rejoint ».
+
+      ⚠️ **Piège à retenir** : les pluriels en suffixe
+      (`{count} message{…=1{} other{s}}`) ne sont **pas** touchés — en
+      français zéro prend le singulier, « 0 message » est correct. Ne pas les
+      « corriger ».
+
 **Reste à exercer sur cet appareil** : tous les autres écrans basculés
 (profil, config profil, réglages, carte, notifications, recherche,
 messagerie), le mode Éco en réception, le brouillon d'épisode, et
