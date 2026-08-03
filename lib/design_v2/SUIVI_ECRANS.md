@@ -567,46 +567,68 @@ inventés.
 Les deux features audio, qui étaient jusqu'ici la principale zone sans
 maquette. Quatre documents, 22 maquettes.
 
-**5 des 22 sont déjà câblées** (`grep -rl "§" lib/features/audio_rooms
-lib/features/podcasts` remonte §1a, §1c, §1d, §1e, §1h). Comme pour les
-vagues précédentes, cela vaut pour la **structure** : le langage visuel
-reste à appliquer partout.
+**13 des 22 sont déjà câblées** — bien plus que les 5 annoncées au premier
+inventaire, qui sous-estimait. Le `grep` des citations `§` remonte
+**§1a, §1c, §1d, §1e, §1g, §1h, §2a, §2e, §2f, §3a, §3b, §4a**, et §1b s'y
+ajoute : l'écran du salon en direct porte déjà toutes les briques de la
+maquette (`_GhostBar`, `_SpeakersSection`, `_ListenersSection`,
+`_HandRaisedSection`, `_ModerationPanel`) avec leurs libellés localisés
+(`audioRoomParticipantsOnStage` = « Sur scène · {count}/{max} »,
+`audioRoomListenersCount`, `audioRoomLive`).
+
+⚠️ **Piège d'inventaire à ne pas refaire.** Chercher les libellés français
+en dur (« SUR SCÈNE », « Auditeurs », « Demander la parole ») renvoie zéro
+sur ces fichiers — non pas parce qu'ils manquent, mais parce que **tout y
+est déjà passé en ARB**. Il faut chercher les clés, pas les chaînes.
+
+### Cette feature a son propre système — ne pas lui appliquer la trousse
+
+`audio_rooms` et `podcasts` utilisent `DNColors` / `DNText` / `context.dn`
+(18 fichiers sur 67), c'est-à-dire **exactement la palette Sahel que nomme
+le document des maquettes** : encre `#1A1410`, papier `#FAF6EF`, sable
+`#E8DCC4`, terracotta `#C85A3A`, ocre `#D9A441`, teal `#2D6E6A`, feuille
+`#5A7A3A`. Même situation que la famille « fil » : leur appliquer
+`design_kit` serait une régression. Aucun dégradé, aucun `AppColors` figé
+dans `audio_rooms_list_screen` ni `audio_room_screen`.
+
+Restent réellement à faire : §1f (revenus créateur), §2b, §2c, §2d, §2g,
+§3c, §4b, §4c et le lecteur de replay.
 
 ### Document 1 — écouter
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
 | 1a | Salons audio — liste | `audio_rooms/…/audio_rooms_list_screen.dart` | 849 l. | ✅ câblée |
-| 1b | Salon en direct | `audio_rooms/…/audio_room_screen.dart` | 1528 l. | à faire |
+| 1b | Salon en direct | `audio_rooms/…/audio_room_screen.dart` | 1528 l. | ✅ câblée |
 | 1c | Bibliothèque du patrimoine | `audio_rooms/…/heritage_library_screen.dart` | 1432 l. | ✅ câblée |
 | 1d | Podcasts — accueil | `podcasts/…/podcasts_home_screen.dart` | 704 l. | ✅ câblée |
 | 1e | Lecteur d'épisode | `podcasts/…/episode_detail_screen.dart` | 996 l. | ✅ câblée |
 | — | Lecteur de replay (même gabarit que 1e) | `audio_rooms/…/replay_player_screen.dart` | 771 l. | à faire |
 | 1f | Revenus créateur | `audio_rooms/…/creator_earnings_screen.dart` | 545 l. | à faire |
-| 1g | Envoyer un don | `audio_rooms/…/widgets/send_tip_bottom_sheet.dart` | 340 l. | à faire |
+| 1g | Envoyer un don | `audio_rooms/…/widgets/send_tip_bottom_sheet.dart` | 340 l. | ✅ câblée |
 | 1h | Acheter un billet | `audio_rooms/…/widgets/buy_ticket_bottom_sheet.dart` | 336 l. | ✅ câblée |
 
 ### Document 2 — créer et publier
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 2a | Ouvrir un salon | `audio_rooms/…/create_audio_room_screen.dart` | 638 l. | à faire |
+| 2a | Ouvrir un salon | `audio_rooms/…/create_audio_room_screen.dart` | 638 l. | ✅ câblée |
 | 2b | Programmer — multi-fuseaux | `audio_rooms/…/widgets/timezone_display_widget.dart` | 536 l. | à faire |
 | 2c | Publier en podcast | `audio_rooms/…/save_as_podcast_screen.dart` | 366 l. | à faire |
 | 2d | Enregistrer un épisode | `podcasts/…/record_episode_screen.dart` | 718 l. | à faire |
-| 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | à faire |
-| 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | à faire |
+| 2e | Aucun salon en direct | `audio_rooms_list_screen.dart` (état vide) | — | ✅ câblée |
+| 2f | Podcasts — aucun abonnement | `podcasts_home_screen.dart` (état vide) | — | ✅ câblée |
 | 2g | Salons — nocturne | `audio_rooms_list_screen.dart` | — | prod — voir « Nocturnes » |
 
 ### Documents 3 et 4 — gérer, modérer, mesurer
 
 | Maquette | Écran | Fichier de production | Taille | Structure |
 |---|---|---|---|---|
-| 3a | Mes podcasts (créateur) | `podcasts/…/my_podcasts_screen.dart` | 525 l. | à faire |
-| 3b | Fiche d'un podcast | `podcasts/…/podcast_detail_screen.dart` | 531 l. | à faire |
+| 3a | Mes podcasts (créateur) | `podcasts/…/my_podcasts_screen.dart` | 525 l. | ✅ câblée |
+| 3b | Fiche d'un podcast | `podcasts/…/podcast_detail_screen.dart` | 531 l. | ✅ câblée |
 | 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | à faire |
 | — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | à faire |
-| 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | à faire |
+| 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | ✅ câblée |
 | 4b | Lecteur — nocturne | même écran que 1e | — | prod — voir « Nocturnes » |
 | 4c | Patrimoine oral — nocturne | même écran que 1c | — | prod — voir « Nocturnes » |
 
