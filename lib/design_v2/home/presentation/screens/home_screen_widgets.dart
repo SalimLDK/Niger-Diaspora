@@ -1605,6 +1605,28 @@ class _SeeAllAvatar extends StatelessWidget {
 }
 
 /// Placeholder de chargement d'un avatar proche.
+/// Rangée de squelettes affichée pendant la recherche des membres proches
+/// (maquette 1b/CAS 3 : « jamais de texte vide avant la fin du chargement »).
+///
+/// Sert aussi bien au premier chargement qu'à une recherche demandée
+/// explicitement, comme l'élargissement du rayon à 200 km.
+class NearbyLoadingRow extends StatelessWidget {
+  const NearbyLoadingRow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 4,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (_, __) => const _NearbyAvatarLoading(),
+      ),
+    );
+  }
+}
+
 class _NearbyAvatarLoading extends StatelessWidget {
   const _NearbyAvatarLoading();
 

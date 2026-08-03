@@ -70,6 +70,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Rayon courant : élargi de 50 à 200 km via le bouton de l'état vide.
   double _nearbyRadiusKm = _nearbyRadiusDefaultKm;
 
+  /// Recherche déclenchée par la personne (élargissement du rayon), par
+  /// opposition au rafraîchissement automatique toutes les 60 s.
+  ///
+  /// `skipLoadingOnRefresh: true` garde volontairement les résultats
+  /// précédents pendant un rafraîchissement de fond — mais il gardait aussi
+  /// l'état vide « Personne à moins de 50 km » affiché pendant toute la
+  /// recherche à 200 km, ce que la maquette 1b/CAS 3 interdit explicitement.
+  /// Ce drapeau force le squelette pour ce cas-là seulement.
+  bool _nearbySearching = false;
+
   // Position actuelle pour le rafraîchissement
   double? _currentLat;
   double? _currentLng;
@@ -913,6 +923,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(height: 16),
                       if (_locationError != null)
                         _NoPositionCard(onActivate: _enableLocation)
+                      // Recherche demandée explicitement : le squelette passe
+                      // devant les résultats précédents (maquette 1b/CAS 3).
+                      else if (_nearbySearching)
+                        const NearbyLoadingRow()
                       else
                         nearbyProfiles.when(
                           skipLoadingOnRefresh: true,
@@ -986,16 +1000,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             );
                           },
-                          loading: () => SizedBox(
-                            height: 120,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 4,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 16),
-                              itemBuilder: (_, __) => const _NearbyAvatarLoading(),
-                            ),
-                          ),
+                          loading: () => const NearbyLoadingRow(),
                           error:
                               (_, __) => HomeEmptyStateCard(
                                 icon: Icons.error_outline,
@@ -1229,14 +1234,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Élargit le rayon de recherche des membres proches (50 → 200 km) et
   /// recharge, depuis l'état vide « Personne à moins de 50 km ».
-  void _widenRadius() {
+  Future<void> _widenRadius() async {
     if (_nearbyRadiusKm >= _nearbyRadiusWideKm) return;
-    setState(() => _nearbyRadiusKm = _nearbyRadiusWideKm);
-    if (_currentLat != null && _currentLng != null) {
-      ref
+    setState(() {
+      _nearbyRadiusKm = _nearbyRadiusWideKm;
+      // Squelette immédiat : on ne laisse pas « Personne à moins de 50 km »
+      // à l'écran pendant qu'on cherche à 200 km.
+      _nearbySearching = true;
+    });
+    if (_currentLat == null || _currentLng == null) {
+      setState(() => _nearbySearching = false);
+      return;
+    }
+    try {
+      await ref
           .read(nearbyProfilesNotifierProvider.notifier)
           .loadNearbyProfiles(_currentLat!, _currentLng!,
               radiusKm: _nearbyRadiusKm);
+    } finally {
+      if (mounted) setState(() => _nearbySearching = false);
     }
   }
 

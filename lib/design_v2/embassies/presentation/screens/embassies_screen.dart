@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../kit/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../features/embassies/presentation/providers/embassies_provider.dart';
 import '../../../../features/embassies/presentation/widgets/embassy_list_item.dart';
 import '../../../../shared/widgets/error_view.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../../../../core/constants/profile_options.dart';
@@ -188,9 +189,16 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
+      // En-tête plat (§17a) : titre serif aligné à gauche, plus de barre
+      // Material centrée.
       appBar: AppBar(
-        title: const Text('Ambassades & Consulats'),
-        centerTitle: true,
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 20,
+        automaticallyImplyLeading: false,
+        title: const DesignTitle('Ambassades & consulats', size: 24),
       ),
       body: embassiesAsync.when(
         skipLoadingOnRefresh: true,
@@ -208,12 +216,19 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
           return Column(
             children: [
               // Search bar
-              StandardSearchBar(
-                controller: _searchController,
-                hintText: 'Rechercher par nom, pays ou ville...',
-                onChanged: (value) {
-                  setState(() => _searchQuery = value);
-                },
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                child: DesignSearchField(
+                  controller: _searchController,
+                  hintText: 'Rechercher par nom, pays ou ville',
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                  onChanged: (value) {
+                    setState(() => _searchQuery = value);
+                  },
+                ),
               ),
 
               // Représentation la plus proche (§17a) — masquée en recherche.

@@ -107,11 +107,11 @@ le composer et la carte.
 | 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | à faire |
 | 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
 | 12a, 16c, 16i | Transferts | `transfers/…` (pas d'écran unique) | — | à cadrer |
-| 12b, 16a, 16b, 16h | Boutique | `marketplace/…/marketplace_screen.dart` | 557 l. | à faire |
-| 13a, 16e | Événements | `events/…/events_screen.dart` | 1082 l. | à faire |
-| 13b, 16d, 17a, 17b | Ambassades | `embassies/…/embassies_screen.dart` | 594 l. | à faire |
-| 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | à faire |
-| 17c, 17d, 18a→18d | Annuaire Business | `businesses/…/businesses_screen.dart` | 407 l. | à faire |
+| 12b | Boutique | `marketplace/…/marketplace_screen.dart` | 557 l. | fait (16a/16b/16h : écrans séparés, à faire) |
+| 13a | Événements | `events/…/events_screen.dart` | 1082 l. | fait (16e : création, à faire) |
+| 17a | Ambassades | `embassies/…/embassies_screen.dart` | 594 l. | fait (13b/16d/17b : écrans séparés, à faire) |
+| 13c | Appels | `calls/…/call_history_screen.dart` | 748 l. | fait |
+| 17c, 18a | Annuaire Business | `businesses/…/businesses_screen.dart` | 407 l. | fait (17d/18b/18c/18d : écrans séparés, à faire) |
 
 ### La famille « fil » a son propre système — ne pas lui appliquer la trousse
 

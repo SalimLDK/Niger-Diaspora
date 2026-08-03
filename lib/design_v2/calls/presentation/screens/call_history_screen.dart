@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../kit/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -34,10 +35,16 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
+      // En-tête plat (§13c) : titre serif, flèche retour lisible (elle était
+      // en gris tertiaire, quasi invisible sur le fond crème).
       appBar: AppBar(
-        title: Text(l10n.callHistory),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.callHistory, size: 24),
         leading: IconButton(
-          icon: AppIcon(AppIcon.arrowBack, color: context.textTertiaryColor),
+          icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
         ),
         actions: [
