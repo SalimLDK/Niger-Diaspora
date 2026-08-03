@@ -327,6 +327,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 children: [
                   if (_currentStep > 0) ...[
                     Expanded(
+                      flex: 3,
                       child: DesignSecondaryButton(
                         label: l10n.profilePrevious,
                         onPressed:
@@ -338,7 +339,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     const SizedBox(width: 12),
                   ],
                   Expanded(
-                    flex: _currentStep > 0 ? 2 : 1,
+                    // 3/4 et non 1/2 : à font_scale 1.1, « Précédent » était
+                    // tronqué en « Précéd » sur le SM A515F. La maquette veut
+                    // un bouton principal plus large, pas un secondaire illisible.
+                    flex: _currentStep > 0 ? 4 : 1,
                     child: DesignPrimaryButton(
                       label: isLastStep ? l10n.finish : l10n.next,
                       isLoading: _isLoading,
