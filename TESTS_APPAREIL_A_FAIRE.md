@@ -783,6 +783,28 @@ mais c'est exactement ce qu'il faut regarder en premier :
   reste de l'écran (montant en très grand, frais, total, taux) était déjà en
   production — vérifier qu'il n'a pas bougé.
 
+## Bascule design_v2 → production : la carte (§7e, 2026-08-03)
+
+Le §7e entre en production. C'est le lot le plus testable de la session,
+parce qu'il change un **comportement**, pas seulement un habillage :
+
+- [ ] **Bascule Carte / Liste** dans l'en-tête du panneau. En mode liste la
+  carte n'est **pas chargée du tout** (un aplat la remplace) : vérifier
+  qu'aucune tuile ne se télécharge, et que revenir en mode carte la recharge
+  correctement.
+- [ ] **Démarrage en mode liste si « données réduites » est actif** dans les
+  réglages. C'est le point le plus facile à casser sans le voir : couper le
+  réglage, rouvrir la carte, elle doit démarrer en mode carte ; le rallumer,
+  elle doit démarrer en liste.
+- [ ] **Badge « tuiles allégées »** et bouton **« Plein écran »**.
+- [ ] **Tri « Les plus proches » ⇄ « Par nom »**. Le tri par distance ne
+  s'applique que si la position est connue — vérifier **position coupée** :
+  l'ordre d'arrivée doit être conservé, pas un classement inventé.
+- [ ] **Non-régression des couleurs** : les deux passes de jetons adaptatifs
+  (`94d721c`, `bdcd795`) sont dans le fichier basculé. Regarder la carte en
+  **thème sombre** — libellés sur l'accent, puces de rayon et de filtre
+  sélectionnées, pastille de la légende.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

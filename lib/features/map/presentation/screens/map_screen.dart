@@ -58,6 +58,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
   List<ProfileModel> _nearbyMembers = [];
   List<EmbassyEntity> _embassies = [];
   List<BusinessEntity> _businesses = [];
+  /// Ordre de la liste des membres (§7e) : il était fixe et muet.
+  _MemberSort _sort = _MemberSort.nearest;
+
+  /// Mode « liste seule » (§7e) : consulter les membres proches sans
+  /// charger la carte, utile en données réduites.
+  bool _listOnly = false;
+
   bool _showBusinesses = true;
   bool _showEmbassies = true;
   String _selectedFilter = 'all';
@@ -203,6 +210,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     WidgetsBinding.instance.addObserver(this);
     // debugPrint('🗺️ MapScreen: initState');
     _mapsInitialized = true; // Already initialized in main.dart
+    // §7e : en données réduites, on n'ouvre pas la carte d'emblée. Le
+    // réglage existait déjà, il n'était simplement pas lu ici.
+    _listOnly = PreferencesService.instance.dataSaverMode;
     _showBusinesses = PreferencesService.instance.mapBusinessesLayerVisible;
     _loadUserCountry();
     _loadMapStyles();
@@ -2021,6 +2031,49 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
+  /// Applique l'ordre choisi (§7e). Le tri par distance suppose une
+  /// position connue ; sans elle, on garde l'ordre d'arrivée plutôt que
+  /// d'inventer un classement.
+  List<ProfileModel> _applySort(List<ProfileModel> membres) {
+    final liste = List<ProfileModel>.from(membres);
+    switch (_sort) {
+      case _MemberSort.nearest:
+        if (_currentPosition == null) return liste;
+        liste.sort((a, b) {
+          final da = _distanceTo(a);
+          final db = _distanceTo(b);
+          if (da == null && db == null) return 0;
+          if (da == null) return 1;
+          if (db == null) return -1;
+          return da.compareTo(db);
+        });
+      case _MemberSort.name:
+        liste.sort(
+          (a, b) => (a.displayName ?? '').toLowerCase().compareTo(
+            (b.displayName ?? '').toLowerCase(),
+          ),
+        );
+    }
+    return liste;
+  }
+
+  /// Distance en km jusqu'à un membre, ou `null` si l'un des deux points
+  /// manque.
+  double? _distanceTo(ProfileModel membre) {
+    final pos = _currentPosition;
+    if (pos == null) return null;
+    final lat = membre.latitude;
+    final lng = membre.longitude;
+    if (lat == null || lng == null) return null;
+    return Geolocator.distanceBetween(
+          pos.latitude,
+          pos.longitude,
+          lat,
+          lng,
+        ) /
+        1000;
+  }
+
   List<ProfileModel> _getFilteredMembers() {
     return _nearbyMembers.where((member) {
       return _matchesFilter(member.profession, _selectedFilter);
@@ -3028,6 +3081,67 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ? _buildNoLocationScreen(l10n, nearbyEnabled)
               : Stack(
                 children: [
+                  // Mode liste (§7e) : la carte n'est pas chargée du tout.
+                  // Sur un forfait compté, ne pas télécharger de tuiles vaut
+                  // mieux que les télécharger et les cacher.
+                  if (_listOnly)
+                    Positioned.fill(
+                      child: Container(
+                        color: context.surfaceVariantColor,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.layers_outlined,
+                              size: 32,
+                              color: context.textTertiaryColor,
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.surfaceColor,
+                                borderRadius: BorderRadius.circular(20),
+                                border:
+                                    Border.all(color: context.borderColor),
+                              ),
+                              child: Text(
+                                'tuiles allégées',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.textSecondaryColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Carte non chargée · données réduites',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: context.textTertiaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  setState(() => _listOnly = false),
+                              icon: const Icon(Icons.open_in_full, size: 16),
+                              label: const Text('Plein écran'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: context.textPrimaryColor,
+                                side: BorderSide(color: context.borderColor),
+                                backgroundColor: context.surfaceColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
                   // Google Map
                   GoogleMap(
                     initialCameraPosition: const CameraPosition(
@@ -3242,7 +3356,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       snap: true,
                       snapSizes: const [0.18, 0.45, 0.92],
                       builder: (context, scrollController) {
-                        final members = _getFilteredMembers();
+                        final members = _applySort(_getFilteredMembers());
                         return Container(
                           decoration: BoxDecoration(
                             color: context.surfaceColor,
@@ -3358,6 +3472,72 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                               color:
                                                   context.adaptivePrimaryColor,
                                             ),
+                                          ),
+                                        ),
+                                        // Bascule Carte / Liste (§7e).
+                                        const SizedBox(width: 4),
+                                        TextButton.icon(
+                                          onPressed: () => setState(
+                                            () => _listOnly = !_listOnly,
+                                          ),
+                                          icon: Icon(
+                                            _listOnly
+                                                ? Icons.map_outlined
+                                                : Icons.list,
+                                            size: 16,
+                                            color: context.textSecondaryColor,
+                                          ),
+                                          label: Text(
+                                            _listOnly ? 'Carte' : 'Liste',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: context.textSecondaryColor,
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                            ),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                        ),
+                                        // Ordre de la liste (§7e) : il était
+                                        // appliqué sans être dit ni modifiable.
+                                        const SizedBox(width: 4),
+                                        TextButton.icon(
+                                          onPressed: () => setState(() {
+                                            _sort = _sort == _MemberSort.nearest
+                                                ? _MemberSort.name
+                                                : _MemberSort.nearest;
+                                          }),
+                                          icon: Icon(
+                                            Icons.swap_vert,
+                                            size: 16,
+                                            color:
+                                                context.adaptivePrimaryColor,
+                                          ),
+                                          label: Text(
+                                            _sort == _MemberSort.nearest
+                                                ? 'Les plus proches'
+                                                : 'Par nom',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  context.adaptivePrimaryColor,
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            padding:
+                                                const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                            ),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
                                         ),
                                       ],
@@ -3547,3 +3727,6 @@ class _EmptyAreaCard extends StatelessWidget {
     );
   }
 }
+
+/// Ordre de la liste des membres proches (§7e).
+enum _MemberSort { nearest, name }

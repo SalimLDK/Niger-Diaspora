@@ -218,7 +218,7 @@ sens** :
 | `notification_settings_screen` | `642761f` — **§20d fait en production** | non | ⛔ **ne pas basculer** |
 | `devices_screen`, `security_backup_screen` | `13861b7` — **§20b/§20c faits en production** | non | ⛔ **ne pas basculer** |
 | `settings_screen` | `0d90246` entrée debug vers `/design-v2` | non | ⏸ **à la fin** — voir ci-dessous |
-| `map_screen` | `94d721c` (copie aussi), `bdcd795` (prod seule) | partiellement | ⚠ **fusion** |
+| `map_screen` | `94d721c`, `bdcd795` | **oui — la copie est postérieure aux deux** | **basculé** |
 
 ### Quatre copies sont périmées, pas en attente
 
@@ -239,12 +239,38 @@ supprimerait l'accès à la galerie **alors qu'on en a encore besoin** pour
 regarder ce qui n'est pas basculé (carte, profil). Elle passe en dernier,
 quand `design_v2/` disparaît et que l'entrée n'a plus d'objet.
 
-### `map_screen` reste le seul vrai cas bidirectionnel
+### `map_screen` — la fusion n'était pas nécessaire (2026-08-03)
 
-La copie a le §7e (bascule Carte/Liste, badge tuiles allégées, plein écran,
-tri) que la production n'a pas. La production a `bdcd795` (second jeu de
-blancs figés, dégradé de la légende) que la copie n'a pas. Aucune des deux
-n'est un superset : ce fichier se fusionne à la main, hunk par hunk.
+**Basculé.** Je l'avais annoncé comme le seul cas bidirectionnel ; c'était
+faux, et l'erreur venait d'une date.
+
+J'avais daté toutes les copies de `8f8db62`. La copie de `map/` n'en vient
+pas : elle a été créée par **`caa1797`**, le commit qui implémente le §7e —
+donc **après** les deux commits de couleur (`94d721c`, `bdcd795`). La copie
+les contient déjà : `LinearGradient` 0, `AppColors.white` 0,
+`onPrimaryColor` 8, exactement comme la production.
+
+Mesuré plutôt que supposé : la production ne portait que **16 lignes**
+absentes de la copie, dont 15 sont des chemins d'import. La seizième :
+
+```
+prod   final members = _getFilteredMembers();
+copie  final members = _applySort(_getFilteredMembers());
+```
+
+C'est le contrôle de tri du §7e qui enveloppe l'appel — un remplacement, pas
+une perte. Zéro membre perdu, un membre apporté (`_applySort`).
+
+⚠️ **La leçon à retenir pour la suite** : la date de copie n'est pas globale.
+Vérifier par fichier avant de conclure, sinon la carte des risques compare la
+copie à des commits qu'elle contient déjà :
+
+```bash
+git log --diff-filter=A --format=%h -- lib/design_v2/<chemin>
+```
+
+`map_legend.dart` n'a jamais eu de copie — `bdcd795` l'a corrigé en
+production, il n'y a rien à reporter.
 
 ## Configuration du profil
 
@@ -329,7 +355,7 @@ le composer et la carte.
 | 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | fait (en-tête) — bulles à part, voir ci-dessous |
 | 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | fait |
 | 7d | Carte : calques | `map/…/map_screen.dart` | 3549 l. | fait |
-| 7e | Carte : bascule Carte/Liste | idem | — | fait dans `design_v2/map/` — **à reporter en prod**, voir « Carte — §7d faite, §7e à faire » |
+| 7e | Carte : bascule Carte/Liste | idem | — | **basculé en prod** (2026-08-03) |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
 | 13a, 16e | Événements, création | `events/…` (2 écrans) | 2136 l. | **basculé** (famille 2) |
@@ -750,9 +776,10 @@ Deux choix de fond :
 Le tri par distance ne s'applique que si la position est connue ; sinon
 l'ordre d'arrivée est conservé plutôt qu'un classement inventé.
 
-⚠️ Ces quatre points sont développés dans **`design_v2/map/`**, pas dans
-`lib/features/`, parce qu'une session parallèle travaille sur le fichier de
-production. Il faudra reporter, pas écraser.
+✅ **Reportés en production le 2026-08-03.** Ces quatre points étaient
+développés dans `design_v2/map/` parce qu'une session parallèle travaillait
+alors sur le fichier de production. Le report a été fait par copie et non par
+fusion : voir « `map_screen` — la fusion n'était pas nécessaire ».
 
 ### Transferts — état
 
