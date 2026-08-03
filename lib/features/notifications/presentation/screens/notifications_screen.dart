@@ -504,7 +504,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                color: active ? Colors.white : context.textSecondaryColor,
+                // L'accent s'éclaircit en thème sombre : le texte posé
+                // dessus doit s'assombrir, pas rester blanc.
+                color: active
+                    ? context.onPrimaryColor
+                    : context.textSecondaryColor,
               ),
             ),
             if (badge > 0) ...[
@@ -514,7 +518,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: active ? Colors.white : context.adaptivePrimaryColor,
+                  color: active
+                      ? context.onPrimaryColor
+                      : context.adaptivePrimaryColor,
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Text(
@@ -522,8 +528,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color:
-                        active ? context.adaptivePrimaryColor : Colors.white,
+                    color: active
+                        ? context.adaptivePrimaryColor
+                        : context.onPrimaryColor,
                   ),
                 ),
               ),

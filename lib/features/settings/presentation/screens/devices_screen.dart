@@ -235,7 +235,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             Icon(
               Icons.devices,
               size: 64,
-              color: theme.colorScheme.outline,
+              color: context.textSecondaryColor,
             ),
             const SizedBox(height: 16),
             Text(
@@ -247,7 +247,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
               AppLocalizations.of(context)!.devicesE2eeWillAppear,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.outline,
+                color: context.textSecondaryColor,
               ),
             ),
           ],
@@ -285,9 +285,10 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Vous pouvez avoir jusqu\'a 5 appareils connectes '
-                  'simultanement. Chaque appareil possede ses propres '
-                  'cles de chiffrement.',
+                  // La copie localisée existait déjà, accents compris ;
+                  // l'écran en affichait un double codé en dur, sans
+                  // accents.
+                  AppLocalizations.of(context)!.deviceManagementInfo,
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -415,7 +416,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                       Text(
                         '${_getPlatformName(device.platform)} - $lastActiveText',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
+                          color: context.textSecondaryColor,
                         ),
                       ),
                     ],
@@ -478,7 +479,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                   Icon(
                     Icons.fingerprint,
                     size: 16,
-                    color: theme.colorScheme.outline,
+                    color: context.textSecondaryColor,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -486,7 +487,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                       'Empreinte: $fingerprint...',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontFamily: 'monospace',
-                        color: theme.colorScheme.outline,
+                        color: context.textSecondaryColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
