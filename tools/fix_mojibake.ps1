@@ -35,11 +35,11 @@
 
 .EXAMPLE
     # 1. Simuler et RELIRE la liste des conversions uniques avant d'ecrire
-    .\scripts\fix_mojibake.ps1 -Root (Get-Location) | Where-Object { $_ -match '->' } | Sort-Object -Unique
+    .\tools\fix_mojibake.ps1 -Root (Get-Location) | Where-Object { $_ -match '->' } | Sort-Object -Unique
 
 .EXAMPLE
     # 2. Appliquer
-    .\scripts\fix_mojibake.ps1 -Root (Get-Location) -Apply
+    .\tools\fix_mojibake.ps1 -Root (Get-Location) -Apply
 
 .NOTES
     Controles de sortie attendus : « flutter analyze » propre, et un « git diff --stat »
