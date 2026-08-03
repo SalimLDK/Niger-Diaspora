@@ -285,32 +285,23 @@ pour les podcasts (`podcast_episode_entity`). Ajouter le bouton donnerait un
 widget mort de plus, exactement la famille de trous de câblage déjà soldée
 ailleurs. Il faut d'abord un service de transcription côté serveur.
 
-### Transferts, ce qui reste
+### Transferts — état
 
-Les trois écrans ont l'en-tête plat, mais les maquettes 12a et 16c décrivent
-aussi du **contenu** que je n'ai pas touché : le montant en très grand avec le
-détail des frais et le taux garanti (12a), et la frise d'état
-« Débité → En route → Disponible » de l'historique (16c). C'est du travail de
-composition, pas d'habillage — à traiter à part.
+- **§12a (envoi)** : déjà fait par une session précédente — montant en très
+  grand, frais et total lisibles avant validation, carte verte « le
+  bénéficiaire recevra », taux de change affiché.
+- **§16c (historique)** : ajouté — la **frise « Débité → En route →
+  Disponible »** remplace le simple badge de statut, qui ne disait pas si
+  l'argent avait bougé. Les trois jalons sont les états que le domaine
+  connaît déjà (`pending`, `processing`, `completed`). Un transfert échoué,
+  remboursé ou annulé n'affiche pas de frise : il n'a pas de trajet à
+  raconter. Les cartes passent à plat, contour au lieu d'élévation.
 
-Ordre d'attaque retenu, la famille « fil » étant hors périmètre :
-services d'abord (annuaire 407 l., boutique 557 l., ambassades 594 l.,
-appels 748 l., événements 1082 l.), puis discussion, composer et carte —
-les trois plus gros fichiers du dépôt, 9 200 lignes à eux seuls.
-
-## Quatrième vague (écrans secondaires, feuilles et états)
-
-Cette vague descend d'un cran : ce ne sont plus les onglets, mais les écrans
-où l'on va une fois, les **feuilles modales** posées par-dessus un écran
-existant, et les **états** (vide, hors ligne, échec).
-
-**12 des 44 sont déjà câblées** — les fichiers de production citent déjà
-leur `§`, signe qu'une session précédente les a traitées. Comme pour la
-troisième vague, cela vaut pour la **structure** : le langage visuel
-(titre serif, fond crème, trousse) reste à appliquer partout.
-
-Vérification faite par `grep -rl "§<num>" lib/features` : c'est ce grep,
-et non une supposition, qui remplit la colonne « structure ».
+**Non fait, et volontairement** : la mention « **taux garanti 30 min** » du
+§12a. `TransactionEntity` porte bien un `exchangeRate`, mais **aucune date
+d'expiration**. Afficher une garantie que rien ne tient n'est pas un défaut
+cosmétique : c'est une promesse commerciale fausse sur un écran qui déplace
+de l'argent. Il faut d'abord que le backend renvoie une validité de taux.
 
 ### Réglages et compte
 
