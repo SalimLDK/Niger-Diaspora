@@ -28783,6 +28783,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Épisode enregistré en brouillon'**
   String get podcastsEpisodeSavedDraft;
+
+  /// Libelle autonome de la statistique ; la cle posts reste en minuscule pour les incises
+  ///
+  /// In fr, this message translates to:
+  /// **'Publications'**
+  String get profileStatPosts;
 }
 
 class _AppLocalizationsDelegate

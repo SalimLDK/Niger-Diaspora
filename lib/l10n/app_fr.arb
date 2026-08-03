@@ -7971,5 +7971,9 @@
   "podcastsEpisodeSavedDraft": "Épisode enregistré en brouillon",
   "@podcastsEpisodeSavedDraft": {
     "description": "Confirmation apres enregistrement sans publication"
+  },
+  "profileStatPosts": "Publications",
+  "@profileStatPosts": {
+    "description": "Libelle autonome de la statistique ; la cle posts reste en minuscule pour les incises"
   }
 }

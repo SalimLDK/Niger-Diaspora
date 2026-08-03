@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/l10n/locale_provider.dart';
@@ -760,7 +759,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               value: eventsCount.toString(),
               label: l10n.eventsTitle,
               icon: Icons.event_outlined,
-              color: AppColors.info,
+              // AppColors.info est un bleu Material figé, absent de la palette
+              // et insensible au thème. La rangée alterne terracotta et vert.
+              color: context.adaptivePrimaryColor,
             ),
           ),
           _buildStatDivider(),
@@ -771,7 +772,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             },
             child: _AnimatedProfileStat(
               value: postsCount.toString(),
-              label: l10n.posts,
+              label: l10n.profileStatPosts,
               icon: Icons.article_outlined,
               color: context.adaptiveSecondaryColor,
             ),

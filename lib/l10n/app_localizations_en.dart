@@ -15570,4 +15570,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get podcastsEpisodeSavedDraft => 'Episode saved as a draft';
+
+  @override
+  String get profileStatPosts => 'Posts';
 }

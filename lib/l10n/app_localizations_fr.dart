@@ -15718,4 +15718,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get podcastsEpisodeSavedDraft => 'Épisode enregistré en brouillon';
+
+  @override
+  String get profileStatPosts => 'Publications';
 }
