@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,7 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/widgets/chat_background_picker_modal.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
-import '../../data/models/chat_background_model.dart';
+import '../../../../features/settings/data/models/chat_background_model.dart';
 import '../../domain/entities/chat_background_entity.dart';
 import '../providers/notification_preferences_provider.dart';
 import '../widgets/blocked_users_modal.dart';
@@ -92,8 +92,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _backgroundSubtitle(AppLocalizations l10n) {
     final bg = _globalBackground;
     if (bg == null || bg.isDefault) return l10n.defaultTheme;
-    if (bg.isColor) return 'Couleur personnalisée';
-    return 'Image personnalisée';
+    if (bg.isColor) return l10n.customColor;
+    return l10n.customImage;
   }
 
   void _toggleNoiseSuppression(bool value) {
@@ -130,15 +130,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
+      // En-tête plat (§10b) : flèche retour nue et titre serif sur le fond
+      // crème, au lieu de l'AppBar Material teintée.
       appBar: AppBar(
-        title: Text(l10n.settings),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.settings, size: 24),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
         children: [
           // 1. Qui vous voit
           _buildSectionHeader(l10n.whoSeesYou, Icons.visibility_outlined),
@@ -344,24 +350,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
 
-          // Accès à la galerie de la refonte (design_v2). En debug
-          // uniquement : c'est un outil de travail, il n'a rien à faire
-          // dans une version publiée. À retirer avec lib/design_v2/.
-          if (kDebugMode) ...[
-            const SizedBox(height: 24),
-            _buildSectionHeader('Refonte', Icons.palette_outlined),
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: const Icon(Icons.palette_outlined),
-                  title: 'Galerie design v2',
-                  subtitle: 'Les écrans redessinés, copies de travail',
-                  onTap: () => context.push('/design-v2'),
-                ),
-              ],
-            ),
-          ],
-
           const SizedBox(height: 24),
 
           // Zone sensible isolée
@@ -397,46 +385,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Libellé de section (§10b) : petites capitales en chasse fixe. La
+  /// pastille d'icône disparaît ; `isWarning` teinte encore « ZONE SENSIBLE ».
   Widget _buildSectionHeader(
     String title,
     IconData icon, {
     bool isWarning = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: (isWarning
-                      ? context.warningColor
-                      : context.adaptivePrimaryColor)
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              size: 16,
-              color:
-                  isWarning ? context.warningColor : context.adaptivePrimaryColor,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color:
-                  isWarning ? context.warningColor : context.textTertiaryColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
+    return DesignSectionLabel(title);
   }
+
 
   Future<void> _saveSettingsToProfile() async {
     final user = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -574,7 +532,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildThemeColorOption(
-                        'Vert (Défaut)',
+                        l10n.themeGreenDefault,
                         AppThemeColor.green,
                         currentColor == AppThemeColor.green,
                       ),
@@ -1543,25 +1501,15 @@ class _SettingsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border:
-            isDanger
-                ? Border.all(color: AppColors.error.withValues(alpha: 0.2))
-                : null,
-        boxShadow: [
-          BoxShadow(
-            color: (isDanger ? AppColors.error : Colors.black).withValues(
-              alpha: 0.06,
-            ),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(kDesignRadius),
+        border: Border.all(
+          color: isDanger
+              ? AppColors.error.withValues(alpha: 0.35)
+              : context.borderColor,
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(children: children),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
     );
   }
 }
@@ -1957,7 +1905,7 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           Divider(color: context.borderColor),
           const SizedBox(height: 16),
           Text(
-            'Son et Vibration',
+            l10n.soundAndVibration,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -1967,7 +1915,7 @@ class _NotificationPreferencesModal extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildNotificationOption(
             context,
-            'Son',
+            l10n.notificationSound,
             prefs.soundEnabled,
             (value) => ref
                 .read(notificationPreferencesNotifierProvider.notifier)
@@ -2209,7 +2157,7 @@ class _CurrencySelectorModalState extends State<_CurrencySelectorModal> {
             Icon(Icons.search_off, size: 48, color: context.textTertiaryColor),
             const SizedBox(height: 16),
             Text(
-              'Aucune devise trouvée',
+              AppLocalizations.of(context)!.noCurrencyFound,
               style: TextStyle(color: context.textSecondaryColor),
             ),
           ],
