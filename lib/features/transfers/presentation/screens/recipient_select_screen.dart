@@ -6,6 +6,7 @@ import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class RecipientSelectScreen extends ConsumerStatefulWidget {
   const RecipientSelectScreen({super.key});
@@ -177,7 +178,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           Icon(
             hasFilters ? Icons.search_off : Icons.people_outline,
             size: 64,
-            color: AppColors.textTertiary,
+            color: context.textTertiaryColor,
           ),
           const SizedBox(height: 16),
           Text(
@@ -186,7 +187,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 : 'Aucun beneficiaire enregistre',
             style: Theme.of(
               context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
+            ).textTheme.titleMedium?.copyWith(color: context.textSecondaryColor),
           ),
           const SizedBox(height: 8),
           Text(
@@ -195,7 +196,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 : 'Ajoutez votre premier beneficiaire',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
+            ).textTheme.bodyMedium?.copyWith(color: context.textTertiaryColor),
           ),
           if (!hasFilters) ...[
             const SizedBox(height: 24),

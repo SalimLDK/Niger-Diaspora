@@ -13,7 +13,7 @@ import '../../domain/entities/recipient_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/transfer_failure_kind.dart';
 import '../providers/transfer_provider.dart';
-import '../../../core/theme/adaptive_colors.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String transactionId;

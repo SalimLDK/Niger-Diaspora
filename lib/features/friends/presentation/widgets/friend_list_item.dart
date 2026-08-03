@@ -8,6 +8,7 @@ import '../../domain/entities/friend_entity.dart';
 import '../providers/friend_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class FriendListItem extends ConsumerWidget {
   final FriendEntity friend;
@@ -20,7 +21,7 @@ class FriendListItem extends ConsumerWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-        side: BorderSide(color: AppColors.border),
+        side: BorderSide(color: context.borderColor),
       ),
       child: InkWell(
         onTap: () => context.push('/profile/${friend.id}'),

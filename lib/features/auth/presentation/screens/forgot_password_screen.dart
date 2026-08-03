@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -71,19 +72,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceVariant,
+      backgroundColor: context.surfaceVariantColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Réinitialisation du mot de passe',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: context.textPrimaryColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: context.textPrimaryColor),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -98,7 +99,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   'Entrez votre adresse email pour recevoir un lien de réinitialisation.',
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppColors.textPrimary),
+                  ).textTheme.bodyLarge?.copyWith(color: context.textPrimaryColor),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),

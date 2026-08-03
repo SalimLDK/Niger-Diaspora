@@ -382,7 +382,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     return profileAsync.when(
       loading:
           () => Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.backgroundColor,
             appBar: AppBar(
               leading: IconButton(
                 icon: const AppIcon(AppIcon.arrowBack),
@@ -403,7 +403,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
           ),
       error:
           (err, stack) => Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.backgroundColor,
             appBar: AppBar(
               leading: IconButton(
                 icon: const AppIcon(AppIcon.arrowBack),
@@ -429,7 +429,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
 
   Widget _buildDeletedProfile(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const AppIcon(AppIcon.arrowBack),

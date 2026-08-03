@@ -29,6 +29,18 @@ Ce qui a été réellement exercé sur l'appareil, et ce que ça a révélé.
 - **Débordement de 6 px du rail de stories** à `font_scale = 1.1` (le libellé
   « Ajouter » était coupé) : hauteur figée à 96 px, désormais calculée depuis
   le `textScaler`.
+- **Écran de connexion illisible quand le système est en thème sombre** — il
+  n'y avait pas deux sources de vérité sur la luminosité, mais un fond figé.
+  Le `Scaffold` prenait `AppColors.surfaceVariant` (crème, valeur claire
+  codée en dur) pendant que les textes et les champs suivaient normalement le
+  thème sombre : titre et libellés clairs posés sur un fond clair, donc
+  invisibles. Même schéma sur 15 fichiers, 48 occurrences de jetons clairs
+  (`textPrimary`, `textSecondary`, `textTertiary`, `background`,
+  `surfaceVariant`, `border`) remplacées par les accesseurs de
+  `adaptive_colors.dart`. `AuthButton` figeait en plus son fond sur blanc :
+  fond et texte passent au thème par défaut. **Vérifié sur le SM A515F en
+  mode nuit** : capture après correction, écran entièrement sombre,
+  « Bienvenue », « Email » et le bouton Google tous lisibles.
 
 **Défauts trouvés, non corrigés**
 
@@ -45,12 +57,6 @@ Ce qui a été réellement exercé sur l'appareil, et ce que ça a révélé.
   applicatif est « Salim L. ». Même inversion de priorité dans
   `profile_config_screen.dart:90` — relancer l'assistant renomme donc le profil
   avec la valeur Firebase Auth.
-- **Écran de connexion illisible quand le système est en thème sombre** : fond
-  crème (valeurs claires) mais titre « Bienvenue » et libellé « Email » en
-  blanc, donc invisibles, pendant que les champs de saisie sont sombres.
-  Reproduit deux fois, en rendu complet et non en flash de transition.
-  À instrumenter : deux sources de vérité pour la luminosité cohabitent dans
-  la même passe de build.
 - **Les drapeaux d'onboarding ne survivent pas à une réinstallation** :
   `hasGivenConsent` / `profileConfigComplete` sont lus dans Firestore
   `users/{uid}`, où ils n'existent pas pour ce compte. Toute réinstallation
@@ -345,19 +351,17 @@ en solo.
 
 ## Thème sombre — jetons clairs codés en dur
 
-- [x] **Écran de connexion illisible en thème sombre** (`login_screen.dart`,
-  `auth_button.dart`, + 13 autres fichiers, 2026-08-03) : **constaté sur le
-  SM A515F**, téléphone en mode nuit. Capture avant correction : fond crème
-  clair (`AppColors.surfaceVariant` figé sur le `Scaffold`), champs de saisie
-  quasi noirs (venant du thème sombre), titre « Bienvenue » et libellé
-  « Email » invisibles — texte clair du thème sombre posé sur le fond clair
-  figé. 48 occurrences de jetons clairs (`AppColors.textPrimary`,
-  `textSecondary`, `textTertiary`, `background`, `surfaceVariant`, `border`)
-  remplacées par les accesseurs adaptatifs de `adaptive_colors.dart` sur
-  15 fichiers : les 5 écrans d'auth, les 4 écrans de transferts, 3 écrans de
-  profil, la carte, et `friend_list_item`. **Reste à vérifier** : les écrans
-  de transferts et de profil, non atteignables sans session (la
-  réinstallation déconnecte l'app).
+- [x] **Écrans d'authentification en thème sombre** (`login_screen.dart`,
+  `register_screen.dart`, `forgot_password_screen.dart`,
+  `maintenance_screen.dart`, `splash_screen.dart`, `auth_button.dart`,
+  2026-08-03) : vérifié sur le SM A515F en mode nuit — voir le bloc de session
+  en tête de fichier. Seul l'écran de connexion a été capturé ; les quatre
+  autres partagent le même correctif mais n'ont pas été ouverts.
+
+- [ ] **Les 9 autres fichiers de la même passe** : 4 écrans de transferts,
+  3 écrans de profil, la carte et `friend_list_item` — non atteignables sans
+  session, la réinstallation déconnecte l'app. À rouvrir en mode nuit une fois
+  reconnecté.
 
 - [ ] **Blancs bruts restants** : ~587 `Colors.white` / `AppColors.white` et
   184 `Colors.black*` subsistent dans `lib/features`. La grande majorité est

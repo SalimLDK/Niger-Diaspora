@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class MaintenanceScreen extends ConsumerWidget {
   const MaintenanceScreen({super.key});
@@ -11,7 +12,7 @@ class MaintenanceScreen extends ConsumerWidget {
     final message = ref.watch(maintenanceMessageProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceVariant,
+      backgroundColor: context.surfaceVariantColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -38,7 +39,7 @@ class MaintenanceScreen extends ConsumerWidget {
                 Text(
                   'Maintenance en cours',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.textPrimary,
+                    color: context.textPrimaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -48,7 +49,7 @@ class MaintenanceScreen extends ConsumerWidget {
                   message ??
                       'L\'application est temporairement indisponible pour maintenance. Veuillez réessayer plus tard.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.textSecondaryColor,
                   ),
                   textAlign: TextAlign.center,
                 ),

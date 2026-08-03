@@ -1359,7 +1359,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           children: [
             Icon(
               Icons.verified_user_outlined,
-              color: hasPhone ? AppColors.primary : AppColors.textTertiary,
+              color: hasPhone ? AppColors.primary : context.textTertiaryColor,
               size: 20,
             ),
             const SizedBox(width: 6),

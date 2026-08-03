@@ -10,6 +10,7 @@ import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../friends/domain/entities/friend_entity.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../domain/entities/recipient_entity.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 /// Screen to add a friend as a recipient for money transfers
 class FriendRecipientSelectScreen extends ConsumerStatefulWidget {
@@ -138,7 +139,7 @@ class _FriendRecipientSelectScreenState
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-        side: BorderSide(color: AppColors.border),
+        side: BorderSide(color: context.borderColor),
       ),
       child: InkWell(
         onTap: () => _selectFriend(friend),

@@ -7,6 +7,7 @@ import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -72,7 +73,7 @@ class _TransactionHistoryScreenState
   Widget _buildActiveFilters() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.surfaceVariant,
+      color: context.surfaceVariantColor,
       child: Row(
         children: [
           const Text('Filtres actifs: '),
@@ -214,7 +215,7 @@ class _TransactionHistoryScreenState
       child: Text(
         date,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: AppColors.textSecondary,
+          color: context.textSecondaryColor,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -280,12 +281,12 @@ class _TransactionHistoryScreenState
             if (transaction.createdAt != null)
               Text(
                 timeFormat.format(transaction.createdAt!),
-                style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                style: TextStyle(color: context.textTertiaryColor, fontSize: 12),
               ),
             const Spacer(),
             Text(
               '${transaction.amountInXof.toStringAsFixed(0)} XOF',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: TextStyle(color: context.textSecondaryColor, fontSize: 12),
             ),
           ],
         ),
@@ -305,14 +306,14 @@ class _TransactionHistoryScreenState
           Icon(
             hasFilters ? Icons.filter_list_off : Icons.receipt_long_outlined,
             size: 64,
-            color: AppColors.textTertiary,
+            color: context.textTertiaryColor,
           ),
           const SizedBox(height: 16),
           Text(
             hasFilters ? 'Aucun transfert trouve' : 'Aucun transfert effectue',
             style: Theme.of(
               context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
+            ).textTheme.titleMedium?.copyWith(color: context.textSecondaryColor),
           ),
           const SizedBox(height: 8),
           Text(
@@ -321,7 +322,7 @@ class _TransactionHistoryScreenState
                 : 'Envoyez de l\'argent a vos proches au Niger',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
+            ).textTheme.bodyMedium?.copyWith(color: context.textTertiaryColor),
           ),
           if (!hasFilters) ...[
             const SizedBox(height: 24),
@@ -509,7 +510,7 @@ class _TransactionHistoryScreenState
       case TransactionStatus.refunded:
         return _StatusInfo(Icons.replay, AppColors.info, 'Rembourse');
       case TransactionStatus.cancelled:
-        return _StatusInfo(Icons.cancel, AppColors.textTertiary, 'Annule');
+        return _StatusInfo(Icons.cancel, context.textTertiaryColor, 'Annule');
     }
   }
 }

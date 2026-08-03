@@ -2955,7 +2955,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(l10n.mapTitle),
         actions: [

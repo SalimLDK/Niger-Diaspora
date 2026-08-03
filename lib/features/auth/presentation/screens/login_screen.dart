@@ -8,6 +8,7 @@ import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_button.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -69,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceVariant,
+      backgroundColor: context.surfaceVariantColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -123,7 +124,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   l10n.joinDiaspora,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.textSecondaryColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -135,8 +136,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _handleGoogleSignIn,
                   icon: 'G',
                   label: l10n.continueWithGoogle,
-                  backgroundColor: AppColors.white,
-                  textColor: AppColors.textPrimary,
+                  // Fond et texte laissés au thème : un fond blanc figé
+                  // rendait le libellé illisible une fois le thème sombre
+                  // appliqué au texte.
                   isLoading: isLoading,
                 ),
 
@@ -151,7 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Text(
                         l10n.or,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textTertiary,
+                          color: context.textTertiaryColor,
                         ),
                       ),
                     ),
@@ -248,7 +250,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       l10n.noAccount,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textTertiary,
+                        color: context.textTertiaryColor,
                       ),
                     ),
                     const SizedBox(width: 4),
