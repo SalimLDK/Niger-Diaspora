@@ -1082,6 +1082,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowEmbassies => 'Show embassies';
 
   @override
+  String get reconnectedTitle => 'Back online';
+
+  @override
+  String reconnectedAfter(String duration) {
+    return 'Outage of $duration';
+  }
+
+  @override
+  String get reconnectedSentSection => 'Sent first';
+
+  @override
+  String get reconnectedReceivedSection => 'Received while you were away';
+
+  @override
+  String get reconnectedOutcomeSent => 'Sent';
+
+  @override
+  String get reconnectedOutcomeRetrying => 'Will be resent';
+
+  @override
+  String get reconnectedOutcomeAbandoned => 'Given up after 3 attempts';
+
+  @override
+  String reconnectedAbandonedWarning(int count) {
+    return '$count item(s) could not be sent and were given up. You\'ll need to redo them by hand.';
+  }
+
+  @override
+  String reconnectedUnreadMessages(int count) {
+    return '$count unread message(s)';
+  }
+
+  @override
+  String reconnectedUnreadNotifications(int count) {
+    return '$count notification(s)';
+  }
+
+  @override
+  String get reconnectedNothingReceived => 'Nothing new.';
+
+  @override
+  String get reconnectedActionCreate => 'Creation';
+
+  @override
+  String get reconnectedActionUpdate => 'Update';
+
+  @override
+  String get reconnectedActionDelete => 'Deletion';
+
+  @override
   String get feedPostNotSent => 'Post not sent';
 
   @override

@@ -444,6 +444,48 @@
   "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
   "mapZoomOut": "Dézoomer",
   "mapShowEmbassies": "Voir les ambassades",
+  "reconnectedTitle": "Connexion revenue",
+  "reconnectedAfter": "Coupure de {duration}",
+  "@reconnectedAfter": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "reconnectedSentSection": "Envoyé en priorité",
+  "reconnectedReceivedSection": "Reçu pendant votre absence",
+  "reconnectedOutcomeSent": "Envoyé",
+  "reconnectedOutcomeRetrying": "Sera renvoyé",
+  "reconnectedOutcomeAbandoned": "Abandonné après 3 tentatives",
+  "reconnectedAbandonedWarning": "{count} élément(s) n'ont pas pu être envoyés et ont été abandonnés. Il faut les refaire à la main.",
+  "@reconnectedAbandonedWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedUnreadMessages": "{count} message(s) non lu(s)",
+  "@reconnectedUnreadMessages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedUnreadNotifications": "{count} notification(s)",
+  "@reconnectedUnreadNotifications": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedNothingReceived": "Rien de nouveau.",
+  "reconnectedActionCreate": "Création",
+  "reconnectedActionUpdate": "Modification",
+  "reconnectedActionDelete": "Suppression",
   "feedPostNotSent": "Publication non envoyée",
   "feedPostNotSentHint": "Ton texte est gardé ici. Rien n'est perdu.",
   "feedPostDiscard": "Abandonner",

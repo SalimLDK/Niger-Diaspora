@@ -10,6 +10,7 @@ import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
+import 'shared/widgets/reconnection_summary.dart';
 
 class NigerDiasporaApp extends ConsumerStatefulWidget {
   const NigerDiasporaApp({super.key});
@@ -144,6 +145,10 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
               : AppTheme.darkTheme,
       themeMode: _getThemeMode(themeMode),
       routerConfig: router,
+      // Le bilan de reprise (maquette 3b) peut survenir sur n'importe quel
+      // écran : l'écoute est montée une seule fois, au-dessus du routeur.
+      builder: (context, child) =>
+          ReconnectionWatcher(child: child ?? const SizedBox.shrink()),
       locale: locale,
       supportedLocales: LocaleNotifier.supportedLocales,
       localizationsDelegates: const [

@@ -2108,6 +2108,90 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @reconnectedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion revenue'**
+  String get reconnectedTitle;
+
+  /// No description provided for @reconnectedAfter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coupure de {duration}'**
+  String reconnectedAfter(String duration);
+
+  /// No description provided for @reconnectedSentSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé en priorité'**
+  String get reconnectedSentSection;
+
+  /// No description provided for @reconnectedReceivedSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu pendant votre absence'**
+  String get reconnectedReceivedSection;
+
+  /// No description provided for @reconnectedOutcomeSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé'**
+  String get reconnectedOutcomeSent;
+
+  /// No description provided for @reconnectedOutcomeRetrying.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sera renvoyé'**
+  String get reconnectedOutcomeRetrying;
+
+  /// No description provided for @reconnectedOutcomeAbandoned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abandonné après 3 tentatives'**
+  String get reconnectedOutcomeAbandoned;
+
+  /// No description provided for @reconnectedAbandonedWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} élément(s) n\'ont pas pu être envoyés et ont été abandonnés. Il faut les refaire à la main.'**
+  String reconnectedAbandonedWarning(int count);
+
+  /// No description provided for @reconnectedUnreadMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} message(s) non lu(s)'**
+  String reconnectedUnreadMessages(int count);
+
+  /// No description provided for @reconnectedUnreadNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} notification(s)'**
+  String reconnectedUnreadNotifications(int count);
+
+  /// No description provided for @reconnectedNothingReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de nouveau.'**
+  String get reconnectedNothingReceived;
+
+  /// No description provided for @reconnectedActionCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Création'**
+  String get reconnectedActionCreate;
+
+  /// No description provided for @reconnectedActionUpdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification'**
+  String get reconnectedActionUpdate;
+
+  /// No description provided for @reconnectedActionDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression'**
+  String get reconnectedActionDelete;
+
   /// No description provided for @feedPostNotSent.
   ///
   /// In fr, this message translates to:

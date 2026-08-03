@@ -444,6 +444,48 @@
   "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
   "mapZoomOut": "Zoom out",
   "mapShowEmbassies": "Show embassies",
+  "reconnectedTitle": "Back online",
+  "reconnectedAfter": "Outage of {duration}",
+  "@reconnectedAfter": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "reconnectedSentSection": "Sent first",
+  "reconnectedReceivedSection": "Received while you were away",
+  "reconnectedOutcomeSent": "Sent",
+  "reconnectedOutcomeRetrying": "Will be resent",
+  "reconnectedOutcomeAbandoned": "Given up after 3 attempts",
+  "reconnectedAbandonedWarning": "{count} item(s) could not be sent and were given up. You'll need to redo them by hand.",
+  "@reconnectedAbandonedWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedUnreadMessages": "{count} unread message(s)",
+  "@reconnectedUnreadMessages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedUnreadNotifications": "{count} notification(s)",
+  "@reconnectedUnreadNotifications": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reconnectedNothingReceived": "Nothing new.",
+  "reconnectedActionCreate": "Creation",
+  "reconnectedActionUpdate": "Update",
+  "reconnectedActionDelete": "Deletion",
   "feedPostNotSent": "Post not sent",
   "feedPostNotSentHint": "Your text is kept here. Nothing is lost.",
   "feedPostDiscard": "Discard",

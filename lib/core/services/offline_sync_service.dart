@@ -65,6 +65,61 @@ class PendingAction {
   );
 }
 
+/// Sort d'une action après une reprise de connexion.
+enum SyncOutcome {
+  /// Partie au serveur.
+  sent,
+
+  /// A échoué mais sera retentée à la prochaine reconnexion.
+  retrying,
+
+  /// Abandonnée après le nombre maximal de tentatives — l'action est perdue,
+  /// et c'est la seule chose que l'utilisateur doit absolument savoir.
+  abandoned,
+}
+
+/// Ce qu'est devenue une action mise en file pendant la coupure.
+class SyncedActionReport {
+  final String collection;
+  final OfflineActionType actionType;
+  final SyncOutcome outcome;
+
+  const SyncedActionReport({
+    required this.collection,
+    required this.actionType,
+    required this.outcome,
+  });
+}
+
+/// Bilan d'une reprise de connexion (maquette 3b).
+///
+/// La bannière hors-ligne disait seulement « N en attente ». Après une longue
+/// coupure, l'utilisateur a besoin de savoir ce qui est réellement parti et
+/// ce qui a été abandonné, action par action.
+class ReconnectionReport {
+  /// Début de la coupure, si on a pu l'observer (null si l'app a démarré
+  /// déjà hors ligne).
+  final DateTime? offlineSince;
+  final DateTime reconnectedAt;
+  final List<SyncedActionReport> actions;
+
+  const ReconnectionReport({
+    required this.offlineSince,
+    required this.reconnectedAt,
+    required this.actions,
+  });
+
+  Duration? get outageDuration =>
+      offlineSince == null ? null : reconnectedAt.difference(offlineSince!);
+
+  int get sentCount =>
+      actions.where((a) => a.outcome == SyncOutcome.sent).length;
+  int get abandonedCount =>
+      actions.where((a) => a.outcome == SyncOutcome.abandoned).length;
+  int get retryingCount =>
+      actions.where((a) => a.outcome == SyncOutcome.retrying).length;
+}
+
 /// Service de synchronisation offline
 class OfflineSyncService {
   static const String _pendingActionsBox = 'pending_actions';
@@ -85,6 +140,17 @@ class OfflineSyncService {
   final _syncStatusController = StreamController<SyncStatus>.broadcast();
   Stream<SyncStatus> get syncStatusStream => _syncStatusController.stream;
 
+  final _reconnectionController =
+      StreamController<ReconnectionReport>.broadcast();
+
+  /// Émis une fois par reprise de connexion, uniquement s'il y avait quelque
+  /// chose en attente — sinon il n'y a rien à raconter à l'utilisateur.
+  Stream<ReconnectionReport> get reconnectionStream =>
+      _reconnectionController.stream;
+
+  /// Début de la coupure en cours (null tant qu'on est en ligne).
+  DateTime? _offlineSince;
+
   OfflineSyncService._();
 
   Future<void> initialize() async {
@@ -97,6 +163,9 @@ class OfflineSyncService {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen((isConnected) {
       if (isConnected) {
         syncPendingActions();
+      } else {
+        // Horodater la coupure pour pouvoir en donner la durée au retour.
+        _offlineSince ??= DateTime.now();
       }
     });
 
@@ -111,6 +180,7 @@ class OfflineSyncService {
   void dispose() {
     _connectivitySubscription?.cancel();
     _syncStatusController.close();
+    _reconnectionController.close();
   }
 
   /// Ajoute une action à la queue offline
@@ -183,11 +253,18 @@ class OfflineSyncService {
 
     final actions = getPendingActions();
     String? lastError;
+    // Bilan par action, pour l'écran de reprise (maquette 3b).
+    final report = <SyncedActionReport>[];
 
     for (final action in actions) {
       try {
         await _executeAction(action);
         await box.delete(action.id);
+        report.add(SyncedActionReport(
+          collection: action.collection,
+          actionType: action.actionType,
+          outcome: SyncOutcome.sent,
+        ));
       } catch (e) {
         debugPrint('OfflineSyncService: Error syncing action ${action.id}: $e');
         lastError = e.toString();
@@ -199,9 +276,19 @@ class OfflineSyncService {
           // Supprimer après max retries
           await box.delete(action.id);
           debugPrint('OfflineSyncService: Action ${action.id} removed after $_maxRetries retries');
+          report.add(SyncedActionReport(
+            collection: action.collection,
+            actionType: action.actionType,
+            outcome: SyncOutcome.abandoned,
+          ));
         } else {
           // Mettre à jour avec le nouveau retry count
           await box.put(action.id, jsonEncode(updatedAction.toJson()));
+          report.add(SyncedActionReport(
+            collection: action.collection,
+            actionType: action.actionType,
+            outcome: SyncOutcome.retrying,
+          ));
         }
       }
     }
@@ -213,6 +300,17 @@ class OfflineSyncService {
       isSyncing: false,
       lastError: lastError,
     ));
+
+    // Rien n'était en attente : la reprise est un non-événement, on ne
+    // dérange pas l'utilisateur avec un récap vide.
+    if (report.isNotEmpty) {
+      _reconnectionController.add(ReconnectionReport(
+        offlineSince: _offlineSince,
+        reconnectedAt: DateTime.now(),
+        actions: report,
+      ));
+    }
+    _offlineSince = null;
   }
 
   /// Exécute une action sur Firestore
