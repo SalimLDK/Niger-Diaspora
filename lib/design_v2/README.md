@@ -117,8 +117,9 @@ ouvre la copie, pas l'écran de production.
 adb shell am start -a android.intent.action.VIEW -d "diaspo://design-v2"
 ```
 
-Sinon, depuis l'app : n'importe quel `context.push('/design-v2')`, ou la
-barre d'adresse en debug web.
+Ou, plus simplement, depuis l'app : **Réglages → Refonte → Galerie design
+v2**. Cette entrée est sous `kDebugMode` — c'est un outil de travail, elle
+n'apparaît pas dans une version publiée.
 
 Les écrans qui ont besoin d'un compte ou d'une conversation peuvent rester
 vides : c'est le **rendu** qu'on regarde ici, pas les données.

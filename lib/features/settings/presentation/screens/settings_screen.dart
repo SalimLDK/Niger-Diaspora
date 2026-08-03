@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -342,6 +343,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+
+          // Accès à la galerie de la refonte (design_v2). En debug
+          // uniquement : c'est un outil de travail, il n'a rien à faire
+          // dans une version publiée. À retirer avec lib/design_v2/.
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader('Refonte', Icons.palette_outlined),
+            _SettingsCard(
+              children: [
+                _SettingsTile(
+                  icon: const Icon(Icons.palette_outlined),
+                  title: 'Galerie design v2',
+                  subtitle: 'Les écrans redessinés, copies de travail',
+                  onTap: () => context.push('/design-v2'),
+                ),
+              ],
+            ),
+          ],
 
           const SizedBox(height: 24),
 
