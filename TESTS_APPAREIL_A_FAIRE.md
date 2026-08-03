@@ -511,29 +511,51 @@ téléphone était déjà dans les deux conditions les plus risquées : nuit et
   appareils connectes simultanement ») alors que la clé localisée existait
   et n'était pas utilisée. Corrigé — **non vérifié à l'écran**.
 
-### ⚠ Anomalie observée, non reproduite : configuration du profil en clair
+### ✅ Anomalie du thème : élucidée, ce n'était pas un bug
 
-À 5:04, l'étape 3/4 de la configuration du profil s'est affichée en
-**crème avec des cartes blanches**, alors que l'app était en thème sombre
-avant et après (accueil, paramètres, notifications tous en nuit).
+L'écran de configuration du profil, puis l'annuaire Business, se sont
+affichés en crème alors que je croyais le téléphone en thème sombre.
 
-Ce qui a été écarté par vérification :
+**Cause réelle : le téléphone était passé en mode clair.** `settings get
+secure ui_night_mode` renvoyait `1` au moment des captures, contre `2` au
+début de la session — mes séquences de `adb shell input tap` à l'aveugle
+ont dû basculer le réglage système en passant par le volet de
+notifications.
 
-- l'écran utilise bien `context.backgroundColor` (`profile_config_screen.dart:314`) ;
-- `design_kit.dart` branche correctement sur `context.isDarkMode` ;
-- le routeur n'enveloppe pas la route dans un `Theme` ;
-- le splash Flutter rend en sombre, donc le thème est chargé tôt.
+Confirmé en remettant `cmd uimode night yes` : le même écran de
+configuration s'est immédiatement affiché entièrement en sombre, jetons,
+puces et bascules compris. **Il n'y a pas de bug de thème, ni sur cet
+écran ni sur l'annuaire.** Les deux suivent correctement `adaptive_colors`.
 
-Non reproduit après `force-stop` + relance. **Cause inconnue.** À
-retenter en passant par le parcours normal (bandeau « Complétez votre
-profil » de l'accueil), et à regarder en priorité si l'étape 4/4 —
-celle qui applique le thème en direct — laisse un état incohérent
-quand on revient en arrière.
+À retenir pour les prochaines sessions : vérifier `ui_night_mode` **avant
+et après** chaque série de captures. Piloter l'app par taps aveugles peut
+modifier des réglages système et fabriquer de faux défauts visuels.
 
-Ce que je croyais avoir vu et qui est faux : « écran de lancement blanc
-en thème sombre ». Au relancement suivant il était noir, et le splash
-Flutter aussi. Le blanc vu à 5:01 suivait immédiatement un
-`adb install -r` et n'a pas été reproduit.
+### ⚠ Redémarrages de l'app pendant les tests : mémoire, pas crash
+
+L'app redémarrait à répétition pendant la navigation. `logcat` montre des
+kills `lmkd` et `/proc/meminfo` donnait **122 Mo libres sur 5,7 Go**.
+L'APK debug pèse 317 Mo. Après `am kill-all` (612 Mo libres), la
+navigation a tenu. Ce n'est pas un crash applicatif.
+
+### ⚠ Ouvert : « Précédent » toujours tronqué
+
+Le passage du ratio 1:2 à 3:4 n'a pas suffi — le bouton affiche encore
+« Précéd », sans points de suspension, donc coupé et non ellipsé. Le
+routeur pointe pourtant bien sur le fichier corrigé et l'ARB contient
+« Précédent » en entier.
+
+Correctif appliqué en second recours : le libellé des boutons de la
+trousse est enveloppé dans un `FittedBox(scaleDown)`, pour qu'un mot trop
+long **rétrécisse** au lieu d'être coupé. **Non vérifié sur appareil** —
+à confirmer au prochain passage.
+
+### ⚠ Encore des accents manquants
+
+« Aucune entreprise trouvee · Soyez le premier a ajouter votre
+entreprise ! » sur l'annuaire Business. Même famille que le texte en dur
+de l'écran des appareils. Un balayage des littéraux français sans accents
+reste à faire sur tout le dépôt.
 
 ## Quatrième vague — écrans repris en production (2026-08-03)
 

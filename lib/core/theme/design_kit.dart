@@ -590,7 +590,9 @@ class DesignSecondaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(kDesignRadius),
           ),
         ),
-        child: Text(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
           label,
           style: TextStyle(
             fontSize: 15.5,
@@ -600,6 +602,7 @@ class DesignSecondaryButton extends StatelessWidget {
                     ? context.textDisabledColor
                     : context.textSecondaryColor,
           ),
+        ),
         ),
       ),
     );
