@@ -2108,6 +2108,120 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @feedPostNotSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication non envoyée'**
+  String get feedPostNotSent;
+
+  /// No description provided for @feedPostNotSentHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton texte est gardé ici. Rien n\'est perdu.'**
+  String get feedPostNotSentHint;
+
+  /// No description provided for @feedPostDiscard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abandonner'**
+  String get feedPostDiscard;
+
+  /// No description provided for @feedErrorNoConnectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion'**
+  String get feedErrorNoConnectionTitle;
+
+  /// No description provided for @feedErrorNoConnectionBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton téléphone n\'est relié à aucun réseau. Le fil se rechargera dès que la connexion revient.'**
+  String get feedErrorNoConnectionBody;
+
+  /// No description provided for @feedErrorServerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nos serveurs ne répondent pas'**
+  String get feedErrorServerTitle;
+
+  /// No description provided for @feedErrorServerBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ça vient de nous, pas de toi. Nouvelle tentative automatique.'**
+  String get feedErrorServerBody;
+
+  /// No description provided for @feedErrorServerCountdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle tentative dans {seconds} s'**
+  String feedErrorServerCountdown(int seconds);
+
+  /// No description provided for @feedErrorSlowTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réseau trop lent'**
+  String get feedErrorSlowTitle;
+
+  /// No description provided for @feedErrorSlowBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion n\'a pas tenu assez longtemps pour charger le fil. Réessaie, ou attends un meilleur réseau.'**
+  String get feedErrorSlowBody;
+
+  /// No description provided for @feedErrorUnknownTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le fil n\'a pas pu se charger'**
+  String get feedErrorUnknownTitle;
+
+  /// No description provided for @feedErrorUnknownBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur inattendue est survenue.'**
+  String get feedErrorUnknownBody;
+
+  /// No description provided for @feedCachedNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fil hors ligne · dernière mise à jour {when}'**
+  String feedCachedNotice(String when);
+
+  /// No description provided for @feedCachedNoticeUnknownTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fil hors ligne · publications déjà chargées'**
+  String get feedCachedNoticeUnknownTime;
+
+  /// No description provided for @audioRoomsLiveAndScheduled.
+  ///
+  /// In fr, this message translates to:
+  /// **'{live} en direct · {scheduled} programmés'**
+  String audioRoomsLiveAndScheduled(int live, int scheduled);
+
+  /// No description provided for @audioRoomOpenRoom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un salon'**
+  String get audioRoomOpenRoom;
+
+  /// No description provided for @audioRoomOpenRoomHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lance une discussion en direct, seul ou à plusieurs.'**
+  String get audioRoomOpenRoomHint;
+
+  /// No description provided for @heritageOralTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Patrimoine oral'**
+  String get heritageOralTitle;
+
+  /// No description provided for @heritageOralHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contes, proverbes et mémoire, à écouter même hors ligne.'**
+  String get heritageOralHint;
+
   /// No description provided for @transferFailOperatorBlockedTitle.
   ///
   /// In fr, this message translates to:

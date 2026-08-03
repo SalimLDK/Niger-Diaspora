@@ -444,6 +444,49 @@
   "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
   "mapZoomOut": "Zoom out",
   "mapShowEmbassies": "Show embassies",
+  "feedPostNotSent": "Post not sent",
+  "feedPostNotSentHint": "Your text is kept here. Nothing is lost.",
+  "feedPostDiscard": "Discard",
+  "feedErrorNoConnectionTitle": "No connection",
+  "feedErrorNoConnectionBody": "Your phone isn't on any network. The feed will reload as soon as the connection is back.",
+  "feedErrorServerTitle": "Our servers aren't responding",
+  "feedErrorServerBody": "This is on us, not on you. Retrying automatically.",
+  "feedErrorServerCountdown": "Retrying in {seconds} s",
+  "@feedErrorServerCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "feedErrorSlowTitle": "Network too slow",
+  "feedErrorSlowBody": "The connection didn't hold long enough to load the feed. Try again, or wait for a better network.",
+  "feedErrorUnknownTitle": "The feed couldn't load",
+  "feedErrorUnknownBody": "An unexpected error occurred.",
+  "feedCachedNotice": "Offline feed · last updated {when}",
+  "@feedCachedNotice": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "feedCachedNoticeUnknownTime": "Offline feed · posts already loaded",
+  "audioRoomsLiveAndScheduled": "{live} live · {scheduled} scheduled",
+  "@audioRoomsLiveAndScheduled": {
+    "placeholders": {
+      "live": {
+        "type": "int"
+      },
+      "scheduled": {
+        "type": "int"
+      }
+    }
+  },
+  "audioRoomOpenRoom": "Open a room",
+  "audioRoomOpenRoomHint": "Start a live conversation, alone or with others.",
+  "heritageOralTitle": "Oral heritage",
+  "heritageOralHint": "Tales, proverbs and memory, listenable even offline.",
   "transferFailOperatorBlockedTitle": "Blocked by the operator",
   "transferFailOperatorBlockedDesc": "The recipient's operator refused to credit the account (limit reached, missing ID documents, or frozen account).",
   "transferFailDuplicateTitle": "Duplicate prevented",

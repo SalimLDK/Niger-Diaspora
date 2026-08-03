@@ -6,6 +6,7 @@ import '../../../features/audio_rooms/presentation/screens/audio_rooms_list_scre
 import '../../../features/audio_rooms/presentation/screens/create_audio_room_screen.dart';
 import '../../../features/audio_rooms/presentation/screens/creator_earnings_screen.dart';
 import '../../../features/audio_rooms/presentation/screens/ghost_moderator_screen.dart';
+import '../../../features/audio_rooms/presentation/screens/heritage_library_screen.dart';
 import '../../../features/audio_rooms/presentation/screens/replay_player_screen.dart';
 import '../../../features/audio_rooms/presentation/screens/save_as_podcast_screen.dart';
 import '../../../features/audio_rooms/presentation/screens/schedule_room_screen.dart';
@@ -26,6 +27,12 @@ class AudioRoomsRoutes {
         GoRoute(
           path: '/audio-rooms/create',
           builder: (context, state) => const CreateAudioRoomScreen(),
+        ),
+        // Bibliothèque du patrimoine : l'écran existait et fonctionnait, mais
+        // aucune route n'y menait — il était inatteignable dans l'app.
+        GoRoute(
+          path: '/audio-rooms/heritage',
+          builder: (context, state) => const HeritageLibraryScreen(),
         ),
         GoRoute(
           path: '/audio-rooms/schedule',

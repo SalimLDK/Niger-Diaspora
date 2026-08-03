@@ -16,6 +16,7 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/ad_slot.dart';
+import '../widgets/feed_error_state.dart';
 import '../widgets/feed_segmented_control.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
@@ -260,6 +261,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 },
               ),
             if (filter != null) _HashtagBanner(hashtag: filter),
+            // Les publications viennent du cache : le dire, sinon
+            // l'utilisateur croit lire un fil à jour.
+            if (feedState.isFromCache)
+              FeedCachedNotice(cachedAt: feedState.cachedAt),
+            // Publications dont l'envoi a échoué : en tête, avant tout le
+            // reste, pour que l'utilisateur les voie sans avoir à chercher.
+            ...feedState.failedPosts.map(
+              (p) => FailedPostCard(
+                content: p.content,
+                onRetry: () =>
+                    ref.read(feedNotifierProvider.notifier).retryFailedPost(p),
+                onDiscard: () => ref
+                    .read(feedNotifierProvider.notifier)
+                    .discardFailedPost(p),
+              ),
+            ),
             Expanded(
               child: _buildBody(context, l10n, feedState, reposts, wide),
             ),
@@ -282,25 +299,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     final tokens = FeedTokens.of(context);
 
+    // Les quatre échecs de la maquette 2b, chacun avec son message et son
+    // action — au lieu du même « Impossible de charger » + « Réessayer ».
     if (state.error != null && state.posts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.feedError,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: tokens.mutedText),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: tokens.accent),
-              onPressed:
-                  () => ref.read(feedNotifierProvider.notifier).refresh(),
-              child: Text(l10n.retry),
-            ),
-          ],
-        ),
+      return FeedErrorState(
+        failure: state.failure ?? FeedFailure.unknown,
+        onRetry: () => ref.read(feedNotifierProvider.notifier).refresh(),
       );
     }
 

@@ -1095,6 +1095,76 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapShowEmbassies => 'Voir les ambassades';
 
   @override
+  String get feedPostNotSent => 'Publication non envoyée';
+
+  @override
+  String get feedPostNotSentHint =>
+      'Ton texte est gardé ici. Rien n\'est perdu.';
+
+  @override
+  String get feedPostDiscard => 'Abandonner';
+
+  @override
+  String get feedErrorNoConnectionTitle => 'Pas de connexion';
+
+  @override
+  String get feedErrorNoConnectionBody =>
+      'Ton téléphone n\'est relié à aucun réseau. Le fil se rechargera dès que la connexion revient.';
+
+  @override
+  String get feedErrorServerTitle => 'Nos serveurs ne répondent pas';
+
+  @override
+  String get feedErrorServerBody =>
+      'Ça vient de nous, pas de toi. Nouvelle tentative automatique.';
+
+  @override
+  String feedErrorServerCountdown(int seconds) {
+    return 'Nouvelle tentative dans $seconds s';
+  }
+
+  @override
+  String get feedErrorSlowTitle => 'Réseau trop lent';
+
+  @override
+  String get feedErrorSlowBody =>
+      'La connexion n\'a pas tenu assez longtemps pour charger le fil. Réessaie, ou attends un meilleur réseau.';
+
+  @override
+  String get feedErrorUnknownTitle => 'Le fil n\'a pas pu se charger';
+
+  @override
+  String get feedErrorUnknownBody => 'Une erreur inattendue est survenue.';
+
+  @override
+  String feedCachedNotice(String when) {
+    return 'Fil hors ligne · dernière mise à jour $when';
+  }
+
+  @override
+  String get feedCachedNoticeUnknownTime =>
+      'Fil hors ligne · publications déjà chargées';
+
+  @override
+  String audioRoomsLiveAndScheduled(int live, int scheduled) {
+    return '$live en direct · $scheduled programmés';
+  }
+
+  @override
+  String get audioRoomOpenRoom => 'Ouvrir un salon';
+
+  @override
+  String get audioRoomOpenRoomHint =>
+      'Lance une discussion en direct, seul ou à plusieurs.';
+
+  @override
+  String get heritageOralTitle => 'Patrimoine oral';
+
+  @override
+  String get heritageOralHint =>
+      'Contes, proverbes et mémoire, à écouter même hors ligne.';
+
+  @override
   String get transferFailOperatorBlockedTitle => 'Bloqué par l\'opérateur';
 
   @override

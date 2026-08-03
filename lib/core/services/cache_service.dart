@@ -10,6 +10,7 @@ class CacheService {
   static const String _conversationsBox = 'conversations_cache';
   static const String _messagesBox = 'messages_cache';
   static const String _legalBox = 'legal_cache';
+  static const String _feedBox = 'feed_cache';
   static const String _metadataBox = 'cache_metadata';
 
   static CacheService? _instance;
@@ -28,6 +29,7 @@ class CacheService {
     await Hive.openBox<String>(_conversationsBox);
     await Hive.openBox<String>(_messagesBox);
     await Hive.openBox<String>(_legalBox);
+    await Hive.openBox<String>(_feedBox);
     await Hive.openBox<String>(_metadataBox);
 
     _isInitialized = true;
@@ -370,6 +372,41 @@ class CacheService {
       return null;
     }
   }
+
+  // ==================== Feed Cache ====================
+
+  /// Clé unique par mode/filtre : le fil « Pour vous », « Abonnements » et un
+  /// fil filtré par hashtag n'ont pas le même contenu et ne doivent pas se
+  /// recouvrir en cache.
+  static String feedKey({required String mode, String? hashtagFilter}) =>
+      hashtagFilter == null ? mode : '$mode#$hashtagFilter';
+
+  /// Mémorise la dernière page de fil reçue, pour pouvoir la réafficher hors
+  /// connexion au lieu d'un écran d'erreur.
+  Future<void> cacheFeed(String key, List<Map<String, dynamic>> posts) async {
+    final box = Hive.box<String>(_feedBox);
+    await box.put(key, jsonEncode(posts));
+    await _updateTimestamp(_feedBox, key);
+  }
+
+  List<Map<String, dynamic>> getCachedFeed(String key) {
+    final box = Hive.box<String>(_feedBox);
+    final data = box.get(key);
+    if (data == null) return const [];
+    try {
+      return (jsonDecode(data) as List)
+          .cast<Map<String, dynamic>>();
+    } catch (e) {
+      debugPrint('CacheService: Error decoding cached feed $key: $e');
+      return const [];
+    }
+  }
+
+  /// Quand la page en cache a été reçue — l'écran l'affiche pour que
+  /// l'utilisateur sache à quel point ce qu'il lit est vieux.
+  DateTime? getFeedCachedAt(String key) => getLastUpdateTime(_feedBox, key);
+
+  Future<void> clearFeedCache() async => Hive.box<String>(_feedBox).clear();
 
   // ==================== Cache Metadata ====================
 

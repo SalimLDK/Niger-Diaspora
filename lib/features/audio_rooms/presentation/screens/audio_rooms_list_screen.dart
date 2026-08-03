@@ -133,16 +133,24 @@ class _ArHeader extends StatelessWidget {
               children: [
                 Text(AppLocalizations.of(context)!.audioRoomsTitle,
                     style: DNText.serif(size: 20, color: dn.onSurface),),
+                // La répartition direct/programmés est plus utile que le
+                // total combiné, qui ne disait pas ce qui est écoutable tout
+                // de suite.
                 Text(
-                  AppLocalizations.of(context)!.audioRoomsAvailableCount(liveCount + scheduledCount),
+                  AppLocalizations.of(context)!
+                      .audioRoomsLiveAndScheduled(liveCount, scheduledCount),
                   style: DNText.mono(size: 9, color: dn.onSurface3),
                 ),
               ],
             ),
           ),
+          // Remplace un bouton loupe qui était un `onPressed: () {}` — il
+          // n'existe aucune recherche de salons. Le patrimoine oral, lui,
+          // n'avait aucun point d'entrée du tout.
           IconButton(
-            icon: AppIcon(AppIcon.search, color: dn.onSurface, size: 20),
-            onPressed: () {},
+            icon: Icon(Icons.auto_stories_rounded, color: dn.onSurface, size: 20),
+            tooltip: AppLocalizations.of(context)!.heritageOralTitle,
+            onPressed: () => context.push('/audio-rooms/heritage'),
           ),
         ],
       ),
@@ -227,7 +235,8 @@ class _LiveList extends ConsumerWidget {
           final l10n = AppLocalizations.of(context)!;
           return _EmptyState(
               message: l10n.audioRoomsNoLiveRooms,
-              sub: '${l10n.audioRoomsNoLiveSubtitle} 🎙',);
+              sub: '${l10n.audioRoomsNoLiveSubtitle} 🎙',
+              showActions: true,);
         }
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
@@ -625,21 +634,111 @@ class _EmptyState extends StatelessWidget {
   final String message;
   final String sub;
 
-  const _EmptyState({required this.message, required this.sub});
+  /// Cartes de sortie (maquette 2e). L'état vide se contentait d'un emoji et
+  /// de deux lignes : rien à faire depuis là, alors que c'est précisément le
+  /// moment où l'utilisateur a besoin d'une action.
+  final bool showActions;
+
+  const _EmptyState({
+    required this.message,
+    required this.sub,
+    this.showActions = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final dn = context.dn;
-    return Center(
+    final l10n = AppLocalizations.of(context)!;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 100),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text('🎙', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
-          Text(message, style: DNText.serif(size: 18, color: dn.onSurface)),
+          Text(
+            message,
+            style: DNText.serif(size: 18, color: dn.onSurface),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 4),
-          Text(sub, style: DNText.mono(size: 10, color: dn.onSurface3)),
+          Text(
+            sub,
+            style: DNText.mono(size: 10, color: dn.onSurface3),
+            textAlign: TextAlign.center,
+          ),
+          if (showActions) ...[
+            const SizedBox(height: 24),
+            _EmptyActionCard(
+              emoji: '🎤',
+              title: l10n.audioRoomOpenRoom,
+              hint: l10n.audioRoomOpenRoomHint,
+              accent: DNColors.terra,
+              onTap: () => context.push('/audio-rooms/create'),
+            ),
+            const SizedBox(height: 10),
+            _EmptyActionCard(
+              emoji: '📚',
+              title: l10n.heritageOralTitle,
+              hint: l10n.heritageOralHint,
+              accent: DNColors.ochre,
+              onTap: () => context.push('/audio-rooms/heritage'),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyActionCard extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final String hint;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _EmptyActionCard({
+    required this.emoji,
+    required this.title,
+    required this.hint,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: dn.surface2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: DNText.sans(
+                          size: 14, w: FontWeight.w600, color: dn.onSurface,),),
+                  const SizedBox(height: 2),
+                  Text(hint,
+                      style: DNText.mono(size: 9, color: dn.onSurface3),),
+                ],
+              ),
+            ),
+            AppIcon(AppIcon.chevronRight, size: 16, color: accent),
+          ],
+        ),
       ),
     );
   }

@@ -1082,6 +1082,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowEmbassies => 'Show embassies';
 
   @override
+  String get feedPostNotSent => 'Post not sent';
+
+  @override
+  String get feedPostNotSentHint => 'Your text is kept here. Nothing is lost.';
+
+  @override
+  String get feedPostDiscard => 'Discard';
+
+  @override
+  String get feedErrorNoConnectionTitle => 'No connection';
+
+  @override
+  String get feedErrorNoConnectionBody =>
+      'Your phone isn\'t on any network. The feed will reload as soon as the connection is back.';
+
+  @override
+  String get feedErrorServerTitle => 'Our servers aren\'t responding';
+
+  @override
+  String get feedErrorServerBody =>
+      'This is on us, not on you. Retrying automatically.';
+
+  @override
+  String feedErrorServerCountdown(int seconds) {
+    return 'Retrying in $seconds s';
+  }
+
+  @override
+  String get feedErrorSlowTitle => 'Network too slow';
+
+  @override
+  String get feedErrorSlowBody =>
+      'The connection didn\'t hold long enough to load the feed. Try again, or wait for a better network.';
+
+  @override
+  String get feedErrorUnknownTitle => 'The feed couldn\'t load';
+
+  @override
+  String get feedErrorUnknownBody => 'An unexpected error occurred.';
+
+  @override
+  String feedCachedNotice(String when) {
+    return 'Offline feed · last updated $when';
+  }
+
+  @override
+  String get feedCachedNoticeUnknownTime =>
+      'Offline feed · posts already loaded';
+
+  @override
+  String audioRoomsLiveAndScheduled(int live, int scheduled) {
+    return '$live live · $scheduled scheduled';
+  }
+
+  @override
+  String get audioRoomOpenRoom => 'Open a room';
+
+  @override
+  String get audioRoomOpenRoomHint =>
+      'Start a live conversation, alone or with others.';
+
+  @override
+  String get heritageOralTitle => 'Oral heritage';
+
+  @override
+  String get heritageOralHint =>
+      'Tales, proverbs and memory, listenable even offline.';
+
+  @override
   String get transferFailOperatorBlockedTitle => 'Blocked by the operator';
 
   @override

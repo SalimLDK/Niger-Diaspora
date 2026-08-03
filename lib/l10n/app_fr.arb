@@ -444,6 +444,49 @@
   "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
   "mapZoomOut": "Dézoomer",
   "mapShowEmbassies": "Voir les ambassades",
+  "feedPostNotSent": "Publication non envoyée",
+  "feedPostNotSentHint": "Ton texte est gardé ici. Rien n'est perdu.",
+  "feedPostDiscard": "Abandonner",
+  "feedErrorNoConnectionTitle": "Pas de connexion",
+  "feedErrorNoConnectionBody": "Ton téléphone n'est relié à aucun réseau. Le fil se rechargera dès que la connexion revient.",
+  "feedErrorServerTitle": "Nos serveurs ne répondent pas",
+  "feedErrorServerBody": "Ça vient de nous, pas de toi. Nouvelle tentative automatique.",
+  "feedErrorServerCountdown": "Nouvelle tentative dans {seconds} s",
+  "@feedErrorServerCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "feedErrorSlowTitle": "Réseau trop lent",
+  "feedErrorSlowBody": "La connexion n'a pas tenu assez longtemps pour charger le fil. Réessaie, ou attends un meilleur réseau.",
+  "feedErrorUnknownTitle": "Le fil n'a pas pu se charger",
+  "feedErrorUnknownBody": "Une erreur inattendue est survenue.",
+  "feedCachedNotice": "Fil hors ligne · dernière mise à jour {when}",
+  "@feedCachedNotice": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "feedCachedNoticeUnknownTime": "Fil hors ligne · publications déjà chargées",
+  "audioRoomsLiveAndScheduled": "{live} en direct · {scheduled} programmés",
+  "@audioRoomsLiveAndScheduled": {
+    "placeholders": {
+      "live": {
+        "type": "int"
+      },
+      "scheduled": {
+        "type": "int"
+      }
+    }
+  },
+  "audioRoomOpenRoom": "Ouvrir un salon",
+  "audioRoomOpenRoomHint": "Lance une discussion en direct, seul ou à plusieurs.",
+  "heritageOralTitle": "Patrimoine oral",
+  "heritageOralHint": "Contes, proverbes et mémoire, à écouter même hors ligne.",
   "transferFailOperatorBlockedTitle": "Bloqué par l'opérateur",
   "transferFailOperatorBlockedDesc": "L'opérateur du bénéficiaire a refusé de créditer le compte (plafond atteint, pièces d'identité manquantes ou compte gelé).",
   "transferFailDuplicateTitle": "Doublon évité",

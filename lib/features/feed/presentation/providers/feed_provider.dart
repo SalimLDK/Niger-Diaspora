@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/cache_service.dart';
+import '../../data/models/post_model.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../data/datasources/feed_remote_datasource.dart';
@@ -47,6 +51,19 @@ class FeedState {
   /// Posts arrivés en temps réel, pas encore affichés (backe la pill « N nouveaux »).
   final List<PostEntity> pendingPosts;
 
+  /// Nature de l'échec, quand il y en a un. `error` porte le message brut ;
+  /// ce champ dit lequel des cas de la maquette 2b afficher.
+  final FeedFailure? failure;
+
+  /// Publications dont l'envoi a échoué, conservées pour être relancées.
+  final List<PostEntity> failedPosts;
+
+  /// Les posts affichés viennent du cache local, pas du réseau.
+  final bool isFromCache;
+
+  /// Quand cette page de cache a été reçue (null si les posts sont frais).
+  final DateTime? cachedAt;
+
   const FeedState({
     this.posts = const [],
     this.isLoading = false,
@@ -60,6 +77,10 @@ class FeedState {
     this.bookmarkedPostIds = const {},
     this.repostedPostIds = const {},
     this.pendingPosts = const [],
+    this.failure,
+    this.failedPosts = const [],
+    this.isFromCache = false,
+    this.cachedAt,
   });
 
   FeedState copyWith({
@@ -75,6 +96,10 @@ class FeedState {
     Set<String>? bookmarkedPostIds,
     Set<String>? repostedPostIds,
     List<PostEntity>? pendingPosts,
+    FeedFailure? failure,
+    List<PostEntity>? failedPosts,
+    bool? isFromCache,
+    DateTime? cachedAt,
   }) {
     return FeedState(
       posts: posts ?? this.posts,
@@ -89,8 +114,33 @@ class FeedState {
       bookmarkedPostIds: bookmarkedPostIds ?? this.bookmarkedPostIds,
       repostedPostIds: repostedPostIds ?? this.repostedPostIds,
       pendingPosts: pendingPosts ?? this.pendingPosts,
+      // Même convention que `error` : ces trois champs décrivent le dernier
+      // chargement, ils ne doivent pas survivre au suivant.
+      failure: failure,
+      // Les publications ratées, elles, survivent aux rechargements : c'est
+      // du contenu de l'utilisateur, pas un état de requête.
+      failedPosts: failedPosts ?? this.failedPosts,
+      isFromCache: isFromCache ?? false,
+      cachedAt: cachedAt,
     );
   }
+}
+
+/// Les quatre échecs de la maquette 2b, distingués parce qu'ils n'appellent
+/// pas la même réaction : sans réseau on propose le cache, sur une panne
+/// serveur on fait patienter, sur un réseau lent on n'a rien à réparer.
+enum FeedFailure {
+  /// Aucune connectivité détectée.
+  noConnection,
+
+  /// Le serveur a répondu une erreur (5xx, indisponibilité).
+  serverDown,
+
+  /// La requête a expiré alors que la connectivité est présente.
+  slowNetwork,
+
+  /// Autre erreur non classée.
+  unknown,
 }
 
 // ============================================================================
@@ -185,10 +235,8 @@ class FeedNotifier extends Notifier<FeedState> {
     // exception dans le travail async serait avalee et isLoading resterait true).
     final paginated = result.fold((_) => null, (p) => p);
     if (paginated == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: result.fold((failure) => failure.message, (_) => null),
-      );
+      final message = result.fold((failure) => failure.message, (_) => null);
+      await _handleLoadFailure(message, filter);
       return;
     }
     try {
@@ -220,6 +268,9 @@ class FeedNotifier extends Notifier<FeedState> {
         repostedPostIds: repostIds,
         pendingPosts: const [], // la pill « N nouveaux » se réinitialise au refresh
       );
+      // On garde la page telle qu'elle a été reçue (avant tri personnalisé,
+      // qui dépend d'un profil pas forcément disponible hors ligne).
+      unawaited(_cacheFeed(paginated.posts, filter));
     } catch (_) {
       // Garantit que le chargement se termine : on affiche les posts bruts.
       state = state.copyWith(
@@ -229,6 +280,71 @@ class FeedNotifier extends Notifier<FeedState> {
         lastOffset: paginated.lastOffset,
       );
     }
+  }
+
+  String _cacheKey(String? hashtagFilter) =>
+      CacheService.feedKey(mode: state.mode.name, hashtagFilter: hashtagFilter);
+
+  Future<void> _cacheFeed(List<PostEntity> posts, String? filter) async {
+    try {
+      await CacheService.instance.cacheFeed(
+        _cacheKey(filter),
+        posts.map((p) => PostModel.fromEntity(p).toJson()).toList(),
+      );
+    } catch (e) {
+      // Le cache est un confort : son échec ne doit jamais casser le fil.
+      debugPrint('FeedNotifier: mise en cache impossible: $e');
+    }
+  }
+
+  /// Un chargement raté n'est plus un écran d'erreur unique : on classe la
+  /// cause (maquette 2b) et, si une page est en cache, on l'affiche plutôt
+  /// que de laisser l'utilisateur devant un fil vide (maquette 2a).
+  Future<void> _handleLoadFailure(String? message, String? filter) async {
+    final failure = _classifyFailure(message);
+
+    List<PostEntity> cached = const [];
+    DateTime? cachedAt;
+    try {
+      final raw = CacheService.instance.getCachedFeed(_cacheKey(filter));
+      cached = raw.map((j) => PostModel.fromJson(j).toEntity()).toList();
+      cachedAt = CacheService.instance.getFeedCachedAt(_cacheKey(filter));
+    } catch (e) {
+      debugPrint('FeedNotifier: lecture du cache impossible: $e');
+    }
+
+    state = state.copyWith(
+      isLoading: false,
+      error: message,
+      failure: failure,
+      posts: cached.isNotEmpty ? cached : state.posts,
+      isFromCache: cached.isNotEmpty,
+      cachedAt: cached.isNotEmpty ? cachedAt : null,
+      // Pas de pagination sur du cache : on n'a que la première page.
+      hasMore: cached.isNotEmpty ? false : state.hasMore,
+    );
+  }
+
+  FeedFailure _classifyFailure(String? message) {
+    if (!ref.read(connectivityNotifierProvider)) return FeedFailure.noConnection;
+    if (message == null) return FeedFailure.unknown;
+    final m = message.toLowerCase();
+    if (m.contains('timeout') || m.contains('timed out') ||
+        m.contains('deadline')) {
+      return FeedFailure.slowNetwork;
+    }
+    if (m.contains('socket') ||
+        m.contains('failed host lookup') ||
+        m.contains('network is unreachable')) {
+      return FeedFailure.noConnection;
+    }
+    if (m.contains('50') && m.contains('server') ||
+        m.contains('service unavailable') ||
+        m.contains('bad gateway') ||
+        m.contains('internal server')) {
+      return FeedFailure.serverDown;
+    }
+    return FeedFailure.unknown;
   }
 
   Future<void> loadMore() async {
@@ -301,11 +417,34 @@ class FeedNotifier extends Notifier<FeedState> {
   Future<PostEntity?> createPost(PostEntity post) async {
     final result = await _repo.createPost(post);
     return result.fold(
-      (failure) => null,
+      (failure) {
+        // Maquette 2b, cas 4 : la publication ratée ne disparaît plus dans un
+        // SnackBar. Elle reste en tête du fil, signalée, avec de quoi la
+        // relancer ou l'abandonner — le texte saisi n'est jamais perdu.
+        state = state.copyWith(failedPosts: [post, ...state.failedPosts]);
+        return null;
+      },
       (created) {
         state = state.copyWith(posts: [created, ...state.posts]);
         return created;
       },
+    );
+  }
+
+  /// Relance une publication échouée. En cas de nouvel échec elle reste dans
+  /// la liste (remise en tête par `createPost`).
+  Future<bool> retryFailedPost(PostEntity post) async {
+    state = state.copyWith(
+      failedPosts: state.failedPosts.where((p) => p != post).toList(),
+    );
+    final created = await createPost(post);
+    return created != null;
+  }
+
+  /// Abandonne définitivement une publication échouée.
+  void discardFailedPost(PostEntity post) {
+    state = state.copyWith(
+      failedPosts: state.failedPosts.where((p) => p != post).toList(),
     );
   }
 
