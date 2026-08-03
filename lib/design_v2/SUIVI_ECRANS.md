@@ -334,15 +334,31 @@ Cette série ne décrit pas de nouvel écran : c'est l'accueil déjà repris dan
 distinctes qui y sont implémentées (position active mais personne autour,
 position coupée, et les trois vides d'événements).
 
-Un manque reste, explicite dans la maquette 1b « CAS 3 · CHARGEMENT » :
+### Squelette de chargement (1b · CAS 3) — traité
 
-| Ce qui manque | Où | Exigence de la maquette |
-|---|---|---|
-| Squelette de chargement | `home/…/home_screen_widgets.dart` | Afficher un squelette pendant la recherche des membres proches — **jamais** de texte « vide » avant la fin du chargement |
+⚠️ J'avais d'abord noté ici « pas de squelette de chargement ». **C'était
+faux** : mon `grep` ne cherchait que `Skeleton`/`Shimmer`, alors que le code
+les nomme `_NearbyAvatarLoading` et `HomeEventCardLoading`. Les deux
+sections de l'accueil en avaient déjà un, et `NearbyProfilesNotifier`
+démarre bien en `AsyncValue.loading()` — jamais sur une liste vide.
 
-C'est un vrai défaut d'usage et pas seulement du visuel : aujourd'hui l'état
-vide peut s'afficher avant que la recherche ait abouti, ce qui annonce
-« personne autour » à quelqu'un qui a peut-être des voisins.
+Il restait en revanche un **vrai** trou, dans le scénario exact que la
+maquette illustre (CAS 1 → « Élargir à 200 km » → CAS 3) :
+
+`nearbyProfiles.when(skipLoadingOnRefresh: true, …)` garde volontairement
+les résultats précédents pendant un rafraîchissement de fond. Mais il
+gardait aussi la carte vide « Personne à moins de 50 km » à l'écran pendant
+toute la recherche à 200 km — donc un texte « vide » affiché pendant un
+chargement, ce que la maquette interdit noir sur blanc.
+
+Corrigé : `_widenRadius()` lève `_nearbySearching` le temps de la recherche,
+et le squelette (`NearbyLoadingRow`) passe devant les résultats précédents
+pour ce cas-là seulement. Le rafraîchissement automatique des 60 s garde son
+comportement d'origine — il ne doit pas faire clignoter la liste.
+
+⚠️ `lib/features/home/…/home_screen.dart` porte **le même défaut** : la
+correction est dans la copie `design_v2` uniquement, elle partira à la
+bascule.
 
 ## Écrans hors maquettes
 
