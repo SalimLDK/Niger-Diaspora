@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,17 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../models/profile_model.dart';
+
+/// Délai au-delà duquel on cesse d'attendre l'accusé de réception du serveur.
+/// Passé ce délai on ne conclut rien : l'écriture reste en file et sera
+/// rejouée, ce n'est pas un échec.
+const Duration _kServerAckTimeout = Duration(seconds: 10);
+
+/// Message porté par l'exception quand le serveur a explicitement refusé
+/// l'écriture (droits insuffisants ou session expirée).
+const String _kWriteRejected =
+    'Enregistrement refusé par le serveur : vos modifications n\'ont pas été '
+    'sauvegardées. Reconnectez-vous puis réessayez.';
 
 abstract class ProfileRemoteDataSource {
   Future<ProfileModel> getProfile(String userId);
@@ -99,6 +111,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileModel> updateProfile(ProfileModel profile) async {
     try {
+      final doc = _firestore
+          .collection(FirebaseCollections.users)
+          .doc(profile.id);
+
       final data = profile.toJson();
       data.remove('id');
       data['updatedAt'] = FieldValue.serverTimestamp();
@@ -108,11 +124,20 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         data['photoUrl'] = FieldValue.delete();
       }
 
+      // Témoin lu avant l'écriture : c'est lui qui permettra de savoir si le
+      // serveur a réellement accepté (cf. _ensureServerAccepted).
+      final previousUpdatedAt = await _readUpdatedAtBaseline(doc);
+
       // Update Firestore document
-      await _firestore
-          .collection(FirebaseCollections.users)
-          .doc(profile.id)
-          .set(data, SetOptions(merge: true));
+      await doc.set(data, SetOptions(merge: true));
+
+      // Le `set` ci-dessus aboutit dès que l'écriture est appliquée au cache
+      // local (persistance offline) : un refus du serveur — typiquement
+      // PERMISSION_DENIED quand le jeton d'authentification n'est plus valide —
+      // n'arrive que plus tard, sur le flux d'écriture, et ne remonterait
+      // jamais jusqu'ici. Sans cette vérification, l'app affiche un succès
+      // alors que rien n'a été enregistré.
+      await _ensureServerAccepted(doc, previousUpdatedAt);
 
       // Also update Firebase Auth profile for displayName and photoUrl sync
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -127,6 +152,85 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       return getProfile(profile.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise à jour');
+    }
+  }
+
+  /// Lit `updatedAt` avant écriture, pour servir de témoin.
+  ///
+  /// On passe d'abord par le cache (aucun appel réseau). En cas d'absence —
+  /// premier lancement, cache vidé — on retombe sur le serveur : sans témoin
+  /// fiable, `_ensureServerAccepted` prendrait l'ancien `updatedAt` du
+  /// document pour la preuve d'une écriture réussie.
+  ///
+  /// `known` distingue « le champ était absent » (témoin exploitable) de
+  /// « lecture impossible » (aucune conclusion possible).
+  Future<({bool known, Timestamp? value})> _readUpdatedAtBaseline(
+    DocumentReference<Map<String, dynamic>> doc,
+  ) async {
+    for (final source in const [Source.cache, Source.server]) {
+      try {
+        final snapshot = await doc
+            .get(GetOptions(source: source))
+            .timeout(_kServerAckTimeout);
+        final value = snapshot.data()?['updatedAt'];
+        return (known: true, value: value is Timestamp ? value : null);
+      } on TimeoutException {
+        return (known: false, value: null);
+      } on FirebaseException {
+        // Cache vide : on retente côté serveur. Serveur injoignable : on
+        // renonce, l'écriture sera de toute façon jugée « en attente ».
+        continue;
+      }
+    }
+    return (known: false, value: null);
+  }
+
+  /// Vérifie que le serveur a bien accepté la dernière écriture sur [doc].
+  ///
+  /// Firestore annule silencieusement une écriture refusée : la mutation
+  /// locale est défaite et l'application n'en est pas informée. On attend donc
+  /// que la file d'écritures soit vidée, puis on relit le document **depuis le
+  /// serveur** : si `updatedAt` n'a pas avancé, c'est que l'écriture a été
+  /// rejetée.
+  ///
+  /// Hors ligne il n'y a rien à signaler — l'écriture est simplement en
+  /// attente et sera rejouée : on sort alors sans lever d'exception, pour ne
+  /// pas transformer une coupure réseau en faux échec.
+  Future<void> _ensureServerAccepted(
+    DocumentReference<Map<String, dynamic>> doc,
+    ({bool known, Timestamp? value}) previousUpdatedAt,
+  ) async {
+    // Sans témoin fiable, l'ancien `updatedAt` du document passerait pour la
+    // preuve d'une écriture réussie : on préfère ne rien affirmer.
+    if (!previousUpdatedAt.known) return;
+
+    try {
+      await _firestore.waitForPendingWrites().timeout(_kServerAckTimeout);
+    } on TimeoutException {
+      return;
+    }
+
+    final DocumentSnapshot<Map<String, dynamic>> serverSnapshot;
+    try {
+      serverSnapshot = await doc
+          .get(const GetOptions(source: Source.server))
+          .timeout(_kServerAckTimeout);
+    } on TimeoutException {
+      return;
+    } on FirebaseException catch (e) {
+      // `unavailable` = serveur injoignable : rien ne prouve un refus.
+      if (e.code == 'unavailable') return;
+      rethrow;
+    }
+
+    final previous = previousUpdatedAt.value;
+    final current = serverSnapshot.data()?['updatedAt'];
+    final accepted =
+        current is Timestamp &&
+        (previous == null || current.compareTo(previous) > 0);
+
+    if (!accepted) {
+      throw ServerException(_kWriteRejected);
     }
   }
 

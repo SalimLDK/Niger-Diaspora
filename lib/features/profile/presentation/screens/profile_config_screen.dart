@@ -209,6 +209,15 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           .read(profileNotifierProvider(currentUser.id).notifier)
           .updateProfile(updatedProfile);
 
+      // `ProfileNotifier.updateProfile` ne relance pas l'échec : il le range
+      // dans son état. Sans cette relecture, un refus du serveur laissait
+      // l'assistant marquer la configuration comme terminée — et sortir sans
+      // le moindre message — alors que rien n'avait été enregistré.
+      final saved = ref.read(profileNotifierProvider(currentUser.id));
+      if (saved.hasError) {
+        throw Exception(saved.error?.toString() ?? '');
+      }
+
       // Theme settings are already applied when user selects them
       // No need to apply again here
 

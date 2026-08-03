@@ -413,6 +413,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref
         .read(profileNotifierProvider(user.id).notifier)
         .updateProfile(updatedProfile);
+
+    // Les bascules de cet écran s'enregistrent en arrière-plan : sans cette
+    // relecture, un refus du serveur les laissait basculées à l'écran alors
+    // que rien n'était sauvegardé.
+    final saved = ref.read(profileNotifierProvider(user.id));
+    if (saved.hasError && mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileUpdateError(saved.error?.toString() ?? '')),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _updateNotificationSettings(bool enabled) async {

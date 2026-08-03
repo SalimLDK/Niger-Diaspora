@@ -983,6 +983,43 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
 
+## Assistant de configuration du profil
+
+- [x] **« Terminer » ne sort pas de l'assistant** (vérifié sur SM A515F le
+  2026-08-03, `lib/features/profile/presentation/screens/profile_config_screen.dart:172`).
+  À l'étape 4/4, le tap est bien reçu et `_handleComplete` s'exécute, mais
+  l'écran reste sur 4/4 indéfiniment. Il a fallu un `am force-stop` +
+  relance pour atteindre `/home`. Deux causes enchaînées :
+  - l'écriture Firestore `users/{uid}` est rejetée
+    (`PERMISSION_DENIED — Missing or insufficient permissions`, visible
+    uniquement dans logcat) ;
+  - le cache offline de Firestore fait résoudre `updateProfile` **sans
+    erreur**, donc le `catch` de `_handleComplete` ne se déclenche jamais et
+    **aucun snackbar n'apparaît** — l'utilisateur n'a strictement aucun
+    retour. Vérifié : trois taps consécutifs, zéro message à l'écran.
+- [ ] **Remontée des échecs Firestore à l'UI** (correctif du 2026-08-03,
+  `profile_remote_datasource.dart` + les deux `profile_config_screen.dart` et
+  `settings_screen.dart`) — **non vérifié sur appareil**, la validation
+  demande une réinstallation. Trois cas à couvrir :
+  - **refus serveur** (le cas actuel, `PERMISSION_DENIED`) : « Terminer »
+    doit maintenant afficher un snackbar rouge avec action « Réessayer », et
+    l'assistant **ne doit pas** se marquer comme terminé ;
+  - **hors ligne** : aucun message d'erreur ne doit apparaître — l'écriture
+    est en file d'attente, ce n'est pas un échec. ⚠️ le VPN persistant du
+    téléphone rend ce cas difficile à provoquer (cf. bas de page) ;
+  - **cas nominal** : l'enregistrement doit rester fluide, sans latence
+    ajoutée perceptible (une lecture serveur supplémentaire a été ajoutée
+    après chaque écriture de profil).
+- [ ] **Persistance des valeurs saisies dans l'assistant** : après la
+  relance, l'accueil affiche toujours « Complétez votre profil 2/5 » et
+  « Ajouter ma ville » — les champs de l'assistant (nom, pays/ville,
+  centres d'intérêt) ne semblent pas avoir été enregistrés côté serveur, ce
+  qui est cohérent avec le `PERMISSION_DENIED` ci-dessus. À revérifier une
+  fois le rejet Firestore corrigé.
+- [ ] **Étape 3/4 « Choisissez-en au moins deux »** : le bouton « Suivant »
+  reste actif et laisse passer avec « Aucun sélectionné ». Soit la contrainte
+  est réelle et il faut la faire respecter, soit la copie est fausse.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
