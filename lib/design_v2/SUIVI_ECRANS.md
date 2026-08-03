@@ -627,7 +627,7 @@ fort, indépendamment du visuel.
 | 2a | Le fil garde son cache hors ligne, avec la date du dernier chargement |
 | 2b | **Quatre échecs distincts** : pas de réseau, panne serveur, réseau lent, action refusée — aujourd'hui traités comme un seul |
 | 2c | Carte sans repère : dire que la position est active mais la zone vide |
-| 3a | **Transfert en quatre états** selon où est l'argent : refusé avant débit, incertain, débité non reçu, remboursé |
+| 3a | **Transfert en quatre états** selon où est l'argent : refusé avant débit, incertain, débité non reçu, remboursé — **câblé côté app, voir ci-dessous** |
 | 3b | Reconnexion : file d'attente par ordre d'importance, et ce qui est arrivé pendant l'absence |
 | 3c | Boutique : trois vides différents (rien en vente, rien commandé, recherche sans résultat) |
 | 3d | Groupes : trois vides différents (aucun rejoint, rien dans ma ville, recherche vide) |
@@ -637,6 +637,31 @@ fort, indépendamment du visuel.
 Ce sont des **décisions produit**, pas du design : elles doivent être
 tranchées avant d'implémenter cet écran, sinon on affichera des délais
 inventés.
+
+#### §3a — la taxonomie est écrite, mais elle est inatteignable
+
+`transfer_failure_kind.dart` porte déjà exactement ce que la maquette
+demande : `TransferDebitState` (`notCharged` / `charged` / `uncertain`) —
+c'est-à-dire **où est l'argent**, ce que les six `TransactionStatus`
+génériques ne disaient pas — et sept `TransferFailureKind` qui portent
+chacun son état de débit et son action recommandée (réessayer, corriger le
+bénéficiaire, contacter le support, ne rien faire). `transaction_detail_screen`
+les consomme sur ses sept branches, et traite le remboursement à part.
+
+⛔ **Rien ne remplit `failureReason`.** Ni les fonctions Cloud du dépôt, ni
+l'intégration MyNita, qui n'existe que comme valeur d'enum côté client. Le
+`transfer_remote_datasource` sait écrire le champ, personne ne l'appelle avec
+un motif. Donc `fromReason(null)` renvoie toujours `unknown`, et l'écran
+retombe sur le message générique — exactement le comportement d'avant.
+
+Ce n'est **pas** un défaut de câblage à corriger dans l'app : c'est le
+prestataire de paiement qui doit renvoyer un motif. La classification est
+volontairement permissive (recherche de sous-chaînes, pas de codes exacts)
+parce que le format réel dépendra de celui qu'on branchera.
+
+À retenir : ne pas recompter §3a comme « à faire côté UI ». Ce qui reste est
+un producteur de motif côté serveur, plus les trois décisions produit
+ci-dessus.
 
 ## Cinquième vague — salons audio et podcasts
 
@@ -747,14 +772,21 @@ prochaine échéance avant d'écrire cette ligne.
 
 **Ce que ça dit, dans l'ordre d'attaque :**
 
-1. **§2b est le seul écran réellement pas fait.** Zéro clé ARB pour 536
-   lignes, 25 chaînes françaises en dur, un dégradé, et il n'adhère à aucun
-   système de thème. C'est là que se trouve tout le travail restant.
-2. **8 dégradés subsistent** sur 4 fichiers — heritage (3), episode_detail
-   (3), replay (1), timezone (1). Purge mécanique, faible risque.
-3. **`replay_player_screen` traîne 9 chaînes en dur** pour 5 clés seulement,
-   alors qu'il est par ailleurs sur le système DN.
-4. **§1f et §4b/§1e utilisent `Theme.of` et non `DNColors`.** À trancher
+⚠️ Les trois premiers points de cette liste **ont été résolus par l'audit
+qui la précède** — ils sont conservés barrés plutôt que supprimés, pour que
+personne ne les rouvre en croyant à un oubli.
+
+1. ~~**§2b est le seul écran réellement pas fait.**~~ **Faux, et corrigé.**
+   Les « 25 chaînes en dur » étaient des noms de villes et des drapeaux, et
+   « 0 clé ARB » y est normal : ce widget n'a pas de copie à traduire. Le
+   vrai défaut — aucun jeton adaptatif — est corrigé (5 sites).
+2. ~~**8 dégradés subsistent**~~ — **soldés.** Il en reste un seul, délibéré :
+   le voile de lisibilité de `episode_detail_screen`, commenté comme tel.
+3. ~~**`replay_player_screen` traîne 9 chaînes en dur**~~ — **mirage.** Quatre
+   fragments de commentaires français, deux préfixes emoji sur des libellés
+   déjà localisés, trois symboles. Zéro libellé à traduire.
+4. **§1f et §4b/§1e utilisent `Theme.of` et non `DNColors`.** Toujours
+   ouvert. À trancher
    plutôt qu'à corriger d'office : `creator_earnings_screen` est par ailleurs
    irréprochable (0 chaîne en dur, 0 dégradé). Basculer un écran propre vers
    un autre système n'est un gain que si la cohérence visuelle le réclame —
