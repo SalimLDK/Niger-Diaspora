@@ -679,7 +679,7 @@ Mesuré, pas supposé : nombre de clés ARB distinctes, adhérence au système
 | Maquette | Fichier | Clés | DN | Dégradés | Chaînes en dur | Verdict |
 |---|---|---|---|---|---|---|
 | §2b | `timezone_display_widget` (536 l.) | 0 (rien à traduire) | 0 | 0 ✅ | 0 ✅ | **fait** |
-| — | `replay_player_screen` (771 l.) | 5 | 32 | 1 | 9 | partiel |
+| — | `replay_player_screen` (771 l.) | 5 | 32 | 0 ✅ | 0 ✅ | **fait** |
 | §4c | `heritage_library_screen` (1432 l.) | 41 | 28 | **3** | 0 | dégradés seuls |
 | §4b / §1e | `episode_detail_screen` (996 l.) | 17 | 0 | **3** | 1 | dégradés + système |
 | §1f | `creator_earnings_screen` (545 l.) | 25 | 0 | 0 | 0 | propre, hors système |
@@ -707,6 +707,24 @@ pas de la décoration mais un **voile de lisibilité**, qui assombrit le bas
 de la pochette pour que le titre reste lisible quelle que soit l'image.
 L'aplatir rendrait le texte illisible sur une photo claire. Commenté comme
 tel dans le fichier pour qu'aucune passe future ne le supprime.
+
+⚠️ **Les « 9 chaînes en dur » du lecteur de replay étaient un mirage,
+comme les 25 de §2b.** Vérification faite ligne par ligne :
+
+| Nature | Occurrences | Exemple |
+|---|---|---|
+| Fragments de **commentaires** français | 4 | `'entité tant qu'` — mon motif prend les apostrophes de « l'entité tant qu'il… » pour des guillemets |
+| Préfixes emoji sur des libellés **déjà localisés** | 2 | `'😴 ${…sleepTimer}'`, `'🪙 ${…audioRoomTipLabel}'` |
+| Symboles et formats numériques | 3 | `'⏮10'`, `'$speed×'`, `'😴 ${_sleepMinutes}m'` |
+
+Zéro libellé à traduire. Le fichier est propre.
+
+**Bilan de l'heuristique « chaînes en dur » : trois relevés, trois faux.**
+Elle ne distingue pas un libellé d'un nom propre, d'un symbole, ni même d'un
+commentaire — les apostrophes françaises la font dérailler. **Ne plus s'en
+servir pour décider quoi faire** : elle sert tout au plus à désigner des
+fichiers à ouvrir. Les colonnes « dégradés » et « jetons adaptatifs », elles,
+ont été justes à chaque fois.
 
 **Ce que ça dit, dans l'ordre d'attaque :**
 
