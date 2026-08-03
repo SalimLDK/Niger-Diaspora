@@ -682,7 +682,7 @@ Mesuré, pas supposé : nombre de clés ARB distinctes, adhérence au système
 | — | `replay_player_screen` (771 l.) | 5 | 32 | 0 ✅ | 0 ✅ | **fait** |
 | §4c | `heritage_library_screen` (1432 l.) | 41 | 28 | **3** | 0 | dégradés seuls |
 | §4b / §1e | `episode_detail_screen` (996 l.) | 17 | 0 | **3** | 1 | dégradés + système |
-| §1f | `creator_earnings_screen` (545 l.) | 25 | 0 | 0 | 0 | propre, hors système |
+| §1f | `creator_earnings_screen` (545 l.) | 25 | 0 | 0 | 0 | **fait** sauf « prochain versement » |
 | §2c | `save_as_podcast_screen` (366 l.) | 17 | 27 | 0 | 0 | **fait** |
 
 ⚠️ **La ligne §2b de ce tableau était fausse quand je l'ai écrite.** Les
@@ -725,6 +725,25 @@ commentaire — les apostrophes françaises la font dérailler. **Ne plus s'en
 servir pour décider quoi faire** : elle sert tout au plus à désigner des
 fichiers à ouvrir. Les colonnes « dégradés » et « jetons adaptatifs », elles,
 ont été justes à chaque fois.
+
+### §1f — revenus créateur : fait, sauf une ligne qui n'a pas de donnée
+
+L'écran porte déjà tout : solde disponible, répartition (dons, billets,
+abonnements, replays), total perçu, historique des versements avec ses cinq
+statuts, et le raccordement Stripe. Tous les montants viennent de vraies
+sources — `profile.availableBalance`, la liste des `payouts` — aucun chiffre
+d'exemple codé en dur, contrairement à ce que la maquette laissait craindre.
+
+⛔ **« Prochain versement le 5 août » est irréalisable en l'état.** Aucune
+donnée de calendrier de versement n'existe : `PayoutEntity` porte
+`requestedAt` et `processedAt`, c'est-à-dire le **passé** d'un versement,
+jamais la date du **prochain**. Rien côté profil ni côté Stripe n'est exposé
+à l'app.
+
+L'afficher supposerait d'inventer une date — la ligne serait fausse dès le
+premier versement décalé, sur un écran qui parle d'argent dû à quelqu'un.
+Bloqué sur le backend, pas sur le design : il faut que le serveur expose la
+prochaine échéance avant d'écrire cette ligne.
 
 **Ce que ça dit, dans l'ordre d'attaque :**
 
