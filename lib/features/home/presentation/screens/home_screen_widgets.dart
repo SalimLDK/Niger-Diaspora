@@ -7,22 +7,10 @@ const _homeGreen = Color(0xFF2D7D46);
 const _homeOrange = Color(0xFFB85E24);
 const _homeBadgeRed = Color(0xFFC23E2D);
 
-String _eventDateLabel(DateTime date) {
-  const months = [
-    'jan',
-    'fév',
-    'mar',
-    'avr',
-    'mai',
-    'juin',
-    'juil',
-    'aoû',
-    'sep',
-    'oct',
-    'nov',
-    'déc',
-  ];
-  return '${date.day} ${months[date.month - 1]}';
+/// Date courte d'un événement (« 2 août »). Le mois vient d'`intl`, pas
+/// d'une table française codée en dur : il suit la locale courante.
+String _eventDateLabel(DateTime date, String locale) {
+  return DateFormat('d MMM', locale).format(date);
 }
 
 /// Ligne « Paris, France · 318 membres · 12 groupes » qui remplace les trois
@@ -114,9 +102,10 @@ class _TodayCard extends StatelessWidget {
     }
     if (nextEvent != null) {
       final e = nextEvent!;
+      final date = _eventDateLabel(e.startDate, l10n.localeName);
       final subtitle = e.location.trim().isEmpty
-          ? _eventDateLabel(e.startDate)
-          : '${_eventDateLabel(e.startDate)} · ${e.location}';
+          ? date
+          : '$date · ${e.location}';
       rows.add(
         _TodayRow(
           bg: _homeOrange.withValues(alpha: 0.12),
@@ -338,10 +327,11 @@ class _ServicesGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final items = <_ServiceTile>[
       _ServiceTile(
         icon: Icons.dynamic_feed_rounded,
-        label: 'Le fil',
+        label: l10n.homeServiceFeed,
         color: context.adaptivePrimaryColor,
         onTap: () => context.push('/feed'),
       ),
@@ -499,6 +489,7 @@ class _NearbyEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasCity = city != null && city!.trim().isNotEmpty;
     final subtitle = hasCity
         ? "Aucun membre ne partage sa position autour de ${city!.trim()} pour l'instant."
@@ -538,7 +529,7 @@ class _NearbyEmptyCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Personne à moins de ${radiusKm.round()} km',
+                      l10n.homeNobodyWithin(radiusKm.round()),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -576,8 +567,7 @@ class _NearbyEmptyCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Votre position est active : vous apparaîtrez dès qu\'un '
-                    'membre partagera la sienne.',
+                    l10n.homeLocationActiveNote,
                     style: TextStyle(
                       fontSize: 12.5,
                       height: 1.3,
@@ -594,7 +584,7 @@ class _NearbyEmptyCard extends StatelessWidget {
               if (canWiden) ...[
                 Expanded(
                   child: _HomeActionButton(
-                    label: 'Élargir à 200 km',
+                    label: l10n.homeWidenRadius,
                     filled: true,
                     onTap: onWiden,
                   ),
@@ -603,7 +593,7 @@ class _NearbyEmptyCard extends StatelessWidget {
               ],
               Expanded(
                 child: _HomeActionButton(
-                  label: 'Inviter un proche',
+                  label: l10n.homeInviteRelative,
                   filled: false,
                   onTap: onInvite,
                 ),
@@ -625,6 +615,7 @@ class _NoPositionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -656,7 +647,7 @@ class _NoPositionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Vous n\'apparaissez pas sur la carte',
+                      l10n.homeNotOnMapTitle,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -665,8 +656,7 @@ class _NoPositionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Le partage est réciproque : sans votre position, vous '
-                      'ne voyez pas non plus les autres.',
+                      l10n.homeNotOnMapBody,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.3,
@@ -681,12 +671,12 @@ class _NoPositionCard extends StatelessWidget {
           const SizedBox(height: 14),
           _CheckLine(text: 'Position approximative, jamais l\'adresse exacte'),
           const SizedBox(height: 8),
-          _CheckLine(text: 'Désactivable à tout moment'),
+          _CheckLine(text: l10n.locationGuarantee2),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
             child: _HomeActionButton(
-              label: 'Activer ma position',
+              label: l10n.homeEnableLocation,
               filled: true,
               onTap: onActivate,
             ),
@@ -776,6 +766,7 @@ class _OfflineBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const softRed = Color(0xFFF87171);
     return Container(
       width: double.infinity,
@@ -807,8 +798,8 @@ class _OfflineBanner extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Vous êtes hors ligne',
+                    Text(
+                      l10n.homeOfflineTitle,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -817,8 +808,7 @@ class _OfflineBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Contenu affiché depuis le cache. Mise à jour '
-                      'automatique au retour du réseau.',
+                      l10n.homeOfflineBody,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.3,
@@ -835,7 +825,7 @@ class _OfflineBanner extends StatelessWidget {
             children: [
               Expanded(
                 child: _HomeActionButton(
-                  label: 'Réessayer',
+                  label: l10n.retry,
                   filled: true,
                   onTap: onRetry,
                 ),
@@ -892,6 +882,7 @@ class _ProfileCompletionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -907,7 +898,7 @@ class _ProfileCompletionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Complétez votre profil',
+                l10n.homeCompleteProfile,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -976,6 +967,7 @@ class _PourCommencerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Widget chevron() => Icon(
           Icons.chevron_right_rounded,
           size: 20,
@@ -983,8 +975,8 @@ class _PourCommencerCard extends StatelessWidget {
         );
 
     final groupSubtitle = groupsCount > 0
-        ? '$groupsCount ${groupsCount > 1 ? "groupes" : "groupe"} à découvrir'
-        : 'Trouvez votre communauté';
+        ? l10n.homeGroupsToDiscover(groupsCount)
+        : l10n.homeFindYourCommunity;
 
     return Container(
       width: double.infinity,
@@ -998,7 +990,7 @@ class _PourCommencerCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'POUR COMMENCER',
+            l10n.homeGettingStarted,
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 10.5,
@@ -1011,8 +1003,8 @@ class _PourCommencerCard extends StatelessWidget {
             bg: context.successColor.withValues(alpha: 0.12),
             iconColor: context.successColor,
             icon: Icons.person_add_alt_1_outlined,
-            title: 'Retrouver vos proches',
-            subtitle: 'Par QR code, sans échanger de numéro',
+            title: l10n.homeFindRelatives,
+            subtitle: l10n.homeFindRelativesSub,
             trailing: chevron(),
             onTap: onFindFriends,
           ),
@@ -1021,7 +1013,7 @@ class _PourCommencerCard extends StatelessWidget {
             bg: _homeOrange.withValues(alpha: 0.12),
             iconColor: _homeOrange,
             icon: Icons.groups_outlined,
-            title: 'Rejoindre un groupe',
+            title: l10n.homeJoinGroup,
             subtitle: groupSubtitle,
             trailing: chevron(),
             onTap: onJoinGroup,
@@ -1031,8 +1023,8 @@ class _PourCommencerCard extends StatelessWidget {
             bg: context.adaptivePrimaryColor.withValues(alpha: 0.10),
             iconColor: context.adaptivePrimaryColor,
             icon: Icons.map_outlined,
-            title: 'Activer la carte des membres',
-            subtitle: 'Réciproque · désactivable',
+            title: l10n.homeEnableMemberMap,
+            subtitle: l10n.homeEnableMemberMapSub,
             trailing: chevron(),
             onTap: onActivateMap,
           ),
@@ -1050,12 +1042,11 @@ class _EventsEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasCity = city != null && city!.trim().isNotEmpty;
     final subtitle = hasCity
-        ? 'Un thé, un match, une aide aux papiers : soyez le premier à réunir '
-            'la communauté de ${city!.trim()}.'
-        : 'Un thé, un match, une aide aux papiers : soyez le premier à réunir '
-            'la communauté.';
+        ? l10n.homeFirstMeetupCity(city!.trim())
+        : l10n.homeFirstMeetup;
 
     return Container(
       width: double.infinity,
@@ -1080,7 +1071,7 @@ class _EventsEmptyCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'Lancez la première rencontre',
+            l10n.homeStartFirstMeetup,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -1103,18 +1094,23 @@ class _EventsEmptyCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: const [
-              _EventChip(label: 'Rencontre', category: EventCategory.social),
+            children: [
               _EventChip(
-                  label: 'Démarches', category: EventCategory.educational),
-              _EventChip(label: 'Sport', category: EventCategory.sports),
+                  label: l10n.eventCategorySocial,
+                  category: EventCategory.social),
+              _EventChip(
+                  label: l10n.homeEventChipPaperwork,
+                  category: EventCategory.educational),
+              _EventChip(
+                  label: l10n.eventCategorySport,
+                  category: EventCategory.sports),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: _HomeActionButton(
-              label: 'Créer un événement',
+              label: l10n.createEvent,
               filled: true,
               onTap: () => context.push('/events/create'),
             ),
@@ -1170,6 +1166,7 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasCity = city != null && city!.trim().isNotEmpty;
     final first = events.first;
     return Container(
@@ -1204,8 +1201,8 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
                   children: [
                     Text(
                       hasCity
-                          ? 'Aucun événement à ${city!.trim()}'
-                          : 'Aucun événement en présentiel',
+                          ? l10n.homeNoEventInCity(city!.trim())
+                          : l10n.homeNoInPersonEvent,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -1214,7 +1211,7 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Un atelier en ligne est accessible depuis chez vous.',
+                      l10n.homeOnlineWorkshopNote,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.3,
@@ -1284,6 +1281,7 @@ class _EventsPastCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final n = event.attendeeIds.length;
     final hasPhotos = event.recapPhotoUrls.isNotEmpty;
     return Container(
@@ -1317,7 +1315,7 @@ class _EventsPastCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Rien de prévu pour le moment',
+                      l10n.homeNothingPlanned,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -1327,8 +1325,8 @@ class _EventsPastCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       n > 0
-                          ? 'Le dernier a réuni $n personne${n > 1 ? 's' : ''}.'
-                          : 'Relancez la communauté avec un nouvel événement.',
+                          ? l10n.homeLastEventGathered(n)
+                          : l10n.homeReviveCommunity,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.3,
@@ -1416,6 +1414,7 @@ class _NotifyNextToggleState extends State<_NotifyNextToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Row(
@@ -1425,7 +1424,7 @@ class _NotifyNextToggleState extends State<_NotifyNextToggle> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'M\'avertir du prochain',
+              l10n.homeNotifyNext,
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,

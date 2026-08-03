@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,7 +45,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Envoyer de l\'argent'),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Envoyer de l\'argent', size: 22),
         actions: [
           if (_currentStep > 0)
             TextButton(

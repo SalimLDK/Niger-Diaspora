@@ -203,6 +203,49 @@ Résultat du test sur cette famille :
 Pour débloquer `profile_screen` : reporter le repli d'en-tête dans la copie,
 refaire le test, puis basculer.
 
+## Bascule — famille 5 et solde de la carte des risques (2026-08-03)
+
+En appliquant la leçon de `message_bubble` aux neuf fichiers restants de la
+carte des risques, il apparaît qu'ils ne sont pas du tout dans la même
+situation. Le critère n'est pas « la production a bougé » mais **dans quel
+sens** :
+
+| Fichier | Commit(s) de production depuis la copie | Appliqué à la copie aussi ? | Verdict |
+|---|---|---|---|
+| `home_screen`, `home_screen_widgets` | `e6172b3` squelette à l'élargissement | oui (le correctif est né dans la copie) | **basculés** |
+| `send_money_screen` | `f833a07`, `e3e47a3` | oui, les deux | **basculé** |
+| `call_screen` | `0ce170a` — **§23a fait en production** | non | ⛔ **ne pas basculer** |
+| `notification_settings_screen` | `642761f` — **§20d fait en production** | non | ⛔ **ne pas basculer** |
+| `devices_screen`, `security_backup_screen` | `13861b7` — **§20b/§20c faits en production** | non | ⛔ **ne pas basculer** |
+| `settings_screen` | `0d90246` entrée debug vers `/design-v2` | non | ⏸ **à la fin** — voir ci-dessous |
+| `map_screen` | `94d721c` (copie aussi), `bdcd795` (prod seule) | partiellement | ⚠ **fusion** |
+
+### Quatre copies sont périmées, pas en attente
+
+`call_screen`, `notification_settings_screen`, `devices_screen` et
+`security_backup_screen` portent des maquettes qui ont ensuite été
+implémentées **directement en production** (§23a, §20d, §20b, §20c). Leur
+copie est antérieure à ce travail : la basculer serait une régression pure.
+
+Elles ne se basculent pas — elles se **suppriment** avec le reste de
+`design_v2`. À ne pas confondre avec « reste à faire » dans un futur
+inventaire : le travail est fait, il est en production.
+
+### `settings_screen` attend la fin, exprès
+
+Sa copie est antérieure à `0d90246`, qui a ajouté l'entrée debug
+« Réglages → Refonte → Galerie design v2 ». La basculer maintenant
+supprimerait l'accès à la galerie **alors qu'on en a encore besoin** pour
+regarder ce qui n'est pas basculé (carte, profil). Elle passe en dernier,
+quand `design_v2/` disparaît et que l'entrée n'a plus d'objet.
+
+### `map_screen` reste le seul vrai cas bidirectionnel
+
+La copie a le §7e (bascule Carte/Liste, badge tuiles allégées, plein écran,
+tri) que la production n'a pas. La production a `bdcd795` (second jeu de
+blancs figés, dégradé de la légende) que la copie n'a pas. Aucune des deux
+n'est un superset : ce fichier se fusionne à la main, hunk par hunk.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

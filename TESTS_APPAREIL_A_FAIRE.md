@@ -773,6 +773,16 @@ mais c'est exactement ce qu'il faut regarder en premier :
   est actif.
 - [ ] **Groupes** (§9c, §9d, §9f) et **notifications** (§12c).
 
+## Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)
+
+- [ ] **Accueil** (§8a) : c'est l'écran d'ouverture de l'app, donc le plus vu
+  de tous. Vérifier le squelette de chargement au moment d'« Élargir à
+  200 km » — il doit remplacer la carte « Personne à moins de 50 km » pendant
+  la recherche, jamais la laisser affichée.
+- [ ] **Envoi d'argent** (§12a) : la barre de titre passe en serif plat. Le
+  reste de l'écran (montant en très grand, frais, total, taux) était déjà en
+  production — vérifier qu'il n'a pas bougé.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
