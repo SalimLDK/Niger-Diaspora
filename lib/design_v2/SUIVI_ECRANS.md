@@ -331,6 +331,32 @@ git log --diff-filter=A --format=%h -- lib/design_v2/<chemin>
 `map_legend.dart` n'a jamais eu de copie — `bdcd795` l'a corrigé en
 production, il n'y a rien à reporter.
 
+## Bascule — famille 2 : profil + configuration du profil (2026-08-03)
+
+Quatre fichiers basculés : `profile_config_screen`, `profile_view_screen`,
+`edit_profile_screen`, `handle_field`. `flutter analyze` propre sur tout le
+dépôt.
+
+**Contrôle appliqué, plus fin que le `diff`.** Compter les lignes perdues ne
+dit rien : une ligne réécrite compte comme perdue. Le test qui tranche est
+*« un identifiant présent dans les lignes perdues existe-t-il encore
+ailleurs dans la copie ? »*. S'il n'existe nulle part, la bascule
+supprimerait du code que la production a gagné depuis.
+
+Résultat : **0 identifiant absent** sur les quatre → ce sont des réécritures,
+rien n'est perdu.
+
+**`profile_screen.dart` a été écarté de ma bascule.** Le test l'avait signalé :
+`_headerCollapsed`, `NotificationListener` et `_buildCollapsedHeaderTitle`
+existaient en production (4/1/2 occurrences) et **nulle part** dans la copie
+— la basculer aurait supprimé le repli d'en-tête au défilement.
+
+La session parallèle l'a ensuite basculé elle-même (`ef335da`, famille 4) en
+retirant ce comportement **délibérément** : « le titre de barre repliée, qui
+n'a plus rien à servir », l'en-tête plat remplaçant la `SliverAppBar`.
+Décision motivée, pas une régression — mais elle n'aurait pas dû être prise
+par accident, et c'est exactement ce que le contrôle empêche.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

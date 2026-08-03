@@ -7,8 +7,8 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/theme/theme_provider.dart';
-import '../../../../features/auth/presentation/providers/auth_provider.dart';
-import '../../../../features/onboarding/presentation/providers/onboarding_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import '../../../../shared/widgets/app_icon.dart';
@@ -109,7 +109,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   // Theme
   AppThemeMode _selectedThemeMode = AppThemeMode.system;
-  AppThemeColor _selectedThemeColor = AppThemeColor.green;
+  // Aligné sur le défaut du ThemeColorNotifier. Cette valeur est de toute
+  // façon écrasée par _themeInitialized au premier build de l'étape 4/4,
+  // mais un défaut divergent finirait par mentir un jour.
+  AppThemeColor _selectedThemeColor = AppThemeColor.orange;
   bool _themeInitialized = false;
 
   @override

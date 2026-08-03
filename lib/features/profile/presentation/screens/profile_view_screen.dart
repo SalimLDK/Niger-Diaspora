@@ -5,15 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../features/friends/domain/repositories/friend_repository.dart';
-import '../../../../features/friends/presentation/providers/friend_provider.dart';
-import '../../../../features/messages/presentation/providers/message_provider.dart';
-import '../../../../features/messages/presentation/providers/media_gallery_provider.dart';
-import '../../../../features/messages/presentation/widgets/media_gallery_grid.dart';
-import '../../../../features/profile/domain/entities/profile_entity.dart';
+import '../../../friends/domain/repositories/friend_repository.dart';
+import '../../../friends/presentation/providers/friend_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../messages/presentation/providers/media_gallery_provider.dart';
+import '../../../messages/presentation/widgets/media_gallery_grid.dart';
+import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../providers/online_status_provider.dart';
-import '../../../../features/groups/presentation/providers/common_groups_provider.dart';
+import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../widgets/online_status_indicator.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -23,10 +23,10 @@ import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
-import '../../../../features/messages/presentation/widgets/full_screen_image_viewer.dart';
-import '../../../../features/settings/presentation/providers/blocked_users_provider.dart';
-import '../../../../features/reports/domain/entities/report_entity.dart';
-import '../../../../features/reports/presentation/widgets/report_content_modal.dart';
+import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
+import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../reports/domain/entities/report_entity.dart';
+import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../../../shared/widgets/app_icon.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
