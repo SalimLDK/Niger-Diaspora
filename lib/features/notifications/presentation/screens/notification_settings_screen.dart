@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
@@ -275,14 +275,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.1),
+              color: context.infoColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+              border: Border.all(color: context.infoColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                Icon(Icons.info_outline, color: context.infoColor, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -305,31 +305,23 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget _buildSectionHeader(
     BuildContext context,
     String title,
+    // Conservé pour ne pas toucher aux appels ; §20d n'affiche plus de
+    // pictogramme devant le libellé de section.
     IconData icon,
   ) {
+    // §20d : le libellé de section est une étiquette en chasse fixe, pas une
+    // ligne à pictogramme. La pastille teintée attirait l'œil autant que les
+    // réglages eux-mêmes ; l'étiquette se lit et s'oublie.
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 4),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: context.adaptivePrimaryColor),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: context.textTertiaryColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: GoogleFonts.robotoMono(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.3,
+          color: context.adaptivePrimaryColor,
+        ),
       ),
     );
   }
