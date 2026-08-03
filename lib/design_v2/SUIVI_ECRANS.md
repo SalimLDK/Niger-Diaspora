@@ -111,6 +111,24 @@ ces onze fichiers c'est suffisant parce que la production n'a reçu **aucun
 commit** depuis la copie — c'est cette condition qui fait la sûreté, pas la
 comparaison. Sur un fichier de la carte des risques, elle ne suffirait pas.
 
+## Bascule vers la production — famille 3 : boutique, support, transferts, appels (2026-08-03)
+
+**Faite.** Onze écrans de plus, choisis au même critère : boutique (3),
+support (4 maquettes sur 3 fichiers), transferts hors envoi (2), historique
+d'appels, appel de groupe, création de podcast. Zéro membre perdu, zéro
+commit de production depuis la copie.
+
+`send_money_screen` est **volontairement laissé de côté** alors qu'il est de
+la même feature : sa production a reçu deux commits depuis la copie
+(`f833a07`, l'accent du compte dans le tunnel d'envoi). Il se fusionne, il
+ne se copie pas.
+
+`group_call_screen` ne figure pas dans le commit : une fois les imports
+réécrits il est redevenu identique à la production — son seul écart était le
+chemin des imports. Même cas qu'`embassy_detail_screen` en famille 2.
+
+`flutter analyze` sur les six features : **No issues found**.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

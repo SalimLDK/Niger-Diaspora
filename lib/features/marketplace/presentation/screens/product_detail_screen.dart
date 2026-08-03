@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -160,13 +161,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title and price
-                        Text(
-                          product.title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        // Nom du produit (§16a) : serif, sous le carrousel
+                        // qui sert d'en-tête.
+                        DesignTitle(product.title, size: 22),
                         const SizedBox(height: 8),
                         PriceText(
                           amount: product.price,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -85,14 +86,18 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
         ref.watch(ticketMessagesProvider(widget.ticket.id));
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.ticket.subject,
-              style: const TextStyle(fontSize: 16),
-            ),
+            // Sujet en serif : c'est le titre de l'écran, pas une ligne
+            // d'AppBar parmi d'autres (§22c).
+            DesignSectionTitle(widget.ticket.subject, size: 16),
             Text(
               _statusLabel(widget.ticket.status, l10n),
               style: TextStyle(

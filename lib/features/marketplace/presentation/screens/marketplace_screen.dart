@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/search_empty_state.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/product_entity.dart';
@@ -88,9 +89,16 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 0;
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
+      // En-tête plat (§12b) : « Boutique » en serif — le mot « Marketplace »
+      // disparaît — avec le panier et les commandes en actions carrées.
       appBar: AppBar(
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -99,7 +107,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             }
           },
         ),
-        title: const Text('Marketplace'),
+        title: const DesignTitle('Boutique', size: 24),
         actions: [
           Stack(
             clipBehavior: Clip.none,
@@ -194,12 +202,15 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: StandardSearchBar(
+                  child: DesignSearchField(
                     controller: _searchController,
-                    hintText: 'Rechercher un produit...',
-                    padding: EdgeInsets.zero,
+                    hintText: 'Rechercher un produit',
                     onChanged: (value) {
                       setState(() => _searchQuery = value);
+                    },
+                    onClear: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
                     },
                   ),
                 ),

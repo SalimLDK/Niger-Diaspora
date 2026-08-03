@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -92,8 +93,13 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.newSupportTicket),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.newSupportTicket, size: 22),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/currency_service.dart';
@@ -24,12 +26,15 @@ class TransferScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/home'),
           tooltip: 'Retour',
         ),
-        title: const Text('Transferts'),
+        title: const DesignTitle('Transferts', size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline),

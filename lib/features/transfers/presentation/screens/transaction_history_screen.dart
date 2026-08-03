@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
-import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -36,7 +37,10 @@ class _TransactionHistoryScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Historique des transferts'),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Historique des transferts', size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -230,9 +234,23 @@ class _TransactionHistoryScreenState
     final timeFormat = DateFormat('HH:mm', 'fr_FR');
     final statusInfo = _getStatusInfo(transaction.status);
 
+    // Un transfert qui n'est pas arrivé montre où il en est (§16c) : la
+    // frise remplace le simple badge de statut, qui ne disait pas si
+    // l'argent avait bougé.
+    final enCours = transaction.status == TransactionStatus.pending ||
+        transaction.status == TransactionStatus.processing;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kDesignRadius),
+        side: BorderSide(color: context.borderColor),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+      ListTile(
         leading: Container(
           width: 48,
           height: 48,
@@ -292,6 +310,13 @@ class _TransactionHistoryScreenState
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/transfers/${transaction.id}'),
+      ),
+          if (enCours)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: _TransferProgress(status: transaction.status),
+            ),
+        ],
       ),
     );
   }
@@ -521,4 +546,75 @@ class _StatusInfo {
   final String label;
 
   _StatusInfo(this.icon, this.color, this.label);
+}
+
+/// Frise « Débité → En route → Disponible » (§16c).
+///
+/// Les trois jalons sont les états que le domaine connaît déjà :
+/// `pending` = débité, `processing` = en route, `completed` = disponible.
+/// Rien n'est inventé — un transfert échoué, remboursé ou annulé n'affiche
+/// pas de frise du tout, il n'a pas de trajet à raconter.
+class _TransferProgress extends StatelessWidget {
+  final TransactionStatus status;
+
+  const _TransferProgress({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    // Jalon atteint : 0 = débité, 1 = en route, 2 = disponible.
+    final atteint = status == TransactionStatus.processing ? 1 : 0;
+    const jalons = ['Débité', 'En route', 'Disponible'];
+    final accent = context.adaptiveSecondaryColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: List.generate(5, (i) {
+            // Alternance pastille / segment de liaison.
+            if (i.isOdd) {
+              final franchi = atteint >= (i + 1) ~/ 2;
+              return Expanded(
+                child: Container(
+                  height: 2,
+                  color: franchi
+                      ? accent
+                      : context.borderColor,
+                ),
+              );
+            }
+            final index = i ~/ 2;
+            final fait = index <= atteint;
+            return Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: fait ? accent : context.surfaceVariantColor,
+                border: Border.all(
+                  color: fait ? accent : context.borderColor,
+                  width: 1.5,
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(jalons.length, (i) {
+            final fait = i <= atteint;
+            return Text(
+              jalons[i],
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: fait ? FontWeight.w600 : FontWeight.w400,
+                color: fait ? context.textPrimaryColor : context.textTertiaryColor,
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
 }

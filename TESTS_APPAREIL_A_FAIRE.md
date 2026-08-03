@@ -729,6 +729,21 @@ maintenant **ceux que l'app ouvre pour de bon**. Rien n'a été vu tourner.
   défauts la plus récurrente du projet, et ces écrans n'ont jamais été
   affichés ailleurs que dans la galerie de debug.
 
+## Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)
+
+Dix écrans de plus dans `lib/features/`, jamais vus tourner :
+
+- [ ] **Boutique** (§12b, §16a, §16b, §16h) : liste, fiche produit, panier.
+- [ ] **Support** (§22a→22d) : nouveau ticket, mes demandes, suivi, état vide.
+- [ ] **Transferts — accueil et historique** (§16i, §16c). La **frise
+  « Débité → En route → Disponible »** de l'historique est le point à
+  regarder : elle ne doit apparaître que sur les transferts qui ont un
+  trajet, pas sur un échec ou un remboursement.
+- [ ] **Historique d'appels** (§13c) et **création de podcast** (§2c).
+- [ ] ⚠️ **`send_money_screen` n'est pas dans ce lot** : il attend une fusion,
+  pas une copie. Ne pas conclure d'un tunnel d'envoi correct que la bascule
+  des transferts est complète.
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

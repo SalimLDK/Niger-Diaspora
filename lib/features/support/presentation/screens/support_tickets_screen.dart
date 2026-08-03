@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -18,8 +19,13 @@ class SupportTicketsScreen extends ConsumerWidget {
     final ticketsAsync = ref.watch(userSupportTicketsProvider);
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.supportTickets),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.supportTickets, size: 22),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/support/new'),

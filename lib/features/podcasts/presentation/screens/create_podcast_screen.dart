@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_colors.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -122,8 +125,22 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final dn = context.dn;
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.createPodcast)),
+      backgroundColor: dn.surface,
+      // Migration vers le système DN (§2f) : mêmes jetons et même titrage
+      // Instrument Serif que les salons, au lieu du thème Material brut.
+      appBar: AppBar(
+        backgroundColor: dn.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: Text(
+          l10n.createPodcast,
+          style: DNText.serif(size: 22, color: dn.onSurface),
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -160,7 +177,10 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 l10n.podcastsAddCover,
-                                style: TextStyle(color: Colors.grey[600]),
+                                style: DNText.sans(
+                                  size: 14,
+                                  color: context.dn.onSurface3,
+                                ),
                               ),
                             ],
                           )
@@ -303,7 +323,7 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
                 IconButton(
                   onPressed: _addTag,
                   icon: const Icon(Icons.add_circle),
-                  color: Theme.of(context).primaryColor,
+                  color: DNColors.terra,
                 ),
               ],
             ),

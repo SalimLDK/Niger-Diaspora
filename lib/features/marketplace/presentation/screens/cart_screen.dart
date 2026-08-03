@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -22,7 +24,12 @@ class CartScreen extends ConsumerWidget {
 
     if (cartItems.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Panier')),
+        appBar: AppBar(
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const DesignTitle('Panier', size: 22),
+      ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -52,7 +59,10 @@ class CartScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Panier (${cartNotifier.itemCount})'),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: DesignTitle('Panier (${cartNotifier.itemCount})', size: 22),
         actions: [
           TextButton(
             onPressed: () {
