@@ -695,6 +695,33 @@ class DesignSelectableChip extends StatelessWidget {
   }
 }
 
+/// Puce d'identité d'un profil (§10a, §10c) : trajet migratoire, métier,
+/// langue parlée. Petite, sable, non cliquable.
+class DesignTag extends StatelessWidget {
+  final String label;
+
+  const DesignTag(this.label, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+      decoration: BoxDecoration(
+        color: context.surfaceVariantColor,
+        borderRadius: BorderRadius.circular(kDesignPillRadius),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: context.textSecondaryColor,
+        ),
+      ),
+    );
+  }
+}
+
 /// Carte sable de récapitulatif (fin de configuration).
 class DesignSummaryCard extends StatelessWidget {
   final String title;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../kit/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -259,46 +260,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     }
   }
 
-  String _buildLocationString(AppLocalizations l10n, ProfileEntity? profile) {
-    if (profile == null) return '';
-    final city = profile.currentCity;
-    final region = profile.currentRegion;
-    final country = profile.currentCountry;
 
-    final parts = <String>[];
 
-    if (city != null && city.isNotEmpty) {
-      parts.add(city);
-    }
 
-    if (region != null && region.isNotEmpty) {
-      parts.add(region);
-    }
-
-    if (country != null && country.isNotEmpty) {
-      parts.add(country);
-    }
-
-    return parts.join(', ');
-  }
-
-  String _buildOriginString(AppLocalizations l10n, ProfileEntity? profile) {
-    if (profile == null) return '';
-    final region = profile.originRegion;
-    final city = profile.originCity;
-
-    if (region != null &&
-        region.isNotEmpty &&
-        city != null &&
-        city.isNotEmpty) {
-      return '${l10n.fromCity(city)} ($region)';
-    } else if (region != null && region.isNotEmpty) {
-      return l10n.fromRegion(region);
-    } else if (city != null && city.isNotEmpty) {
-      return l10n.fromCity(city);
-    }
-    return '';
-  }
 
   String _getInitials(String? name) {
     if (name == null || name.trim().isEmpty) return '?';
@@ -540,8 +504,17 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final isBlocked = isBlockedByMe || isBlockedByThem;
 
     // Hide location if blocked
-    final locationString = isBlocked ? '' : _buildLocationString(l10n, profile);
-    final originString = _buildOriginString(l10n, profile);
+
+    // Puce « origine → ville actuelle » (§10c), à partir des villes brutes.
+    final originCity = profile.originCity?.trim();
+    final currentCity = isBlocked ? null : profile.currentCity?.trim();
+    final journeyTag = (originCity != null && originCity.isNotEmpty)
+        ? ((currentCity != null && currentCity.isNotEmpty)
+            ? '$originCity → $currentCity'
+            : originCity)
+        : ((currentCity != null && currentCity.isNotEmpty)
+            ? currentCity
+            : null);
 
     return PopScope(
       canPop: false,
@@ -563,7 +536,6 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 170,
               pinned: true,
               backgroundColor: context.backgroundColor,
               surfaceTintColor: Colors.transparent,
@@ -654,16 +626,19 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                   ),
                 const SizedBox(width: 8),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                // Fond crème : le bandeau dégradé disparaît, l'avatar se
-                // détache par sa bordure et non plus par une ombre portée.
-                background: Container(
-                  color: context.backgroundColor,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Identité alignée à gauche (§10c) : l'avatar quitte
+                    // la bannière-héros et vient se poser à côté du nom, du
+                    // statut et des puces — même gabarit que « Mon profil ».
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 40),
                         GestureDetector(
                           onTap: () {
                             if (profile.photoUrl != null) {
@@ -680,29 +655,28 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                           child: Hero(
                             tag: 'profile_view_avatar_${profile.id}',
                             child: Container(
-                              width: 100,
-                              height: 100,
+                              width: 76,
+                              height: 76,
                               decoration: BoxDecoration(
                                 color: context.surfaceVariantColor,
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
                                   color: context.borderColor,
                                   width: 2,
                                 ),
                               ),
+                              clipBehavior: Clip.antiAlias,
                               child:
                                   profile.photoUrl != null
-                                      ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(28),
-                                        child: Image.network(
-                                          profile.photoUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (_, __, ___) => _buildProfileInitials(
-                                                context,
-                                                profile.displayName,
-                                              ),
-                                        ),
+                                      ? Image.network(
+                                        profile.photoUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) =>
+                                                _buildProfileInitials(
+                                                  context,
+                                                  profile.displayName,
+                                                ),
                                       )
                                       : _buildProfileInitials(
                                         context,
@@ -711,139 +685,67 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                             ),
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              DesignTitle(
+                                profile.displayName?.isNotEmpty == true
+                                    ? profile.displayName!
+                                    : 'Nouvel utilisateur',
+                                size: 22,
+                              ),
+
+                              // Poignée publique @handle (§10c)
+                              if (profile.handle != null &&
+                                  profile.handle!.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  '@${profile.handle}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: context.adaptivePrimaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+
+                              // Statut en ligne (masqué si bloqué)
+                              if (!isBlocked) ...[
+                                const SizedBox(height: 6),
+                                OnlineStatusIndicator(
+                                  userId: profile.id,
+                                  showText: true,
+                                  dotSize: 9,
+                                ),
+                              ],
+
+                              // Puces du §10c : trajet migratoire et métier
+                              // remplacent les lignes à pictogramme centrées.
+                              if (journeyTag != null ||
+                                  (profile.profession?.isNotEmpty ?? false)) ...[
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    if (journeyTag != null)
+                                      DesignTag(journeyTag),
+                                    if (profile.profession?.isNotEmpty ?? false)
+                                      DesignTag(profile.profession!),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Nom
-                    Center(
-                      child: Text(
-                        profile.displayName?.isNotEmpty == true
-                            ? profile.displayName!
-                            : 'Nouvel utilisateur',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: context.textPrimaryColor,
-                        ),
-                      ),
-                    ),
-
-                    // Poignée publique @handle (§10c)
-                    if (profile.handle != null &&
-                        profile.handle!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Center(
-                        child: Text(
-                          '@${profile.handle}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.adaptivePrimaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Online Status Indicator (hidden if blocked)
-                    if (!isBlocked) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: OnlineStatusIndicator(
-                          userId: profile.id,
-                          showText: true,
-                          dotSize: 10,
-                        ),
-                      ),
-                    ],
-
-                    if (profile.profession != null &&
-                        profile.profession!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            profile.profession!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
 
                     // Groupes en commun (§10c)
                     if (!isBlocked) _buildCommonGroups(context, profile.id),
-
-                    // Current location (city, country)
-                    if (locationString.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AppIcon(
-                              AppIcon.location,
-                              size: 18,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              locationString,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.textSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    // Origin (region, city in Niger)
-                    if (originString.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.home_outlined,
-                              size: 18,
-                              color: context.adaptiveSecondaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              originString,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.textTertiaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
 
                     const SizedBox(height: 24),
 

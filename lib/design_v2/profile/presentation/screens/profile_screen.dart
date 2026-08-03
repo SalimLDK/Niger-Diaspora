@@ -1021,28 +1021,13 @@ class _AnimatedProfileStat extends StatelessWidget {
   }
 }
 
-/// Puce d'identité du profil (§10a) : trajet migratoire, métier.
+/// Puce d'identité du profil (§10a) : alias de [DesignTag], pour que les
+/// deux profils (le mien et celui d'un membre) partagent la même puce.
 class _ProfileTag extends StatelessWidget {
   final String label;
 
   const _ProfileTag({required this.label});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-      decoration: BoxDecoration(
-        color: context.surfaceVariantColor,
-        borderRadius: BorderRadius.circular(kDesignPillRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: context.textSecondaryColor,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => DesignTag(label);
 }

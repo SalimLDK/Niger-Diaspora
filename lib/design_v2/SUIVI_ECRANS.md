@@ -51,18 +51,11 @@ Légende de l'état :
 | Maquette | Écran | Fichier `design_v2` | État |
 |---|---|---|---|
 | 10a | Mon profil | `profile/…/profile_screen.dart` | fait |
-| 10c | Profil d'un membre (vue publique) | `profile/…/profile_view_screen.dart` | fait (partiel, voir ci-dessous) |
+| 10c | Profil d'un membre (vue publique) | `profile/…/profile_view_screen.dart` | fait |
 | 10b | Réglages | `settings/…/settings_screen.dart` | fait |
 | 12c | Notifications | `notifications/…/notifications_screen.dart` | fait |
 | 12d | Recherche | `search/…/search_screen.dart` | fait |
 | 11f | Profil incomplet — invitation à compléter | `profile/…/profile_screen.dart` | fait (bandeau `_buildCompletionBanner`) |
-
-**10c, ce qui reste** : le bandeau dégradé, l'ombre portée de l'avatar et les
-pastilles blanches des actions ont disparu, mais l'identité est encore
-**centrée** sous l'en-tête alors que la maquette l'aligne à gauche comme le
-§10a (avatar à gauche, nom / statut / puces à droite). L'avatar vit dans un
-`FlexibleSpaceBar` : le sortir demande de démonter le hero, pas seulement de
-le repeindre.
 
 ## Variantes nocturnes
 
