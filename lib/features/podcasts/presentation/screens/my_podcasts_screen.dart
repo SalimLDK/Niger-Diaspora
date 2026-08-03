@@ -190,11 +190,18 @@ class _PodcastManagementCard extends ConsumerWidget {
                         children: [
                           _buildStatusChip(podcast.status),
                           const SizedBox(width: 8),
-                          Text(
-                            podcast.categoryLabel,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                          Expanded(
+                            child: Text(
+                              // Fréquence et prix (maquette 3a) : ce qui
+                              // caractérise un podcast pour son créateur, plus
+                              // que sa catégorie seule.
+                              _subtitle(l10n, podcast),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -289,12 +296,29 @@ class _PodcastManagementCard extends ConsumerWidget {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
+                // « Voir la fiche » manquait : le seul moyen d'y aller était
+                // de taper la carte, ce que rien n'indiquait.
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => context.push('/podcasts/${podcast.id}'),
+                    child: Text(
+                      l10n.podcastViewSheet,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed:
                         () => context.push('/podcasts/${podcast.id}/record'),
                     icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!, size: 18),
-                    label: Text(l10n.newEpisode),
+                    label: Text(
+                      l10n.newEpisode,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -303,14 +327,8 @@ class _PodcastManagementCard extends ConsumerWidget {
                       (value) => _handleAction(context, ref, value, l10n),
                   itemBuilder:
                       (context) => [
-                        PopupMenuItem(
-                          value: 'view',
-                          child: ListTile(
-                            leading: const Icon(Icons.visibility),
-                            title: Text(l10n.viewPodcast),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
+                        // « Voir la fiche » est désormais un bouton visible :
+                        // le doublon dans le menu n'apporte plus rien.
                         PopupMenuItem(
                           value: 'stats',
                           child: ListTile(
@@ -371,6 +389,24 @@ class _PodcastManagementCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Fréquence et prix quand ils existent, catégorie sinon — on ne fabrique
+  /// pas une périodicité qui n'a pas été renseignée.
+  String _subtitle(AppLocalizations l10n, PodcastEntity p) {
+    final parts = <String>[];
+    if (p.episodeFrequency != null && p.episodeFrequency!.isNotEmpty) {
+      parts.add(p.episodeFrequency!);
+    }
+    if (p.isPremium && p.premiumPrice != null) {
+      final price = (p.premiumPrice! / 100).toStringAsFixed(2);
+      parts.add('$price ${p.premiumCurrency ?? 'EUR'}');
+    }
+    if (parts.isEmpty) return p.categoryLabel;
+    if (parts.length == 2) {
+      return l10n.podcastFrequencyAndPrice(parts[0], parts[1]);
+    }
+    return parts.first;
   }
 
   Widget _buildStatusChip(PodcastStatus status) {

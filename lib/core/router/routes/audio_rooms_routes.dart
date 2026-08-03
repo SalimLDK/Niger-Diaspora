@@ -36,7 +36,12 @@ class AudioRoomsRoutes {
         ),
         GoRoute(
           path: '/audio-rooms/schedule',
-          builder: (context, state) => const ScheduleRoomScreen(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return ScheduleRoomScreen(
+              initialTitle: extra?['title'] as String?,
+            );
+          },
         ),
         GoRoute(
           path: '/audio-rooms/:roomId',

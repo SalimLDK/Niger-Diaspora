@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -405,6 +407,47 @@ class _GhostBar extends StatelessWidget {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
+/// Durée écoulée depuis le début du salon, rafraîchie toute seule — sans
+/// minuteur elle resterait figée sur la valeur du premier build.
+class _ElapsedText extends StatefulWidget {
+  final DateTime startedAt;
+
+  const _ElapsedText({required this.startedAt});
+
+  @override
+  State<_ElapsedText> createState() => _ElapsedTextState();
+}
+
+class _ElapsedTextState extends State<_ElapsedText> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    // La minute est la plus petite unité affichée : inutile de battre plus vite.
+    _ticker = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => setState(() {}),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final d = DateTime.now().difference(widget.startedAt);
+    final label = d.inHours >= 1
+        ? l10n.audioRoomElapsedHours(d.inHours, d.inMinutes % 60)
+        : l10n.audioRoomElapsedMinutes(d.inMinutes);
+    return Text(label, style: DNText.mono(size: 9, color: DNColors.terra));
+  }
+}
+
 class _RoomHeader extends StatelessWidget {
   final AudioRoomEntity room;
   final RoomMode mode;
@@ -446,6 +489,14 @@ class _RoomHeader extends StatelessWidget {
                   children: [
                     const LiveDot(),
                     const SizedBox(width: 5),
+                    // Depuis combien de temps le salon tourne : la maquette
+                    // l'affiche à côté du nombre d'auditeurs, et c'est ce qui
+                    // dit si on arrive au début ou à la fin.
+                    if (room.startedAt != null) ...[
+                      _ElapsedText(startedAt: room.startedAt!),
+                      Text(' · ',
+                          style: DNText.mono(size: 9, color: DNColors.terra),),
+                    ],
                     Text(
                       l10n.audioRoomListenersCount(room.listenerCount),
                       style: DNText.mono(size: 9, color: DNColors.terra),

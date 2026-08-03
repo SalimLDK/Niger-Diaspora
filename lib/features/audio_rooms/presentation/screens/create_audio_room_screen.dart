@@ -394,7 +394,12 @@ class _CreateAudioRoomScreenState
       bottomNavigationBar: _CreateFooter(
         isLoading: _isLoading,
         onStart: _start,
-        onLater: () => context.push('/audio-rooms/schedule'),
+        // Le titre déjà saisi part avec : sans ça, il était perdu et le salon
+        // programmé s'appelait « Nouveau salon ».
+        onLater: () => context.push(
+          '/audio-rooms/schedule',
+          extra: {'title': _titleCtrl.text.trim()},
+        ),
       ),
     );
   }

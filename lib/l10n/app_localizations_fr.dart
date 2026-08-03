@@ -1095,6 +1095,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapShowEmbassies => 'Voir les ambassades';
 
   @override
+  String scheduleRoomOnDate(String date, String time) {
+    return '📅 Programmer le $date à $time';
+  }
+
+  @override
+  String get scheduleRoomTitleLabel => 'Titre du salon';
+
+  @override
+  String get scheduleRoomTitleHint => 'De quoi allez-vous parler ?';
+
+  @override
+  String get audioRoomTicketAction => 'Billet';
+
+  @override
+  String audioRoomElapsedMinutes(int minutes) {
+    return '$minutes MIN';
+  }
+
+  @override
+  String audioRoomElapsedHours(int hours, int minutes) {
+    return '$hours H $minutes MIN';
+  }
+
+  @override
+  String podcastFrequencyAndPrice(String frequency, String price) {
+    return '$frequency · $price/mois';
+  }
+
+  @override
+  String get podcastViewSheet => 'Voir la fiche';
+
+  @override
   String get podcastsDiasporaVoicesTitle => 'Des voix de la diaspora';
 
   @override

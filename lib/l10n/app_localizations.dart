@@ -2108,6 +2108,54 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @scheduleRoomOnDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'📅 Programmer le {date} à {time}'**
+  String scheduleRoomOnDate(String date, String time);
+
+  /// No description provided for @scheduleRoomTitleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre du salon'**
+  String get scheduleRoomTitleLabel;
+
+  /// No description provided for @scheduleRoomTitleHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'De quoi allez-vous parler ?'**
+  String get scheduleRoomTitleHint;
+
+  /// No description provided for @audioRoomTicketAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Billet'**
+  String get audioRoomTicketAction;
+
+  /// No description provided for @audioRoomElapsedMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{minutes} MIN'**
+  String audioRoomElapsedMinutes(int minutes);
+
+  /// No description provided for @audioRoomElapsedHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'{hours} H {minutes} MIN'**
+  String audioRoomElapsedHours(int hours, int minutes);
+
+  /// No description provided for @podcastFrequencyAndPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'{frequency} · {price}/mois'**
+  String podcastFrequencyAndPrice(String frequency, String price);
+
+  /// No description provided for @podcastViewSheet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir la fiche'**
+  String get podcastViewSheet;
+
   /// No description provided for @podcastsDiasporaVoicesTitle.
   ///
   /// In fr, this message translates to:

@@ -444,6 +444,51 @@
   "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
   "mapZoomOut": "Dézoomer",
   "mapShowEmbassies": "Voir les ambassades",
+  "scheduleRoomOnDate": "📅 Programmer le {date} à {time}",
+  "@scheduleRoomOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduleRoomTitleLabel": "Titre du salon",
+  "scheduleRoomTitleHint": "De quoi allez-vous parler ?",
+  "audioRoomTicketAction": "Billet",
+  "audioRoomElapsedMinutes": "{minutes} MIN",
+  "@audioRoomElapsedMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "audioRoomElapsedHours": "{hours} H {minutes} MIN",
+  "@audioRoomElapsedHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "podcastFrequencyAndPrice": "{frequency} · {price}/mois",
+  "@podcastFrequencyAndPrice": {
+    "placeholders": {
+      "frequency": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "podcastViewSheet": "Voir la fiche",
   "podcastsDiasporaVoicesTitle": "Des voix de la diaspora",
   "podcastsPopularInDiaspora": "POPULAIRES DANS LA DIASPORA",
   "podcastsCreateMine": "Créer mon podcast",

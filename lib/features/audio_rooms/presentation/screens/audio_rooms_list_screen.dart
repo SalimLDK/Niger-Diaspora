@@ -390,7 +390,11 @@ class _LiveCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.join,
+                    // Un salon payant demande d'abord un billet : afficher
+                    // « Rejoindre » laissait croire à une entrée directe.
+                    room.isPaid
+                        ? AppLocalizations.of(context)!.audioRoomTicketAction
+                        : AppLocalizations.of(context)!.join,
                     style: DNText.mono(size: 9, color: DNColors.paper),
                   ),
                 ),

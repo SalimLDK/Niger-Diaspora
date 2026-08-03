@@ -15,7 +15,11 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// /audio-rooms/schedule — custom monthly calendar + multi-timezone display.
 class ScheduleRoomScreen extends ConsumerStatefulWidget {
-  const ScheduleRoomScreen({super.key});
+  /// Titre déjà saisi dans « Ouvrir un salon » avant le clic sur « Plus tard ».
+  /// Sans lui, tous les salons programmés s'appelaient « Nouveau salon ».
+  final String? initialTitle;
+
+  const ScheduleRoomScreen({super.key, this.initialTitle});
 
   @override
   ConsumerState<ScheduleRoomScreen> createState() => _ScheduleRoomScreenState();
@@ -39,11 +43,20 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
     'America/Toronto': false,
   };
 
+  late final TextEditingController _titleController =
+      TextEditingController(text: widget.initialTitle ?? '');
+
   @override
   void initState() {
     super.initState();
     tzdata.initializeTimeZones();
     setState(() => _tzInitialized = true);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 
   DateTime get _selectedDateTime => DateTime(
@@ -86,6 +99,26 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
+          // Le titre était figé à « Nouveau salon » : tous les salons
+          // programmés portaient le même nom. Il est saisissable ici, et
+          // pré-rempli quand on vient de « Ouvrir un salon ».
+          TextField(
+            controller: _titleController,
+            style: DNText.sans(size: 14, color: dn.onSurface),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.scheduleRoomTitleLabel,
+              hintText: AppLocalizations.of(context)!.scheduleRoomTitleHint,
+              hintStyle: DNText.sans(size: 13, color: dn.onSurface4),
+              filled: true,
+              fillColor: dn.surfaceVariant,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           _MonthCalendar(
             selectedDay: _selectedDay,
             onDaySelected: (d) => setState(() => _selectedDay = d),
@@ -145,10 +178,16 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
         ],
       ),
       bottomNavigationBar: _ScheduleFooter(
+        scheduledAt: _selectedDateTime,
         onSchedule: () async {
           final session = ref.read(audioRoomSessionProvider.notifier);
+          final typed = _titleController.text.trim();
           await session.createRoom(
-            title: AppLocalizations.of(context)!.scheduleNewRoomLabel,
+            // Le titre saisi prime ; le libellé générique n'est plus qu'un
+            // dernier recours si le champ est resté vide.
+            title: typed.isEmpty
+                ? AppLocalizations.of(context)!.scheduleNewRoomLabel
+                : typed,
             scheduledAt: _selectedDateTime,
           );
           if (context.mounted) context.pop();
@@ -364,7 +403,11 @@ class _TimezoneRow extends StatelessWidget {
 class _ScheduleFooter extends StatelessWidget {
   final VoidCallback onSchedule;
 
-  const _ScheduleFooter({required this.onSchedule});
+  /// Rappelé dans le bouton : c'est la dernière occasion de voir la date
+  /// choisie avant de valider.
+  final DateTime scheduledAt;
+
+  const _ScheduleFooter({required this.onSchedule, required this.scheduledAt});
 
   @override
   Widget build(BuildContext context) {
@@ -382,7 +425,10 @@ class _ScheduleFooter extends StatelessWidget {
           elevation: 0,
         ),
         child: Text(
-          '📅 Programmer ce salon',
+          AppLocalizations.of(context)!.scheduleRoomOnDate(
+            context.dateFormat('d MMMM').format(scheduledAt),
+            DateFormat('HH:mm').format(scheduledAt),
+          ),
           style: DNText.sans(size: 15, w: FontWeight.w600, color: DNColors.paper),
         ),
       ),

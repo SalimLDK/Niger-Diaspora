@@ -25,6 +25,14 @@ class EpisodeTile extends ConsumerWidget {
     this.showPodcastInfo = false,
   });
 
+  /// Épisode marqué terminé dans l'historique d'écoute.
+  bool _isCompleted(WidgetRef ref) {
+    final userData = ref.watch(podcastUserDataProvider).valueOrNull;
+    if (userData == null) return false;
+    return userData.listenHistory
+        .any((h) => h.episodeId == episode.id && h.completed);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloadState = ref.watch(downloadManagerProvider)[episode.id];
@@ -76,6 +84,17 @@ class EpisodeTile extends ConsumerWidget {
                   // Badges row: episode number + premium lock
                   Row(
                     children: [
+                      // « Déjà écouté » (maquette 3b) : rien ne distinguait un
+                      // épisode terminé d'un épisode jamais ouvert.
+                      if (_isCompleted(ref))
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4, right: 6),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 14,
+                            color: context.successColor,
+                          ),
+                        ),
                       if (episode.episodeNumber > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

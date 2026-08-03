@@ -444,6 +444,51 @@
   "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
   "mapZoomOut": "Zoom out",
   "mapShowEmbassies": "Show embassies",
+  "scheduleRoomOnDate": "📅 Schedule for {date} at {time}",
+  "@scheduleRoomOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduleRoomTitleLabel": "Room title",
+  "scheduleRoomTitleHint": "What will you talk about?",
+  "audioRoomTicketAction": "Ticket",
+  "audioRoomElapsedMinutes": "{minutes} MIN",
+  "@audioRoomElapsedMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "audioRoomElapsedHours": "{hours} H {minutes} MIN",
+  "@audioRoomElapsedHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "podcastFrequencyAndPrice": "{frequency} · {price}/month",
+  "@podcastFrequencyAndPrice": {
+    "placeholders": {
+      "frequency": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "podcastViewSheet": "View page",
   "podcastsDiasporaVoicesTitle": "Voices from the diaspora",
   "podcastsPopularInDiaspora": "POPULAR IN THE DIASPORA",
   "podcastsCreateMine": "Create my podcast",
