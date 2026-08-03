@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 
 import '../../../../core/services/e2ee_service.dart';
@@ -1671,12 +1672,16 @@ class _CallScreenState extends ConsumerState<CallScreen>
                     : null,
           ),
           const SizedBox(height: 24),
+          // Nom de l'interlocuteur en serif (§23a), comme tous les titres de
+          // la série. Le blanc reste : cet écran se peint sur le flux vidéo
+          // ou un fond sombre, ce n'est pas une couleur figée par oubli mais
+          // le seul contraste tenable.
           Text(
             nom,
-            style: const TextStyle(
+            style: GoogleFonts.playfairDisplay(
               color: Colors.white,
               fontSize: 28,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),

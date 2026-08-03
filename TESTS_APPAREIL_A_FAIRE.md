@@ -809,6 +809,16 @@ parce qu'il change un **comportement**, pas seulement un habillage :
   changé (serif, barre plate). Vérifier que les **étiquettes de section en
   chasse fixe** et le bandeau d'information sont restés tels quels — c'est
   précisément ce qu'une bascule du fichier aurait annulé.
+- [ ] **Titres serif portés sans bascule** — appareils connectés (§20b),
+  sauvegarde des clés (§20c), appel 1-à-1 (§23a). Dans les trois cas seul le
+  titre a bougé. Ce qu'il faut vérifier est donc l'**absence** de changement
+  ailleurs : les pastilles d'état (vert/orange/rouge) des appareils et des
+  clés doivent rester celles des jetons adaptatifs — les regarder en **thème
+  sombre**, c'est là qu'une régression se verrait.
+- [ ] **Appel 1-à-1** (§23a) : le nom passe en serif blanc sur le fond
+  sombre. Vérifier qu'il reste lisible **par-dessus le flux vidéo**, et
+  qu'un nom long ne déborde pas à `font_scale = 1.1` — le serif est plus
+  large que la fonte précédente à taille égale.
 
 ## Profil & Accueil (avant la refonte design)
 

@@ -258,12 +258,37 @@ Elles ne se basculent pas — elles se **suppriment** avec le reste de
 `design_v2`. À ne pas confondre avec « reste à faire » dans un futur
 inventaire : le travail est fait, il est en production.
 
-⚠️ `call_screen` mérite un dernier regard avant suppression : sa copie
-(`355ec6a`) et la production (`0ce170a`) implémentent **toutes les deux** la
-§23a, indépendamment. Ce n'est pas « une version en retard » mais deux
-lectures de la même maquette. La production gagne par défaut — c'est elle qui
-tourne — mais si un détail de la copie est meilleur, c'est le moment de le
-prendre, pas après la suppression du dossier.
+### Les trois copies ont été fouillées avant d'être condamnées (2026-08-03)
+
+Le regard valait la peine : **les trois portaient le même écart utile**, et
+lui seul.
+
+| Copie | Ce qu'elle avait en plus | Ce sur quoi elle était en retard |
+|---|---|---|
+| `call_screen` | le **nom de l'interlocuteur en serif** (`playfairDisplay`), absent de la production | l'avatar gris à pictogramme, que la production remplace par un aplat d'accent à initiales — et pas de mention E2EE |
+| `devices_screen` | le **titre serif** `DesignTitle` | 7 nuances `.shadeXX` figées et 12 `Colors.red/green/orange`, là où la production a 0 nuance et 9 jetons adaptatifs |
+| `security_backup_screen` | le **titre serif** `DesignTitle` | idem — 7 nuances, 13 couleurs brutes contre 11 jetons en production |
+
+`call_screen` et la production ne se contredisaient pas : à seize minutes
+d'écart, l'une a fait le titrage serif (`355ec6a`), l'autre le badge E2EE
+conditionnel et l'avatar à initiales (`0ce170a`). Chacune tenait une moitié
+de la §23a. Les deux moitiés sont maintenant en production.
+
+Dans les trois cas le geste a été le même : **porter le titre, pas le
+fichier**. Basculer aurait rendu 14 nuances figées à un projet qui passe son
+temps à les enlever.
+
+Vérifié après coup : `shadeXX` 0, jetons 9 et 11, titres serif 1 chacun,
+`playfairDisplay` 1 sur l'appel. `flutter analyze` propre.
+
+⚠️ La §23b (appel de groupe) n'a rien reçu : ni la copie ni la production
+n'ont de titre serif. Le commit `355ec6a` annonçait « les maquettes 23a et
+23b » mais n'a touché que la 23a — un écran de groupe n'a pas de « nom de
+l'interlocuteur » unique à mettre en avant. À trancher si le titrage serif
+doit quand même y arriver, mais ce n'est pas une régression de la bascule.
+
+**Les trois copies peuvent maintenant partir avec `design_v2/`** : il n'y
+reste rien qui ne soit en production.
 
 ### `settings_screen` attend la fin, exprès
 

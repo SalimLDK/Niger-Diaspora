@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -204,7 +205,11 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.connectedDevices),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.connectedDevices, size: 22),
         actions: [
           IconButton(
             icon: AppIcon(AppIcon.refresh, color: Theme.of(context).iconTheme.color!),

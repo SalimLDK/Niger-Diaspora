@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -238,7 +239,11 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.securityBackupTitle),
+        backgroundColor: context.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: DesignTitle(l10n.securityBackupTitle, size: 22),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
