@@ -867,7 +867,11 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           Row(
             children: [
               _AccentSwatch(
-                color: AppColors.primary,
+                // La pastille est l'aperçu de l'accent choisi : elle doit
+                // porter la valeur que le thème rendra réellement, soit
+                // l'orange d'action `#B85E24` du guide de style — pas la
+                // teinte claire de la famille.
+                color: AppColors.primaryDark,
                 label: l10n.orangeColor,
                 isSelected: _selectedThemeColor == AppThemeColor.orange,
                 onTap: () => _selectThemeColor(AppThemeColor.orange),
@@ -1200,7 +1204,14 @@ class _ThemeModePreview extends StatelessWidget {
           const SizedBox(height: 5),
           _bar(bar, widthFactor: 0.6),
           const SizedBox(height: 12),
-          _bar(AppColors.primary, widthFactor: 0.72, height: 9),
+          // L'aperçu doit montrer l'accent du thème qu'il représente : l'orange
+          // d'action en clair, sa version éclaircie en nocturne. Les deux
+          // vignettes affichaient la même valeur.
+          _bar(
+            dark ? AppColors.primaryLight : AppColors.primaryDark,
+            widthFactor: 0.72,
+            height: 9,
+          ),
         ],
       ),
     );

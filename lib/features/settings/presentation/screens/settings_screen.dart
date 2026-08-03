@@ -608,8 +608,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     AppThemeColor color,
     bool isSelected,
   ) {
+    // Aperçu de l'accent : la valeur que le thème rendra, donc l'orange
+    // d'action `#B85E24` et non la teinte claire de la famille orange.
     final Color previewColor =
-        color == AppThemeColor.green ? AppColors.secondary : AppColors.primary;
+        color == AppThemeColor.green
+            ? AppColors.secondary
+            : AppColors.primaryDark;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
