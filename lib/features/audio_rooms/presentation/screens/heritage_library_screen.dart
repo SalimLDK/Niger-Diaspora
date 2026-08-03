@@ -349,6 +349,34 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Bandeau téléchargement (maquette 1c) : le bouton de
+          // téléchargement par enregistrement existait, mais rien ne disait
+          // à quoi il sert — c'est pourtant l'argument du hors-ligne.
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: DNColors.ochre.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.download_for_offline_outlined,
+                    size: 18, color: DNColors.ochre,),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.heritageDownloadHint,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Featured section
           Text(
             l10n.heritageLibraryPopular,
@@ -390,9 +418,28 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
           const SizedBox(height: 24),
 
           // Recent recordings
-          Text(
-            l10n.heritageLibraryRecent,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.heritageLibraryRecent,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              // Compteur d'enregistrements (maquette 1c) : dit d'emblée si la
+              // bibliothèque est fournie ou presque vide.
+              Text(
+                l10n.heritageRecordingsCount(
+                  recordingsAsync.valueOrNull?.length ?? 0,
+                ),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: context.textTertiaryColor,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           recordingsAsync.when(
@@ -817,13 +864,28 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                             color: context.textTertiaryColor,
                           ),
                         ),
+                        // Pastille colorée (maquette 1c) : la langue est le
+                        // premier critère de tri d'un auditeur, elle ne peut
+                        // pas se fondre dans le texte gris.
                         if (recording.language.isNotEmpty) ...[
                           const SizedBox(width: 8),
-                          Text(
-                            recording.language,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.textTertiaryColor,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: DNColors.ochre.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              recording.language.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.4,
+                                color: DNColors.ochre,
+                              ),
                             ),
                           ),
                         ],

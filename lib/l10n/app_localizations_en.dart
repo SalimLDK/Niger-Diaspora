@@ -1158,6 +1158,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioRoomHeritageArchivedNote => 'this room will be archived';
 
   @override
+  String heritageRecordingsCount(int count) {
+    return '$count RECORDINGS';
+  }
+
+  @override
+  String get heritageDownloadHint =>
+      'Download before a trip: recordings stay listenable without a connection.';
+
+  @override
+  String get podcastsSortRecent => 'Newest first';
+
+  @override
+  String get podcastsSortOldest => 'Oldest first';
+
+  @override
+  String get savePodcastHeritageNote =>
+      'A heritage room also stays in the heritage library, even once published as a podcast.';
+
+  @override
+  String podcastsHomeSubtitle(int subscriptions, int inProgress) {
+    return '$subscriptions subscriptions · $inProgress in progress';
+  }
+
+  @override
   String get audioRoomSeeAllListeners => 'See all';
 
   @override

@@ -67,7 +67,27 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.podcasts),
+        // Sous-titre « N abonnements · M en cours d'écoute » : dit d'un coup
+        // d'œil s'il y a quelque chose à reprendre.
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.podcasts),
+            Builder(builder: (context) {
+              final userData = ref.watch(podcastUserDataProvider).valueOrNull;
+              final subs = userData?.subscribedPodcastIds.length ?? 0;
+              final inProgress = userData?.inProgressEpisodes.length ?? 0;
+              if (subs == 0 && inProgress == 0) return const SizedBox.shrink();
+              return Text(
+                l10n.podcastsHomeSubtitle(subs, inProgress),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: context.textSecondaryColor,
+                ),
+              );
+            },),
+          ],
+        ),
         actions: [
           IconButton(
             icon: AppIcon(AppIcon.add, color: Colors.grey[400]!),

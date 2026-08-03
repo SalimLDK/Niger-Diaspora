@@ -14,6 +14,11 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 
 /// Screen displaying podcast details and episodes
+/// Ordre d'affichage des épisodes. `autoDispose` : le tri n'a pas à survivre
+/// à la sortie de l'écran.
+final _newestFirstProvider =
+    StateProvider.autoDispose<bool>((ref) => true);
+
 class PodcastDetailScreen extends ConsumerWidget {
   final String podcastId;
 
@@ -27,6 +32,7 @@ class PodcastDetailScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final podcastAsync = ref.watch(podcastStreamProvider(podcastId));
     final episodesAsync = ref.watch(podcastEpisodesProvider(podcastId));
+    final newestFirst = ref.watch(_newestFirstProvider);
     final isSubscribed = ref.watch(isSubscribedProvider(podcastId));
     // Premium access is now managed by RevenueCat entitlements (unified across
     // App Store, Play Store, and RevenueCat Billing / Stripe web).
@@ -200,12 +206,37 @@ class PodcastDetailScreen extends ConsumerWidget {
                             l10n.podcastsEpisodes(podcast.totalEpisodes),
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
-                          TextButton.icon(
-                            onPressed: () => context.push(
-                              '/podcasts/$podcastId/record',
-                            ),
-                            icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
-                            label: Text(l10n.podcastsAdd),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Tri (maquette 3b) : l'en-tête ne proposait
+                              // que « Ajouter », une action de créateur, à
+                              // l'endroit où l'auditeur cherche à s'orienter.
+                              TextButton.icon(
+                                onPressed: () => ref
+                                    .read(_newestFirstProvider.notifier)
+                                    .state = !newestFirst,
+                                icon: Icon(
+                                  newestFirst
+                                      ? Icons.arrow_downward_rounded
+                                      : Icons.arrow_upward_rounded,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  newestFirst
+                                      ? l10n.podcastsSortRecent
+                                      : l10n.podcastsSortOldest,
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: l10n.podcastsAdd,
+                                onPressed: () => context.push(
+                                  '/podcasts/$podcastId/record',
+                                ),
+                                icon: AppIcon(AppIcon.add,
+                                    color: Theme.of(context).iconTheme.color!,),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -227,7 +258,14 @@ class PodcastDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                data: (episodes) {
+                data: (all) {
+                  // Tri explicite : l'ordre de la source n'est pas garanti,
+                  // et le bouton doit avoir un effet visible.
+                  final episodes = [...all]..sort((a, b) {
+                      final da = a.publishedAt ?? a.createdAt;
+                      final db = b.publishedAt ?? b.createdAt;
+                      return newestFirst ? db.compareTo(da) : da.compareTo(db);
+                    });
                   if (episodes.isEmpty) {
                     return SliverToBoxAdapter(
                       child: Padding(

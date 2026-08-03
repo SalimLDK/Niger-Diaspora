@@ -2240,6 +2240,42 @@ abstract class AppLocalizations {
   /// **'ce salon sera archivé'**
   String get audioRoomHeritageArchivedNote;
 
+  /// No description provided for @heritageRecordingsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} ENREGISTREMENTS'**
+  String heritageRecordingsCount(int count);
+
+  /// No description provided for @heritageDownloadHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.'**
+  String get heritageDownloadHint;
+
+  /// No description provided for @podcastsSortRecent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus récents'**
+  String get podcastsSortRecent;
+
+  /// No description provided for @podcastsSortOldest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus anciens'**
+  String get podcastsSortOldest;
+
+  /// No description provided for @savePodcastHeritageNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un salon patrimoine reste aussi dans la bibliothèque du patrimoine, même publié en podcast.'**
+  String get savePodcastHeritageNote;
+
+  /// No description provided for @podcastsHomeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{subscriptions} abonnements · {inProgress} en cours d\'écoute'**
+  String podcastsHomeSubtitle(int subscriptions, int inProgress);
+
   /// No description provided for @audioRoomSeeAllListeners.
   ///
   /// In fr, this message translates to:

@@ -483,6 +483,29 @@
   "scheduleSlotMorning": "Morning · just waking up",
   "scheduleSlotNight": "Late · likely night",
   "audioRoomHeritageArchivedNote": "this room will be archived",
+  "heritageRecordingsCount": "{count} RECORDINGS",
+  "@heritageRecordingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "heritageDownloadHint": "Download before a trip: recordings stay listenable without a connection.",
+  "podcastsSortRecent": "Newest first",
+  "podcastsSortOldest": "Oldest first",
+  "savePodcastHeritageNote": "A heritage room also stays in the heritage library, even once published as a podcast.",
+  "podcastsHomeSubtitle": "{subscriptions} subscriptions · {inProgress} in progress",
+  "@podcastsHomeSubtitle": {
+    "placeholders": {
+      "subscriptions": {
+        "type": "int"
+      },
+      "inProgress": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomSeeAllListeners": "See all",
   "audioRoomHandsRaisedCount": "+ {count} raised hands ✋",
   "@audioRoomHandsRaisedCount": {

@@ -483,6 +483,29 @@
   "scheduleSlotMorning": "Matin · au réveil",
   "scheduleSlotNight": "Tard · risque de nuit",
   "audioRoomHeritageArchivedNote": "ce salon sera archivé",
+  "heritageRecordingsCount": "{count} ENREGISTREMENTS",
+  "@heritageRecordingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "heritageDownloadHint": "Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.",
+  "podcastsSortRecent": "Plus récents",
+  "podcastsSortOldest": "Plus anciens",
+  "savePodcastHeritageNote": "Un salon patrimoine reste aussi dans la bibliothèque du patrimoine, même publié en podcast.",
+  "podcastsHomeSubtitle": "{subscriptions} abonnements · {inProgress} en cours d'écoute",
+  "@podcastsHomeSubtitle": {
+    "placeholders": {
+      "subscriptions": {
+        "type": "int"
+      },
+      "inProgress": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomSeeAllListeners": "Voir tout",
   "audioRoomHandsRaisedCount": "+ {count} mains levées ✋",
   "@audioRoomHandsRaisedCount": {

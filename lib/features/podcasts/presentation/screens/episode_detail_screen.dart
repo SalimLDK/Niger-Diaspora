@@ -365,6 +365,10 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  // Pastilles horizontales (maquette 1e) : sauter d'un
+                  // chapitre à l'autre sans dérouler la liste complète.
+                  _buildChapterPills(episode),
                   const SizedBox(height: 12),
                   _buildChaptersList(episode),
                   const SizedBox(height: 24),
@@ -549,6 +553,63 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         ),
       ),
     );
+  }
+
+  /// Rangée de pastilles, une par chapitre. Le chapitre en cours est mis en
+  /// évidence pour qu'on sache où on en est sans lire les horodatages.
+  Widget _buildChapterPills(PodcastEpisodeEntity episode) {
+    final theme = Theme.of(context);
+    final currentIndex = _currentChapterIndex(episode);
+
+    return SizedBox(
+      height: 32,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: episode.chapters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final chapter = episode.chapters[i];
+          final active = i == currentIndex;
+          return GestureDetector(
+            onTap: () => _seekToChapter(chapter.startSeconds),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                chapter.title,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: active
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Index du chapitre couvrant la position de lecture actuelle, ou -1.
+  int _currentChapterIndex(PodcastEpisodeEntity episode) {
+    final seconds = _currentPosition.inSeconds;
+    var found = -1;
+    for (var i = 0; i < episode.chapters.length; i++) {
+      if (episode.chapters[i].startSeconds <= seconds) {
+        found = i;
+      } else {
+        break;
+      }
+    }
+    return found;
   }
 
   Widget _buildChaptersList(PodcastEpisodeEntity episode) {

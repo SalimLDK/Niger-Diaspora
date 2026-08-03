@@ -220,6 +220,20 @@ class _SaveAsPodcastScreenState extends ConsumerState<SaveAsPodcastScreen> {
               );
             }).toList(),
           ),
+          // Publier en podcast ne retire pas le salon de la bibliothèque du
+          // patrimoine : sans cette phrase, choisir « Privé » pouvait laisser
+          // croire qu'on l'en sortait.
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: DNColors.ochre.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '★ ${l10n.savePodcastHeritageNote}',
+              style: DNText.mono(size: 9, color: dn.onSurface2),
+            ),
+          ),
           const SizedBox(height: 14),
 
           Row(

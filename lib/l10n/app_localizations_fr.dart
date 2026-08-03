@@ -1172,6 +1172,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get audioRoomHeritageArchivedNote => 'ce salon sera archivé';
 
   @override
+  String heritageRecordingsCount(int count) {
+    return '$count ENREGISTREMENTS';
+  }
+
+  @override
+  String get heritageDownloadHint =>
+      'Téléchargez avant un trajet : les enregistrements restent écoutables sans connexion.';
+
+  @override
+  String get podcastsSortRecent => 'Plus récents';
+
+  @override
+  String get podcastsSortOldest => 'Plus anciens';
+
+  @override
+  String get savePodcastHeritageNote =>
+      'Un salon patrimoine reste aussi dans la bibliothèque du patrimoine, même publié en podcast.';
+
+  @override
+  String podcastsHomeSubtitle(int subscriptions, int inProgress) {
+    return '$subscriptions abonnements · $inProgress en cours d\'écoute';
+  }
+
+  @override
   String get audioRoomSeeAllListeners => 'Voir tout';
 
   @override
