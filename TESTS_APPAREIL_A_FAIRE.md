@@ -744,6 +744,35 @@ Dix écrans de plus dans `lib/features/`, jamais vus tourner :
   pas une copie. Ne pas conclure d'un tunnel d'envoi correct que la bascule
   des transferts est complète.
 
+## Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)
+
+Onze fichiers, dont toute la discussion. C'est le lot le plus visible des
+quatre familles, et **trois écrans y perdent leur en-tête** — c'est voulu,
+mais c'est exactement ce qu'il faut regarder en premier :
+
+- [ ] **Messagerie — liste** (§9a, §9e) : l'en-tête dégradé et ses cercles
+  décoratifs ont disparu au profit d'un en-tête plat. Vérifier que le compteur
+  de non-lus reste lisible et que la liste ne commence pas collée au haut de
+  l'écran.
+- [ ] **Mon profil** (§10a) : l'écran n'a plus de `SliverAppBar`. Il ne se
+  replie donc plus au défilement — plus d'avatar+nom qui apparaît en haut.
+  Vérifier que le retour et les actions restent atteignables tout en bas de
+  page, puisqu'il n'y a plus de barre épinglée.
+- [ ] **Recherche** (§12d) : plus de titre d'écran, le champ **est**
+  l'en-tête. Ouvrir la recherche depuis les groupes et depuis les
+  discussions : le contexte doit rester visible dans le **placeholder**
+  (« Rechercher un groupe… ») — c'est le seul endroit où il subsiste.
+- [ ] **Discussion complète** (§3b, §3c, §4a→4f, §6b, §6c) : écran, composer,
+  bulles texte et bulles audio sont maintenant tous en v2. À regarder
+  ensemble — les trois états d'enregistrement vocal avec leurs libellés
+  (« Glisser ‹ pour annuler », « Relâcher pour annuler », « Mains libres »),
+  la pastille de vitesse en contour, le poids du fichier.
+- [ ] **Non-régression du mode « données réduites »** : `DataSaverGate` a
+  traversé la bascule (vérifié dans le fichier). Confirmer sur l'appareil
+  qu'un média reçu reste flouté avec son bouton « Télécharger » quand le mode
+  est actif.
+- [ ] **Groupes** (§9c, §9d, §9f) et **notifications** (§12c).
+
 ## Profil & Accueil (avant la refonte design)
 
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.

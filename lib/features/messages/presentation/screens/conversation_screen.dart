@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -2284,75 +2285,52 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
+  /// Séparateur de jour : filet plein et pastille plate.
+  ///
+  /// Les dégradés en fondu, la bordure et l'ombre portée ont sauté : le fil de
+  /// discussion est posé sur le fond crème, un repère de date n'a pas à se
+  /// détacher du fond comme un élément cliquable.
   Widget _buildDateSeparator(DateTime date, AppLocalizations l10n) {
+    return _buildThreadSeparator(
+      label: _getDateLabel(date, l10n),
+      background: context.surfaceVariantColor,
+      foreground: context.textSecondaryColor,
+      rule: context.dividerColor,
+    );
+  }
+
+  /// Gabarit commun aux repères posés dans le fil (date, non-lus) : un filet
+  /// de part et d'autre, une pastille au centre.
+  Widget _buildThreadSeparator({
+    required String label,
+    required Color background,
+    required Color foreground,
+    required Color rule,
+  }) {
+    final trait = Expanded(child: Container(height: 1, color: rule));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         children: [
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    context.outlineColor.withValues(alpha: 0.15),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          trait,
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  context.surfaceVariantColor.withValues(alpha: 0.9),
-                  context.surfaceVariantColor.withValues(alpha: 0.7),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color:
-                    context.isDarkMode
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.05),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: background,
+              borderRadius: BorderRadius.circular(kDesignPillRadius),
             ),
             child: Text(
-              _getDateLabel(date, l10n),
+              label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: context.textSecondaryColor,
+                color: foreground,
                 letterSpacing: 0.3,
               ),
             ),
           ),
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    context.outlineColor.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          trait,
         ],
       ),
     );
@@ -2362,73 +2340,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final label =
         unreadCount == 1 ? '1 message non lu' : '$unreadCount messages non lus';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    context.adaptivePrimaryColor.withValues(alpha: 0.4),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  context.adaptivePrimaryColor,
-                  context.adaptivePrimaryColor.withValues(alpha: 0.85),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    context.adaptivePrimaryColor.withValues(alpha: 0.4),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+    // Même gabarit que le séparateur de date, mais en terracotta plein : c'est
+    // le seul repère du fil qui doit accrocher l'œil.
+    return _buildThreadSeparator(
+      label: label,
+      background: context.adaptivePrimaryColor,
+      foreground: context.onPrimaryColor,
+      rule: context.adaptivePrimaryColor.withValues(alpha: 0.35),
     );
   }
 
@@ -2890,6 +2808,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     return AppBar(
       backgroundColor: context.surfaceColor,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       titleSpacing: 0,
       toolbarHeight: 58,
@@ -2944,10 +2863,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  gradient:
+                  // Aplat, plus de dégradé : vert pour un groupe, terracotta
+                  // pour une personne (§3b, §3c).
+                  color:
                       widget.isGroup
-                          ? context.adaptiveSecondaryGradient
-                          : context.adaptivePrimaryGradient,
+                          ? context.adaptiveSecondaryColor
+                          : context.adaptivePrimaryColor,
                   borderRadius: BorderRadius.circular(13),
                 ),
                 child:
@@ -3025,16 +2946,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Name
-                    Text(
+                    // Nom de la conversation, en serif comme tous les
+                    // titres de la série (§3b, §4a).
+                    DesignSectionTitle(
                       displayName ?? AppLocalizations.of(context)!.conversation,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.textPrimaryColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      size: 17,
                     ),
                     // Status text below name + cadenas chiffrement (§4a) —
                     // jamais affiché pour un compte supprimé, rien à protéger.
@@ -3174,15 +3090,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             Container(
               width: 120,
               height: 120,
+              // Pastille plate : le système n'utilise plus de dégradé
+              // décoratif, l'illustration d'état vide est un aplat teinté.
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    context.adaptivePrimaryColor.withValues(alpha: 0.15),
-                    context.adaptiveSecondaryColor.withValues(alpha: 0.1),
-                  ],
-                ),
+                color: context.surfaceVariantColor,
                 shape: BoxShape.circle,
               ),
               child: Stack(

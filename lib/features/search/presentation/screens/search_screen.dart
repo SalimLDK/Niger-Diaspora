@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,7 +9,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
 import '../../../../shared/widgets/search_empty_state.dart';
-import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../friends/domain/entities/friend_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../messages/domain/entities/conversation_entity.dart';
@@ -96,67 +96,65 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
-  String _getTitle() {
-    if (widget.restrictToFilter && widget.initialFilter != null) {
-      switch (widget.initialFilter!) {
-        case SearchFilter.groups:
-          return 'Rechercher un groupe';
-        case SearchFilter.conversations:
-          return 'Rechercher une discussion';
-        case SearchFilter.friends:
-          return 'Rechercher un ami';
-        case SearchFilter.members:
-          return 'Rechercher un membre';
-        case SearchFilter.all:
-          return 'Recherche';
-      }
-    }
-    return 'Recherche';
-  }
 
-  String _getHintText() {
+
+  String _getHintText(AppLocalizations l10n) {
     if (widget.restrictToFilter && widget.initialFilter != null) {
       switch (widget.initialFilter!) {
         case SearchFilter.groups:
-          return 'Rechercher un groupe...';
+          return l10n.searchGroup;
         case SearchFilter.conversations:
-          return 'Rechercher une discussion...';
+          return l10n.searchDiscussionHint;
         case SearchFilter.friends:
-          return 'Rechercher un ami...';
+          return l10n.searchFriend;
         case SearchFilter.members:
-          return 'Rechercher un membre...';
+          return l10n.searchMember;
         case SearchFilter.all:
-          return 'Rechercher...';
+          return l10n.searchAnything;
       }
     }
-    return 'Rechercher des membres ou groupes...';
+    return l10n.searchMembersOrGroupsHint;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final searchState = ref.watch(searchNotifierProvider);
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: Text(_getTitle()),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
-          // Search Bar
-          StandardSearchBar(
-            controller: _searchController,
-            hintText: _getHintText(),
-            autofocus: true,
-            onChanged: _onSearchChanged,
-            onSubmitted: _onSearchSubmitted,
-            onClear: () {
-              ref.read(searchNotifierProvider.notifier).clearSearch();
-            },
+          // La recherche est l'en-tête (§12d) : flèche retour et champ sur la
+          // même ligne, plus de titre d'écran au-dessus.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: context.textPrimaryColor,
+                  ),
+                  onPressed: () => context.pop(),
+                ),
+                Expanded(
+                  child: DesignSearchField(
+                    controller: _searchController,
+                    hintText: _getHintText(l10n),
+                    autofocus: true,
+                    onChanged: _onSearchChanged,
+                    onClear: () {
+                      _searchController.clear();
+                      ref.read(searchNotifierProvider.notifier).clearSearch();
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
 
           // Filter Chips - only show if not restricted to a specific filter
@@ -175,44 +173,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           : _resultCountFor(searchState, filter);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
+                        child: DesignFilterChip(
+                          label: filter.label,
+                          count: count,
+                          selected: isSelected,
                           onTap: () {
                             ref
                                 .read(searchNotifierProvider.notifier)
                                 .setFilter(filter);
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? context.adaptivePrimaryColor
-                                      : context.surfaceColor,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color:
-                                    isSelected
-                                        ? context.adaptivePrimaryColor
-                                        : context.borderColor,
-                              ),
-                            ),
-                            child: Text(
-                              count > 0
-                                  ? '${filter.label}  $count'
-                                  : filter.label,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    isSelected
-                                        ? AppColors.white
-                                        : context.textSecondaryColor,
-                              ),
-                            ),
-                          ),
                         ),
                       );
                     }).toList(),
@@ -224,11 +193,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           // Results
           Expanded(child: _buildResults(searchState)),
         ],
+        ),
       ),
     );
   }
 
   Widget _buildResults(SearchState state) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.query.isEmpty) {
       if (state.recentSearches.isNotEmpty) {
         return _buildRecentSearches(state);
@@ -244,7 +215,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Recherchez des membres ou groupes',
+              l10n.searchMembersOrGroupsPrompt,
               style: TextStyle(fontSize: 16, color: context.textTertiaryColor),
             ),
           ],
@@ -264,7 +235,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Erreur de recherche',
+              l10n.searchError,
               style: TextStyle(color: context.textTertiaryColor),
             ),
           ],
@@ -341,6 +312,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Recherches récentes (§12d) : chips avec icône horloge + « Effacer ».
   Widget _buildRecentSearches(SearchState state) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -348,7 +320,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recherches récentes',
+              l10n.searchRecent,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -434,37 +406,8 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: context.surfaceVariantColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: context.adaptivePrimaryColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    // §12d : « MEMBRES · 12 » en petites capitales, le compte collé au titre.
+    return DesignSectionLabel('$title · $count');
   }
 }
 

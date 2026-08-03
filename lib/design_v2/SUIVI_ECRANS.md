@@ -129,6 +129,48 @@ chemin des imports. Même cas qu'`embassy_detail_screen` en famille 2.
 
 `flutter analyze` sur les six features : **No issues found**.
 
+## Bascule vers la production — famille 4 : messagerie, groupes, recherche, profil (2026-08-03)
+
+**Faite.** Onze fichiers : messagerie (liste, discussion, tuile, composer,
+bulle de message, bulle audio), groupes (2), recherche, notifications, mon
+profil. `flutter analyze` : **No issues found**.
+
+### Trois membres présents en production et absents des copies
+
+Contrairement aux familles 2 et 3, la comparaison des membres a **remonté
+quelque chose**. Les trois cas ont été lus, et les trois sont des
+suppressions voulues par la refonte, pas des correctifs perdus :
+
+| Fichier | Membre | Ce que c'était |
+|---|---|---|
+| `messages_screen` | `_buildGradientHeader`, `_buildHeaderDecorations`, `circle`, `sectionHeader` | l'en-tête dégradé et ses cercles décoratifs. La copie n'a **ni `SliverAppBar` ni `LinearGradient`** — §9a supprime l'en-tête |
+| `profile_screen` | `_buildCollapsedHeaderTitle` | le titre (avatar + nom) qui apparaissait dans la barre repliée. La copie n'a plus de `SliverAppBar` du tout : §10a est un écran plat, le membre n'aurait plus rien à servir |
+| `search_screen` | `_getTitle` | le titre d'écran de l'`AppBar`. §12d fait du **champ de recherche l'en-tête** ; la spécialisation contextuelle (« Rechercher un groupe ») n'est pas perdue, elle vit dans `_getHintText`, localisée |
+
+C'est le cas que la comparaison automatique est faite pour attraper, et il
+montre aussi sa limite : elle signale, elle ne tranche pas. Les trois
+verdicts viennent de la lecture du code.
+
+### `message_bubble` sort de la carte des risques
+
+Il y figurait — deux commits de production depuis la copie — mais
+l'inspection montre que **la copie porte déjà les deux** :
+
+- `2e7890d` (mode données réduites à la réception) : `DataSaverGate` présent
+  des deux côtés, comme la section « Mode données réduites » l'annonçait ;
+- `e3e47a3` (bordure de bulle reçue passée au jeton) : zéro `_kRecvBorder`
+  dans la copie, `context.borderColor` à la place.
+
+Ce sont les deux seuls commits de production depuis la copie, donc la copie
+est bien un superset. Basculé avec les autres — laisser les bulles en
+production pendant que l'écran et le composer passent en v2 aurait donné une
+discussion à moitié refaite.
+
+**La leçon vaut pour les fichiers restants** : la carte des risques dit
+« à vérifier », pas « à ne pas toucher ». Un fichier peut y figurer et être
+sûr, si les commits de production ont été reportés dans la copie au fil de
+l'eau.
+
 ## Configuration du profil
 
 | Maquette | Écran | Fichier `design_v2` | État |

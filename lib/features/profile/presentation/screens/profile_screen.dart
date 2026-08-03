@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +40,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   bool _locationEnabled = true;
   bool _profileVisible = true;
-  bool _headerCollapsed = false;
   bool _completionDismissed = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -109,37 +109,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: context.backgroundColor,
-        body: NotificationListener<ScrollNotification>(
-          onNotification: (n) {
-            final expanded = context.responsive(mobile: 180.0, tablet: 220.0);
-            final collapsed = n.metrics.pixels > (expanded - kToolbarHeight);
-            if (collapsed != _headerCollapsed) {
-              setState(() => _headerCollapsed = collapsed);
-            }
-            return false;
-          },
+        body: SafeArea(
+          bottom: false,
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // Header avec design moderne
-              SliverAppBar(
-                expandedHeight: context.responsive(
-                  mobile: 180.0,
-                  tablet: 220.0,
-                ),
-                pinned: true,
-                stretch: true,
-                backgroundColor: context.adaptivePrimaryColor,
-                automaticallyImplyLeading: false,
-                title:
-                    _headerCollapsed ? _buildCollapsedHeaderTitle(user) : null,
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const [
-                    StretchMode.zoomBackground,
-                    StretchMode.blurBackground,
-                  ],
-                  background: _buildHeader(user, l10n),
-                ),
+              // En-tête plat (§10a) : le hero repliable disparaît, le titre
+              // et les deux actions carrées défilent avec le contenu.
+              SliverToBoxAdapter(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      DesignScreenHeader(
+                        title: l10n.myProfile,
+                        actions: [
+                          DesignSquareAction(
+                            icon: Icons.qr_code_2,
+                            tooltip: l10n.shareMyProfile,
+                            onPressed: () => context.push('/profile/share'),
+                          ),
+                          DesignSquareAction(
+                            icon: Icons.settings_outlined,
+                            tooltip: l10n.settings,
+                            onPressed: () => context.push('/settings'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildHeader(user, l10n),
+                    ],
+                  ),
               ),
 
               // Statistiques
@@ -204,64 +203,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
         ),
       ),
-    );
-  }
-
-  /// Titre compact affiché dans la SliverAppBar une fois l'en-tête replié :
-  /// petit avatar + nom, façon barre pinned (comme l'onglet Groupes).
-  Widget _buildCollapsedHeaderTitle(dynamic user) {
-    final profile =
-        user != null
-            ? ref.watch(profileNotifierProvider(user.id)).valueOrNull
-            : null;
-    final displayName = profile?.displayName ?? user?.displayName;
-    final photoUrl = profile?.photoUrl ?? user?.photoUrl;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.white.withValues(alpha: 0.2),
-            border: Border.all(color: AppColors.white, width: 1.5),
-            image:
-                photoUrl != null
-                    ? DecorationImage(
-                      image: NetworkImage(photoUrl),
-                      fit: BoxFit.cover,
-                    )
-                    : null,
-          ),
-          child:
-              photoUrl == null
-                  ? Center(
-                    child: Text(
-                      _getInitials(displayName ?? 'U'),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  )
-                  : null,
-        ),
-        const SizedBox(width: 10),
-        Flexible(
-          child: Text(
-            displayName ?? '',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -419,147 +360,163 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     ];
     final locationLine = locationParts.join(', ');
 
-    return Container(
-      color: context.backgroundColor,
-      child: SafeArea(
-        bottom: false,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Avatar 84 rayon 28 + pastille appareil photo.
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  if (photoUrl != null) {
-                    FullScreenImageViewer.show(
-                      context,
-                      imageUrl: photoUrl,
-                      heroTag: 'profile_avatar',
-                      senderName: displayName,
-                    );
-                  } else {
-                    context.push('/profile/edit');
-                  }
-                },
-                onLongPress: () {
-                  HapticFeedback.mediumImpact();
-                  context.push('/profile/edit');
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Hero(
-                      tag: 'profile_avatar',
-                      child: Container(
-                        width: 84,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(28),
-                          color: context.surfaceVariantColor,
-                          border: Border.all(
-                            color: context.borderColor,
-                            width: 2,
-                          ),
-                          image: photoUrl != null
-                              ? DecorationImage(
-                                  image: NetworkImage(photoUrl),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: photoUrl == null
-                            ? Center(
-                                child: Text(
-                                  _getInitials(displayName ?? 'U'),
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: context.adaptivePrimaryColor,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
+    // Puces du §10a : le trajet « origine → ville actuelle » et le métier.
+    final origin = profile?.originCity?.trim();
+    final currentCity = profile?.currentCity?.trim();
+    final originChip = (origin != null && origin.isNotEmpty)
+        ? (currentCity != null && currentCity.isNotEmpty
+            ? '$origin → $currentCity'
+            : origin)
+        : null;
+    final professionRaw = profile?.profession?.trim();
+    final professionChip =
+        (professionRaw != null && professionRaw.isNotEmpty)
+            ? professionRaw
+            : null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar 76 rayon 24 + pastille appareil photo (§10a : l'identité
+          // est alignée à gauche, plus centrée sous un bandeau).
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              if (photoUrl != null) {
+                FullScreenImageViewer.show(
+                  context,
+                  imageUrl: photoUrl,
+                  heroTag: 'profile_avatar',
+                  senderName: displayName,
+                );
+              } else {
+                context.push('/profile/edit');
+              }
+            },
+            onLongPress: () {
+              HapticFeedback.mediumImpact();
+              context.push('/profile/edit');
+            },
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Hero(
+                  tag: 'profile_avatar',
+                  child: Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      color: context.surfaceVariantColor,
+                      border: Border.all(color: context.borderColor, width: 2),
+                      image: photoUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(photoUrl),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    Positioned(
-                      right: -2,
-                      bottom: -2,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: context.adaptivePrimaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: context.backgroundColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.photo_camera_rounded,
-                          size: 14,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      displayName ?? l10n.user,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: context.textPrimaryColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: photoUrl == null
+                        ? Center(
+                            child: Text(
+                              _getInitials(displayName ?? 'U'),
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
-                  if (profile?.isVerified ?? false) ...[
-                    const SizedBox(width: 6),
-                    const Icon(
-                      Icons.verified_rounded,
-                      size: 18,
-                      color: Color(0xFF1976D2),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: context.adaptivePrimaryColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: context.backgroundColor,
+                        width: 2,
+                      ),
                     ),
-                  ],
-                ],
-              ),
-              // Poignée publique @handle (§10c)
-              if (profile?.handle != null &&
-                  profile!.handle!.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  '@${profile.handle}',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: context.adaptivePrimaryColor,
-                    fontWeight: FontWeight.w500,
+                    child: Icon(
+                      Icons.photo_camera_rounded,
+                      size: 13,
+                      color: context.onPrimaryColor,
+                    ),
                   ),
                 ),
               ],
-              if (locationLine.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  locationLine,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: context.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: DesignTitle(displayName ?? l10n.user, size: 22),
+                    ),
+                    if (profile?.isVerified ?? false) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.verified_rounded,
+                        size: 18,
+                        color: Color(0xFF1976D2),
+                      ),
+                    ],
+                  ],
+                ),
+                // Poignée publique @handle (§10c)
+                if (profile?.handle != null && profile!.handle!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    '@${profile.handle}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.adaptivePrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (locationLine.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    locationLine,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+                // Puces « origine → ville » et métier (§10a).
+                if (originChip != null || professionChip != null) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (originChip != null) _ProfileTag(label: originChip),
+                      if (professionChip != null)
+                        _ProfileTag(label: professionChip),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -575,28 +532,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final fields = <({bool filled, String label, String benefit})>[
       (
         filled: (profile.photoUrl ?? '').trim().isNotEmpty,
-        label: 'Photo de profil',
-        benefit: 'Vous serez plus facilement reconnu',
+        label: l10n.profilePhotoTitle,
+        benefit: l10n.profileCompletionPhotoBenefit,
       ),
       (
         filled: (profile.currentCity ?? '').trim().isNotEmpty,
         label: 'Ville actuelle',
-        benefit: 'Vous apparaîtrez auprès des membres proches',
+        benefit: l10n.profileCompletionCityBenefit,
       ),
       (
         filled: (profile.profession ?? '').trim().isNotEmpty,
-        label: 'Métier',
-        benefit: 'Utile pour les mises en relation',
+        label: l10n.profileFieldOccupation,
+        benefit: l10n.profileCompletionJobBenefit,
       ),
       (
         filled: profile.languages.isNotEmpty,
-        label: 'Langues parlées',
+        label: l10n.spokenLanguages,
         benefit: "Utile pour l'entraide et les démarches",
       ),
       (
         filled: (profile.bio ?? '').trim().isNotEmpty,
         label: 'Bio',
-        benefit: 'Présentez-vous à la communauté',
+        benefit: l10n.profileCompletionBioBenefit,
       ),
     ];
 
@@ -619,7 +576,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               children: [
                 Expanded(
                   child: Text(
-                    'Complétez votre profil',
+                    l10n.profileCompleteYours,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -697,14 +654,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       foregroundColor: context.onPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Compléter mon profil'),
+                    child: Text(l10n.profileCompleteMine),
                   ),
                 ),
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: () => setState(() => _completionDismissed = true),
                   child: Text(
-                    'Plus tard',
+                    l10n.later,
                     style: TextStyle(color: context.textSecondaryColor),
                   ),
                 ),
@@ -847,56 +804,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildSectionHeader(
-    String title,
-    Widget icon, {
-    bool isWarning = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: (isWarning
-                      ? context.warningColor
-                      : context.adaptivePrimaryColor)
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: IconTheme.merge(
-                  data: IconThemeData(
-                    color:
-                        isWarning
-                            ? context.warningColor
-                            : context.adaptivePrimaryColor,
-                  ),
-                  child: icon,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color:
-                  isWarning ? context.warningColor : context.textTertiaryColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
+  /// Libellé de section (§10a) : petites capitales en chasse fixe. L'icône
+  /// en pastille a disparu — les appels la passent encore, elle est ignorée.
+  Widget _buildSectionHeader(String title, Widget icon) {
+    return DesignSectionLabel(title);
   }
+
 
   String _getInitials(String name) {
     final parts = name.trim().split(' ');
@@ -943,23 +856,7 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(children: children),
-      ),
-    );
+    return DesignListCard(children: children);
   }
 }
 
@@ -1124,3 +1021,13 @@ class _AnimatedProfileStat extends StatelessWidget {
   }
 }
 
+/// Puce d'identité du profil (§10a) : alias de [DesignTag], pour que les
+/// deux profils (le mien et celui d'un membre) partagent la même puce.
+class _ProfileTag extends StatelessWidget {
+  final String label;
+
+  const _ProfileTag({required this.label});
+
+  @override
+  Widget build(BuildContext context) => DesignTag(label);
+}

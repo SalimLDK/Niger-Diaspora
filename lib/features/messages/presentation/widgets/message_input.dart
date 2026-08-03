@@ -8,13 +8,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
 
 import '../../../../core/constants/app_colors.dart';
-import 'emoji_sticker_picker.dart';
+import '../widgets/emoji_sticker_picker.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/services/permission_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
-import 'location_picker_modal.dart';
+import '../widgets/location_picker_modal.dart';
 import '../screens/camera_capture_screen.dart';
 import '../screens/gallery_picker_screen.dart';
 import '../screens/media_batch_preview_screen.dart';
@@ -23,7 +23,7 @@ import '../../domain/entities/message_entity.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
-import 'mention_suggestion_overlay.dart';
+import '../widgets/mention_suggestion_overlay.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Hauteur du picker emoji/GIF, bornée à l'espace réellement libre.
@@ -1213,7 +1213,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.photo_camera,
         label: l10n.cameraSection,
-        color: context.adaptiveSecondaryColor,
+        color: context.adaptivePrimaryColor,
         onTap: () {
           _toggleAttachPanel();
           _openCamera();
@@ -1231,7 +1231,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.description,
         label: l10n.documentsLabel,
-        color: Colors.blue,
+        color: context.adaptivePrimaryColor,
         onTap: () {
           _toggleAttachPanel();
           _pickFile();
@@ -1241,7 +1241,7 @@ class _MessageInputState extends State<MessageInput>
         _buildAttachTile(
           icon: Icons.location_on,
           label: l10n.positionLabel,
-          color: Colors.green,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             _showLocationPicker();
@@ -1250,8 +1250,8 @@ class _MessageInputState extends State<MessageInput>
       if (widget.onCreatePoll != null)
         _buildAttachTile(
           icon: Icons.poll,
-          label: 'Sondage',
-          color: const Color(0xFF6B5CE0),
+          label: l10n.pollLabel,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             widget.onCreatePoll!();
@@ -1260,8 +1260,8 @@ class _MessageInputState extends State<MessageInput>
       if (widget.onCreateEvent != null)
         _buildAttachTile(
           icon: Icons.event,
-          label: 'Événement',
-          color: Colors.teal,
+          label: l10n.eventLabel,
+          color: context.adaptiveSecondaryColor,
           onTap: () {
             _toggleAttachPanel();
             widget.onCreateEvent!();
@@ -1483,17 +1483,32 @@ class _MessageInputState extends State<MessageInput>
       key: const ValueKey('cancel'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.arrow_back_ios_rounded, color: Colors.red, size: 24),
-        const SizedBox(width: 4),
+        Icon(Icons.delete_outline, color: context.errorColor, size: 22),
+        const SizedBox(width: 6),
         Flexible(
-          child: Text(
-            AppLocalizations.of(context)!.releaseToCancel,
-            style: const TextStyle(
-              color: Colors.red,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.releaseToCancelNow,
+                style: TextStyle(
+                  color: context.errorColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                AppLocalizations.of(context)!.recordingWillBeDeleted,
+                style: TextStyle(
+                  color: context.errorColor,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],
@@ -1508,17 +1523,18 @@ class _MessageInputState extends State<MessageInput>
       children: [
         Icon(
           Icons.arrow_back_ios_rounded,
-          color: context.textSecondaryColor,
-          size: 22,
+          color: context.textTertiaryColor,
+          size: 16,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Flexible(
           child: Text(
-            AppLocalizations.of(context)!.slideToCancel,
+            AppLocalizations.of(context)!.recordingGestureHints,
             style: TextStyle(
-              color: context.textSecondaryColor,
-              fontSize: 15,
+              color: context.textTertiaryColor,
+              fontSize: 12.5,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -1626,14 +1642,30 @@ class _MessageInputState extends State<MessageInput>
               ),
               const SizedBox(width: 6),
               Text(
-                AppLocalizations.of(context)!.recordingLocked,
+                AppLocalizations.of(context)!.recordingLockedBadge,
                 style: TextStyle(
                   color: context.adaptivePrimaryColor,
                   fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
+          ),
+        ),
+
+        // Le badge seul ne dit pas pourquoi l'enregistrement continue sans
+        // le doigt (§4f) : la phrase le dit.
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            AppLocalizations.of(context)!.recordingHandsFree,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: context.textTertiaryColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
 
@@ -1650,7 +1682,7 @@ class _MessageInputState extends State<MessageInput>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.15),
+                  color: context.errorColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const AppIcon(
@@ -1680,24 +1712,8 @@ class _MessageInputState extends State<MessageInput>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      context.adaptivePrimaryColor,
-                      context.adaptivePrimaryColor.withValues(alpha: 0.8),
-                    ],
-                  ),
+                  color: context.adaptivePrimaryColor,
                   borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.adaptivePrimaryColor.withValues(
-                        alpha: 0.3,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: const AppIcon(
                   AppIcon.send,
@@ -1866,22 +1882,8 @@ class _MessageInputState extends State<MessageInput>
         height: 44,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              context.adaptivePrimaryColor,
-              context.adaptivePrimaryColor.withValues(alpha: 0.8),
-            ],
-          ),
+          color: context.adaptivePrimaryColor,
           borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: const CircularProgressIndicator(
           color: AppColors.white,
@@ -1935,13 +1937,10 @@ class _MessageInputState extends State<MessageInput>
               width: _isRecording ? 56 : 44,
               height: _isRecording ? 56 : 44,
               decoration: BoxDecoration(
-                gradient: _getButtonGradient(context),
-                color: _getButtonColor(context),
+                // Aplat : `_getButtonFill` rend la couleur d'état, et
+                // `_getButtonColor` le fond neutre du bouton au repos.
+                color: _getButtonFill(context) ?? _getButtonColor(context),
                 borderRadius: BorderRadius.circular(_isRecording ? 28 : 22),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1.5,
-                ),
                 boxShadow: [
                   BoxShadow(
                     color: _getButtonShadowColor(context),
@@ -1960,45 +1959,35 @@ class _MessageInputState extends State<MessageInput>
   }
 
   /// Bleu E2EE du bouton d'envoi : signale que le message part chiffré.
-  /// Même famille que l'accusé de lecture des bulles (#5B9BFF).
+  /// Même famille que l'accusé de lecture des bulles.
+  ///
+  /// Chaque couleur signifiante garde une variante claire : elle ne sert plus
+  /// de second point d'arrêt de dégradé, mais de teinte pour le thème sombre,
+  /// où la version foncée passe mal (§6c).
   static const Color _kE2eeBlue = Color(0xFF2F6BE0);
   static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
 
-  /// Vert du bouton vocal (#1B5E32 / #2D7D46), indépendant du thème.
+  /// Vert du bouton vocal, indépendant du thème.
   static const Color _kVoiceGreen = Color(0xFF1B5E32);
   static const Color _kVoiceGreenLight = Color(0xFF2D7D46);
 
-  /// Gradient du bouton selon l'état
-  LinearGradient? _getButtonGradient(BuildContext context) {
-    if (_isCancelling) {
-      return LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Colors.red.shade400, Colors.red.shade600],
-      );
-    }
-    if (_isRecording) {
-      return LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          context.adaptivePrimaryColor,
-          context.adaptivePrimaryColor.withValues(alpha: 0.8),
-        ],
-      );
-    }
+  /// Remplissage du bouton selon l'état, en aplat.
+  ///
+  /// Les quatre dégradés d'origine ont sauté : le système ne s'en sert plus.
+  /// Les couleurs *signifiantes* sont conservées telles quelles, parce
+  /// qu'elles disent chacune quelque chose — rouge pour l'annulation et le
+  /// dépassement de limite, terracotta pendant l'enregistrement, bleu E2EE
+  /// pour l'envoi chiffré, vert pour le vocal.
+  Color? _getButtonFill(BuildContext context) {
+    if (_isCancelling) return context.errorColor;
+    if (_isRecording) return context.adaptivePrimaryColor;
     if (_hasText || widget.onSendAudio != null) {
-      return LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors:
-            _isOverLimit
-                ? [Colors.red.shade400, Colors.red.shade600]
-                : _hasText
-                // Mode envoi : bleu E2EE. Mode micro : pilule verte.
-                ? const [_kE2eeBlueLight, _kE2eeBlue]
-                : const [_kVoiceGreenLight, _kVoiceGreen],
-      );
+      if (_isOverLimit) return context.errorColor;
+      // Les teintes foncées passent mal sur un fond nuit (§6c) : chaque
+      // couleur signifiante a sa variante claire pour le thème sombre.
+      final sombre = context.isDarkMode;
+      if (_hasText) return sombre ? _kE2eeBlueLight : _kE2eeBlue;
+      return sombre ? _kVoiceGreenLight : _kVoiceGreen;
     }
     return null;
   }
@@ -2021,9 +2010,10 @@ class _MessageInputState extends State<MessageInput>
     }
     if (_hasText || widget.onSendAudio != null) {
       if (_isOverLimit) return Colors.red.withValues(alpha: 0.35);
-      return _hasText
-          ? _kE2eeBlue.withValues(alpha: 0.35)
-          : _kVoiceGreen.withValues(alpha: 0.35);
+      final base = _hasText
+          ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
+          : (context.isDarkMode ? _kVoiceGreenLight : _kVoiceGreen);
+      return base.withValues(alpha: 0.35);
     }
     return Colors.black.withValues(alpha: 0.1);
   }

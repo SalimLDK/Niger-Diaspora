@@ -1,13 +1,9 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
@@ -15,39 +11,13 @@ import '../providers/conversation_actions_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 
 /// Filtres rapides de la liste, en puces sous l'en-tête (§9a : Tous / Non lus
 /// / Groupes / Archives, un seul rang de puces mutuellement exclusives).
 enum _MessagesFilter { all, unread, groups, archives }
-
-/// Pastille d'action de l'en-tête : carré arrondi sombre sur le dégradé.
-class _HeaderActionButton extends StatelessWidget {
-  const _HeaderActionButton({
-    required this.icon,
-    required this.onPressed,
-    this.tooltip,
-  });
-
-  final Widget icon;
-  final VoidCallback onPressed;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    final button = Material(
-      color: AppColors.white.withValues(alpha: 0.15),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onPressed,
-        child: SizedBox(width: 46, height: 46, child: Center(child: icon)),
-      ),
-    );
-    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
-  }
-}
 
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
@@ -58,15 +28,8 @@ class MessagesScreen extends ConsumerStatefulWidget {
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchController = TextEditingController();
-  bool _isSearching = false;
   String _searchQuery = '';
   _MessagesFilter _filter = _MessagesFilter.all;
-
-  /// Hauteur du CONTENU de l'en-tête sous la barre de statut. La hauteur
-  /// déployée réelle = padding.top + cette valeur, pour rester valide même sur
-  /// les appareils à grande encoche (sinon l'en-tête serait plus court que la
-  /// barre repliée → « toujours replié » + débordement).
-  static const double _headerContentHeight = 80;
 
   @override
   void dispose() {
@@ -284,79 +247,59 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           (sum, conv) => sum + conv.getUnreadCountFor(headerUserId),
         );
 
+    // Ligne de contexte sous le titre (§9a) : ce qui attend l'utilisateur,
+    // et combien de groupes sont vivants dans sa liste courante.
+    final activeGroups =
+        (conversationsAsync.valueOrNull ?? [])
+            .where(
+              (conv) => conv.isGroup && !conv.isArchivedBy(headerUserId),
+            )
+            .length;
+    final subtitleParts = <String>[
+      if (unreadTotal > 0) l10n.unreadConversations(unreadTotal),
+      if (activeGroups > 0) l10n.messagesActiveGroups(activeGroups),
+    ];
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      // Pas d'AppBar : l'en-tête dégradé est rendu en tête du body, pour que le
-      // dégradé remonte jusque sous la barre d'état comme sur Accueil et Profil.
-      // Plus de FAB : « nouvelle conversation » est désormais une action de
-      // l'en-tête (bouton compose), pour un rendu épuré aligné sur Profil.
-      body: NestedScrollView(
-        headerSliverBuilder:
-            (context, _) => [
-              SliverAppBar(
-                pinned: true,
-                expandedHeight:
-                    MediaQuery.of(context).padding.top + _headerContentHeight,
-                backgroundColor: context.adaptivePrimaryColor,
-                automaticallyImplyLeading: false,
-                // LayoutBuilder + FlexibleSpaceBar : la barre gère le clip du fond
-                // (pas de débordement, le grand titre disparaît en se repliant) ;
-                // le LayoutBuilder détecte le repli via la hauteur réelle — fiable
-                // même quand la liste est courte — pour n'afficher le petit titre
-                // « Messages » qu'une fois replié.
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final collapsed =
-                        constraints.maxHeight <=
-                        kToolbarHeight + MediaQuery.of(context).padding.top + 8;
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // Le fond passe par FlexibleSpaceBar : il gère le clip du
-                        // grand titre au repli et évite tout débordement (le fond
-                        // garde sa hauteur déployée, seul l'affichage est rogné).
-                        FlexibleSpaceBar(
-                          collapseMode: CollapseMode.pin,
-                          background: _buildGradientHeader(
-                            context,
-                            l10n,
-                            unreadTotal,
-                          ),
-                        ),
-                        // Petit titre affiché seulement une fois replié (le grand
-                        // titre est alors déjà rogné) — pas de double titre.
-                        if (collapsed)
-                          SafeArea(
-                            bottom: false,
-                            child: SizedBox(
-                              height: kToolbarHeight,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                  ),
-                                  child: Text(
-                                    l10n.messagesTitle,
-                                    style: GoogleFonts.playfairDisplay(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-        body: Column(
+      // En-tête plat sur le fond crème (§9a) : le bandeau dégradé et son FAB
+      // ont disparu au profit d'un grand titre serif et de deux actions
+      // carrées, dont « composer » en terracotta plein.
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
-            _buildFilterChips(context, l10n),
+            DesignScreenHeader(
+              title: l10n.messagesTitle,
+              subtitle: subtitleParts.join(' · '),
+              actions: [
+                DesignSquareAction(
+                  icon: Icons.inbox_outlined,
+                  tooltip: l10n.archives,
+                  onPressed:
+                      () => setState(() => _filter = _MessagesFilter.archives),
+                ),
+                DesignSquareAction(
+                  icon: Icons.edit_outlined,
+                  filled: true,
+                  tooltip: l10n.newConversation,
+                  onPressed: () => context.push('/messages/new'),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: DesignSearchField(
+                controller: _searchController,
+                hintText: l10n.searchPlaceholder,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                onClear: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+              ),
+            ),
+            _buildFilterChips(context, l10n, unreadTotal),
             Expanded(
               child: conversationsAsync.when(
                 skipLoadingOnRefresh: true,
@@ -434,317 +377,76 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
+  /// Messagerie vide (§9e) : pastille ronde, titre serif, explication qui
+  /// mentionne le chiffrement, puis les deux amorces d'action.
+  ///
+  /// Les maquettes proposent en plus deux suggestions nommées (un membre
+  /// proche, un groupe de la ville) : elles ne sont pas câblées ici, cet
+  /// écran ne charge ni la liste des membres proches ni les groupes
+  /// populaires — ce serait inventer des données.
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+      child: DesignEmptyState(
+        icon: Icons.chat_bubble_outline,
+        title: l10n.noConversation,
+        body: l10n.startChatting,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: AppIcon(
-              AppIcon.chatBubble,
-              size: 64,
-              color: context.adaptivePrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.noConversation,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              l10n.startChatting,
-              style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Rappel du chiffrement (§9e).
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppIcon(
-                  AppIcon.lock,
-                  size: 14,
-                  color: context.textTertiaryColor,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    l10n.e2eeDescription,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.textTertiaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
-          // Amorce 1 : écrire à un membre (l'écran « nouvelle conversation »
-          // met en avant « Proches de vous »).
-          ElevatedButton.icon(
+          DesignPrimaryButton(
+            label: l10n.newConversation,
             onPressed: () => context.push('/messages/new'),
-            icon: const AppIcon(AppIcon.add),
-            label: Text(l10n.newConversation),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.adaptivePrimaryColor,
-              foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
           ),
-          const SizedBox(height: 8),
-          // Amorce 2 : rejoindre un groupe de sa ville.
-          TextButton.icon(
+          const SizedBox(height: 10),
+          DesignSecondaryButton(
+            label: l10n.emptyMessagesJoinGroup,
             onPressed: () => context.push('/groups'),
-            icon: AppIcon(
-              AppIcon.groups,
-              size: 18,
-              color: context.adaptivePrimaryColor,
-            ),
-            label: Text(l10n.emptyMessagesJoinGroup),
+          ),
+          const SizedBox(height: 20),
+          DesignInfoLine(
+            icon: Icons.lock_outline,
+            text: l10n.e2eeDescription,
+            center: true,
           ),
         ],
       ),
     );
   }
 
-  /// En-tête façon « hero » : bandeau dégradé, grand titre, compteur de non-lus
-  /// et actions en pastilles. Aligné sur Accueil et Profil, qui utilisent déjà
-  /// `context.adaptivePrimaryGradient` — la messagerie était le seul onglet
-  /// resté sur une AppBar plate.
-  Widget _buildGradientHeader(
+  /// Puces de filtre rapide (§9a : Tous / Non lus / Groupes / Archives, un
+  /// seul rang mutuellement exclusif). Masquées seulement en recherche.
+  Widget _buildFilterChips(
     BuildContext context,
     AppLocalizations l10n,
     int unreadTotal,
   ) {
-    return ClipRect(
-      child: Container(
-        decoration: BoxDecoration(gradient: context.adaptivePrimaryGradient),
-        child: Stack(
-          children: [
-            ..._buildHeaderDecorations(),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child:
-                              _isSearching
-                                  ? TextField(
-                                    controller: _searchController,
-                                    autofocus: true,
-                                    style: const TextStyle(
-                                      color: AppColors.white,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: l10n.searchPlaceholder,
-                                      border: InputBorder.none,
-                                      hintStyle: TextStyle(
-                                        color: AppColors.white.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                      ),
-                                    ),
-                                    onChanged:
-                                        (value) => setState(
-                                          () => _searchQuery = value,
-                                        ),
-                                  )
-                                  : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        l10n.messagesTitle,
-                                        style: GoogleFonts.playfairDisplay(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.white,
-                                        ),
-                                      ),
-                                      if (unreadTotal > 0) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          l10n.unreadConversations(unreadTotal),
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            color: AppColors.white.withValues(
-                                              alpha: 0.85,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                        ),
-                        if (_isSearching)
-                          _HeaderActionButton(
-                            icon: const AppIcon(
-                              AppIcon.close,
-                              color: AppColors.white,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isSearching = false;
-                                _searchQuery = '';
-                                _searchController.clear();
-                              });
-                            },
-                          )
-                        else ...[
-                          _HeaderActionButton(
-                            icon: const Icon(
-                              Icons.add_comment_outlined,
-                              color: AppColors.white,
-                            ),
-                            onPressed: () => context.push('/messages/new'),
-                            tooltip: l10n.newConversation,
-                          ),
-                          const SizedBox(width: 10),
-                          _HeaderActionButton(
-                            icon: const AppIcon(
-                              AppIcon.search,
-                              color: AppColors.white,
-                            ),
-                            onPressed:
-                                () => setState(() => _isSearching = true),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    // Pendant une recherche, les puces disparaissent : le résultat porte sur
+    // toute la messagerie, pas sur le filtre courant.
+    if (_searchQuery.isNotEmpty) return const SizedBox.shrink();
 
-  /// Motifs décoratifs (cercles blancs translucides) en fond de l'en-tête,
-  /// repris du style de l'écran Profil. Clippés au bandeau par le ClipRect.
-  List<Widget> _buildHeaderDecorations() {
-    Widget circle(double size, double alpha) => Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.white.withValues(alpha: alpha),
-      ),
-    );
-    return [
-      Positioned(top: -50, right: -30, child: circle(150, 0.06)),
-      Positioned(bottom: -45, left: -35, child: circle(130, 0.05)),
-      Positioned(top: 50, left: 30, child: circle(18, 0.10)),
-      Positioned(
-        bottom: 14,
-        right: 55,
-        child: Transform.rotate(
-          angle: math.pi / 4,
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: AppColors.white.withValues(alpha: 0.08),
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  /// Puces de filtre rapide (§9a : Tous / Non lus / Groupes / Archives, un
-  /// seul rang mutuellement exclusif). Masquées seulement en recherche.
-  Widget _buildFilterChips(BuildContext context, AppLocalizations l10n) {
-    if (_isSearching) return const SizedBox.shrink();
-
-    final entries = <(_MessagesFilter, String)>[
-      (_MessagesFilter.all, l10n.filterAll),
-      (_MessagesFilter.unread, l10n.filterUnread),
-      (_MessagesFilter.groups, l10n.filterGroups),
-      (_MessagesFilter.archives, l10n.archives),
+    final entries = <(_MessagesFilter, String, int)>[
+      (_MessagesFilter.all, l10n.filterAll, 0),
+      (_MessagesFilter.unread, l10n.filterUnread, unreadTotal),
+      (_MessagesFilter.groups, l10n.filterGroups, 0),
+      (_MessagesFilter.archives, l10n.archives, 0),
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      padding: const EdgeInsets.fromLTRB(0, 14, 0, 2),
       child: SizedBox(
         height: 40,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: entries.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          separatorBuilder: (_, __) => const SizedBox(width: 9),
           itemBuilder: (context, index) {
-            final (value, label) = entries[index];
-            final isSelected = _filter == value;
-            return GestureDetector(
+            final (value, label, count) = entries[index];
+            return DesignFilterChip(
+              label: label,
+              count: count,
+              selected: _filter == value,
               onTap: () => setState(() => _filter = value),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color:
-                      isSelected
-                          ? context.adaptivePrimaryColor.withValues(alpha: 0.18)
-                          : context.surfaceVariantColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSelected) ...[
-                      AppIcon(
-                        AppIcon.check,
-                        size: 16,
-                        color: context.adaptivePrimaryColor,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color:
-                            isSelected
-                                ? context.adaptivePrimaryColor
-                                : context.textPrimaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             );
           },
         ),
@@ -771,143 +473,98 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     context.push(
       '/messages/${conversation.id}',
-      extra: {'name': 'Mes notes', 'isGroup': false, 'isSelfNotes': true},
+      extra: {
+        'name': AppLocalizations.of(context)!.messagesMyNotes,
+        'isGroup': false,
+        'isSelfNotes': true,
+      },
     );
   }
 
   /// Tuile épinglée « Mes notes », toujours en tête de liste (hors recherche
   /// et hors archives). L'aperçu reprend le dernier contenu noté s'il existe.
   Widget _buildSelfNotesTile(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final selfConversation = ref.watch(selfNotesConversationProvider);
     final lastNote = selfConversation?.lastMessage?.trim();
     final subtitle =
         (lastNote != null && lastNote.isNotEmpty)
             ? lastNote
-            : 'Notes, brouillons et sondages';
+            : l10n.messagesMyNotesSubtitle;
     final isOpening = ref.watch(ensureSelfNotesProvider).isLoading;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.adaptivePrimaryColor.withValues(alpha: 0.25),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isOpening ? null : _openSelfNotes,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: context.adaptivePrimaryGradient,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Center(
-                    child:
-                        isOpening
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.white,
-                              ),
-                            )
-                            : const Icon(
-                              Icons.push_pin,
-                              size: 24,
-                              color: AppColors.white,
-                            ),
-                  ),
+    // Ligne à plat comme les autres conversations (§9a) : le bandeau
+    // terracotta et le badge « Épinglé » ont disparu. La tuile reste en
+    // revanche en tête de liste, pour rester joignable en un coup d'œil.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isOpening ? null : _openSelfNotes,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Mes notes',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: context.textPrimaryColor,
-                              ),
+                child: Center(
+                  child:
+                      isOpening
+                          ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: context.adaptivePrimaryColor,
                             ),
+                          )
+                          : Icon(
+                            Icons.bookmark_border,
+                            size: 21,
+                            color: context.adaptivePrimaryColor,
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: context.adaptivePrimaryColor.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.push_pin,
-                                  size: 11,
-                                  color: context.adaptivePrimaryColor,
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Épinglé',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: context.adaptivePrimaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: context.textSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: context.textTertiaryColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.messagesMyNotes,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
 
   Widget _buildConversationList({
     required List<ConversationEntity> conversations,
@@ -1010,68 +667,84 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       entries.addAll(filtered);
     }
 
-    Widget sectionHeader(String label) => Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: context.textTertiaryColor,
-        ),
-      ),
+    ConversationItem buildItem(
+      ConversationEntity conversation, {
+      required bool flat,
+    }) => ConversationItem(
+      conversation: conversation,
+      currentUserId: currentUserId,
+      flat: flat,
+      onTap: () {
+        context.push(
+          '/messages/${conversation.id}',
+          extra: {
+            'name': conversation.name ?? 'Conversation',
+            'imageUrl': conversation.imageUrl,
+            'isGroup': conversation.isGroup,
+            'groupId': conversation.groupId,
+            'otherUserId':
+                conversation.isGroup
+                    ? null
+                    : conversation.getOtherParticipantId(currentUserId),
+          },
+        );
+      },
+      onLongPress:
+          () => _showConversationOptions(context, conversation, currentUserId),
     );
+
+    // Mise en page du §9a : les épinglées forment une carte blanche groupée,
+    // le reste de la liste est posé à plat sur le fond, lignes séparées par
+    // un filet.
+    final children = <Widget>[];
+    if (useSections) {
+      children.add(DesignSectionLabel(l10n.pinnedSection));
+      children.add(
+        DesignListCard(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          children: [
+            for (final c in pinned) buildItem(c, flat: true),
+          ],
+        ),
+      );
+      if (showSelfNotesTile || others.isNotEmpty) {
+        children.add(DesignSectionLabel(l10n.otherConversations));
+      }
+    } else if (showSelfNotesTile || filtered.isNotEmpty) {
+      children.add(const SizedBox(height: 8));
+    }
+
+    final flatEntries = <Object>[
+      if (showSelfNotesTile) _kSelfNotesMarker,
+      ...(useSections ? others : filtered),
+    ];
+    for (var i = 0; i < flatEntries.length; i++) {
+      if (i > 0) {
+        children.add(
+          Divider(height: 1, thickness: 1, color: context.dividerColor),
+        );
+      }
+      final entry = flatEntries[i];
+      children.add(
+        entry == _kSelfNotesMarker
+            ? _buildSelfNotesTile(context)
+            : buildItem(entry as ConversationEntity, flat: true),
+      );
+    }
 
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(conversationsProvider);
       },
       color: context.adaptivePrimaryColor,
-      child: ListView.builder(
+      child: ListView(
         padding: EdgeInsets.fromLTRB(
           20,
-          10,
+          0,
           20,
           10 + MediaQuery.of(context).padding.bottom,
         ),
-        itemCount: entries.length,
-        itemBuilder: (context, index) {
-          final entry = entries[index];
-          if (entry == _kSelfNotesMarker) {
-            return _buildSelfNotesTile(context);
-          }
-          if (entry is String) {
-            return sectionHeader(entry);
-          }
-          final conversation = entry as ConversationEntity;
-
-          return ConversationItem(
-            conversation: conversation,
-            currentUserId: currentUserId,
-            onTap: () {
-              context.push(
-                '/messages/${conversation.id}',
-                extra: {
-                  'name': conversation.name ?? 'Conversation',
-                  'imageUrl': conversation.imageUrl,
-                  'isGroup': conversation.isGroup,
-                  'groupId': conversation.groupId,
-                  'otherUserId':
-                      conversation.isGroup
-                          ? null
-                          : conversation.getOtherParticipantId(currentUserId),
-                },
-              );
-            },
-            onLongPress:
-                () => _showConversationOptions(
-                  context,
-                  conversation,
-                  currentUserId,
-                ),
-          );
-        },
+        children: children,
       ),
     );
   }

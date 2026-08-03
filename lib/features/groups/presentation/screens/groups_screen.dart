@@ -17,6 +17,7 @@ import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import '../../../../core/theme/design_kit.dart';
 
 /// Dernière activité (dernier message) par groupe, dérivée des conversations
 /// déjà chargées — le champ `lastMessageAt` vit sur la conversation liée
@@ -60,12 +61,16 @@ class GroupsScreen extends ConsumerStatefulWidget {
   ConsumerState<GroupsScreen> createState() => _GroupsScreenState();
 }
 
+/// Bascule en tête d'écran (§9c) : « Mes groupes » / « Découvrir ». Les
+/// deux sections vivaient auparavant dans le même défilement, l'une sous
+/// l'autre, avec les filtres au milieu.
+enum _GroupsTab { mine, discover }
+
 class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   GroupCategory? _selectedCategory;
   String? _selectedCountry;
   String? _selectedRegion;
-  bool _showTitle = false;
-  static const double _expandedHeight = 210;
+  _GroupsTab _tab = _GroupsTab.mine;
 
   @override
   void initState() {
@@ -173,7 +178,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
       children: [
         const SizedBox(height: 28),
         _SectionHeader(
-          title: 'Suggéré pour toi',
+          title: l10n.groupsSuggestedForYou,
           icon: Icons.auto_awesome,
           iconColor: context.adaptivePrimaryColor,
         ),
@@ -209,165 +214,87 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     final myGroupsAsync = ref.watch(myGroupsNotifierProvider);
     final allGroupsAsync = ref.watch(groupsNotifierProvider);
 
+    // Compte affiché sous le titre (§9c) : ce que la personne a déjà rejoint
+    // et ce qui l'attend.
+    final joinedCount = (myGroupsAsync.valueOrNull ?? []).length;
+    final pendingInvites =
+        ref.watch(receivedGroupInvitesProvider).valueOrNull?.length ?? 0;
+    final subtitleParts = <String>[
+      l10n.groupsJoinedCount(joinedCount),
+      if (pendingInvites > 0) l10n.groupsPendingInvites(pendingInvites),
+    ];
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (n) {
-          final collapsed = n.metrics.pixels > (_expandedHeight - kToolbarHeight);
-          if (collapsed != _showTitle) setState(() => _showTitle = collapsed);
-          return false;
-        },
+      body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           onRefresh: () async => _loadData(),
           color: context.adaptivePrimaryColor,
           child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
-            // Header avec gradient
-            SliverAppBar(
-              pinned: true,
-              expandedHeight: _expandedHeight,
-              backgroundColor: context.adaptivePrimaryColor,
-              automaticallyImplyLeading: false,
-              title: _showTitle
-                  ? Text(l10n.groupsTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-                  : null,
-              flexibleSpace: FlexibleSpaceBar(
-                collapseMode: CollapseMode.pin,
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: context.adaptiveSecondaryGradient,
+            // En-tête plat sur le fond crème (§9c) : le bandeau dégradé et sa
+            // barre de recherche factice ont disparu au profit du grand titre
+            // serif, de deux actions carrées et d'une bascule à deux onglets.
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DesignScreenHeader(
+                    title: l10n.groupsTitle,
+                    subtitle: subtitleParts.join(' · '),
+                    actions: [
+                      DesignSquareAction(
+                        icon: Icons.search,
+                        tooltip: l10n.searchGroup,
+                        onPressed: () => context.push('/groups/search'),
+                      ),
+                      DesignSquareAction(
+                        icon: Icons.add,
+                        filled: true,
+                        tooltip: l10n.createGroup,
+                        onPressed: () => context.push('/groups/create'),
+                      ),
+                    ],
                   ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(context.horizontalPadding, 16, context.horizontalPadding, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.horizontalPadding,
+                    ),
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.groupsTitle,
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.joinCommunity,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.white.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                // TODO: Réactiver l'icône carte des groupes une fois
-                                // GroupsMapScreen stabilisé (désactivée sur demande).
-                                // GestureDetector(
-                                //   onTap: () => context.push('/groups/map'),
-                                //   child: Container(
-                                //     padding: const EdgeInsets.all(12),
-                                //     decoration: BoxDecoration(
-                                //       color: AppColors.white.withValues(alpha: 0.2),
-                                //       borderRadius: BorderRadius.circular(14),
-                                //     ),
-                                //     child: const AppIcon(AppIcon.location,
-                                //       color: AppColors.white,
-                                //       size: 24,
-                                //     ),
-                                //   ),
-                                // ),
-                                // const SizedBox(width: 10),
-                                GestureDetector(
-                                  onTap: () => context.push('/groups/create'),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.white.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: const AppIcon(AppIcon.add,
-                                      color: AppColors.white,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        Expanded(
+                          child: _GroupsTabButton(
+                            label: joinedCount > 0
+                                ? l10n.myGroups
+                                : '${l10n.myGroups} · 0',
+                            isSelected: _tab == _GroupsTab.mine,
+                            onTap: () =>
+                                setState(() => _tab = _GroupsTab.mine),
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                        // Search Bar
-                        GestureDetector(
-                          onTap: () => context.push('/groups/search'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: context.surfaceColor,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow:
-                                  context.isDarkMode
-                                      ? null
-                                      : [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: context.secondaryBackgroundColor,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: AppIcon(AppIcon.search,
-                                    color: context.adaptivePrimaryColor,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    l10n.searchGroup,
-                                    style: TextStyle(
-                                      color: context.textTertiaryColor,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _GroupsTabButton(
+                            label: l10n.discover,
+                            isSelected: _tab == _GroupsTab.discover,
+                            onTap: () =>
+                                setState(() => _tab = _GroupsTab.discover),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ),
+
             // Filtres par catégorie
+            // Catégories et filtres géographiques n'ont de sens que sur
+            // « Découvrir » : « Mes groupes » liste ce qui est déjà rejoint.
+            if (_tab == _GroupsTab.discover)
             SliverToBoxAdapter(
               child: Container(
                 height: 50,
@@ -398,6 +325,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               ),
             ),
             // Filtres géographiques (pays d'accueil + région d'origine)
+            if (_tab == _GroupsTab.discover)
             SliverToBoxAdapter(
               child: _buildGeoFilters(),
             ),
@@ -407,17 +335,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // Invitations reçues
-                  _ReceivedInvitationsSection(onInviteAccepted: _loadData),
+                  if (_tab == _GroupsTab.mine)
+                    _ReceivedInvitationsSection(onInviteAccepted: _loadData),
 
-                  // Mes groupes
-                  _SectionHeader(
-                    title: l10n.myGroups,
-                    icon: Icons.favorite,
-                    iconColor: context.adaptivePrimaryColor,
-                  ),
-
-                  const SizedBox(height: 16),
-
+                  // Mes groupes : l'onglet porte déjà le titre de la section.
+                  if (_tab == _GroupsTab.mine)
                   myGroupsAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (myGroups) {
@@ -453,9 +375,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   ),
 
                   // Suggéré pour toi (pays/région du profil) - masquée si rien à suggérer
-                  _buildSuggestedSection(context, l10n, currentUser?.id, allGroupsAsync, myGroupsAsync),
+                  if (_tab == _GroupsTab.discover)
+                    _buildSuggestedSection(context, l10n, currentUser?.id, allGroupsAsync, myGroupsAsync),
 
                   // Section Découvrir - masquée si aucun groupe à découvrir
+                  if (_tab == _GroupsTab.discover)
                   allGroupsAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (allGroups) {
@@ -623,73 +547,32 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
         .length;
   }
 
+  /// « Mes groupes » vide (§9f) : pastille ronde, titre serif, explication de
+  /// ce à quoi servent les groupes, puis les deux sorties — découvrir ce qui
+  /// existe près de chez soi, ou créer son groupe.
   Widget _buildEmptyMyGroups() {
     final l10n = AppLocalizations.of(context)!;
     final suggestedCount = _suggestedGroupsCount();
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: context.cardDecoration,
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 28, 4, 8),
+      child: DesignEmptyState(
+        icon: Icons.groups_outlined,
+        title: l10n.noJoinedGroups,
+        body: l10n.emptyGroupsUsage,
         children: [
-          AppIcon(
-            AppIcon.groups,
-            size: 48,
-            color: context.textTertiaryColor.withValues(alpha: 0.5),
+          DesignPrimaryButton(
+            // Le compte n'est affiché que s'il y a vraiment des suggestions.
+            label:
+                suggestedCount > 0
+                    ? l10n.groupsSeeSuggested(suggestedCount)
+                    : l10n.discover,
+            onPressed: () => setState(() => _tab = _GroupsTab.discover),
           ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.noJoinedGroups,
-            style: TextStyle(
-              color: context.textPrimaryColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 10),
+          DesignSecondaryButton(
+            label: l10n.createGroup,
+            onPressed: () => context.push('/groups/create'),
           ),
-          const SizedBox(height: 6),
-          // Explication d'usage (§9f).
-          Text(
-            l10n.emptyGroupsUsage,
-            style: TextStyle(color: context.textSecondaryColor, fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          // « Créer votre groupe » en carte pointillée.
-          InkWell(
-            onTap: () => context.push('/groups/create'),
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: context.adaptivePrimaryColor.withValues(alpha: 0.5),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, size: 18, color: context.adaptivePrimaryColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.createGroup,
-                    style: TextStyle(
-                      color: context.adaptivePrimaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Lien vers les suggestions, affiché seulement s'il y en a vraiment.
-          if (suggestedCount > 0) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => context.push('/groups/search'),
-              child: Text(l10n.groupsSeeSuggested(suggestedCount)),
-            ),
-          ],
         ],
       ),
     );
@@ -885,50 +768,25 @@ class _GroupCard extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow:
-              context.isDarkMode
-                  ? null
-                  : [
-                    BoxShadow(
-                      color: (isJoined
-                              ? context.adaptivePrimaryColor
-                              : context.adaptiveSecondaryColor)
-                          .withValues(alpha: 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+          borderRadius: BorderRadius.circular(kDesignRadius),
+          border: Border.all(color: context.borderColor),
         ),
         child: Row(
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                gradient:
-                    isJoined
-                        ? context.adaptivePrimaryGradient
-                        : context.adaptiveSecondaryGradient,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: (isJoined
-                            ? context.adaptivePrimaryColor
-                            : context.adaptiveSecondaryColor)
-                        .withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: context.adaptiveSecondaryColor,
+                borderRadius: BorderRadius.circular(15),
               ),
               child:
                   group.imageUrl != null
                       ? ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(15),
                         child: CachedNetworkImage(
                           imageUrl: group.imageUrl!,
                           fit: BoxFit.cover,
@@ -1238,38 +1096,8 @@ class _CategoryChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: isSelected ? context.adaptiveSecondaryGradient : null,
-          color: isSelected ? null : context.surfaceColor,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color:
-                  isSelected
-                      ? context.adaptiveSecondaryColor.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.05),
-              blurRadius: isSelected ? 12 : 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.white : context.textSecondaryColor,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      DesignFilterChip(label: label, selected: isSelected, onTap: onTap);
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -1284,29 +1112,7 @@ class _SectionHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: context.textPrimaryColor,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => DesignSectionLabel(title);
 }
 
 /// Section « Suggéré pour toi » quand le profil est renseigné mais qu'aucun
@@ -1710,9 +1516,10 @@ class _InviteCard extends ConsumerWidget {
   }
 
   void _showError(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Action impossible pour le moment, réessayez.'),
+      SnackBar(
+        content: Text(l10n.groupsActionUnavailable),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ),
@@ -1721,6 +1528,7 @@ class _InviteCard extends ConsumerWidget {
 
   /// Aperçu des détails du groupe (nom, description, membres) avant de décider.
   void _showGroupDetails(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1807,7 +1615,7 @@ class _InviteCard extends ConsumerWidget {
                     data: (group) {
                       if (group == null) {
                         return Text(
-                          'Détails indisponibles.',
+                          l10n.groupsDetailsUnavailable,
                           style: TextStyle(color: context.textTertiaryColor),
                         );
                       }
@@ -1846,7 +1654,7 @@ class _InviteCard extends ConsumerWidget {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (_, __) => Text(
-                      'Détails indisponibles.',
+                      l10n.groupsDetailsUnavailable,
                       style: TextStyle(color: context.textTertiaryColor),
                     ),
                   ),
@@ -1894,6 +1702,53 @@ class _InviteCard extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// Onglet de la bascule « Mes groupes » / « Découvrir » (§9c) : plein et
+/// inversé quand actif, blanc à contour sinon.
+class _GroupsTabButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _GroupsTabButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = context.textPrimaryColor;
+    return Material(
+      color: isSelected ? fill : context.surfaceColor,
+      borderRadius: BorderRadius.circular(kDesignPillRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(kDesignPillRadius),
+        child: Container(
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(kDesignPillRadius),
+            border: Border.all(
+              color: isSelected ? fill : context.borderColor,
+            ),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? context.backgroundColor : fill,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

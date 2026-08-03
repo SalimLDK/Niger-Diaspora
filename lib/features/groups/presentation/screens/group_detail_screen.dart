@@ -20,6 +20,7 @@ import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../core/theme/design_kit.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -149,19 +150,14 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           slivers: [
             // App Bar avec image
             SliverAppBar(
-              expandedHeight: 200,
               pinned: true,
+              backgroundColor: context.backgroundColor,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
               leading: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: AppIcon(
-                    AppIcon.arrowBack,
-                    color: context.textPrimaryColor,
-                  ),
+                icon: AppIcon(
+                  AppIcon.arrowBack,
+                  color: context.textPrimaryColor,
                 ),
                 onPressed: () => context.pop(),
               ),
@@ -182,18 +178,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                         icon: Badge(
                           label: Text('$count'),
                           isLabelVisible: count > 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: context.surfaceColor.withValues(
-                                alpha: 0.9,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.notifications_active,
-                              color: context.textPrimaryColor,
-                            ),
+                          child: Icon(
+                            Icons.notifications_active,
+                            color: context.textPrimaryColor,
                           ),
                         ),
                         onPressed: () {
@@ -251,34 +238,6 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                 const SizedBox(width: 8),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: context.adaptivePrimaryGradient,
-                  ),
-                  child:
-                      group.imageUrl != null
-                          ? Image.network(
-                            group.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (_, __, ___) => const Center(
-                                  child: AppIcon(
-                                    AppIcon.groups,
-                                    size: 80,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                          )
-                          : const Center(
-                            child: AppIcon(
-                              AppIcon.groups,
-                              size: 80,
-                              color: Colors.white,
-                            ),
-                          ),
-                ),
-              ),
             ),
 
             // Contenu
@@ -288,37 +247,78 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nom et catégorie
+                    // Identité du groupe (§9d) : pastille verte, titre serif,
+                    // puis une seule ligne qui dit l'essentiel — accès et
+                    // catégorie.
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            group.name,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          width: 58,
+                          height: 58,
                           decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
+                            color: context.adaptiveSecondaryColor,
+                            borderRadius: BorderRadius.circular(17),
                           ),
-                          child: Text(
-                            group.category.label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: context.adaptivePrimaryColor,
-                            ),
+                          clipBehavior: Clip.antiAlias,
+                          child:
+                              group.imageUrl != null
+                                  ? Image.network(
+                                    group.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) => const Center(
+                                          child: AppIcon(
+                                            AppIcon.groups,
+                                            size: 26,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                  )
+                                  : const Center(
+                                    child: AppIcon(
+                                      AppIcon.groups,
+                                      size: 26,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DesignTitle(group.name, size: 23),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(
+                                    group.isPrivate
+                                        ? Icons.lock_outline_rounded
+                                        : Icons.public,
+                                    size: 13,
+                                    color: context.textTertiaryColor,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      [
+                                        group.isPrivate
+                                            ? l10n.private
+                                            : l10n.public,
+                                        group.category.label,
+                                      ].join(' · '),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color: context.textTertiaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -331,17 +331,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow:
-                            context.isDarkMode
-                                ? null
-                                : [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                        borderRadius: BorderRadius.circular(kDesignRadius),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -625,8 +616,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           ),
                           label: Text(
                             hasPendingRequest
-                                ? 'Demande en attente'
-                                : 'Demander à rejoindre',
+                                ? l10n.requestPending
+                                : l10n.requestToJoin,
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.adaptivePrimaryColor,
@@ -643,6 +634,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   }
 
   Future<void> _requestToJoin(GroupEntity group) async {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser == null) return;
 
@@ -668,7 +660,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Demande envoyée avec succès')),
+              SnackBar(content: Text(l10n.requestSent)),
             );
           },
         );
@@ -1011,7 +1003,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 context.push('/groups/${group.id}/members', extra: group);
               },
               child: Text(
-                'Voir tous les ${group.memberIds.length} membres',
+                l10n.groupSeeAllMembers(group.memberIds.length),
                 style: TextStyle(color: context.adaptivePrimaryColor),
               ),
             ),
@@ -1066,6 +1058,7 @@ class _MemberListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(userStreamProvider(memberId));
 
     return profileAsync.when(
@@ -1129,8 +1122,8 @@ class _MemberListItem extends ConsumerWidget {
                     color: context.adaptivePrimaryColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    'Créateur',
+                  child: Text(
+                    l10n.creator,
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.white,
@@ -1171,8 +1164,8 @@ class _MemberListItem extends ConsumerWidget {
                     color: const Color(0xFF7A8A5E).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    'Modé',
+                  child: Text(
+                    l10n.groupRoleModerator,
                     style: TextStyle(
                       fontSize: 10,
                       color: Color(0xFF5A6B45),

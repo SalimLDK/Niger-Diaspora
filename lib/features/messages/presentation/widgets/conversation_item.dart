@@ -14,6 +14,7 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import '../../../../core/theme/design_kit.dart';
 
 class ConversationItem extends ConsumerStatefulWidget {
   final ConversationEntity conversation;
@@ -24,6 +25,11 @@ class ConversationItem extends ConsumerStatefulWidget {
   final bool isSelected;
   final ValueChanged<bool>? onSelectionChanged;
 
+  /// Ligne posée à plat sur le fond (section « cette semaine » du §9a) au lieu
+  /// de la carte blanche autonome. Les cartes ne servent plus qu'aux
+  /// épinglées, regroupées dans un [DesignListCard] par le parent.
+  final bool flat;
+
   const ConversationItem({
     super.key,
     required this.conversation,
@@ -33,6 +39,7 @@ class ConversationItem extends ConsumerStatefulWidget {
     this.isSelectionMode = false,
     this.isSelected = false,
     this.onSelectionChanged,
+    this.flat = false,
   });
 
   @override
@@ -168,34 +175,33 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         onLongPress: widget.onLongPress,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          // À plat : ni marge, ni ombre, ni bordure — le fond crème reste
+          // visible et c'est le filet du parent qui sépare les lignes.
+          margin: widget.flat ? EdgeInsets.zero : const EdgeInsets.only(bottom: 10),
+          padding:
+              widget.flat
+                  ? const EdgeInsets.symmetric(horizontal: 4, vertical: 12)
+                  : const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color:
                 widget.isSelected
                     ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
+                    : widget.flat
+                    ? Colors.transparent
                     : context.surfaceColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color:
-                  widget.isSelected
-                      ? context.adaptivePrimaryColor
-                      : context.isDarkMode
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.04),
-              width: widget.isSelected ? 2 : 1,
+            borderRadius: BorderRadius.circular(
+              widget.flat ? 0 : kDesignRadius,
             ),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    context.isDarkMode
-                        ? Colors.black.withValues(alpha: 0.3)
-                        : Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-                spreadRadius: -4,
-              ),
-            ],
+            border:
+                widget.flat && !widget.isSelected
+                    ? null
+                    : Border.all(
+                      color:
+                          widget.isSelected
+                              ? context.adaptivePrimaryColor
+                              : context.borderColor,
+                      width: widget.isSelected ? 2 : 1,
+                    ),
           ),
           child: Row(
             children: [
@@ -598,9 +604,9 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     if (isCallMessage) {
       // Color based on call status in message content
       final lastMessage = conversation.lastMessage ?? '';
-      if (lastMessage.contains('missed') || lastMessage.contains('manqué')) {
+      if (lastMessage.contains('missed') || lastMessage.contains(l10n.callStatusMissed)) {
         textColor = AppColors.error;
-      } else if (lastMessage.contains('declined') || lastMessage.contains('refusé')) {
+      } else if (lastMessage.contains('declined') || lastMessage.contains(l10n.callStatusDeclined)) {
         textColor = Colors.orange;
       } else {
         textColor = AppColors.success;
@@ -612,7 +618,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     // Show icon for calls
     if (isCallMessage) {
       final lastMessage = conversation.lastMessage ?? '';
-      final isVideoCall = lastMessage.contains('video') || lastMessage.contains('vidéo');
+      final isVideoCall = lastMessage.contains('video') || lastMessage.contains(l10n.callKindVideo);
       return Row(
         children: [
           AppIcon(isVideoCall ? AppIcon.video : AppIcon.call,
@@ -687,7 +693,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         typeLabel = '📎 Photo';
         break;
       case MessageType.video:
-        typeLabel = '🎥 Vidéo';
+        typeLabel = l10n.messageTypeVideo;
         break;
       case MessageType.file:
         typeLabel = '📎 Document';

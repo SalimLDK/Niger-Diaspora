@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -144,19 +145,73 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: Text(l10n.notificationsTitle),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+      // En-tête plat (§12c) : grand titre serif, compte de non-lues, puis
+      // « Tout lire » et les réglages. L'AppBar Material et sa flèche retour
+      // disparaissent — l'écran est un onglet, pas une page empilée.
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            DesignScreenHeader(
+              title: l10n.notificationsTitle,
+              subtitle: unreadCount > 0
+                  ? l10n.notificationsUnreadCount(unreadCount)
+                  : '',
+              actions: [
+                if (unreadCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: TextButton(
+                      onPressed: () => ref
+                          .read(notificationsNotifierProvider.notifier)
+                          .markAllAsRead(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: context.surfaceVariantColor,
+                        foregroundColor: context.textPrimaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(kDesignPillRadius),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.markAllAsRead,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                DesignSquareAction(
+                  icon: Icons.tune,
+                  tooltip: l10n.settings,
+                  onPressed: () => context.push('/notifications/settings'),
+                ),
+              ],
+            ),
+            _buildFilterBar(context, l10n, unreadCount),
+            Expanded(
+              child: _buildNotificationsList(
+                context,
+                ref,
+                notificationsAsync,
+                l10n,
+              ),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push('/notifications/settings'),
-            tooltip: l10n.settings,
-          ),
-          PopupMenuButton<String>(
+      ),
+    );
+  }
+
+  /// Menu « tout supprimer », conservé hors de l'en-tête plat : c'est une
+  /// action destructive, elle n'a pas sa place à côté de « Tout lire ».
+  Widget buildOverflowMenu(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    return PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
               switch (value) {
@@ -200,11 +255,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     ),
                   ),
                 ],
-          ),
-        ],
-        bottom: _buildFilterBar(context, l10n, unreadCount),
-      ),
-      body: _buildNotificationsList(context, ref, notificationsAsync, l10n),
     );
   }
 
@@ -957,7 +1007,7 @@ class _NotificationGroup {
       case NotificationType.localEvent:
       case NotificationType.nearbyMember:
       case NotificationType.proximityAlert:
-        return 'Alertes proximité';
+        return l10n.notifGroupProximity;
       case NotificationType.general:
         return 'Notifications';
     }
@@ -975,7 +1025,7 @@ class _NotificationGroup {
         if (senderNames.length == 1) {
           return '$count nouveaux messages';
         }
-        return '$count messages de ${senderNames.length} conversations';
+        return l10n.notificationsGroupedMessages(count, senderNames.length);
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:

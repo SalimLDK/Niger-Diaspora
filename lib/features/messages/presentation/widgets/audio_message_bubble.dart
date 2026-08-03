@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -371,11 +372,13 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
             : '${_playbackSpeed.toString().replaceAll('.', ',')}×';
     return GestureDetector(
       onTap: _cyclePlaybackSpeed,
+      // Pastille en contour (§4a) : un aplat teinté la faisait lire comme un
+      // état actif alors que c'est un bouton de cycle.
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.45)),
+          borderRadius: BorderRadius.circular(kDesignPillRadius),
         ),
         child: Text(
           label,
@@ -431,6 +434,16 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
     );
   }
 
+  /// « 86 Ko », « 1,2 Mo ». Ko en dessous du mégaoctet, une décimale
+  /// au-delà — c'est ce que montrent les maquettes.
+  String _formatFileSize(int octets) {
+    if (octets < 1024 * 1024) {
+      return '${(octets / 1024).round()} Ko';
+    }
+    final mo = octets / (1024 * 1024);
+    return '${mo.toStringAsFixed(1).replaceAll('.', ',')} Mo';
+  }
+
   Widget _buildControlsRow(Color textColor, Color accentColor) {
     final displayPos =
         _isPlaying || _currentPosition > Duration.zero
@@ -448,6 +461,20 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
             fontWeight: FontWeight.w500,
           ),
         ),
+        // Poids du fichier (§3b) : sur un réseau 2G, savoir ce qu'on va
+        // télécharger compte. Choix assumé — la §4a ne le montre pas sur la
+        // note vocale, on le garde quand même. Affiché seulement si le
+        // serveur l'a renvoyé, pas de « 0 Ko » inventé.
+        if ((widget.message.fileSize ?? 0) > 0) ...[
+          const SizedBox(width: 8),
+          Text(
+            _formatFileSize(widget.message.fileSize!),
+            style: TextStyle(
+              fontSize: 11.5,
+              color: textColor.withValues(alpha: 0.75),
+            ),
+          ),
+        ],
         // Point vert « non écouté » (disparaît après la première lecture).
         if (!_hasBeenPlayed) ...[
           const SizedBox(width: 6),
