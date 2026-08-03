@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../core/constants/profile_options.dart';
@@ -435,7 +434,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 content: Text(
                   l10n.profileUpdateError(saved.error?.toString() ?? ''),
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: context.errorColor,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -452,12 +451,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             SnackBar(
               content: Row(
                 children: [
-                  const AppIcon(AppIcon.checkCircle, color: AppColors.white),
+                  const AppIcon(AppIcon.checkCircle, color: Colors.white),
                   const SizedBox(width: 12),
                   Text(l10n.profileUpdatedSuccess),
                 ],
               ),
-              backgroundColor: AppColors.success,
+              backgroundColor: context.successColor,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -722,8 +721,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                           borderRadius: BorderRadius.circular(
                                             14,
                                           ),
-                                          borderSide: const BorderSide(
-                                            color: AppColors.error,
+                                          borderSide: BorderSide(
+                                            color: context.errorColor,
                                             width: 1,
                                           ),
                                         ),
@@ -731,8 +730,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                           borderRadius: BorderRadius.circular(
                                             14,
                                           ),
-                                          borderSide: const BorderSide(
-                                            color: AppColors.error,
+                                          borderSide: BorderSide(
+                                            color: context.errorColor,
                                             width: 2,
                                           ),
                                         ),
@@ -929,7 +928,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                         label: entry.key,
                                         icon: entry.value,
                                         isSelected: isSelected,
-                                        color: AppColors.primary,
+                                        color: context.adaptivePrimaryColor,
                                         onTap: () {
                                           HapticFeedback.selectionClick();
                                           setState(() {
@@ -1266,7 +1265,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           children: [
             Icon(
               Icons.verified_user_outlined,
-              color: hasPhone ? AppColors.primary : context.textTertiaryColor,
+              color: hasPhone ? context.adaptivePrimaryColor : context.textTertiaryColor,
               size: 20,
             ),
             const SizedBox(width: 6),
@@ -1305,12 +1304,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 SnackBar(
                   content: Row(
                     children: [
-                      const AppIcon(AppIcon.checkCircle, color: AppColors.white),
+                      const AppIcon(AppIcon.checkCircle, color: Colors.white),
                       const SizedBox(width: 12),
                       Text(l10n.profilePhoneVerified),
                     ],
                   ),
-                  backgroundColor: AppColors.success,
+                  backgroundColor: context.successColor,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1339,13 +1338,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.visibility_outlined,
                   size: 18,
-                  color: AppColors.primary,
+                  color: context.adaptivePrimaryColor,
                 ),
               ),
               const SizedBox(width: 12),
@@ -1717,7 +1716,8 @@ class _LanguageChip extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+                    // Aplat saturé sous le code : blanc dans les deux thèmes.
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -1828,7 +1828,7 @@ class _ImagePickerOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        isDestructive ? AppColors.error : context.adaptivePrimaryColor;
+        isDestructive ? context.errorColor : context.adaptivePrimaryColor;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1849,7 +1849,7 @@ class _ImagePickerOption extends StatelessWidget {
           title,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: isDestructive ? AppColors.error : context.textPrimaryColor,
+            color: isDestructive ? context.errorColor : context.textPrimaryColor,
           ),
         ),
         subtitle: Text(
@@ -1947,7 +1947,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(AppLocalizations.of(context)!.codeSentTo(widget.phoneNumber)),
-                backgroundColor: AppColors.primary,
+                backgroundColor: context.adaptivePrimaryColor,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -2117,24 +2117,24 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
+                    color: context.errorColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.error.withValues(alpha: 0.3),
+                      color: context.errorColor.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const AppIcon(AppIcon.error,
-                        color: AppColors.error,
+                      AppIcon(AppIcon.error,
+                        color: context.errorColor,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(
-                            color: AppColors.error,
+                          style: TextStyle(
+                            color: context.errorColor,
                             fontSize: 13,
                           ),
                         ),
@@ -2153,7 +2153,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                     onPressed: _isLoading ? null : _sendOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      foregroundColor: AppColors.white,
+                      foregroundColor: context.onPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -2161,13 +2161,13 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                     ),
                     child:
                         _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                  AppColors.white,
+                                  context.onPrimaryColor,
                                 ),
                               ),
                             )
@@ -2240,7 +2240,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                     onPressed: _isLoading ? null : _verifyOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      foregroundColor: AppColors.white,
+                      foregroundColor: context.onPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -2248,13 +2248,13 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                     ),
                     child:
                         _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                  AppColors.white,
+                                  context.onPrimaryColor,
                                 ),
                               ),
                             )
