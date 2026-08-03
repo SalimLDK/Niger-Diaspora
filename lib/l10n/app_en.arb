@@ -444,6 +444,46 @@
   "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
   "mapZoomOut": "Zoom out",
   "mapShowEmbassies": "Show embassies",
+  "podcastsDiasporaVoicesTitle": "Voices from the diaspora",
+  "podcastsPopularInDiaspora": "POPULAR IN THE DIASPORA",
+  "podcastsCreateMine": "Create my podcast",
+  "marketplaceSearchEverywhere": "Search everywhere · {count}",
+  "@marketplaceSearchEverywhere": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marketplaceAlertMe": "Alert me if it shows up",
+  "marketplaceAlertSaved": "Alert saved for “{query}”. You'll get a notification as soon as an item matches.",
+  "@marketplaceAlertSaved": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "marketplaceNoProductsTitle": "Nothing on sale yet",
+  "marketplaceNoProductsHint": "Be the first to offer something to the diaspora.",
+  "myProductsEmptyHint": "Pick a category to get started:",
+  "ordersEmptyEscrowNote": "Payments are held in escrow until delivery is confirmed.",
+  "groupsSeeSuggested": "See the {count} suggested groups",
+  "@groupsSeeSuggested": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchCreateNamed": "Create “{query}”",
+  "@searchCreateNamed": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "reconnectedTitle": "Back online",
   "reconnectedAfter": "Outage of {duration}",
   "@reconnectedAfter": {

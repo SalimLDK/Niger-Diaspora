@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/currency_provider.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/stripe_service.dart';
@@ -209,6 +210,19 @@ class _OrdersList extends ConsumerWidget {
                     color: theme.colorScheme.outline,
                   ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                // Le séquestre est la garantie principale de la boutique :
+                // la maquette la rappelle ici, là où l'acheteur hésite.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    AppLocalizations.of(context)!.ordersEmptyEscrowNote,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 if (isBuyer)

@@ -292,14 +292,16 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Aucun produit disponible',
+                                  AppLocalizations.of(context)!
+                                      .marketplaceNoProductsTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     color: theme.colorScheme.outline,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Soyez le premier a vendre!',
+                                  AppLocalizations.of(context)!
+                                      .marketplaceNoProductsHint,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.outline,
                                   ),
@@ -489,16 +491,45 @@ class _SearchResults extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final searchAsync = ref.watch(searchProductsProvider(query));
+    final category = ref.watch(selectedCategoryProvider);
+    final country = ref.watch(selectedCountryProvider);
+    final hasFilters = category != null || country != null;
 
     return searchAsync.when(
-      data: (products) {
+      data: (all) {
+        // La recherche ignorait les filtres actifs : on cherchait « partout »
+        // alors que la grille au-dessus était filtrée. On applique donc les
+        // filtres, et on offre la sortie « chercher partout » de la maquette.
+        final products = hasFilters
+            ? all
+                .where((p) =>
+                    (category == null || p.category == category) &&
+                    (country == null || p.country == country),)
+                .toList()
+            : all;
+
         if (products.isEmpty) {
           return SearchEmptyState(
             query: query,
-            primaryActionLabel:
-                AppLocalizations.of(context)!.marketplaceSellItem,
-            onPrimaryAction: () => context.push('/marketplace/create'),
+            // Si des résultats existent hors des filtres, la meilleure action
+            // est de les montrer — pas de proposer de vendre quelque chose.
+            primaryActionLabel: hasFilters && all.isNotEmpty
+                ? l10n.marketplaceSearchEverywhere(all.length)
+                : l10n.marketplaceSellItem,
+            onPrimaryAction: hasFilters && all.isNotEmpty
+                ? () {
+                    ref.read(selectedCategoryProvider.notifier).select(null);
+                    ref.read(selectedCountryProvider.notifier).select(null);
+                  }
+                : () => context.push('/marketplace/create'),
+            onClearFilters: hasFilters
+                ? () {
+                    ref.read(selectedCategoryProvider.notifier).select(null);
+                    ref.read(selectedCountryProvider.notifier).select(null);
+                  }
+                : null,
           );
         }
 

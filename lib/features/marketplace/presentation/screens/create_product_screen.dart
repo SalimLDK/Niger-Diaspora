@@ -18,7 +18,11 @@ import '../providers/marketplace_provider.dart';
 class CreateProductScreen extends ConsumerStatefulWidget {
   final ProductEntity? product; // For editing
 
-  const CreateProductScreen({super.key, this.product});
+  /// Catégorie pré-cochée à l'ouverture (puces de l'état vide « rien mis en
+  /// vente »). Ignorée en édition, où la catégorie vient du produit.
+  final ProductCategory? initialCategory;
+
+  const CreateProductScreen({super.key, this.product, this.initialCategory});
 
   @override
   ConsumerState<CreateProductScreen> createState() =>
@@ -121,6 +125,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialCategory != null && widget.product == null) {
+      _selectedCategory = widget.initialCategory!;
+    }
     if (widget.product != null) {
       _titleController.text = widget.product!.title;
       _descriptionController.text = widget.product!.description;

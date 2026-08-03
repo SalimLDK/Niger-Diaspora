@@ -281,11 +281,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
       return SearchEmptyState(
         query: state.query,
+        // « Créer «X» » plutôt qu'un « Créer un groupe » générique : la
+        // requête devient le nom proposé, ce qui évite de la ressaisir.
         primaryActionLabel: state.filter == SearchFilter.groups
-            ? AppLocalizations.of(context)!.createGroup
+            ? AppLocalizations.of(context)!.searchCreateNamed(state.query)
             : null,
         onPrimaryAction: state.filter == SearchFilter.groups
-            ? () => context.push('/groups/create')
+            ? () => context.push(
+                  '/groups/create?name=${Uri.encodeComponent(state.query)}',
+                )
             : null,
         onClearFilters: canClearFilter
             ? () => ref

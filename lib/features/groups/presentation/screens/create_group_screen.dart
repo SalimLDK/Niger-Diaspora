@@ -14,7 +14,10 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
-  const CreateGroupScreen({super.key});
+  /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
+  final String? initialName;
+
+  const CreateGroupScreen({super.key, this.initialName});
 
   @override
   ConsumerState<CreateGroupScreen> createState() => _CreateGroupScreenState();
@@ -67,6 +70,9 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialName != null && widget.initialName!.trim().isNotEmpty) {
+      _nameController.text = widget.initialName!.trim();
+    }
     // Pré-remplir le pays d'accueil depuis le profil utilisateur
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDefaultCountryFromProfile();

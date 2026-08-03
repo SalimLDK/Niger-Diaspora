@@ -444,6 +444,46 @@
   "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
   "mapZoomOut": "Dézoomer",
   "mapShowEmbassies": "Voir les ambassades",
+  "podcastsDiasporaVoicesTitle": "Des voix de la diaspora",
+  "podcastsPopularInDiaspora": "POPULAIRES DANS LA DIASPORA",
+  "podcastsCreateMine": "Créer mon podcast",
+  "marketplaceSearchEverywhere": "Chercher partout · {count}",
+  "@marketplaceSearchEverywhere": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marketplaceAlertMe": "M'alerter si ça arrive",
+  "marketplaceAlertSaved": "Alerte enregistrée pour « {query} ». Tu recevras une notification dès qu'un article correspond.",
+  "@marketplaceAlertSaved": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "marketplaceNoProductsTitle": "Rien en vente pour l'instant",
+  "marketplaceNoProductsHint": "Sois le premier à proposer quelque chose à la diaspora.",
+  "myProductsEmptyHint": "Choisis une catégorie pour commencer :",
+  "ordersEmptyEscrowNote": "Les paiements sont gardés en séquestre jusqu'à confirmation de réception.",
+  "groupsSeeSuggested": "Voir les {count} groupes suggérés",
+  "@groupsSeeSuggested": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchCreateNamed": "Créer « {query} »",
+  "@searchCreateNamed": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "reconnectedTitle": "Connexion revenue",
   "reconnectedAfter": "Coupure de {duration}",
   "@reconnectedAfter": {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import '../widgets/product_card.dart';
 
@@ -51,7 +53,37 @@ class MyProductsScreen extends ConsumerWidget {
                       color: theme.colorScheme.outline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  // Puces de catégories (maquette 3c) : entrer par « quoi
+                  // vendre » plutôt que par un formulaire vide.
+                  Text(
+                    AppLocalizations.of(context)!.myProductsEmptyHint,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: ProductCategory.values
+                          .where((c) => c != ProductCategory.other)
+                          .take(6)
+                          .map(
+                            (c) => ActionChip(
+                              label: Text(c.label),
+                              onPressed: () => context.push(
+                                '/marketplace/create?category=${c.name}',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () => context.push('/marketplace/create'),
                     icon: const Icon(Icons.add),

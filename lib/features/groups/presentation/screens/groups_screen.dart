@@ -595,8 +595,37 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     }
   }
 
+  /// Nombre de groupes proposés dans la section « Suggéré pour toi ».
+  /// Sert à faire le lien depuis l'état vide (maquette 3d) : les suggestions
+  /// existaient, mais dans une section séparée plus bas, sans rien y renvoyer.
+  int _suggestedGroupsCount() {
+    final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
+    if (currentUserId == null) return 0;
+    final profile =
+        ref.read(profileNotifierProvider(currentUserId)).valueOrNull;
+    if (profile == null) return 0;
+
+    final allGroups = ref.read(groupsNotifierProvider).valueOrNull ?? [];
+    final myGroupIds =
+        (ref.read(myGroupsNotifierProvider).valueOrNull ?? [])
+            .map((g) => g.id)
+            .toSet();
+
+    return allGroups
+        .where((g) => !myGroupIds.contains(g.id))
+        .where(
+          (g) =>
+              (profile.currentCountry != null &&
+                  g.country == profile.currentCountry) ||
+              (profile.originRegion != null &&
+                  g.originRegion == profile.originRegion),
+        )
+        .length;
+  }
+
   Widget _buildEmptyMyGroups() {
     final l10n = AppLocalizations.of(context)!;
+    final suggestedCount = _suggestedGroupsCount();
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: context.cardDecoration,
@@ -653,6 +682,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
               ),
             ),
           ),
+          // Lien vers les suggestions, affiché seulement s'il y en a vraiment.
+          if (suggestedCount > 0) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => context.push('/groups/search'),
+              child: Text(l10n.groupsSeeSuggested(suggestedCount)),
+            ),
+          ],
         ],
       ),
     );

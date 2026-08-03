@@ -413,7 +413,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Groups routes
       GoRoute(
         path: '/groups/create',
-        builder: (context, state) => const CreateGroupScreen(),
+        builder: (context, state) => CreateGroupScreen(
+          initialName: state.uri.queryParameters['name'],
+        ),
       ),
       GoRoute(
         path: '/groups/map',
@@ -640,7 +642,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/marketplace/create',
         builder: (context, state) {
           final product = state.extra as ProductEntity?;
-          return CreateProductScreen(product: product);
+          // ?category=… pré-sélectionne la catégorie depuis les puces de
+          // l'état vide « rien mis en vente ». Distinct de `extra`, qui sert
+          // à l'édition d'un produit existant.
+          final categoryName = state.uri.queryParameters['category'];
+          return CreateProductScreen(
+            product: product,
+            initialCategory: categoryName == null
+                ? null
+                : ProductCategory.values
+                    .where((c) => c.name == categoryName)
+                    .firstOrNull,
+          );
         },
       ),
       GoRoute(

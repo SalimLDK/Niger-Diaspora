@@ -1095,6 +1095,52 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapShowEmbassies => 'Voir les ambassades';
 
   @override
+  String get podcastsDiasporaVoicesTitle => 'Des voix de la diaspora';
+
+  @override
+  String get podcastsPopularInDiaspora => 'POPULAIRES DANS LA DIASPORA';
+
+  @override
+  String get podcastsCreateMine => 'Créer mon podcast';
+
+  @override
+  String marketplaceSearchEverywhere(int count) {
+    return 'Chercher partout · $count';
+  }
+
+  @override
+  String get marketplaceAlertMe => 'M\'alerter si ça arrive';
+
+  @override
+  String marketplaceAlertSaved(String query) {
+    return 'Alerte enregistrée pour « $query ». Tu recevras une notification dès qu\'un article correspond.';
+  }
+
+  @override
+  String get marketplaceNoProductsTitle => 'Rien en vente pour l\'instant';
+
+  @override
+  String get marketplaceNoProductsHint =>
+      'Sois le premier à proposer quelque chose à la diaspora.';
+
+  @override
+  String get myProductsEmptyHint => 'Choisis une catégorie pour commencer :';
+
+  @override
+  String get ordersEmptyEscrowNote =>
+      'Les paiements sont gardés en séquestre jusqu\'à confirmation de réception.';
+
+  @override
+  String groupsSeeSuggested(int count) {
+    return 'Voir les $count groupes suggérés';
+  }
+
+  @override
+  String searchCreateNamed(String query) {
+    return 'Créer « $query »';
+  }
+
+  @override
   String get reconnectedTitle => 'Connexion revenue';
 
   @override

@@ -2108,6 +2108,78 @@ abstract class AppLocalizations {
   /// **'Voir les ambassades'**
   String get mapShowEmbassies;
 
+  /// No description provided for @podcastsDiasporaVoicesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des voix de la diaspora'**
+  String get podcastsDiasporaVoicesTitle;
+
+  /// No description provided for @podcastsPopularInDiaspora.
+  ///
+  /// In fr, this message translates to:
+  /// **'POPULAIRES DANS LA DIASPORA'**
+  String get podcastsPopularInDiaspora;
+
+  /// No description provided for @podcastsCreateMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon podcast'**
+  String get podcastsCreateMine;
+
+  /// No description provided for @marketplaceSearchEverywhere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher partout · {count}'**
+  String marketplaceSearchEverywhere(int count);
+
+  /// No description provided for @marketplaceAlertMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'M\'alerter si ça arrive'**
+  String get marketplaceAlertMe;
+
+  /// No description provided for @marketplaceAlertSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alerte enregistrée pour « {query} ». Tu recevras une notification dès qu\'un article correspond.'**
+  String marketplaceAlertSaved(String query);
+
+  /// No description provided for @marketplaceNoProductsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien en vente pour l\'instant'**
+  String get marketplaceNoProductsTitle;
+
+  /// No description provided for @marketplaceNoProductsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sois le premier à proposer quelque chose à la diaspora.'**
+  String get marketplaceNoProductsHint;
+
+  /// No description provided for @myProductsEmptyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une catégorie pour commencer :'**
+  String get myProductsEmptyHint;
+
+  /// No description provided for @ordersEmptyEscrowNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les paiements sont gardés en séquestre jusqu\'à confirmation de réception.'**
+  String get ordersEmptyEscrowNote;
+
+  /// No description provided for @groupsSeeSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les {count} groupes suggérés'**
+  String groupsSeeSuggested(int count);
+
+  /// No description provided for @searchCreateNamed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer « {query} »'**
+  String searchCreateNamed(String query);
+
   /// No description provided for @reconnectedTitle.
   ///
   /// In fr, this message translates to:

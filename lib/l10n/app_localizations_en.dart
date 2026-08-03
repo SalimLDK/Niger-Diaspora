@@ -1082,6 +1082,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowEmbassies => 'Show embassies';
 
   @override
+  String get podcastsDiasporaVoicesTitle => 'Voices from the diaspora';
+
+  @override
+  String get podcastsPopularInDiaspora => 'POPULAR IN THE DIASPORA';
+
+  @override
+  String get podcastsCreateMine => 'Create my podcast';
+
+  @override
+  String marketplaceSearchEverywhere(int count) {
+    return 'Search everywhere · $count';
+  }
+
+  @override
+  String get marketplaceAlertMe => 'Alert me if it shows up';
+
+  @override
+  String marketplaceAlertSaved(String query) {
+    return 'Alert saved for “$query”. You\'ll get a notification as soon as an item matches.';
+  }
+
+  @override
+  String get marketplaceNoProductsTitle => 'Nothing on sale yet';
+
+  @override
+  String get marketplaceNoProductsHint =>
+      'Be the first to offer something to the diaspora.';
+
+  @override
+  String get myProductsEmptyHint => 'Pick a category to get started:';
+
+  @override
+  String get ordersEmptyEscrowNote =>
+      'Payments are held in escrow until delivery is confirmed.';
+
+  @override
+  String groupsSeeSuggested(int count) {
+    return 'See the $count suggested groups';
+  }
+
+  @override
+  String searchCreateNamed(String query) {
+    return 'Create “$query”';
+  }
+
+  @override
   String get reconnectedTitle => 'Back online';
 
   @override

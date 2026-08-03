@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/router/routes/podcasts_routes.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -489,6 +490,72 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
     );
   }
 
+  /// « Aucun abonnement » (maquette 2f) : au lieu d'une icône grise et d'un
+  /// bouton qui renvoie vers l'onglet Découvrir, on propose directement de
+  /// quoi s'abonner — les podcasts qui marchent déjà — et de créer le sien.
+  Widget _buildNoSubscriptionState(AppLocalizations l10n) {
+    final trendingAsync = ref.watch(trendingPodcastsProvider);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+      children: [
+        Icon(
+          Icons.headphones_rounded,
+          size: 56,
+          color: context.textTertiaryColor,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          l10n.podcastsDiasporaVoicesTitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: context.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.subscribeToFindHere,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+        ),
+        const SizedBox(height: 28),
+        trendingAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (podcasts) {
+            if (podcasts.isEmpty) return const SizedBox.shrink();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.podcastsPopularInDiaspora,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...podcasts.take(3).map(
+                      (p) => _SuggestedPodcastRow(podcast: p),
+                    ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        OutlinedButton.icon(
+          onPressed: () => context.push('/podcasts/create'),
+          icon: const Icon(Icons.mic_rounded, size: 18),
+          label: Text(l10n.podcastsCreateMine),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSubscriptionsTab(AppLocalizations l10n) {
     final userDataAsync = ref.watch(podcastUserDataProvider);
 
@@ -503,31 +570,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
       ),
       data: (userData) {
         if (userData == null || userData.subscribedPodcastIds.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppIcon(AppIcon.podcasts, size: 64, color: Colors.grey[400]!),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.noSubscription,
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.subscribeToFindHere,
-                  style: TextStyle(color: Colors.grey[500]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => _tabController.animateTo(0),
-                  icon: const Icon(Icons.explore),
-                  label: Text(l10n.discover),
-                ),
-              ],
-            ),
-          );
+          return _buildNoSubscriptionState(l10n);
         }
 
         // Build list of subscribed podcasts
@@ -559,6 +602,83 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
           },
         );
       },
+    );
+  }
+}
+
+/// Ligne de suggestion de l'état « aucun abonnement » : le podcast, et le
+/// bouton pour s'y abonner sans quitter l'écran.
+class _SuggestedPodcastRow extends ConsumerWidget {
+  final PodcastEntity podcast;
+
+  const _SuggestedPodcastRow({required this.podcast});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final isSubscribed = ref.watch(isSubscribedProvider(podcast.id));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              podcast.coverImageUrl,
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 48,
+                height: 48,
+                color: DNColors.terra.withValues(alpha: 0.2),
+                child: const Icon(Icons.podcasts_rounded, size: 22),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => context.push('/podcasts/${podcast.id}'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    podcast.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  Text(
+                    '${podcast.categoryLabel} · ${podcast.hostName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (isSubscribed)
+            Icon(Icons.check_rounded, size: 20, color: context.successColor)
+          else
+            TextButton(
+              onPressed: () => ref
+                  .read(podcastNotifierProvider.notifier)
+                  .subscribe(podcast),
+              child: Text(l10n.podcastsSubscribe),
+            ),
+        ],
+      ),
     );
   }
 }
