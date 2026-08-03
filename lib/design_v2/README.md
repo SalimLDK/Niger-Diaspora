@@ -108,6 +108,24 @@ tenir à jour dans le même commit que le changement.
 - **« Choisissez-en au moins deux »** est une invitation, pas un blocage :
   l'avancement n'est pas verrouillé sur le nombre de centres d'intérêt.
 
+## Voir la refonte sur un téléphone
+
+Route **`/design-v2`** — une galerie qui liste les écrans redessinés et
+ouvre la copie, pas l'écran de production.
+
+```bash
+adb shell am start -a android.intent.action.VIEW -d "diaspo://design-v2"
+```
+
+Sinon, depuis l'app : n'importe quel `context.push('/design-v2')`, ou la
+barre d'adresse en debug web.
+
+Les écrans qui ont besoin d'un compte ou d'une conversation peuvent rester
+vides : c'est le **rendu** qu'on regarde ici, pas les données.
+
+À supprimer avec `lib/design_v2/` quand la refonte est basculée — la route
+est isolée dans `app_router.dart`, une seule entrée à retirer.
+
 ## À savoir
 
 - Ce dossier est compilé par `flutter analyze` mais **n'est référencé par
