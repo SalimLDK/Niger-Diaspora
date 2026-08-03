@@ -741,6 +741,436 @@ class DesignSummaryCard extends StatelessWidget {
   }
 }
 
+/// Grand en-tête d'onglet : titre serif, ligne de contexte chiffrée, actions
+/// carrées à droite. Les maquettes 8a→12d ont abandonné le bandeau dégradé
+/// au profit d'un en-tête plat sur le fond crème.
+class DesignScreenHeader extends StatelessWidget {
+  final String title;
+
+  /// Ligne sous le titre (« 4 non lus · 2 groupes actifs »). Masquée si vide.
+  final String? subtitle;
+
+  final List<Widget> actions;
+
+  const DesignScreenHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (actions.isNotEmpty) ...[
+            const SizedBox(width: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Action carrée d'en-tête : contour au repos, pleine terracotta pour
+/// l'action principale (composer, créer).
+class DesignSquareAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String? tooltip;
+  final bool filled;
+
+  /// Pastille de compte affichée en haut à droite (cloche de notifications).
+  final int badgeCount;
+
+  const DesignSquareAction({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+    this.filled = false,
+    this.badgeCount = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.adaptivePrimaryColor;
+    Widget button = Material(
+      color: filled ? accent : context.surfaceColor,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(13),
+        onTap: onPressed,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: filled ? null : Border.all(color: context.borderColor),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: filled ? context.onPrimaryColor : context.textPrimaryColor,
+          ),
+        ),
+      ),
+    );
+
+    if (badgeCount > 0) {
+      button = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          button,
+          Positioned(
+            top: -4,
+            right: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              constraints: const BoxConstraints(minWidth: 18),
+              decoration: BoxDecoration(
+                color: context.errorColor,
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: context.backgroundColor, width: 1.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '$badgeCount',
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child:
+          tooltip == null ? button : Tooltip(message: tooltip!, child: button),
+    );
+  }
+}
+
+/// Champ de recherche des listes (messagerie, groupes, accueil).
+class DesignSearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onClear;
+  final VoidCallback? onFilterTap;
+  final bool autofocus;
+  final bool readOnly;
+  final VoidCallback? onTap;
+
+  const DesignSearchField({
+    super.key,
+    required this.controller,
+    required this.hintText,
+    this.onChanged,
+    this.onClear,
+    this.onFilterTap,
+    this.autofocus = false,
+    this.readOnly = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasText = controller.text.isNotEmpty;
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      autofocus: autofocus,
+      readOnly: readOnly,
+      onTap: onTap,
+      style: TextStyle(fontSize: 14.5, color: context.textPrimaryColor),
+      decoration: designInputDecoration(
+        context,
+        hintText: hintText,
+        prefix: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 0, 10, 0),
+          child: Icon(
+            Icons.search,
+            size: 19,
+            color: context.textTertiaryColor,
+          ),
+        ),
+        suffix:
+            hasText
+                ? IconButton(
+                  onPressed: onClear,
+                  icon: Icon(
+                    Icons.close,
+                    size: 18,
+                    color: context.textTertiaryColor,
+                  ),
+                  splashRadius: 18,
+                )
+                : onFilterTap != null
+                ? IconButton(
+                  onPressed: onFilterTap,
+                  icon: Icon(
+                    Icons.tune,
+                    size: 18,
+                    color: context.textTertiaryColor,
+                  ),
+                  splashRadius: 18,
+                )
+                : null,
+      ).copyWith(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 14),
+      ),
+    );
+  }
+}
+
+/// Puce de filtre d'une liste : pleine et inversée quand active, contour
+/// sinon, avec un compte optionnel (« Non lus · 4 »).
+class DesignFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  /// Compte affiché en pastille à droite du libellé (0 = masqué).
+  final int count;
+
+  const DesignFilterChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.count = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = context.textPrimaryColor;
+    final onFill = context.backgroundColor;
+    return Material(
+      color: selected ? fill : context.surfaceColor,
+      borderRadius: BorderRadius.circular(kDesignPillRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(kDesignPillRadius),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(kDesignPillRadius),
+            border: Border.all(
+              color: selected ? fill : context.borderColor,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? onFill : context.textPrimaryColor,
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 7),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        selected
+                            ? onFill.withValues(alpha: 0.22)
+                            : context.errorColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? onFill : Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Libellé de section d'une liste (« ÉPINGLÉES », « CETTE SEMAINE »,
+/// « SUGGÉRÉ PRÈS DE PARIS »), en chasse fixe espacée.
+class DesignSectionLabel extends StatelessWidget {
+  final String text;
+  final Widget? trailing;
+
+  const DesignSectionLabel(this.text, {super.key, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 18, 0, 10),
+      child: Row(
+        children: [
+          Text(
+            text.toUpperCase(),
+            style: GoogleFonts.robotoMono(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.1,
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.85),
+            ),
+          ),
+          if (trailing != null) ...[const Spacer(), trailing!],
+        ],
+      ),
+    );
+  }
+}
+
+/// Carte blanche qui regroupe des lignes de liste (section épinglée,
+/// résultats de recherche), avec un filet entre chaque ligne.
+class DesignListCard extends StatelessWidget {
+  final List<Widget> children;
+  final EdgeInsets padding;
+
+  const DesignListCard({
+    super.key,
+    required this.children,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) {
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Divider(height: 1, thickness: 1, color: context.dividerColor),
+          ),
+        );
+      }
+      rows.add(children[i]);
+    }
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(kDesignRadius),
+        border: Border.all(color: context.borderColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: rows),
+    );
+  }
+}
+
+/// État vide des maquettes 9e / 9f : pastille ronde, titre serif, explication,
+/// puis les amorces d'action.
+class DesignEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final List<Widget> children;
+
+  const DesignEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.children = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, size: 40, color: context.adaptivePrimaryColor),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 21,
+            fontWeight: FontWeight.w700,
+            height: 1.25,
+            color: context.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          body,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.45,
+            color: context.textSecondaryColor,
+          ),
+        ),
+        if (children.isNotEmpty) ...[const SizedBox(height: 22), ...children],
+      ],
+    );
+  }
+}
+
 /// Décoration commune aux champs et aux listes déroulantes : surface pleine,
 /// bordure fine, accent au focus.
 InputDecoration designInputDecoration(
