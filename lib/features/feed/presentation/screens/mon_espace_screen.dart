@@ -131,9 +131,10 @@ class MonEspaceScreen extends ConsumerWidget {
               const SizedBox(width: 6),
               Text(
                 'Brouillon',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                style: FeedText.body(
+                  tokens,
+                  size: 13,
+                  weight: FontWeight.w700,
                   color: tokens.mutedText,
                 ),
               ),
@@ -144,7 +145,7 @@ class MonEspaceScreen extends ConsumerWidget {
             preview,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 14.5, height: 1.4, color: tokens.text),
+            style: FeedText.body(tokens, size: 14.5).copyWith(height: 1.4),
           ),
           const SizedBox(height: 12),
           Row(
@@ -154,14 +155,17 @@ class MonEspaceScreen extends ConsumerWidget {
                     () => ref.read(postDraftProvider.notifier).clear(),
                 child: Text(
                   'Supprimer',
-                  style: TextStyle(color: tokens.mutedText),
+                  style: FeedText.body(tokens, color: tokens.mutedText),
                 ),
               ),
               const Spacer(),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: tokens.accent),
                 onPressed: () => context.push('/feed/create'),
-                child: Text('Reprendre', style: TextStyle(color: tokens.onAccent)),
+                child: Text(
+                  'Reprendre',
+                  style: FeedText.body(tokens, color: tokens.onAccent),
+                ),
               ),
             ],
           ),
@@ -214,7 +218,11 @@ class _ProfileBlock extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 handle,
-                style: TextStyle(fontSize: 13.5, color: tokens.mutedText),
+                style: FeedText.body(
+                  tokens,
+                  size: 13.5,
+                  color: tokens.mutedText,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -228,10 +236,11 @@ class _ProfileBlock extends StatelessWidget {
   Widget _initial() => Center(
     child: Text(
       name.isNotEmpty ? name[0].toUpperCase() : '?',
-      style: TextStyle(
+      style: FeedText.body(
+        tokens,
+        size: 24,
+        weight: FontWeight.w600,
         color: tokens.avatarFg,
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
       ),
     ),
   );
@@ -303,7 +312,11 @@ class _StatCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 label,
-                style: TextStyle(fontSize: 12.5, color: tokens.mutedText),
+                style: FeedText.body(
+                  tokens,
+                  size: 12.5,
+                  color: tokens.mutedText,
+                ),
               ),
             ],
           ),
@@ -345,10 +358,10 @@ class _SpaceTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.text,
+                    style: FeedText.body(
+                      tokens,
+                      size: 15,
+                      weight: FontWeight.w600,
                     ),
                   ),
                 ),

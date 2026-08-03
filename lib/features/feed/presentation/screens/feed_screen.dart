@@ -313,7 +313,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         child: Text(
           l10n.feedEmpty,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13.5, color: tokens.mutedText),
+          style: FeedText.body(
+            tokens,
+            size: 13.5,
+            color: tokens.mutedText,
+          ),
         ),
       );
     }
@@ -423,7 +427,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ),
               label: Text(
                 l10n.feedNewPostsPill(state.pendingPosts.length),
-                style: TextStyle(color: tokens.onAccent),
+                style: FeedText.body(tokens, color: tokens.onAccent),
               ),
               onPressed: () {
                 ref.read(feedNotifierProvider.notifier).showPendingPosts();
@@ -593,10 +597,11 @@ class _MySpaceAvatar extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         initial,
-        style: TextStyle(
+        style: FeedText.body(
+          tokens,
+          size: 15,
+          weight: FontWeight.w600,
           color: tokens.avatarFg,
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
         ),
       ),
     );
@@ -932,7 +937,11 @@ class _HashtagBanner extends ConsumerWidget {
           const SizedBox(width: 6),
           Text(
             hashtag,
-            style: TextStyle(color: tokens.accent, fontWeight: FontWeight.w600),
+            style: FeedText.body(
+              tokens,
+              weight: FontWeight.w600,
+              color: tokens.accent,
+            ),
           ),
           const SizedBox(width: 10),
           GestureDetector(
@@ -946,9 +955,10 @@ class _HashtagBanner extends ConsumerWidget {
               ),
               child: Text(
                 isFollowed ? 'Suivi' : 'Suivre',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
+                style: FeedText.body(
+                  tokens,
+                  size: 12.5,
+                  weight: FontWeight.w600,
                   color: isFollowed ? tokens.onAccent : tokens.accent,
                 ),
               ),
