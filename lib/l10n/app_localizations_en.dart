@@ -1035,6 +1035,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noGroupsToDiscover => 'No new groups to discover';
 
   @override
+  String get groupsNoneInYourAreaTitle => 'Nothing in your area yet';
+
+  @override
+  String get groupsNoneInYourAreaBody =>
+      'No group matches your country of residence or your region of origin yet. You can start the first one, or widen your search.';
+
+  @override
+  String get groupsBrowseAll => 'Browse all groups';
+
+  @override
+  String searchNoResultsFor(String query) {
+    return 'No results for “$query”';
+  }
+
+  @override
+  String get searchTipsTitle => 'A few things to try';
+
+  @override
+  String get searchTipSpelling => 'Check the spelling';
+
+  @override
+  String get searchTipFewerWords => 'Try fewer words, or a broader term';
+
+  @override
+  String get searchTipRemoveFilters =>
+      'Clear active filters to widen the search';
+
+  @override
+  String get searchClearFilters => 'Clear filters';
+
+  @override
+  String get marketplaceSellItem => 'Sell an item';
+
+  @override
+  String get mapEmptyAreaTitle => 'Nothing in this area';
+
+  @override
+  String get mapEmptyAreaBody =>
+      'No members, businesses or embassies to show here. Widen the view or turn on another layer.';
+
+  @override
+  String get mapZoomOut => 'Zoom out';
+
+  @override
+  String get mapShowEmbassies => 'Show embassies';
+
+  @override
   String get groupJoined => 'You have joined the group';
 
   @override
@@ -1419,6 +1466,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get offlineBannerMessage =>
       'You are offline. Some features may be limited.';
+
+  @override
+  String get syncingLabel => 'Syncing…';
+
+  @override
+  String pendingSyncCount(int count) {
+    return '$count pending';
+  }
 
   @override
   String retryIn(int seconds) {
@@ -13401,6 +13456,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ghostBlockGlobal => 'Block globally';
+
+  @override
+  String get ghostPickParticipantTitle => 'Pick a participant';
+
+  @override
+  String get ghostNoParticipants => 'No participant to moderate';
+
+  @override
+  String ghostActionMuted(String name) {
+    return '$name is now muted';
+  }
+
+  @override
+  String ghostActionKicked(String name) {
+    return '$name was removed from the room';
+  }
+
+  @override
+  String ghostActionBlocked(String name) {
+    return '$name was blocked';
+  }
+
+  @override
+  String get audioRoomCapacityNote => '10 speakers · 1,000 listeners';
+
+  @override
+  String get audioRoomAdminLockNote =>
+      '🔒 Features subject to administrator rules.';
 
   @override
   String get payoutHistoryTitle => 'Payout history';

@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
+import '../../../../shared/widgets/search_empty_state.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../friends/domain/entities/friend_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
@@ -271,22 +273,25 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
 
     if (!state.hasResults) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 80,
-              color: context.textTertiaryColor.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Aucun résultat pour "${state.query}"',
-              style: TextStyle(fontSize: 16, color: context.textTertiaryColor),
-            ),
-          ],
-        ),
+      // Un filtre restreint par la route (ex. /groups/search) n'est pas
+      // « effaçable » : le proposer enverrait l'utilisateur dans un état que
+      // l'écran ne sait pas afficher.
+      final canClearFilter =
+          !widget.restrictToFilter && state.filter != SearchFilter.all;
+
+      return SearchEmptyState(
+        query: state.query,
+        primaryActionLabel: state.filter == SearchFilter.groups
+            ? AppLocalizations.of(context)!.createGroup
+            : null,
+        onPrimaryAction: state.filter == SearchFilter.groups
+            ? () => context.push('/groups/create')
+            : null,
+        onClearFilters: canClearFilter
+            ? () => ref
+                .read(searchNotifierProvider.notifier)
+                .setFilter(SearchFilter.all)
+            : null,
       );
     }
 

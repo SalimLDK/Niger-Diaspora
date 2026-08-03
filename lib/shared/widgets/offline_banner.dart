@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/connectivity_provider.dart';
 import '../../core/services/offline_sync_service.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Bannière affichée quand l'utilisateur est hors-ligne
 class OfflineBanner extends ConsumerWidget {
@@ -57,7 +58,7 @@ class _OfflineBannerContent extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Mode hors-ligne',
+                  AppLocalizations.of(context)!.offlineMode,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onErrorContainer,
                     fontWeight: FontWeight.w500,
@@ -184,8 +185,8 @@ class SyncIndicator extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             isSyncing
-                ? 'Synchronisation...'
-                : '$pendingCount en attente',
+                ? AppLocalizations.of(context)!.syncingLabel
+                : AppLocalizations.of(context)!.pendingSyncCount(pendingCount),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onPrimaryContainer,
               fontWeight: FontWeight.w500,

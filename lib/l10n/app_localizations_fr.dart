@@ -1047,6 +1047,54 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noGroupsToDiscover => 'Aucun nouveau groupe à découvrir';
 
   @override
+  String get groupsNoneInYourAreaTitle => 'Rien dans ta région pour l\'instant';
+
+  @override
+  String get groupsNoneInYourAreaBody =>
+      'Aucun groupe ne correspond encore à ton pays de résidence ni à ta région d\'origine. Tu peux ouvrir le premier, ou élargir ta recherche.';
+
+  @override
+  String get groupsBrowseAll => 'Voir tous les groupes';
+
+  @override
+  String searchNoResultsFor(String query) {
+    return 'Aucun résultat pour « $query »';
+  }
+
+  @override
+  String get searchTipsTitle => 'Quelques pistes';
+
+  @override
+  String get searchTipSpelling => 'Vérifie l\'orthographe';
+
+  @override
+  String get searchTipFewerWords =>
+      'Essaie avec moins de mots, ou un mot plus général';
+
+  @override
+  String get searchTipRemoveFilters =>
+      'Retire les filtres actifs pour élargir la recherche';
+
+  @override
+  String get searchClearFilters => 'Effacer les filtres';
+
+  @override
+  String get marketplaceSellItem => 'Vendre un article';
+
+  @override
+  String get mapEmptyAreaTitle => 'Rien dans cette zone';
+
+  @override
+  String get mapEmptyAreaBody =>
+      'Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.';
+
+  @override
+  String get mapZoomOut => 'Dézoomer';
+
+  @override
+  String get mapShowEmbassies => 'Voir les ambassades';
+
+  @override
   String get groupJoined => 'Vous avez rejoint le groupe';
 
   @override
@@ -1436,6 +1484,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get offlineBannerMessage =>
       'Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.';
+
+  @override
+  String get syncingLabel => 'Synchronisation…';
+
+  @override
+  String pendingSyncCount(int count) {
+    return '$count en attente';
+  }
 
   @override
   String retryIn(int seconds) {
@@ -13528,6 +13584,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ghostBlockGlobal => 'Bloquer global';
+
+  @override
+  String get ghostPickParticipantTitle => 'Choisir un participant';
+
+  @override
+  String get ghostNoParticipants => 'Aucun participant à modérer';
+
+  @override
+  String ghostActionMuted(String name) {
+    return '$name est désormais muet';
+  }
+
+  @override
+  String ghostActionKicked(String name) {
+    return '$name a été exclu du salon';
+  }
+
+  @override
+  String ghostActionBlocked(String name) {
+    return '$name a été bloqué';
+  }
+
+  @override
+  String get audioRoomCapacityNote => '10 intervenants · 1 000 auditeurs';
+
+  @override
+  String get audioRoomAdminLockNote =>
+      '🔒 Fonctionnalités soumises aux règles administrateur.';
 
   @override
   String get payoutHistoryTitle => 'Historique des retraits';

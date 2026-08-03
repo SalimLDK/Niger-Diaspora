@@ -26,8 +26,8 @@ class PodcastMiniPlayer extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to full player screen
-        context.push('/podcasts/player');
+        // Navigate to full player screen for the episode currently playing
+        context.push('/podcasts/episodes/${episode.id}');
       },
       child: Container(
         height: 64,

@@ -311,22 +311,6 @@ class _PodcastManagementCard extends ConsumerWidget {
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: ListTile(
-                            leading: const Icon(Icons.edit),
-                            title: Text(l10n.edit),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'stats',
-                          child: ListTile(
-                            leading: const Icon(Icons.analytics),
-                            title: Text(l10n.statistics),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
                         const PopupMenuDivider(),
                         if (podcast.status == PodcastStatus.published)
                           PopupMenuItem(
@@ -435,12 +419,6 @@ class _PodcastManagementCard extends ConsumerWidget {
     switch (action) {
       case 'view':
         context.push('/podcasts/${podcast.id}');
-        break;
-      case 'edit':
-        context.push('/podcasts/${podcast.id}/edit');
-        break;
-      case 'stats':
-        context.push('/podcasts/${podcast.id}/stats');
         break;
       case 'pause':
       case 'publish':

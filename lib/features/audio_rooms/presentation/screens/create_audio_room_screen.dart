@@ -8,6 +8,7 @@ import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/audio_room_entity.dart';
 import '../providers/audio_room_provider.dart';
+import '../widgets/content_pickers.dart';
 
 /// /audio-rooms/create — full room creation form.
 class CreateAudioRoomScreen extends ConsumerStatefulWidget {
@@ -40,8 +41,11 @@ class _CreateAudioRoomScreenState
 
   String? _heritageLanguage;
   String? _linkedEventId;
+  String? _linkedEventTitle;
   String? _linkedGroupId;
+  String? _linkedGroupName;
   String? _linkedEmbassyId;
+  String? _linkedEmbassyName;
 
   static const _heritageLanguages = [
     'Zarma', 'Hausa', 'Tamasheq', 'Kanouri', 'Peul', 'Arabe', 'Français',
@@ -314,12 +318,45 @@ class _CreateAudioRoomScreenState
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  _Pill(label: l10n.eventLabel, active: _linkedEventId != null,
-                      activeColor: DNColors.teal, onTap: () {},),
-                  _Pill(label: l10n.groupLabel, active: _linkedGroupId != null,
-                      activeColor: DNColors.teal, onTap: () {},),
-                  _Pill(label: l10n.audioRoomEmbassyLink, active: _linkedEmbassyId != null,
-                      activeColor: DNColors.teal, onTap: () {},),
+                  _Pill(
+                    label: _linkedEventTitle ?? l10n.eventLabel,
+                    active: _linkedEventId != null,
+                    activeColor: DNColors.teal,
+                    onTap: () => showEventPicker(
+                      context: context,
+                      selectedEventId: _linkedEventId,
+                      onSelect: (id, title) => setState(() {
+                        _linkedEventId = id;
+                        _linkedEventTitle = title;
+                      }),
+                    ),
+                  ),
+                  _Pill(
+                    label: _linkedGroupName ?? l10n.groupLabel,
+                    active: _linkedGroupId != null,
+                    activeColor: DNColors.teal,
+                    onTap: () => showGroupPicker(
+                      context: context,
+                      selectedGroupId: _linkedGroupId,
+                      onSelect: (id, name) => setState(() {
+                        _linkedGroupId = id;
+                        _linkedGroupName = name;
+                      }),
+                    ),
+                  ),
+                  _Pill(
+                    label: _linkedEmbassyName ?? l10n.audioRoomEmbassyLink,
+                    active: _linkedEmbassyId != null,
+                    activeColor: DNColors.teal,
+                    onTap: () => showEmbassyPicker(
+                      context: context,
+                      selectedEmbassyId: _linkedEmbassyId,
+                      onSelect: (id, name) => setState(() {
+                        _linkedEmbassyId = id;
+                        _linkedEmbassyName = name;
+                      }),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -332,7 +369,7 @@ class _CreateAudioRoomScreenState
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '10 speakers · 1 000 listeners',
+                l10n.audioRoomCapacityNote,
                 style: DNText.mono(size: 9, color: dn.onSurface3),
               ),
             ),
@@ -347,7 +384,7 @@ class _CreateAudioRoomScreenState
                 border: Border.all(color: DNColors.terra.withValues(alpha: 0.2)),
               ),
               child: Text(
-                '🔒 Fonctionnalités soumises aux règles administrateur.',
+                l10n.audioRoomAdminLockNote,
                 style: DNText.mono(size: 8, color: dn.onSurface2),
               ),
             ),

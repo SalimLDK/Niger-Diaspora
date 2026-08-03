@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/search_empty_state.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../shared/widgets/standard_search_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -487,30 +489,16 @@ class _SearchResults extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final searchAsync = ref.watch(searchProductsProvider(query));
 
     return searchAsync.when(
       data: (products) {
         if (products.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Aucun resultat pour "$query"',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
+          return SearchEmptyState(
+            query: query,
+            primaryActionLabel:
+                AppLocalizations.of(context)!.marketplaceSellItem,
+            onPrimaryAction: () => context.push('/marketplace/create'),
           );
         }
 

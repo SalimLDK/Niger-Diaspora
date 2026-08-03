@@ -73,7 +73,7 @@ class _CreatorEarningsScreenState extends ConsumerState<CreatorEarningsScreen> {
                   // Balance card
                   _BalanceCard(
                     availableBalance: profile?.availableBalance ?? 0,
-                    currency: profile?.subscriptionCurrency ?? 'XOF',
+                    currency: profile?.subscriptionCurrency ?? 'EUR',
                     isStripeReady: profile?.isStripeAccountComplete ?? false,
                   ),
                   const SizedBox(height: 16),

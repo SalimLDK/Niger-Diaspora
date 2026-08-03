@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/animated_list_item.dart';
+import 'package:diaspo_niger/shared/widgets/offline_banner.dart';
 import '../../../../core/constants/ad_config.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/feed_repository.dart';
@@ -230,36 +231,40 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               )
               : null,
-      body: Column(
-        children: [
-          if (filter == null) const _FeedHeader(),
-          if (filter == null) _ModeSelector(mode: feedState.mode),
-          // Filtres villes (téléphone) : rangée de chips scrollable.
-          if (filter == null && !wide && cities.length >= 2)
-            _CityFilterChips(
-              cities: cities,
-              selected: _cityFilter,
-              onChanged: (c) => setState(() => _cityFilter = c),
+      // Le fil vit sur du contenu distant : hors-ligne, il faut le dire plutôt
+      // que de laisser croire à un fil vide ou figé.
+      body: OfflineBanner(
+        child: Column(
+          children: [
+            if (filter == null) const _FeedHeader(),
+            if (filter == null) _ModeSelector(mode: feedState.mode),
+            // Filtres villes (téléphone) : rangée de chips scrollable.
+            if (filter == null && !wide && cities.length >= 2)
+              _CityFilterChips(
+                cities: cities,
+                selected: _cityFilter,
+                onChanged: (c) => setState(() => _cityFilter = c),
+              ),
+            if (filter == null)
+              StoryRail(
+                collapsed: _storyRailCollapsed,
+                onExpand: () {
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                  setState(() => _storyRailCollapsed = false);
+                },
+              ),
+            if (filter != null) _HashtagBanner(hashtag: filter),
+            Expanded(
+              child: _buildBody(context, l10n, feedState, reposts, wide),
             ),
-          if (filter == null)
-            StoryRail(
-              collapsed: _storyRailCollapsed,
-              onExpand: () {
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                }
-                setState(() => _storyRailCollapsed = false);
-              },
-            ),
-          if (filter != null) _HashtagBanner(hashtag: filter),
-          Expanded(
-            child: _buildBody(context, l10n, feedState, reposts, wide),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -2470,6 +2470,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
     return 2;
   }
 
+  /// Recul de 3 crans depuis la carte « zone vide » — assez pour changer de
+  /// catégorie de zoom et déclencher un rechargement des marqueurs.
+  Future<void> _zoomOut() async {
+    final controller = await _controller.future;
+    await controller.animateCamera(
+      CameraUpdate.zoomTo((_currentZoom - 3).clamp(3.0, 20.0)),
+    );
+  }
+
   /// Feuille de légende ouverte par le bouton « ? » de la barre d'actions
   /// (remplace la légende flottante et son calcul de position conditionnel).
   void _showLegendSheet(BuildContext context) {
@@ -3077,6 +3086,26 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       ),
                     ),
 
+                  // Zone vide (maquette 2c) : la carte chargée ne montre
+                  // aucun marqueur. Sans ça, l'utilisateur ne sait pas si
+                  // c'est vide ou cassé, et n'a aucune sortie.
+                  if (!_isLoading &&
+                      !_isSearchResultsOpen &&
+                      _markers.isEmpty &&
+                      _businessMarkers.isEmpty &&
+                      (!_showEmbassies || _embassyMarkers.isEmpty))
+                    Positioned(
+                      top: 150,
+                      left: 24,
+                      right: 24,
+                      child: _EmptyAreaCard(
+                        onZoomOut: _zoomOut,
+                        onShowEmbassies: _showEmbassies
+                            ? null
+                            : () => setState(() => _showEmbassies = true),
+                      ),
+                    ),
+
                   // Filter Chips — masqués tant que la liste de résultats de
                   // recherche est ouverte (elle descend jusqu'à ~top:296).
                   if (!_isSearchResultsOpen)
@@ -3435,6 +3464,96 @@ class _FilterChip extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: isSelected ? Colors.white : context.textSecondaryColor,
         ),
+      ),
+    );
+  }
+}
+
+/// Carte de récupération affichée quand la vue courante ne contient aucun
+/// marqueur (maquette 2c). Elle nomme l'état et propose deux sorties plutôt
+/// que de laisser une carte muette.
+class _EmptyAreaCard extends StatelessWidget {
+  final VoidCallback onZoomOut;
+
+  /// `null` quand la couche ambassades est déjà active — proposer de
+  /// l'activer une deuxième fois n'aiderait pas.
+  final VoidCallback? onShowEmbassies;
+
+  const _EmptyAreaCard({
+    required this.onZoomOut,
+    this.onShowEmbassies,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: context.isDarkMode
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.travel_explore_rounded,
+                size: 20,
+                color: context.textTertiaryColor,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.mapEmptyAreaTitle,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.mapEmptyAreaBody,
+            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onZoomOut,
+                  icon: const Icon(Icons.zoom_out_map_rounded, size: 18),
+                  label: Text(l10n.mapZoomOut),
+                ),
+              ),
+              if (onShowEmbassies != null) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onShowEmbassies,
+                    child: Text(l10n.mapShowEmbassies),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }

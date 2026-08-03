@@ -168,8 +168,6 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
         .toList()
       ..sort((a, b) => (b.isOfficial ? 1 : 0) - (a.isOfficial ? 1 : 0));
 
-    if (suggested.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,6 +178,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           iconColor: context.adaptivePrimaryColor,
         ),
         const SizedBox(height: 16),
+        // « Rien dans ma ville » : le profil est renseigné mais aucun groupe
+        // ne correspond. On le dit et on propose une sortie, au lieu de faire
+        // disparaître la section sans explication.
+        if (suggested.isEmpty)
+          _NoGroupsInAreaCard(
+            onCreate: () => context.push('/groups/create'),
+            onBrowseAll: () => context.push('/groups/search'),
+          ),
         ...suggested.take(5).map(
               (group) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -1262,6 +1268,78 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Section « Suggéré pour toi » quand le profil est renseigné mais qu'aucun
+/// groupe ne correspond à la ville / région d'origine de l'utilisateur.
+class _NoGroupsInAreaCard extends StatelessWidget {
+  final VoidCallback onCreate;
+  final VoidCallback onBrowseAll;
+
+  const _NoGroupsInAreaCard({
+    required this.onCreate,
+    required this.onBrowseAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: context.cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.travel_explore_rounded,
+                size: 20,
+                color: context.textTertiaryColor,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.groupsNoneInYourAreaTitle,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.groupsNoneInYourAreaBody,
+            style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onCreate,
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.createGroup),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onBrowseAll,
+                  child: Text(l10n.groupsBrowseAll),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

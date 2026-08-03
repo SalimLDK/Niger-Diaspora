@@ -2024,6 +2024,90 @@ abstract class AppLocalizations {
   /// **'Aucun nouveau groupe à découvrir'**
   String get noGroupsToDiscover;
 
+  /// No description provided for @groupsNoneInYourAreaTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans ta région pour l\'instant'**
+  String get groupsNoneInYourAreaTitle;
+
+  /// No description provided for @groupsNoneInYourAreaBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun groupe ne correspond encore à ton pays de résidence ni à ta région d\'origine. Tu peux ouvrir le premier, ou élargir ta recherche.'**
+  String get groupsNoneInYourAreaBody;
+
+  /// No description provided for @groupsBrowseAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les groupes'**
+  String get groupsBrowseAll;
+
+  /// No description provided for @searchNoResultsFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat pour « {query} »'**
+  String searchNoResultsFor(String query);
+
+  /// No description provided for @searchTipsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelques pistes'**
+  String get searchTipsTitle;
+
+  /// No description provided for @searchTipSpelling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifie l\'orthographe'**
+  String get searchTipSpelling;
+
+  /// No description provided for @searchTipFewerWords.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essaie avec moins de mots, ou un mot plus général'**
+  String get searchTipFewerWords;
+
+  /// No description provided for @searchTipRemoveFilters.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retire les filtres actifs pour élargir la recherche'**
+  String get searchTipRemoveFilters;
+
+  /// No description provided for @searchClearFilters.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les filtres'**
+  String get searchClearFilters;
+
+  /// No description provided for @marketplaceSellItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vendre un article'**
+  String get marketplaceSellItem;
+
+  /// No description provided for @mapEmptyAreaTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cette zone'**
+  String get mapEmptyAreaTitle;
+
+  /// No description provided for @mapEmptyAreaBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.'**
+  String get mapEmptyAreaBody;
+
+  /// No description provided for @mapZoomOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dézoomer'**
+  String get mapZoomOut;
+
+  /// No description provided for @mapShowEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les ambassades'**
+  String get mapShowEmbassies;
+
   /// No description provided for @groupJoined.
   ///
   /// In fr, this message translates to:
@@ -2725,6 +2809,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.'**
   String get offlineBannerMessage;
+
+  /// No description provided for @syncingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Synchronisation…'**
+  String get syncingLabel;
+
+  /// No description provided for @pendingSyncCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} en attente'**
+  String pendingSyncCount(int count);
 
   /// No description provided for @retryIn.
   ///
@@ -25051,6 +25147,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Bloquer global'**
   String get ghostBlockGlobal;
+
+  /// No description provided for @ghostPickParticipantTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un participant'**
+  String get ghostPickParticipantTitle;
+
+  /// No description provided for @ghostNoParticipants.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun participant à modérer'**
+  String get ghostNoParticipants;
+
+  /// No description provided for @ghostActionMuted.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} est désormais muet'**
+  String ghostActionMuted(String name);
+
+  /// No description provided for @ghostActionKicked.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été exclu du salon'**
+  String ghostActionKicked(String name);
+
+  /// No description provided for @ghostActionBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a été bloqué'**
+  String ghostActionBlocked(String name);
+
+  /// No description provided for @audioRoomCapacityNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'10 intervenants · 1 000 auditeurs'**
+  String get audioRoomCapacityNote;
+
+  /// No description provided for @audioRoomAdminLockNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'🔒 Fonctionnalités soumises aux règles administrateur.'**
+  String get audioRoomAdminLockNote;
 
   /// No description provided for @payoutHistoryTitle.
   ///

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/audio_room_notification_service.dart';
 import '../../../../core/services/livekit_service.dart';
 import '../../../admin/presentation/providers/app_settings_provider.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/audio_room_remote_datasource.dart';
 import '../../data/models/audio_room_model.dart';
@@ -635,13 +636,19 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     }
   }
 
-  /// Mute a speaker (host/co-host only)
+  /// Un admin en mode fantôme n'est ni hôte ni co-hôte du salon : il a quand
+  /// même le droit de modérer. Sans ce contournement, les actions de la vue
+  /// fantôme sortaient silencieusement sur `canModerate`.
+  bool _canModerate(AudioRoomEntity room, UserEntity user) =>
+      room.canModerate(user.id) || (state.isGhostMode && user.isAdmin);
+
+  /// Mute a speaker (host/co-host, or ghost admin)
   Future<void> muteSpeaker(String userId) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     final room = state.room;
 
     if (currentUser == null || room == null) return;
-    if (!room.canModerate(currentUser.id)) return;
+    if (!_canModerate(room, currentUser)) return;
 
     try {
       final dataSource = ref.read(audioRoomRemoteDataSourceProvider);
@@ -651,13 +658,13 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     }
   }
 
-  /// Kick a user from the room (host/co-host only)
+  /// Kick a user from the room (host/co-host, or ghost admin)
   Future<void> kickUser(String userId) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     final room = state.room;
 
     if (currentUser == null || room == null) return;
-    if (!room.canModerate(currentUser.id)) return;
+    if (!_canModerate(room, currentUser)) return;
 
     try {
       final dataSource = ref.read(audioRoomRemoteDataSourceProvider);
@@ -667,13 +674,13 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     }
   }
 
-  /// Block a user from the room (host/co-host only)
+  /// Block a user from the room (host/co-host, or ghost admin)
   Future<void> blockUser(String userId) async {
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     final room = state.room;
 
     if (currentUser == null || room == null) return;
-    if (!room.canModerate(currentUser.id)) return;
+    if (!_canModerate(room, currentUser)) return;
 
     try {
       final dataSource = ref.read(audioRoomRemoteDataSourceProvider);

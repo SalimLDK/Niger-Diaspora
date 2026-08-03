@@ -423,6 +423,27 @@
   "emptyMessagesJoinGroup": "Join a group in your city",
   "emptyGroupsUsage": "Groups bring the diaspora together by city, interest or project. Join one or create your own.",
   "noGroupsToDiscover": "No new groups to discover",
+  "groupsNoneInYourAreaTitle": "Nothing in your area yet",
+  "groupsNoneInYourAreaBody": "No group matches your country of residence or your region of origin yet. You can start the first one, or widen your search.",
+  "groupsBrowseAll": "Browse all groups",
+  "searchNoResultsFor": "No results for “{query}”",
+  "@searchNoResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTipsTitle": "A few things to try",
+  "searchTipSpelling": "Check the spelling",
+  "searchTipFewerWords": "Try fewer words, or a broader term",
+  "searchTipRemoveFilters": "Clear active filters to widen the search",
+  "searchClearFilters": "Clear filters",
+  "marketplaceSellItem": "Sell an item",
+  "mapEmptyAreaTitle": "Nothing in this area",
+  "mapEmptyAreaBody": "No members, businesses or embassies to show here. Widen the view or turn on another layer.",
+  "mapZoomOut": "Zoom out",
+  "mapShowEmbassies": "Show embassies",
   "groupJoined": "You have joined the group",
   "leaveGroupTitle": "Leave group",
   "leaveGroupConfirm": "Do you really want to leave this group?",
@@ -630,6 +651,15 @@
   "errorUnknown": "An unexpected error occurred.",
   "offlineMode": "Offline mode",
   "offlineBannerMessage": "You are offline. Some features may be limited.",
+  "syncingLabel": "Syncing…",
+  "pendingSyncCount": "{count} pending",
+  "@pendingSyncCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retryIn": "Retry in {seconds}s",
   "@retryIn": {
     "placeholders": {
@@ -6009,6 +6039,34 @@
   "ghostMuteSilent": "Silent mute",
   "ghostExclude": "Exclude",
   "ghostBlockGlobal": "Block globally",
+  "ghostPickParticipantTitle": "Pick a participant",
+  "ghostNoParticipants": "No participant to moderate",
+  "ghostActionMuted": "{name} is now muted",
+  "@ghostActionMuted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostActionKicked": "{name} was removed from the room",
+  "@ghostActionKicked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostActionBlocked": "{name} was blocked",
+  "@ghostActionBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "audioRoomCapacityNote": "10 speakers · 1,000 listeners",
+  "audioRoomAdminLockNote": "🔒 Features subject to administrator rules.",
 
   "payoutHistoryTitle": "Payout history",
   "noWithdrawalsYet": "No withdrawals made yet",

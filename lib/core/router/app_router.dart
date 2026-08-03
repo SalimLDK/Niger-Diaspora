@@ -264,6 +264,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
+      // 9b. Vue « modérateur fantôme » — réservée aux admins.
+      // Sans cette garde, n'importe quel utilisateur connecté pouvait ouvrir
+      // /audio-rooms/<id>/ghost et voir les outils de modération.
+      if (state.matchedLocation.startsWith('/audio-rooms/') &&
+          state.matchedLocation.endsWith('/ghost') &&
+          !isAdmin) {
+        return state.matchedLocation.substring(
+          0,
+          state.matchedLocation.length - '/ghost'.length,
+        );
+      }
+
       // 10. User is authenticated and has completed all setup steps
       // Redirect to home if on splash, auth, consent, profile-config, or onboarding pages
       if (isSplashRoute ||

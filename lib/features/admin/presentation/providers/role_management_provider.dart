@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/enums/admin_enums.dart';
 import 'admin_provider.dart';
 
@@ -159,6 +162,12 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
         'isAdmin': FieldValue.delete(),
       });
 
+      // Propager le rôle aux deux autres backends qui décident de droits :
+      // Postgres (is_admin() pilote les policies RLS) et RTDB (règles des
+      // salons audio). Sans ça, un admin promu ici restait un utilisateur
+      // ordinaire côté Supabase et côté Realtime Database.
+      final syncError = await _syncRoleToBackends(userId, newRole);
+
       // Logger l'action
       final admin = ref.read(currentAdminProvider);
       await AdminAuditHelper.log(
@@ -182,6 +191,9 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
         successMessage: newRole == AdminRole.none
             ? 'Rôle admin révoqué avec succès'
             : 'Rôle ${newRole.displayName} assigné avec succès',
+        // La modification Firestore est passée : on ne la présente pas comme
+        // un échec, mais une désynchronisation doit rester visible.
+        error: syncError,
       );
 
       return true;
@@ -197,6 +209,53 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
   /// Révoque le rôle admin d'un utilisateur
   Future<bool> revokeRole(String userId) async {
     return assignRole(userId, AdminRole.none);
+  }
+
+  /// Réplique le rôle admin dans Postgres et dans la Realtime Database.
+  ///
+  /// - Postgres : `users.is_admin` / `users.admin_role` pilotent `is_admin()`,
+  ///   donc toutes les policies RLS admin. Nécessite la policy
+  ///   `users_update_admin` (migration 20260803120000).
+  /// - RTDB : `/admins/<uid>` est lu par les règles des salons audio pour
+  ///   autoriser la modération fantôme (muet / exclusion / blocage).
+  ///
+  /// Retourne `null` si tout est passé, sinon un message d'erreur lisible.
+  /// L'écriture Firestore, elle, a déjà eu lieu : on ne la rejoue pas.
+  Future<String?> _syncRoleToBackends(String userId, AdminRole newRole) async {
+    final isAdmin = newRole != AdminRole.none;
+    final failures = <String>[];
+
+    try {
+      // Toute écriture Supabase exige une session valide (RLS bloque l'anon).
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        failures.add('Supabase (session absente)');
+      } else {
+        await Supabase.instance.client.from('users').update({
+          'is_admin': isAdmin,
+          'admin_role': isAdmin ? newRole.name : null,
+        }).eq('id', userId);
+      }
+    } catch (e) {
+      debugPrint('RoleManagement: sync Postgres échouée: $e');
+      failures.add('Supabase');
+    }
+
+    try {
+      final ref = FirebaseDatabase.instance.ref('admins/$userId');
+      if (isAdmin) {
+        await ref.set(true);
+      } else {
+        await ref.remove();
+      }
+    } catch (e) {
+      debugPrint('RoleManagement: sync RTDB échouée: $e');
+      failures.add('Realtime Database');
+    }
+
+    if (failures.isEmpty) return null;
+    return 'Rôle enregistré dans Firestore, mais non propagé à : '
+        '${failures.join(', ')}. Les droits correspondants resteront inactifs '
+        'tant que ce n\'est pas corrigé.';
   }
 
   /// Recherche un utilisateur par email pour lui assigner un rôle

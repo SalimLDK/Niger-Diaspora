@@ -4,6 +4,7 @@ import '../../../../shared/widgets/dn_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/file_download_service.dart';
@@ -105,16 +106,19 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.library_music_rounded,
                   size: 64,
-                  color: Colors.grey,
+                  color: context.textTertiaryColor,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   l10n.heritageLibraryNotAvailable,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: context.textSecondaryColor,
+                  ),
                 ),
               ],
             ),
@@ -124,7 +128,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: context.backgroundColor,
       body: NestedScrollView(
         headerSliverBuilder:
             (context, innerBoxIsScrolled) => [
@@ -523,14 +527,14 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                         Icon(
                           Icons.bookmark_border_rounded,
                           size: 64,
-                          color: Colors.grey[400],
+                          color: context.textTertiaryColor,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           l10n.heritageLibraryNoSavedRecordings,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: context.textSecondaryColor,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -538,7 +542,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                           l10n.heritageLibrarySaveHint,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[500],
+                            color: context.textTertiaryColor,
                           ),
                         ),
                       ],
@@ -679,10 +683,11 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected ? _getContentTypeColor(type) : Colors.white,
+          color: isSelected ? _getContentTypeColor(type) : context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? _getContentTypeColor(type) : Colors.grey[300]!,
+            color:
+                isSelected ? _getContentTypeColor(type) : context.borderColor,
             width: isSelected ? 2 : 1,
           ),
           boxShadow:
@@ -710,7 +715,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey[700],
+                color: isSelected ? Colors.white : context.textSecondaryColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -769,7 +774,10 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                     const SizedBox(height: 2),
                     Text(
                       recording.contributorName,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: context.textSecondaryColor,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -799,14 +807,14 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                         const SizedBox(width: 8),
                         AppIcon(AppIcon.clock,
                           size: 12,
-                          color: Colors.grey[500]!,
+                          color: context.textTertiaryColor,
                         ),
                         const SizedBox(width: 2),
                         Text(
                           recording.formattedDuration,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[500],
+                            color: context.textTertiaryColor,
                           ),
                         ),
                         if (recording.language.isNotEmpty) ...[
@@ -815,7 +823,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                             recording.language,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey[500],
+                              color: context.textTertiaryColor,
                             ),
                           ),
                         ],
@@ -824,14 +832,14 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                         Icon(
                           Icons.headphones_rounded,
                           size: 12,
-                          color: Colors.grey[500],
+                          color: context.textTertiaryColor,
                         ),
                         const SizedBox(width: 2),
                         Text(
                           '${recording.playCount}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[500],
+                            color: context.textTertiaryColor,
                           ),
                         ),
                       ],
@@ -847,7 +855,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                       isLiked
                           ? AppIcon.heart
                           : AppIcon.favoriteBorder,
-                      color: isLiked ? Colors.red : Colors.grey[400],
+                      color: isLiked ? Colors.red : context.textTertiaryColor,
                       size: 22,
                     ),
                     onPressed: () {
@@ -867,7 +875,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                       isSaved
                           ? Icons.bookmark_rounded
                           : Icons.bookmark_border_rounded,
-                      color: isSaved ? DNColors.ochre : Colors.grey[400],
+                      color: isSaved ? DNColors.ochre : context.textTertiaryColor,
                       size: 22,
                     ),
                     onPressed: () {
@@ -899,11 +907,15 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.library_music_rounded, size: 48, color: Colors.grey[400]),
+          Icon(
+            Icons.library_music_rounded,
+            size: 48,
+            color: context.textTertiaryColor,
+          ),
           const SizedBox(height: 12),
           Text(
             message,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
             textAlign: TextAlign.center,
           ),
         ],
@@ -917,11 +929,11 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppIcon(AppIcon.error, size: 48, color: Colors.red[300]!),
+          AppIcon(AppIcon.error, size: 48, color: context.errorColor),
           const SizedBox(height: 12),
           Text(
             '${l10n.error}: $error',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1030,7 +1042,7 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
@@ -1096,7 +1108,10 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                   const SizedBox(height: 8),
                   Text(
                     recording.contributorName,
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: context.textSecondaryColor,
+                    ),
                   ),
 
                   const SizedBox(height: 8),
@@ -1114,9 +1129,9 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                       if (recording.language.isNotEmpty)
                         Chip(
                           label: Text(recording.language),
-                          backgroundColor: Colors.grey[100],
+                          backgroundColor: context.surfaceVariantColor,
                           labelStyle: TextStyle(
-                            color: Colors.grey[700],
+                            color: context.textSecondaryColor,
                             fontSize: 12,
                           ),
                         ),
@@ -1153,14 +1168,14 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                               '0:00',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[500],
+                                color: context.textTertiaryColor,
                               ),
                             ),
                             Text(
                               recording.formattedDuration,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[500],
+                                color: context.textTertiaryColor,
                               ),
                             ),
                           ],
@@ -1180,7 +1195,8 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                           isLiked
                               ? AppIcon.heart
                               : AppIcon.favoriteBorder,
-                          color: isLiked ? Colors.red : Colors.grey[600],
+                          color:
+                              isLiked ? Colors.red : context.textSecondaryColor,
                         ),
                         iconSize: 28,
                         onPressed: () {
@@ -1196,7 +1212,10 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.replay_10, color: Colors.grey[600]),
+                        icon: Icon(
+                          Icons.replay_10,
+                          color: context.textSecondaryColor,
+                        ),
                         iconSize: 32,
                         onPressed: () {
                           // Rewind 10 seconds
@@ -1230,7 +1249,10 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.forward_10, color: Colors.grey[600]),
+                        icon: Icon(
+                          Icons.forward_10,
+                          color: context.textSecondaryColor,
+                        ),
                         iconSize: 32,
                         onPressed: () {
                           // Forward 10 seconds
@@ -1239,7 +1261,7 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                       IconButton(
                         icon: AppIcon(
                           AppIcon.share,
-                          color: Colors.grey[600],
+                          color: context.textSecondaryColor,
                         ),
                         iconSize: 28,
                         onPressed: () {
@@ -1308,13 +1330,17 @@ class _HeritageDownloadButtonState extends State<_HeritageDownloadButton> {
     });
     if (file != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Disponible hors ligne')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.podcastsAvailableOffline),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_downloading) {
       return const SizedBox(
         width: 40,
@@ -1333,10 +1359,11 @@ class _HeritageDownloadButtonState extends State<_HeritageDownloadButton> {
         _downloaded
             ? Icons.download_done_rounded
             : Icons.download_for_offline_outlined,
-        color: _downloaded ? Colors.green : Colors.grey[400],
+        color: _downloaded ? Colors.green : context.textTertiaryColor,
         size: 22,
       ),
-      tooltip: _downloaded ? 'Disponible hors ligne' : 'Télécharger',
+      tooltip:
+          _downloaded ? l10n.podcastsAvailableOffline : l10n.download,
       onPressed: _downloaded ? null : _download,
     );
   }

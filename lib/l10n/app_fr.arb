@@ -423,6 +423,27 @@
   "emptyMessagesJoinGroup": "Rejoindre un groupe de votre ville",
   "emptyGroupsUsage": "Les groupes réunissent la diaspora par ville, centre d'intérêt ou projet. Rejoignez-en un ou créez le vôtre.",
   "noGroupsToDiscover": "Aucun nouveau groupe à découvrir",
+  "groupsNoneInYourAreaTitle": "Rien dans ta région pour l'instant",
+  "groupsNoneInYourAreaBody": "Aucun groupe ne correspond encore à ton pays de résidence ni à ta région d'origine. Tu peux ouvrir le premier, ou élargir ta recherche.",
+  "groupsBrowseAll": "Voir tous les groupes",
+  "searchNoResultsFor": "Aucun résultat pour « {query} »",
+  "@searchNoResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTipsTitle": "Quelques pistes",
+  "searchTipSpelling": "Vérifie l'orthographe",
+  "searchTipFewerWords": "Essaie avec moins de mots, ou un mot plus général",
+  "searchTipRemoveFilters": "Retire les filtres actifs pour élargir la recherche",
+  "searchClearFilters": "Effacer les filtres",
+  "marketplaceSellItem": "Vendre un article",
+  "mapEmptyAreaTitle": "Rien dans cette zone",
+  "mapEmptyAreaBody": "Aucun membre, commerce ni ambassade à afficher ici. Élargis la vue ou active une autre couche.",
+  "mapZoomOut": "Dézoomer",
+  "mapShowEmbassies": "Voir les ambassades",
   "groupJoined": "Vous avez rejoint le groupe",
   "leaveGroupTitle": "Quitter le groupe",
   "leaveGroupConfirm": "Voulez-vous vraiment quitter ce groupe ?",
@@ -626,6 +647,15 @@
   "errorUnknown": "Une erreur inattendue s'est produite.",
   "offlineMode": "Mode hors ligne",
   "offlineBannerMessage": "Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.",
+  "syncingLabel": "Synchronisation…",
+  "pendingSyncCount": "{count} en attente",
+  "@pendingSyncCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retryIn": "Réessayer dans {seconds}s",
   "@retryIn": {
     "placeholders": {
@@ -6292,6 +6322,34 @@
   "ghostMuteSilent": "Muet silencieux",
   "ghostExclude": "Exclure",
   "ghostBlockGlobal": "Bloquer global",
+  "ghostPickParticipantTitle": "Choisir un participant",
+  "ghostNoParticipants": "Aucun participant à modérer",
+  "ghostActionMuted": "{name} est désormais muet",
+  "@ghostActionMuted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostActionKicked": "{name} a été exclu du salon",
+  "@ghostActionKicked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ghostActionBlocked": "{name} a été bloqué",
+  "@ghostActionBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "audioRoomCapacityNote": "10 intervenants · 1 000 auditeurs",
+  "audioRoomAdminLockNote": "🔒 Fonctionnalités soumises aux règles administrateur.",
   "payoutHistoryTitle": "Historique des retraits",
   "noWithdrawalsYet": "Aucun retrait effectué",
   "availableBalance": "Solde disponible",

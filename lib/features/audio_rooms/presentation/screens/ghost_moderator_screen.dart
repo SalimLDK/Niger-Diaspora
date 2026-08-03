@@ -5,8 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/entities/participant_entity.dart';
 import '../providers/audio_room_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
+/// Les trois actions de modération ciblées de la vue fantôme.
+enum _GhostModAction { mute, kick, block }
 
 /// /audio-rooms/:roomId/ghost — dark admin view, invisible to room participants.
 class GhostModeratorScreen extends ConsumerWidget {
@@ -141,17 +145,29 @@ class GhostModeratorScreen extends ConsumerWidget {
                         _GhostAction(
                           label: '🔇 ${l10n.ghostMuteSilent}',
                           color: DNColors.ink2,
-                          onTap: () {},
+                          onTap: () => _pickAndApply(
+                            context,
+                            ref,
+                            action: _GhostModAction.mute,
+                          ),
                         ),
                         _GhostAction(
                           label: '👢 ${l10n.ghostExclude}',
                           color: DNColors.ink2,
-                          onTap: () {},
+                          onTap: () => _pickAndApply(
+                            context,
+                            ref,
+                            action: _GhostModAction.kick,
+                          ),
                         ),
                         _GhostAction(
                           label: '🚫 ${l10n.ghostBlockGlobal}',
                           color: DNColors.danger.withValues(alpha: 0.8),
-                          onTap: () {},
+                          onTap: () => _pickAndApply(
+                            context,
+                            ref,
+                            action: _GhostModAction.block,
+                          ),
                         ),
                         _GhostAction(
                           label: '⚠ ${l10n.audioRoomWarnLabel}',
@@ -194,6 +210,96 @@ class GhostModeratorScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Les trois actions de modération ciblent un participant : on ouvre la
+  /// liste des participants visibles, puis on applique l'action au choix fait.
+  Future<void> _pickAndApply(
+    BuildContext context,
+    WidgetRef ref, {
+    required _GhostModAction action,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final session = ref.read(audioRoomSessionProvider);
+    final targets = [...session.visibleSpeakers, ...session.visibleListeners];
+
+    if (targets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.ghostNoParticipants)),
+      );
+      return;
+    }
+
+    final target = await showModalBottomSheet<ParticipantEntity>(
+      context: context,
+      backgroundColor: DNColors.ink2,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                l10n.ghostPickParticipantTitle,
+                style: DNText.serif(size: 16, color: DNColors.paper),
+              ),
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: targets.length,
+                itemBuilder: (_, i) {
+                  final p = targets[i];
+                  return ListTile(
+                    title: Text(
+                      p.userName,
+                      style: DNText.sans(size: 14, color: DNColors.paper),
+                    ),
+                    subtitle: Text(
+                      p.role.name,
+                      style: DNText.mono(size: 9, color: DNColors.ink3),
+                    ),
+                    onTap: () => Navigator.pop(sheetContext, p),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (target == null || !context.mounted) return;
+
+    final notifier = ref.read(audioRoomSessionProvider.notifier);
+    switch (action) {
+      case _GhostModAction.mute:
+        await notifier.muteSpeaker(target.userId);
+      case _GhostModAction.kick:
+        await notifier.kickUser(target.userId);
+      case _GhostModAction.block:
+        await notifier.blockUser(target.userId);
+    }
+
+    if (!context.mounted) return;
+    final error = ref.read(audioRoomSessionProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error ??
+              switch (action) {
+                _GhostModAction.mute => l10n.ghostActionMuted(target.userName),
+                _GhostModAction.kick => l10n.ghostActionKicked(target.userName),
+                _GhostModAction.block =>
+                  l10n.ghostActionBlocked(target.userName),
+              },
+        ),
+        backgroundColor: error != null ? DNColors.danger : null,
       ),
     );
   }
