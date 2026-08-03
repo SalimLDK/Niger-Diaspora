@@ -103,8 +103,8 @@ le composer et la carte.
 | 5b, 5g, 6d | Mes publications | `feed/…/my_posts_screen.dart` | 180 l. | **prod** — système propre |
 | 5c, 5e, 6e | Enregistrés | `feed/…/saved_posts_screen.dart` | 336 l. | **prod** — système propre |
 | 5d, 5h, 6f | Mon réseau | `feed/…/follows_screen.dart` | 190 l. | **prod** — système propre |
-| 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | dégradés purgés — voir ci-dessous |
-| 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | dégradés purgés — voir ci-dessous |
+| 3b, 3c, 4a, 6b | Discussion | `messages/…/conversation_screen.dart` | 3444 l. | fait (en-tête) — bulles à part, voir ci-dessous |
+| 4c→4f, 6c | Composer et enregistrement vocal | `messages/…/widgets/message_input.dart` | 2188 l. | fait |
 | 7d, 7e | Carte : couches, bascule Carte/Liste | `map/…/map_screen.dart` | 3560 l. | à faire |
 | 12a, 16c, 16i | Transferts : envoi, accueil, historique | `transfers/…` (3 écrans) | 1975 l. | fait (partiel — voir ci-dessous) |
 | 12b, 16a, 16b, 16h | Boutique, détail produit, panier | `marketplace/…` (3 écrans) | 1741 l. | fait |
@@ -176,6 +176,23 @@ fond de balayage en `Colors.red` avec une icône `Colors.white`. C'est
 lisible et l'idiome est universel, mais aucune des deux palettes ne
 contient ce rouge, et `FeedTokens` n'a pas de jeton `danger`. À trancher
 avant de traiter « Enregistrés ».
+
+### Discussion et composer — état
+
+Le **composer** était déjà refait : les quatre dégradés d'origine avaient
+sauté et les trois états d'enregistrement (repos, annulation armée,
+verrouillé mains libres) sont câblés — `_isRecording`, `_isCancelling`,
+`_isLocked` — avec leurs gestes. Il manquait les **variantes claires** des
+couleurs signifiantes, déclarées mais jamais utilisées : sur le fond nuit
+du §6c, le vert `#1B5E32` du vocal et le bleu `#2F6BE0` du chiffrement sont
+illisibles. Elles servent désormais en thème sombre, ombre portée comprise.
+
+La **discussion** a son en-tête (nom en serif, pastille en aplat, barre
+sans teinte Material). Restent les **bulles de message** des maquettes
+3b/3c : citation à liseré, lecteur vocal avec vitesse et bouton
+« TRANSCRIRE », pièce jointe floutée avec « Télécharger ». Ces briques
+vivent dans `message_bubble.dart` et `audio_message_bubble.dart`, pas dans
+l'écran — c'est un lot à part, non copié à ce jour.
 
 ### Transferts, ce qui reste
 
