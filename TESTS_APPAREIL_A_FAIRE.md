@@ -553,12 +553,42 @@ sont invisibles à `flutter analyze` :
   1. **Compte en accent vert** : le tunnel devient vert. C'était orange pour
      tout le monde jusqu'ici. Vérifier que rien ne jure avec le reste de
      l'écran.
-  2. **Compte en accent orange** : la teinte glisse de `#B85E24` à `#E07B39`
-     (`colorScheme.primary` du thème orange), donc un orange plus clair. Le
-     blanc dessus reste-t-il franc ?
+  2. **Compte en accent orange** : ~~la teinte glisse de `#B85E24` à
+     `#E07B39`~~ — plus vrai. `colorScheme.primary` du thème orange est
+     passé à `#B85E24` juste après (voir la section suivante), donc en clair
+     le tunnel garde exactement sa teinte d'avant. Rien à vérifier ici.
   3. **Mode nuit** : l'accent s'éclaircit et le texte dessus devient de l'encre
      foncée au lieu du blanc — c'est la règle du guide. Confirmer sur le rond
      d'étape (chiffre + coche), le bouton « Continuer » et son spinner.
+
+## Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)
+
+- [ ] **L'orange d'action de toute l'app change de teinte**
+  (`lib/core/theme/app_theme.dart`) : les 17 liaisons qui exprimaient l'accent
+  orange pointaient sur `AppColors.primary` (`#E07B39`) ; le guide de style
+  désigne `#B85E24` (`primaryDark`) comme « Orange — action ». Elles passent
+  toutes sur `primaryDark`, dans les deux thèmes clairs — accent du thème
+  orange, et orange secondaire du thème vert. **C'est le changement le plus
+  visible de la session** : il touche boutons pleins et contour, boutons
+  texte, FAB, barre de navigation basse, onglets, interrupteurs, cases à
+  cocher, radios, barres de progression et bordure de champ au focus.
+  **À vérifier sur le téléphone**, en thème orange puis en thème vert :
+  1. Le nouvel orange est plus foncé et plus terreux. Confirmer que le blanc
+     posé dessus (libellés de boutons pleins, FAB) reste franc — c'est le
+     sens du changement, le contraste s'améliore.
+  2. Les éléments *fins* en orange sont ceux qui risquent de s'assombrir de
+     trop : bordure de champ au focus, coche sélectionnée, piste
+     d'interrupteur, indicateur d'onglet. À regarder sur le fond crème.
+  3. Thème vert : l'orange n'est plus que secondaire, mais il change quand
+     même de teinte. Vérifier qu'il ne jure pas à côté du vert.
+- [ ] **Dégradés inchangés, volontairement** : `AppColors.primary`
+  (`#E07B39`) reste la teinte claire de la famille orange et continue
+  d'ouvrir `primaryGradient` (`#E07B39` → `#B85E24`). Un dégradé qui part
+  d'un ton plus clair que l'accent est normal, mais si un bandeau paraît
+  désormais désaccordé avec les boutons, c'est là qu'il faut regarder.
+- [ ] **Thèmes sombres non touchés** : ils utilisent déjà
+  `AppColors.primaryLight` (`#F4A574`), l'accent nocturne du guide. Aucun
+  changement attendu en mode nuit.
 
 ## Feature flags & accès aux écrans
 

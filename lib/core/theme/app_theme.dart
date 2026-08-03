@@ -26,7 +26,8 @@ class AppTheme {
         primaryContainer: AppColors.secondaryLighter,
         onPrimaryContainer: AppColors.secondaryDark,
         // SECONDARY is now ORANGE (was Green)
-        secondary: AppColors.primary,
+        // Même orange d'action que dans le thème orange : `#B85E24`.
+        secondary: AppColors.primaryDark,
         onSecondary: AppColors.textInverse,
         secondaryContainer: AppColors.primaryLighter,
         onSecondaryContainer: AppColors.primaryDark,
@@ -435,8 +436,14 @@ class AppTheme {
       brightness: Brightness.light,
 
       // Color Scheme - ORANGE PRIMARY (Original)
+      //
+      // L'accent est `primaryDark` (`#B85E24`), pas `primary` (`#E07B39`) :
+      // le guide de style désigne `#B85E24` comme l'« Orange — action » de la
+      // palette Sahel clair. `AppColors.primary` reste la teinte de la
+      // famille orange utilisée par les dégradés, mais n'habille plus
+      // d'action.
       colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
+        primary: AppColors.primaryDark,
         onPrimary: AppColors.textInverse,
         primaryContainer: AppColors.primaryLighter,
         onPrimaryContainer: AppColors.primaryDark,
@@ -522,7 +529,7 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMD,
           borderSide: const BorderSide(
-            color: AppColors.primary, // Orange focus
+            color: AppColors.primaryDark, // Orange focus
             width: AppSpacing.borderWidthMedium,
           ),
         ),
@@ -557,7 +564,7 @@ class AppTheme {
       // ElevatedButton
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary, // Orange
+          backgroundColor: AppColors.primaryDark, // Orange
           foregroundColor: AppColors.textInverse,
           disabledBackgroundColor: AppColors.border,
           disabledForegroundColor: AppColors.textDisabled,
@@ -578,14 +585,14 @@ class AppTheme {
       // OutlinedButton
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary, // Orange
+          foregroundColor: AppColors.primaryDark, // Orange
           padding: AppSpacing.buttonPadding,
           minimumSize: const Size(0, AppSpacing.buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           side: const BorderSide(
-            color: AppColors.primary, // Orange
+            color: AppColors.primaryDark, // Orange
             width: AppSpacing.borderWidthMedium,
           ),
           textStyle: GoogleFonts.inter(
@@ -599,7 +606,7 @@ class AppTheme {
       // TextButton
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary, // Orange
+          foregroundColor: AppColors.primaryDark, // Orange
           textStyle: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -617,7 +624,7 @@ class AppTheme {
 
       // FloatingActionButton
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary, // Orange
+        backgroundColor: AppColors.primaryDark, // Orange
         foregroundColor: AppColors.textInverse,
         elevation: AppSpacing.elevationMD,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -626,7 +633,7 @@ class AppTheme {
       // BottomNavigationBar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary, // Orange
+        selectedItemColor: AppColors.primaryDark, // Orange
         unselectedItemColor: AppColors.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -649,7 +656,7 @@ class AppTheme {
             return GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.primary, // Orange
+              color: AppColors.primaryDark, // Orange
             );
           }
           return GoogleFonts.inter(
@@ -661,7 +668,7 @@ class AppTheme {
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(
-              color: AppColors.primary,
+              color: AppColors.primaryDark,
               size: 24,
             ); // Orange
           }
@@ -671,7 +678,7 @@ class AppTheme {
 
       // TabBar
       tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.primary, // Orange
+        labelColor: AppColors.primaryDark, // Orange
         unselectedLabelColor: AppColors.textTertiary,
         labelStyle: GoogleFonts.inter(
           fontSize: 14,
@@ -682,7 +689,10 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         indicator: const UnderlineTabIndicator(
-          borderSide: BorderSide(color: AppColors.primary, width: 2), // Orange
+          borderSide: BorderSide(
+            color: AppColors.primaryDark,
+            width: 2,
+          ), // Orange
         ),
         indicatorSize: TabBarIndicatorSize.label,
       ),
@@ -748,7 +758,7 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary; // Orange
+            return AppColors.primaryDark; // Orange
           }
           return AppColors.textTertiary;
         }),
@@ -767,7 +777,7 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary; // Orange
+            return AppColors.primaryDark; // Orange
           }
           return Colors.transparent;
         }),
@@ -780,7 +790,7 @@ class AppTheme {
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary; // Orange
+            return AppColors.primaryDark; // Orange
           }
           return AppColors.textTertiary;
         }),
@@ -788,7 +798,7 @@ class AppTheme {
 
       // ProgressIndicator
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary, // Orange
+        color: AppColors.primaryDark, // Orange
         linearTrackColor: AppColors.primaryLighter, // Orange
         circularTrackColor: AppColors.primaryLighter, // Orange
       ),
