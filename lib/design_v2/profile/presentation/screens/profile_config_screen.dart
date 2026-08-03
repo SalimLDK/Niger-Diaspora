@@ -11,7 +11,14 @@ import '../../../../features/onboarding/presentation/providers/onboarding_provid
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../kit/design_kit.dart';
 
+/// Configuration du profil en quatre étapes (maquettes 16f, 15c, 15d, 16g).
+///
+/// Le découpage suit les maquettes et non plus l'ancien écran : l'identité
+/// (photo, nom, poignée, métier) est séparée de la localisation, et les
+/// notifications ont rejoint l'étape des centres d'intérêt sous la forme
+/// « Ce que vous recevrez ». Chaque champ dit à quoi il sert.
 class ProfileConfigScreen extends ConsumerStatefulWidget {
   const ProfileConfigScreen({super.key});
 
@@ -21,6 +28,8 @@ class ProfileConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
+  static const int _stepCount = 4;
+
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -80,54 +89,39 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   }
 
   void _loadInitialData() {
-    // debugPrint('🔵 DEBUG: _loadInitialData called');
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
 
     if (currentUser != null && mounted) {
-      // debugPrint('🟢 DEBUG: User found: ${currentUser.id}');
       setState(() {
         // 1. Try pre-fill displayName from Firebase Auth user
         if (!_hasManuallyEdited &&
             currentUser.displayName != null &&
             currentUser.displayName!.isNotEmpty) {
           _displayNameController.text = currentUser.displayName!;
-          // debugPrint(
-          //   '✅ DEBUG: DisplayName set from Auth: ${currentUser.displayName}',
-          // );
         }
 
         // 2. Try to load additional data from profile
         final profile =
             ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
         if (profile != null) {
-          // debugPrint('🟢 DEBUG: Profile found: ${profile.toString()}');
-
           // Fallback: If Auth name was empty but profile has name, use it
           if (!_hasManuallyEdited &&
               _displayNameController.text.isEmpty &&
               profile.displayName != null &&
               profile.displayName!.isNotEmpty) {
             _displayNameController.text = profile.displayName!;
-            // debugPrint(
-            //   '✅ DEBUG: DisplayName set from Profile: ${profile.displayName}',
-            // );
           }
 
           // Pre-fill profession
           if (profile.profession != null && profile.profession!.isNotEmpty) {
             _selectedProfession = profile.profession;
-            // debugPrint('✅ DEBUG: Profession set: ${profile.profession}');
           }
 
           // Pre-fill handle
           _initialHandle = profile.handle;
           _handle = profile.handle;
-        } else {
-          // debugPrint('🟠 DEBUG: Profile is null');
         }
       });
-    } else {
-      // debugPrint('🔴 DEBUG: currentUser is null in _loadInitialData');
     }
   }
 
@@ -188,13 +182,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       await ref
           .read(onboardingNotifierProvider.notifier)
           .markProfileConfigComplete();
-    } catch (
-      e //, stackTrace
-    ) {
-      // Log error for debugging only in debug mode
-      // debugPrint('Error in _handleComplete: $e');
-      // debugPrint('Stack trace: $stackTrace');
-
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -225,6 +213,24 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _goNext(currentUser) {
+    // Bloque l'avancement si la poignée saisie à l'étape 1/4 est invalide ou
+    // déjà prise.
+    if (_currentStep == 0 && !_handleValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choisissez un nom d\'utilisateur libre'),
+        ),
+      );
+      return;
+    }
+    if (_currentStep < _stepCount - 1) {
+      setState(() => _currentStep++);
+    } else {
+      _handleComplete(currentUser);
     }
   }
 
@@ -266,97 +272,99 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       });
     }
 
+    final isLastStep = _currentStep == _stepCount - 1;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Configuration du profil'),
-        backgroundColor: context.surfaceColor,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Progress indicator
-          LinearProgressIndicator(
-            value: (_currentStep + 1) / 4,
-            backgroundColor: context.outlineColor.withValues(alpha: 0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              context.adaptivePrimaryColor,
-            ),
-          ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(),
+            Expanded(child: _buildCurrentStep()),
 
-          Expanded(child: _buildCurrentStep()),
-
-          // Navigation buttons
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+            // Barre de navigation : « Précédent » n'apparaît qu'à partir de
+            // la 2e étape, comme sur les maquettes.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
               child: Row(
                 children: [
-                  if (_currentStep > 0)
+                  if (_currentStep > 0) ...[
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => setState(() => _currentStep--),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Précédent'),
+                      child: DesignSecondaryButton(
+                        label: 'Précédent',
+                        onPressed:
+                            _isLoading
+                                ? null
+                                : () => setState(() => _currentStep--),
                       ),
                     ),
-                  if (_currentStep > 0) const SizedBox(width: 12),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
-                    flex: _currentStep == 0 ? 1 : 1,
-                    child: ElevatedButton(
+                    flex: _currentStep > 0 ? 2 : 1,
+                    child: DesignPrimaryButton(
+                      label: isLastStep ? 'Terminer' : 'Suivant',
+                      isLoading: _isLoading,
                       onPressed:
-                          _isLoading || currentUser == null
-                              ? null
-                              : () {
-                                // Bloque l'avancement si la poignée saisie à
-                                // l'étape 1/4 est invalide ou déjà prise.
-                                if (_currentStep == 0 && !_handleValid) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Choisissez une poignée valide et disponible',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (_currentStep < 3) {
-                                  setState(() => _currentStep++);
-                                } else {
-                                  _handleComplete(currentUser);
-                                }
-                              },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: context.adaptivePrimaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                              : Text(_currentStep < 3 ? 'Suivant' : 'Terminer'),
+                          currentUser == null ? null : () => _goNext(currentUser),
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// En-tête : retour, titre de section, compteur d'étape, puis les quatre
+  /// segments de progression.
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (_currentStep > 0)
+                IconButton(
+                  onPressed:
+                      _isLoading ? null : () => setState(() => _currentStep--),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    size: 22,
+                    color: context.textPrimaryColor,
+                  ),
+                  splashRadius: 22,
+                )
+              else
+                const SizedBox(width: 12),
+              Text(
+                'Configuration du profil',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.textPrimaryColor,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${_currentStep + 1}/$_stepCount',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.textTertiaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: DesignStepBar(total: _stepCount, current: _currentStep),
           ),
         ],
       ),
@@ -366,11 +374,11 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   Widget _buildCurrentStep() {
     switch (_currentStep) {
       case 0:
-        return _buildLocationStep();
+        return _buildIdentityStep();
       case 1:
-        return _buildInterestsStep();
+        return _buildLocationStep();
       case 2:
-        return _buildNotificationsStep();
+        return _buildInterestsStep();
       case 3:
         return _buildThemeStep();
       default:
@@ -378,122 +386,66 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     }
   }
 
-  Widget _buildLocationStep() {
+  // ---------------------------------------------------------------- étape 1/4
+
+  /// « Faisons connaissance » (§16f) : photo, nom, poignée, métier.
+  Widget _buildIdentityStep() {
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
-    final displayName = currentUser?.displayName ?? 'Utilisateur';
+    final displayName =
+        _displayNameController.text.trim().isNotEmpty
+            ? _displayNameController.text.trim()
+            : (currentUser?.displayName ?? 'Utilisateur');
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Photo upload section
-          Center(
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: context.adaptivePrimaryColor.withValues(
-                        alpha: 0.2,
-                      ),
-                      backgroundImage:
-                          _photoUrl != null ? NetworkImage(_photoUrl!) : null,
-                      child:
-                          _photoUrl == null
-                              ? Text(
-                                _getInitials(displayName),
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: context.adaptivePrimaryColor,
-                                ),
-                              )
-                              : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _showImagePickerOptions,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: context.backgroundColor,
-                              width: 3,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Photo de profil',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Optionnel',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
+          const DesignTitle('Faisons connaissance'),
+          const SizedBox(height: 10),
+          const DesignBody(
+            'Votre nom et votre métier aident les membres à savoir qui vous '
+            'êtes — et à vous solliciter au bon moment.',
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 26),
 
-          // Name field
+          Center(child: _buildAvatarPicker(displayName)),
+          const SizedBox(height: 26),
+
+          const DesignFieldLabel('Nom complet'),
           TextField(
             controller: _displayNameController,
-            onChanged: (_) => _hasManuallyEdited = true,
-            decoration: InputDecoration(
-              labelText: 'Nom complet',
-              hintText: 'Ex: Jean Dupont',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              prefixIcon: const AppIcon(AppIcon.person),
+            textCapitalization: TextCapitalization.words,
+            onChanged: (_) {
+              _hasManuallyEdited = true;
+              setState(() {});
+            },
+            style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
+            decoration: designInputDecoration(
+              context,
+              hintText: 'Moussa Adamou',
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
           // Poignée publique @handle (§16f)
           HandleField(
             initialHandle: _initialHandle,
-            userId: ref.read(currentUserAsyncProvider).valueOrNull?.id,
+            userId: currentUser?.id,
             onChanged: (normalized, isValid) {
               _handle = normalized;
               _handleValid = isValid;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          // Profession dropdown
-          DropdownButtonFormField<String>(
-            initialValue: _selectedProfession,
-            decoration: InputDecoration(
-              labelText: 'Profession',
-              prefixIcon: const Icon(Icons.work),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            hint: const Text('Sélectionnez votre profession'),
-            isExpanded: true,
+          const DesignFieldLabel('Profession'),
+          DesignDropdown<String>(
+            value: _selectedProfession,
+            hintText: 'Choisissez dans la liste',
+            helperText:
+                'Choisie dans la liste : Entrepreneur, Ingénieur, Médecin, '
+                'Étudiant…',
             items:
                 ProfileOptions.professions.map((profession) {
                   return DropdownMenuItem(
@@ -501,102 +453,79 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                     child: Text(profession),
                   );
                 }).toList(),
-            onChanged: (value) {
-              setState(() => _selectedProfession = value);
-            },
-          ),
-          const SizedBox(height: 24),
-
-          AppIcon(
-            AppIcon.location,
-            size: 64,
-            color: context.adaptivePrimaryColor,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Votre localisation',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Cela nous aide à vous connecter avec des membres proches de chez vous.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: context.textSecondaryColor),
-          ),
-          const SizedBox(height: 24),
-
-          // Country dropdown
-          _buildCountryDropdown(),
-          const SizedBox(height: 16),
-
-          // City text field
-          TextField(
-            controller: _selectedCityController,
-            decoration: InputDecoration(
-              labelText: 'Ville actuelle',
-              hintText: 'Ex: Paris, Niamey, New York...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              prefixIcon: const Icon(Icons.location_city),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Origin section
-          Text(
-            'Origine au Niger',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Optionnel - Votre région et ville d\'origine',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: context.textSecondaryColor),
-          ),
-          const SizedBox(height: 16),
-
-          // Origin region dropdown
-          _buildOriginRegionDropdown(),
-          const SizedBox(height: 16),
-
-          // Origin city dropdown
-          if (_selectedOriginRegion != null && _selectedOriginRegion != 'Autre')
-            _buildOriginCityDropdown(),
-          if (_selectedOriginRegion == 'Autre' ||
-              _selectedOriginCity == 'Autre') ...[
-            const SizedBox(height: 16),
-            TextField(
-              controller: _customOriginCityController,
-              decoration: InputDecoration(
-                labelText: 'Précisez votre ville d\'origine',
-                hintText: 'Votre ville...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: const Icon(Icons.edit_outlined),
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-
-          SwitchListTile(
-            title: const Text('Partager ma localisation'),
-            subtitle: const Text(
-              'Apparaître sur la carte pour les autres membres',
-            ),
-            value: _shareLocation,
-            onChanged: (value) => setState(() => _shareLocation = value),
-            activeThumbColor: context.adaptivePrimaryColor,
+            onChanged: (value) => setState(() => _selectedProfession = value),
           ),
         ],
       ),
+    );
+  }
+
+  /// Avatar rond terracotta avec pastille appareil photo, puis l'invitation
+  /// « Ajouter une photo · optionnel ».
+  Widget _buildAvatarPicker(String displayName) {
+    return Column(
+      children: [
+        Stack(
+          children: [
+            CircleAvatar(
+              radius: 52,
+              backgroundColor: context.adaptivePrimaryColor.withValues(
+                alpha: 0.18,
+              ),
+              backgroundImage:
+                  _photoUrl != null ? NetworkImage(_photoUrl!) : null,
+              child:
+                  _photoUrl == null
+                      ? Text(
+                        _getInitials(displayName),
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: context.adaptivePrimaryColor,
+                        ),
+                      )
+                      : null,
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: _showImagePickerOptions,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: context.backgroundColor, width: 3),
+                  ),
+                  child: Icon(
+                    Icons.photo_camera_outlined,
+                    color: context.onPrimaryColor,
+                    size: 17,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: _showImagePickerOptions,
+          child: Text(
+            _photoUrl == null ? 'Ajouter une photo' : 'Changer la photo',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.adaptivePrimaryColor,
+            ),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          'Optionnel · vos initiales sinon',
+          style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+        ),
+      ],
     );
   }
 
@@ -608,125 +537,366 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     return name.isNotEmpty ? name[0].toUpperCase() : 'U';
   }
 
-  Widget _buildInterestsStep() {
+  // ---------------------------------------------------------------- étape 2/4
+
+  /// « Votre localisation » (§15c) : ce que la position sert à faire est dit
+  /// avant de la demander.
+  Widget _buildLocationStep() {
+    final needsCustomOriginCity =
+        _selectedOriginRegion == 'Autre' || _selectedOriginCity == 'Autre';
+    final originCities =
+        _selectedOriginRegion != null && _selectedOriginRegion != 'Autre'
+            ? ProfileOptions.getCitiesForRegion(_selectedOriginRegion!)
+            : <String>[];
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(Icons.interests, size: 64, color: context.adaptivePrimaryColor),
-          const SizedBox(height: 16),
-          Text(
-            'Vos centres d\'intérêt',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          const DesignTitle('Votre localisation'),
+          const SizedBox(height: 10),
+          const DesignBody(
+            'C\'est ce qui vous place sur la carte des membres et fait '
+            'remonter les groupes et événements de votre ville.',
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Sélectionnez vos domaines d\'intérêt pour personnaliser votre expérience.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: context.textSecondaryColor),
+          const SizedBox(height: 26),
+
+          const DesignFieldLabel('Pays actuel'),
+          DesignDropdown<CountryOption>(
+            value: _selectedCountry,
+            hintText: 'Sélectionnez votre pays',
+            items:
+                ProfileOptions.countries.map((country) {
+                  return DropdownMenuItem(
+                    value: country,
+                    child: Text(country.displayName),
+                  );
+                }).toList(),
+            onChanged: (value) => setState(() => _selectedCountry = value),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 18),
+
+          const DesignFieldLabel('Ville actuelle'),
+          TextField(
+            controller: _selectedCityController,
+            textCapitalization: TextCapitalization.words,
+            style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
+            decoration: designInputDecoration(
+              context,
+              hintText: 'Paris, Niamey, New York…',
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          DesignFieldLabel(
+            'Origine au Niger',
+            trailing: Text(
+              'Optionnel',
+              style: TextStyle(fontSize: 12.5, color: context.textTertiaryColor),
+            ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: DesignDropdown<String>(
+                  value: _selectedOriginRegion,
+                  hintText: 'Région',
+                  items:
+                      ProfileOptions.regions.map((region) {
+                        return DropdownMenuItem(value: region, child: Text(region));
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedOriginRegion = value;
+                      _selectedOriginCity = null;
+                      _customOriginCityController.clear();
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DesignDropdown<String>(
+                  value: _selectedOriginCity,
+                  hintText: 'Ville',
+                  items:
+                      originCities.map((city) {
+                        return DropdownMenuItem(value: city, child: Text(city));
+                      }).toList(),
+                  // Désactivée tant qu'aucune région n'est choisie : la liste
+                  // des villes en dépend.
+                  onChanged:
+                      originCities.isEmpty
+                          ? null
+                          : (value) {
+                            setState(() {
+                              _selectedOriginCity = value;
+                              if (value != 'Autre') {
+                                _customOriginCityController.clear();
+                              }
+                            });
+                          },
+                ),
+              ),
+            ],
+          ),
+          if (needsCustomOriginCity) ...[
+            const SizedBox(height: 14),
+            TextField(
+              controller: _customOriginCityController,
+              textCapitalization: TextCapitalization.words,
+              style: TextStyle(fontSize: 15.5, color: context.textPrimaryColor),
+              decoration: designInputDecoration(
+                context,
+                hintText: 'Précisez votre ville d\'origine',
+              ),
+            ),
+          ],
+          const SizedBox(height: 22),
+
+          DesignTileGroup(
+            children: [
+              DesignToggleTile(
+                icon: Icons.location_on_outlined,
+                title: 'Partager ma position',
+                subtitle:
+                    'Réciproque : vous voyez les membres proches, ils vous voient',
+                value: _shareLocation,
+                onChanged: (value) => setState(() => _shareLocation = value),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const DesignInfoLine(
+            icon: Icons.info_outline,
+            text:
+                'Position approximative uniquement · modifiable dans Réglages',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- étape 3/4
+
+  /// « Vos centres d'intérêt » (§15d) + « Ce que vous recevrez » : les deux
+  /// réglages qui personnalisent le fil vivent sur le même écran.
+  Widget _buildInterestsStep() {
+    final count = _selectedInterests.length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const DesignTitle('Vos centres d\'intérêt'),
+          const SizedBox(height: 10),
+          const DesignBody(
+            'Ils personnalisent le fil et les suggestions de groupes. '
+            'Choisissez-en au moins deux.',
+          ),
+          const SizedBox(height: 22),
 
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: 10,
+            runSpacing: 10,
             children:
                 _availableInterests.map((interest) {
                   final isSelected = _selectedInterests.contains(interest);
-                  return FilterChip(
-                    label: Text(interest),
+                  return DesignSelectableChip(
+                    label: interest,
                     selected: isSelected,
-                    onSelected: (selected) {
+                    onTap: () {
                       setState(() {
-                        if (selected) {
-                          _selectedInterests.add(interest);
-                        } else {
+                        if (isSelected) {
                           _selectedInterests.remove(interest);
+                        } else {
+                          _selectedInterests.add(interest);
                         }
                       });
                     },
-                    selectedColor: context.adaptivePrimaryColor.withValues(
-                      alpha: 0.3,
-                    ),
-                    checkmarkColor: context.adaptivePrimaryColor,
                   );
                 }).toList(),
           ),
+          const SizedBox(height: 14),
+          Text(
+            count == 0
+                ? 'Aucun sélectionné'
+                : '$count sélectionné${count > 1 ? 's' : ''}',
+            style: TextStyle(fontSize: 12.5, color: context.textTertiaryColor),
+          ),
+
+          const SizedBox(height: 22),
+          Divider(height: 1, color: context.dividerColor),
+          const SizedBox(height: 22),
+
+          const DesignSectionTitle('Ce que vous recevrez'),
+          const SizedBox(height: 14),
+          DesignTileGroup(
+            children: [
+              DesignToggleTile(
+                icon: Icons.chat_bubble_outline,
+                title: 'Messages',
+                subtitle: 'Nouveaux messages et conversations',
+                value: _enableMessageNotifications,
+                onChanged:
+                    (value) => setState(() {
+                      _enableMessageNotifications = value;
+                      _syncNotificationsMaster();
+                    }),
+              ),
+              DesignToggleTile(
+                icon: Icons.event_outlined,
+                title: 'Événements',
+                subtitle: 'Nouveaux événements dans votre ville',
+                value: _enableEventNotifications,
+                onChanged:
+                    (value) => setState(() {
+                      _enableEventNotifications = value;
+                      _syncNotificationsMaster();
+                    }),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNotificationsStep() {
+  /// Le profil n'a qu'un seul drapeau `notificationsEnabled` : il reste vrai
+  /// tant qu'au moins une des deux catégories est active.
+  void _syncNotificationsMaster() {
+    _enableNotifications =
+        _enableMessageNotifications || _enableEventNotifications;
+  }
+
+  // ---------------------------------------------------------------- étape 4/4
+
+  /// « Thème de l'application » (§16g) : trois aperçus de mode, la couleur
+  /// d'accent, puis le récapitulatif de fin de configuration.
+  Widget _buildThemeStep() {
+    // Use current theme values directly
+    final currentThemeMode = ref.watch(themeModeNotifierProvider);
+    final currentThemeColor = ref.watch(themeColorNotifierProvider);
+
+    // Initialize local state with current values if not already set
+    if (!_themeInitialized) {
+      _selectedThemeMode = currentThemeMode;
+      _selectedThemeColor = currentThemeColor;
+      _themeInitialized = true;
+    }
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            Icons.notifications_active,
-            size: 64,
-            color: context.adaptivePrimaryColor,
+          const DesignTitle('Thème de l\'application'),
+          const SizedBox(height: 10),
+          const DesignBody(
+            'Le mode sombre économise la batterie sur écran OLED. '
+            'Modifiable à tout moment dans Réglages.',
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Notifications',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Restez informé des activités importantes de la communauté.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: context.textSecondaryColor),
-          ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          SwitchListTile(
-            title: const Text('Activer les notifications'),
-            subtitle: const Text('Recevoir toutes les notifications'),
-            value: _enableNotifications,
-            onChanged: (value) => setState(() => _enableNotifications = value),
-            activeThumbColor: context.adaptivePrimaryColor,
+          Row(
+            children: [
+              Expanded(
+                child: _ThemeModeCard(
+                  mode: AppThemeMode.light,
+                  label: 'Clair',
+                  isSelected: _selectedThemeMode == AppThemeMode.light,
+                  onTap: () => _selectThemeMode(AppThemeMode.light),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ThemeModeCard(
+                  mode: AppThemeMode.dark,
+                  label: 'Sombre',
+                  isSelected: _selectedThemeMode == AppThemeMode.dark,
+                  onTap: () => _selectThemeMode(AppThemeMode.dark),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ThemeModeCard(
+                  mode: AppThemeMode.system,
+                  label: 'Auto',
+                  isSelected: _selectedThemeMode == AppThemeMode.system,
+                  onTap: () => _selectThemeMode(AppThemeMode.system),
+                ),
+              ),
+            ],
           ),
-          const Divider(),
+          const SizedBox(height: 24),
 
-          SwitchListTile(
-            title: const Text('Événements'),
-            subtitle: const Text('Nouveaux événements dans votre ville'),
-            value: _enableEventNotifications,
-            onChanged:
-                _enableNotifications
-                    ? (value) =>
-                        setState(() => _enableEventNotifications = value)
-                    : null,
-            activeThumbColor: context.adaptivePrimaryColor,
+          const DesignFieldLabel('Couleur d\'accent'),
+          Row(
+            children: [
+              _AccentSwatch(
+                color: AppColors.primary,
+                label: 'Orange',
+                isSelected: _selectedThemeColor == AppThemeColor.orange,
+                onTap: () => _selectThemeColor(AppThemeColor.orange),
+              ),
+              const SizedBox(width: 18),
+              _AccentSwatch(
+                color: AppColors.secondary,
+                label: 'Vert',
+                isSelected: _selectedThemeColor == AppThemeColor.green,
+                onTap: () => _selectThemeColor(AppThemeColor.green),
+              ),
+            ],
           ),
-          const Divider(),
+          const SizedBox(height: 26),
 
-          SwitchListTile(
-            title: const Text('Messages'),
-            subtitle: const Text('Nouveaux messages et conversations'),
-            value: _enableMessageNotifications,
-            onChanged:
-                _enableNotifications
-                    ? (value) =>
-                        setState(() => _enableMessageNotifications = value)
-                    : null,
-            activeThumbColor: context.adaptivePrimaryColor,
-          ),
+          _buildCompletionSummary(),
         ],
       ),
     );
   }
 
-  // Image picker methods
+  void _selectThemeMode(AppThemeMode mode) {
+    setState(() => _selectedThemeMode = mode);
+    ref.read(themeModeNotifierProvider.notifier).setThemeMode(mode);
+  }
+
+  void _selectThemeColor(AppThemeColor color) {
+    setState(() => _selectedThemeColor = color);
+    ref.read(themeColorNotifierProvider.notifier).setThemeColor(color);
+  }
+
+  /// Récapitulatif de fin : le pourcentage est calculé sur les champs
+  /// réellement remplis, jamais annoncé d'avance.
+  Widget _buildCompletionSummary() {
+    final filled = <bool>[
+      _displayNameController.text.trim().isNotEmpty,
+      (_handle ?? '').isNotEmpty,
+      _selectedProfession != null,
+      _selectedCountry != null,
+      _selectedCityController.text.trim().isNotEmpty,
+      _selectedInterests.isNotEmpty,
+      _photoUrl != null,
+    ];
+    final percent = (filled.where((f) => f).length * 100 / filled.length).round();
+
+    final name = _displayNameController.text.trim();
+    final firstName = name.isEmpty ? null : name.split(' ').first;
+    final city = _selectedCityController.text.trim();
+
+    return DesignSummaryCard(
+      title: firstName == null ? 'Tout est prêt' : 'Tout est prêt, $firstName',
+      body:
+          'Profil complété à $percent % : vous êtes visible sur la carte des '
+          'membres${city.isEmpty ? '' : ' de $city'} et dans la recherche.',
+    );
+  }
+
+  // ------------------------------------------------------------------- photo
+
   Future<void> _showImagePickerOptions() async {
     showModalBottomSheet(
       context: context,
@@ -744,33 +914,12 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SheetHandle(),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.adaptivePrimaryColor.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.photo_camera,
-                        color: context.adaptivePrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Changer la photo',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: DesignSectionTitle('Votre photo'),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 _ImagePickerOption(
                   icon: Icon(
                     Icons.camera_alt_outlined,
@@ -840,214 +989,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       }
     }
   }
-
-  // Dropdown builders
-  Widget _buildCountryDropdown() {
-    return DropdownButtonFormField<CountryOption>(
-      initialValue: _selectedCountry,
-      decoration: InputDecoration(
-        labelText: 'Pays actuel',
-        prefixIcon: const AppIcon(AppIcon.public),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      hint: const Text('Sélectionnez votre pays'),
-      isExpanded: true,
-      items:
-          ProfileOptions.countries.map((country) {
-            return DropdownMenuItem(
-              value: country,
-              child: Text(country.displayName),
-            );
-          }).toList(),
-      onChanged: (value) {
-        setState(() => _selectedCountry = value);
-      },
-    );
-  }
-
-  Widget _buildOriginRegionDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedOriginRegion,
-      decoration: InputDecoration(
-        labelText: 'Région d\'origine',
-        prefixIcon: const Icon(Icons.map_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      hint: const Text('Sélectionnez votre région'),
-      isExpanded: true,
-      items:
-          ProfileOptions.regions.map((region) {
-            return DropdownMenuItem(value: region, child: Text(region));
-          }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedOriginRegion = value;
-          _selectedOriginCity = null;
-          _customOriginCityController.clear();
-        });
-      },
-    );
-  }
-
-  Widget _buildOriginCityDropdown() {
-    final cities =
-        _selectedOriginRegion != null
-            ? ProfileOptions.getCitiesForRegion(_selectedOriginRegion!)
-            : <String>[];
-
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedOriginCity,
-      decoration: InputDecoration(
-        labelText: 'Ville d\'origine',
-        prefixIcon: const Icon(Icons.home_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      hint: const Text('Sélectionnez votre ville'),
-      isExpanded: true,
-      items:
-          cities.map((city) {
-            return DropdownMenuItem(value: city, child: Text(city));
-          }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedOriginCity = value;
-          if (value != 'Autre') {
-            _customOriginCityController.clear();
-          }
-        });
-      },
-    );
-  }
-
-  // Theme step
-  Widget _buildThemeStep() {
-    // Use current theme values directly
-    final currentThemeMode = ref.watch(themeModeNotifierProvider);
-    final currentThemeColor = ref.watch(themeColorNotifierProvider);
-
-    // Initialize local state with current values if not already set
-    if (!_themeInitialized) {
-      _selectedThemeMode = currentThemeMode;
-      _selectedThemeColor = currentThemeColor;
-      _themeInitialized = true;
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.palette, size: 64, color: context.adaptivePrimaryColor),
-          const SizedBox(height: 16),
-          Text(
-            'Thème de l\'application',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Personnalisez l\'apparence de l\'application selon vos préférences.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: context.textSecondaryColor),
-          ),
-          const SizedBox(height: 32),
-
-          // Theme mode selection
-          Text(
-            'Mode d\'affichage',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _ThemeModeOption(
-            icon: Icons.light_mode,
-            title: 'Clair',
-            subtitle: 'Thème lumineux',
-            isSelected: _selectedThemeMode == AppThemeMode.light,
-            onTap: () {
-              setState(() => _selectedThemeMode = AppThemeMode.light);
-              ref
-                  .read(themeModeNotifierProvider.notifier)
-                  .setThemeMode(AppThemeMode.light);
-            },
-          ),
-          const SizedBox(height: 12),
-          _ThemeModeOption(
-            icon: Icons.dark_mode,
-            title: 'Sombre',
-            subtitle: 'Thème sombre',
-            isSelected: _selectedThemeMode == AppThemeMode.dark,
-            onTap: () {
-              setState(() => _selectedThemeMode = AppThemeMode.dark);
-              ref
-                  .read(themeModeNotifierProvider.notifier)
-                  .setThemeMode(AppThemeMode.dark);
-            },
-          ),
-          const SizedBox(height: 12),
-          _ThemeModeOption(
-            icon: Icons.brightness_auto,
-            title: 'Automatique',
-            subtitle: 'Suit les paramètres du système',
-            isSelected: _selectedThemeMode == AppThemeMode.system,
-            onTap: () {
-              setState(() => _selectedThemeMode = AppThemeMode.system);
-              ref
-                  .read(themeModeNotifierProvider.notifier)
-                  .setThemeMode(AppThemeMode.system);
-            },
-          ),
-          const SizedBox(height: 32),
-
-          // Theme color selection
-          Text(
-            'Couleur du thème',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _ThemeColorOption(
-                  color: const Color(0xFF4CAF50),
-                  title: 'Vert',
-                  isSelected: _selectedThemeColor == AppThemeColor.green,
-                  onTap: () {
-                    setState(() => _selectedThemeColor = AppThemeColor.green);
-                    ref
-                        .read(themeColorNotifierProvider.notifier)
-                        .setThemeColor(AppThemeColor.green);
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _ThemeColorOption(
-                  color: const Color(0xFFFF9800),
-                  title: 'Orange',
-                  isSelected: _selectedThemeColor == AppThemeColor.orange,
-                  onTap: () {
-                    setState(() => _selectedThemeColor = AppThemeColor.orange);
-                    ref
-                        .read(themeColorNotifierProvider.notifier)
-                        .setThemeColor(AppThemeColor.orange);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-// Helper widgets
+// ---------------------------------------------------------------- composants
+
 class _ImagePickerOption extends StatelessWidget {
   final Widget icon;
   final String title;
@@ -1067,28 +1012,28 @@ class _ImagePickerOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(kDesignRadius),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: context.borderColor, width: 1),
-          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.borderColor),
+          borderRadius: BorderRadius.circular(kDesignRadius),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color:
                     isDestructive
                         ? AppColors.error.withValues(alpha: 0.1)
                         : context.adaptivePrimaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(11),
               ),
               child: icon,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1096,17 +1041,20 @@ class _ImagePickerOption extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14.5,
                       fontWeight: FontWeight.w600,
-                      color: isDestructive ? AppColors.error : null,
+                      color:
+                          isDestructive
+                              ? AppColors.error
+                              : context.textPrimaryColor,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: context.textSecondaryColor,
+                      fontSize: 12.5,
+                      color: context.textTertiaryColor,
                     ),
                   ),
                 ],
@@ -1119,133 +1067,194 @@ class _ImagePickerOption extends StatelessWidget {
   }
 }
 
-class _ThemeModeOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+/// Carte d'aperçu d'un mode d'affichage (§16g) : une miniature de page plutôt
+/// qu'un pictogramme, pour montrer ce que le mode change.
+class _ThemeModeCard extends StatelessWidget {
+  final AppThemeMode mode;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ThemeModeOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+  const _ThemeModeCard({
+    required this.mode,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.adaptivePrimaryColor;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(kDesignRadius),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(9),
         decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
-                  : Colors.transparent,
+          color: context.surfaceColor,
           border: Border.all(
-            color:
-                isSelected ? context.adaptivePrimaryColor : context.borderColor,
+            color: isSelected ? accent : context.borderColor,
             width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color:
-                  isSelected
-                      ? context.adaptivePrimaryColor
-                      : context.textSecondaryColor,
-              size: 32,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? context.adaptivePrimaryColor : null,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: context.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              AppIcon(AppIcon.checkCircle, color: context.adaptivePrimaryColor),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ThemeColorOption extends StatelessWidget {
-  final Color color;
-  final String title;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ThemeColorOption({
-    required this.color,
-    required this.title,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
-          border: Border.all(
-            color: isSelected ? color : context.borderColor,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(kDesignRadius),
         ),
         child: Column(
           children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child:
-                  isSelected
-                      ? const AppIcon(AppIcon.check, color: Colors.white, size: 32)
-                      : null,
+            AspectRatio(
+              aspectRatio: 0.92,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _ThemeModePreview(mode: mode),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 9),
             Text(
-              title,
+              label,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? color : null,
+                color: isSelected ? accent : context.textPrimaryColor,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Miniature de page. Les couleurs sont volontairement figées : cette vignette
+/// représente le thème clair et le thème sombre, elle ne suit donc pas le
+/// thème courant.
+class _ThemeModePreview extends StatelessWidget {
+  final AppThemeMode mode;
+
+  const _ThemeModePreview({required this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    switch (mode) {
+      case AppThemeMode.light:
+        return _panel(dark: false);
+      case AppThemeMode.dark:
+        return _panel(dark: true);
+      case AppThemeMode.system:
+        // Moitié claire / moitié sombre, coupées en diagonale.
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            _panel(dark: false),
+            ClipPath(
+              clipper: _DiagonalClipper(),
+              child: _panel(dark: true),
+            ),
+          ],
+        );
+    }
+  }
+
+  Widget _panel({required bool dark}) {
+    final background = dark ? AppColors.backgroundDark : AppColors.background;
+    final bar = dark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant;
+    return Container(
+      color: background,
+      padding: const EdgeInsets.all(9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _bar(bar, widthFactor: 0.85),
+          const SizedBox(height: 5),
+          _bar(bar, widthFactor: 0.6),
+          const SizedBox(height: 12),
+          _bar(AppColors.primary, widthFactor: 0.72, height: 9),
+        ],
+      ),
+    );
+  }
+
+  Widget _bar(
+    Color color, {
+    required double widthFactor,
+    double height = 5,
+  }) {
+    return FractionallySizedBox(
+      alignment: Alignment.centerLeft,
+      widthFactor: widthFactor,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(3),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+/// Pastille de couleur d'accent (§16g).
+class _AccentSwatch extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AccentSwatch({
+    required this.color,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border:
+                  isSelected
+                      ? Border.all(color: context.textPrimaryColor, width: 2)
+                      : null,
+            ),
+            alignment: Alignment.center,
+            child:
+                isSelected
+                    ? const Icon(Icons.check, size: 22, color: Colors.white)
+                    : null,
+          ),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color:
+                  isSelected
+                      ? context.textPrimaryColor
+                      : context.textSecondaryColor,
+            ),
+          ),
+        ],
       ),
     );
   }

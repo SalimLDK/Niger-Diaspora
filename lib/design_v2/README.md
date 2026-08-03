@@ -58,6 +58,48 @@ Puis dans le fichier écrasé, remplacer
 par `../providers/auth_provider.dart` (même chose pour `onboarding_provider`
 et `profile_provider`). Terminer par `flutter analyze`.
 
+## Trousse commune : `kit/design_kit.dart`
+
+Le vocabulaire visuel des maquettes vit à un seul endroit
+(`lib/design_v2/kit/design_kit.dart`) : titre serif à point terracotta,
+surtitre en chasse fixe, bloc d'illustration rayé, puces cochées, points
+de page, barre d'étapes segmentée, bouton pilule à flèche, cartes sable à
+interrupteurs, puces sélectionnables, listes déroulantes et champs.
+
+`AuthTitle`, `AuthPrimaryButton` et `AuthSecondaryButton` ne sont plus que
+des alias de leurs équivalents de la trousse : un seul endroit à toucher
+pour changer un rayon ou une graisse.
+
+Toutes les couleurs passent par `adaptive_colors.dart`. Les maquettes sont
+en clair, mais les écrans restent lisibles en thème sombre — c'est
+exactement le piège corrigé en `78b720e`, à ne pas réintroduire. Deux
+exceptions assumées et commentées : les vignettes d'aperçu de thème
+(étape 4/4), qui *représentent* le clair et le sombre et ne doivent donc
+pas suivre le thème courant.
+
+## Écarts connus avec les maquettes
+
+- **Textes en dur.** Les écrans redessinés portent la copie française des
+  maquettes directement dans le code. Les faire passer par `app_fr.arb` /
+  `app_en.arb` est le dernier geste avant la bascule en production (et il
+  faut la parité des métadonnées `@clé`, sinon `gen-l10n` échoue en
+  silence).
+- **Couleur d'accent « Teal ».** La maquette 16g propose trois pastilles,
+  `AppThemeColor` n'en connaît que deux (`green`, `orange`). L'écran
+  n'affiche donc que Orange et Vert ; ajouter Teal veut dire toucher
+  `lib/core/theme/theme_provider.dart`, c'est-à-dire du code de
+  production, hors périmètre de ce bac à sable.
+- **Illustrations.** Les blocs rayés sont des emplacements, exactement
+  comme dans les maquettes (« illustration — carte des membres »).
+- **Découpage des étapes.** La configuration du profil passe de
+  (localisation+identité / intérêts / notifications / thème) à
+  (identité / localisation / intérêts + « Ce que vous recevrez » / thème),
+  comme 16f → 15c → 15d → 16g. Aucune donnée sauvegardée ne change :
+  `notificationsEnabled` reste vrai tant qu'une des deux catégories est
+  active.
+- **« Choisissez-en au moins deux »** est une invitation, pas un blocage :
+  l'avancement n'est pas verrouillé sur le nombre de centres d'intérêt.
+
 ## À savoir
 
 - Ce dossier est compilé par `flutter analyze` mais **n'est référencé par

@@ -4,6 +4,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../kit/design_kit.dart';
 
 /// Briques communes aux écrans d'authentification, transcrites des maquettes
 /// « Bon retour. » / « Créer un compte. » / « Configuration du profil ».
@@ -104,6 +105,9 @@ class AuthBrandMark extends StatelessWidget {
 }
 
 /// Titre de page : serif gras aligné à gauche, terminé par un point d'accent.
+///
+/// Simple alias de [DesignTitle] : le titre est le même sur les écrans
+/// d'authentification, l'onboarding et la configuration du profil.
 class AuthTitle extends StatelessWidget {
   final String text;
   final double size;
@@ -111,26 +115,7 @@ class AuthTitle extends StatelessWidget {
   const AuthTitle(this.text, {super.key, this.size = 29});
 
   @override
-  Widget build(BuildContext context) {
-    final base = GoogleFonts.playfairDisplay(
-      fontSize: size,
-      fontWeight: FontWeight.w700,
-      height: 1.15,
-      color: context.textPrimaryColor,
-    );
-    return Text.rich(
-      TextSpan(
-        style: base,
-        children: [
-          TextSpan(text: text),
-          TextSpan(
-            text: '.',
-            style: base.copyWith(color: context.adaptivePrimaryColor),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => DesignTitle(text, size: size);
 }
 
 /// Libellé au-dessus d'un champ, avec une action optionnelle à droite
@@ -301,44 +286,12 @@ class AuthPrimaryButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final fg = context.onPrimaryColor;
-    return SizedBox(
-      height: kAuthControlHeight,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: context.adaptivePrimaryColor,
-          foregroundColor: fg,
-          disabledBackgroundColor: context.adaptivePrimaryColor.withValues(
-            alpha: 0.55,
-          ),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kAuthRadius),
-          ),
-        ),
-        child:
-            isLoading
-                ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(fg),
-                  ),
-                )
-                : Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w600,
-                    color: fg,
-                  ),
-                ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      DesignPrimaryButton(
+        label: label,
+        onPressed: onPressed,
+        isLoading: isLoading,
+      );
 }
 
 /// Bouton secondaire contour (« Précédent »).
@@ -353,30 +306,8 @@ class AuthSecondaryButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: kAuthControlHeight,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: context.surfaceColor,
-          foregroundColor: context.textPrimaryColor,
-          side: BorderSide(color: context.borderColor),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kAuthRadius),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 15.5,
-            fontWeight: FontWeight.w600,
-            color: context.textPrimaryColor,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      DesignSecondaryButton(label: label, onPressed: onPressed);
 }
 
 /// « Pas encore de compte ? S'inscrire » centré sous le bouton principal.
