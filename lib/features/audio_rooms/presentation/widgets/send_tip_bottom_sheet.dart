@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
@@ -15,11 +16,16 @@ class SendTipBottomSheet extends ConsumerStatefulWidget {
   final ParticipantEntity recipient;
   final String currency;
 
+  /// Titre du salon, affiché sous le nom du destinataire (maquette 1g).
+  /// Optionnel : sans lui, on retombe sur l'état du micro.
+  final String? roomTitle;
+
   const SendTipBottomSheet({
     super.key,
     required this.roomId,
     required this.recipient,
     this.currency = 'EUR',
+    this.roomTitle,
   });
 
   static Future<bool?> show(
@@ -27,6 +33,7 @@ class SendTipBottomSheet extends ConsumerStatefulWidget {
     required String roomId,
     required ParticipantEntity recipient,
     String currency = 'EUR',
+    String? roomTitle,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -36,6 +43,7 @@ class SendTipBottomSheet extends ConsumerStatefulWidget {
         roomId: roomId,
         recipient: recipient,
         currency: currency,
+        roomTitle: roomTitle,
       ),
     );
   }
@@ -53,6 +61,15 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
 
   double get _platformFee => _selected * 0.05;
   double get _recipientGets => _selected - _platformFee;
+
+  /// Part réellement perçue, calculée plutôt que codée en dur à « 95 % ».
+  int get _recipientSharePercent =>
+      _selected == 0 ? 0 : ((_recipientGets / _selected) * 100).round();
+
+  Currency get _currency => CurrencyExtension.fromCode(widget.currency);
+
+  String _money(double amount) =>
+      CurrencyService.instance.format(amount, _currency);
 
   @override
   void dispose() {
@@ -82,6 +99,8 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final dn = context.dn;
+    final l10n = AppLocalizations.of(context)!;
+    final roomTitle = widget.roomTitle?.trim();
     return Container(
       decoration: BoxDecoration(
         color: dn.surface,
@@ -135,9 +154,15 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                         Text(widget.recipient.userName,
                             style: DNText.sans(
                                 size: 13, w: FontWeight.w600, color: dn.onSurface,),),
+                        // La maquette situe le don : « Speaker · <salon> ».
+                        // Sans titre de salon, on garde l'état du micro.
                         Text(
-                          '${widget.recipient.roleLabel} · '
-                          '🎙 ${widget.recipient.isMuted ? AppLocalizations.of(context)!.liveMicMuted : AppLocalizations.of(context)!.liveMicLabel}',
+                          roomTitle != null && roomTitle.isNotEmpty
+                              ? '${widget.recipient.roleLabel} · $roomTitle'
+                              : '${widget.recipient.roleLabel} · '
+                                  '🎙 ${widget.recipient.isMuted ? l10n.liveMicMuted : l10n.liveMicLabel}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: DNText.mono(size: 9, color: dn.onSurface3),
                         ),
                       ],
@@ -168,7 +193,7 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '€${amt.toStringAsFixed(0)}',
+                        _money(amt),
                         style: DNText.serif(
                           size: 16,
                           color: active ? DNColors.paper : dn.onSurface,
@@ -210,16 +235,41 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                   color: dn.surface2,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // La maquette montre les deux montants : ce que l'on débourse
+                // et ce que le destinataire touche après commission.
+                child: Column(
                   children: [
-                    Text(
-                      AppLocalizations.of(context)!.recipientReceives(widget.recipient.userName),
-                      style: DNText.mono(size: 9, color: dn.onSurface3),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.sendTipYouSend,
+                          style: DNText.mono(size: 9, color: dn.onSurface3),
+                        ),
+                        Text(
+                          _money(_selected),
+                          style: DNText.mono(size: 9, color: dn.onSurface),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '€${_recipientGets.toStringAsFixed(2)} (95%)',
-                      style: DNText.mono(size: 9, color: DNColors.leaf),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            l10n.recipientReceives(widget.recipient.userName),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: DNText.mono(size: 9, color: dn.onSurface3),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_money(_recipientGets)} ($_recipientSharePercent%)',
+                          style: DNText.mono(size: 9, color: DNColors.leaf),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -244,12 +294,20 @@ class _SendTipBottomSheetState extends ConsumerState<SendTipBottomSheet> {
                             color: Colors.white, strokeWidth: 2,),
                       )
                     : Text(
-                        '🪙 Envoyer €${_selected.toStringAsFixed(2)}',
+                        '🪙 ${l10n.sendTipSend(_money(_selected))}',
                         style: DNText.sans(
                             size: 15,
                             w: FontWeight.w600,
                             color: DNColors.paper,),
                       ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  l10n.sendTipShownInRoomNote,
+                  textAlign: TextAlign.center,
+                  style: DNText.mono(size: 8, color: dn.onSurface3),
+                ),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
@@ -38,6 +39,14 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
   double get _price => (widget.room.ticketPrice ?? 0) / 100;
   double get _commission => _price * 0.05;
   double get _hostPayout => _price - _commission;
+
+  /// Devise réelle du billet : le prix s'affichait en € en dur, y compris pour
+  /// un salon facturé en XOF.
+  Currency get _currency =>
+      CurrencyExtension.fromCode(widget.room.ticketCurrency ?? 'EUR');
+
+  String _money(double amount) =>
+      CurrencyService.instance.format(amount, _currency);
 
   Future<void> _purchase() async {
     setState(() => _isPurchasing = true);
@@ -133,7 +142,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '€${price.toStringAsFixed(2)}',
+                  _money(price),
                   style: DNText.serif(size: 26, w: FontWeight.w600, color: dn.onSurface),
                 ),
                 const SizedBox(height: 6),
@@ -142,7 +151,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
                   children: [
                     Text(l10n.platformCommission,
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
-                    Text('-€${_commission.toStringAsFixed(2)}',
+                    Text('-${_money(_commission)}',
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
                   ],
                 ),
@@ -151,7 +160,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
                   children: [
                     Text(l10n.hostShareLabel,
                         style: DNText.mono(size: 8, color: dn.onSurface3),),
-                    Text('+€${_hostPayout.toStringAsFixed(2)}',
+                    Text('+${_money(_hostPayout)}',
                         style: DNText.mono(size: 8, color: DNColors.leaf),),
                   ],
                 ),
@@ -162,19 +171,32 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
 
           Text(l10n.paymentMethodLabel, style: DNText.mono(size: 9, color: dn.onSurface3)),
           const SizedBox(height: 8),
+          // Le code PIN ne concerne que le mobile money. La mention était
+          // affichée en pied de feuille, donc également quand « Carte
+          // bancaire » était sélectionné : elle est désormais portée par les
+          // seules méthodes concernées (maquette 1h).
           ...[
-            ('stripe', 'Carte bancaire', '💳'),
-            ('wave', 'Wave Mobile Money', '📱'),
-            ('mynita', 'Mynita', '🌍'),
-          ].map((m) => _PaymentRadio(
-                value: m.$1,
-                label: m.$2,
-                emoji: m.$3,
-                groupValue: _paymentMethod,
-                onChanged: (v) => setState(() => _paymentMethod = v!),
+            (
+              id: 'stripe',
+              label: l10n.ticketPaymentMethodCard,
+              emoji: '💳',
+              needsPin: false,
+            ),
+            (id: 'wave', label: 'Wave Mobile Money', emoji: '📱', needsPin: true),
+            (id: 'mynita', label: 'Mynita', emoji: '🌍', needsPin: true),
+          ].map((m) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _PaymentRadio(
+                  value: m.id,
+                  label: m.label,
+                  emoji: m.emoji,
+                  subtitle: m.needsPin ? l10n.ticketPinRequired : null,
+                  groupValue: _paymentMethod,
+                  onChanged: (v) => setState(() => _paymentMethod = v),
+                ),
               ),),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
           ElevatedButton(
             onPressed: _isPurchasing ? null : _purchase,
@@ -193,7 +215,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
                         color: Colors.white, strokeWidth: 2,),
                   )
                 : Text(
-                    '🔓 Acheter & rejoindre · €${price.toStringAsFixed(2)}',
+                    l10n.ticketBuyAndJoin(_money(price)),
                     style: DNText.sans(
                         size: 15, w: FontWeight.w600, color: DNColors.paper,),
                   ),
@@ -201,7 +223,8 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Code PIN demandé pour confirmer',
+              l10n.ticketReplayAccessNote,
+              textAlign: TextAlign.center,
               style: DNText.mono(size: 8, color: dn.onSurface3),
             ),
           ),
@@ -211,12 +234,15 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
   }
 }
 
+/// Ligne de moyen de paiement : encadrée, sélectionnable en entier, avec un
+/// [subtitle] optionnel réservé aux méthodes qui demandent un code PIN.
 class _PaymentRadio extends StatelessWidget {
   final String value;
   final String label;
   final String emoji;
+  final String? subtitle;
   final String? groupValue;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<String> onChanged;
 
   const _PaymentRadio({
     required this.value,
@@ -224,20 +250,79 @@ class _PaymentRadio extends StatelessWidget {
     required this.emoji,
     required this.groupValue,
     required this.onChanged,
+    this.subtitle,
   });
 
   @override
-  Widget build(BuildContext context) => RadioMenuButton<String>(
-        value: value,
-        groupValue: groupValue,
-        onChanged: onChanged,
+  Widget build(BuildContext context) {
+    final dn = context.dn;
+    final selected = groupValue == value;
+
+    return InkWell(
+      onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: dn.surface2,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? DNColors.terra : dn.onSurface4,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
         child: Row(
           children: [
             Text(emoji, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: DNText.sans(
+                      size: 13,
+                      w: FontWeight.w600,
+                      color: dn.onSurface,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: DNText.mono(size: 8, color: dn.onSurface3),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(width: 8),
-            Text(label,
-                style: DNText.sans(size: 13, color: context.dn.onSurface),),
+            Container(
+              width: 18,
+              height: 18,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? DNColors.terra : dn.onSurface4,
+                  width: 1.5,
+                ),
+              ),
+              child: selected
+                  ? Container(
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: DNColors.terra,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                  : null,
+            ),
           ],
         ),
-      );
+      ),
+    );
+  }
 }

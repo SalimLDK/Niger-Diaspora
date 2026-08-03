@@ -421,8 +421,11 @@ class _AddPaymentAccountScreenState
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                // Navigate to existing Stripe Connect onboarding
-                context.push('/audio-rooms/monetization');
+                // '/audio-rooms/monetization' n'existe pas : GoRouter la
+                // matchait sur '/audio-rooms/:roomId' et ouvrait un salon
+                // nommé « monetization ». L'onboarding Stripe Connect vit
+                // dans l'écran des revenus créateur.
+                context.push('/creator/earnings');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF635BFF),
