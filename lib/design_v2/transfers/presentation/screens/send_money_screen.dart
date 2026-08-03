@@ -80,8 +80,12 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   }
 
   // Couleurs du transfert (refonte §6/12a).
+  //
+  // L'orange d'action du guide de style. L'étape à venir, elle, portait une
+  // copie figée de l'ancienne bordure (`#E8DFD4`) — un beige clair qui
+  // restait clair en nocturne : elle passe désormais par
+  // `colorScheme.outline`, qui suit le thème.
   static const _kTransferAccent = Color(0xFFB85E24);
-  static const _kStepUpcoming = Color(0xFFE8DFD4);
 
   Widget _stepContent(
     ThemeData theme,
@@ -99,7 +103,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   }
 
   /// Indicateur d'étapes sur une ligne : rond 22 px + libellé, barre 2 px
-  /// entre les étapes (accent = faite/en cours, beige = à venir).
+  /// entre les étapes (accent = faite/en cours, bordure du thème = à venir).
   Widget _buildStepIndicator(ThemeData theme) {
     const labels = ['Bénéficiaire', 'Montant', 'Confirmer'];
 
@@ -114,7 +118,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             height: 22,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: active ? _kTransferAccent : _kStepUpcoming,
+              color: active ? _kTransferAccent : theme.colorScheme.outline,
               shape: BoxShape.circle,
             ),
             child: done
@@ -153,7 +157,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           padding: const EdgeInsets.only(top: 10),
           child: Container(
             height: 2,
-            color: done ? _kTransferAccent : _kStepUpcoming,
+            color: done ? _kTransferAccent : theme.colorScheme.outline,
           ),
         ),
       );

@@ -197,9 +197,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   static const Color _kRecvBubbleLight = Color(0xFFFFFFFF);
   static const Color _kRecvBubbleDark = Color(0xFF252119);
 
-  /// Bordure de bulle reçue : `#EFE7DB` (clair) / `#3D352C` (sombre).
-  static const Color _kRecvBorderLight = Color(0xFFEFE7DB);
-  static const Color _kRecvBorderDark = Color(0xFF3D352C);
+  // Bordure de bulle reçue : c'est la bordure du thème, pas une valeur à
+  // part. Elle était figée à `#EFE7DB` / `#3D352C` — le clair était déjà
+  // celui du guide de style, le sombre a depuis été resserré à `#2A241E`.
 
   /// Décoration opaque de la bulle (remplace le glassmorphism).
   BoxDecoration _bubbleDecoration(BuildContext context) {
@@ -217,10 +217,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       border:
           widget.isMe
               ? null
-              : Border.all(
-                color: isDark ? _kRecvBorderDark : _kRecvBorderLight,
-                width: 1,
-              ),
+              : Border.all(color: context.borderColor, width: 1),
     );
   }
 
