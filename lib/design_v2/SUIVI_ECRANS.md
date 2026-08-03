@@ -777,8 +777,19 @@ patron aux six autres. Trois gestes :
 2. Les gris figés (`Colors.grey[600]`) deviennent `dn.onSurface3`.
 3. `Theme.of(context).primaryColor` devient `DNColors.terra`.
 
-Migrés à ce jour : `create_podcast_screen`, `my_podcasts_screen`,
-`podcast_detail_screen`, `podcast_stats_screen`, `podcasts_home_screen`. Restent, par ordre de coût croissant :
+Migration **terminée** : `create_podcast_screen`, `my_podcasts_screen`,
+`podcast_detail_screen`, `podcast_stats_screen`, `podcasts_home_screen`,
+`record_episode_screen`.
+
+**`episode_detail_screen` est écarté**, et c'est délibéré. Il contient un
+`_playerTheme()` — un lecteur **volontairement sombre en permanence**, dont
+le commentaire dit qu'il suit la maquette au titre de « pièce plein écran
+média », comme le viewer de stories. Même catégorie que les écrans d'appel :
+lui imposer les surfaces DN casserait ce que le code cherche à obtenir.
+Une première passe de 18 conversions avait été appliquée puis **annulée** :
+`flutter analyze` passait, mais rien ne garantissait que les jetons n'avaient
+pas atterri dans la zone sombre. Le migrer demande de lire le fichier et de
+distinguer la coque du lecteur — pas des remplacements. Restent, par ordre de coût croissant :
 
 | Écran | Lignes | Ce qu'il porte |
 |---|---|---|
@@ -786,8 +797,8 @@ Migrés à ce jour : `create_podcast_screen`, `my_podcasts_screen`,
 | ~~`my_podcasts_screen`~~ | 525 | **fait** |
 | ~~`podcast_detail_screen`~~ | 531 | **fait** |
 | ~~`podcasts_home_screen`~~ | 704 | **fait** |
-| `record_episode_screen` | 718 | 5 `Theme.of`, 5 `colorScheme` |
-| `episode_detail_screen` | 996 | **29 `Theme.of`, 19 `colorScheme`** — le plus gros |
+| ~~`record_episode_screen`~~ | 718 | **fait** |
+| `episode_detail_screen` | 996 | **écarté** — voir ci-dessous |
 
 Aucun n'est *cassé* : `adaptive_colors` comme `colorScheme` sont déjà
 theme-aware. Cette migration est une unification visuelle avec les salons,
