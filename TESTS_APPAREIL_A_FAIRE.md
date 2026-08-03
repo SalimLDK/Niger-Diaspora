@@ -349,6 +349,70 @@ en solo.
 
 ## Profil & Accueil (avant la refonte design)
 
+## Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion
+
+⚠️ **Distinction à faire avant de tester.** L'essentiel du travail de design
+de cette session vit dans `lib/design_v2/`, **qui n'est câblé à aucune
+route** : ces écrans ne s'affichent pas dans l'app et ne sont donc **pas
+testables** tant que la bascule vers `lib/features/` n'a pas eu lieu. Seuls
+les trois blocs ci-dessous touchent la production et sont exerçables tout de
+suite.
+
+### Testable maintenant (production)
+
+- [ ] **Mode données réduites appliqué à la réception** (`data_saver_gate.dart`
+  nouveau, `message_bubble.dart`, 2 sites image + vidéo). C'est le point le
+  plus important à vérifier de la session, et le seul qui change un
+  comportement réseau. À exercer :
+  - activer ÉCO (puce `⊙ Éco` de la sous-barre d'une discussion, ou Réglages
+    → « Mode données réduites ») puis **recevoir une image et une vidéo** :
+    la bulle doit montrer l'aperçu flou, la légende « aperçu flouté · N Ko »
+    et un bouton « Télécharger », **sans consommer de données** ;
+  - confirmer que rien ne part avant l'appui — idéalement en coupant les
+    données mobiles après réception du message : le média doit rester masqué
+    sans erreur de chargement ;
+  - appuyer sur « Télécharger » → le média apparaît ;
+  - **défiler loin puis revenir** : le média dévoilé doit le rester (le
+    dévoilement est mémorisé par identifiant de message, en mémoire) ;
+  - **relancer l'app** : le média doit être **de nouveau masqué**, c'est
+    voulu ;
+  - vérifier qu'un média **que j'envoie** n'est jamais masqué ;
+  - vérifier qu'un message sans `fileSize` affiche « aperçu flouté » **sans**
+    « 0 Ko ».
+  - Test le plus parlant : **en 2G réelle ou en bridant le réseau**, comparer
+    la consommation avec et sans ÉCO sur une conversation riche en médias.
+
+- [ ] **Squelette pendant l'élargissement du rayon** (`home_screen.dart`,
+  `home_screen_widgets.dart`). Depuis l'accueil, état « Personne à moins de
+  50 km », appuyer sur « Élargir à 200 km » : le squelette (4 avatars gris)
+  doit remplacer la carte vide **pendant** la recherche. Le défaut corrigé
+  était que « Personne à moins de 50 km » restait affiché tout du long.
+  Vérifier aussi que le **rafraîchissement automatique des 60 s** ne fait
+  **pas** clignoter la liste — il doit garder les résultats affichés.
+
+- [ ] **Carte — libellés sur l'accent en thème sombre** (`map_screen.dart`,
+  `map_legend.dart`). Cinq libellés étaient figés sur `Colors.white` alors
+  qu'ils sont posés sur la couleur d'accent : trois boutons et deux puces
+  sélectionnées (rayon, filtre). **À regarder en mode nuit** — le texte doit
+  rester lisible sur la puce sélectionnée. Vérifier aussi la pastille de la
+  légende, passée d'un dégradé à un aplat.
+
+### Non testable tant que `design_v2` n'est pas basculé
+
+Pour mémoire, ce qui attend la bascule : onboarding 5 écrans, configuration
+du profil en 4 étapes (identité / localisation / intérêts + notifications /
+thème), séparateurs plats de la discussion, bouton d'envoi du composer en
+aplats (4 états, avec variantes claires en thème sombre), pastille de vitesse
+en contour et poids du fichier de la note vocale.
+
+Deux points à regarder **en priorité au moment de la bascule**, parce qu'ils
+sont invisibles à `flutter analyze` :
+
+- le **thème sombre** de tous ces écrans — c'est la famille de défauts la
+  plus récurrente du projet ;
+- l'onboarding à `font_scale = 1.1`, où les titres serif sur deux lignes et
+  les puces de réassurance peuvent déborder.
+
 ## Refonte des maquettes d'authentification
 
 - [x] **Connexion et inscription refaites sur les maquettes** (`auth_scaffold.dart`
@@ -364,14 +428,14 @@ en solo.
   donnait un écran entièrement noir, sans aucune exception dans `logcat` — le
   pied de page est désormais hors du défilement.
 
-- [ ] **Reste des maquettes à implémenter** : configuration du profil 1/4
-  (« Faisons connaissance » — photo, nom d'utilisateur avec vérification de
-  disponibilité, profession), 2/4 localisation, 3/4 centres d'intérêt fusionnés
-  avec « Ce que vous recevrez », 4/4 thème ; nouvelle demande d'ambassade ;
-  création d'événement ; panier vide ; état vide des transferts. La structure
-  actuelle de `profile_config_screen.dart` a 4 étapes (localisation, intérêts,
-  notifications, thème) — les maquettes en ajoutent une d'identité en tête et
-  fusionnent intérêts + notifications.
+- [ ] **Configuration du profil : écrite, pas encore testable.** Les 4 étapes
+  des maquettes (identité « Faisons connaissance » avec photo, nom
+  d'utilisateur et vérification de disponibilité, profession ; localisation ;
+  centres d'intérêt fusionnés avec « Ce que vous recevrez » ; thème) sont
+  implémentées — mais dans `lib/design_v2/profile/…/profile_config_screen.dart`,
+  **qui n'est câblé à aucune route**. Rien n'est vérifiable sur appareil avant
+  la bascule vers `lib/features/`. Restent non écrites : nouvelle demande
+  d'ambassade, création d'événement, panier vide, état vide des transferts.
 
 - [ ] **Sous-titre chiffré de l'inscription non implémenté** : la maquette
   annonce « Rejoignez la communauté : 318 membres à Paris, 12 groupes actifs ».
