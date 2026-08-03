@@ -1237,7 +1237,7 @@ déplacer.
 | 3a | Mes podcasts (créateur) | `podcasts/…/my_podcasts_screen.dart` | 525 l. | ✅ câblée |
 | 3b | Fiche d'un podcast | `podcasts/…/podcast_detail_screen.dart` | 531 l. | ✅ câblée |
 | 3c | Modération fantôme (admin) | `audio_rooms/…/ghost_moderator_screen.dart` | 508 l. | ✅ câblée |
-| — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | à faire |
+| — | Tuile d'épisode (portée par 3a et 3b) | `podcasts/…/widgets/episode_tile.dart` | 545 l. | fait |
 | 4a | Statistiques d'un podcast | `podcasts/…/podcast_stats_screen.dart` | 406 l. | ✅ câblée |
 | 4b | Lecteur — nocturne | même écran que 1e | — | prod — voir « Nocturnes » |
 | 4c | Patrimoine oral — nocturne | même écran que 1c | — | prod — voir « Nocturnes » |
