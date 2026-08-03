@@ -391,9 +391,12 @@ position, l'état d'écoute et le téléchargement. Deux écarts corrigés :
 
 - **Pastille de vitesse en contour** au lieu d'un aplat teinté. Pleine, elle
   se lisait comme un état actif alors que c'est un bouton de cycle.
-- **Poids du fichier retiré de la note vocale.** La 4a le porte sur la pièce
-  jointe (« aperçu flouté · 240 Ko »), pas sur l'audio. L'information reste
-  donc affichée là où elle sert au téléchargement, sur `document_bubble`.
+- **Poids du fichier conservé sur la note vocale.** Je l'avais retiré parce
+  que la 4a ne le montre pas sur l'audio — c'était une erreur de lecture :
+  l'écart est assumé. Sur un réseau 2G, savoir ce qu'on va télécharger
+  compte, et l'information vaut sur la note vocale comme sur la pièce
+  jointe. Rétabli le 2026-08-03, affiché seulement quand le serveur a
+  renvoyé la valeur.
 
 ### Nocturnes — rien à implémenter
 
