@@ -37,9 +37,9 @@ Trois niveaux, à ne pas confondre :
 | 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
-| 11f | Profil incomplet | ✅ | ❌ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
-| 4a | Discussion cliquable | ◐ | — | — | `messages/…/conversation_screen.dart` |
-| 6b | Discussion — Nocturne | ◐ | — | — | idem 4a |
+| 11f | Profil incomplet | ✅ | ✅ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
+| 4a | Discussion cliquable | ◐ | ◐ | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | ✅ | — | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
@@ -243,7 +243,14 @@ donner le focus n'ouvrirait rien d'utile — le formulaire s'ouvre en haut.
 On garde les cinq déjà câblés (photo, ville, métier, langues, bio) : le nom
 est obligatoire à l'inscription, il gonflerait le score sans rien dire.
 
-**Jamais vu à l'écran** : le téléphone s'est déconnecté avant la vérification.
+Vérifié à l'écran le 2026-08-04 : titre chiffré, fraction « 2/5 », barre à
+40 %, phrase d'explication, trois lignes à compléter avec leur bouton
+« Ajouter », puis « Photo de profil » et « Votre métier » atténués avec la
+coche verte.  ouvre bien 20a **et** la feuille des langues.
+
+Deux points non vus, faute d'un compte qui les produise : l'avatar en
+**pointillés** (le compte de test a une photo, donc le contour plein) et le
+focus sur « ville » / « bio ».
 
 ## 16e — Créer un événement
 
