@@ -9,10 +9,14 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import 'my_posts_screen.dart' show userPostsCountProvider;
+import 'saved_posts_screen.dart' show bookmarkedPostsCountProvider;
 
-/// Hub « Mon espace » (tour 5a) — point d'entrée = avatar de l'en-tête du fil.
-/// En-tête profil, cartes de stats (abonnés / abonnements) et raccourcis vers
-/// Mes publications, Repartages, Enregistrés, Abonnés & abonnements.
+/// Hub « Mon espace » (fiche 5a) — point d'entrée = avatar de l'en-tête du fil.
+///
+/// Bloc identité, trois cases de stats (Publications / Abonnés / Abonnements),
+/// une carte de navigation à cinq lignes séparées par un filet, puis la carte
+/// isolée « Brouillons ».
 class MonEspaceScreen extends ConsumerWidget {
   const MonEspaceScreen({super.key});
 
@@ -21,170 +25,130 @@ class MonEspaceScreen extends ConsumerWidget {
     final tokens = FeedTokens.of(context);
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid;
-    final name =
-        (user?.displayName?.trim().isNotEmpty ?? false)
-            ? user!.displayName!.trim()
-            : 'Vous';
     final profile =
         uid != null ? ref.watch(profileNotifierProvider(uid)).valueOrNull : null;
+
+    final name = _displayName(profile?.displayName, user?.displayName);
     final handle =
         (profile?.handle != null && profile!.handle!.isNotEmpty)
             ? '@${profile.handle}'
             : '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
+    // « @moussa · Niamey → Paris » : la trajectoire n'apparaît que si les deux
+    // villes sont renseignées, sinon la ligne se réduit à la poignée.
+    final origin = profile?.originCity?.trim();
+    final current = profile?.currentCity?.trim();
+    final subtitle =
+        (origin != null &&
+                origin.isNotEmpty &&
+                current != null &&
+                current.isNotEmpty)
+            ? '$handle · $origin → $current'
+            : handle;
 
     return Scaffold(
       backgroundColor: tokens.bg,
-      appBar: AppBar(
-        backgroundColor: tokens.bg,
-        elevation: 0,
-        leading: IconButton(
-          icon: AppIcon(AppIcon.arrowBack, color: tokens.text),
-          onPressed:
-              () => context.canPop() ? context.pop() : context.go('/feed'),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _Header(tokens: tokens),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                children: [
+                  _IdentityBlock(
+                    tokens: tokens,
+                    name: name,
+                    subtitle: subtitle,
+                    photoUrl: profile?.photoUrl ?? user?.photoURL,
+                  ),
+                  const SizedBox(height: 18),
+                  _StatsRow(tokens: tokens, uid: uid),
+                  const SizedBox(height: 20),
+                  _NavCard(tokens: tokens),
+                  const SizedBox(height: 16),
+                  _DraftsCard(tokens: tokens),
+                ],
+              ),
+            ),
+          ],
         ),
-        title: Text('Mon espace', style: FeedText.heading(tokens, size: 20)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-        children: [
-          _ProfileBlock(
-            tokens: tokens,
-            name: name,
-            handle: handle,
-            photoUrl: user?.photoURL,
-          ),
-          const SizedBox(height: 20),
-          if (uid != null) _StatsRow(tokens: tokens, uid: uid),
-          const SizedBox(height: 20),
-          _SpaceTile(
-            tokens: tokens,
-            icon: AppIcon(AppIcon.person, size: 20, color: tokens.accent),
-            label: 'Mes publications',
-            onTap: () => context.push('/profile/my-posts'),
-          ),
-          _SpaceTile(
-            tokens: tokens,
-            icon: Icon(Icons.repeat_rounded, size: 20, color: tokens.accent2),
-            label: 'Mes repartages',
-            onTap: () => context.push('/profile/reposts'),
-          ),
-          _SpaceTile(
-            tokens: tokens,
-            icon: Icon(Icons.bookmark_rounded, size: 20, color: tokens.accent),
-            label: 'Enregistrés',
-            onTap: () => context.push('/profile/saved-posts'),
-          ),
-          _SpaceTile(
-            tokens: tokens,
-            icon: AppIcon(AppIcon.people, size: 20, color: tokens.accent),
-            label: 'Abonnés et abonnements',
-            onTap: () => context.push('/profile/follows'),
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final count = ref.watch(followedHashtagsProvider).length;
-              return _SpaceTile(
-                tokens: tokens,
-                icon: Icon(
-                  Icons.tag_rounded,
-                  size: 20,
-                  color: tokens.hashtagColor,
-                ),
-                label:
-                    count > 0 ? 'Hashtags suivis · $count' : 'Hashtags suivis',
-                onTap: () => context.push('/feed/space/hashtags'),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          const Consumer(builder: _buildDraftCard),
-        ],
       ),
     );
   }
 
-  /// Carte Brouillon séparée (§5a) : n'apparaît que s'il y a un brouillon de
-  /// publication non publié en attente localement.
-  static Widget _buildDraftCard(
-    BuildContext context,
-    WidgetRef ref,
-    Widget? _,
-  ) {
-    final draft = ref.watch(postDraftProvider);
-    if (draft == null || draft.isEmpty) return const SizedBox.shrink();
-    final tokens = FeedTokens.of(context);
-    final preview = draft.length > 80 ? '${draft.substring(0, 80)}…' : draft;
+  static String _displayName(String? fromProfile, String? fromAuth) {
+    for (final candidate in [fromProfile, fromAuth]) {
+      final value = candidate?.trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return 'Vous';
+  }
+}
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: tokens.surface,
-        borderRadius: BorderRadius.circular(tokens.radiusMd),
-        border: Border.all(color: tokens.divider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.edit_note_rounded, size: 18, color: tokens.mutedText),
-              const SizedBox(width: 6),
-              Text(
-                'Brouillon',
-                style: FeedText.body(
-                  tokens,
-                  size: 13,
-                  weight: FontWeight.w700,
-                  color: tokens.mutedText,
+// ---------------------------------------------------------------------------
+// En-tête
+// ---------------------------------------------------------------------------
+
+/// En-tête de la fiche 5a : hauteur 52, padding horizontal 16, flèche 24 et
+/// gap 10 avant le titre. Un `AppBar` ne donne pas ces valeurs (son bouton
+/// d'icône impose ses propres marges de 48×48), d'où la ligne sur mesure.
+class _Header extends StatelessWidget {
+  final FeedTokens tokens;
+
+  const _Header({required this.tokens});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  () => context.canPop() ? context.pop() : context.go('/feed'),
+              child: SizedBox(
+                // Cible tactile confortable sans décaler l'icône : la boîte
+                // déborde en hauteur, pas en largeur.
+                height: 52,
+                width: 24,
+                child: Center(
+                  child: AppIcon(AppIcon.arrowBack, size: 24, color: tokens.text),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            preview,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: FeedText.body(tokens, size: 14.5).copyWith(height: 1.4),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              TextButton(
-                onPressed:
-                    () => ref.read(postDraftProvider.notifier).clear(),
-                child: Text(
-                  'Supprimer',
-                  style: FeedText.body(tokens, color: tokens.mutedText),
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Mon espace',
+                style: FeedText.heading(tokens, size: 22),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const Spacer(),
-              FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: tokens.accent),
-                onPressed: () => context.push('/feed/create'),
-                child: Text(
-                  'Reprendre',
-                  style: FeedText.body(tokens, color: tokens.onAccent),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ProfileBlock extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Identité
+// ---------------------------------------------------------------------------
+
+class _IdentityBlock extends StatelessWidget {
   final FeedTokens tokens;
   final String name;
-  final String handle;
+  final String subtitle;
   final String? photoUrl;
 
-  const _ProfileBlock({
+  const _IdentityBlock({
     required this.tokens,
     required this.name,
-    required this.handle,
+    required this.subtitle,
     required this.photoUrl,
   });
 
@@ -209,20 +173,25 @@ class _ProfileBlock extends StatelessWidget {
                   )
                   : _initial(),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: FeedText.heading(tokens, size: 20)),
-              const SizedBox(height: 2),
               Text(
-                handle,
+                name,
                 style: FeedText.body(
                   tokens,
-                  size: 13.5,
-                  color: tokens.mutedText,
+                  size: 18,
+                  weight: FontWeight.w600,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: FeedText.body(tokens, size: 13, color: tokens.mutedText),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -246,18 +215,35 @@ class _ProfileBlock extends StatelessWidget {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Trois cases de stats
+// ---------------------------------------------------------------------------
+
 class _StatsRow extends ConsumerWidget {
   final FeedTokens tokens;
-  final String uid;
+  final String? uid;
 
   const _StatsRow({required this.tokens, required this.uid});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followers = ref.watch(followersCountProvider(uid)).valueOrNull;
-    final following = ref.watch(followingCountProvider(uid)).valueOrNull;
+    final posts = ref.watch(userPostsCountProvider).valueOrNull;
+    final followers =
+        uid != null ? ref.watch(followersCountProvider(uid!)).valueOrNull : null;
+    final following =
+        uid != null ? ref.watch(followingCountProvider(uid!)).valueOrNull : null;
+
     return Row(
       children: [
+        Expanded(
+          child: _StatCard(
+            tokens: tokens,
+            value: posts,
+            label: 'Publications',
+            onTap: () => context.push('/profile/my-posts'),
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: _StatCard(
             tokens: tokens,
@@ -266,7 +252,7 @@ class _StatsRow extends ConsumerWidget {
             onTap: () => context.push('/profile/follows?tab=0'),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: _StatCard(
             tokens: tokens,
@@ -295,26 +281,33 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(tokens.statCardRadius);
     return Material(
       color: tokens.surface,
-      borderRadius: BorderRadius.circular(tokens.radiusMd),
+      borderRadius: radius,
       child: InkWell(
-        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        borderRadius: radius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           child: Column(
             children: [
               Text(
                 value?.toString() ?? '—',
-                style: FeedText.heading(tokens, size: 22),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
                 style: FeedText.body(
                   tokens,
-                  size: 12.5,
+                  size: 20,
+                  weight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: FeedText.body(
+                  tokens,
+                  size: 11.5,
+                  weight: FontWeight.w500,
                   color: tokens.mutedText,
                 ),
               ),
@@ -326,51 +319,224 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _SpaceTile extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Carte de navigation (5 lignes)
+// ---------------------------------------------------------------------------
+
+class _NavCard extends ConsumerWidget {
   final FeedTokens tokens;
-  final Widget icon;
+
+  const _NavCard({required this.tokens});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final posts = ref.watch(userPostsCountProvider).valueOrNull;
+    final reposts = ref.watch(myRepostsProvider).valueOrNull?.length;
+    final saved = ref.watch(bookmarkedPostsCountProvider).valueOrNull;
+    final hashtags = ref.watch(followedHashtagsProvider).length;
+
+    final rows = <Widget>[
+      _NavRow(
+        tokens: tokens,
+        icon: Icons.edit_note_rounded,
+        iconColor: tokens.accent,
+        label: 'Mes publications',
+        count: posts,
+        onTap: () => context.push('/profile/my-posts'),
+      ),
+      _NavRow(
+        tokens: tokens,
+        icon: Icons.repeat_rounded,
+        iconColor: tokens.accent2,
+        label: 'Mes repartages',
+        count: reposts,
+        onTap: () => context.push('/profile/reposts'),
+      ),
+      _NavRow(
+        tokens: tokens,
+        icon: Icons.bookmark_rounded,
+        iconColor: tokens.accent,
+        label: 'Enregistrés',
+        count: saved,
+        onTap: () => context.push('/profile/saved-posts'),
+      ),
+      _NavRow(
+        tokens: tokens,
+        iconWidget: AppIcon(
+          AppIcon.people,
+          size: 19,
+          color: tokens.actionLabel,
+        ),
+        label: 'Abonnés et abonnements',
+        onTap: () => context.push('/profile/follows'),
+      ),
+      _NavRow(
+        tokens: tokens,
+        icon: Icons.tag_rounded,
+        iconColor: tokens.hashtagColor,
+        label: 'Hashtags suivis',
+        count: hashtags,
+        onTap: () => context.push('/feed/space/hashtags'),
+      ),
+    ];
+
+    return _CardShell(
+      tokens: tokens,
+      children: [
+        for (var i = 0; i < rows.length; i++) ...[
+          rows[i],
+          if (i != rows.length - 1)
+            Divider(height: 1, thickness: 1, color: tokens.hairline),
+        ],
+      ],
+    );
+  }
+}
+
+/// Coque commune aux deux cartes : fond [FeedTokens.surface], rayon 22 et
+/// découpe pour que les vagues d'encre des lignes restent dans le rayon.
+class _CardShell extends StatelessWidget {
+  final FeedTokens tokens;
+  final List<Widget> children;
+
+  const _CardShell({required this.tokens, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: tokens.surface,
+      borderRadius: BorderRadius.circular(tokens.listCardRadius),
+      clipBehavior: Clip.antiAlias,
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
+    );
+  }
+}
+
+class _NavRow extends StatelessWidget {
+  final FeedTokens tokens;
+  final IconData? icon;
+  final Color? iconColor;
+  final Widget? iconWidget;
   final String label;
+  final String? subtitle;
+  final int? count;
   final VoidCallback onTap;
 
-  const _SpaceTile({
+  const _NavRow({
     required this.tokens,
-    required this.icon,
     required this.label,
     required this.onTap,
+    this.icon,
+    this.iconColor,
+    this.iconWidget,
+    this.subtitle,
+    this.count,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: tokens.surface,
-        borderRadius: BorderRadius.circular(tokens.radiusMd),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(tokens.radiusMd),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                icon,
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: tokens.bg,
+                borderRadius: BorderRadius.circular(tokens.iconTileRadius),
+              ),
+              alignment: Alignment.center,
+              // Les glyphes Material de la maquette font 24px ; seule l'icône
+              // SVG `people` y est posée à 19px.
+              child: iconWidget ?? Icon(icon, size: 24, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     label,
                     style: FeedText.body(
                       tokens,
-                      size: 15,
+                      size: 14.5,
                       weight: FontWeight.w600,
                     ),
                   ),
-                ),
-                Icon(Icons.chevron_right, color: tokens.mutedText),
-              ],
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: FeedText.body(
+                        tokens,
+                        size: 12,
+                        color: tokens.mutedText,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
+            if (count != null) ...[
+              const SizedBox(width: 8),
+              Text(
+                '$count',
+                style: FeedText.body(
+                  tokens,
+                  size: 13,
+                  weight: FontWeight.w500,
+                  color: tokens.mutedText,
+                ),
+              ),
+            ],
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 20, color: tokens.actionMuted),
+          ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Carte « Brouillons » isolée
+// ---------------------------------------------------------------------------
+
+class _DraftsCard extends ConsumerWidget {
+  final FeedTokens tokens;
+
+  const _DraftsCard({required this.tokens});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final drafts = ref.watch(postDraftsProvider);
+    // Pas de carte plutôt qu'une carte à « 0 » : rien à reprendre, rien à
+    // montrer.
+    if (drafts.isEmpty) return const SizedBox.shrink();
+
+    final plural = drafts.length > 1 ? 's' : '';
+    return _CardShell(
+      tokens: tokens,
+      children: [
+        _NavRow(
+          tokens: tokens,
+          icon: Icons.drafts_rounded,
+          iconColor: tokens.mutedText,
+          label: 'Brouillons',
+          subtitle: '${drafts.length} publication$plural non envoyée$plural',
+          // Un seul brouillon : on ouvre directement l'éditeur dessus. À
+          // plusieurs, il faut choisir — c'est la liste de Mes publications
+          // (§5b) qui porte les cartes brouillon.
+          onTap:
+              () =>
+                  drafts.length == 1
+                      ? context.push('/feed/create?draft=${drafts.first.id}')
+                      : context.push('/profile/my-posts'),
+        ),
+      ],
     );
   }
 }

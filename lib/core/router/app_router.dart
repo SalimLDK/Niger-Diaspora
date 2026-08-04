@@ -870,7 +870,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/feed/create',
-        builder: (context, state) => const CreatePostScreen(),
+        // ?draft=<id> reprend un brouillon local existant (§5a/§5b) ; sans
+        // paramètre, l'éditeur ouvre une nouvelle rédaction.
+        builder:
+            (context, state) => CreatePostScreen(
+              draftId: state.uri.queryParameters['draft'],
+            ),
       ),
       // Hub « Mon espace » — doit précéder '/feed/:postId' (sinon « space »
       // serait interprété comme un postId).

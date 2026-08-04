@@ -37,6 +37,9 @@ class FeedTokens {
     required this.radiusMd,
     required this.radiusLg,
     required this.cardRadius,
+    required this.listCardRadius,
+    required this.statCardRadius,
+    required this.iconTileRadius,
     required this.fabBg,
     required this.fabFg,
     required this.fabBorder,
@@ -106,6 +109,22 @@ class FeedTokens {
   /// "rounded frame" rule (`radius-lg * 1.15`); Nocturne cards use `radius-md`.
   final double cardRadius;
 
+  /// Carte-liste groupée : plusieurs lignes empilées derrière un seul fond,
+  /// séparées par un filet ([hairline]). Sert aux écrans « Mon espace » (5a),
+  /// Enregistrés (5c) et Abonnés/abonnements (5d).
+  ///
+  /// Organic 22 ; Nocturne 8 — la fiche 6a fixe le rayon 8 pour *toutes* les
+  /// cartes du fil sombre, il n'y a donc pas de rayon généreux à décliner.
+  final double listCardRadius;
+
+  /// Case de statistique du trio Publications / Abonnés / Abonnements.
+  /// Organic 18 ; Nocturne 8.
+  final double statCardRadius;
+
+  /// Pastille d'icône 34×34 en tête de ligne de carte-liste.
+  /// Organic 11 ; Nocturne 8.
+  final double iconTileRadius;
+
   final Color fabBg;
   final Color fabFg;
   final Color? fabBorder;
@@ -144,6 +163,9 @@ class FeedTokens {
     radiusMd: 8,
     radiusLg: 14,
     cardRadius: 8,
+    listCardRadius: 8,
+    statCardRadius: 8,
+    iconTileRadius: 8,
     fabBg: Colors.transparent,
     fabFg: Color(0xFF9184D9),
     fabBorder: Color(0xFF9184D9),
@@ -193,6 +215,9 @@ class FeedTokens {
     radiusMd: 16,
     radiusLg: 28,
     cardRadius: 32,
+    listCardRadius: 22,
+    statCardRadius: 18,
+    iconTileRadius: 11,
     fabBg: Color(0xFFC67139),
     fabFg: Color(0xFFF5EAD8),
     fabBorder: null,

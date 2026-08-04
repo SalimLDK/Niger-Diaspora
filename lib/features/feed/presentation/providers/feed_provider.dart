@@ -14,6 +14,7 @@ import '../../data/datasources/feed_remote_datasource.dart';
 import '../../data/datasources/feed_supabase_datasource.dart';
 import '../../data/repositories/feed_repository_impl.dart';
 import '../../domain/entities/comment_entity.dart';
+import '../../domain/entities/post_draft.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/feed_repository.dart';
 import 'feed_personalization_provider.dart';
@@ -969,30 +970,45 @@ final feedRepostsProvider = FutureProvider<List<RepostFeedEntry>>((ref) async {
 });
 
 // ============================================================================
-// Brouillon de publication & hashtags suivis (carte « Mon espace », §5a)
+// Brouillons de publication & hashtags suivis (carte « Mon espace », §5a)
 //
 // Stockage 100% local (SharedPreferences via PreferencesService) : aucun
-// modèle serveur pour ni l'un ni l'autre, et un brouillon local suffit pour
-// un usage mono-appareil.
+// modèle serveur pour ni l'un ni l'autre, et un stockage mono-appareil suffit
+// pour l'usage visé.
 // ============================================================================
 
-class PostDraftNotifier extends Notifier<String?> {
+class PostDraftsNotifier extends Notifier<List<PostDraft>> {
   @override
-  String? build() => PreferencesService.instance.postDraft;
+  List<PostDraft> build() => _read();
 
-  Future<void> save(String text) async {
-    await PreferencesService.instance.savePostDraft(text);
-    state = PreferencesService.instance.postDraft;
+  List<PostDraft> _read() => PreferencesService.instance.postDrafts
+      .map(PostDraft.fromJson)
+      .whereType<PostDraft>()
+      .toList();
+
+  PostDraft? byId(String id) {
+    for (final draft in state) {
+      if (draft.id == id) return draft;
+    }
+    return null;
   }
 
-  Future<void> clear() async {
-    await PreferencesService.instance.clearPostDraft();
-    state = null;
+  /// Crée ou met à jour le brouillon [id] ; un texte vide le supprime.
+  Future<void> save(String id, String text) async {
+    await PreferencesService.instance.savePostDraft(id, text);
+    state = _read();
+  }
+
+  Future<void> delete(String id) async {
+    await PreferencesService.instance.deletePostDraft(id);
+    state = _read();
   }
 }
 
-final postDraftProvider =
-    NotifierProvider<PostDraftNotifier, String?>(PostDraftNotifier.new);
+final postDraftsProvider =
+    NotifierProvider<PostDraftsNotifier, List<PostDraft>>(
+  PostDraftsNotifier.new,
+);
 
 class FollowedHashtagsNotifier extends Notifier<List<String>> {
   @override

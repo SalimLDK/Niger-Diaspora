@@ -14,7 +14,7 @@ class PreferencesService {
 
   SharedPreferences? _prefs;
 
-  static const int _currentPrefsVersion = 1;
+  static const int _currentPrefsVersion = 2;
   static const String _keyPrefsVersion = 'prefs_version';
 
   /// Initialize the service. Must be called before accessing preferences.
@@ -38,6 +38,31 @@ class PreferencesService {
       // Initial migration
       // await _prefs?.remove('old_deprecated_key');
     }
+    if (oldVersion < 2) {
+      await _migrateSinglePostDraftToList();
+    }
+  }
+
+  /// v1 → v2 : le brouillon de publication unique (`post_draft`, une simple
+  /// chaîne) devient une liste (`post_drafts`). Le brouillon en cours de
+  /// l'utilisateur est conservé — il devient le premier de la liste.
+  Future<void> _migrateSinglePostDraftToList() async {
+    final p = _prefs;
+    if (p == null) return;
+    final legacy = p.getString(_keyPostDraft);
+    await p.remove(_keyPostDraft);
+    if (legacy == null || legacy.trim().isEmpty) return;
+    if ((p.getString(_keyPostDrafts) ?? '').isNotEmpty) return;
+    await p.setString(
+      _keyPostDrafts,
+      jsonEncode([
+        {
+          'id': 'legacy-post-draft',
+          'text': legacy,
+          'updatedAt': DateTime.now().millisecondsSinceEpoch,
+        },
+      ]),
+    );
   }
 
   SharedPreferences get prefs {
@@ -113,8 +138,12 @@ class PreferencesService {
   // Message Drafts
   static const String _keyMessageDrafts = 'message_drafts';
 
-  // Post Draft (§5a "Mon espace" — un seul brouillon de publication local)
+  // Post Drafts (§5a "Mon espace", §5b cartes brouillon — liste locale)
+  static const String _keyPostDrafts = 'post_drafts';
+  // Ancienne clé du brouillon unique, migrée vers _keyPostDrafts en v2.
   static const String _keyPostDraft = 'post_draft';
+  // Garde-fou : au-delà, les plus anciens brouillons sont oubliés.
+  static const int _maxPostDrafts = 20;
 
   // Followed Hashtags (§5a "Mon espace" — suivi local, aucun modèle serveur)
   static const String _keyFollowedHashtags = 'followed_hashtags';
@@ -451,24 +480,64 @@ class PreferencesService {
   }
 
   // ============================
-  // POST DRAFT (carte "Brouillons" de Mon espace, §5a)
+  // POST DRAFTS (carte "Brouillons" de Mon espace §5a, cartes brouillon §5b)
   // ============================
 
-  /// Texte du brouillon de publication en cours, s'il y en a un.
-  String? get postDraft => prefs.getString(_keyPostDraft);
-
-  /// Sauvegarde le brouillon (vide = suppression, comme les brouillons de
-  /// message).
-  Future<void> savePostDraft(String text) async {
-    if (text.trim().isEmpty) {
-      await clearPostDraft();
-      return;
+  /// Brouillons de publication, du plus récemment modifié au plus ancien.
+  /// Chaque entrée : `{id, text, updatedAt}` (`updatedAt` en ms epoch).
+  List<Map<String, dynamic>> get postDrafts {
+    final raw = prefs.getString(_keyPostDrafts);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .where((e) => (e['id'] as String?)?.isNotEmpty ?? false)
+          .toList();
+    } catch (_) {
+      // Contenu illisible : on repart d'une liste vide plutôt que de crasher
+      // au démarrage de l'écran.
+      return const [];
     }
-    await prefs.setString(_keyPostDraft, text);
   }
 
-  Future<void> clearPostDraft() async {
-    await prefs.remove(_keyPostDraft);
+  /// Crée ou met à jour le brouillon [id]. Un texte vide supprime l'entrée,
+  /// comme pour les brouillons de message.
+  Future<void> savePostDraft(String id, String text) async {
+    if (text.trim().isEmpty) {
+      await deletePostDraft(id);
+      return;
+    }
+    final drafts = postDrafts.where((e) => e['id'] != id).toList()
+      ..insert(0, {
+        'id': id,
+        'text': text,
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      });
+    await _writePostDrafts(drafts);
+  }
+
+  Future<void> deletePostDraft(String id) async {
+    final drafts = postDrafts;
+    final remaining = drafts.where((e) => e['id'] != id).toList();
+    if (remaining.length == drafts.length) return;
+    await _writePostDrafts(remaining);
+  }
+
+  Future<void> clearPostDrafts() => prefs.remove(_keyPostDrafts);
+
+  Future<void> _writePostDrafts(List<Map<String, dynamic>> drafts) async {
+    final capped =
+        drafts.length > _maxPostDrafts
+            ? drafts.sublist(0, _maxPostDrafts)
+            : drafts;
+    if (capped.isEmpty) {
+      await prefs.remove(_keyPostDrafts);
+      return;
+    }
+    await prefs.setString(_keyPostDrafts, jsonEncode(capped));
   }
 
   // ============================

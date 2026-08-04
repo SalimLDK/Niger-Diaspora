@@ -14,6 +14,34 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)
+
+Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
+validées une par une avec Salim avant branchement.
+
+- [ ] **5a « Mon espace »** (`lib/features/feed/presentation/screens/mon_espace_screen.dart`) —
+  refait sur la fiche : ligne d'identité `@poignée · Origine → Ville`, **trois**
+  cases de stats (Publications / Abonnés / Abonnements) au lieu de deux, les
+  cinq raccourcis regroupés dans **une seule carte** à filets au lieu de cinq
+  cartes séparées, compteurs à droite de chaque ligne, pastilles d'icône
+  34×34, et carte « Brouillons » réduite à une ligne avec chevron (les boutons
+  Reprendre/Supprimer sont partis en 5b). À vérifier à l'œil : la trajectoire
+  ville s'affiche bien quand `originCity`/`currentCity` sont renseignés, les
+  compteurs ne restent pas bloqués sur « — », et le rendu en nocturne (rayons
+  serrés) reste cohérent.
+- [ ] **Brouillons de publication multiples** (`preferences_service.dart`,
+  `create_post_screen.dart`) — le brouillon unique devient une liste
+  (`post_drafts`), migration SharedPreferences v1 → v2. À vérifier sur
+  l'appareil **déjà installé** (donc avec un `post_draft` v1 en base) :
+  1) rédiger un post, quitter sans publier, relancer → le brouillon est
+  toujours là ; 2) en rédiger un second, quitter → **les deux** sont comptés
+  (« 2 publications non envoyées ») au lieu que le second écrase le premier ;
+  3) reprendre depuis Mon espace → l'éditeur ouvre le bon texte ; 4) publier →
+  le brouillon correspondant disparaît. ⚠ `adb install -r` vide les données :
+  installer **sans** réinstaller pour tester la migration.
+
+---
+
 ## Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée
 
 **Première exécution de la refonte sur appareil.** Build `assembleDebug` en

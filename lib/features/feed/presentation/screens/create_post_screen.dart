@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/video_upload_service.dart';
@@ -54,7 +55,12 @@ class CreatePostScreen extends ConsumerStatefulWidget {
   /// Si non null, l'écran est en mode édition et préremplit ce post.
   final PostEntity? editingPost;
 
-  const CreatePostScreen({super.key, this.editingPost});
+  /// Brouillon local à reprendre (carte « Brouillons », §5a/§5b). `null` pour
+  /// une nouvelle publication : un brouillon est alors créé à la volée si
+  /// l'utilisateur quitte l'écran sans publier.
+  final String? draftId;
+
+  const CreatePostScreen({super.key, this.editingPost, this.draftId});
 
   @override
   ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -88,6 +94,12 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   /// `dispose()`.
   bool _didPublish = false;
 
+  /// Identifiant du brouillon local associé à cet écran : celui repris à
+  /// l'ouverture, ou un identifiant neuf créé pour cette session de rédaction.
+  /// Chaque passage dans l'éditeur a donc le sien — deux rédactions
+  /// successives ne s'écrasent plus l'une l'autre.
+  late final String _draftId;
+
   bool get _isEditing => widget.editingPost != null;
 
   /// Un post vidéo n'autorise pas l'ajout/suppression d'images en édition.
@@ -104,12 +116,14 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       _mentionedGroups = List.of(post.mentionedGroups);
       _hashtags = List.of(post.hashtags);
       _existingMediaUrls.addAll(post.mediaUrls);
+      _draftId = '';
     } else {
-      // Nouvelle publication : reprend le brouillon local s'il y en a un
-      // (carte « Brouillons » de Mon espace, §5a).
-      final draft = ref.read(postDraftProvider);
-      if (draft != null && draft.isNotEmpty) {
-        _contentController.text = draft;
+      // Nouvelle publication : reprend le brouillon demandé s'il y en a un
+      // (carte « Brouillons » de Mon espace §5a, cartes brouillon §5b).
+      _draftId = widget.draftId ?? const Uuid().v4();
+      final draft = ref.read(postDraftsProvider.notifier).byId(_draftId);
+      if (draft != null) {
+        _contentController.text = draft.text;
       }
     }
   }
@@ -118,8 +132,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   void dispose() {
     // Quitter sans publier sauvegarde le texte en brouillon (édition d'un
     // post existant exclue : ce n'est pas un brouillon de nouvelle publication).
+    // Un texte vide supprime le brouillon plutôt que d'en laisser un fantôme.
     if (!_isEditing && !_didPublish) {
-      ref.read(postDraftProvider.notifier).save(_contentController.text);
+      ref
+          .read(postDraftsProvider.notifier)
+          .save(_draftId, _contentController.text);
     }
     _contentController.dispose();
     super.dispose();
@@ -331,7 +348,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
     if (success && !_isEditing) {
       _didPublish = true;
-      await ref.read(postDraftProvider.notifier).clear();
+      await ref.read(postDraftsProvider.notifier).delete(_draftId);
     }
 
     if (mounted) {
