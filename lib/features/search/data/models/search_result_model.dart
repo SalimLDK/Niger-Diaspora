@@ -32,7 +32,7 @@ class SearchResultModel with _$SearchResultModel {
         groups: groups.map((g) => g.toEntity()).toList(),
         friends: friends.map((f) => f.toEntity()).toList(),
         conversations: conversations.map((c) => c.toEntity()).toList(),
-        searchedAt: searchedAt != null ? DateTime.tryParse(searchedAt!) : null,
+        searchedAt: searchedAt != null ? DateTime.tryParse(searchedAt!)?.toLocal() : null,
       );
 
   /// Vérifie si la recherche a des résultats

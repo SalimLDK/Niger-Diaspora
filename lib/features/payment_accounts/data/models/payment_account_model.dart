@@ -65,8 +65,8 @@ class PaymentAccountModel {
 
   factory PaymentAccountModel.fromJson(Map<String, dynamic> json) {
     DateTime? parseDate(dynamic v) {
-      if (v is String) return DateTime.tryParse(v);
-      if (v is DateTime) return v;
+      if (v is String) return DateTime.tryParse(v)?.toLocal();
+      if (v is DateTime) return v.toLocal();
       return null;
     }
     return PaymentAccountModel(

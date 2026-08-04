@@ -81,9 +81,9 @@ class ParticipantModel extends Equatable {
       isMuted: isMuted,
       isSpeaking: isSpeaking,
       audioLevel: audioLevel,
-      joinedAt: DateTime.parse(joinedAt),
+      joinedAt: DateTime.parse(joinedAt).toLocal(),
       hasHandRaised: hasHandRaised,
-      handRaisedAt: handRaisedAt != null ? DateTime.parse(handRaisedAt!) : null,
+      handRaisedAt: handRaisedAt != null ? DateTime.parse(handRaisedAt!).toLocal() : null,
       isCameraOn: isCameraOn,
       isGhostMode: isGhostMode,
     );

@@ -71,7 +71,7 @@ class PendingMessage {
     content: json['content'],
     type: json['type'] ?? 'text',
     filePath: json['filePath'],
-    createdAt: DateTime.parse(json['createdAt']),
+    createdAt: DateTime.parse(json['createdAt']).toLocal(),
     retryCount: json['retryCount'] ?? 0,
   );
 

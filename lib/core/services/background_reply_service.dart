@@ -49,7 +49,7 @@ class BackgroundPendingMessage {
         senderId: json['senderId'],
         senderName: json['senderName'],
         senderPhotoUrl: json['senderPhotoUrl'],
-        createdAt: DateTime.parse(json['createdAt']),
+        createdAt: DateTime.parse(json['createdAt']).toLocal(),
         retryCount: json['retryCount'] ?? 0,
       );
 

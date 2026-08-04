@@ -101,7 +101,7 @@ class UserLinkService {
       isPrivate: row['is_private'] as bool? ?? false,
       memberJoinedAt: const {},
       createdAt: row['created_at'] != null
-          ? DateTime.parse(row['created_at'] as String)
+          ? DateTime.parse(row['created_at'] as String).toLocal()
           : DateTime.now(),
     );
   }

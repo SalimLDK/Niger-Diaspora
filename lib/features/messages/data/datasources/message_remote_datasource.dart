@@ -944,9 +944,9 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         senderIsVerified: senderIsVerified,
         content: content,
         type: 'text',
-        createdAt: DateTime.parse(now),
+        createdAt: DateTime.parse(now).toLocal(),
         readBy: [senderId],
-        readAt: {senderId: DateTime.parse(now)},
+        readAt: {senderId: DateTime.parse(now).toLocal()},
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
         productData: productData,
@@ -1323,9 +1323,9 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
           fileName: fileName,
           fileSize: fileSize,
           mimeType: mimeType,
-          createdAt: DateTime.parse(now),
+          createdAt: DateTime.parse(now).toLocal(),
           readBy: [senderId],
-          readAt: {senderId: DateTime.parse(now)},
+          readAt: {senderId: DateTime.parse(now).toLocal()},
         );
       }
 
@@ -2714,7 +2714,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
           senderName: 'Système',
           content: content,
           type: 'system',
-          createdAt: DateTime.parse(now),
+          createdAt: DateTime.parse(now).toLocal(),
           readBy: [],
           readAt: {},
         );

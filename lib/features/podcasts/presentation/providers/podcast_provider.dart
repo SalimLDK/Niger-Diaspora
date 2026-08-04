@@ -112,7 +112,7 @@ List<PodcastListenHistoryEntry> _parseListenHistory(dynamic data) {
     final map = Map<String, dynamic>.from(e as Map);
     return PodcastListenHistoryEntry(
       episodeId: map['episodeId'] as String,
-      listenedAt: DateTime.parse(map['listenedAt'] as String),
+      listenedAt: DateTime.parse(map['listenedAt'] as String).toLocal(),
       progressSeconds: map['progressSeconds'] as int,
       completed: map['completed'] as bool? ?? false,
     );

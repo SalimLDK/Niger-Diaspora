@@ -518,7 +518,7 @@ class ExchangeRate {
     from: CurrencyExtension.fromCode(json['from'] as String),
     to: CurrencyExtension.fromCode(json['to'] as String),
     rate: (json['rate'] as num).toDouble(),
-    timestamp: DateTime.parse(json['timestamp'] as String),
+    timestamp: DateTime.parse(json['timestamp'] as String).toLocal(),
   );
 
   bool get isStale =>
@@ -1050,7 +1050,7 @@ class CurrencyService {
       }
 
       if (lastFetchStr != null) {
-        _lastFetch = DateTime.parse(lastFetchStr);
+        _lastFetch = DateTime.parse(lastFetchStr).toLocal();
       }
 
       // If no cache or stale, use fallback

@@ -148,7 +148,7 @@ class CreatorProfileModel extends Equatable {
       availableBalance: availableBalance,
       stripeAccountId: stripeAccountId,
       isStripeAccountComplete: isStripeAccountComplete,
-      createdAt: createdAt != null ? DateTime.parse(createdAt!) : DateTime.now(),
+      createdAt: createdAt != null ? DateTime.parse(createdAt!).toLocal() : DateTime.now(),
       totalRoomsHosted: totalRoomsHosted,
       totalHoursHosted: totalHoursHosted,
       averageRating: averageRating,

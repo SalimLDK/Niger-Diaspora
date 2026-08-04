@@ -44,7 +44,7 @@ class AdminUser with _$AdminUser {
       if (value is Timestamp) return value.toDate();
       if (value is String) {
         try {
-          return DateTime.parse(value);
+          return DateTime.parse(value).toLocal();
         } catch (_) {
           return null;
         }

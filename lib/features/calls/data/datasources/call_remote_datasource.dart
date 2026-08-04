@@ -262,7 +262,7 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
           try {
             final answeredAt = answeredAtStr is Timestamp
                 ? answeredAtStr.toDate()
-                : DateTime.parse(answeredAtStr.toString());
+                : DateTime.parse(answeredAtStr.toString()).toLocal();
             duration = DateTime.now().difference(answeredAt).inSeconds;
           } catch (e) {
             debugPrint('CallRemoteDataSource: Error parsing answeredAt: $e');

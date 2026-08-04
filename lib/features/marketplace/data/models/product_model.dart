@@ -133,7 +133,7 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   DateTime? fromJson(dynamic value) {
     if (value == null) return null;
     if (value is Timestamp) return value.toDate();
-    if (value is String) return DateTime.parse(value);
+    if (value is String) return DateTime.parse(value).toLocal();
     return null;
   }
 

@@ -34,10 +34,10 @@ class UserModel with _$UserModel {
     DateTime? parseDate(dynamic value) {
       if (value == null) return null;
       if (value is Timestamp) return value.toDate();
-      if (value is DateTime) return value;
+      if (value is DateTime) return value.toLocal();
       if (value is String) {
         try {
-          return DateTime.parse(value);
+          return DateTime.parse(value).toLocal();
         } catch (_) {
           return null;
         }
@@ -104,7 +104,7 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
     }
     if (timestamp is String) {
       try {
-        return DateTime.parse(timestamp);
+        return DateTime.parse(timestamp).toLocal();
       } catch (_) {
         return null;
       }

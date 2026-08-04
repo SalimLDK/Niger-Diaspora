@@ -251,7 +251,7 @@ class MessageE2EEHelper {
         senderIdentityKey: encryptedData['senderIdentityKey'] as String? ?? '',
         senderDeviceId: encryptedData['senderDeviceId'] as int? ?? 0,
         senderRegistrationId: encryptedData['senderRegistrationId'] as int? ?? 0,
-        createdAt: DateTime.tryParse(encryptedData['createdAt'] as String? ?? '') ?? DateTime.now(),
+        createdAt: DateTime.tryParse(encryptedData['createdAt'] as String? ?? '')?.toLocal() ?? DateTime.now(),
       );
 
       // Déchiffrer
@@ -282,7 +282,7 @@ class MessageE2EEHelper {
         keyId: e2eeData['keyId'] as int,
         chainIndex: e2eeData['chainIndex'] as int,
         ciphertext: e2eeData['ciphertext'] as String,
-        createdAt: DateTime.tryParse(e2eeData['createdAt'] as String? ?? '') ?? DateTime.now(),
+        createdAt: DateTime.tryParse(e2eeData['createdAt'] as String? ?? '')?.toLocal() ?? DateTime.now(),
       );
 
       return await _senderKeyService.decryptWithSenderKey(

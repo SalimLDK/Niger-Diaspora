@@ -66,10 +66,10 @@ class PaymentHistoryItem {
       description: data['description'] as String? ?? '',
       counterpartyName: data['counterpartyName'] as String?,
       createdAt: data['createdAt'] != null
-          ? DateTime.parse(data['createdAt'] as String)
+          ? DateTime.parse(data['createdAt'] as String).toLocal()
           : DateTime.now(),
       completedAt: data['completedAt'] != null
-          ? DateTime.parse(data['completedAt'] as String)
+          ? DateTime.parse(data['completedAt'] as String).toLocal()
           : null,
       reference: data['reference'] as String?,
     );

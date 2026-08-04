@@ -26,7 +26,7 @@ class EventMessageCard extends StatelessWidget {
     final location = eventData['location'] as String?;
     final startDateRaw = eventData['startDate'] as String?;
     final startDate =
-        startDateRaw != null ? DateTime.tryParse(startDateRaw) : null;
+        startDateRaw != null ? DateTime.tryParse(startDateRaw)?.toLocal() : null;
 
     final dateLabel = startDate != null
         ? DateFormat('dd MMM yyyy · HH:mm').format(startDate)

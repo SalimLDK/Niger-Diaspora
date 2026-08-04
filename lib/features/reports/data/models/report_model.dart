@@ -81,8 +81,8 @@ class ContentSnapshotModel with _$ContentSnapshotModel {
   static DateTime? _timestampToDateTime(dynamic value) {
     if (value == null) return null;
     if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String) return DateTime.tryParse(value);
+    if (value is DateTime) return value.toLocal();
+    if (value is String) return DateTime.tryParse(value)?.toLocal();
     return null;
   }
 }
@@ -231,8 +231,8 @@ class ReportModel with _$ReportModel {
   static DateTime? _timestampToDateTime(dynamic value) {
     if (value == null) return null;
     if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String) return DateTime.tryParse(value);
+    if (value is DateTime) return value.toLocal();
+    if (value is String) return DateTime.tryParse(value)?.toLocal();
     return null;
   }
 

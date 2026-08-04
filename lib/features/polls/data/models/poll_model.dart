@@ -61,8 +61,8 @@ class PollModel extends Equatable {
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-    if (value is DateTime) return value;
-    if (value is String) return DateTime.tryParse(value);
+    if (value is DateTime) return value.toLocal();
+    if (value is String) return DateTime.tryParse(value)?.toLocal();
     return null;
   }
 

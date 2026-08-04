@@ -632,9 +632,9 @@ final class MessageModel {
     data.forEach((key, value) {
       try {
         if (value is String) {
-          result[key] = DateTime.parse(value);
+          result[key] = DateTime.parse(value).toLocal();
         } else if (value is DateTime) {
-          result[key] = value;
+          result[key] = value.toLocal();
         }
       } catch (_) {
         // Ignorer les timestamps invalides

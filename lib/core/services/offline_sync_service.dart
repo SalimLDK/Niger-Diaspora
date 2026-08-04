@@ -50,7 +50,7 @@ class PendingAction {
       (e) => e.name == json['actionType'],
     ),
     data: json['data'] as Map<String, dynamic>?,
-    createdAt: DateTime.parse(json['createdAt'] as String),
+    createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     retryCount: json['retryCount'] as int? ?? 0,
   );
 
@@ -351,7 +351,7 @@ class OfflineSyncService {
     final box = Hive.box<String>(_syncMetadataBox);
     final timestamp = box.get('${key}_lastSync');
     if (timestamp == null) return null;
-    return DateTime.tryParse(timestamp);
+    return DateTime.tryParse(timestamp)?.toLocal();
   }
 
   /// Vérifie si une synchronisation est nécessaire

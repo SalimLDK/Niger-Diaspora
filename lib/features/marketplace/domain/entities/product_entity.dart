@@ -97,10 +97,10 @@ class ProductEntity with _$ProductEntity {
       customTaxRate: (json['customTaxRate'] as num?)?.toDouble(),
       taxIncludedInPrice: json['taxIncludedInPrice'] as bool? ?? false,
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)
+          ? DateTime.tryParse(json['createdAt'] as String)?.toLocal()
           : null,
       updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'] as String)
+          ? DateTime.tryParse(json['updatedAt'] as String)?.toLocal()
           : null,
     );
   }

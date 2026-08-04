@@ -422,7 +422,7 @@ class CacheService {
     final metaBox = Hive.box<String>(_metadataBox);
     final timestamp = metaBox.get('${boxName}_${key}_timestamp');
     if (timestamp == null) return null;
-    return DateTime.parse(timestamp);
+    return DateTime.parse(timestamp).toLocal();
   }
 
   bool isCacheValid(

@@ -122,9 +122,9 @@ class CallModel extends Equatable {
       calleePhotoUrl: calleePhotoUrl,
       type: _parseCallType(type),
       status: _parseCallStatus(status),
-      createdAt: DateTime.parse(createdAt),
-      answeredAt: answeredAt != null ? DateTime.parse(answeredAt!) : null,
-      endedAt: endedAt != null ? DateTime.parse(endedAt!) : null,
+      createdAt: DateTime.parse(createdAt).toLocal(),
+      answeredAt: answeredAt != null ? DateTime.parse(answeredAt!).toLocal() : null,
+      endedAt: endedAt != null ? DateTime.parse(endedAt!).toLocal() : null,
       durationSeconds: durationSeconds,
       endReason: endReason,
     );

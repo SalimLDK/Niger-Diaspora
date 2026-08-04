@@ -332,9 +332,9 @@ final class ConversationModel {
 
   static DateTime? _parseDateTime(dynamic data) {
     if (data == null) return null;
-    if (data is DateTime) return data;
+    if (data is DateTime) return data.toLocal();
     if (data is String) {
-      return DateTime.tryParse(data);
+      return DateTime.tryParse(data)?.toLocal();
     }
     if (data is Timestamp) {
       return data.toDate();
@@ -423,7 +423,7 @@ final class ConversationModel {
       } else if (value is Timestamp) {
         result[key] = value.toDate();
       } else if (value is String) {
-        final dt = DateTime.tryParse(value);
+        final dt = DateTime.tryParse(value)?.toLocal();
         if (dt != null) {
           result[key] = dt;
         } else {
@@ -438,7 +438,7 @@ final class ConversationModel {
   static Map<String, DateTime> _parseDateTimeMap(Map<String, dynamic> data) {
     final Map<String, DateTime> result = {};
     data.forEach((key, value) { if (value is String) {
-        final dt = DateTime.tryParse(value);
+        final dt = DateTime.tryParse(value)?.toLocal();
         if (dt != null) result[key] = dt;
       }
     });

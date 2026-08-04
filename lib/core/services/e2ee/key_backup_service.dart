@@ -202,7 +202,7 @@ class KeyBackupService {
       final metadata = await ref.getMetadata();
 
       return BackupMetadata(
-        createdAt: DateTime.tryParse(metadata.customMetadata?['createdAt'] ?? ''),
+        createdAt: DateTime.tryParse(metadata.customMetadata?['createdAt'] ?? '')?.toLocal(),
         deviceInfo: metadata.customMetadata?['deviceInfo'],
         sizeBytes: metadata.size,
       );

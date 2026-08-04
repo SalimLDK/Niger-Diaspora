@@ -26,7 +26,7 @@ class HomeContentModel with _$HomeContentModel {
     nearbyMembers: nearbyMembers.map((m) => m.toEntity()).toList(),
     upcomingEvents: upcomingEvents.map((e) => e.toEntity()).toList(),
     quickActions: quickActions.map((a) => a.toEntity()).toList(),
-    lastUpdated: lastUpdated != null ? DateTime.tryParse(lastUpdated!) : null,
+    lastUpdated: lastUpdated != null ? DateTime.tryParse(lastUpdated!)?.toLocal() : null,
   );
 
   /// Crée depuis une entité domain
@@ -105,7 +105,7 @@ class NearbyMemberModel with _$NearbyMemberModel {
     city: city,
     country: country,
     distanceKm: distanceKm,
-    lastSeen: lastSeen != null ? DateTime.tryParse(lastSeen!) : null,
+    lastSeen: lastSeen != null ? DateTime.tryParse(lastSeen!)?.toLocal() : null,
     isOnline: isOnline,
   );
 
@@ -141,7 +141,7 @@ class UpcomingEventModel with _$UpcomingEventModel {
   UpcomingEvent toEntity() => UpcomingEvent(
     id: id,
     title: title,
-    startDate: DateTime.parse(startDate),
+    startDate: DateTime.parse(startDate).toLocal(),
     imageUrl: imageUrl,
     location: location,
     attendeesCount: attendeesCount,

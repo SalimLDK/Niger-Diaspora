@@ -167,7 +167,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
           .map(
             (r) => StoryViewerEntity(
               viewerId: r['viewer_id'] as String,
-              viewedAt: DateTime.parse(r['viewed_at'] as String),
+              viewedAt: DateTime.parse(r['viewed_at'] as String).toLocal(),
             ),
           )
           .toList();
@@ -188,7 +188,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
             (r) => StoryReactionEntity(
               userId: r['user_id'] as String,
               emoji: r['emoji'] as String,
-              createdAt: DateTime.parse(r['created_at'] as String),
+              createdAt: DateTime.parse(r['created_at'] as String).toLocal(),
             ),
           )
           .toList();

@@ -30,7 +30,7 @@ class GroupPinnedItemModel extends Equatable {
       itemType: row['item_type'] as String,
       itemId: row['item_id'] as String,
       pinnedBy: row['pinned_by'] as String,
-      pinnedAt: DateTime.parse(row['pinned_at'] as String),
+      pinnedAt: DateTime.parse(row['pinned_at'] as String).toLocal(),
       sortOrder: row['sort_order'] as int? ?? 0,
     );
   }

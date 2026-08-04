@@ -14,7 +14,7 @@ class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   @override
   DateTime? fromJson(dynamic json) {
     if (json == null) return null;
-    if (json is DateTime) return json;
+    if (json is DateTime) return json.toLocal();
     if (json is Timestamp) return json.toDate();
     if (json is int) return DateTime.fromMillisecondsSinceEpoch(json);
     return null;

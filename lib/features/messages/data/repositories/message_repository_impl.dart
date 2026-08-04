@@ -1278,7 +1278,7 @@ class MessageRepositoryImpl implements MessageRepository {
             cachedMessages
                 .map((m) => m['createdAt'] as String?)
                 .where((t) => t != null)
-                .map((t) => DateTime.parse(t!))
+                .map((t) => DateTime.parse(t!).toLocal())
                 .toList();
 
         if (timestamps.isNotEmpty) {

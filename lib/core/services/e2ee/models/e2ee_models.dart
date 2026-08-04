@@ -83,7 +83,7 @@ class E2EEEncryptedMessage {
       ciphertext: json['ciphertext'] as String,
       senderEphemeralKey: json['senderEphemeralKey'] as String?,
       protocolVersion: json['protocolVersion'] as int? ?? 1,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 
@@ -169,7 +169,7 @@ class E2EESignedPreKey {
       publicKey: base64Decode(json['publicKey'] as String),
       privateKey: base64Decode(json['privateKey'] as String),
       signature: base64Decode(json['signature'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 
@@ -322,8 +322,8 @@ class E2EEDeviceInfo {
       deviceName: json['deviceName'] as String,
       platform: json['platform'] as String,
       identityKeyPublic: json['identityKeyPublic'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      lastActive: DateTime.parse(json['lastActive'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
+      lastActive: DateTime.parse(json['lastActive'] as String).toLocal(),
     );
   }
 }
@@ -582,7 +582,7 @@ class E2EEEncryptedBackup {
       ciphertextBase64: json['ciphertext'] as String,
       authTagBase64: json['authTag'] as String,
       deviceInfo: json['deviceInfo'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 }

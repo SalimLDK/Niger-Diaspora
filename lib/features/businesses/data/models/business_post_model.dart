@@ -68,15 +68,15 @@ class BusinessPostModel with _$BusinessPostModel {
       discountedPrice: discountedPrice,
       discountPercent: discountPercent,
       offerStartDate:
-          offerStartDate != null ? DateTime.tryParse(offerStartDate!) : null,
+          offerStartDate != null ? DateTime.tryParse(offerStartDate!)?.toLocal() : null,
       offerEndDate:
-          offerEndDate != null ? DateTime.tryParse(offerEndDate!) : null,
+          offerEndDate != null ? DateTime.tryParse(offerEndDate!)?.toLocal() : null,
       promoCode: promoCode,
       viewCount: viewCount,
       likeCount: likeCount,
       isActive: isActive,
-      createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
-      updatedAt: updatedAt != null ? DateTime.tryParse(updatedAt!) : null,
+      createdAt: createdAt != null ? DateTime.tryParse(createdAt!)?.toLocal() : null,
+      updatedAt: updatedAt != null ? DateTime.tryParse(updatedAt!)?.toLocal() : null,
     );
   }
 }

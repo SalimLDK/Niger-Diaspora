@@ -460,7 +460,7 @@ class SenderKeyEncryptedMessage {
       keyId: json['keyId'] as int,
       chainIndex: json['chainIndex'] as int,
       ciphertext: json['ciphertext'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 

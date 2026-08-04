@@ -153,8 +153,8 @@ class GroupParticipantModel extends Equatable {
       videoQuality: _parseVideoQuality(videoQuality),
       audioLevel: audioLevel,
       networkQuality: networkQuality,
-      joinedAt: DateTime.parse(joinedAt),
-      leftAt: leftAt != null ? DateTime.parse(leftAt!) : null,
+      joinedAt: DateTime.parse(joinedAt).toLocal(),
+      leftAt: leftAt != null ? DateTime.parse(leftAt!).toLocal() : null,
     );
   }
 

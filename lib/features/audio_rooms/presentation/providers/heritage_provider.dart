@@ -184,7 +184,7 @@ final heritageUserDataProvider = StreamProvider<HeritageUserDataEntity?>((
                   ?.map(
                     (e) => HeritageListenHistoryEntry(
                       recordingId: e['recordingId'] as String,
-                      listenedAt: DateTime.parse(e['listenedAt'] as String),
+                      listenedAt: DateTime.parse(e['listenedAt'] as String).toLocal(),
                       progressSeconds: e['progressSeconds'] as int? ?? 0,
                       completed: e['completed'] as bool? ?? false,
                     ),

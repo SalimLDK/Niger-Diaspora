@@ -29,7 +29,7 @@ class StoryModel {
 
   factory StoryModel.fromJson(Map<String, dynamic> json) {
     DateTime parseDate(dynamic value) {
-      if (value is String) return DateTime.parse(value);
+      if (value is String) return DateTime.parse(value).toLocal();
       return DateTime.now();
     }
 

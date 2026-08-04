@@ -81,9 +81,9 @@ class ReviewModel with _$ReviewModel {
         status: _parseStatus(status),
         ownerReply: ownerReply,
         ownerReplyAt:
-            ownerReplyAt != null ? DateTime.tryParse(ownerReplyAt!) : null,
-        createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
-        updatedAt: updatedAt != null ? DateTime.tryParse(updatedAt!) : null,
+            ownerReplyAt != null ? DateTime.tryParse(ownerReplyAt!)?.toLocal() : null,
+        createdAt: createdAt != null ? DateTime.tryParse(createdAt!)?.toLocal() : null,
+        updatedAt: updatedAt != null ? DateTime.tryParse(updatedAt!)?.toLocal() : null,
       );
 
   static ReviewStatus _parseStatus(String value) {

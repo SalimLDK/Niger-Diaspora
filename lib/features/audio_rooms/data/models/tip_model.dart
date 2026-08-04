@@ -112,7 +112,7 @@ class TipModel extends Equatable {
       amount: amount,
       currency: currency,
       status: _parseStatus(status),
-      sentAt: sentAt != null ? DateTime.parse(sentAt!) : DateTime.now(),
+      sentAt: sentAt != null ? DateTime.parse(sentAt!).toLocal() : DateTime.now(),
       message: message,
       stripePaymentIntentId: stripePaymentIntentId,
       commissionAmount: commissionAmount,

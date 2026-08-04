@@ -308,7 +308,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
   Map<String, dynamic> _decodeMap(Map<String, dynamic> map) {
     return map.map((key, value) {
       if (value is Map && value['__type'] == 'DateTime') {
-        return MapEntry(key, DateTime.parse(value['value'] as String));
+        return MapEntry(key, DateTime.parse(value['value'] as String).toLocal());
       }
       return MapEntry(key, value);
     });
@@ -330,7 +330,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
     tags: List<String>.from(data['tags'] ?? []),
     createdAt:
         data['createdAt'] != null
-            ? DateTime.parse(data['createdAt'] as String)
+            ? DateTime.parse(data['createdAt'] as String).toLocal()
             : null,
   );
 
@@ -365,16 +365,16 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         eventsCount: data['eventsCount'] as int? ?? 0,
         createdAt:
             data['createdAt'] != null
-                ? DateTime.parse(data['createdAt'] as String)
+                ? DateTime.parse(data['createdAt'] as String).toLocal()
                 : null,
         lastLoginAt:
             data['lastLoginAt'] != null
-                ? DateTime.parse(data['lastLoginAt'] as String)
+                ? DateTime.parse(data['lastLoginAt'] as String).toLocal()
                 : null,
         isOnline: data['isOnline'] as bool? ?? false,
         lastSeen:
             data['lastSeen'] != null
-                ? DateTime.parse(data['lastSeen'] as String)
+                ? DateTime.parse(data['lastSeen'] as String).toLocal()
                 : null,
         showOnlineStatus: data['showOnlineStatus'] as bool? ?? true,
       );
@@ -384,10 +384,10 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
     id: data['id'] as String,
     title: data['title'] as String,
     description: data['description'] as String,
-    startDate: DateTime.parse(data['startDate'] as String),
+    startDate: DateTime.parse(data['startDate'] as String).toLocal(),
     endDate:
         data['endDate'] != null
-            ? DateTime.parse(data['endDate'] as String)
+            ? DateTime.parse(data['endDate'] as String).toLocal()
             : null,
     location: data['location'] as String,
     address: data['address'] as String?,
@@ -405,13 +405,13 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
     status: EventStatus.values[data['status'] as int? ?? 0],
     createdAt:
         data['createdAt'] != null
-            ? DateTime.parse(data['createdAt'] as String)
+            ? DateTime.parse(data['createdAt'] as String).toLocal()
             : null,
     recapPhotoUrls: List<String>.from(data['recapPhotoUrls'] ?? []),
     recapDescription: data['recapDescription'] as String?,
     recapCreatedAt:
         data['recapCreatedAt'] != null
-            ? DateTime.parse(data['recapCreatedAt'] as String)
+            ? DateTime.parse(data['recapCreatedAt'] as String).toLocal()
             : null,
   );
 
@@ -436,7 +436,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         isSuspended: data['isSuspended'] as bool? ?? false,
         verifiedAt:
             data['verifiedAt'] != null
-                ? DateTime.parse(data['verifiedAt'] as String)
+                ? DateTime.parse(data['verifiedAt'] as String).toLocal()
                 : null,
         rejectionReason: data['rejectionReason'] as String?,
         jurisdictionCountries: List<String>.from(
@@ -458,7 +458,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         closureMessage: data['closureMessage'] as String?,
         reopenDate:
             data['reopenDate'] != null
-                ? DateTime.parse(data['reopenDate'] as String)
+                ? DateTime.parse(data['reopenDate'] as String).toLocal()
                 : null,
         upcomingServices: List<String>.from(data['upcomingServices'] ?? []),
       );
@@ -468,7 +468,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         id: data['id'] as String,
         title: data['title'] as String,
         description: data['description'] as String,
-        date: DateTime.parse(data['date'] as String),
+        date: DateTime.parse(data['date'] as String).toLocal(),
         location: data['location'] as String,
         imageUrl: data['imageUrl'] as String?,
       );
@@ -477,7 +477,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
     id: data['id'] as String,
     title: data['title'] as String,
     content: data['content'] as String,
-    date: DateTime.parse(data['date'] as String),
+    date: DateTime.parse(data['date'] as String).toLocal(),
     imageUrl: data['imageUrl'] as String?,
   );
 
@@ -512,7 +512,7 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         isBoosted: data['isBoosted'] as bool? ?? false,
         boostExpiresAt:
             data['boostExpiresAt'] != null
-                ? DateTime.parse(data['boostExpiresAt'] as String)
+                ? DateTime.parse(data['boostExpiresAt'] as String).toLocal()
                 : null,
         averageRating: (data['averageRating'] as num?)?.toDouble() ?? 0.0,
         reviewCount: data['reviewCount'] as int? ?? 0,
@@ -521,11 +521,11 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         services: List<String>.from(data['services'] ?? []),
         createdAt:
             data['createdAt'] != null
-                ? DateTime.parse(data['createdAt'] as String)
+                ? DateTime.parse(data['createdAt'] as String).toLocal()
                 : null,
         updatedAt:
             data['updatedAt'] != null
-                ? DateTime.parse(data['updatedAt'] as String)
+                ? DateTime.parse(data['updatedAt'] as String).toLocal()
                 : null,
       );
 
@@ -553,11 +553,11 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         taxIncludedInPrice: data['taxIncludedInPrice'] as bool? ?? false,
         createdAt:
             data['createdAt'] != null
-                ? DateTime.parse(data['createdAt'] as String)
+                ? DateTime.parse(data['createdAt'] as String).toLocal()
                 : null,
         updatedAt:
             data['updatedAt'] != null
-                ? DateTime.parse(data['updatedAt'] as String)
+                ? DateTime.parse(data['updatedAt'] as String).toLocal()
                 : null,
       );
 
@@ -578,11 +578,11 @@ class _AppRouterDecoder extends Converter<Object?, Object?> {
         isFavorite: data['isFavorite'] as bool? ?? false,
         createdAt:
             data['createdAt'] != null
-                ? DateTime.parse(data['createdAt'] as String)
+                ? DateTime.parse(data['createdAt'] as String).toLocal()
                 : null,
         lastUsedAt:
             data['lastUsedAt'] != null
-                ? DateTime.parse(data['lastUsedAt'] as String)
+                ? DateTime.parse(data['lastUsedAt'] as String).toLocal()
                 : null,
       );
 }
