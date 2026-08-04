@@ -464,7 +464,34 @@ Rien à voir avec le fuseau. En mode avion réel (vérifié : `airplane_mode=1`,
 - l'app finit par revenir au splash (redémarrage).
 
 Le repli annoncé (maquette 2a : « si une page est en cache, on l'affiche
-plutôt qu'un fil vide ») ne se déclenche donc pas. À traiter à part.
+plutôt qu'un fil vide ») ne se déclenchait donc pas.
+
+**Corrigé le 2026-08-04, couvert par 6 tests unitaires.** Cause commune aux
+deux symptômes : des attentes réseau **sans borne**. Un socket qui *pend* au
+lieu d'échouer ne rend jamais la main, donc le chemin de repli n'était jamais
+atteint.
+
+- Fil (`feed_provider`) : cache affiché **avant** d'interroger le réseau, plus
+  10 s de borne sur la page (`loadInitial`/`loadMore`) et 5 s sur les
+  enrichissements — cf. `test/features/feed/feed_offline_fallback_test.dart`.
+- Démarrage (`auth_provider`) : 8 s de borne sur `getCurrentUser()`, puis
+  démarrage sur la session Firebase locale plutôt qu'un renvoi vers
+  `/auth/login` (se reconnecter exige le réseau, précisément ce qui manque)
+  — cf. `test/features/auth/auth_offline_start_test.dart`.
+
+⚠️ **Vérifié en test unitaire uniquement — jamais sur appareil.** Décision
+prise avec Salim le 2026-08-04 : l'essai réel imposerait de reconstruire
+l'APK, ce qui vide les données du téléphone (re-onboarding, session Firebase
+perdue, reconnexion par SSO Google). À refaire le jour où une réinstallation
+est de toute façon nécessaire :
+
+- [ ] mode avion + démarrage à froid : l'accueil s'affiche en quelques
+      secondes, plus en ~2 min
+- [ ] mode avion + « Le fil » : les publications en cache s'affichent, avec le
+      bandeau « contenu hors ligne », au lieu des squelettes
+- [ ] retour du réseau : le contenu frais remplace le cache sans action
+- [ ] réseau lent mais fonctionnel : vérifier que les bornes (8 s / 10 s) ne
+      dégradent pas un chargement légitime
 
 Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
 `timeago`, calculé sur l'epoch — il n'a jamais été affecté, et rien n'y est à
