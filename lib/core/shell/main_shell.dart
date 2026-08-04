@@ -47,14 +47,16 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   Future<void> _checkInitialSharedMedia() async {
     final service = ref.read(sharedMediaServiceProvider);
-    final initial = service.consumeInitialMedia();
-    if (initial != null && initial.isNotEmpty && mounted) {
-      await ShareToConversationScreen.show(
-        context,
-        mediaFiles: initial,
-      );
-      service.resetInitialMedia();
-    }
+    final initial = await service.consumeInitialMedia();
+    if (initial == null || initial.isEmpty) return;
+    if (!mounted) return;
+    await ShareToConversationScreen.show(
+      context,
+      mediaFiles: initial,
+    );
+    // Aussi quand la feuille est fermée sans rien envoyer : le contenu ne doit
+    // pas rester en attente.
+    service.resetInitialMedia();
   }
 
   Future<void> _handleSharedMedia(List<SharedMediaFile> media) async {

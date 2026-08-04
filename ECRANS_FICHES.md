@@ -26,10 +26,10 @@ Trois niveaux, à ne pas confondre :
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
-| 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
+| 20a | Modifier mon profil | ✅ | ✅ | ✅ | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
-| 13c | Appels — historique | ✅ | ✅ | — | `calls/…/call_history_screen.dart` |
+| 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
@@ -154,7 +154,7 @@ réciprocité par ligne.
 Non vérifié : les hashtags (le compte de test n'en suit aucun) et la
 recherche.
 
-## 20a — Modifier mon profil (partiel)
+## 20a — Modifier mon profil
 
 L'écran avait déjà été largement repris sur §20a par des sessions
 précédentes (langues en feuille multi-choix, puces repliées, compteur de bio
@@ -196,6 +196,24 @@ Puis, sur retour de Salim (« ça ne correspond pas »), le formulaire a été
 - Le bouton d'aperçu (👁) de l'en-tête et le titre en **serif** : la fiche
   demande Inter 700/18, mais tout le reste de l'app est en serif — c'est une
   décision de design system, pas un détail d'écran.
+
+**Langues et centres d'intérêt** (dernière passe) : les deux blocs sont
+jumeaux dans la fiche, ils divergeaient sur tout dans le code.
+- Les centres d'intérêt dépliaient le catalogue **sur place** — la page
+  doublait de hauteur. Ils ouvrent la même feuille que les langues
+  (`_choisirDansListe`, écrite une fois pour les deux).
+- `_SelectableChip` et `_LanguageChip` divergeaient sur le rayon, la couleur
+  d'accent et jusqu'à la coche de sélection. Une seule `_ProfileChip` :
+  pilule rayon 999, encre pleine si retenue, contour sinon, code court de
+  deux lettres en tête pour les langues.
+- Rien de choisi n'affichait qu'un « +10 » nu, qui ne dit ni ce qu'on
+  choisit ni qu'on peut le faire. La puce porte l'invitation en toutes
+  lettres (`spokenLanguagesEmptyAction`, `interestsEmptyAction`).
+- Un appui sur une puce retenue la retire, dans les deux blocs.
+
+Non vérifié sur appareil : la carte du numéro **vérifié** — le compte de
+test n'a pas de numéro vérifié, donc ni le masquage « +33 6 12 •• •• 47 »
+ni la ligne « Vérifié par SMS » n'ont été rendus à l'écran.
 
 ## 16e — Créer un événement
 

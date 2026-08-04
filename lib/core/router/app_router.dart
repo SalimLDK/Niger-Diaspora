@@ -33,7 +33,6 @@ import '../../features/messages/presentation/screens/new_conversation_screen.dar
 import '../../features/messages/presentation/screens/media_gallery_screen.dart';
 import '../../features/messages/presentation/screens/starred_messages_screen.dart';
 import '../../features/messages/presentation/screens/share_to_conversation_screen.dart';
-import '../services/shared_media_service.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_view_screen.dart';
@@ -815,11 +814,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             return ShareToConversationScreen(mediaFiles: extra);
           }
 
-          final media = SharedMediaService().consumeInitialMedia();
-          if (media != null && media.isNotEmpty) {
-            return ShareToConversationScreen(mediaFiles: media);
-          }
-
+          // Le contenu initial est consommé par `MainShell`, qui présente la
+          // feuille lui-même. Le repli construisait ici un `SharedMediaService`
+          // jetable : il ne rendait jamais rien (le canal natif répond de façon
+          // asynchrone) et laissait derrière lui un abonnement au flux de
+          // partage jamais annulé.
           return const MessagesScreen();
         },
       ),
