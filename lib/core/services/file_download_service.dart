@@ -37,6 +37,52 @@ class FileDownloadService {
     }
   }
 
+  /// Efface les pièces jointes téléchargées **et** leur index, à la
+  /// déconnexion et à la suppression de compte.
+  ///
+  /// Ces fichiers sont écrits en clair dans le répertoire documents : le
+  /// service ne chiffre rien au repos, alors que les conversations dont ils
+  /// proviennent sont chiffrées de bout en bout. Rien ne les effaçait, ni les
+  /// clés `media_dl_<messageId>` qui les indexent — et ces clés étant
+  /// dynamiques, la purge par constantes de `PreferencesService` ne pouvait
+  /// pas les couvrir.
+  ///
+  /// On supprime **par chemin enregistré**, jamais en vidant le répertoire
+  /// documents : d'autres services y écrivent.
+  ///
+  /// Renvoie le nombre de fichiers réellement supprimés.
+  Future<int> clearDownloadedFiles() async {
+    var supprimes = 0;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cles = prefs
+          .getKeys()
+          .where((k) => k.startsWith(_downloadKeyPrefix))
+          .toList();
+
+      for (final cle in cles) {
+        final chemin = prefs.getString(cle);
+        if (chemin != null && chemin.isNotEmpty) {
+          try {
+            final fichier = File(chemin);
+            if (await fichier.exists()) {
+              await fichier.delete();
+              supprimes++;
+            }
+          } catch (e) {
+            // Fichier déjà supprimé, déplacé, ou permission refusée : l'index
+            // doit disparaître quand même, sinon il pointerait dans le vide.
+            debugPrint('FileDownloadService: suppression de $chemin: $e');
+          }
+        }
+        await prefs.remove(cle);
+      }
+    } catch (e) {
+      debugPrint('FileDownloadService: purge des téléchargements: $e');
+    }
+    return supprimes;
+  }
+
   /// Download an image and save it to the device gallery
   /// Returns true if successful, false otherwise
   Future<bool> downloadImageToGallery(
