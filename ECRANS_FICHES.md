@@ -29,7 +29,7 @@ Trois niveaux, à ne pas confondre :
 | 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
-| 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
+| 13c | Appels — historique | ✅ | ✅ | — | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
@@ -38,6 +38,13 @@ Trois niveaux, à ne pas confondre :
 | 11d | Mon profil — Nocturne | — | — | — | `profile/presentation/screens/profile_screen.dart` |
 | 11e | Réglages — Nocturne | — | — | — | à déterminer |
 | 11f | Profil incomplet | — | — | — | à déterminer |
+| 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | — | — | — | idem 4a |
+| 9a | Messages — liste | — | — | — | `messages/…/messages_screen.dart` |
+| 9b | Messages — recherche | — | — | — | idem 9a |
+| 9c | Groupes — mes groupes, découverte | — | — | — | `groups/…` |
+| 9d | Groupe — fiche | — | — | — | `groups/…` |
+| 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
 
 ---
 
@@ -166,19 +173,29 @@ corrigé que ce qui s'écartait encore de la fiche **à l'écran** :
   remplaçait par du vide en silence. Les valeurs inconnues sont désormais
   ramenées sur la valeur par défaut, à la lecture comme à l'affichage.
 
-**Reste à trancher — restructuration, pas restylage.** La fiche décrit un
-formulaire nu : libellé au-dessus, champ 48 px radius 14, **aucune icône dans
-les champs**, **aucun en-tête de section**, et un ordre différent
-(Nom → Bio → Profession → Langues → Intérêts → Origine → Téléphone). L'écran
-actuel a des en-têtes de section (« INFORMATIONS DE BASE »), des icônes de
-préfixe, un champ « Nom d'utilisateur » que la fiche ne montre pas, et un
-bouton d'aperçu (👁) absent de la maquette. Le titre est en serif alors que
-la fiche demande Inter 700/18 — mais **tout le reste de l'app est en serif**,
-c'est une décision de design system, pas un détail d'écran.
+Puis, sur retour de Salim (« ça ne correspond pas »), le formulaire a été
+**remis à plat** sur la fiche :
 
-Rien de tout ça n'a été touché : ce sont des suppressions de fonctions
-existantes (le champ poignée alimente 5a) ou des choix qui débordent de
-l'écran. À arbitrer avec Salim.
+- Les cinq en-têtes de section (« INFORMATIONS DE BASE », « LOCALISATION »…)
+  et les cartes qui les suivaient ont disparu. La fiche n'a pas de section :
+  un libellé, un champ.
+- Plus d'icône de préfixe dans les champs.
+- Les deux sélecteurs (Profession, Pays) portent leur libellé **au-dessus**
+  comme les champs texte, au lieu d'une étiquette flottante dans le contour.
+- Ordre de la fiche : Nom → (poignée) → Bio → Profession → Langues →
+  Centres d'intérêt → … → Origine au Niger → Téléphone.
+- Le bloc téléphone est regroupé (`_buildPhoneBlock`) : numéro — carte en
+  lecture seule s'il est vérifié, champ + « Vérifier » sinon — puis la ligne
+  de visibilité, comme la carte à deux lignes de la maquette.
+
+**Conservé volontairement, contre la lettre de la fiche :**
+- Le champ **« Nom d'utilisateur »**, absent de la maquette : c'est lui qui
+  alimente la ligne d'identité de « Mon espace » (5a).
+- **Pays**, **Ville actuelle** et **Profil visible**, placés à la suite. Les
+  retirer supprimerait des données, pas de la décoration.
+- Le bouton d'aperçu (👁) de l'en-tête et le titre en **serif** : la fiche
+  demande Inter 700/18, mais tout le reste de l'app est en serif — c'est une
+  décision de design system, pas un détail d'écran.
 
 ## 16e — Créer un événement
 
@@ -270,6 +287,39 @@ Vérifié à l'écran : les deux vues de la liste, le verrou visible sur
 
 Non vérifié : le tap Réglages → Notifications et le sélecteur d'heures — le
 build est cassé depuis par une autre session (voir plus bas).
+
+## 9e — Messages, état vide
+
+État conditionnel de 9a, pas un écran séparé. La messagerie vide perd sa
+barre de recherche et ses puces de filtre — il n'y a rien à chercher ni à
+filtrer —, l'entrée « Archives » quitte l'en-tête, et le sous-titre annonce
+« Aucune conversation ».
+
+Les deux amorces nommées de la maquette sont désormais câblées, ce que la
+version précédente refusait de faire faute de données :
+- **Membre proche** : lit l'état déjà chargé par l'accueil
+  (`nearbyProfilesNotifierProvider`) **sans redemander la localisation** —
+  ouvrir la messagerie ne doit pas déclencher une demande de permission. La
+  ligne ne s'affiche donc que si l'accueil a déjà été visité avec la
+  localisation accordée.
+- **Groupe de votre ville** : `groupsNotifierProvider` filtré sur la ville du
+  profil (`currentCity`), groupes publics seulement. Sans ville renseignée, la
+  ligne disparaît — la fiche promet un groupe *de votre ville*, pas un groupe
+  au hasard.
+
+Écarts assumés :
+- **« 1,2 km »** n'est pas affiché : la distance demanderait la position
+  courante, que cet écran n'a pas. La ligne dit « En ligne », sinon la ville,
+  sinon « À proximité ».
+- Le second bouton « Rejoindre un groupe » disparaît : la fiche n'a qu'un CTA,
+  et la suggestion de groupe le remplace avantageusement.
+- Le titre et la pastille restent ceux de `DesignEmptyState` (Playfair 21,
+  icône 40) au lieu d'Inter 19 / icône 44 : c'est le kit partagé de toute
+  l'app, le repeindre pour un écran désaccorderait tous les autres états vides.
+
+⚠️ **Jamais vu à l'écran** : le compte de test a des conversations, donc
+l'état vide est inatteignable sans vider les données (`adb install -r`, qui
+déconnecterait le compte). À vérifier sur un compte neuf.
 
 ---
 

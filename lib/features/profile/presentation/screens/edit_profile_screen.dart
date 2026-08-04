@@ -669,511 +669,296 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    // Section Informations de base
+                    // §20a : formulaire à plat, dans l'ordre de la fiche.
+                    // Plus d'en-tête de section ni d'icône de préfixe : un
+                    // libellé, un champ. Les champs que la fiche ne montre
+                    // pas (pays, ville actuelle, visibilité du profil) sont
+                    // conservés à la suite — les retirer supprimerait des
+                    // données, pas de la décoration.
                     _buildAnimatedSection(
                       delay: 0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _SectionHeader(
-                            title: l10n.basicInfo,
-                            icon: Icons.person_outline,
+                          CustomTextField(
+                            controller: _displayNameController,
+                            label: l10n.fullName,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return l10n.enterYourName;
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
-                          _FormCard(
+                          // Poignée publique @handle (§16f). Absente de la
+                          // maquette, mais c'est elle qui alimente la ligne
+                          // d'identité de « Mon espace » (5a).
+                          HandleField(
+                            initialHandle: _initialHandle,
+                            userId: ref
+                                .read(authNotifierProvider)
+                                .maybeWhen(
+                                  authenticated: (user) => user.id,
+                                  orElse: () => null,
+                                ),
+                            onChanged: (normalized, isValid) {
+                              _handle = normalized;
+                              _handleValid = isValid;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          // Compteur de bio sur la ligne du libellé : posé
+                          // au-dessus du champ il flottait sans attache, et
+                          // le compteur natif de Flutter s'affiche sous le
+                          // champ où il se confond avec un texte d'aide
+                          // (`counterText: ''` l'éteint).
+                          CustomTextField(
+                            controller: _bioController,
+                            label: l10n.bio,
+                            maxLines: 3,
+                            maxLength: _kBioMaxLength,
+                            counterText: '',
+                            labelTrailing:
+                                ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: _bioController,
+                              builder: (context, value, _) {
+                                final n = value.text.characters.length;
+                                return Text(
+                                  '$n/$_kBioMaxLength',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: n >= _kBioMaxLength
+                                        ? context.errorColor
+                                        : context.textTertiaryColor,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildDropdownField(
+                            label: l10n.profession,
+                            value: _selectedProfession,
+                            items: ProfileOptions.professions,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedProfession = value;
+                                if (value != 'Autre') {
+                                  _customProfessionController.clear();
+                                }
+                              });
+                            },
+                          ),
+                          if (_selectedProfession == 'Autre') ...[
+                            const SizedBox(height: 10),
+                            CustomTextField(
+                              controller: _customProfessionController,
+                              label: l10n.specifyYourProfession,
+                            ),
+                          ],
+                          const SizedBox(height: 24),
+
+                          // Langues parlées
+                          _FieldLabel(l10n.spokenLanguages),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
-                              CustomTextField(
-                                controller: _displayNameController,
-                                label: l10n.fullName,
-                                prefixIcon: Icons.badge_outlined,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return l10n.enterYourName;
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              // Poignée publique @handle (§16f)
-                              HandleField(
-                                initialHandle: _initialHandle,
-                                userId: ref
-                                    .read(authNotifierProvider)
-                                    .maybeWhen(
-                                      authenticated: (user) => user.id,
-                                      orElse: () => null,
-                                    ),
-                                onChanged: (normalized, isValid) {
-                                  _handle = normalized;
-                                  _handleValid = isValid;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              // Dropdown Profession
+                              ..._visibleEntries(
+                                _languagesWithFlags.keys,
+                                _selectedLanguages,
+                                // Jamais déplié sur place : le choix se fait
+                                // dans la feuille.
+                                false,
+                              ).map((cle) {
+                                final entry = MapEntry(
+                                  cle,
+                                  _languagesWithFlags[cle]!,
+                                );
+                                final isSelected = _selectedLanguages.contains(
+                                  entry.key,
+                                );
+                                return _LanguageChip(
+                                  language: entry.key,
+                                  code: entry.value,
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedLanguages.remove(entry.key);
+                                      } else {
+                                        _selectedLanguages.add(entry.key);
+                                      }
+                                    });
+                                  },
+                                );
+                              }),
+                              // Masquée quand tout est déjà choisi : une puce
+                              // « +0 langues » n'aurait rien à ouvrir.
+                              if (_selectedLanguages.length <
+                                  _languagesWithFlags.length)
+                                _MoreChip(
+                                  label: l10n.plusMoreLanguages(
+                                    _languagesWithFlags.length -
+                                        _selectedLanguages.length,
+                                  ),
+                                  onTap: _choisirLangues,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Centres d'intérêt
+                          _FieldLabel(l10n.interests),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              ..._visibleEntries(
+                                _interestsWithIcons.keys,
+                                _selectedInterests,
+                                _showAllInterests,
+                              ).map((cle) {
+                                final entry = MapEntry(
+                                  cle,
+                                  _interestsWithIcons[cle]!,
+                                );
+                                final isSelected = _selectedInterests.contains(
+                                  entry.key,
+                                );
+                                return _SelectableChip(
+                                  label: entry.key,
+                                  icon: entry.value,
+                                  isSelected: isSelected,
+                                  color: AppColors.primary,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedInterests.remove(entry.key);
+                                      } else {
+                                        _selectedInterests.add(entry.key);
+                                      }
+                                    });
+                                  },
+                                );
+                              }),
+                              if (!_showAllInterests)
+                                _MoreChip(
+                                  label: l10n.plusMoreCount(
+                                    _interestsWithIcons.length -
+                                        _visibleEntries(
+                                          _interestsWithIcons.keys,
+                                          _selectedInterests,
+                                          false,
+                                        ).length,
+                                  ),
+                                  onTap: () => setState(
+                                    () => _showAllInterests = true,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Localisation — hors maquette, conservée.
+                          _buildCountryDropdown(
+                            label: l10n.country,
+                            value: _selectedCountry,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCountry = value;
+                                _customCountryController.clear();
+                              });
+                            },
+                          ),
+                          if (_selectedCountry == null) ...[
+                            const SizedBox(height: 10),
+                            CustomTextField(
+                              controller: _customCountryController,
+                              label: l10n.profileSpecifyCountry,
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          CustomTextField(
+                            controller: _currentCityController,
+                            label: l10n.currentCity,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Origine au Niger : ligne de résumé repliable.
+                          _buildOriginRow(l10n),
+                          if (_showOrigin) ...[
+                            const SizedBox(height: 12),
+                            _buildDropdownField(
+                              label: l10n.profileRegion,
+                              value: _selectedOriginRegion,
+                              items: ProfileOptions.regions,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOriginRegion = value;
+                                  _selectedOriginCity = null;
+                                  _customOriginCityController.clear();
+                                });
+                              },
+                            ),
+                            if (_selectedOriginRegion != null &&
+                                _selectedOriginRegion != 'Autre') ...[
+                              const SizedBox(height: 12),
                               _buildDropdownField(
-                                label: l10n.profession,
-                                icon: Icons.work_outline,
-                                value: _selectedProfession,
-                                items: ProfileOptions.professions,
+                                label: l10n.profileOriginCity,
+                                value: _selectedOriginCity,
+                                items: ProfileOptions.getCitiesForRegion(
+                                  _selectedOriginRegion!,
+                                ),
                                 onChanged: (value) {
                                   setState(() {
-                                    _selectedProfession = value;
+                                    _selectedOriginCity = value;
                                     if (value != 'Autre') {
-                                      _customProfessionController.clear();
+                                      _customOriginCityController.clear();
                                     }
                                   });
                                 },
                               ),
-                              if (_selectedProfession == 'Autre') ...[
-                                const SizedBox(height: 12),
-                                CustomTextField(
-                                  controller: _customProfessionController,
-                                  label: l10n.specifyYourProfession,
-                                  prefixIcon: Icons.edit_outlined,
-                                ),
-                              ],
-                              const SizedBox(height: 16),
-                              // Numéro vérifié : carte en lecture
-                              // seule, numéro masqué (§20a).
-                              if (_isPhoneVerified && !_editingPhone)
-                                _buildVerifiedPhoneCard()
-                              else
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: IntlPhoneField(
-                                      decoration: InputDecoration(
-                                        labelText: l10n.phone,
-                                        labelStyle: TextStyle(
-                                          color: context.textSecondaryColor,
-                                          fontSize: 14,
-                                        ),
-                                        filled: true,
-                                        fillColor: context.surfaceVariantColor,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: context.borderColor,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: context.adaptivePrimaryColor,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: AppColors.error,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: AppColors.error,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 12,
-                                            ),
-                                      ),
-                                      // Si un numéro E.164 est déjà stocké
-                                      // (+1…, +33…, etc.), on laisse le package
-                                      // détecter le pays depuis le préfixe au
-                                      // lieu de forcer 'NE' (sinon un numéro
-                                      // hors Niger devient invalide et bloque
-                                      // l'enregistrement).
-                                      initialCountryCode:
-                                          _completePhoneNumber.trim().startsWith(
-                                            '+',
-                                          )
-                                          ? null
-                                          : 'NE',
-                                      initialValue: _completePhoneNumber,
-                                      onChanged: (phone) {
-                                        _onPhoneNumberChanged(
-                                          phone.completeNumber,
-                                        );
-                                      },
-                                      invalidNumberMessage:
-                                          l10n.adminInvalidNumberError,
-                                      // Téléphone optionnel : un champ vide ne
-                                      // doit jamais empêcher l'enregistrement.
-                                      disableLengthCheck: true,
-                                      validator: (phone) {
-                                        final n = phone?.number.trim() ?? '';
-                                        if (n.isEmpty) return null;
-                                        if (n.length < 4) {
-                                          return l10n.adminInvalidNumberError;
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  // Bouton de vérification OTP
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: _buildVerifyButton(),
-                                  ),
-                                ],
-                              ),
+                            ],
+                            if (_selectedOriginRegion == 'Autre' ||
+                                _selectedOriginCity == 'Autre') ...[
                               const SizedBox(height: 12),
-                              // Sélecteur de visibilité du numéro
-                              _buildPhoneVisibilitySelector(),
-                              const SizedBox(height: 16),
-                              // Compteur de bio (§20a), sur la ligne du
-                              // libellé. Posé au-dessus du champ il flottait
-                              // sans attache et semblait appartenir au bloc
-                              // précédent. Le compteur natif de Flutter, lui,
-                              // s'affiche sous le champ où il se confond avec
-                              // un texte d'aide : `counterText: ''` l'éteint.
                               CustomTextField(
-                                controller: _bioController,
-                                label: l10n.bio,
-                                prefixIcon: Icons.notes_outlined,
-                                maxLines: 3,
-                                maxLength: _kBioMaxLength,
-                                counterText: '',
-                                labelTrailing:
-                                    ValueListenableBuilder<TextEditingValue>(
-                                  valueListenable: _bioController,
-                                  builder: (context, value, _) {
-                                    final n = value.text.characters.length;
-                                    return Text(
-                                      '$n/$_kBioMaxLength',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: n >= _kBioMaxLength
-                                            ? context.errorColor
-                                            : context.textTertiaryColor,
-                                      ),
-                                    );
-                                  },
-                                ),
+                                controller: _customOriginCityController,
+                                label: l10n.profileSpecifyOriginCity,
                               ),
                             ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Section Localisation
-                    _buildAnimatedSection(
-                      delay: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionHeader(
-                            title: l10n.location,
-                            icon: Icons.location_on_outlined,
-                          ),
+                          ],
                           const SizedBox(height: 16),
-                          _FormCard(
-                            children: [
-                              // Dropdown Pays avec drapeaux
-                              _buildCountryDropdown(
-                                label: l10n.country,
-                                icon: Icons.public_outlined,
-                                value: _selectedCountry,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedCountry = value;
-                                    _customCountryController.clear();
-                                  });
-                                },
-                              ),
-                              // Option pour saisir un pays non listé
-                              if (_selectedCountry == null) ...[
-                                const SizedBox(height: 12),
-                                CustomTextField(
-                                  controller: _customCountryController,
-                                  label: l10n.profileSpecifyCountry,
-                                  prefixIcon: Icons.edit_outlined,
-                                ),
-                              ],
-                              const SizedBox(height: 16),
-                              CustomTextField(
-                                controller: _currentCityController,
-                                label: l10n.currentCity,
-                                prefixIcon: Icons.location_city_outlined,
-                              ),
-                              const SizedBox(height: 20),
-                              // Ligne de résumé repliable (§20a).
-                              _buildOriginRow(l10n),
-                              if (_showOrigin) ...[
-                              // Origine au Niger
-                              Text(
-                                l10n.originAtNiger,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textSecondaryColor,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              // Dropdown Region
-                              _buildDropdownField(
-                                label: l10n.profileRegion,
-                                icon: Icons.map_outlined,
-                                value: _selectedOriginRegion,
-                                items: ProfileOptions.regions,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedOriginRegion = value;
-                                    _selectedOriginCity = null;
-                                    _customOriginCityController.clear();
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              // Dropdown Ville d'origine
-                              if (_selectedOriginRegion != null &&
-                                  _selectedOriginRegion != 'Autre')
-                                _buildDropdownField(
-                                  label: l10n.profileOriginCity,
-                                  icon: Icons.home_outlined,
-                                  value: _selectedOriginCity,
-                                  items: ProfileOptions.getCitiesForRegion(
-                                    _selectedOriginRegion!,
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedOriginCity = value;
-                                      if (value != 'Autre') {
-                                        _customOriginCityController.clear();
-                                      }
-                                    });
-                                  },
-                                ),
-                              if (_selectedOriginRegion == 'Autre' ||
-                                  _selectedOriginCity == 'Autre') ...[
-                                const SizedBox(height: 12),
-                                CustomTextField(
-                                  controller: _customOriginCityController,
-                                  label: l10n.profileSpecifyOriginCity,
-                                  prefixIcon: Icons.edit_outlined,
-                                ),
-                              ],
-                              ],
-                            ],
+
+                          // Bloc téléphone : numéro (vérifié ou non) puis
+                          // visibilité, dans une seule carte comme la fiche.
+                          _buildPhoneBlock(l10n),
+                          const SizedBox(height: 24),
+
+                          _PrivacyToggle(
+                            icon: _isVisible
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            title: l10n.visibleProfile,
+                            subtitle: l10n.otherMembersCanSee,
+                            value: _isVisible,
+                            onChanged: (value) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _isVisible = value);
+                            },
+                          ),
+                          const SizedBox(height: 32),
+                          CustomButton(
+                            onPressed: _saveProfile,
+                            label: l10n.saveChanges,
+                            isLoading: _isLoading,
                           ),
                         ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Section Centres d'intérêt
-                    _buildAnimatedSection(
-                      delay: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionHeader(
-                            title: l10n.interests,
-                            icon: Icons.interests_outlined,
-                            subtitle:
-                                AppLocalizations.of(context)!.selectedCount(_selectedInterests.length),
-                          ),
-                          const SizedBox(height: 16),
-                          _FormCard(
-                            children: [
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: [
-                                  ..._visibleEntries(
-                                    _interestsWithIcons.keys,
-                                    _selectedInterests,
-                                    _showAllInterests,
-                                  ).map((cle) {
-                                      final entry = MapEntry(
-                                        cle,
-                                        _interestsWithIcons[cle]!,
-                                      );
-                                      final isSelected = _selectedInterests
-                                          .contains(entry.key);
-                                      return _SelectableChip(
-                                        label: entry.key,
-                                        icon: entry.value,
-                                        isSelected: isSelected,
-                                        color: AppColors.primary,
-                                        onTap: () {
-                                          HapticFeedback.selectionClick();
-                                          setState(() {
-                                            if (isSelected) {
-                                              _selectedInterests.remove(
-                                                entry.key,
-                                              );
-                                            } else {
-                                              _selectedInterests.add(entry.key);
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }),
-                                  if (!_showAllInterests)
-                                    _MoreChip(
-                                      label: l10n.plusMoreCount(
-                                        _interestsWithIcons.length -
-                                            _visibleEntries(
-                                              _interestsWithIcons.keys,
-                                              _selectedInterests,
-                                              false,
-                                            ).length,
-                                      ),
-                                      onTap: () => setState(
-                                        () => _showAllInterests = true,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Section Langues
-                    _buildAnimatedSection(
-                      delay: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionHeader(
-                            title: l10n.spokenLanguages,
-                            icon: Icons.translate_outlined,
-                            subtitle:
-                                AppLocalizations.of(context)!.selectedCount(_selectedLanguages.length),
-                          ),
-                          const SizedBox(height: 16),
-                          _FormCard(
-                            children: [
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: [
-                                  ..._visibleEntries(
-                                    _languagesWithFlags.keys,
-                                    _selectedLanguages,
-                                    // Jamais déplié sur place : le choix
-                                    // se fait dans la feuille.
-                                    false,
-                                  ).map((cle) {
-                                      final entry = MapEntry(
-                                        cle,
-                                        _languagesWithFlags[cle]!,
-                                      );
-                                      final isSelected = _selectedLanguages
-                                          .contains(entry.key);
-                                      return _LanguageChip(
-                                        language: entry.key,
-                                        code: entry.value,
-                                        isSelected: isSelected,
-                                        onTap: () {
-                                          HapticFeedback.selectionClick();
-                                          setState(() {
-                                            if (isSelected) {
-                                              _selectedLanguages.remove(
-                                                entry.key,
-                                              );
-                                            } else {
-                                              _selectedLanguages.add(entry.key);
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }),
-                                  // Masquée quand tout est déjà choisi : une
-                                  // puce « +0 langues » n'aurait rien à ouvrir.
-                                  if (_selectedLanguages.length <
-                                      _languagesWithFlags.length)
-                                    _MoreChip(
-                                      label: l10n.plusMoreLanguages(
-                                        _languagesWithFlags.length -
-                                            _selectedLanguages.length,
-                                      ),
-                                      onTap: _choisirLangues,
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Section Confidentialité
-                    _buildAnimatedSection(
-                      delay: 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionHeader(
-                            title: l10n.privacy,
-                            icon: Icons.shield_outlined,
-                          ),
-                          const SizedBox(height: 16),
-                          _FormCard(
-                            children: [
-                              _PrivacyToggle(
-                                icon:
-                                    _isVisible
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                title: l10n.visibleProfile,
-                                subtitle: l10n.otherMembersCanSee,
-                                value: _isVisible,
-                                onChanged: (value) {
-                                  HapticFeedback.selectionClick();
-                                  setState(() => _isVisible = value);
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Bouton de sauvegarde
-                    _buildAnimatedSection(
-                      delay: 5,
-                      child: CustomButton(
-                        onPressed: _saveProfile,
-                        label: l10n.saveChanges,
-                        isLoading: _isLoading,
                       ),
                     ),
                   ]),
@@ -1288,9 +1073,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
   }
 
+  /// §20a : le libellé est porté au-dessus du champ, comme pour les champs
+  /// texte, et non en étiquette flottante dans le contour — la maquette
+  /// aligne tous les libellés du formulaire sur la même colonne.
   Widget _buildDropdownField({
     required String label,
-    required IconData icon,
+    IconData? icon,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(label),
+        _buildDropdownBox(icon: icon, value: value, items: items, onChanged: onChanged),
+      ],
+    );
+  }
+
+  Widget _buildDropdownBox({
+    required IconData? icon,
     required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
@@ -1304,9 +1107,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       child: DropdownButtonFormField<String>(
         initialValue: value,
         decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: context.textTertiaryColor),
-          prefixIcon: Icon(icon, color: context.textTertiaryColor, size: 22),
+          prefixIcon:
+              icon == null
+                  ? null
+                  : Icon(icon, color: context.textTertiaryColor, size: 22),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -1544,6 +1348,79 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   /// Carte du numéro vérifié : numéro masqué, état, et « Modifier ».
+  /// Bloc téléphone de la fiche 20a : le numéro (carte en lecture seule s'il
+  /// est vérifié, champ de saisie + bouton de vérification sinon), puis la
+  /// ligne « Qui peut voir mon numéro ? ».
+  Widget _buildPhoneBlock(AppLocalizations l10n) {
+    OutlineInputBorder bordure(Color couleur, double epaisseur) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: couleur, width: epaisseur),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_isPhoneVerified && !_editingPhone)
+          _buildVerifiedPhoneCard()
+        else ...[
+          _FieldLabel(l10n.phone),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: IntlPhoneField(
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: context.surfaceVariantColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: bordure(context.borderColor, 1),
+                    focusedBorder: bordure(context.adaptivePrimaryColor, 2),
+                    errorBorder: bordure(AppColors.error, 1),
+                    focusedErrorBorder: bordure(AppColors.error, 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  // Si un numéro E.164 est déjà stocké (+1…, +33…), on laisse
+                  // le package détecter le pays depuis le préfixe au lieu de
+                  // forcer 'NE' (sinon un numéro hors Niger devient invalide
+                  // et bloque l'enregistrement).
+                  initialCountryCode:
+                      _completePhoneNumber.trim().startsWith('+') ? null : 'NE',
+                  initialValue: _completePhoneNumber,
+                  onChanged: (phone) =>
+                      _onPhoneNumberChanged(phone.completeNumber),
+                  invalidNumberMessage: l10n.adminInvalidNumberError,
+                  // Téléphone optionnel : un champ vide ne doit jamais
+                  // empêcher l'enregistrement.
+                  disableLengthCheck: true,
+                  validator: (phone) {
+                    final n = phone?.number.trim() ?? '';
+                    if (n.isEmpty) return null;
+                    if (n.length < 4) return l10n.adminInvalidNumberError;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: _buildVerifyButton(),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        _buildPhoneVisibilitySelector(),
+      ],
+    );
+  }
+
   Widget _buildVerifiedPhoneCard() {
     final l10n = AppLocalizations.of(context)!;
     return Container(
@@ -1852,7 +1729,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   Widget _buildCountryDropdown({
     required String label,
-    required IconData icon,
+    required CountryOption? value,
+    required ValueChanged<CountryOption?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(label),
+        _buildCountryBox(value: value, onChanged: onChanged),
+      ],
+    );
+  }
+
+  Widget _buildCountryBox({
     required CountryOption? value,
     required ValueChanged<CountryOption?> onChanged,
   }) {
@@ -1865,8 +1754,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       child: DropdownButtonFormField<CountryOption>(
         initialValue: value,
         decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: context.textTertiaryColor),
           prefixIcon:
               value != null
                   ? Padding(
@@ -1876,7 +1763,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       style: const TextStyle(fontSize: 22),
                     ),
                   )
-                  : Icon(icon, color: context.textTertiaryColor, size: 22),
+                  // Pas d'icône générique quand aucun pays n'est choisi :
+                  // la fiche ne met rien dans les champs.
+                  : null,
           prefixIconConstraints: const BoxConstraints(minWidth: 48),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -1933,83 +1822,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
 // Widgets réutilisables
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final String? subtitle;
+/// Libellé de champ de la fiche 20a : 12.5/600, posé au-dessus du contrôle.
+/// Sert aux groupes qui n'ont pas de `CustomTextField` pour porter le leur
+/// (sélecteurs, rangées de puces).
+class _FieldLabel extends StatelessWidget {
+  final String text;
 
-  const _SectionHeader({
-    required this.title,
-    required this.icon,
-    this.subtitle,
-  });
+  const _FieldLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: context.adaptivePrimaryColor),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: context.textSecondaryColor,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: context.textTertiaryColor,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              if (subtitle != null)
-                Text(
-                  subtitle!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.adaptivePrimaryColor.withValues(alpha: 0.8),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FormCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _FormCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.shadowColor,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: Column(children: children),
     );
   }
 }
+
 
 class _SelectableChip extends StatelessWidget {
   final String label;

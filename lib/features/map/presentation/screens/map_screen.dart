@@ -2819,6 +2819,71 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
+  /// « 50 km », « Mon pays », « Partout » — le rayon tel qu'il est déjà écrit
+  /// dans la barre d'actions, réutilisé en sourdine dans l'en-tête du panneau.
+  String _radiusLabel(AppLocalizations l10n) {
+    if (_selectedRadius == -1) return l10n.everywhereLabel;
+    if (_selectedRadius == 0) return l10n.countryLabel;
+    return '${_selectedRadius.toInt()} km';
+  }
+
+  /// Feuille « Trier » (fiche 7d). Remplace une bascule aveugle : le bouton
+  /// changeait l'ordre sans jamais dire lequel des deux était actif.
+  Future<void> _showSortSheet(AppLocalizations l10n) async {
+    final choice = await showModalBottomSheet<_MemberSort>(
+      context: context,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder:
+          (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 10),
+                const SheetHandle(),
+                const SizedBox(height: 6),
+                for (final option in _MemberSort.values)
+                  ListTile(
+                    leading: Icon(
+                      option == _MemberSort.nearest
+                          ? Icons.near_me_outlined
+                          : Icons.sort_by_alpha,
+                      color:
+                          _sort == option
+                              ? ctx.adaptivePrimaryColor
+                              : ctx.textSecondaryColor,
+                    ),
+                    title: Text(
+                      option == _MemberSort.nearest
+                          ? l10n.mapSortNearest
+                          : l10n.mapSortByName,
+                      style: TextStyle(
+                        fontWeight:
+                            _sort == option
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                        color: ctx.textPrimaryColor,
+                      ),
+                    ),
+                    trailing:
+                        _sort == option
+                            ? Icon(
+                              Icons.check_rounded,
+                              color: ctx.adaptivePrimaryColor,
+                            )
+                            : null,
+                    onTap: () => Navigator.pop(ctx, option),
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+    );
+    if (choice != null && mounted) setState(() => _sort = choice);
+  }
+
   Widget _guaranteeRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -3036,9 +3101,18 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Ligne de membre dans la feuille : avatar 44 + nom + « métier · ville »,
   /// bouton d'action 40 px (ouvre la fiche membre).
   Widget _buildMemberSheetItem(ProfileModel member, AppLocalizations l10n) {
+    // « Infirmière · 1,2 km · en ligne » (fiche 7d) : la distance remplace la
+    // ville — c'est une carte de proximité, la ville n'y apprend rien de plus
+    // que le pin. Chaque morceau disparaît si sa donnée manque, plutôt que
+    // d'afficher un « — ».
+    final distanceKm = _distanceTo(member);
     final subtitle = [
       member.profession,
-      member.currentCity,
+      if (distanceKm != null)
+        distanceKm < 1
+            ? '${(distanceKm * 1000).round()} m'
+            : '${distanceKm.toStringAsFixed(1).replaceAll('.', ',')} km',
+      if (member.isOnline) 'en ligne',
     ].where((e) => e != null && e.trim().isNotEmpty).join(' · ');
 
     return InkWell(
@@ -3538,11 +3612,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   // — refonte 7d, remplace le panneau ancré + chip de réouverture.
                   if (!_isReciprocityRestricted)
                     DraggableScrollableSheet(
-                      initialChildSize: 0.38,
-                      minChildSize: 0.38,
+                      // Trois positions de la fiche 7d : 18 % (le panneau se
+                      // réduit à son en-tête et rend la carte), 45 %, 92 %.
+                      // Le minimum était à 38 %, donc la « position basse »
+                      // n'existait pas : le panneau mangeait toujours plus
+                      // du tiers de l'écran.
+                      initialChildSize: 0.45,
+                      minChildSize: 0.18,
                       maxChildSize: 0.92,
                       snap: true,
-                      snapSizes: const [0.38, 0.6, 0.92],
+                      snapSizes: const [0.18, 0.45, 0.92],
                       builder: (context, scrollController) {
                         final members = _applySort(_getFilteredMembers());
                         return Container(
@@ -3583,174 +3662,142 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 14),
+                                    const SizedBox(height: 12),
+                                    // En-tête de la fiche 7d : le compte est
+                                    // dans le titre, le rayon le suit en
+                                    // sourdine, et une seule action à droite.
+                                    //
+                                    // Cinq contrôles se disputaient cette
+                                    // rangée (titre, fraîcheur ×2, pastille
+                                    // de compte, bascule Liste, tri) : tout
+                                    // s'y tronquait, le titre tombait à
+                                    // « Membres … » et la fraîcheur à
+                                    // « À l'i… ».
                                     Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.baseline,
+                                      textBaseline: TextBaseline.alphabetic,
                                       children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                l10n.membersNearby,
-                                                // Une seule ligne : sans ça
-                                                // le titre se repliait en
-                                                // colonne, coupé en plein
-                                                // mot, quand ses voisins de
-                                                // rangée prenaient la place.
-                                                maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  AppIcon(
-                                                    AppIcon.groups,
-                                                    size: 12,
-                                                    color: context
-                                                        .textTertiaryColor,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Flexible(
-                                                    child: Text(
-                                                      _formatRelativeTime(
-                                                        _lastMembersUpdate,
-                                                        l10n,
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: context
-                                                            .textTertiaryColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Icon(
-                                                    Icons.my_location,
-                                                    size: 12,
-                                                    color: context
-                                                        .textTertiaryColor,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Flexible(
-                                                    child: Text(
-                                                      _formatRelativeTime(
-                                                        _lastPositionUpdate,
-                                                        l10n,
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: context
-                                                            .textTertiaryColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: context.surfaceVariantColor,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
+                                        Flexible(
                                           child: Text(
-                                            l10n.members(members.length),
+                                            // Littéral comme le reste de la
+                                            // reprise sur fiches : la clé
+                                            // l10n existante (« Membres à
+                                            // proximité ») ne porte pas le
+                                            // compte, et ajouter un pluriel
+                                            // à l'ARB pour deux mots casse
+                                            // gen-l10n si la métadonnée
+                                            // manque.
+                                            '${members.length} '
+                                            '${members.length > 1 ? "membres" : "membre"} autour',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color:
-                                                  context.adaptivePrimaryColor,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: context.textPrimaryColor,
                                             ),
                                           ),
                                         ),
-                                        // Bascule Carte / Liste (§7e).
-                                        const SizedBox(width: 4),
-                                        TextButton.icon(
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '· ${_radiusLabel(l10n)}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        // Bascule Carte / Liste (§7e) : sans
+                                        // libellé, elle ne peut plus pousser
+                                        // le titre hors de la rangée.
+                                        IconButton(
                                           onPressed: () => setState(
                                             () => _listOnly = !_listOnly,
                                           ),
+                                          visualDensity: VisualDensity.compact,
+                                          constraints: const BoxConstraints(),
+                                          padding: const EdgeInsets.all(6),
+                                          tooltip:
+                                              _listOnly ? 'Carte' : 'Liste',
                                           icon: Icon(
                                             _listOnly
                                                 ? Icons.map_outlined
                                                 : Icons.list,
-                                            size: 16,
+                                            size: 18,
                                             color: context.textSecondaryColor,
                                           ),
-                                          label: Text(
-                                            _listOnly ? 'Carte' : 'Liste',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: context.textSecondaryColor,
-                                            ),
-                                          ),
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                            ),
-                                            minimumSize: Size.zero,
-                                            tapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
-                                          ),
                                         ),
-                                        // Ordre de la liste (§7e) : il était
-                                        // appliqué sans être dit ni modifiable.
                                         const SizedBox(width: 4),
-                                        TextButton.icon(
-                                          onPressed: () => setState(() {
-                                            _sort = _sort == _MemberSort.nearest
-                                                ? _MemberSort.name
-                                                : _MemberSort.nearest;
-                                          }),
-                                          icon: Icon(
-                                            Icons.swap_vert,
-                                            size: 16,
-                                            color:
-                                                context.adaptivePrimaryColor,
-                                          ),
-                                          label: Text(
-                                            // Libellé court : il partage sa
-                                            // rangée avec le titre du volet,
-                                            // qui se repliait caractère par
-                                            // caractère quand celui-ci
-                                            // prenait toute la place.
-                                            _sort == _MemberSort.nearest
-                                                ? l10n.mapSortNearest
-                                                : l10n.mapSortByName,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color:
-                                                  context.adaptivePrimaryColor,
-                                            ),
-                                          ),
-                                          style: TextButton.styleFrom(
+                                        GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () => _showSortSheet(l10n),
+                                          child: Padding(
                                             padding:
                                                 const EdgeInsets.symmetric(
-                                              horizontal: 6,
+                                              vertical: 4,
                                             ),
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
+                                            child: Text(
+                                              'Trier',
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w600,
+                                                color: context
+                                                    .adaptivePrimaryColor,
+                                              ),
+                                            ),
                                           ),
                                         ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Fraîcheur des données sur sa propre
+                                    // ligne, pleine largeur : plus rien ne
+                                    // la comprime.
+                                    Row(
+                                      children: [
+                                        AppIcon(
+                                          AppIcon.groups,
+                                          size: 12,
+                                          color: context.textTertiaryColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            _formatRelativeTime(
+                                              _lastMembersUpdate,
+                                              l10n,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.textTertiaryColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Icon(
+                                          Icons.my_location,
+                                          size: 12,
+                                          color: context.textTertiaryColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            _formatRelativeTime(
+                                              _lastPositionUpdate,
+                                              l10n,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.textTertiaryColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const Spacer(),
                                       ],
                                     ),
                                   ],
