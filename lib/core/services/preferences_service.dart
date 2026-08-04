@@ -600,6 +600,44 @@ class PreferencesService {
   // UTILITY METHODS
   // ============================
 
+  /// Efface ce qui appartient à la **personne**, à la déconnexion et à la
+  /// suppression de compte. Les réglages de l'**appareil** survivent.
+  ///
+  /// Aucune de ces clés ne porte d'identifiant d'utilisateur : sans cette
+  /// purge, le compte suivant sur le même téléphone héritait des brouillons du
+  /// précédent — l'écran « Mes publications » affichait littéralement son
+  /// brouillon de post.
+  ///
+  /// Volontairement conservés, parce que les purger **dégraderait** le retour
+  /// du même utilisateur sans rien protéger :
+  /// - thème, couleur, langue, réglages de notification et heures calmes ;
+  /// - mode économie de données et téléchargement automatique ;
+  /// - `analytics_opt_out` : l'effacer réactiverait la télémétrie pour qui
+  ///   l'avait refusée ;
+  /// - `biometric_enabled` : le déverrouillage utilise l'empreinte de qui tient
+  ///   le téléphone, il n'expose rien du compte précédent ;
+  /// - onboarding et coach marks, qui décrivent l'appareil ;
+  /// - le consentement, déjà cloisonné par utilisateur
+  ///   (`has_given_consent_<uid>`, cf. `OnboardingLocalDataSource`).
+  Future<void> clearUserData() async {
+    const personnelles = <String>[
+      _keyMessageDrafts, // texte écrit par l'utilisateur
+      _keyPostDrafts, // idem
+      _keyPostDraft, // ancien brouillon unique, encore lu à la migration
+      _keyFollowedHashtags, // centres d'intérêt
+      _keyPlayedVoiceNotes, // historique d'écoute
+      _keyDefaultChatBackground,
+      _keyCustomChatBackgrounds, // images ajoutées par l'utilisateur
+      _keySessionId, // suivi de session interne
+      // Exposition sur la carte des membres : choix de la personne, et
+      // `false` par défaut — l'effacer va donc dans le sens protecteur.
+      _keyNearbyMembersEnabled,
+    ];
+    for (final cle in personnelles) {
+      await prefs.remove(cle);
+    }
+  }
+
   /// Clear all preferences (use with caution)
   Future<void> clearAll() => prefs.clear();
 

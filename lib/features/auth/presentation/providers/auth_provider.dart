@@ -18,6 +18,7 @@ import '../../domain/usecases/send_password_reset_email.dart';
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/preferences_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import 'auth_state.dart';
@@ -296,6 +297,10 @@ class AuthNotifier extends _$AuthNotifier {
 
     // Vider le cache local pour éviter les données obsolètes
     await CacheService.instance.clearAllCache();
+    // …et ce que la personne a écrit ou accumulé dans les préférences
+    // (brouillons, hashtags suivis…) : aucune de ces clés ne porte d'uid, le
+    // compte suivant sur ce téléphone en héritait.
+    await PreferencesService.instance.clearUserData();
 
     final result = await ref.read(signOutUseCaseProvider).call();
 
@@ -326,6 +331,7 @@ class AuthNotifier extends _$AuthNotifier {
       (_) async {
         SessionService.instance.dispose();
         await CacheService.instance.clearAllCache();
+        await PreferencesService.instance.clearUserData();
         state = const AuthState.unauthenticated();
         return true;
       },
