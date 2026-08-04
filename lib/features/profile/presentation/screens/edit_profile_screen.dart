@@ -1485,6 +1485,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               Expanded(
                 child: Text(
                   l10n.originAtNiger,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
@@ -1492,6 +1494,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
               Flexible(
                 child: Text(
                   rempli
@@ -1635,6 +1638,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               Expanded(
                 child: Text(
                   l10n.phoneVisibilityQuestion,
+                  // Le libellé se tronque, la valeur jamais : c'est elle
+                  // l'information. Avec deux enfants souples, le libellé
+                  // prenait tout et la valeur disparaissait.
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
@@ -1642,6 +1650,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
               Text(
                 libelle,
                 style: TextStyle(
