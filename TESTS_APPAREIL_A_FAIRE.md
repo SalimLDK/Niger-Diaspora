@@ -242,6 +242,19 @@ durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
 - [ ] Créer une entreprise, créer un podcast, fiche entreprise (feuille « Type
   de publication ») : vérifier qu'aucun libellé n'est tronqué à tort.
 
+### Ellipse sur les éléments eux-mêmes (complément, 2026-08-04)
+
+Durcissement récupéré d'une session parallèle : `maxLines: 1` + ellipse sur les
+libellés des éléments, en plus d'`isExpanded` sur le champ. Le risque n'est plus
+le débordement mais la **troncature abusive** — un « … » là où le libellé tenait.
+
+- [ ] **Créer un podcast → « Langue » et « Fréquence de publication »** : les
+  libellés traduits (haoussa, zarma) s'affichent en entier, pas en « … ».
+- [ ] **Boutique → « Vendre un produit », menu « Pays »** : les deux listes
+  (pays prioritaires **et** le reste, sous le séparateur) — le drapeau reste
+  collé au nom et aucun nom de pays n'est coupé à l'échelle 1.0.
+- [ ] Les mêmes à `font_scale` 1.1 : là, une ellipse est normale.
+
 ---
 
 ## Débordement du champ « Type * » — création d'ambassade (2026-08-04)

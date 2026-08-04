@@ -263,14 +263,42 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
                 labelText: l10n.podcastsLanguageRequired,
                 border: const OutlineInputBorder(),
               ),
+              // `isExpanded` borne la pile interne, l'ellipse borne le libellé
+              // lui-même : les noms de langue sont traduits, donc leur longueur
+              // n'est pas maîtrisée ici.
               items: [
-                DropdownMenuItem(value: 'fr', child: Text(l10n.languageFrench)),
+                DropdownMenuItem(
+                  value: 'fr',
+                  child: Text(
+                    l10n.languageFrench,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 DropdownMenuItem(
                   value: 'en',
-                  child: Text(l10n.languageEnglish),
+                  child: Text(
+                    l10n.languageEnglish,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                DropdownMenuItem(value: 'ha', child: Text(l10n.languageHausa)),
-                DropdownMenuItem(value: 'dj', child: Text(l10n.languageZarma)),
+                DropdownMenuItem(
+                  value: 'ha',
+                  child: Text(
+                    l10n.languageHausa,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'dj',
+                  child: Text(
+                    l10n.languageZarma,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) setState(() => _language = value);
@@ -286,26 +314,48 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
                 labelText: l10n.podcastsPublicationFrequency,
                 border: const OutlineInputBorder(),
               ),
+              // Même raison que le champ « langue » ci-dessus : libellés
+              // traduits, donc bornés par une ellipse en plus d'`isExpanded`.
               items: [
                 DropdownMenuItem(
                   value: null,
-                  child: Text(l10n.frequencyNotDefined),
+                  child: Text(
+                    l10n.frequencyNotDefined,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'daily',
-                  child: Text(l10n.frequencyDaily),
+                  child: Text(
+                    l10n.frequencyDaily,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'weekly',
-                  child: Text(l10n.frequencyWeekly),
+                  child: Text(
+                    l10n.frequencyWeekly,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'biweekly',
-                  child: Text(l10n.frequencyBiweekly),
+                  child: Text(
+                    l10n.frequencyBiweekly,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'monthly',
-                  child: Text(l10n.frequencyMonthly),
+                  child: Text(
+                    l10n.frequencyMonthly,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
               onChanged: (value) {
