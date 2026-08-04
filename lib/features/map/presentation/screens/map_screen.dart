@@ -24,6 +24,8 @@ import '../../../friends/domain/repositories/friend_repository.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
+import '../../../groups/presentation/providers/group_provider.dart';
+import '../../../groups/domain/entities/group_entity.dart';
 import '../../../businesses/presentation/providers/business_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import '../../../../core/extensions/business_entity_extensions.dart';
@@ -78,6 +80,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   bool _mapsInitialized = false;
   bool _isReciprocityRestricted = false;
+
+  /// Ville sélectionnée dans le repli « explorez par ville » (fiche 8c).
+  /// `null` = première ville de la liste déduite des données.
+  String? _exploreCity;
 
   String? _lightMapStyle;
   String? _darkMapStyle;
@@ -2683,21 +2689,43 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// une fois masqué complètement.
   /// Écran assumé sans localisation (8c) : réciprocité expliquée, trois
   /// garanties, CTA d'activation, puis repli « explorer autrement ».
+  /// État « sans localisation » (fiche 8c) : une carte d'explication assumée
+  /// plutôt qu'un bandeau posé sur une carte inutilisable, puis un repli qui
+  /// laisse explorer par ville sans jamais demander la position.
   Widget _buildNoLocationScreen(AppLocalizations l10n, bool nearbyEnabled) {
-    final accent = context.adaptivePrimaryColor;
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-        24,
-        24,
-        24,
+        20,
+        20,
+        20,
         MediaQuery.of(context).viewPadding.bottom + 100,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 16),
+          _buildLocationPitchCard(l10n, nearbyEnabled),
+          const SizedBox(height: 20),
+          _buildExploreByCityPanel(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationPitchCard(AppLocalizations l10n, bool nearbyEnabled) {
+    final accent = context.adaptivePrimaryColor;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Container(
-            width: 104,
-            height: 104,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
@@ -2706,92 +2734,80 @@ class _MapScreenState extends ConsumerState<MapScreen>
               nearbyEnabled
                   ? Icons.location_off_outlined
                   : Icons.visibility_off_outlined,
-              size: 46,
+              size: 30,
               color: accent,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             nearbyEnabled
                 ? l10n.locationRequiredToSeeMembers
                 : l10n.nearbyMembersDisabled,
-            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 21,
+              fontSize: 19,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
               color: context.textPrimaryColor,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             l10n.locationReciprocity,
-            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14.5,
-              height: 1.5,
+              fontSize: 14,
+              height: 1.55,
               color: context.textSecondaryColor,
             ),
           ),
-          const SizedBox(height: 24),
-          _guaranteeRow(Icons.my_location, l10n.locationGuarantee1),
-          _guaranteeRow(Icons.toggle_off_outlined, l10n.locationGuarantee2),
-          _guaranteeRow(Icons.block_outlined, l10n.locationGuarantee3),
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
+          _guaranteeRow(Icons.check_rounded, l10n.locationGuarantee1),
+          _guaranteeRow(Icons.check_rounded, l10n.locationGuarantee2),
+          _guaranteeRow(Icons.lock_outline_rounded, l10n.locationGuarantee3),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
+            child: FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
                 foregroundColor: context.onPrimaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              onPressed: nearbyEnabled
-                  ? _initializeLocation
-                  : () => ref
-                      .read(nearbyMembersEnabledProvider.notifier)
-                      .setEnabled(true),
-              icon: const Icon(Icons.my_location, size: 20),
-              label: Text(
+              onPressed:
+                  nearbyEnabled
+                      ? _initializeLocation
+                      : () => ref
+                          .read(nearbyMembersEnabledProvider.notifier)
+                          .setEnabled(true),
+              child: Text(
                 l10n.mapEnable,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 28),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              l10n.exploreOtherwise.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-                color: context.textTertiaryColor,
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.textSecondaryColor,
+                side: BorderSide(color: context.borderColor),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () => context.push('/settings'),
+              child: const Text(
+                'Réglages de confidentialité',
+                style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _exploreCard(
-                  Icons.account_balance,
-                  l10n.embassies,
-                  () => context.push('/embassies'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _exploreCard(
-                  Icons.groups_outlined,
-                  l10n.groupsTitle,
-                  () => context.go('/groups'),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -2800,15 +2816,22 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Widget _guaranteeRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: context.adaptivePrimaryColor),
-          const SizedBox(width: 12),
+          // Vert et non accent : ces trois lignes sont des garanties tenues,
+          // pas des actions — la fiche 8c les met en #1B5E32.
+          Icon(icon, size: 16, color: context.successColor),
+          const SizedBox(width: 9),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 14, color: context.textPrimaryColor),
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: context.textSecondaryColor,
+              ),
             ),
           ),
         ],
@@ -2816,27 +2839,187 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
-  Widget _exploreCard(IconData icon, String label, VoidCallback onTap) {
+  /// Repli « Sans localisation, explorez par ville » : chips de ville puis
+  /// ambassades et groupes de la ville choisie.
+  ///
+  /// Les villes ne sont pas une liste écrite en dur : elles sont déduites des
+  /// ambassades et des groupes réellement présents. Si rien n'est chargé, le
+  /// panneau disparaît au lieu d'afficher des chips vides.
+  Widget _buildExploreByCityPanel(AppLocalizations l10n) {
+    final embassies =
+        ref.watch(embassiesListProvider).valueOrNull ?? const <EmbassyEntity>[];
+    final groups =
+        ref.watch(groupsNotifierProvider).valueOrNull ?? const <GroupEntity>[];
+
+    final cities = <String>{
+      for (final e in embassies)
+        if (e.city.trim().isNotEmpty) e.city.trim(),
+      for (final g in groups)
+        if ((g.location ?? '').trim().isNotEmpty) g.location!.trim(),
+    }.toList()..sort();
+
+    if (cities.isEmpty) return const SizedBox.shrink();
+
+    final selected =
+        (_exploreCity != null && cities.contains(_exploreCity))
+            ? _exploreCity!
+            : cities.first;
+
+    final cityEmbassies =
+        embassies.where((e) => e.city.trim() == selected).toList();
+    final cityGroups =
+        groups.where((g) => (g.location ?? '').trim() == selected).toList();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SANS LOCALISATION, EXPLOREZ PAR VILLE',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+              color: context.textTertiaryColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final city in cities) ...[
+                  _cityChip(city, city == selected),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          for (final embassy in cityEmbassies)
+            _explorePlaceRow(
+              icon: Icons.account_balance,
+              iconColor: AppColors.info,
+              title: embassy.name,
+              subtitle: [
+                embassy.address.trim(),
+                // Pas de « ouvert » sans preuve : seule la fermeture
+                // temporaire est un état sûr côté modèle.
+                if (embassy.isTemporarilyClosed) 'fermé temporairement',
+              ].where((e) => e.isNotEmpty).join(' · '),
+              onTap: () => context.push('/embassies'),
+            ),
+          for (final group in cityGroups)
+            _explorePlaceRow(
+              icon: Icons.groups_outlined,
+              iconColor: context.adaptivePrimaryColor,
+              title: group.name,
+              subtitle:
+                  '${group.memberIds.length} membres · '
+                  '${group.isPrivate ? "groupe privé" : "groupe public"}',
+              onTap: () => context.push('/groups/${group.id}'),
+            ),
+          if (cityEmbassies.isEmpty && cityGroups.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Text(
+                // `noResults` attend une requête (« Aucun résultat pour
+                // "…" ») ; ici le panneau est vide sans recherche.
+                l10n.noResultsFound,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.textTertiaryColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cityChip(String city, bool selected) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _exploreCity = city),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? context.textPrimaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          border: selected ? null : Border.all(color: context.borderColor),
+        ),
+        child: Text(
+          city,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? context.surfaceColor : context.textSecondaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _explorePlaceRow({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.borderColor),
+          border: Border(top: BorderSide(color: context.dividerColor)),
         ),
-        child: Column(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        child: Row(
           children: [
-            Icon(icon, size: 26, color: context.adaptivePrimaryColor),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: context.textPrimaryColor,
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, size: 21, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
