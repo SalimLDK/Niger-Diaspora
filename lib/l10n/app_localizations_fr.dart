@@ -15754,4 +15754,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String plusMoreLanguages(int count) {
     return '+$count langues';
   }
+
+  @override
+  String get phoneVerifiedBySms => 'Vérifié par SMS';
+
+  @override
+  String get phoneVisibilityQuestion => 'Qui peut voir mon numéro ?';
 }

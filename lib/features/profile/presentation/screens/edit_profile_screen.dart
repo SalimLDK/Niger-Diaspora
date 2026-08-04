@@ -63,6 +63,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// affichaient l'intégralité du catalogue en permanence — une trentaine de
   /// puces qui repoussaient la moitié du formulaire hors de l'écran. Repliées,
   /// on ne voit que ses propres choix, plus une puce « +N » pour ouvrir.
+  /// Un numéro vérifié s'affiche masqué (§20a). Ce drapeau rouvre le
+  /// champ quand la personne demande explicitement à le changer :
+  /// rouvrir tout seul exposerait le numéro à chaque ouverture.
+  bool _editingPhone = false;
+
   bool _showAllInterests = false;
   bool _showAllLanguages = false;
 
@@ -719,7 +724,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 ),
                               ],
                               const SizedBox(height: 16),
-                              // Numéro de téléphone avec vérification
+                              // Numéro vérifié : carte en lecture
+                              // seule, numéro masqué (§20a).
+                              if (_isPhoneVerified && !_editingPhone)
+                                _buildVerifiedPhoneCard()
+                              else
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -1430,128 +1439,181 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
   }
 
-  Widget _buildPhoneVisibilitySelector() {
+  /// Masque un numéro : indicatif et premiers chiffres visibles, milieu
+  /// caché, deux derniers visibles — « +33 6 12 •• •• 47 ». Assez pour
+  /// reconnaître son propre numéro, pas pour qu'un regard le retienne.
+  String _masquerNumero(String brut) {
+    final t = brut.trim();
+    if (t.length < 8) return t;
+    final debut = t.substring(0, 6);
+    final fin = t.substring(t.length - 2);
+    final restant = t.length - debut.length - fin.length;
+    final groupes = (restant / 2).round().clamp(1, 4);
+    return '$debut ${List.filled(groupes, '\u2022\u2022').join(' ')} $fin';
+  }
+
+  /// Carte du numéro vérifié : numéro masqué, état, et « Modifier ».
+  Widget _buildVerifiedPhoneCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
         color: context.surfaceVariantColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: context.borderColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.visibility_outlined,
-                  size: 18,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context)!.whoCanSeeMyNumber,
+          Icon(
+            Icons.phone_outlined,
+            size: 18,
+            color: context.textSecondaryColor,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _masquerNumero(_completePhoneNumber),
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: context.textPrimaryColor,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children:
-                ProfileOptions.phoneVisibilityOptions.entries.map((entry) {
-                  final isSelected = _phoneVisibility == entry.key;
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _phoneVisibility = entry.key);
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          right:
-                              entry.key != ProfileOptions.phoneVisibilityNone
-                                  ? 8
-                                  : 0,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? context.adaptivePrimaryColor.withValues(
-                                    alpha: 0.15,
-                                  )
-                                  : context.surfaceColor,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color:
-                                isSelected
-                                    ? context.adaptivePrimaryColor
-                                    : context.borderColor,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AppIcon(
-                              entry.key ==
-                                      ProfileOptions.phoneVisibilityEveryone
-                                  ? AppIcon.public
-                                  : entry.key ==
-                                      ProfileOptions.phoneVisibilityFriends
-                                  ? AppIcon.people
-                                  : AppIcon.lock,
-                              size: 20,
-                              color:
-                                  isSelected
-                                      ? context.adaptivePrimaryColor
-                                      : context.textTertiaryColor,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              entry.value,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                color:
-                                    isSelected
-                                        ? context.adaptivePrimaryColor
-                                        : context.textSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 13,
+                      color: context.successColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.phoneVerifiedBySms,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.successColor,
                       ),
                     ),
-                  );
-                }).toList(),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => setState(() => _editingPhone = true),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: const Size(0, 36),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              l10n.edit,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: context.adaptivePrimaryColor,
+              ),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  /// Visibilité du numéro (§20a) : une ligne avec la valeur courante et un
+  /// chevron, au lieu de trois gros boutons occupant toute la largeur. Le
+  /// réglage est rarement touché — il n'a pas à peser autant qu'un champ.
+  Widget _buildPhoneVisibilitySelector() {
+    final l10n = AppLocalizations.of(context)!;
+    final libelle =
+        ProfileOptions.phoneVisibilityOptions[_phoneVisibility] ?? '';
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: _choisirVisibiliteNumero,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          decoration: BoxDecoration(
+            color: context.surfaceVariantColor.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.visibility_outlined,
+                size: 18,
+                color: context.adaptivePrimaryColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.phoneVisibilityQuestion,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+              Text(
+                libelle,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: context.textTertiaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Feuille de choix de la visibilité du numéro.
+  Future<void> _choisirVisibiliteNumero() async {
+    final choix = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            const SheetHandle(),
+            const SizedBox(height: 12),
+            ...ProfileOptions.phoneVisibilityOptions.entries.map(
+              (e) => ListTile(
+                title: Text(e.value),
+                trailing: e.key == _phoneVisibility
+                    ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
+                    : null,
+                onTap: () => Navigator.pop(ctx, e.key),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (choix != null && mounted) {
+      setState(() => _phoneVisibility = choix);
+    }
   }
 
   Widget _buildCountryDropdown({

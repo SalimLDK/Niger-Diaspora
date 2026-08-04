@@ -8013,5 +8013,13 @@
         "type": "int"
       }
     }
+  },
+  "phoneVerifiedBySms": "Vérifié par SMS",
+  "@phoneVerifiedBySms": {
+    "description": "Etat sous le numero masque (§20a)"
+  },
+  "phoneVisibilityQuestion": "Qui peut voir mon numéro ?",
+  "@phoneVisibilityQuestion": {
+    "description": "Ligne de visibilite du numero"
   }
 }

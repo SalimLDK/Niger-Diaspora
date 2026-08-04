@@ -28831,6 +28831,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'+{count} langues'**
   String plusMoreLanguages(int count);
+
+  /// Etat sous le numero masque (§20a)
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié par SMS'**
+  String get phoneVerifiedBySms;
+
+  /// Ligne de visibilite du numero
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui peut voir mon numéro ?'**
+  String get phoneVisibilityQuestion;
 }
 
 class _AppLocalizationsDelegate

@@ -7519,5 +7519,13 @@
         "type": "int"
       }
     }
+  },
+  "phoneVerifiedBySms": "Verified by SMS",
+  "@phoneVerifiedBySms": {
+    "description": "Etat sous le numero masque (§20a)"
+  },
+  "phoneVisibilityQuestion": "Who can see my number?",
+  "@phoneVisibilityQuestion": {
+    "description": "Ligne de visibilite du numero"
   }
 }

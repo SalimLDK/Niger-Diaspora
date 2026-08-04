@@ -15605,4 +15605,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String plusMoreLanguages(int count) {
     return '+$count languages';
   }
+
+  @override
+  String get phoneVerifiedBySms => 'Verified by SMS';
+
+  @override
+  String get phoneVisibilityQuestion => 'Who can see my number?';
 }
