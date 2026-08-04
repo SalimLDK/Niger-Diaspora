@@ -18,6 +18,11 @@ import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// Longueur maximale de la bio (§20a : « 118/160 »). Le compteur et la
+/// limite de saisie lisent la même constante — deux valeurs séparées
+/// finiraient par diverger.
+const int _kBioMaxLength = 160;
+
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -802,11 +807,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               // Sélecteur de visibilité du numéro
                               _buildPhoneVisibilitySelector(),
                               const SizedBox(height: 16),
+                              // Compteur de bio (§20a). Il est posé au-dessus
+                              // du champ plutôt que dans sa décoration : le
+                              // compteur natif de Flutter s'affiche sous le
+                              // champ, où il se confond avec un texte d'aide.
+                              // `counterText: ''` le neutralise.
+                              ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _bioController,
+                                builder: (context, value, _) {
+                                  final n = value.text.characters.length;
+                                  return Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Text(
+                                        '$n/$_kBioMaxLength',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: n >= _kBioMaxLength
+                                              ? context.errorColor
+                                              : context.textTertiaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                               CustomTextField(
                                 controller: _bioController,
                                 label: l10n.bio,
                                 prefixIcon: Icons.notes_outlined,
                                 maxLines: 3,
+                                maxLength: _kBioMaxLength,
+                                counterText: '',
                               ),
                             ],
                           ),

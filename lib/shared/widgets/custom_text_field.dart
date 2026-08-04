@@ -16,6 +16,10 @@ class CustomTextField extends StatefulWidget {
   final Widget? suffix;
   final int? maxLines;
   final int? maxLength;
+
+  /// Passer une chaîne vide masque le compteur natif : certains écrans
+  /// affichent le leur sur la ligne du libellé (§20a).
+  final String? counterText;
   final bool enabled;
   final bool readOnly;
   final void Function(String)? onChanged;
@@ -39,6 +43,7 @@ class CustomTextField extends StatefulWidget {
     this.suffix,
     this.maxLines = 1,
     this.maxLength,
+    this.counterText,
     this.enabled = true,
     this.readOnly = false,
     this.onChanged,
@@ -130,6 +135,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
           decoration: InputDecoration(
+            counterText: widget.counterText,
             hintText: widget.hint ?? widget.label,
             errorText: widget.errorText,
             prefixIcon: widget.prefixIcon != null
