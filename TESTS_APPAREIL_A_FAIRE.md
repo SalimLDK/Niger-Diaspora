@@ -115,12 +115,37 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 
 **À faire hors appareil :**
 
-- [ ] **Redéployer le hosting** (`firebase deploy --only hosting`) : le
-      `assetlinks.json` versionné était en retard sur celui servi en ligne — il
-      ne déclarait que l'ancien package `com.diasponiger.diaspo_niger`. Il a été
-      aligné sur la production ; sans ce réalignement, un déploiement depuis le
-      dépôt aurait **cassé les App Links en production**. Rien n'est déployé
-      pour l'instant.
+- [ ] ⛔ **Redéployer le hosting — BLOQUÉ, ne pas lancer `firebase deploy`
+      en l'état.** Vérifié le 2026-08-04 : `public/` est un vestige, la
+      production n'a **jamais** été déployée depuis ce dépôt. Les 8 fichiers du
+      site sont plus riches en ligne que dans le dépôt (contenu comparé hors
+      fins de ligne) :
+
+      | Fichier | Dépôt | En ligne |
+      |---|---|---|
+      | `privacy-policy.html` | 3 917 car. | 32 342 |
+      | `terms-of-service.html` | 14 263 | 43 082 |
+      | `child-safety-standards.html` | 20 140 | 34 798 |
+      | `delete-account.html` | 16 108 | 24 550 |
+      | `index.html` | 14 319 | 36 483 |
+      | `contact.html` | 6 072 | 18 658 |
+      | `forgot-password.html` | 4 608 | 14 067 |
+      | `.well-known/apple-app-site-association` | 158 | 508 |
+
+      Un déploiement remplacerait la politique de confidentialité, les CGU, la
+      page de suppression de compte et la page sécurité des enfants — toutes
+      exigées par le Play Store — par des versions courtes et obsolètes, et
+      amputerait l'AASA (Universal Links iOS). Le déploiement Firebase est
+      atomique : impossible de n'envoyer que `assetlinks.json`.
+
+      Ordre à suivre : rapatrier d'abord les fichiers en ligne dans `public/`,
+      réappliquer le correctif `assetlinks.json` par-dessus, **puis** déployer.
+- [ ] ⚠️ **`firebase.json` ne déclare qu'un site sur les trois** du projet
+      (`firebase hosting:sites:list`) : `diaspo-niger`, `diaspo-niger-admin` et
+      `diasponiger`. Les liens de l'app pointent sur **`diasponiger.web.app`**
+      (`DEEP_LINK_BASE_URL` + App Links du manifest), qui n'est pas déclaré :
+      un `firebase deploy --only hosting` ne toucherait donc même pas le domaine
+      concerné. À déclarer avant tout déploiement.
 - [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
       App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
       pour une app déjà installée.
