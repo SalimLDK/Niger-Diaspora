@@ -38,6 +38,13 @@ Trois niveaux, à ne pas confondre :
 | 11d | Mon profil — Nocturne | — | — | — | `profile/presentation/screens/profile_screen.dart` |
 | 11e | Réglages — Nocturne | — | — | — | à déterminer |
 | 11f | Profil incomplet | — | — | — | à déterminer |
+| 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | — | — | — | idem 4a |
+| 9a | Messages — liste | — | — | — | `messages/…/messages_screen.dart` |
+| 9b | Messages — recherche | — | — | — | idem 9a |
+| 9c | Groupes — mes groupes, découverte | — | — | — | `groups/…` |
+| 9d | Groupe — fiche | — | — | — | `groups/…` |
+| 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
 
 ---
 
@@ -270,6 +277,39 @@ Vérifié à l'écran : les deux vues de la liste, le verrou visible sur
 
 Non vérifié : le tap Réglages → Notifications et le sélecteur d'heures — le
 build est cassé depuis par une autre session (voir plus bas).
+
+## 9e — Messages, état vide
+
+État conditionnel de 9a, pas un écran séparé. La messagerie vide perd sa
+barre de recherche et ses puces de filtre — il n'y a rien à chercher ni à
+filtrer —, l'entrée « Archives » quitte l'en-tête, et le sous-titre annonce
+« Aucune conversation ».
+
+Les deux amorces nommées de la maquette sont désormais câblées, ce que la
+version précédente refusait de faire faute de données :
+- **Membre proche** : lit l'état déjà chargé par l'accueil
+  (`nearbyProfilesNotifierProvider`) **sans redemander la localisation** —
+  ouvrir la messagerie ne doit pas déclencher une demande de permission. La
+  ligne ne s'affiche donc que si l'accueil a déjà été visité avec la
+  localisation accordée.
+- **Groupe de votre ville** : `groupsNotifierProvider` filtré sur la ville du
+  profil (`currentCity`), groupes publics seulement. Sans ville renseignée, la
+  ligne disparaît — la fiche promet un groupe *de votre ville*, pas un groupe
+  au hasard.
+
+Écarts assumés :
+- **« 1,2 km »** n'est pas affiché : la distance demanderait la position
+  courante, que cet écran n'a pas. La ligne dit « En ligne », sinon la ville,
+  sinon « À proximité ».
+- Le second bouton « Rejoindre un groupe » disparaît : la fiche n'a qu'un CTA,
+  et la suggestion de groupe le remplace avantageusement.
+- Le titre et la pastille restent ceux de `DesignEmptyState` (Playfair 21,
+  icône 40) au lieu d'Inter 19 / icône 44 : c'est le kit partagé de toute
+  l'app, le repeindre pour un écran désaccorderait tous les autres états vides.
+
+⚠️ **Jamais vu à l'écran** : le compte de test a des conversations, donc
+l'état vide est inatteignable sans vider les données (`adb install -r`, qui
+déconnecterait le compte). À vérifier sur un compte neuf.
 
 ---
 

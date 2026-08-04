@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/conversation_actions_provider.dart';
@@ -260,6 +261,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       if (activeGroups > 0) l10n.messagesActiveGroups(activeGroups),
     ];
 
+    // Messagerie réellement vide (fiche 9e) : ni recherche ni puces de filtre
+    // — il n'y a rien à chercher ni à filtrer — et l'entrée « Archives »
+    // disparaît de l'en-tête, qui annonce simplement « Aucune conversation ».
+    final isEmptyInbox =
+        conversationsAsync.hasValue && conversationsAsync.value!.isEmpty;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       // En-tête plat sur le fond crème (§9a) : le bandeau dégradé et son FAB
@@ -271,14 +278,19 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           children: [
             DesignScreenHeader(
               title: l10n.messagesTitle,
-              subtitle: subtitleParts.join(' · '),
+              subtitle:
+                  isEmptyInbox
+                      ? l10n.noConversation
+                      : subtitleParts.join(' · '),
               actions: [
-                DesignSquareAction(
-                  icon: Icons.inbox_outlined,
-                  tooltip: l10n.archives,
-                  onPressed:
-                      () => setState(() => _filter = _MessagesFilter.archives),
-                ),
+                if (!isEmptyInbox)
+                  DesignSquareAction(
+                    icon: Icons.inbox_outlined,
+                    tooltip: l10n.archives,
+                    onPressed:
+                        () =>
+                            setState(() => _filter = _MessagesFilter.archives),
+                  ),
                 DesignSquareAction(
                   icon: Icons.edit_outlined,
                   filled: true,
@@ -287,19 +299,21 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: DesignSearchField(
-                controller: _searchController,
-                hintText: l10n.searchPlaceholder,
-                onChanged: (value) => setState(() => _searchQuery = value),
-                onClear: () {
-                  _searchController.clear();
-                  setState(() => _searchQuery = '');
-                },
+            if (!isEmptyInbox) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: DesignSearchField(
+                  controller: _searchController,
+                  hintText: l10n.searchPlaceholder,
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                ),
               ),
-            ),
-            _buildFilterChips(context, l10n, unreadTotal),
+              _buildFilterChips(context, l10n, unreadTotal),
+            ],
             Expanded(
               child: conversationsAsync.when(
                 skipLoadingOnRefresh: true,
@@ -377,13 +391,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  /// Messagerie vide (§9e) : pastille ronde, titre serif, explication qui
-  /// mentionne le chiffrement, puis les deux amorces d'action.
+  /// Messagerie vide (fiche 9e) : pastille ronde, titre, explication qui
+  /// mentionne le chiffrement, deux amorces nommées, puis le CTA.
   ///
-  /// Les maquettes proposent en plus deux suggestions nommées (un membre
-  /// proche, un groupe de la ville) : elles ne sont pas câblées ici, cet
-  /// écran ne charge ni la liste des membres proches ni les groupes
-  /// populaires — ce serait inventer des données.
+  /// La fiche propose deux suggestions (un membre proche, un groupe de la
+  /// ville). Elles ne s'affichent que si la donnée existe vraiment : la ligne
+  /// « membre proche » lit l'état déjà chargé par l'accueil sans redemander
+  /// la localisation, et la ligne groupe s'appuie sur la ville du profil.
+  /// Aucune des deux n'apparaît en repli fabriqué.
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
@@ -393,14 +408,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         title: l10n.noConversation,
         body: l10n.startChatting,
         children: [
+          const _EmptyStateSuggestions(),
           DesignPrimaryButton(
             label: l10n.newConversation,
             onPressed: () => context.push('/messages/new'),
-          ),
-          const SizedBox(height: 10),
-          DesignSecondaryButton(
-            label: l10n.emptyMessagesJoinGroup,
-            onPressed: () => context.push('/groups'),
           ),
           const SizedBox(height: 20),
           DesignInfoLine(
@@ -752,3 +763,209 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
 /// Marqueur interne pour la tuile « Mes notes » dans la liste d'entrées.
 const String _kSelfNotesMarker = '__self_notes__';
+
+/// Les deux amorces de la fiche 9e — « écrivez à un membre proche » et
+/// « rejoignez un groupe de votre ville » — rendues à partir de données
+/// réelles, et masquées sans bruit quand ces données n'existent pas.
+class _EmptyStateSuggestions extends ConsumerWidget {
+  const _EmptyStateSuggestions();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rows = <Widget>[];
+
+    // Membre proche : on lit l'état déjà chargé (l'accueil le remplit quand
+    // la localisation est accordée) sans déclencher de nouvelle demande de
+    // permission depuis la messagerie.
+    final nearby =
+        ref.watch(nearbyProfilesNotifierProvider).valueOrNull ?? const [];
+    final me = ref.watch(currentUserProvider).valueOrNull?.id;
+    final candidate =
+        nearby.where((p) => p.id != me && (p.displayName ?? '').isNotEmpty);
+    if (candidate.isNotEmpty) {
+      final profile = candidate.first;
+      final city = profile.currentCity?.trim();
+      rows.add(
+        _SuggestionRow(
+          leading: _InitialAvatar(name: profile.displayName!),
+          title: profile.displayName!,
+          subtitle:
+              profile.isOnline
+                  ? 'En ligne'
+                  : (city != null && city.isNotEmpty ? city : 'À proximité'),
+          trailing: Icons.send_rounded,
+          onTap: () => context.push('/messages/new?userId=${profile.id}'),
+        ),
+      );
+    }
+
+    // Groupe de la ville : la ville vient du profil, pas d'une géolocalisation.
+    final myCity =
+        me == null
+            ? null
+            : ref
+                .watch(profileNotifierProvider(me))
+                .valueOrNull
+                ?.currentCity
+                ?.trim();
+    final groups = ref.watch(groupsNotifierProvider).valueOrNull ?? const [];
+    final cityGroups =
+        (myCity != null && myCity.isNotEmpty)
+            ? groups.where(
+              (g) =>
+                  !g.isPrivate &&
+                  ((g.location ?? '').toLowerCase().contains(
+                        myCity.toLowerCase(),
+                      ) ||
+                      (g.country ?? '').toLowerCase().contains(
+                        myCity.toLowerCase(),
+                      )),
+            )
+            : const Iterable.empty();
+    // Sans ville renseignée, on ne bascule pas sur « un groupe au hasard » :
+    // la fiche promet un groupe *de votre ville*.
+    if (cityGroups.isNotEmpty) {
+      final group = cityGroups.first;
+      rows.add(
+        _SuggestionRow(
+          leading: _GroupBadge(color: context.successColor),
+          title: group.name,
+          subtitle:
+              '${group.memberCount} membres · ${group.isPrivate ? 'privé' : 'public'}',
+          trailing: Icons.chevron_right_rounded,
+          onTap: () => context.push('/groups/${group.id}'),
+        ),
+      );
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SuggestionRow extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String subtitle;
+  final IconData trailing;
+  final VoidCallback onTap;
+
+  const _SuggestionRow({
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.surfaceColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(trailing, size: 19, color: context.adaptivePrimaryColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InitialAvatar extends StatelessWidget {
+  final String name;
+
+  const _InitialAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: context.adaptivePrimaryColor,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        name.trim()[0].toUpperCase(),
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: context.onPrimaryColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupBadge extends StatelessWidget {
+  final Color color;
+
+  const _GroupBadge({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: const AppIcon(AppIcon.groups, size: 18, color: Colors.white),
+    );
+  }
+}
