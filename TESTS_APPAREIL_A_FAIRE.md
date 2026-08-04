@@ -94,6 +94,22 @@ aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
 
 ---
 
+## Débordement du champ « Type * » — création d'ambassade (2026-08-04)
+
+Corrigé à l'aveugle (pas d'appareil branché pendant la correction), couvert
+par `test/features/admin/admin_create_embassy_overflow_test.dart`.
+
+- [ ] **/admin/embassies/create, champ « Type * »** : plus de bandeau
+  « RIGHT OVERFLOWED BY 54 PIXELS ». Vérifier aussi que le libellé
+  « Ambassade » reste lisible et que la flèche du menu est à sa place.
+- [ ] **Menu déroulant ouvert** : les quatre types (dont « Mission
+  diplomatique », le plus long) s'affichent en entier, sans ellipse.
+- [ ] **Même écran à `font_scale` 1.1** : les six en-têtes de section
+  (« Localisation GPS (optionnel) » est le plus long) passent à la ligne au
+  lieu de déborder.
+
+---
+
 ## Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)
 
 Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
