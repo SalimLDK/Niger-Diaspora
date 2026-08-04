@@ -49,8 +49,8 @@ appareil, **hors du fuseau UTC**.
       créée à `04:36:36` heure appareil ; stockée `08:36:36` **UTC** en base
       (= `04:36:36` Toronto). Après `am force-stop` et démarrage à froid, l'app
       relit depuis le serveur et affiche **« Aujourd'hui · 04:36 »**. Avec le
-      bug : 08:36. ⚠️ Cette publication de test est toujours en ligne, en
-      visibilité *Public* — à supprimer.
+      bug : 08:36. La publication de test reste en ligne volontairement
+      (décision de Salim), comme la précédente sur ce compte.
 - [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure.
 
 Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
