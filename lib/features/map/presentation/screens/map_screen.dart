@@ -2959,11 +2959,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final groups =
         ref.watch(groupsNotifierProvider).valueOrNull ?? const <GroupEntity>[];
 
+    // Groupes publics uniquement. Un groupe privé listé ici est une porte
+    // fermée — et son nom comme son nombre de membres seraient exposés à
+    // quelqu'un qui n'a pas le droit d'y entrer.
+    final publicGroups = groups.where((g) => !g.isPrivate).toList();
+
     final cities =
         <String>{
             for (final e in embassies)
               if (e.city.trim().isNotEmpty) e.city.trim(),
-            for (final g in groups)
+            for (final g in publicGroups)
               if ((g.location ?? '').trim().isNotEmpty) g.location!.trim(),
           }.toList()
           ..sort();
@@ -2978,7 +2983,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final cityEmbassies =
         embassies.where((e) => e.city.trim() == selected).toList();
     final cityGroups =
-        groups.where((g) => (g.location ?? '').trim() == selected).toList();
+        publicGroups
+            .where((g) => (g.location ?? '').trim() == selected)
+            .toList();
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -3023,7 +3030,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 // temporaire est un état sûr côté modèle.
                 if (embassy.isTemporarilyClosed) 'fermé temporairement',
               ].where((e) => e.isNotEmpty).join(' · '),
-              onTap: () => context.push('/embassies'),
+              // La fiche de l'ambassade, pas la liste : la route
+              // `/embassies/:id` attend l'entité en `extra`, on l'a sous la
+              // main. Rouvrir la liste obligeait à re-chercher la ligne qu'on
+              // vient de toucher.
+              onTap:
+                  () =>
+                      context.push('/embassies/${embassy.id}', extra: embassy),
             ),
           for (final group in cityGroups)
             _explorePlaceRow(
@@ -3031,8 +3044,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
               iconColor: context.adaptivePrimaryColor,
               title: group.name,
               subtitle:
-                  '${group.memberIds.length} membres · '
-                  '${group.isPrivate ? "groupe privé" : "groupe public"}',
+                  '${group.memberIds.length} '
+                  '${group.memberIds.length > 1 ? "membres" : "membre"} · '
+                  'groupe public',
               onTap: () => context.push('/groups/${group.id}'),
             ),
           if (cityEmbassies.isEmpty && cityGroups.isEmpty)

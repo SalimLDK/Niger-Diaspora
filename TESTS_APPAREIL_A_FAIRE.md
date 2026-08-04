@@ -50,12 +50,20 @@ affiche deux « Chargement… » tant que la position n'est pas acquise. Ce n'es
 pas un champ mort — au bout des 15 s de `timeLimit`, en intérieur sans fix
 GPS, l'écran bascule sur 8c. Ne pas rouvrir ce faux bug.
 
+**Complément 7d, même session** : une fois la position obtenue (Montréal), le
+panneau affiche « 1 membre autour · 50 km » en entier, la ligne de fraîcheur
+se résout en « À l'instant / Il y a 49 s », et la ligne de membre s'affiche
+avec son bouton 💬. En-tête, fraîcheur et ligne de membre sont donc vérifiés.
+
 **Reste à vérifier sur ces fiches :**
-- [ ] 8c — le panneau bas « Sans localisation, explorez par ville » (chips
-  Paris/Niamey/Montréal/Abidjan + lignes ambassade/groupe) n'est **pas
-  implémenté**, la fiche le demande.
-- [ ] 7d — pins de membre, cluster, et les trois crans de la feuille
-  (18/45/92 %) non exercés : le compte de test a 0 membre autour.
+- [ ] 8c — le panneau bas « Sans localisation, explorez par ville » **existe**
+  (`_buildExploreByCityPanel`) mais **n'a pas pu être vu** : il n'y a
+  aucune ambassade en base (`/embassies` affiche « Aucune ambassade
+  disponible ») et le compte de test n'a aucun groupe. Le panneau s'escamote
+  correctement au lieu d'afficher une coquille vide. À revérifier dès qu'une
+  ambassade ou un groupe public existe avec une ville renseignée.
+- [ ] 7d — cluster de pins et les trois crans de la feuille (18/45/92 %) non
+  exercés : un seul membre autour, donc pas de cluster.
 - [ ] 11d — badge « vérifié ».
 
 ---
