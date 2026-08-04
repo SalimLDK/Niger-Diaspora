@@ -1295,6 +1295,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 if (!widget.isSelfNotes &&
                     !(conversation?.isPendingRequest ?? false))
                   _buildQuickSubBar(context),
+                // Invitation a restaurer les cles, quand des messages de ce
+                // fil ne sont pas dechiffrables sur cet appareil.
+                _buildE2eeRestoreBanner(context, paginationState.messages),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -2737,6 +2740,63 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Sous-barre sous l'en-tête : tuiles « Médias » (galerie partagée) et
   /// « ÉCO » (mode données réduites, lié à `PreferencesService.dataSaverMode`).
+  /// Placeholder pose par `message_supabase_datasource.dart` quand le
+  /// dechiffrement echoue. Duplique ici faute de constante partagee —
+  /// `message_provider.dart` fait deja le meme test.
+  static const String _kUndecryptable = '🔐 Message chiffré';
+
+  /// Bandeau d'invitation a restaurer les cles (§3b).
+  ///
+  /// Sans lui, un fil dont les cles ont ete perdues n'affiche qu'une suite de
+  /// « Message chiffre », sans dire pourquoi ni quoi faire. Les deux
+  /// chaines existaient dans l'ARB mais n'etaient branchees nulle part.
+  Widget _buildE2eeRestoreBanner(
+    BuildContext context,
+    List<MessageEntity> messages,
+  ) {
+    if (!messages.any((m) => m.content == _kUndecryptable)) {
+      return const SizedBox.shrink();
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: context.warningBackgroundColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.key_outlined, size: 18, color: context.warningColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.e2eeRestoreNudgeMessage,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.35,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          TextButton(
+            onPressed: () => context.push('/settings/security/backup'),
+            child: Text(
+              l10n.e2eeRestoreNudgeAction,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: context.adaptivePrimaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuickSubBar(BuildContext context) {
     final eco = PreferencesService.instance.dataSaverMode;
     final tileBg =

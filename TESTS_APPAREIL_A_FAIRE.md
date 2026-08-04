@@ -98,10 +98,17 @@ lancement d'un compte sans ville renseignée.
       `e2eeRestoreNudgeMessage`, « Restaurez vos clés de chiffrement pour
       lire vos messages chiffrés sur cet appareil. »
 
-      ⚠️ **Cette clé n'est référencée nulle part dans `lib/features`**
-      (vérifié par grep). Elle a été écrite puis jamais branchée : le
-      message d'aide existe, il ne s'affiche jamais. À câbler — c'est un
-      trou de câblage de la même famille que le mode Éco.
+      ✅ **Câblé le 2026-08-03.** `_buildE2eeRestoreBanner` affiche le
+      bandeau dès qu'un message du fil porte le placeholder, avec l'action
+      « Restaurer » vers `/settings/security/backup`. Les deux chaînes —
+      `e2eeRestoreNudgeMessage` et `e2eeRestoreNudgeAction` — avaient été
+      écrites ensemble et n'étaient branchées ni l'une ni l'autre.
+      Vérifié sur appareil : le bandeau apparaît au-dessus des messages
+      illisibles, et seulement dans les fils concernés.
+
+      Reste à vérifier : que « Restaurer » mène bien à un parcours qui
+      **restaure effectivement** les clés. Le bandeau ouvre l'écran de
+      sauvegarde ; ce que cet écran sait faire n'a pas été exercé.
 
 **Modifier le profil (§20a) — barre d'en-tête repliée**
 
