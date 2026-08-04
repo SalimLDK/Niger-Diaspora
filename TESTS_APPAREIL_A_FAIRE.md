@@ -283,25 +283,39 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
       `redirecting to /feed/0d9abb43-…` sur `/feed/:postId`. La mise de côté
       reste un filet pour les cas où l'URI arriverait *pendant* le chargement
       (session déjà chaude, ou utilisateur déconnecté), non exercés ici.
-- [x] **App en arrière-plan puis lien : ÉCHOUAIT — bug trouvé et corrigé le
-      2026-08-04, correctif compilé mais PAS revérifié sur appareil.**
+- [x] **App en arrière-plan puis lien : ÉCHOUAIT — corrigé et VÉRIFIÉ sur
+      appareil le 2026-08-04.** Trois liens vers trois publications
+      différentes, envoyés app en arrière-plan : chacune s'est ouverte, sans
+      repasser par le splash. Captures à l'appui.
 
-      Symptôme : l'app revenait au premier plan sur l'écran qu'on venait de
-      quitter, le lien perdu. `am start` répondait « Activity not started, its
-      current task has been brought to the front » et **aucun log GoRouter**
-      n'apparaissait. Même en forçant `FLAG_ACTIVITY_SINGLE_TOP` (`-f
-      0x20000000`), où Android confirme pourtant « intent has been delivered to
-      currently running top-most instance », Flutter ne journalisait rien :
-      l'intent atteignait l'activité sans jamais atteindre le routeur.
+      Symptôme initial : l'app revenait au premier plan sur l'écran qu'on venait
+      de quitter, le lien perdu. **Il a fallu corriger deux choses**, la
+      première masquant la seconde :
 
-      Cause : `flutter_deeplinking_enabled` ne couvre que le **démarrage**. Le
-      moteur mis en cache qu'impose `AudioServiceFragmentActivity` fait que
-      l'embedding ne relaie pas les nouveaux intents au canal de navigation.
-      Corrigé en poussant la route depuis `MainActivity.onNewIntent()` (chemin
-      + requête + fragment), comme le fait l'embedding au démarrage.
+      1. `flutter_deeplinking_enabled` ne couvre que le **démarrage**. Le moteur
+         mis en cache qu'impose `AudioServiceFragmentActivity` fait que
+         l'embedding ne relaie pas les nouveaux intents au canal de navigation.
+         → `MainActivity.onNewIntent()` pousse la route lui-même (chemin +
+         requête + fragment).
+      2. Ce hook n'était **jamais appelé** : avec `launchMode="singleTop"`,
+         Android ramenait la tâche au premier plan en jetant l'intent. →
+         `launchMode="singleTask"`.
 
-      À revérifier : app à l'accueil → HOME → lien vers un **autre** post →
-      doit ouvrir ce post sans repasser par le splash.
+      Deux pièges de diagnostic à retenir :
+
+      - ⚠️ **Le warning `am start` ment.** « Activity not started, its current
+        task has been brought to the front » s'affiche **même quand l'intent est
+        bien délivré** à `onNewIntent` — il apparaît encore aujourd'hui, alors
+        que le lien fonctionne. Ne pas conclure sur ce message.
+      - ⚠️ **`pushRouteInformation` ne produit aucun log GoRouter**, contrairement
+        aux redirections. L'absence de log ne prouve rien : seul l'écran fait
+        foi. Pour trancher, instrumenter temporairement `onNewIntent` avec
+        `android.util.Log` (retiré depuis — il exposait les URL consultées).
+
+      ⚠️ **`singleTask` change le comportement de la pile pour toute l'app** :
+      un nouvel intent efface les activités empilées au-dessus. Non testé avec
+      un appel entrant CallKit (`INCOMING_CALL_AFFINITY` a sa propre tâche, donc
+      a priori non concerné) — à surveiller au premier appel reçu.
 - [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
       la publication** une fois connecté.
 - [x] Non-régression vérifiée le 2026-08-04 : lancement par le launcher
