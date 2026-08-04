@@ -144,15 +144,49 @@ l'URI. Deux causes, corrigées ensemble :
 locale** (`DD:A6:5C:…`), et il est **déployé** depuis le 2026-08-04 sur
 `diasponiger.web.app` comme sur `diaspo-niger.web.app` — donc un APK release
 installé à la main vérifie ses liens. La clé **debug** (`87:32:AD:…`) n'y est
-pas : sur un build debug, Android ouvrira Chrome. Tester alors avec un intent
-explicite, qui contourne la vérification :
+pas : sur un build debug, Android ouvrira Chrome.
+
+**Constaté le 2026-08-04** sur l'APK debug installé (signature `87:32:AD:…`) :
+`pm verify-app-links --re-verify` **ne peut pas aboutir**, l'état reste `1024`
+(échec) sur les deux domaines — le serveur ne déclare pas cette empreinte. Ce
+n'est pas un problème de fichier ni de cache, c'est la signature.
+
+Contournement retenu, **déjà appliqué sur le téléphone de test** : approuver
+les domaines à la main, ce qui court-circuite la vérification serveur (le
+`Selection state` passe à `Enabled`, `Verification link handling allowed:
+true`). À refaire après chaque réinstallation :
+
+```
+adb shell pm set-app-links-user-selection --user 0 --package com.diasponiger.diasponiger true diasponiger.web.app
+adb shell pm set-app-links-user-selection --user 0 --package com.diasponiger.diasponiger true diasponiger.com
+adb shell pm get-app-links --user 0 com.diasponiger.diasponiger
+```
+
+À défaut, un intent explicite contourne aussi la résolution — mais il ne teste
+alors plus le chemin réel d'un clic sur un lien :
 
 ```
 adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
 ```
 
-- [ ] **App tuée** (`am force-stop`) puis lien : doit ouvrir la publication,
-      pas l'accueil. C'est le cas décisif — celui que la mise de côté corrige.
+**Vérifié sur appareil le 2026-08-04** (SM A515F, Android 13, APK debug de
+14:25 contenant bien `flutter_deeplinking_enabled` — vérifié par
+`aapt2 dump xmltree` sur l'APK tiré du téléphone) :
+
+- [x] **App tuée** (`am force-stop`) puis **intent VIEW implicite** (aucun
+      package précisé, donc résolution réelle par Android) sur
+      `https://diasponiger.web.app/feed/0d9abb43-…` : l'app s'ouvre — pas
+      Chrome — et affiche `PostDetailScreen` avec le bon post (« Test fuseau
+      horaire - a ignorer »), zone de commentaires comprise. Capture à l'appui.
+      Compter ~17 s entre l'intent et l'arrivée sur la publication.
+
+      ⚠️ **Ce n'est PAS la mise de côté (étape 0/10) qui a opéré ici.** Les logs
+      GoRouter disent `setting initial location /splash` : Flutter ne transmet
+      pas l'URI comme route initiale sur ce chemin, elle arrive plus tard par le
+      canal de navigation, quand l'authentification est déjà résolue —
+      `redirecting to /feed/0d9abb43-…` sur `/feed/:postId`. La mise de côté
+      reste un filet pour les cas où l'URI arriverait *pendant* le chargement
+      (session déjà chaude, ou utilisateur déconnecté), non exercés ici.
 - [ ] App en arrière-plan puis lien : même résultat, sans passer par le splash.
 - [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
       la publication** une fois connecté.
