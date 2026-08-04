@@ -31,7 +31,9 @@ mixin _$GroupInviteModel {
   String get inviteeName => throw _privateConstructorUsedError;
   String? get inviteePhotoUrl => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get respondedAt => throw _privateConstructorUsedError;
 
   /// Serializes this GroupInviteModel to a JSON map.
@@ -62,8 +64,8 @@ abstract class $GroupInviteModelCopyWith<$Res> {
     String inviteeName,
     String? inviteePhotoUrl,
     String status,
-    DateTime? createdAt,
-    DateTime? respondedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? respondedAt,
   });
 }
 
@@ -183,8 +185,8 @@ abstract class _$$GroupInviteModelImplCopyWith<$Res>
     String inviteeName,
     String? inviteePhotoUrl,
     String status,
-    DateTime? createdAt,
-    DateTime? respondedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? respondedAt,
   });
 }
 
@@ -296,8 +298,8 @@ class _$GroupInviteModelImpl extends _GroupInviteModel {
     required this.inviteeName,
     this.inviteePhotoUrl,
     this.status = 'pending',
-    this.createdAt,
-    this.respondedAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.respondedAt,
   }) : super._();
 
   factory _$GroupInviteModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -325,8 +327,10 @@ class _$GroupInviteModelImpl extends _GroupInviteModel {
   @JsonKey()
   final String status;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? respondedAt;
 
   @override
@@ -409,8 +413,8 @@ abstract class _GroupInviteModel extends GroupInviteModel {
     required final String inviteeName,
     final String? inviteePhotoUrl,
     final String status,
-    final DateTime? createdAt,
-    final DateTime? respondedAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? respondedAt,
   }) = _$GroupInviteModelImpl;
   const _GroupInviteModel._() : super._();
 
@@ -438,8 +442,10 @@ abstract class _GroupInviteModel extends GroupInviteModel {
   @override
   String get status;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get respondedAt;
 
   /// Create a copy of GroupInviteModel

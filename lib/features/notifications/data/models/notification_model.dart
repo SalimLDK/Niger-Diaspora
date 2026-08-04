@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/notification_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'notification_model.freezed.dart';
 part 'notification_model.g.dart';
 
@@ -19,7 +20,7 @@ class NotificationModel with _$NotificationModel {
     String? targetId,
     String? senderId, // ID of the user who triggered this notification
     @Default(false) bool isRead,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   }) = _NotificationModel;
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) =>

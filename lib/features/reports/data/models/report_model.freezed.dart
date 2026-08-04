@@ -28,6 +28,7 @@ mixin _$ContentSnapshotModel {
   String? get fileName => throw _privateConstructorUsedError;
   String? get contentType => throw _privateConstructorUsedError;
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get capturedAt => throw _privateConstructorUsedError;
 
   /// Serializes this ContentSnapshotModel to a JSON map.
@@ -55,7 +56,7 @@ abstract class $ContentSnapshotModelCopyWith<$Res> {
     String? fileName,
     String? contentType,
     Map<String, dynamic>? metadata,
-    DateTime? capturedAt,
+    @LocalDateTimeNullableConverter() DateTime? capturedAt,
   });
 }
 
@@ -151,7 +152,7 @@ abstract class _$$ContentSnapshotModelImplCopyWith<$Res>
     String? fileName,
     String? contentType,
     Map<String, dynamic>? metadata,
-    DateTime? capturedAt,
+    @LocalDateTimeNullableConverter() DateTime? capturedAt,
   });
 }
 
@@ -236,7 +237,7 @@ class _$ContentSnapshotModelImpl extends _ContentSnapshotModel {
     this.fileName,
     this.contentType,
     final Map<String, dynamic>? metadata,
-    this.capturedAt,
+    @LocalDateTimeNullableConverter() this.capturedAt,
   }) : _metadata = metadata,
        super._();
 
@@ -266,6 +267,7 @@ class _$ContentSnapshotModelImpl extends _ContentSnapshotModel {
   }
 
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? capturedAt;
 
   @override
@@ -334,7 +336,7 @@ abstract class _ContentSnapshotModel extends ContentSnapshotModel {
     final String? fileName,
     final String? contentType,
     final Map<String, dynamic>? metadata,
-    final DateTime? capturedAt,
+    @LocalDateTimeNullableConverter() final DateTime? capturedAt,
   }) = _$ContentSnapshotModelImpl;
   const _ContentSnapshotModel._() : super._();
 
@@ -356,6 +358,7 @@ abstract class _ContentSnapshotModel extends ContentSnapshotModel {
   @override
   Map<String, dynamic>? get metadata;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get capturedAt;
 
   /// Create a copy of ContentSnapshotModel
@@ -395,7 +398,9 @@ mixin _$ReportModel {
   String? get reviewedBy => throw _privateConstructorUsedError;
   String? get reviewerName => throw _privateConstructorUsedError;
   String? get resolution => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get reviewedAt => throw _privateConstructorUsedError;
   bool get reportedUserNotified => throw _privateConstructorUsedError;
 
@@ -435,8 +440,8 @@ abstract class $ReportModelCopyWith<$Res> {
     String? reviewedBy,
     String? reviewerName,
     String? resolution,
-    DateTime? createdAt,
-    DateTime? reviewedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? reviewedAt,
     bool reportedUserNotified,
   });
 
@@ -637,8 +642,8 @@ abstract class _$$ReportModelImplCopyWith<$Res>
     String? reviewedBy,
     String? reviewerName,
     String? resolution,
-    DateTime? createdAt,
-    DateTime? reviewedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? reviewedAt,
     bool reportedUserNotified,
   });
 
@@ -816,8 +821,8 @@ class _$ReportModelImpl extends _ReportModel {
     this.reviewedBy,
     this.reviewerName,
     this.resolution,
-    this.createdAt,
-    this.reviewedAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.reviewedAt,
     this.reportedUserNotified = false,
   }) : super._();
 
@@ -866,8 +871,10 @@ class _$ReportModelImpl extends _ReportModel {
   @override
   final String? resolution;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? reviewedAt;
   @override
   @JsonKey()
@@ -985,8 +992,8 @@ abstract class _ReportModel extends ReportModel {
     final String? reviewedBy,
     final String? reviewerName,
     final String? resolution,
-    final DateTime? createdAt,
-    final DateTime? reviewedAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? reviewedAt,
     final bool reportedUserNotified,
   }) = _$ReportModelImpl;
   const _ReportModel._() : super._();
@@ -1035,8 +1042,10 @@ abstract class _ReportModel extends ReportModel {
   @override
   String? get resolution;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get reviewedAt;
   @override
   bool get reportedUserNotified;

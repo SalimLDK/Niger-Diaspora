@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/embassy_activity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'embassy_activity_model.freezed.dart';
 part 'embassy_activity_model.g.dart';
 
@@ -10,7 +11,7 @@ class EmbassyActivityModel with _$EmbassyActivityModel {
     required String id,
     required String title,
     required String description,
-    required DateTime date,
+    @LocalDateTimeConverter() required DateTime date,
     required String location,
     String? imageUrl,
   }) = _EmbassyActivityModel;

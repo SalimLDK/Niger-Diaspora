@@ -17,14 +17,8 @@ _$FriendRequestModelImpl _$$FriendRequestModelImplFromJson(
   receiverName: json['receiverName'] as String,
   receiverPhotoUrl: json['receiverPhotoUrl'] as String?,
   status: json['status'] as String? ?? 'pending',
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-  updatedAt:
-      json['updatedAt'] == null
-          ? null
-          : DateTime.parse(json['updatedAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
+  updatedAt: const LocalDateTimeNullableConverter().fromJson(json['updatedAt']),
 );
 
 Map<String, dynamic> _$$FriendRequestModelImplToJson(
@@ -38,6 +32,10 @@ Map<String, dynamic> _$$FriendRequestModelImplToJson(
   'receiverName': instance.receiverName,
   'receiverPhotoUrl': instance.receiverPhotoUrl,
   'status': instance.status,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'updatedAt': instance.updatedAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
+  'updatedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.updatedAt,
+  ),
 };

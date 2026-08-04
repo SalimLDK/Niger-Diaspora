@@ -48,11 +48,15 @@ mixin _$ProfileModel {
   int get connectionsCount => throw _privateConstructorUsedError;
   int get groupsCount => throw _privateConstructorUsedError;
   int get eventsCount => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
   bool get isOnline => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get lastSeen => throw _privateConstructorUsedError;
   bool get showOnlineStatus => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get locationUpdatedAt => throw _privateConstructorUsedError;
   List<String> get blockedByUserIds => throw _privateConstructorUsedError;
 
@@ -101,12 +105,12 @@ abstract class $ProfileModelCopyWith<$Res> {
     int connectionsCount,
     int groupsCount,
     int eventsCount,
-    DateTime? createdAt,
-    DateTime? lastLoginAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? lastLoginAt,
     bool isOnline,
-    DateTime? lastSeen,
+    @LocalDateTimeNullableConverter() DateTime? lastSeen,
     bool showOnlineStatus,
-    DateTime? locationUpdatedAt,
+    @LocalDateTimeNullableConverter() DateTime? locationUpdatedAt,
     List<String> blockedByUserIds,
   });
 }
@@ -376,12 +380,12 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     int connectionsCount,
     int groupsCount,
     int eventsCount,
-    DateTime? createdAt,
-    DateTime? lastLoginAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? lastLoginAt,
     bool isOnline,
-    DateTime? lastSeen,
+    @LocalDateTimeNullableConverter() DateTime? lastSeen,
     bool showOnlineStatus,
-    DateTime? locationUpdatedAt,
+    @LocalDateTimeNullableConverter() DateTime? locationUpdatedAt,
     List<String> blockedByUserIds,
   });
 }
@@ -643,12 +647,12 @@ class _$ProfileModelImpl extends _ProfileModel {
     this.connectionsCount = 0,
     this.groupsCount = 0,
     this.eventsCount = 0,
-    this.createdAt,
-    this.lastLoginAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.lastLoginAt,
     this.isOnline = false,
-    this.lastSeen,
+    @LocalDateTimeNullableConverter() this.lastSeen,
     this.showOnlineStatus = true,
-    this.locationUpdatedAt,
+    @LocalDateTimeNullableConverter() this.locationUpdatedAt,
     final List<String> blockedByUserIds = const [],
   }) : _interests = interests,
        _skills = skills,
@@ -743,18 +747,22 @@ class _$ProfileModelImpl extends _ProfileModel {
   @JsonKey()
   final int eventsCount;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? lastLoginAt;
   @override
   @JsonKey()
   final bool isOnline;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? lastSeen;
   @override
   @JsonKey()
   final bool showOnlineStatus;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? locationUpdatedAt;
   final List<String> _blockedByUserIds;
   @override
@@ -930,12 +938,12 @@ abstract class _ProfileModel extends ProfileModel {
     final int connectionsCount,
     final int groupsCount,
     final int eventsCount,
-    final DateTime? createdAt,
-    final DateTime? lastLoginAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? lastLoginAt,
     final bool isOnline,
-    final DateTime? lastSeen,
+    @LocalDateTimeNullableConverter() final DateTime? lastSeen,
     final bool showOnlineStatus,
-    final DateTime? locationUpdatedAt,
+    @LocalDateTimeNullableConverter() final DateTime? locationUpdatedAt,
     final List<String> blockedByUserIds,
   }) = _$ProfileModelImpl;
   const _ProfileModel._() : super._();
@@ -998,16 +1006,20 @@ abstract class _ProfileModel extends ProfileModel {
   @override
   int get eventsCount;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get lastLoginAt;
   @override
   bool get isOnline;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get lastSeen;
   @override
   bool get showOnlineStatus;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get locationUpdatedAt;
   @override
   List<String> get blockedByUserIds;

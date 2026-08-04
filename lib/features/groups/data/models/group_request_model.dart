@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/group_request_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'group_request_model.freezed.dart';
 part 'group_request_model.g.dart';
 
@@ -18,8 +19,8 @@ class GroupRequestModel with _$GroupRequestModel {
     String? requesterPhotoUrl,
     @Default('pending') String status,
     String? message,
-    DateTime? createdAt,
-    DateTime? processedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? processedAt,
     String? processedBy,
   }) = _GroupRequestModel;
 

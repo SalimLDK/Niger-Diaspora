@@ -42,24 +42,16 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
   connectionsCount: (json['connectionsCount'] as num?)?.toInt() ?? 0,
   groupsCount: (json['groupsCount'] as num?)?.toInt() ?? 0,
   eventsCount: (json['eventsCount'] as num?)?.toInt() ?? 0,
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-  lastLoginAt:
-      json['lastLoginAt'] == null
-          ? null
-          : DateTime.parse(json['lastLoginAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
+  lastLoginAt: const LocalDateTimeNullableConverter().fromJson(
+    json['lastLoginAt'],
+  ),
   isOnline: json['isOnline'] as bool? ?? false,
-  lastSeen:
-      json['lastSeen'] == null
-          ? null
-          : DateTime.parse(json['lastSeen'] as String),
+  lastSeen: const LocalDateTimeNullableConverter().fromJson(json['lastSeen']),
   showOnlineStatus: json['showOnlineStatus'] as bool? ?? true,
-  locationUpdatedAt:
-      json['locationUpdatedAt'] == null
-          ? null
-          : DateTime.parse(json['locationUpdatedAt'] as String),
+  locationUpdatedAt: const LocalDateTimeNullableConverter().fromJson(
+    json['locationUpdatedAt'],
+  ),
   blockedByUserIds:
       (json['blockedByUserIds'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -67,40 +59,47 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'email': instance.email,
-      'displayName': instance.displayName,
-      'handle': instance.handle,
-      'photoUrl': instance.photoUrl,
-      'phoneNumber': instance.phoneNumber,
-      'bio': instance.bio,
-      'profession': instance.profession,
-      'currentCity': instance.currentCity,
-      'currentCountry': instance.currentCountry,
-      'currentRegion': instance.currentRegion,
-      'countryCode': instance.countryCode,
-      'originRegion': instance.originRegion,
-      'originCity': instance.originCity,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'isVisible': instance.isVisible,
-      'notificationsEnabled': instance.notificationsEnabled,
-      'shareLocation': instance.shareLocation,
-      'phoneVisibility': instance.phoneVisibility,
-      'isPhoneVerified': instance.isPhoneVerified,
-      'interests': instance.interests,
-      'skills': instance.skills,
-      'languages': instance.languages,
-      'connectionsCount': instance.connectionsCount,
-      'groupsCount': instance.groupsCount,
-      'eventsCount': instance.eventsCount,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'lastLoginAt': instance.lastLoginAt?.toIso8601String(),
-      'isOnline': instance.isOnline,
-      'lastSeen': instance.lastSeen?.toIso8601String(),
-      'showOnlineStatus': instance.showOnlineStatus,
-      'locationUpdatedAt': instance.locationUpdatedAt?.toIso8601String(),
-      'blockedByUserIds': instance.blockedByUserIds,
-    };
+Map<String, dynamic> _$$ProfileModelImplToJson(
+  _$ProfileModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'email': instance.email,
+  'displayName': instance.displayName,
+  'handle': instance.handle,
+  'photoUrl': instance.photoUrl,
+  'phoneNumber': instance.phoneNumber,
+  'bio': instance.bio,
+  'profession': instance.profession,
+  'currentCity': instance.currentCity,
+  'currentCountry': instance.currentCountry,
+  'currentRegion': instance.currentRegion,
+  'countryCode': instance.countryCode,
+  'originRegion': instance.originRegion,
+  'originCity': instance.originCity,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'isVisible': instance.isVisible,
+  'notificationsEnabled': instance.notificationsEnabled,
+  'shareLocation': instance.shareLocation,
+  'phoneVisibility': instance.phoneVisibility,
+  'isPhoneVerified': instance.isPhoneVerified,
+  'interests': instance.interests,
+  'skills': instance.skills,
+  'languages': instance.languages,
+  'connectionsCount': instance.connectionsCount,
+  'groupsCount': instance.groupsCount,
+  'eventsCount': instance.eventsCount,
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
+  'lastLoginAt': const LocalDateTimeNullableConverter().toJson(
+    instance.lastLoginAt,
+  ),
+  'isOnline': instance.isOnline,
+  'lastSeen': const LocalDateTimeNullableConverter().toJson(instance.lastSeen),
+  'showOnlineStatus': instance.showOnlineStatus,
+  'locationUpdatedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.locationUpdatedAt,
+  ),
+  'blockedByUserIds': instance.blockedByUserIds,
+};

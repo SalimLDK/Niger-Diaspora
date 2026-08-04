@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/business_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'business_model.freezed.dart';
 part 'business_model.g.dart';
 
@@ -29,14 +30,14 @@ class BusinessModel with _$BusinessModel {
     @Default({}) Map<String, dynamic> openingHours,
     @Default(false) bool isVerified,
     @Default(false) bool isBoosted,
-    DateTime? boostExpiresAt,
+    @LocalDateTimeNullableConverter() DateTime? boostExpiresAt,
     @Default(0.0) double averageRating,
     @Default(0) int reviewCount,
     @Default(0) int viewCount,
     @Default([]) List<String> tags,
     @Default([]) List<String> services,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   }) = _BusinessModel;
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) =>

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/utils/date_parsing.dart';
 import '../../domain/entities/event_entity.dart';
 
 part 'event_model.freezed.dart';
@@ -13,8 +14,8 @@ class EventModel with _$EventModel {
     required String id,
     required String title,
     required String description,
-    required DateTime startDate,
-    DateTime? endDate,
+    @LocalDateTimeConverter() required DateTime startDate,
+    @LocalDateTimeNullableConverter() DateTime? endDate,
     required String location,
     String? address,
     String? country,
@@ -31,10 +32,10 @@ class EventModel with _$EventModel {
     String? onlineLink,
     @Default('other') String category,
     @Default('upcoming') String status,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
     @Default([]) List<String> recapPhotoUrls,
     String? recapDescription,
-    DateTime? recapCreatedAt,
+    @LocalDateTimeNullableConverter() DateTime? recapCreatedAt,
     // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
     // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
     // de groupe (§9d).

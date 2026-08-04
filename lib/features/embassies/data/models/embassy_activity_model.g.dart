@@ -12,7 +12,7 @@ _$EmbassyActivityModelImpl _$$EmbassyActivityModelImplFromJson(
   id: json['id'] as String,
   title: json['title'] as String,
   description: json['description'] as String,
-  date: DateTime.parse(json['date'] as String),
+  date: const LocalDateTimeConverter().fromJson(json['date']),
   location: json['location'] as String,
   imageUrl: json['imageUrl'] as String?,
 );
@@ -23,7 +23,7 @@ Map<String, dynamic> _$$EmbassyActivityModelImplToJson(
   'id': instance.id,
   'title': instance.title,
   'description': instance.description,
-  'date': instance.date.toIso8601String(),
+  'date': const LocalDateTimeConverter().toJson(instance.date),
   'location': instance.location,
   'imageUrl': instance.imageUrl,
 };

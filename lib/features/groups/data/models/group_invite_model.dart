@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/group_invite_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'group_invite_model.freezed.dart';
 part 'group_invite_model.g.dart';
 
@@ -19,8 +20,8 @@ class GroupInviteModel with _$GroupInviteModel {
     required String inviteeName,
     String? inviteePhotoUrl,
     @Default('pending') String status,
-    DateTime? createdAt,
-    DateTime? respondedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? respondedAt,
   }) = _GroupInviteModel;
 
   factory GroupInviteModel.fromJson(Map<String, dynamic> json) =>

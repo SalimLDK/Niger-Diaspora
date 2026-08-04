@@ -24,6 +24,7 @@ mixin _$BlockedUserModel {
   String get id => throw _privateConstructorUsedError;
   String get displayName => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get blockedAt => throw _privateConstructorUsedError;
 
   /// Serializes this BlockedUserModel to a JSON map.
@@ -47,7 +48,7 @@ abstract class $BlockedUserModelCopyWith<$Res> {
     String id,
     String displayName,
     String? photoUrl,
-    DateTime blockedAt,
+    @LocalDateTimeConverter() DateTime blockedAt,
   });
 }
 
@@ -112,7 +113,7 @@ abstract class _$$BlockedUserModelImplCopyWith<$Res>
     String id,
     String displayName,
     String? photoUrl,
-    DateTime blockedAt,
+    @LocalDateTimeConverter() DateTime blockedAt,
   });
 }
 
@@ -169,7 +170,7 @@ class _$BlockedUserModelImpl extends _BlockedUserModel {
     required this.id,
     required this.displayName,
     this.photoUrl,
-    required this.blockedAt,
+    @LocalDateTimeConverter() required this.blockedAt,
   }) : super._();
 
   factory _$BlockedUserModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -182,6 +183,7 @@ class _$BlockedUserModelImpl extends _BlockedUserModel {
   @override
   final String? photoUrl;
   @override
+  @LocalDateTimeConverter()
   final DateTime blockedAt;
 
   @override
@@ -230,7 +232,7 @@ abstract class _BlockedUserModel extends BlockedUserModel {
     required final String id,
     required final String displayName,
     final String? photoUrl,
-    required final DateTime blockedAt,
+    @LocalDateTimeConverter() required final DateTime blockedAt,
   }) = _$BlockedUserModelImpl;
   const _BlockedUserModel._() : super._();
 
@@ -244,6 +246,7 @@ abstract class _BlockedUserModel extends BlockedUserModel {
   @override
   String? get photoUrl;
   @override
+  @LocalDateTimeConverter()
   DateTime get blockedAt;
 
   /// Create a copy of BlockedUserModel

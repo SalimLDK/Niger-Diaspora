@@ -24,6 +24,7 @@ mixin _$EmbassyNewsModel {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get date => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
 
@@ -48,7 +49,7 @@ abstract class $EmbassyNewsModelCopyWith<$Res> {
     String id,
     String title,
     String content,
-    DateTime date,
+    @LocalDateTimeConverter() DateTime date,
     String? imageUrl,
   });
 }
@@ -120,7 +121,7 @@ abstract class _$$EmbassyNewsModelImplCopyWith<$Res>
     String id,
     String title,
     String content,
-    DateTime date,
+    @LocalDateTimeConverter() DateTime date,
     String? imageUrl,
   });
 }
@@ -184,7 +185,7 @@ class _$EmbassyNewsModelImpl implements _EmbassyNewsModel {
     required this.id,
     required this.title,
     required this.content,
-    required this.date,
+    @LocalDateTimeConverter() required this.date,
     this.imageUrl,
   });
 
@@ -198,6 +199,7 @@ class _$EmbassyNewsModelImpl implements _EmbassyNewsModel {
   @override
   final String content;
   @override
+  @LocalDateTimeConverter()
   final DateTime date;
   @override
   final String? imageUrl;
@@ -247,7 +249,7 @@ abstract class _EmbassyNewsModel implements EmbassyNewsModel {
     required final String id,
     required final String title,
     required final String content,
-    required final DateTime date,
+    @LocalDateTimeConverter() required final DateTime date,
     final String? imageUrl,
   }) = _$EmbassyNewsModelImpl;
 
@@ -261,6 +263,7 @@ abstract class _EmbassyNewsModel implements EmbassyNewsModel {
   @override
   String get content;
   @override
+  @LocalDateTimeConverter()
   DateTime get date;
   @override
   String? get imageUrl;

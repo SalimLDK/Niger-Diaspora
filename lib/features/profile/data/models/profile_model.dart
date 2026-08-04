@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/profile_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'profile_model.freezed.dart';
 part 'profile_model.g.dart';
 
@@ -36,12 +37,12 @@ class ProfileModel with _$ProfileModel {
     @Default(0) int connectionsCount,
     @Default(0) int groupsCount,
     @Default(0) int eventsCount,
-    DateTime? createdAt,
-    DateTime? lastLoginAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? lastLoginAt,
     @Default(false) bool isOnline,
-    DateTime? lastSeen,
+    @LocalDateTimeNullableConverter() DateTime? lastSeen,
     @Default(true) bool showOnlineStatus,
-    DateTime? locationUpdatedAt,
+    @LocalDateTimeNullableConverter() DateTime? locationUpdatedAt,
     @Default([]) List<String> blockedByUserIds,
   }) = _ProfileModel;
 

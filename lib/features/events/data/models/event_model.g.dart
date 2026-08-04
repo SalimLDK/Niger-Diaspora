@@ -11,11 +11,8 @@ _$EventModelImpl _$$EventModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate:
-          json['endDate'] == null
-              ? null
-              : DateTime.parse(json['endDate'] as String),
+      startDate: const LocalDateTimeConverter().fromJson(json['startDate']),
+      endDate: const LocalDateTimeNullableConverter().fromJson(json['endDate']),
       location: json['location'] as String,
       address: json['address'] as String?,
       country: json['country'] as String?,
@@ -40,55 +37,58 @@ _$EventModelImpl _$$EventModelImplFromJson(Map<String, dynamic> json) =>
       onlineLink: json['onlineLink'] as String?,
       category: json['category'] as String? ?? 'other',
       status: json['status'] as String? ?? 'upcoming',
-      createdAt:
-          json['createdAt'] == null
-              ? null
-              : DateTime.parse(json['createdAt'] as String),
+      createdAt: const LocalDateTimeNullableConverter().fromJson(
+        json['createdAt'],
+      ),
       recapPhotoUrls:
           (json['recapPhotoUrls'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
       recapDescription: json['recapDescription'] as String?,
-      recapCreatedAt:
-          json['recapCreatedAt'] == null
-              ? null
-              : DateTime.parse(json['recapCreatedAt'] as String),
+      recapCreatedAt: const LocalDateTimeNullableConverter().fromJson(
+        json['recapCreatedAt'],
+      ),
       groupId: json['groupId'] as String?,
       groupName: json['groupName'] as String?,
       conversationId: json['conversationId'] as String?,
       isPublic: json['isPublic'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$EventModelImplToJson(_$EventModelImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'description': instance.description,
-      'startDate': instance.startDate.toIso8601String(),
-      'endDate': instance.endDate?.toIso8601String(),
-      'location': instance.location,
-      'address': instance.address,
-      'country': instance.country,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'organizerId': instance.organizerId,
-      'organizerName': instance.organizerName,
-      'organizerPhotoUrl': instance.organizerPhotoUrl,
-      'posterUrls': instance.posterUrls,
-      'attendeeIds': instance.attendeeIds,
-      'maxAttendees': instance.maxAttendees,
-      'price': instance.price,
-      'isOnline': instance.isOnline,
-      'onlineLink': instance.onlineLink,
-      'category': instance.category,
-      'status': instance.status,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'recapPhotoUrls': instance.recapPhotoUrls,
-      'recapDescription': instance.recapDescription,
-      'recapCreatedAt': instance.recapCreatedAt?.toIso8601String(),
-      'groupId': instance.groupId,
-      'groupName': instance.groupName,
-      'conversationId': instance.conversationId,
-      'isPublic': instance.isPublic,
-    };
+Map<String, dynamic> _$$EventModelImplToJson(
+  _$EventModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'title': instance.title,
+  'description': instance.description,
+  'startDate': const LocalDateTimeConverter().toJson(instance.startDate),
+  'endDate': const LocalDateTimeNullableConverter().toJson(instance.endDate),
+  'location': instance.location,
+  'address': instance.address,
+  'country': instance.country,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'organizerId': instance.organizerId,
+  'organizerName': instance.organizerName,
+  'organizerPhotoUrl': instance.organizerPhotoUrl,
+  'posterUrls': instance.posterUrls,
+  'attendeeIds': instance.attendeeIds,
+  'maxAttendees': instance.maxAttendees,
+  'price': instance.price,
+  'isOnline': instance.isOnline,
+  'onlineLink': instance.onlineLink,
+  'category': instance.category,
+  'status': instance.status,
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
+  'recapPhotoUrls': instance.recapPhotoUrls,
+  'recapDescription': instance.recapDescription,
+  'recapCreatedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.recapCreatedAt,
+  ),
+  'groupId': instance.groupId,
+  'groupName': instance.groupName,
+  'conversationId': instance.conversationId,
+  'isPublic': instance.isPublic,
+};

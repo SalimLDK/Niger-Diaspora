@@ -24,6 +24,7 @@ mixin _$EmbassyActivityModel {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get date => throw _privateConstructorUsedError;
   String get location => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
@@ -49,7 +50,7 @@ abstract class $EmbassyActivityModelCopyWith<$Res> {
     String id,
     String title,
     String description,
-    DateTime date,
+    @LocalDateTimeConverter() DateTime date,
     String location,
     String? imageUrl,
   });
@@ -131,7 +132,7 @@ abstract class _$$EmbassyActivityModelImplCopyWith<$Res>
     String id,
     String title,
     String description,
-    DateTime date,
+    @LocalDateTimeConverter() DateTime date,
     String location,
     String? imageUrl,
   });
@@ -202,7 +203,7 @@ class _$EmbassyActivityModelImpl implements _EmbassyActivityModel {
     required this.id,
     required this.title,
     required this.description,
-    required this.date,
+    @LocalDateTimeConverter() required this.date,
     required this.location,
     this.imageUrl,
   });
@@ -217,6 +218,7 @@ class _$EmbassyActivityModelImpl implements _EmbassyActivityModel {
   @override
   final String description;
   @override
+  @LocalDateTimeConverter()
   final DateTime date;
   @override
   final String location;
@@ -279,7 +281,7 @@ abstract class _EmbassyActivityModel implements EmbassyActivityModel {
     required final String id,
     required final String title,
     required final String description,
-    required final DateTime date,
+    @LocalDateTimeConverter() required final DateTime date,
     required final String location,
     final String? imageUrl,
   }) = _$EmbassyActivityModelImpl;
@@ -294,6 +296,7 @@ abstract class _EmbassyActivityModel implements EmbassyActivityModel {
   @override
   String get description;
   @override
+  @LocalDateTimeConverter()
   DateTime get date;
   @override
   String get location;

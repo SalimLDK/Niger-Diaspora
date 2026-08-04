@@ -16,10 +16,9 @@ _$ContentSnapshotModelImpl _$$ContentSnapshotModelImplFromJson(
   fileName: json['fileName'] as String?,
   contentType: json['contentType'] as String?,
   metadata: json['metadata'] as Map<String, dynamic>?,
-  capturedAt:
-      json['capturedAt'] == null
-          ? null
-          : DateTime.parse(json['capturedAt'] as String),
+  capturedAt: const LocalDateTimeNullableConverter().fromJson(
+    json['capturedAt'],
+  ),
 );
 
 Map<String, dynamic> _$$ContentSnapshotModelImplToJson(
@@ -32,7 +31,9 @@ Map<String, dynamic> _$$ContentSnapshotModelImplToJson(
   'fileName': instance.fileName,
   'contentType': instance.contentType,
   'metadata': instance.metadata,
-  'capturedAt': instance.capturedAt?.toIso8601String(),
+  'capturedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.capturedAt,
+  ),
 };
 
 _$ReportModelImpl _$$ReportModelImplFromJson(Map<String, dynamic> json) =>
@@ -60,14 +61,12 @@ _$ReportModelImpl _$$ReportModelImplFromJson(Map<String, dynamic> json) =>
       reviewedBy: json['reviewedBy'] as String?,
       reviewerName: json['reviewerName'] as String?,
       resolution: json['resolution'] as String?,
-      createdAt:
-          json['createdAt'] == null
-              ? null
-              : DateTime.parse(json['createdAt'] as String),
-      reviewedAt:
-          json['reviewedAt'] == null
-              ? null
-              : DateTime.parse(json['reviewedAt'] as String),
+      createdAt: const LocalDateTimeNullableConverter().fromJson(
+        json['createdAt'],
+      ),
+      reviewedAt: const LocalDateTimeNullableConverter().fromJson(
+        json['reviewedAt'],
+      ),
       reportedUserNotified: json['reportedUserNotified'] as bool? ?? false,
     );
 
@@ -91,7 +90,11 @@ Map<String, dynamic> _$$ReportModelImplToJson(_$ReportModelImpl instance) =>
       'reviewedBy': instance.reviewedBy,
       'reviewerName': instance.reviewerName,
       'resolution': instance.resolution,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'reviewedAt': instance.reviewedAt?.toIso8601String(),
+      'createdAt': const LocalDateTimeNullableConverter().toJson(
+        instance.createdAt,
+      ),
+      'reviewedAt': const LocalDateTimeNullableConverter().toJson(
+        instance.reviewedAt,
+      ),
       'reportedUserNotified': instance.reportedUserNotified,
     };

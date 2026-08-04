@@ -24,6 +24,7 @@ mixin _$FriendModel {
   String get id => throw _privateConstructorUsedError;
   String get displayName => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get addedAt => throw _privateConstructorUsedError;
 
   /// Serializes this FriendModel to a JSON map.
@@ -47,7 +48,7 @@ abstract class $FriendModelCopyWith<$Res> {
     String id,
     String displayName,
     String? photoUrl,
-    DateTime addedAt,
+    @LocalDateTimeConverter() DateTime addedAt,
   });
 }
 
@@ -112,7 +113,7 @@ abstract class _$$FriendModelImplCopyWith<$Res>
     String id,
     String displayName,
     String? photoUrl,
-    DateTime addedAt,
+    @LocalDateTimeConverter() DateTime addedAt,
   });
 }
 
@@ -169,7 +170,7 @@ class _$FriendModelImpl extends _FriendModel {
     required this.id,
     required this.displayName,
     this.photoUrl,
-    required this.addedAt,
+    @LocalDateTimeConverter() required this.addedAt,
   }) : super._();
 
   factory _$FriendModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -182,6 +183,7 @@ class _$FriendModelImpl extends _FriendModel {
   @override
   final String? photoUrl;
   @override
+  @LocalDateTimeConverter()
   final DateTime addedAt;
 
   @override
@@ -226,7 +228,7 @@ abstract class _FriendModel extends FriendModel {
     required final String id,
     required final String displayName,
     final String? photoUrl,
-    required final DateTime addedAt,
+    @LocalDateTimeConverter() required final DateTime addedAt,
   }) = _$FriendModelImpl;
   const _FriendModel._() : super._();
 
@@ -240,6 +242,7 @@ abstract class _FriendModel extends FriendModel {
   @override
   String? get photoUrl;
   @override
+  @LocalDateTimeConverter()
   DateTime get addedAt;
 
   /// Create a copy of FriendModel

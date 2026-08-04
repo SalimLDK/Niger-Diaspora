@@ -7,7 +7,7 @@ part of 'role_management_provider.dart';
 // **************************************************************************
 
 String _$roleManagementNotifierHash() =>
-    r'bd87aca9424d77edb85dbaaf69f161249951142f';
+    r'04a2a46eb7fd9a4fc41e08d926a77523ef6b4297';
 
 /// Provider pour gérer les rôles admin (SuperAdmin uniquement)
 ///

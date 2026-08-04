@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/profile_share_link_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'profile_share_link_model.freezed.dart';
 part 'profile_share_link_model.g.dart';
 
@@ -12,8 +13,8 @@ class ProfileShareLinkModel with _$ProfileShareLinkModel {
     required String id,
     required String userId,
     required String shortCode,
-    required DateTime createdAt,
-    DateTime? expiresAt,
+    @LocalDateTimeConverter() required DateTime createdAt,
+    @LocalDateTimeNullableConverter() DateTime? expiresAt,
     @Default(0) int clickCount,
   }) = _ProfileShareLinkModel;
 

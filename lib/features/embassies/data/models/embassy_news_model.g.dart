@@ -12,7 +12,7 @@ _$EmbassyNewsModelImpl _$$EmbassyNewsModelImplFromJson(
   id: json['id'] as String,
   title: json['title'] as String,
   content: json['content'] as String,
-  date: DateTime.parse(json['date'] as String),
+  date: const LocalDateTimeConverter().fromJson(json['date']),
   imageUrl: json['imageUrl'] as String?,
 );
 
@@ -22,6 +22,6 @@ Map<String, dynamic> _$$EmbassyNewsModelImplToJson(
   'id': instance.id,
   'title': instance.title,
   'content': instance.content,
-  'date': instance.date.toIso8601String(),
+  'date': const LocalDateTimeConverter().toJson(instance.date),
   'imageUrl': instance.imageUrl,
 };

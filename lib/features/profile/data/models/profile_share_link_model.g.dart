@@ -12,11 +12,8 @@ _$ProfileShareLinkModelImpl _$$ProfileShareLinkModelImplFromJson(
   id: json['id'] as String,
   userId: json['userId'] as String,
   shortCode: json['shortCode'] as String,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  expiresAt:
-      json['expiresAt'] == null
-          ? null
-          : DateTime.parse(json['expiresAt'] as String),
+  createdAt: const LocalDateTimeConverter().fromJson(json['createdAt']),
+  expiresAt: const LocalDateTimeNullableConverter().fromJson(json['expiresAt']),
   clickCount: (json['clickCount'] as num?)?.toInt() ?? 0,
 );
 
@@ -26,7 +23,9 @@ Map<String, dynamic> _$$ProfileShareLinkModelImplToJson(
   'id': instance.id,
   'userId': instance.userId,
   'shortCode': instance.shortCode,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'expiresAt': instance.expiresAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeConverter().toJson(instance.createdAt),
+  'expiresAt': const LocalDateTimeNullableConverter().toJson(
+    instance.expiresAt,
+  ),
   'clickCount': instance.clickCount,
 };

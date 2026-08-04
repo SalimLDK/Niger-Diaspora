@@ -28,10 +28,13 @@ mixin _$BusinessBoostModel {
   String get duration => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get startDate => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get endDate => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String? get paymentReference => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this BusinessBoostModel to a JSON map.
@@ -59,11 +62,11 @@ abstract class $BusinessBoostModelCopyWith<$Res> {
     String duration,
     double amount,
     String currency,
-    DateTime startDate,
-    DateTime endDate,
+    @LocalDateTimeConverter() DateTime startDate,
+    @LocalDateTimeConverter() DateTime endDate,
     String status,
     String? paymentReference,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   });
 }
 
@@ -180,11 +183,11 @@ abstract class _$$BusinessBoostModelImplCopyWith<$Res>
     String duration,
     double amount,
     String currency,
-    DateTime startDate,
-    DateTime endDate,
+    @LocalDateTimeConverter() DateTime startDate,
+    @LocalDateTimeConverter() DateTime endDate,
     String status,
     String? paymentReference,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   });
 }
 
@@ -293,11 +296,11 @@ class _$BusinessBoostModelImpl extends _BusinessBoostModel {
     this.duration = 'days7',
     required this.amount,
     this.currency = 'XOF',
-    required this.startDate,
-    required this.endDate,
+    @LocalDateTimeConverter() required this.startDate,
+    @LocalDateTimeConverter() required this.endDate,
     this.status = 'active',
     this.paymentReference,
-    this.createdAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
   }) : super._();
 
   factory _$BusinessBoostModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -321,8 +324,10 @@ class _$BusinessBoostModelImpl extends _BusinessBoostModel {
   @JsonKey()
   final String currency;
   @override
+  @LocalDateTimeConverter()
   final DateTime startDate;
   @override
+  @LocalDateTimeConverter()
   final DateTime endDate;
   @override
   @JsonKey()
@@ -330,6 +335,7 @@ class _$BusinessBoostModelImpl extends _BusinessBoostModel {
   @override
   final String? paymentReference;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
 
   @override
@@ -406,11 +412,11 @@ abstract class _BusinessBoostModel extends BusinessBoostModel {
     final String duration,
     required final double amount,
     final String currency,
-    required final DateTime startDate,
-    required final DateTime endDate,
+    @LocalDateTimeConverter() required final DateTime startDate,
+    @LocalDateTimeConverter() required final DateTime endDate,
     final String status,
     final String? paymentReference,
-    final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
   }) = _$BusinessBoostModelImpl;
   const _BusinessBoostModel._() : super._();
 
@@ -432,14 +438,17 @@ abstract class _BusinessBoostModel extends BusinessBoostModel {
   @override
   String get currency;
   @override
+  @LocalDateTimeConverter()
   DateTime get startDate;
   @override
+  @LocalDateTimeConverter()
   DateTime get endDate;
   @override
   String get status;
   @override
   String? get paymentReference;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
 
   /// Create a copy of BusinessBoostModel

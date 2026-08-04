@@ -17,10 +17,7 @@ _$NotificationModelImpl _$$NotificationModelImplFromJson(
   targetId: json['targetId'] as String?,
   senderId: json['senderId'] as String?,
   isRead: json['isRead'] as bool? ?? false,
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
 );
 
 Map<String, dynamic> _$$NotificationModelImplToJson(
@@ -34,5 +31,7 @@ Map<String, dynamic> _$$NotificationModelImplToJson(
   'targetId': instance.targetId,
   'senderId': instance.senderId,
   'isRead': instance.isRead,
-  'createdAt': instance.createdAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
 };

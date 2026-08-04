@@ -16,14 +16,11 @@ _$BusinessBoostModelImpl _$$BusinessBoostModelImplFromJson(
   duration: json['duration'] as String? ?? 'days7',
   amount: (json['amount'] as num).toDouble(),
   currency: json['currency'] as String? ?? 'XOF',
-  startDate: DateTime.parse(json['startDate'] as String),
-  endDate: DateTime.parse(json['endDate'] as String),
+  startDate: const LocalDateTimeConverter().fromJson(json['startDate']),
+  endDate: const LocalDateTimeConverter().fromJson(json['endDate']),
   status: json['status'] as String? ?? 'active',
   paymentReference: json['paymentReference'] as String?,
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
 );
 
 Map<String, dynamic> _$$BusinessBoostModelImplToJson(
@@ -36,9 +33,11 @@ Map<String, dynamic> _$$BusinessBoostModelImplToJson(
   'duration': instance.duration,
   'amount': instance.amount,
   'currency': instance.currency,
-  'startDate': instance.startDate.toIso8601String(),
-  'endDate': instance.endDate.toIso8601String(),
+  'startDate': const LocalDateTimeConverter().toJson(instance.startDate),
+  'endDate': const LocalDateTimeConverter().toJson(instance.endDate),
   'status': instance.status,
   'paymentReference': instance.paymentReference,
-  'createdAt': instance.createdAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
 };

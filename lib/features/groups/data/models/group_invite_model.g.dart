@@ -19,14 +19,10 @@ _$GroupInviteModelImpl _$$GroupInviteModelImplFromJson(
   inviteeName: json['inviteeName'] as String,
   inviteePhotoUrl: json['inviteePhotoUrl'] as String?,
   status: json['status'] as String? ?? 'pending',
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-  respondedAt:
-      json['respondedAt'] == null
-          ? null
-          : DateTime.parse(json['respondedAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
+  respondedAt: const LocalDateTimeNullableConverter().fromJson(
+    json['respondedAt'],
+  ),
 );
 
 Map<String, dynamic> _$$GroupInviteModelImplToJson(
@@ -42,6 +38,10 @@ Map<String, dynamic> _$$GroupInviteModelImplToJson(
   'inviteeName': instance.inviteeName,
   'inviteePhotoUrl': instance.inviteePhotoUrl,
   'status': instance.status,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'respondedAt': instance.respondedAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
+  'respondedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.respondedAt,
+  ),
 };

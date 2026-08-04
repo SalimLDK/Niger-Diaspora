@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/report_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'report_model.freezed.dart';
 part 'report_model.g.dart';
 
@@ -19,7 +20,7 @@ class ContentSnapshotModel with _$ContentSnapshotModel {
     String? fileName,
     String? contentType,
     Map<String, dynamic>? metadata,
-    DateTime? capturedAt,
+    @LocalDateTimeNullableConverter() DateTime? capturedAt,
   }) = _ContentSnapshotModel;
 
   factory ContentSnapshotModel.fromJson(Map<String, dynamic> json) =>
@@ -111,8 +112,8 @@ class ReportModel with _$ReportModel {
     String? reviewedBy,
     String? reviewerName,
     String? resolution,
-    DateTime? createdAt,
-    DateTime? reviewedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? reviewedAt,
     @Default(false) bool reportedUserNotified,
   }) = _ReportModel;
 

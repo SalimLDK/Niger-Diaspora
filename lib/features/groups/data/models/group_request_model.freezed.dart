@@ -30,7 +30,9 @@ mixin _$GroupRequestModel {
   String? get requesterPhotoUrl => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String? get message => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get processedAt => throw _privateConstructorUsedError;
   String? get processedBy => throw _privateConstructorUsedError;
 
@@ -61,8 +63,8 @@ abstract class $GroupRequestModelCopyWith<$Res> {
     String? requesterPhotoUrl,
     String status,
     String? message,
-    DateTime? createdAt,
-    DateTime? processedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? processedAt,
     String? processedBy,
   });
 }
@@ -182,8 +184,8 @@ abstract class _$$GroupRequestModelImplCopyWith<$Res>
     String? requesterPhotoUrl,
     String status,
     String? message,
-    DateTime? createdAt,
-    DateTime? processedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? processedAt,
     String? processedBy,
   });
 }
@@ -295,8 +297,8 @@ class _$GroupRequestModelImpl extends _GroupRequestModel {
     this.requesterPhotoUrl,
     this.status = 'pending',
     this.message,
-    this.createdAt,
-    this.processedAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.processedAt,
     this.processedBy,
   }) : super._();
 
@@ -323,8 +325,10 @@ class _$GroupRequestModelImpl extends _GroupRequestModel {
   @override
   final String? message;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? processedAt;
   @override
   final String? processedBy;
@@ -407,8 +411,8 @@ abstract class _GroupRequestModel extends GroupRequestModel {
     final String? requesterPhotoUrl,
     final String status,
     final String? message,
-    final DateTime? createdAt,
-    final DateTime? processedAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? processedAt,
     final String? processedBy,
   }) = _$GroupRequestModelImpl;
   const _GroupRequestModel._() : super._();
@@ -435,8 +439,10 @@ abstract class _GroupRequestModel extends GroupRequestModel {
   @override
   String? get message;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get processedAt;
   @override
   String? get processedBy;

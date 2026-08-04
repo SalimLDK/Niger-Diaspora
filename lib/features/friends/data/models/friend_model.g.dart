@@ -11,7 +11,7 @@ _$FriendModelImpl _$$FriendModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       displayName: json['displayName'] as String,
       photoUrl: json['photoUrl'] as String?,
-      addedAt: DateTime.parse(json['addedAt'] as String),
+      addedAt: const LocalDateTimeConverter().fromJson(json['addedAt']),
     );
 
 Map<String, dynamic> _$$FriendModelImplToJson(_$FriendModelImpl instance) =>
@@ -19,5 +19,5 @@ Map<String, dynamic> _$$FriendModelImplToJson(_$FriendModelImpl instance) =>
       'id': instance.id,
       'displayName': instance.displayName,
       'photoUrl': instance.photoUrl,
-      'addedAt': instance.addedAt.toIso8601String(),
+      'addedAt': const LocalDateTimeConverter().toJson(instance.addedAt),
     };

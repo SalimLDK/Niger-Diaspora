@@ -24,7 +24,9 @@ mixin _$EventModel {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get startDate => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get endDate => throw _privateConstructorUsedError;
   String get location => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
@@ -42,11 +44,12 @@ mixin _$EventModel {
   String? get onlineLink => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
   List<String> get recapPhotoUrls => throw _privateConstructorUsedError;
   String? get recapDescription => throw _privateConstructorUsedError;
-  DateTime? get recapCreatedAt =>
-      throw _privateConstructorUsedError; // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
+  @LocalDateTimeNullableConverter()
+  DateTime? get recapCreatedAt => throw _privateConstructorUsedError; // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
   // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
   // de groupe (§9d).
   String? get groupId => throw _privateConstructorUsedError;
@@ -75,8 +78,8 @@ abstract class $EventModelCopyWith<$Res> {
     String id,
     String title,
     String description,
-    DateTime startDate,
-    DateTime? endDate,
+    @LocalDateTimeConverter() DateTime startDate,
+    @LocalDateTimeNullableConverter() DateTime? endDate,
     String location,
     String? address,
     String? country,
@@ -93,10 +96,10 @@ abstract class $EventModelCopyWith<$Res> {
     String? onlineLink,
     String category,
     String status,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
     List<String> recapPhotoUrls,
     String? recapDescription,
-    DateTime? recapCreatedAt,
+    @LocalDateTimeNullableConverter() DateTime? recapCreatedAt,
     String? groupId,
     String? groupName,
     String? conversationId,
@@ -315,8 +318,8 @@ abstract class _$$EventModelImplCopyWith<$Res>
     String id,
     String title,
     String description,
-    DateTime startDate,
-    DateTime? endDate,
+    @LocalDateTimeConverter() DateTime startDate,
+    @LocalDateTimeNullableConverter() DateTime? endDate,
     String location,
     String? address,
     String? country,
@@ -333,10 +336,10 @@ abstract class _$$EventModelImplCopyWith<$Res>
     String? onlineLink,
     String category,
     String status,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
     List<String> recapPhotoUrls,
     String? recapDescription,
-    DateTime? recapCreatedAt,
+    @LocalDateTimeNullableConverter() DateTime? recapCreatedAt,
     String? groupId,
     String? groupName,
     String? conversationId,
@@ -547,8 +550,8 @@ class _$EventModelImpl extends _EventModel {
     required this.id,
     required this.title,
     required this.description,
-    required this.startDate,
-    this.endDate,
+    @LocalDateTimeConverter() required this.startDate,
+    @LocalDateTimeNullableConverter() this.endDate,
     required this.location,
     this.address,
     this.country,
@@ -565,10 +568,10 @@ class _$EventModelImpl extends _EventModel {
     this.onlineLink,
     this.category = 'other',
     this.status = 'upcoming',
-    this.createdAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
     final List<String> recapPhotoUrls = const [],
     this.recapDescription,
-    this.recapCreatedAt,
+    @LocalDateTimeNullableConverter() this.recapCreatedAt,
     this.groupId,
     this.groupName,
     this.conversationId,
@@ -588,8 +591,10 @@ class _$EventModelImpl extends _EventModel {
   @override
   final String description;
   @override
+  @LocalDateTimeConverter()
   final DateTime startDate;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? endDate;
   @override
   final String location;
@@ -643,6 +648,7 @@ class _$EventModelImpl extends _EventModel {
   @JsonKey()
   final String status;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   final List<String> _recapPhotoUrls;
   @override
@@ -656,6 +662,7 @@ class _$EventModelImpl extends _EventModel {
   @override
   final String? recapDescription;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? recapCreatedAt;
   // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
   // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
@@ -792,8 +799,8 @@ abstract class _EventModel extends EventModel {
     required final String id,
     required final String title,
     required final String description,
-    required final DateTime startDate,
-    final DateTime? endDate,
+    @LocalDateTimeConverter() required final DateTime startDate,
+    @LocalDateTimeNullableConverter() final DateTime? endDate,
     required final String location,
     final String? address,
     final String? country,
@@ -810,10 +817,10 @@ abstract class _EventModel extends EventModel {
     final String? onlineLink,
     final String category,
     final String status,
-    final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
     final List<String> recapPhotoUrls,
     final String? recapDescription,
-    final DateTime? recapCreatedAt,
+    @LocalDateTimeNullableConverter() final DateTime? recapCreatedAt,
     final String? groupId,
     final String? groupName,
     final String? conversationId,
@@ -831,8 +838,10 @@ abstract class _EventModel extends EventModel {
   @override
   String get description;
   @override
+  @LocalDateTimeConverter()
   DateTime get startDate;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get endDate;
   @override
   String get location;
@@ -867,12 +876,14 @@ abstract class _EventModel extends EventModel {
   @override
   String get status;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
   List<String> get recapPhotoUrls;
   @override
   String? get recapDescription;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get recapCreatedAt; // Lien groupe / discussion — auparavant absents du modèle (perte silencieuse
   // à la persistance). Nécessaires à la « prochaine rencontre » de la fiche
   // de groupe (§9d).

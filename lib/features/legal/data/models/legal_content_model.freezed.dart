@@ -26,6 +26,7 @@ mixin _$LegalContentModel {
   String get title => throw _privateConstructorUsedError;
   String get version => throw _privateConstructorUsedError;
   List<LegalSectionModel> get sections => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get updatedAt => throw _privateConstructorUsedError;
   String? get summary => throw _privateConstructorUsedError;
 
@@ -52,7 +53,7 @@ abstract class $LegalContentModelCopyWith<$Res> {
     String title,
     String version,
     List<LegalSectionModel> sections,
-    DateTime updatedAt,
+    @LocalDateTimeConverter() DateTime updatedAt,
     String? summary,
   });
 }
@@ -138,7 +139,7 @@ abstract class _$$LegalContentModelImplCopyWith<$Res>
     String title,
     String version,
     List<LegalSectionModel> sections,
-    DateTime updatedAt,
+    @LocalDateTimeConverter() DateTime updatedAt,
     String? summary,
   });
 }
@@ -216,7 +217,7 @@ class _$LegalContentModelImpl implements _LegalContentModel {
     required this.title,
     required this.version,
     required final List<LegalSectionModel> sections,
-    required this.updatedAt,
+    @LocalDateTimeConverter() required this.updatedAt,
     this.summary,
   }) : _sections = sections;
 
@@ -241,6 +242,7 @@ class _$LegalContentModelImpl implements _LegalContentModel {
   }
 
   @override
+  @LocalDateTimeConverter()
   final DateTime updatedAt;
   @override
   final String? summary;
@@ -302,7 +304,7 @@ abstract class _LegalContentModel implements LegalContentModel {
     required final String title,
     required final String version,
     required final List<LegalSectionModel> sections,
-    required final DateTime updatedAt,
+    @LocalDateTimeConverter() required final DateTime updatedAt,
     final String? summary,
   }) = _$LegalContentModelImpl;
 
@@ -320,6 +322,7 @@ abstract class _LegalContentModel implements LegalContentModel {
   @override
   List<LegalSectionModel> get sections;
   @override
+  @LocalDateTimeConverter()
   DateTime get updatedAt;
   @override
   String? get summary;
@@ -544,6 +547,7 @@ UserLegalAcceptance _$UserLegalAcceptanceFromJson(Map<String, dynamic> json) {
 mixin _$UserLegalAcceptance {
   String get termsVersion => throw _privateConstructorUsedError;
   String get privacyVersion => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get acceptedAt => throw _privateConstructorUsedError;
 
   /// Serializes this UserLegalAcceptance to a JSON map.
@@ -563,7 +567,11 @@ abstract class $UserLegalAcceptanceCopyWith<$Res> {
     $Res Function(UserLegalAcceptance) then,
   ) = _$UserLegalAcceptanceCopyWithImpl<$Res, UserLegalAcceptance>;
   @useResult
-  $Res call({String termsVersion, String privacyVersion, DateTime acceptedAt});
+  $Res call({
+    String termsVersion,
+    String privacyVersion,
+    @LocalDateTimeConverter() DateTime acceptedAt,
+  });
 }
 
 /// @nodoc
@@ -617,7 +625,11 @@ abstract class _$$UserLegalAcceptanceImplCopyWith<$Res>
   ) = __$$UserLegalAcceptanceImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String termsVersion, String privacyVersion, DateTime acceptedAt});
+  $Res call({
+    String termsVersion,
+    String privacyVersion,
+    @LocalDateTimeConverter() DateTime acceptedAt,
+  });
 }
 
 /// @nodoc
@@ -666,7 +678,7 @@ class _$UserLegalAcceptanceImpl implements _UserLegalAcceptance {
   const _$UserLegalAcceptanceImpl({
     required this.termsVersion,
     required this.privacyVersion,
-    required this.acceptedAt,
+    @LocalDateTimeConverter() required this.acceptedAt,
   });
 
   factory _$UserLegalAcceptanceImpl.fromJson(Map<String, dynamic> json) =>
@@ -677,6 +689,7 @@ class _$UserLegalAcceptanceImpl implements _UserLegalAcceptance {
   @override
   final String privacyVersion;
   @override
+  @LocalDateTimeConverter()
   final DateTime acceptedAt;
 
   @override
@@ -723,7 +736,7 @@ abstract class _UserLegalAcceptance implements UserLegalAcceptance {
   const factory _UserLegalAcceptance({
     required final String termsVersion,
     required final String privacyVersion,
-    required final DateTime acceptedAt,
+    @LocalDateTimeConverter() required final DateTime acceptedAt,
   }) = _$UserLegalAcceptanceImpl;
 
   factory _UserLegalAcceptance.fromJson(Map<String, dynamic> json) =
@@ -734,6 +747,7 @@ abstract class _UserLegalAcceptance implements UserLegalAcceptance {
   @override
   String get privacyVersion;
   @override
+  @LocalDateTimeConverter()
   DateTime get acceptedAt;
 
   /// Create a copy of UserLegalAcceptance

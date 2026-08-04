@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/business_boost_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'business_boost_model.freezed.dart';
 part 'business_boost_model.g.dart';
 
@@ -16,11 +17,11 @@ class BusinessBoostModel with _$BusinessBoostModel {
     @Default('days7') String duration,
     required double amount,
     @Default('XOF') String currency,
-    required DateTime startDate,
-    required DateTime endDate,
+    @LocalDateTimeConverter() required DateTime startDate,
+    @LocalDateTimeConverter() required DateTime endDate,
     @Default('active') String status,
     String? paymentReference,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   }) = _BusinessBoostModel;
 
   factory BusinessBoostModel.fromJson(Map<String, dynamic> json) =>

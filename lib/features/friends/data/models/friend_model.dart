@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/friend_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'friend_model.freezed.dart';
 part 'friend_model.g.dart';
 
@@ -12,7 +13,7 @@ class FriendModel with _$FriendModel {
     required String id,
     required String displayName,
     String? photoUrl,
-    required DateTime addedAt,
+    @LocalDateTimeConverter() required DateTime addedAt,
   }) = _FriendModel;
 
   factory FriendModel.fromJson(Map<String, dynamic> json) =>

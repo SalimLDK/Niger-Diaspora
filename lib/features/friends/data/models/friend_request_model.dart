@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/friend_request_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'friend_request_model.freezed.dart';
 part 'friend_request_model.g.dart';
 
@@ -17,8 +18,8 @@ class FriendRequestModel with _$FriendRequestModel {
     required String receiverName,
     String? receiverPhotoUrl,
     @Default('pending') String status,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   }) = _FriendRequestModel;
 
   factory FriendRequestModel.fromJson(Map<String, dynamic> json) =>

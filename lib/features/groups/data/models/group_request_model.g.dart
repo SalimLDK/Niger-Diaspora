@@ -18,14 +18,10 @@ _$GroupRequestModelImpl _$$GroupRequestModelImplFromJson(
   requesterPhotoUrl: json['requesterPhotoUrl'] as String?,
   status: json['status'] as String? ?? 'pending',
   message: json['message'] as String?,
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-  processedAt:
-      json['processedAt'] == null
-          ? null
-          : DateTime.parse(json['processedAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
+  processedAt: const LocalDateTimeNullableConverter().fromJson(
+    json['processedAt'],
+  ),
   processedBy: json['processedBy'] as String?,
 );
 
@@ -41,7 +37,11 @@ Map<String, dynamic> _$$GroupRequestModelImplToJson(
   'requesterPhotoUrl': instance.requesterPhotoUrl,
   'status': instance.status,
   'message': instance.message,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'processedAt': instance.processedAt?.toIso8601String(),
+  'createdAt': const LocalDateTimeNullableConverter().toJson(
+    instance.createdAt,
+  ),
+  'processedAt': const LocalDateTimeNullableConverter().toJson(
+    instance.processedAt,
+  ),
   'processedBy': instance.processedBy,
 };

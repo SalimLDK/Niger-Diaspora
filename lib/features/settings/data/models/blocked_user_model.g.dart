@@ -12,7 +12,7 @@ _$BlockedUserModelImpl _$$BlockedUserModelImplFromJson(
   id: json['id'] as String,
   displayName: json['displayName'] as String,
   photoUrl: json['photoUrl'] as String?,
-  blockedAt: DateTime.parse(json['blockedAt'] as String),
+  blockedAt: const LocalDateTimeConverter().fromJson(json['blockedAt']),
 );
 
 Map<String, dynamic> _$$BlockedUserModelImplToJson(
@@ -21,5 +21,5 @@ Map<String, dynamic> _$$BlockedUserModelImplToJson(
   'id': instance.id,
   'displayName': instance.displayName,
   'photoUrl': instance.photoUrl,
-  'blockedAt': instance.blockedAt.toIso8601String(),
+  'blockedAt': const LocalDateTimeConverter().toJson(instance.blockedAt),
 };

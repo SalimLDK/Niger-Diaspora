@@ -26,7 +26,9 @@ mixin _$ProfileShareLinkModel {
   String get id => throw _privateConstructorUsedError;
   String get userId => throw _privateConstructorUsedError;
   String get shortCode => throw _privateConstructorUsedError;
+  @LocalDateTimeConverter()
   DateTime get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get expiresAt => throw _privateConstructorUsedError;
   int get clickCount => throw _privateConstructorUsedError;
 
@@ -51,8 +53,8 @@ abstract class $ProfileShareLinkModelCopyWith<$Res> {
     String id,
     String userId,
     String shortCode,
-    DateTime createdAt,
-    DateTime? expiresAt,
+    @LocalDateTimeConverter() DateTime createdAt,
+    @LocalDateTimeNullableConverter() DateTime? expiresAt,
     int clickCount,
   });
 }
@@ -133,8 +135,8 @@ abstract class _$$ProfileShareLinkModelImplCopyWith<$Res>
     String id,
     String userId,
     String shortCode,
-    DateTime createdAt,
-    DateTime? expiresAt,
+    @LocalDateTimeConverter() DateTime createdAt,
+    @LocalDateTimeNullableConverter() DateTime? expiresAt,
     int clickCount,
   });
 }
@@ -205,8 +207,8 @@ class _$ProfileShareLinkModelImpl extends _ProfileShareLinkModel {
     required this.id,
     required this.userId,
     required this.shortCode,
-    required this.createdAt,
-    this.expiresAt,
+    @LocalDateTimeConverter() required this.createdAt,
+    @LocalDateTimeNullableConverter() this.expiresAt,
     this.clickCount = 0,
   }) : super._();
 
@@ -220,8 +222,10 @@ class _$ProfileShareLinkModelImpl extends _ProfileShareLinkModel {
   @override
   final String shortCode;
   @override
+  @LocalDateTimeConverter()
   final DateTime createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? expiresAt;
   @override
   @JsonKey()
@@ -284,8 +288,8 @@ abstract class _ProfileShareLinkModel extends ProfileShareLinkModel {
     required final String id,
     required final String userId,
     required final String shortCode,
-    required final DateTime createdAt,
-    final DateTime? expiresAt,
+    @LocalDateTimeConverter() required final DateTime createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? expiresAt,
     final int clickCount,
   }) = _$ProfileShareLinkModelImpl;
   const _ProfileShareLinkModel._() : super._();
@@ -300,8 +304,10 @@ abstract class _ProfileShareLinkModel extends ProfileShareLinkModel {
   @override
   String get shortCode;
   @override
+  @LocalDateTimeConverter()
   DateTime get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get expiresAt;
   @override
   int get clickCount;

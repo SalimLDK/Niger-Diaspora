@@ -30,10 +30,9 @@ _$BusinessModelImpl _$$BusinessModelImplFromJson(
   openingHours: json['openingHours'] as Map<String, dynamic>? ?? const {},
   isVerified: json['isVerified'] as bool? ?? false,
   isBoosted: json['isBoosted'] as bool? ?? false,
-  boostExpiresAt:
-      json['boostExpiresAt'] == null
-          ? null
-          : DateTime.parse(json['boostExpiresAt'] as String),
+  boostExpiresAt: const LocalDateTimeNullableConverter().fromJson(
+    json['boostExpiresAt'],
+  ),
   averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
   reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
   viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
@@ -43,14 +42,8 @@ _$BusinessModelImpl _$$BusinessModelImplFromJson(
   services:
       (json['services'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
-  createdAt:
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-  updatedAt:
-      json['updatedAt'] == null
-          ? null
-          : DateTime.parse(json['updatedAt'] as String),
+  createdAt: const LocalDateTimeNullableConverter().fromJson(json['createdAt']),
+  updatedAt: const LocalDateTimeNullableConverter().fromJson(json['updatedAt']),
 );
 
 Map<String, dynamic> _$$BusinessModelImplToJson(_$BusinessModelImpl instance) =>
@@ -74,12 +67,18 @@ Map<String, dynamic> _$$BusinessModelImplToJson(_$BusinessModelImpl instance) =>
       'openingHours': instance.openingHours,
       'isVerified': instance.isVerified,
       'isBoosted': instance.isBoosted,
-      'boostExpiresAt': instance.boostExpiresAt?.toIso8601String(),
+      'boostExpiresAt': const LocalDateTimeNullableConverter().toJson(
+        instance.boostExpiresAt,
+      ),
       'averageRating': instance.averageRating,
       'reviewCount': instance.reviewCount,
       'viewCount': instance.viewCount,
       'tags': instance.tags,
       'services': instance.services,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'createdAt': const LocalDateTimeNullableConverter().toJson(
+        instance.createdAt,
+      ),
+      'updatedAt': const LocalDateTimeNullableConverter().toJson(
+        instance.updatedAt,
+      ),
     };

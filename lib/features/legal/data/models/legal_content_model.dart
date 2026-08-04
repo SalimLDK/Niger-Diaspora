@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'legal_content_model.freezed.dart';
 part 'legal_content_model.g.dart';
 
@@ -11,7 +12,7 @@ class LegalContentModel with _$LegalContentModel {
     required String title,
     required String version,
     required List<LegalSectionModel> sections,
-    required DateTime updatedAt,
+    @LocalDateTimeConverter() required DateTime updatedAt,
     String? summary, // Résumé des changements pour les mises à jour
   }) = _LegalContentModel;
 
@@ -36,7 +37,7 @@ class UserLegalAcceptance with _$UserLegalAcceptance {
   const factory UserLegalAcceptance({
     required String termsVersion,
     required String privacyVersion,
-    required DateTime acceptedAt,
+    @LocalDateTimeConverter() required DateTime acceptedAt,
   }) = _UserLegalAcceptance;
 
   factory UserLegalAcceptance.fromJson(Map<String, dynamic> json) =>

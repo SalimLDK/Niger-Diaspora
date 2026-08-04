@@ -40,13 +40,16 @@ mixin _$BusinessModel {
   Map<String, dynamic> get openingHours => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
   bool get isBoosted => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get boostExpiresAt => throw _privateConstructorUsedError;
   double get averageRating => throw _privateConstructorUsedError;
   int get reviewCount => throw _privateConstructorUsedError;
   int get viewCount => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   List<String> get services => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this BusinessModel to a JSON map.
@@ -86,14 +89,14 @@ abstract class $BusinessModelCopyWith<$Res> {
     Map<String, dynamic> openingHours,
     bool isVerified,
     bool isBoosted,
-    DateTime? boostExpiresAt,
+    @LocalDateTimeNullableConverter() DateTime? boostExpiresAt,
     double averageRating,
     int reviewCount,
     int viewCount,
     List<String> tags,
     List<String> services,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   });
 }
 
@@ -312,14 +315,14 @@ abstract class _$$BusinessModelImplCopyWith<$Res>
     Map<String, dynamic> openingHours,
     bool isVerified,
     bool isBoosted,
-    DateTime? boostExpiresAt,
+    @LocalDateTimeNullableConverter() DateTime? boostExpiresAt,
     double averageRating,
     int reviewCount,
     int viewCount,
     List<String> tags,
     List<String> services,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   });
 }
 
@@ -530,14 +533,14 @@ class _$BusinessModelImpl extends _BusinessModel {
     final Map<String, dynamic> openingHours = const {},
     this.isVerified = false,
     this.isBoosted = false,
-    this.boostExpiresAt,
+    @LocalDateTimeNullableConverter() this.boostExpiresAt,
     this.averageRating = 0.0,
     this.reviewCount = 0,
     this.viewCount = 0,
     final List<String> tags = const [],
     final List<String> services = const [],
-    this.createdAt,
-    this.updatedAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.updatedAt,
   }) : _photoUrls = photoUrls,
        _openingHours = openingHours,
        _tags = tags,
@@ -603,6 +606,7 @@ class _$BusinessModelImpl extends _BusinessModel {
   @JsonKey()
   final bool isBoosted;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? boostExpiresAt;
   @override
   @JsonKey()
@@ -632,8 +636,10 @@ class _$BusinessModelImpl extends _BusinessModel {
   }
 
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? updatedAt;
 
   @override
@@ -762,14 +768,14 @@ abstract class _BusinessModel extends BusinessModel {
     final Map<String, dynamic> openingHours,
     final bool isVerified,
     final bool isBoosted,
-    final DateTime? boostExpiresAt,
+    @LocalDateTimeNullableConverter() final DateTime? boostExpiresAt,
     final double averageRating,
     final int reviewCount,
     final int viewCount,
     final List<String> tags,
     final List<String> services,
-    final DateTime? createdAt,
-    final DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? updatedAt,
   }) = _$BusinessModelImpl;
   const _BusinessModel._() : super._();
 
@@ -815,6 +821,7 @@ abstract class _BusinessModel extends BusinessModel {
   @override
   bool get isBoosted;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get boostExpiresAt;
   @override
   double get averageRating;
@@ -827,8 +834,10 @@ abstract class _BusinessModel extends BusinessModel {
   @override
   List<String> get services;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get updatedAt;
 
   /// Create a copy of BusinessModel

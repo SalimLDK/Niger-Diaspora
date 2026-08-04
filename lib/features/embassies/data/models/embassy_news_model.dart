@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/embassy_news.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'embassy_news_model.freezed.dart';
 part 'embassy_news_model.g.dart';
 
@@ -10,7 +11,7 @@ class EmbassyNewsModel with _$EmbassyNewsModel {
     required String id,
     required String title,
     required String content,
-    required DateTime date,
+    @LocalDateTimeConverter() required DateTime date,
     String? imageUrl,
   }) = _EmbassyNewsModel;
 

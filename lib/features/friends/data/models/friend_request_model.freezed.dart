@@ -29,7 +29,9 @@ mixin _$FriendRequestModel {
   String get receiverName => throw _privateConstructorUsedError;
   String? get receiverPhotoUrl => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this FriendRequestModel to a JSON map.
@@ -58,8 +60,8 @@ abstract class $FriendRequestModelCopyWith<$Res> {
     String receiverName,
     String? receiverPhotoUrl,
     String status,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   });
 }
 
@@ -165,8 +167,8 @@ abstract class _$$FriendRequestModelImplCopyWith<$Res>
     String receiverName,
     String? receiverPhotoUrl,
     String status,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? updatedAt,
   });
 }
 
@@ -264,8 +266,8 @@ class _$FriendRequestModelImpl extends _FriendRequestModel {
     required this.receiverName,
     this.receiverPhotoUrl,
     this.status = 'pending',
-    this.createdAt,
-    this.updatedAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
+    @LocalDateTimeNullableConverter() this.updatedAt,
   }) : super._();
 
   factory _$FriendRequestModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -289,8 +291,10 @@ class _$FriendRequestModelImpl extends _FriendRequestModel {
   @JsonKey()
   final String status;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? updatedAt;
 
   @override
@@ -366,8 +370,8 @@ abstract class _FriendRequestModel extends FriendRequestModel {
     required final String receiverName,
     final String? receiverPhotoUrl,
     final String status,
-    final DateTime? createdAt,
-    final DateTime? updatedAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? updatedAt,
   }) = _$FriendRequestModelImpl;
   const _FriendRequestModel._() : super._();
 
@@ -391,8 +395,10 @@ abstract class _FriendRequestModel extends FriendRequestModel {
   @override
   String get status;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get updatedAt;
 
   /// Create a copy of FriendRequestModel

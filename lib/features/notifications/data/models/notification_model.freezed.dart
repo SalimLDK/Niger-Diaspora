@@ -30,6 +30,7 @@ mixin _$NotificationModel {
   String? get senderId =>
       throw _privateConstructorUsedError; // ID of the user who triggered this notification
   bool get isRead => throw _privateConstructorUsedError;
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this NotificationModel to a JSON map.
@@ -58,7 +59,7 @@ abstract class $NotificationModelCopyWith<$Res> {
     String? targetId,
     String? senderId,
     bool isRead,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   });
 }
 
@@ -158,7 +159,7 @@ abstract class _$$NotificationModelImplCopyWith<$Res>
     String? targetId,
     String? senderId,
     bool isRead,
-    DateTime? createdAt,
+    @LocalDateTimeNullableConverter() DateTime? createdAt,
   });
 }
 
@@ -250,7 +251,7 @@ class _$NotificationModelImpl extends _NotificationModel {
     this.targetId,
     this.senderId,
     this.isRead = false,
-    this.createdAt,
+    @LocalDateTimeNullableConverter() this.createdAt,
   }) : super._();
 
   factory _$NotificationModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -276,6 +277,7 @@ class _$NotificationModelImpl extends _NotificationModel {
   @JsonKey()
   final bool isRead;
   @override
+  @LocalDateTimeNullableConverter()
   final DateTime? createdAt;
 
   @override
@@ -344,7 +346,7 @@ abstract class _NotificationModel extends NotificationModel {
     final String? targetId,
     final String? senderId,
     final bool isRead,
-    final DateTime? createdAt,
+    @LocalDateTimeNullableConverter() final DateTime? createdAt,
   }) = _$NotificationModelImpl;
   const _NotificationModel._() : super._();
 
@@ -368,6 +370,7 @@ abstract class _NotificationModel extends NotificationModel {
   @override
   bool get isRead;
   @override
+  @LocalDateTimeNullableConverter()
   DateTime? get createdAt;
 
   /// Create a copy of NotificationModel

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/blocked_user_entity.dart';
 
+import '../../../../core/utils/date_parsing.dart';
 part 'blocked_user_model.freezed.dart';
 part 'blocked_user_model.g.dart';
 
@@ -12,7 +13,7 @@ class BlockedUserModel with _$BlockedUserModel {
     required String id,
     required String displayName,
     String? photoUrl,
-    required DateTime blockedAt,
+    @LocalDateTimeConverter() required DateTime blockedAt,
   }) = _BlockedUserModel;
 
   factory BlockedUserModel.fromJson(Map<String, dynamic> json) =>

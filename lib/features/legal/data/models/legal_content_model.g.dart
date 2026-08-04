@@ -17,7 +17,7 @@ _$LegalContentModelImpl _$$LegalContentModelImplFromJson(
       (json['sections'] as List<dynamic>)
           .map((e) => LegalSectionModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  updatedAt: const LocalDateTimeConverter().fromJson(json['updatedAt']),
   summary: json['summary'] as String?,
 );
 
@@ -29,7 +29,7 @@ Map<String, dynamic> _$$LegalContentModelImplToJson(
   'title': instance.title,
   'version': instance.version,
   'sections': instance.sections,
-  'updatedAt': instance.updatedAt.toIso8601String(),
+  'updatedAt': const LocalDateTimeConverter().toJson(instance.updatedAt),
   'summary': instance.summary,
 };
 
@@ -54,7 +54,7 @@ _$UserLegalAcceptanceImpl _$$UserLegalAcceptanceImplFromJson(
 ) => _$UserLegalAcceptanceImpl(
   termsVersion: json['termsVersion'] as String,
   privacyVersion: json['privacyVersion'] as String,
-  acceptedAt: DateTime.parse(json['acceptedAt'] as String),
+  acceptedAt: const LocalDateTimeConverter().fromJson(json['acceptedAt']),
 );
 
 Map<String, dynamic> _$$UserLegalAcceptanceImplToJson(
@@ -62,5 +62,5 @@ Map<String, dynamic> _$$UserLegalAcceptanceImplToJson(
 ) => <String, dynamic>{
   'termsVersion': instance.termsVersion,
   'privacyVersion': instance.privacyVersion,
-  'acceptedAt': instance.acceptedAt.toIso8601String(),
+  'acceptedAt': const LocalDateTimeConverter().toJson(instance.acceptedAt),
 };
