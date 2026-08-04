@@ -120,6 +120,20 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
 validées une par une avec Salim avant branchement.
 
+- [ ] **20b — renommer un appareil** (`device_sync_service.dart`) : le
+  renommage écrivait dans Firestore alors que la liste lit Supabase — il
+  n'avait donc **aucun effet visible**. Câblé sur `e2ee_devices.device_name`.
+  À vérifier : renommer un appareil, revenir, le nouveau nom persiste après
+  un « tirer pour rafraîchir » **et** après relance de l'app. Vérifier aussi
+  qu'un échec affiche bien une erreur (l'écran affichait « Appareil renommé »
+  quoi qu'il arrive). ⚠ La migration `20260720120200` doit être appliquée au
+  distant, sinon le repli garde la liste mais ignore le nom.
+- [ ] **20b — « CET APPAREIL » absent** : sur le SM A515F, aucun des deux
+  appareils listés n'est reconnu comme l'appareil courant (`getCurrentDevice`
+  renvoie null ou un id absent de la liste). Probablement les `adb install -r`
+  qui vident les données sans rejouer l'enregistrement E2EE — à confirmer sur
+  une installation qui n'a pas été écrasée. Un bandeau d'avertissement le
+  signale en attendant.
 - [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
   `notification_settings_screen.dart`) : la ligne « Notifications » de
   Réglages → Application ouvrait une feuille modale doublant l'écran ; elle

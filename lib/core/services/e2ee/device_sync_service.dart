@@ -170,17 +170,34 @@ class DeviceSyncService {
         ? (DateTime.tryParse(v)?.toLocal() ?? DateTime.now())
         : DateTime.now();
     try {
-      final rows = await _supabase
-          .from('e2ee_devices')
-          .select('device_id, identity_key, platform, created_at, last_active')
-          .eq('user_id', userId);
+      // `device_name` est arrivé par migration (20260720120200) et peut ne pas
+      // être déployée partout : sans le repli, un PGRST204 viderait toute la
+      // liste des appareils au lieu de perdre seulement le libellé.
+      List<dynamic> rows;
+      try {
+        rows = await _supabase
+            .from('e2ee_devices')
+            .select(
+              'device_id, device_name, identity_key, platform, created_at, last_active',
+            )
+            .eq('user_id', userId);
+      } catch (_) {
+        rows = await _supabase
+            .from('e2ee_devices')
+            .select('device_id, identity_key, platform, created_at, last_active')
+            .eq('user_id', userId);
+      }
 
-      final list = (rows as List).map((r) {
+      final list = (rows).map((r) {
         final m = r as Map<String, dynamic>;
         final platform = m['platform'] as String? ?? 'unknown';
+        final customName = (m['device_name'] as String?)?.trim();
         return E2EEDeviceInfo(
           deviceId: m['device_id'] as String? ?? '',
-          deviceName: _platformLabel(platform),
+          deviceName:
+              (customName != null && customName.isNotEmpty)
+                  ? customName
+                  : _platformLabel(platform),
           platform: platform,
           identityKeyPublic: m['identity_key'] as String? ?? '',
           createdAt: parseTs(m['created_at']),
@@ -256,19 +273,23 @@ class DeviceSyncService {
     }
   }
 
-  /// Renomme un appareil
+  /// Renomme un appareil.
+  ///
+  /// Écrit dans Supabase, **là où [getMyDevices] lit**. L'implémentation
+  /// précédente écrivait dans Firestore `user_keys/{uid}/devices` : le nom
+  /// partait bien quelque part, mais la liste ne le relisait jamais — renommer
+  /// n'avait aucun effet visible.
   Future<bool> renameDevice(
     String userId,
     String deviceId,
     String newName,
   ) async {
     try {
-      await _firestore
-          .collection('user_keys')
-          .doc(userId)
-          .collection('devices')
-          .doc(deviceId)
-          .update({'deviceName': newName});
+      await _supabase
+          .from('e2ee_devices')
+          .update({'device_name': newName})
+          .eq('user_id', userId)
+          .eq('device_id', deviceId);
 
       debugPrint('DeviceSyncService: Renamed device $deviceId to $newName');
       return true;
