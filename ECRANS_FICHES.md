@@ -28,7 +28,7 @@ Trois niveaux, à ne pas confondre :
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | ✅ | ✅ | ✅ | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | ✅ | ✅ | ✅ | `settings/…/devices_screen.dart` |
-| 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
+| 20d | Réglages de notifications | ✅ | ✅ | ✅ | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
@@ -807,6 +807,21 @@ Le libellé « Ouvrir la discussion » était **rogné par le bas** : le bouton
 avait une hauteur figée de 44 px, insuffisante dès que l'appareil dépasse
 font_scale 1 (le SM A515F est à 1.1). La hauteur devient un minimum, le bouton
 grandit avec le texte.
+
+---
+
+## 8b — l'utilisateur se voyait dans ses propres « membres autour »
+
+Repéré par Salim à la validation. La requête de proximité renvoie aussi
+l'utilisateur courant : il apparaissait dans sa propre liste à
+« 0 m · en ligne », et son marqueur était dessiné **deux fois** sur la carte —
+une fois comme position, une fois comme membre, l'un par-dessus l'autre.
+
+Le filtre calculait pourtant déjà `currentUserId`, mais ne s'en servait que
+pour écarter ceux qui vous ont bloqué. Une ligne manquait.
+
+Corrigé et vérifié : « 0 membre autour », « Aucun membre à proximité », et un
+seul marqueur sur la carte.
 
 ---
 

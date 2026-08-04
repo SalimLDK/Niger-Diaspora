@@ -556,6 +556,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
       final now = DateTime.now();
       final filteredMembers =
           members.where((p) {
+            // Se retirer de ses propres « membres autour » : la requête de
+            // proximité renvoie aussi l'utilisateur courant, qui se retrouvait
+            // listé à « 0 m · en ligne » et dessiné une seconde fois sur la
+            // carte, par-dessus son propre marqueur de position.
+            if (currentUserId != null && p.id == currentUserId) return false;
             // Skip blocked users (I blocked them)
             if (blockedUserIds.contains(p.id)) return false;
             // Skip users who blocked me
