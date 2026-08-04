@@ -776,17 +776,38 @@ class DesignSelectableChip extends StatelessWidget {
 
 /// Puce d'identité d'un profil (§10a, §10c) : trajet migratoire, métier,
 /// langue parlée. Petite, sable, non cliquable.
+/// Teinte d'une [DesignTag]. Les fiches 10a/11d distinguent les étiquettes
+/// d'identité par leur rôle : le trajet migratoire prend l'accent, le métier
+/// prend le vert. Une étiquette sans rôle particulier reste neutre.
+enum DesignTagTone { neutral, accent, success }
+
 class DesignTag extends StatelessWidget {
   final String label;
+  final DesignTagTone tone;
 
-  const DesignTag(this.label, {super.key});
+  const DesignTag(this.label, {super.key, this.tone = DesignTagTone.neutral});
 
   @override
   Widget build(BuildContext context) {
+    final (background, foreground) = switch (tone) {
+      DesignTagTone.neutral => (
+        context.surfaceVariantColor,
+        context.textSecondaryColor,
+      ),
+      DesignTagTone.accent => (
+        context.primaryBackgroundColor,
+        context.adaptivePrimaryColor,
+      ),
+      DesignTagTone.success => (
+        context.successBackgroundColor,
+        context.successColor,
+      ),
+    };
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
       decoration: BoxDecoration(
-        color: context.surfaceVariantColor,
+        color: background,
         borderRadius: BorderRadius.circular(kDesignPillRadius),
       ),
       child: Text(
@@ -794,7 +815,7 @@ class DesignTag extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: context.textSecondaryColor,
+          color: foreground,
         ),
       ),
     );
@@ -1078,6 +1099,11 @@ class DesignSearchField extends StatelessWidget {
   final bool autofocus;
   final bool readOnly;
   final VoidCallback? onTap;
+  final FocusNode? focusNode;
+
+  /// Recherche en cours (fiche 9b) : bordure et loupe à l'accent, plus un
+  /// halo de 3 px. Sert à distinguer « je consulte » de « je cherche ».
+  final bool active;
 
   const DesignSearchField({
     super.key,
@@ -1089,13 +1115,16 @@ class DesignSearchField extends StatelessWidget {
     this.autofocus = false,
     this.readOnly = false,
     this.onTap,
+    this.focusNode,
+    this.active = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasText = controller.text.isNotEmpty;
-    return TextField(
+    final field = TextField(
       controller: controller,
+      focusNode: focusNode,
       onChanged: onChanged,
       autofocus: autofocus,
       readOnly: readOnly,
@@ -1106,7 +1135,14 @@ class DesignSearchField extends StatelessWidget {
         hintText: hintText,
         prefix: Padding(
           padding: const EdgeInsets.fromLTRB(14, 0, 10, 0),
-          child: Icon(Icons.search, size: 19, color: context.textTertiaryColor),
+          child: Icon(
+            Icons.search,
+            size: 19,
+            color:
+                active
+                    ? context.adaptivePrimaryColor
+                    : context.textTertiaryColor,
+          ),
         ),
         suffix:
             hasText
@@ -1132,7 +1168,27 @@ class DesignSearchField extends StatelessWidget {
                 : null,
       ).copyWith(
         contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 14),
+        enabledBorder:
+            active
+                ? OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: context.adaptivePrimaryColor),
+                )
+                : null,
       ),
+    );
+    if (!active) return field;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+            spreadRadius: 3,
+          ),
+        ],
+      ),
+      child: field,
     );
   }
 }

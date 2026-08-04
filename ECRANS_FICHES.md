@@ -26,10 +26,10 @@ Trois niveaux, à ne pas confondre :
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
-| 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
-| 20b | Appareils connectés | — | — | — | à déterminer |
+| 20a | Modifier mon profil | ✅ | ✅ | ✅ | `profile/presentation/screens/edit_profile_screen.dart` |
+| 20b | Appareils connectés | ✅ | ✅ | — | `settings/…/devices_screen.dart` |
 | 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
-| 13c | Appels — historique | ✅ | ✅ | — | `calls/…/call_history_screen.dart` |
+| 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
@@ -154,7 +154,7 @@ réciprocité par ligne.
 Non vérifié : les hashtags (le compte de test n'en suit aucun) et la
 recherche.
 
-## 20a — Modifier mon profil (partiel)
+## 20a — Modifier mon profil
 
 L'écran avait déjà été largement repris sur §20a par des sessions
 précédentes (langues en feuille multi-choix, puces repliées, compteur de bio
@@ -196,6 +196,24 @@ Puis, sur retour de Salim (« ça ne correspond pas »), le formulaire a été
 - Le bouton d'aperçu (👁) de l'en-tête et le titre en **serif** : la fiche
   demande Inter 700/18, mais tout le reste de l'app est en serif — c'est une
   décision de design system, pas un détail d'écran.
+
+**Langues et centres d'intérêt** (dernière passe) : les deux blocs sont
+jumeaux dans la fiche, ils divergeaient sur tout dans le code.
+- Les centres d'intérêt dépliaient le catalogue **sur place** — la page
+  doublait de hauteur. Ils ouvrent la même feuille que les langues
+  (`_choisirDansListe`, écrite une fois pour les deux).
+- `_SelectableChip` et `_LanguageChip` divergeaient sur le rayon, la couleur
+  d'accent et jusqu'à la coche de sélection. Une seule `_ProfileChip` :
+  pilule rayon 999, encre pleine si retenue, contour sinon, code court de
+  deux lettres en tête pour les langues.
+- Rien de choisi n'affichait qu'un « +10 » nu, qui ne dit ni ce qu'on
+  choisit ni qu'on peut le faire. La puce porte l'invitation en toutes
+  lettres (`spokenLanguagesEmptyAction`, `interestsEmptyAction`).
+- Un appui sur une puce retenue la retire, dans les deux blocs.
+
+Non vérifié sur appareil : la carte du numéro **vérifié** — le compte de
+test n'a pas de numéro vérifié, donc ni le masquage « +33 6 12 •• •• 47 »
+ni la ligne « Vérifié par SMS » n'ont été rendus à l'écran.
 
 ## 16e — Créer un événement
 
@@ -320,6 +338,78 @@ version précédente refusait de faire faute de données :
 ⚠️ **Jamais vu à l'écran** : le compte de test a des conversations, donc
 l'état vide est inatteignable sans vider les données (`adb install -r`, qui
 déconnecterait le compte). À vérifier sur un compte neuf.
+
+## 13c — Appels
+
+Les fonctions étaient là (filtres, groupement par jour, balayage, fusion des
+appels consécutifs) ; c'est la **lecture** qui manquait.
+
+- L'`AppBar` cède la place à un en-tête plat : « Appels » 26/700 et, dessous,
+  **le nombre d'appels manqués en rouge** — l'alerte se lit sans ouvrir la
+  liste ni changer de filtre.
+- ⋯ passe en pastille 42×42 rayon 14 ; les `FilterChip` deviennent des
+  pilules sans icône, l'active à l'encre pleine, et **« Manqués » porte son
+  compteur** en badge rouge (masqué à 0 : un « 0 » rouge alerterait pour rien).
+- Ligne refaite : avatar **carré arrondi 46/15** aux initiales et à la couleur
+  déterministe du correspondant (`UserColorUtils`) ; nom en rouge si l'appel
+  est à rattraper ; la sous-ligne rassemble sens + heure + durée en une
+  phrase — « Sortant · 21:23 · 4 appels » — alors que l'heure vivait à droite.
+- **Bouton de rappel teinté en vert** quand il y a quelque chose à rattraper.
+- Carte d'astuce en fin de liste : le balayage n'avait aucune affordance.
+- Durées compactes (« 12 min », « 1 h 05 ») au lieu du `mm:ss`.
+
+Écarts assumés :
+- **Pas de ligne d'appel de groupe** : `CallEntity` est strictement 1-à-1
+  (`callerId`/`calleeId`), l'historique n'en enregistre aucun.
+- **Le balayage garde sa confirmation**, absente de la maquette : un
+  historique effacé par un geste involontaire ne se récupère pas.
+- La flèche retour n'existe pas dans la maquette (elle suppose un onglet
+  principal) ; ici la route est empilée, donc elle n'apparaît que si `canPop()`.
+
+Vu en clair **et** en nocturne. Non vérifié : le rappel réel (il lancerait un
+appel) et l'effacement de l'historique.
+
+## 20b — Appareils connectés
+
+- Bandeau unique : « 2 appareils sur 5 » **et** l'explication du chiffrement,
+  dans le même bloc — le compteur vivait loin de la phrase qui lui donne son
+  sens.
+- Cartes rayon 18 sur fond blanc, pastille d'icône 42×42 rayon 13 ; celle de
+  l'appareil courant a un **cadre vert 1,5 px** et le badge monospace
+  « CET APPAREIL ».
+- Empreinte de clé dans un bloc plein, **groupée par 4 et en majuscules**
+  (« IIUE ZJKH UWBJ… ») : c'est le même préfixe de clé qu'avant, mais
+  comparable à l'œil.
+- **Renommer / Révoquer sortent du menu ⋯** et deviennent deux boutons
+  visibles. Sur un écran de sécurité, ce qu'on peut faire à un appareil doit
+  se voir.
+- Avertissement de limite affiché en permanence : la contrainte des 5
+  appareils se découvrait au moment d'en connecter un 6e, trop tard.
+- Le bouton d'actualisation de l'en-tête devient un « tirer pour rafraîchir ».
+
+**Deux trous de câblage trouvés en vérifiant à l'écran :**
+
+- **« Renommer » n'avait aucun effet.** `renameDevice` écrivait
+  `deviceName` dans Firestore `user_keys/{uid}/devices`, alors que
+  `getMyDevices` lit Supabase `e2ee_devices` et dérivait le libellé de
+  `platform`. La colonne `device_name` existait déjà — migration
+  `20260720120200`, qui documente précisément ce bug — mais **le client n'a
+  jamais été câblé dessus**. C'est fait : lecture et écriture pointent
+  maintenant au même endroit, avec repli si la migration n'est pas déployée
+  (sinon un PGRST204 viderait toute la liste au lieu du seul libellé).
+- **Un renommage refusé affichait « Appareil renommé »** : `renameDevice`
+  renvoie `false` au lieu de lever, et l'écran ne testait pas le retour.
+
+⚠️ **Aucun appareil n'est marqué « CET APPAREIL »** sur le téléphone de test :
+le `deviceId` local ne correspond à aucune ligne distante — plausiblement
+parce que les `adb install -r` de la session ont vidé les données sans que
+l'enregistrement E2EE se rejoue. Impossible de trancher « bug » ou « artefact
+de test » sans y consacrer une passe dédiée. En attendant, l'écran **le dit**
+au lieu de laisser deux cartes indiscernables : bandeau « Cet appareil n'a pas
+pu être identifié dans la liste. Vérifiez l'empreinte avant de révoquer quoi
+que ce soit. »
+
+Non vérifié : le renommage réel et la révocation (écritures sur le compte).
 
 ---
 

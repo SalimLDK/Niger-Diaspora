@@ -14,6 +14,42 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Feuille de partage fantôme au démarrage (2026-08-04)
+
+Bug constaté sur appareil (SM A515F) : la feuille « Envoyer à… / Partagé
+depuis une autre app », pastille « 1 texte », se rouvrait par-dessus l'accueil
+à **chaque** démarrage à froid, sans qu'aucun partage n'ait été fait.
+
+Cause : `receive_sharing_intent` traduit tout `ACTION_VIEW` sans type MIME en
+élément `SharedMediaType.url`, et Android redonne à l'activité racine l'intent
+d'origine de sa tâche à chaque relance. Une seule ouverture par lien profond
+(`diasponiger://`, `diasponiger.web.app`) suffisait donc à faire revenir le
+faux « 1 texte » indéfiniment. Corrigé en écartant les éléments `url` (l'app ne
+déclare aucun filtre `ACTION_SEND`), en purgeant l'état natif via `reset()`, et
+en attendant la réponse du canal natif avant de marquer le contenu consommé.
+
+Rien de tout ça n'est vérifiable sans appareil :
+
+- [ ] Ouvrir un lien profond (`https://diasponiger.web.app/feed/<id>`) pour
+      réarmer l'intent de tâche, puis `am force-stop` + relance : **la feuille
+      ne doit plus apparaître**. C'est le cas décisif.
+- [ ] Répéter la relance 3 ou 4 fois de suite — le symptôme était systématique.
+- [ ] Fermer la feuille sans envoyer (quand elle pourra s'ouvrir légitimement)
+      puis relancer : le contenu ne doit pas revenir.
+
+**Dettes ouvertes, non traitées ici :**
+
+- [ ] Le partage entrant est **mort** côté Android : aucun `intent-filter
+      ACTION_SEND` au manifest, donc l'app n'apparaît pas dans le sélecteur
+      « Partager » et `ShareToConversationScreen` n'est jamais atteignable par
+      un vrai partage. Soit on déclare le filtre, soit on retire l'écran.
+- [ ] Les **liens profonds ne sont routés par personne** : aucun plugin
+      (`app_links`/`uni_links`) ne les consomme. Ouvrir un lien `/feed/:id`
+      lance l'app sur l'accueil au lieu du post — le partage externe ne
+      retombe donc pas sur son contenu.
+
+---
+
 ## Fuseau horaire — heures affichées en UTC (2026-08-04)
 
 Bug constaté sur appareil (SM A515F, `America/Toronto` = UTC-4) : une
@@ -106,6 +142,20 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
 validées une par une avec Salim avant branchement.
 
+- [ ] **20b — renommer un appareil** (`device_sync_service.dart`) : le
+  renommage écrivait dans Firestore alors que la liste lit Supabase — il
+  n'avait donc **aucun effet visible**. Câblé sur `e2ee_devices.device_name`.
+  À vérifier : renommer un appareil, revenir, le nouveau nom persiste après
+  un « tirer pour rafraîchir » **et** après relance de l'app. Vérifier aussi
+  qu'un échec affiche bien une erreur (l'écran affichait « Appareil renommé »
+  quoi qu'il arrive). ⚠ La migration `20260720120200` doit être appliquée au
+  distant, sinon le repli garde la liste mais ignore le nom.
+- [ ] **20b — « CET APPAREIL » absent** : sur le SM A515F, aucun des deux
+  appareils listés n'est reconnu comme l'appareil courant (`getCurrentDevice`
+  renvoie null ou un id absent de la liste). Probablement les `adb install -r`
+  qui vident les données sans rejouer l'enregistrement E2EE — à confirmer sur
+  une installation qui n'a pas été écrasée. Un bandeau d'avertissement le
+  signale en attendant.
 - [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
   `notification_settings_screen.dart`) : la ligne « Notifications » de
   Réglages → Application ouvrait une feuille modale doublant l'écran ; elle

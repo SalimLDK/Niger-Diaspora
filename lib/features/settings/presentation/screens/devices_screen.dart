@@ -1,17 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../../core/theme/design_kit.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/e2ee/device_sync_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
-/// Ecran de gestion des appareils connectes
-/// Permet de voir, renommer et revoquer les appareils
+/// Nombre maximal d'appareils par compte, imposé par la synchro E2EE.
+const int _kMaxDevices = 5;
+
+/// Écran de gestion des appareils connectés (fiche 20b) : bandeau
+/// d'explication chiffré, carte « cet appareil » mise en avant, empreinte de
+/// clé lisible, et Renommer / Révoquer sortis du menu ⋯.
 class DevicesScreen extends ConsumerStatefulWidget {
   const DevicesScreen({super.key});
 
@@ -41,6 +44,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       final devices = await deviceSyncService.getMyDevices(userId);
       final currentDevice = await deviceSyncService.getCurrentDevice(userId);
 
+      if (!mounted) return;
       setState(() {
         _devices = devices;
         _currentDeviceId = currentDevice?.deviceId;
@@ -49,7 +53,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       debugPrint('Error loading devices: $e');
       _showErrorSnackBar('Erreur lors du chargement des appareils');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -94,16 +98,27 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
     try {
       final deviceSyncService = ref.read(deviceSyncServiceProvider);
-      await deviceSyncService.renameDevice(userId, device.deviceId, newName);
-
-      _showSuccessSnackBar(l10n.deviceRenameSuccess);
-      await _loadDevices();
+      // `renameDevice` renvoie false sur échec au lieu de lever : sans ce
+      // test, un renommage refusé affichait quand même « Appareil renommé ».
+      final success = await deviceSyncService.renameDevice(
+        userId,
+        device.deviceId,
+        newName,
+      );
+      if (success) {
+        _showSuccessSnackBar(l10n.deviceRenameSuccess);
+        await _loadDevices();
+      } else {
+        _showErrorSnackBar(l10n.deviceRenameError);
+      }
     } catch (e) {
       _showErrorSnackBar(l10n.deviceRenameError);
     }
   }
 
   Future<void> _revokeDevice(E2EEDeviceInfo device) async {
+    // La maquette révoque sans confirmation ; on la garde — l'appareil perd
+    // l'accès à tous ses messages et ne le récupère pas.
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -164,91 +179,59 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
     try {
       final deviceSyncService = ref.read(deviceSyncServiceProvider);
-      final success = await deviceSyncService.removeDevice(userId, device.deviceId);
+      final success = await deviceSyncService.removeDevice(
+        userId,
+        device.deviceId,
+      );
 
       if (success) {
-        _showSuccessSnackBar('Appareil revoque');
+        _showSuccessSnackBar('Appareil révoqué');
       } else {
-        _showErrorSnackBar('Impossible de revoquer cet appareil');
+        _showErrorSnackBar('Impossible de révoquer cet appareil');
       }
       await _loadDevices();
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la revocation');
-      setState(() => _isLoading = false);
+      _showErrorSnackBar('Erreur lors de la révocation');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.errorColor,
-      ),
+      SnackBar(content: Text(message), backgroundColor: context.errorColor),
     );
   }
 
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.successColor,
-      ),
+      SnackBar(content: Text(message), backgroundColor: context.successColor),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        titleSpacing: 0,
-        title: DesignTitle(l10n.connectedDevices, size: 22),
-        actions: [
-          IconButton(
-            icon: AppIcon(AppIcon.refresh, color: Theme.of(context).iconTheme.color!),
-            onPressed: _loadDevices,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _devices.isEmpty
-              ? _buildEmptyState(theme)
-              : _buildDevicesList(theme),
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      backgroundColor: context.backgroundColor,
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.devices,
-              size: 64,
-              color: context.textSecondaryColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.noDeviceRegistered,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              AppLocalizations.of(context)!.devicesE2eeWillAppear,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: context.textSecondaryColor,
-              ),
+            _buildHeader(context),
+            Expanded(
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : RefreshIndicator(
+                        // Remplace le bouton d'actualisation de l'en-tête,
+                        // que la fiche ne prévoit pas.
+                        onRefresh: _loadDevices,
+                        child:
+                            _devices.isEmpty
+                                ? _buildEmptyState(context)
+                                : _buildDevicesList(context),
+                      ),
             ),
           ],
         ),
@@ -256,259 +239,428 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     );
   }
 
-  Widget _buildDevicesList(ThemeData theme) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Info card
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    AppIcon(AppIcon.info,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Gestion des appareils',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  // La copie localisée existait déjà, accents compris ;
-                  // l'écran en affichait un double codé en dur, sans
-                  // accents.
-                  AppLocalizations.of(context)!.deviceManagementInfo,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Device count
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
           children: [
-            Text(
-              '${_devices.length}/5 appareils',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (_devices.length >= 5)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: context.warningBackgroundColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Limite atteinte',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.warningColor,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  () =>
+                      context.canPop()
+                          ? context.pop()
+                          : context.go('/settings/security'),
+              child: SizedBox(
+                width: 24,
+                height: 48,
+                child: Center(
+                  child: AppIcon(
+                    AppIcon.arrowBack,
+                    size: 24,
+                    color: context.textPrimaryColor,
                   ),
                 ),
               ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.connectedDevices,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimaryColor,
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
 
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+      children: [
+        Icon(Icons.devices, size: 64, color: context.textTertiaryColor),
+        const SizedBox(height: 16),
+        Text(
+          l10n.noDeviceRegistered,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: context.textPrimaryColor,
+          ),
+        ),
         const SizedBox(height: 8),
-
-        // Devices list
-        ..._devices.map((device) => _buildDeviceCard(device, theme)),
+        Text(
+          l10n.devicesE2eeWillAppear,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
+        ),
       ],
     );
   }
 
-  Widget _buildDeviceCard(E2EEDeviceInfo device, ThemeData theme) {
-    final isCurrentDevice = device.deviceId == _currentDeviceId;
-    final lastActiveText = _formatLastActive(device.lastActive);
+  Widget _buildDevicesList(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      children: [
+        _InfoBanner(count: _devices.length),
+        const SizedBox(height: 14),
+        // Si aucune carte ne porte « CET APPAREIL », l'utilisateur a devant
+        // lui des lignes indiscernables et peut révoquer la sienne. Le dire
+        // vaut mieux que de laisser deviner.
+        if (_devices.every((d) => d.deviceId != _currentDeviceId)) ...[
+          const _UnknownCurrentDeviceNotice(),
+          const SizedBox(height: 14),
+        ],
+        for (final device in _devices)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _DeviceCard(
+              device: device,
+              isCurrent: device.deviceId == _currentDeviceId,
+              onRename: () => _renameDevice(device),
+              onRevoke: () => _revokeDevice(device),
+            ),
+          ),
+        const SizedBox(height: 4),
+        const _LimitNotice(),
+      ],
+    );
+  }
+}
 
-    // Generate fingerprint from identity key (first 16 chars)
-    final fingerprint = device.identityKeyPublic.isNotEmpty
-        ? device.identityKeyPublic.substring(0, 16.clamp(0, device.identityKeyPublic.length))
-        : null;
+// ---------------------------------------------------------------------------
+// Bandeau d'explication
+// ---------------------------------------------------------------------------
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+/// « 3 appareils sur 5 » et ce que révoquer implique, dans un seul bloc — le
+/// compteur vivait loin de l'explication qui lui donne son sens.
+class _InfoBanner extends StatelessWidget {
+  final int count;
+
+  const _InfoBanner({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: AppIcon(
+              AppIcon.info,
+              size: 18,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Device icon
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isCurrentDevice
-                        ? theme.colorScheme.primaryContainer
-                        : theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getDeviceIcon(device.platform),
-                    color: isCurrentDevice
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outline,
+                Text(
+                  count > 1
+                      ? '$count appareils sur $_kMaxDevices'
+                      : '$count appareil sur $_kMaxDevices',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
                   ),
                 ),
-                const SizedBox(width: 16),
-
-                // Device info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              device.deviceName,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isCurrentDevice) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: context.successBackgroundColor,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'Cet appareil',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: context.successColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_getPlatformName(device.platform)} - $lastActiveText',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: context.textSecondaryColor,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 3),
+                Text(
+                  AppLocalizations.of(context)!.deviceManagementInfo,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.45,
+                    color: context.textSecondaryColor,
                   ),
-                ),
-
-                // Actions
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (action) {
-                    switch (action) {
-                      case 'rename':
-                        _renameDevice(device);
-                        break;
-                      case 'revoke':
-                        _revokeDevice(device);
-                        break;
-                    }
-                  },
-                  itemBuilder: (ctx) {
-                    final menuL10n = AppLocalizations.of(ctx)!;
-                    return [
-                    PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit),
-                          const SizedBox(width: 12),
-                          Text(menuL10n.rename),
-                        ],
-                      ),
-                    ),
-                    if (!isCurrentDevice)
-                      PopupMenuItem(
-                        value: 'revoke',
-                        child: Row(
-                          children: [
-                            AppIcon(AppIcon.delete, color: context.errorColor),
-                            const SizedBox(width: 12),
-                            Text(
-                              menuL10n.revokeDevice,
-                              style: TextStyle(color: context.errorColor),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ];
-                  },
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-            // Fingerprint
-            if (fingerprint != null && fingerprint.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.fingerprint,
-                    size: 16,
-                    color: context.textSecondaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Empreinte: $fingerprint...',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: context.textSecondaryColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+/// Affiché quand aucun appareil de la liste ne correspond à l'identifiant
+/// local — après une réinstallation qui a vidé les données, typiquement.
+class _UnknownCurrentDeviceNotice extends StatelessWidget {
+  const _UnknownCurrentDeviceNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.warningBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.warningColor.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        children: [
+          AppIcon(AppIcon.warning, size: 18, color: context.warningColor),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              "Cet appareil n'a pas pu être identifié dans la liste. "
+              'Vérifiez l\'empreinte avant de révoquer quoi que ce soit.',
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.45,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Avertissement de limite, affiché en permanence : la contrainte se
+/// découvrait au moment de connecter un 6e appareil, trop tard.
+class _LimitNotice extends StatelessWidget {
+  const _LimitNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.warningBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.warningColor.withValues(alpha: 0.28),
+        ),
+      ),
+      child: Row(
+        children: [
+          AppIcon(AppIcon.warning, size: 18, color: context.warningColor),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              'Au-delà de $_kMaxDevices appareils, il faudra en révoquer un '
+              'avant d\'en connecter un nouveau.',
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.45,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Carte d'appareil
+// ---------------------------------------------------------------------------
+
+class _DeviceCard extends StatelessWidget {
+  final E2EEDeviceInfo device;
+  final bool isCurrent;
+  final VoidCallback onRename;
+  final VoidCallback onRevoke;
+
+  const _DeviceCard({
+    required this.device,
+    required this.isCurrent,
+    required this.onRename,
+    required this.onRevoke,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fingerprint = _formatFingerprint(device.identityKeyPublic);
+    final lastActive = _formatLastActive(device.lastActive);
+    final isOnline = DateTime.now().difference(device.lastActive).inMinutes < 5;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(18),
+        // L'appareil courant se reconnaît au cadre, pas seulement au badge.
+        border: Border.all(
+          color: isCurrent ? context.successColor : context.borderColor,
+          width: isCurrent ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color:
+                      isCurrent
+                          ? context.successBackgroundColor
+                          : context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  _deviceIcon(device.platform),
+                  size: 21,
+                  color:
+                      isCurrent
+                          ? context.successColor
+                          : context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            device.deviceName,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                        ),
+                        if (isCurrent) ...[
+                          const SizedBox(width: 7),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.successBackgroundColor,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Text(
+                              'CET APPAREIL',
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: context.successColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_platformName(device.platform)} · $lastActive',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color:
+                            isOnline
+                                ? context.successColor
+                                : context.textTertiaryColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
+          ),
+          if (fingerprint != null) ...[
+            const SizedBox(height: 9),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: context.surfaceVariantColor,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Text(
+                'Empreinte : $fingerprint',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+            ),
           ],
-        ),
+          const SizedBox(height: 10),
+          // Les actions sortent du menu ⋯ : sur un écran de sécurité, ce qu'on
+          // peut faire à un appareil doit se voir.
+          if (isCurrent)
+            _CardAction(label: 'Renommer', onTap: onRename)
+          else
+            Row(
+              children: [
+                Expanded(child: _CardAction(label: 'Renommer', onTap: onRename)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _CardAction(
+                    label: 'Révoquer',
+                    danger: true,
+                    onTap: onRevoke,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
 
-  IconData _getDeviceIcon(String platform) {
+  /// Rend l'empreinte comparable à l'œil : majuscules, groupes de 4, tronquée.
+  /// C'est le même préfixe de clé qu'avant, juste lisible.
+  static String? _formatFingerprint(String identityKey) {
+    if (identityKey.isEmpty) return null;
+    final raw = identityKey
+        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+        .toUpperCase();
+    if (raw.isEmpty) return null;
+    final take = raw.length < 12 ? raw.length : 12;
+    final groups = <String>[];
+    for (var i = 0; i < take; i += 4) {
+      groups.add(raw.substring(i, (i + 4) > take ? take : i + 4));
+    }
+    return '${groups.join(' ')}…';
+  }
+
+  static IconData _deviceIcon(String platform) {
     switch (platform.toLowerCase()) {
       case 'android':
-        return Icons.phone_android;
+        return Icons.smartphone;
       case 'ios':
-        return Icons.phone_iphone;
+        return Icons.tablet_mac;
       case 'web':
-        return Icons.web;
+        return Icons.public;
       case 'windows':
         return Icons.desktop_windows;
       case 'macos':
@@ -520,7 +672,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     }
   }
 
-  String _getPlatformName(String platform) {
+  static String _platformName(String platform) {
     switch (platform.toLowerCase()) {
       case 'android':
         return 'Android';
@@ -539,20 +691,54 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     }
   }
 
-  String _formatLastActive(DateTime lastActive) {
-    final now = DateTime.now();
-    final diff = now.difference(lastActive);
+  static String _formatLastActive(DateTime lastActive) {
+    final diff = DateTime.now().difference(lastActive);
+    if (diff.inMinutes < 5) return 'en ligne';
+    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'il y a ${diff.inHours} h';
+    if (diff.inDays < 7) return 'il y a ${diff.inDays} j';
+    return '${lastActive.day}/${lastActive.month}/${lastActive.year}';
+  }
+}
 
-    if (diff.inMinutes < 5) {
-      return 'En ligne';
-    } else if (diff.inMinutes < 60) {
-      return 'Il y a ${diff.inMinutes} min';
-    } else if (diff.inHours < 24) {
-      return 'Il y a ${diff.inHours}h';
-    } else if (diff.inDays < 7) {
-      return 'Il y a ${diff.inDays}j';
-    } else {
-      return '${lastActive.day}/${lastActive.month}/${lastActive.year}';
-    }
+class _CardAction extends StatelessWidget {
+  final String label;
+  final bool danger;
+  final VoidCallback onTap;
+
+  const _CardAction({
+    required this.label,
+    required this.onTap,
+    this.danger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(11);
+    return InkWell(
+      borderRadius: radius,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          border: Border.all(
+            color:
+                danger
+                    ? context.errorColor.withValues(alpha: 0.35)
+                    : context.borderStrongColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: danger ? context.errorColor : context.textSecondaryColor,
+          ),
+        ),
+      ),
+    );
   }
 }
