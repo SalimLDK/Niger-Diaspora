@@ -54,6 +54,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     super.initState();
     _searchFocus.addListener(() {
       if (_searchFocus.hasFocus && !_searchOpen) {
+        // ⚠ Défaut ouvert : le premier tap ouvre bien l'en-tête de recherche
+        // et le champ garde le focus, mais le clavier ne se lève qu'au second
+        // tap. Trois pistes essayées sans succès — `requestFocus` en
+        // post-frame, `SystemChannels.textInput.invokeMethod('TextInput.show')`,
+        // et le maintien du champ au même rang d'enfant dans la `Row` comme
+        // dans la `Column`. La saisie et les résultats fonctionnent, eux.
+        // Ne pas retenter à l'aveugle : instrumenter `FocusManager` d'abord.
         setState(() => _searchOpen = true);
       }
     });
@@ -373,24 +380,29 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         : const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Row(
                   children: [
-                    if (_searchOpen) ...[
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _closeSearch,
-                        child: SizedBox(
-                          width: 24,
-                          height: 44,
-                          child: Center(
-                            child: AppIcon(
-                              AppIcon.arrowBack,
-                              size: 24,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
+                    // Emplacement de la flèche toujours présent, réduit à 0 de
+                    // large quand la recherche est fermée. Une insertion
+                    // conditionnelle décalerait le champ d'un rang dans la
+                    // `Row` : Flutter le reconstruirait, et il faudrait un
+                    // second tap pour lever le clavier (constaté à l'écran).
+                    SizedBox(
+                      width: _searchOpen ? 34 : 0,
+                      height: 44,
+                      child:
+                          _searchOpen
+                              ? GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _closeSearch,
+                                child: Center(
+                                  child: AppIcon(
+                                    AppIcon.arrowBack,
+                                    size: 24,
+                                    color: context.textPrimaryColor,
+                                  ),
+                                ),
+                              )
+                              : null,
+                    ),
                     Expanded(
                       child: DesignSearchField(
                         controller: _searchController,

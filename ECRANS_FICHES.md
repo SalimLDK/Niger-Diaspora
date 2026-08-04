@@ -41,8 +41,8 @@ Trois niveaux, à ne pas confondre :
 | 4a | Discussion cliquable | ◐ | — | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | ◐ | — | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
-| 9b | Messages — recherche | ✅ | ◐ | — | idem 9a |
-| 9c | Groupes — mes groupes, découverte | ✅ | ❌ | — | `groups/…/groups_screen.dart` |
+| 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
+| 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
 
@@ -486,9 +486,22 @@ Corrigé en gardant le champ au même rang d'enfant dans les deux états et en n
 faisant varier que ce qui l'entoure. `requestFocus` en post-frame ne suffisait
 pas.
 
-État de vérification : l'en-tête de recherche a été vu au bon gabarit, **mais
-la frappe et les résultats n'ont jamais été rendus** — le bug de focus l'a
-empêché, et le correctif n'a pas pu être testé (téléphone déconnecté).
+**Vu et vérifié de bout en bout** (2026-08-04, SM A515F, nocturne) : puces
+« Tout · 2 / Personnes · 1 / Conversations · 1 », section Personnes avec
+l'avatar rond, « **Sal**im L. » surligné dans les conversations, et la ligne
+d'explication sur le chiffrement.
+
+Le surlignage a dû être décliné en nocturne : posées telles quelles sur le
+fond sombre, les valeurs claires de la maquette (`#F7E0CE`) faisaient un pavé
+beige lumineux. En sombre : fond `#3A2A1C`, texte `#F4A574`.
+
+⚠️ **Défaut ouvert, non résolu** : le premier tap sur le champ ouvre l'en-tête
+de recherche et le champ garde le focus, **mais le clavier ne se lève qu'au
+second tap**. Trois pistes essayées sans succès — `requestFocus` en
+post-frame, `SystemChannels.textInput.invokeMethod('TextInput.show')`, et le
+maintien du champ au même rang d'enfant dans la `Row` comme dans la `Column`.
+La saisie et les résultats fonctionnent une fois le clavier levé. À reprendre
+en instrumentant `FocusManager`, pas à l'aveugle.
 
 ## 9d — Groupe, fiche
 
@@ -548,7 +561,13 @@ Non fait, faute de donnée : la note épinglée en sous-carte (une requête par
 carte, N+1 sur la liste), la pile d'avatars de membres, et « 14 messages
 aujourd'hui » — aucun compteur de messages par jour n'existe.
 
-⚠️ **Jamais vu à l'écran** : le téléphone s'est déconnecté avant le build.
+**Vu et vérifié** (2026-08-04) : l'onglet « Découvrir » affiche bien l'état
+vide « Aucun groupe public pour l'instant » avec la sortie « Créer un
+groupe », là où il rendait une page blanche. L'onglet « Mes groupes » à zéro
+affiche son propre état vide.
+
+Non vérifié : la carte de groupe elle-même (badge ACTIF/CALME, « Ouvrir »),
+faute d'un groupe rejoint sur le compte de test.
 
 ## 4a / 6b — Discussion, clair et nocturne
 
