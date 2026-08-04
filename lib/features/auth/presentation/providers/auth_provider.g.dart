@@ -6,6 +6,29 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
+
+/// Accès au SDK Firebase Auth, isolé derrière un provider.
+///
+/// `FirebaseAuth.instance` est un singleton statique qui lève tant que
+/// `Firebase.initializeApp()` n'a pas tourné : impossible de tester
+/// [AuthNotifier] tant qu'il y était appelé en dur. Ce provider est le seul
+/// point à surcharger dans un test.
+///
+/// Copied from [firebaseAuth].
+@ProviderFor(firebaseAuth)
+final firebaseAuthProvider = AutoDisposeProvider<FirebaseAuth>.internal(
+  firebaseAuth,
+  name: r'firebaseAuthProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$firebaseAuthHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FirebaseAuthRef = AutoDisposeProviderRef<FirebaseAuth>;
 String _$authRepositoryHash() => r'f93e100ab001d68de91839bb5d12400ac5f5ba9a';
 
 /// See also [authRepository].
@@ -158,7 +181,7 @@ final currentUserAsyncProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserAsyncRef = AutoDisposeStreamProviderRef<UserEntity?>;
-String _$authNotifierHash() => r'0d75c8d7dd83ddaeeda5874f5d204c02d81cba62';
+String _$authNotifierHash() => r'c66bbf5c58b68c7236e8fcda67f07afdd44b2a8c';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

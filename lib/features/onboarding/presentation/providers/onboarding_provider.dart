@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/onboarding_local_datasource.dart';
 import '../../data/datasources/onboarding_remote_datasource.dart';
 import '../../data/repositories/onboarding_repository_impl.dart';
@@ -32,7 +33,9 @@ Future<OnboardingRepository> onboardingRepository(Ref ref) async {
 class OnboardingNotifier extends _$OnboardingNotifier {
   @override
   OnboardingState build() {
-    final user = FirebaseAuth.instance.currentUser;
+    // Passe par le provider (et non `FirebaseAuth.instance`) pour rester
+    // testable : cf. `firebaseAuthProvider`.
+    final user = ref.read(firebaseAuthProvider).currentUser;
 
     if (user != null) {
       _loadOnboardingStatus();
@@ -44,7 +47,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   }
 
   void _listenToAuthChanges() {
-    FirebaseAuth.instance.authStateChanges().listen((user) {
+    ref.read(firebaseAuthProvider).authStateChanges().listen((user) {
       if (user != null) {
         _loadOnboardingStatus();
       }
@@ -54,7 +57,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   Future<void> _loadOnboardingStatus() async {
     try {
       // Wait for Firebase Auth to be ready
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser = ref.read(firebaseAuthProvider).currentUser;
 
       // If no user yet, stay in loading state - will be refreshed when auth changes
       if (currentUser == null) {

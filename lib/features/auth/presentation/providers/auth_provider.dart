@@ -26,6 +26,15 @@ part 'auth_provider.g.dart';
 
 const String _tag = 'AuthProvider';
 
+/// Accès au SDK Firebase Auth, isolé derrière un provider.
+///
+/// `FirebaseAuth.instance` est un singleton statique qui lève tant que
+/// `Firebase.initializeApp()` n'a pas tourné : impossible de tester
+/// [AuthNotifier] tant qu'il y était appelé en dur. Ce provider est le seul
+/// point à surcharger dans un test.
+@riverpod
+FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
+
 @riverpod
 AuthRepository authRepository(Ref ref) {
   final remoteDataSource = AuthRemoteDataSourceImpl(
@@ -81,7 +90,8 @@ class AuthNotifier extends _$AuthNotifier {
   Future<void> _initAuthState() async {
     // Attendre que Firebase Auth restaure la session depuis le stockage local
     // authStateChanges émet immédiatement l'état actuel une fois Firebase prêt
-    final firebaseUser = await FirebaseAuth.instance.authStateChanges().first;
+    final firebaseUser =
+        await ref.read(firebaseAuthProvider).authStateChanges().first;
 
     if (firebaseUser == null) {
       state = const AuthState.unauthenticated();
@@ -143,7 +153,10 @@ class AuthNotifier extends _$AuthNotifier {
   /// vers `/auth/login`, or se reconnecter exige le réseau — précisément ce
   /// qui manque. L'utilisateur se retrouverait dehors sans pouvoir rentrer.
   void _startFromLocalSession() {
-    final firebaseUser = FirebaseAuth.instance.currentUser;
+    // Appelé après un délai : le notifier peut avoir été détruit entre-temps,
+    // et `ref.read` sur un conteneur disposé lève.
+    if (_disposed) return;
+    final firebaseUser = ref.read(firebaseAuthProvider).currentUser;
     if (firebaseUser == null) {
       _setState(const AuthState.unauthenticated());
       return;
@@ -203,7 +216,7 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> _checkCurrentUser() async {
-    await _loadUserData(FirebaseAuth.instance.currentUser!.uid);
+    await _loadUserData(ref.read(firebaseAuthProvider).currentUser!.uid);
   }
 
   /// Refresh user data from Firebase Auth without invalidating the provider
