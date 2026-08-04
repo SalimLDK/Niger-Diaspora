@@ -34,7 +34,7 @@ Trois niveaux, à ne pas confondre :
 | 8b | Carte — Nocturne | ✅ | ✅ | ✅ | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
 | 8c | Carte — sans localisation | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
 | 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
-| 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
+| 6a | Fil — Nocturne | ✅ | ✅ | ✅ | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
@@ -849,6 +849,33 @@ position, une fois comme membre. La requête de proximité renvoie l'utilisateur
 courant, et le filtre ne l'excluait pas : `currentUserId` ne servait qu'à
 écarter ceux qui l'ont bloqué. Corrigé, le compteur passe de « 1 membre
 autour » à « 0 membre autour » — ce qui est la vérité.
+
+---
+
+## 6a — Le fil en Nocturne
+
+Delta conforme : titre Inter 24/500 avec point d'accent (pas Caprasimo),
+onglet actif en contour 1.5 px et non en fond plein, cartes de post au rayon 8,
+FAB creux à contour indigo. C'est bien la palette Nocturne du fil, pas le mode
+clair assombri.
+
+Deux défauts corrigés à la validation :
+
+- **« Abonnements » se tronquait en « Abonnem… ».** À trois segments,
+  l'icône laisse désormais la place au libellé : sur 360 dp, icône (16) +
+  écart (6) + marges ne laissaient que ~62 dp au texte qui en demande ~75 ;
+  sans l'icône il en reste 84. La règle vit dans `FeedSegmentedControl`, donc
+  deux segments gardent leurs pictogrammes.
+- **On entrait dans le fil sans pouvoir en sortir.** Il s'ouvre en `push`
+  depuis Accueil, donc hors de la barre de navigation, et son en-tête n'avait
+  pas de flèche de retour — la maquette n'en met pas parce qu'elle le suppose
+  onglet. La flèche n'apparaît que si la route peut se dépiler : elle
+  s'effacera d'elle-même si le fil devient un onglet.
+
+Fausse alerte de ma part au passage : j'avais signalé que le rail de stories
+débordait toujours de 2 px. **C'était déjà corrigé** — le libellé impose son
+interligne et `_railHeight` arrondit au pixel supérieur. Signalé de mémoire
+sans revérifier la capture.
 
 ---
 

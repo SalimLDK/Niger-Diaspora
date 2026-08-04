@@ -38,6 +38,13 @@ class FeedSegmentedControl<T> extends StatelessWidget {
     this.fullWidth = false,
   });
 
+  /// À trois segments ou plus, l'icône est sacrifiée au profit du libellé.
+  /// Sur un écran de 360 dp, « Abonnements » se tronquait en « Abonnem… » :
+  /// icône (16) + écart (6) + les marges laissaient 62 dp au texte, qui en
+  /// demande ~75. Sans l'icône il en reste 84, et le mot tient en entier.
+  /// Un onglet illisible coûte plus cher qu'un pictogramme absent.
+  bool get _showIcons => segments.length < 3;
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -59,6 +66,7 @@ class FeedSegmentedControl<T> extends StatelessWidget {
                     isActive: segments[i].value == selected,
                     tokens: tokens,
                     fill: true,
+                    showIcon: _showIcons,
                     onTap: () => onChanged(segments[i].value),
                   ),
                 )
@@ -67,6 +75,7 @@ class FeedSegmentedControl<T> extends StatelessWidget {
                   segment: segments[i],
                   isActive: segments[i].value == selected,
                   tokens: tokens,
+                  showIcon: _showIcons,
                   onTap: () => onChanged(segments[i].value),
                 ),
             ],
@@ -86,10 +95,15 @@ class _SegmentOption<T> extends StatelessWidget {
   /// Occupe toute la largeur du segment (mode `fullWidth` : contenu centré).
   final bool fill;
 
+  /// Affiche le pictogramme de tête. Faux dès trois segments : le libellé
+  /// passe avant (voir `FeedSegmentedControl._showIcons`).
+  final bool showIcon;
+
   const _SegmentOption({
     required this.segment,
     required this.isActive,
     required this.tokens,
+    required this.showIcon,
     required this.onTap,
     this.fill = false,
   });
@@ -117,8 +131,10 @@ class _SegmentOption<T> extends StatelessWidget {
           mainAxisAlignment:
               fill ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
-            SizedBox(width: 16, height: 16, child: segment.icon(fg)),
-            const SizedBox(width: 6),
+            if (showIcon) ...[
+              SizedBox(width: 16, height: 16, child: segment.icon(fg)),
+              const SizedBox(width: 6),
+            ],
             // Souple et tronquable : un libellé un peu long (« Abonnements »)
             // débordait du segment, avec le bandeau jaune et noir par-dessus.
             // Le `Row` est en `MainAxisSize.min`, donc rien ne le contraignait.
