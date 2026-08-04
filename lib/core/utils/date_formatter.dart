@@ -56,8 +56,14 @@ class DateFormatter {
   /// Méta d'une publication à soi, format « Hier · 18:40 » (fiche 5b).
   /// Jour du jour / de la veille nommé, jour de la semaine en toutes lettres
   /// dans les 7 jours, date courte au-delà.
-  static String formatPostMeta(DateTime date) =>
-      '${_postDayLabel(date)} · ${formatTime(date)}';
+  ///
+  /// `toLocal()` est indispensable : `PostModel.parseDate` fait un
+  /// `DateTime.parse` sur un ISO en `Z`, donc [date] arrive en **UTC** et
+  /// `DateFormat` l'imprimerait tel quel (4 h d'écart observées en EDT).
+  static String formatPostMeta(DateTime date) {
+    final local = date.toLocal();
+    return '${_postDayLabel(local)} · ${formatTime(local)}';
+  }
 
   static String _postDayLabel(DateTime date) {
     final now = DateTime.now();
