@@ -1,20 +1,30 @@
 import 'package:intl/intl.dart';
 
+/// Les modèles normalisent déjà leurs dates en local à la désérialisation
+/// (voir `core/utils/date_parsing.dart`). Le `toLocal()` répété ici est un
+/// filet : `DateFormat` imprime les composantes brutes, donc une date restée
+/// en UTC s'afficherait décalée du fuseau sans la moindre erreur visible.
+///
+/// À l'inverse, `difference`, `isAfter`, `isBefore` et `compareTo` travaillent
+/// sur l'epoch : mélanger une date locale et une date UTC y est sans effet, et
+/// les normaliser n'apporterait rien. Seuls les chemins qui lisent des
+/// **composantes** (`year`/`month`/`day`/`hour`, `DateFormat`) sont concernés.
 class DateFormatter {
   static String formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+    return DateFormat('dd/MM/yyyy').format(date.toLocal());
   }
 
   static String formatDateTime(DateTime date) {
-    return DateFormat('dd/MM/yyyy HH:mm').format(date);
+    return DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
   }
 
   static String formatTime(DateTime date) {
-    return DateFormat('HH:mm').format(date);
+    return DateFormat('HH:mm').format(date.toLocal());
   }
 
   static String timeAgo(DateTime date) {
     final now = DateTime.now();
+    // Pas de `toLocal()` : `difference` est calculée sur l'epoch.
     final difference = now.difference(date);
 
     if (difference.inSeconds < 60) {
@@ -38,18 +48,22 @@ class DateFormatter {
   }
 
   static String formatMessageDate(DateTime date) {
+    // `local` est indispensable ici : le regroupement compare des composantes
+    // de calendrier. Sur une date restée en UTC, un message envoyé à 22:30 à
+    // Toronto tombait déjà au lendemain et perdait son « Aujourd'hui ».
+    final local = date.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(date.year, date.month, date.day);
+    final messageDate = DateTime(local.year, local.month, local.day);
 
     if (messageDate == today) {
-      return formatTime(date);
+      return formatTime(local);
     } else if (messageDate == today.subtract(const Duration(days: 1))) {
       return 'Hier';
-    } else if (now.difference(date).inDays < 7) {
-      return DateFormat('EEEE', 'fr_FR').format(date);
+    } else if (now.difference(local).inDays < 7) {
+      return DateFormat('EEEE', 'fr_FR').format(local);
     } else {
-      return formatDate(date);
+      return formatDate(local);
     }
   }
 

@@ -34,31 +34,31 @@ class LocaleHelper {
 
   /// Common date formats with locale awareness
   static String formatDate(BuildContext context, DateTime date) {
-    return dateFormat(context, 'dd/MM/yyyy').format(date);
+    return dateFormat(context, 'dd/MM/yyyy').format(date.toLocal());
   }
 
   static String formatDateTime(BuildContext context, DateTime date) {
-    return dateFormat(context, 'dd/MM/yyyy HH:mm').format(date);
+    return dateFormat(context, 'dd/MM/yyyy HH:mm').format(date.toLocal());
   }
 
   static String formatTime(BuildContext context, DateTime date) {
-    return dateFormat(context, 'HH:mm').format(date);
+    return dateFormat(context, 'HH:mm').format(date.toLocal());
   }
 
   static String formatFullDate(BuildContext context, DateTime date) {
-    return dateFormat(context, 'EEEE dd MMMM yyyy').format(date);
+    return dateFormat(context, 'EEEE dd MMMM yyyy').format(date.toLocal());
   }
 
   static String formatShortDate(BuildContext context, DateTime date) {
-    return dateFormat(context, 'dd MMM yyyy').format(date);
+    return dateFormat(context, 'dd MMM yyyy').format(date.toLocal());
   }
 
   static String formatDayMonth(BuildContext context, DateTime date) {
-    return dateFormat(context, 'EEE d MMM').format(date);
+    return dateFormat(context, 'EEE d MMM').format(date.toLocal());
   }
 
   static String formatDayMonthTime(BuildContext context, DateTime date) {
-    return dateFormat(context, 'EEE d MMM, HH:mm').format(date);
+    return dateFormat(context, 'EEE d MMM, HH:mm').format(date.toLocal());
   }
 
   /// Format relative time with localization
@@ -90,18 +90,21 @@ class LocaleHelper {
   /// Format message date with localization
   static String formatMessageDate(BuildContext context, DateTime date) {
     final l10n = AppLocalizations.of(context)!;
+    // Cf. `DateFormatter.formatMessageDate` : le regroupement lit des
+    // composantes de calendrier, il lui faut une date locale.
+    final local = date.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(date.year, date.month, date.day);
+    final messageDate = DateTime(local.year, local.month, local.day);
 
     if (messageDate == today) {
-      return formatTime(context, date);
+      return formatTime(context, local);
     } else if (messageDate == today.subtract(const Duration(days: 1))) {
       return l10n.yesterday('');
-    } else if (now.difference(date).inDays < 7) {
-      return dateFormat(context, 'EEEE').format(date);
+    } else if (now.difference(local).inDays < 7) {
+      return dateFormat(context, 'EEEE').format(local);
     } else {
-      return formatDate(context, date);
+      return formatDate(context, local);
     }
   }
 }
