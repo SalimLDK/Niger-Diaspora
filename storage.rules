@@ -49,7 +49,30 @@ service firebase.storage {
     
     // Message media - authenticated users can upload, size limits vary by type
     match /messages/{conversationId}/{allPaths=**} {
-      allow read: if isAuthenticated();
+      // `read` couvre `get` ET `list`. Avec `allow read: if isAuthenticated()`,
+      // connaître un conversationId suffisait à ÉNUMÉRER puis télécharger tout
+      // le contenu média de la conversation — y compris pour un membre exclu
+      // d'un groupe, qui garde l'identifiant.
+      //
+      // Séparer les deux ferme l'énumération : il faut désormais connaître le
+      // chemin exact de l'objet (horodatage à la milliseconde + nom de
+      // fichier), ce qui n'est plus découvrable depuis l'API.
+      //
+      // ⚠️ Ce n'est PAS la restriction aux participants. Les règles Storage ne
+      // savent interroger que Firestore, or l'appartenance à une conversation
+      // vit dans Supabase (`conversations.participant_ids`) depuis la
+      // migration : le chemin vivant est `MessageSupabaseDataSource`, et les
+      // documents Firestore `conversations` ne sont plus alimentés. Une règle
+      // qui s'y fierait renverrait faux partout et casserait tous les médias.
+      // Les deux vraies voies sont documentées dans
+      // CHIFFREMENT_MEDIAS_PLAN.md.
+      allow get: if isAuthenticated();
+
+      // `listAll()` n'existe que dans `_deleteFilesFromStorage` du datasource
+      // Firebase hérité, qui n'est plus sur le chemin vivant (le
+      // `deleteConversation` de Supabase ne touche pas au Storage). Couper
+      // `list` ne casse donc rien aujourd'hui.
+      allow list: if false;
       allow write: if isAuthenticated() && (
         (isImage() && isValidSize(10)) ||
         (isVideo() && isValidSize(100)) ||
