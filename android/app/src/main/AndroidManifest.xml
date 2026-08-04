@@ -117,6 +117,54 @@
                 <data android:scheme="https" android:host="diasponiger.web.app" />
                 <data android:scheme="https" android:host="diasponiger.com" />
             </intent-filter>
+
+            <!-- Partage entrant (receive_sharing_intent) : sans ces filtres,
+                 Diaspo Niger n'apparaissait pas dans le sélecteur « Partager »
+                 d'Android et l'écran ShareToConversationScreen n'était
+                 atteignable par aucun partage réel.
+
+                 ⚠️ Un partage devient l'intent d'origine de la tâche : Android
+                 le redonne à l'activité racine à chaque relance. La feuille ne
+                 doit donc s'ouvrir qu'une fois par partage — la déduplication
+                 vit dans SharedMediaService (empreinte persistée), pas ici. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            <!-- Fourre-tout : l'écran de partage sait aussi relayer un fichier
+                 quelconque (MessageType.file). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
         <!-- audio_service : service de lecture en arrière-plan et réception des
              boutons média (casque, écran de verrouillage, Bluetooth).
