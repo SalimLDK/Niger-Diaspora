@@ -114,6 +114,27 @@ service firebase.storage {
       allow write: if isOwner(senderId) && isValidSize(100);
     }
 
+    // Sauvegarde chiffrée des clés E2EE (KeyBackupService). Sans cette règle le
+    // chemin tombait dans le deny-all final : `checkBackupPresence` échouait en
+    // `unauthorized` et renvoyait donc `unknown` au lieu de `absent`, ce qui
+    // fait que E2EEBackupCoordinator **sautait la génération des clés** — aucune
+    // identité Signal n'était jamais créée sur un appareil sans clés locales, et
+    // la messagerie restait silencieusement sur le repli AES global.
+    //
+    // Contrairement aux médias chiffrés, la lecture est réservée au
+    // propriétaire : c'est l'identité Signal de l'utilisateur. Elle est certes
+    // protégée par une passphrase (PBKDF2 200k + AES-256-GCM), mais l'exposer à
+    // tout compte connecté offrirait le fichier à une attaque hors ligne.
+    //
+    // `create`/`update` séparés de `delete` : sur une suppression
+    // `request.resource` est nul, donc `isValidSize` y échouerait et
+    // `deleteBackup()` serait refusé.
+    match /key_backups/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidSize(5);
+      allow delete: if isOwner(userId);
+    }
+
     // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;

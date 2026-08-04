@@ -53,10 +53,21 @@ donc jamais créée : la messagerie reste silencieusement sur le repli AES globa
 et le bandeau de sauvegarde n'apparaît jamais. Le garde-fou est correct — c'est
 la règle Storage manquante qui le déclenche à tort.
 
-- [ ] Ajouter la règle `match /key_backups/{userId}/{allPaths=**}` (lecture et
-      écriture réservées à `isOwner(userId)` — contrairement aux médias, un
-      backup de clés ne doit **pas** être lisible par tout compte connecté),
-      déployer, puis revérifier que le log passe à `absent` ou `present`.
+- [x] **Règle écrite le 2026-08-04** dans `storage.rules` :
+      `match /key_backups/{userId}/{allPaths=**}`, lecture **et** écriture
+      réservées à `isOwner(userId)` (contrairement aux médias chiffrés, un
+      backup de clés ne doit pas être lisible par tout compte connecté : il est
+      protégé par une passphrase, mais l'exposer offrirait le fichier à une
+      attaque hors ligne). `create`/`update` séparés de `delete` car
+      `request.resource` est nul sur une suppression — sans ça `deleteBackup()`
+      serait refusé. Compilation vérifiée par l'émulateur Storage
+      (`firebase emulators:exec --only storage`), avec témoin négatif : une
+      règle volontairement cassée sort bien `token recognition error … :134`,
+      le fichier réel n'en sort aucune.
+- [ ] ⚠ **Pas encore déployé** — `firebase deploy --only storage`. Tant que ce
+      n'est pas fait, rien ne change sur l'appareil.
+- [ ] Après déploiement : revérifier que le log passe de
+      `backup presence unknown` à `absent` (ou `present`).
 - [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
       clés sont bien générées et que le bandeau « sauvegarder » apparaît.
 - [ ] **Piste à confirmer** : ceci explique peut-être le point ouvert 20b
