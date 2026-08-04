@@ -267,7 +267,10 @@ durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
   bancaire** (les menus « banque » et « ville » n'existent que dans ce mode —
   aucun test ne les couvre), puis vérifier les trois menus.
 - [ ] **Recherche d'employés d'une ambassade** : filtre « Département » —
-  aucun test ne couvre cet écran, son datasource tape le réseau au démarrage.
+  désormais monté par `test/features/embassies/employee_search_overflow_test.dart`,
+  mais ce test ne prouve **pas** le correctif (vérifié par mutation : il passe
+  aussi sans `isExpanded`, l'ellipse sur l'élément masquant le débordement).
+  L'écran reste donc à regarder pour de vrai.
 - [ ] Créer une entreprise, créer un podcast, fiche entreprise (feuille « Type
   de publication ») : vérifier qu'aucun libellé n'est tronqué à tort.
 
