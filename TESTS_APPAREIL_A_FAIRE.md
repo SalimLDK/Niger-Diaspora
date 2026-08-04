@@ -14,6 +14,52 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)
+
+Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
+l'appareil de référence.
+
+- [x] **6a — Fil Nocturne** : fond `#161826`, point d'accent violet sur
+  « Le fil », onglet actif en **contour** (pas en fond plein), cartes de post
+  radius 8, et le **FAB creux à contour net** en bas à droite. Le rail
+  « Ma story » ne déborde plus.
+- [x] **11d — Mon profil Nocturne** : fond `#0F0D0A`, cartes `#1A1714` à
+  liseré `#2A241E`, puce métier teintée vert sur fond vert sombre, point
+  d'accent orange après le nom. ⚠ Le **badge « vérifié » n'a pas pu être
+  vu** : le compte de test n'est pas vérifié. À reprendre avec un compte qui
+  l'est.
+- [x] **11e — Réglages Nocturne** : « Supprimer mon compte » en rouge clair
+  `#F87171`, « Déconnexion » en ambre, liseré de la zone sensible net. Avant
+  le correctif, ces trois-là étaient sur les jetons du thème clair, donc
+  sombres sur `#0F0D0A`.
+- [x] **7d — Carte, panneau à trois positions** : recherche fixe, bouton
+  calques, chips, feuille draggable. **Un défaut trouvé et corrigé sur place**
+  (voir ci-dessous).
+- [x] **8c — Carte sans localisation** : carte à pastille `location_off`,
+  trois garanties à coche verte, bouton « Activer » plein + « Réglages de
+  confidentialité » en contour, le tout décliné en nocturne.
+
+**Défaut trouvé pendant la passe** : l'en-tête du panneau de la carte
+affichait « 0 membre a… » tronqué, avec du vide à sa droite. Le titre était
+dans un `Flexible` et la rangée contenait un `Spacer()` — tous deux `flex: 1`,
+donc l'espace libre était partagé en deux au lieu d'aller au titre. Titre et
+rayon regroupés dans un `Expanded` ; vérifié réparé sur l'appareil.
+
+**Fausse alerte notée pour mémoire** : la ligne de fraîcheur du panneau
+affiche deux « Chargement… » tant que la position n'est pas acquise. Ce n'est
+pas un champ mort — au bout des 15 s de `timeLimit`, en intérieur sans fix
+GPS, l'écran bascule sur 8c. Ne pas rouvrir ce faux bug.
+
+**Reste à vérifier sur ces fiches :**
+- [ ] 8c — le panneau bas « Sans localisation, explorez par ville » (chips
+  Paris/Niamey/Montréal/Abidjan + lignes ambassade/groupe) n'est **pas
+  implémenté**, la fiche le demande.
+- [ ] 7d — pins de membre, cluster, et les trois crans de la feuille
+  (18/45/92 %) non exercés : le compte de test a 0 membre autour.
+- [ ] 11d — badge « vérifié ».
+
+---
+
 ## Feuille de partage fantôme au démarrage (2026-08-04)
 
 Bug constaté sur appareil (SM A515F) : la feuille « Envoyer à… / Partagé
