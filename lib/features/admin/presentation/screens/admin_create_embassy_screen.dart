@@ -214,17 +214,36 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 16),
 
               // Type
+              //
+              // `isExpanded` n'est pas cosmétique ici : le champ replié
+              // empile *tous* ses éléments dans un IndexedStack, y compris le
+              // hintText que Flutter convertit en `hint`. Un IndexedStack se
+              // dimensionne sur son plus grand enfant et non sur celui qui est
+              // affiché, donc la largeur était dictée par « Sélectionnez le
+              // type d'établissement » (invisible) au lieu d'« Ambassade » —
+              // d'où le débordement de 54 px sur appareil. `isExpanded` place
+              // cette pile dans un Expanded ; l'ellipse fait le reste.
               DropdownButtonFormField<String>(
                 initialValue: _selectedType,
+                isExpanded: true,
                 decoration: _inputDecoration(
                   'Type *',
                   'Sélectionnez le type d\'établissement',
+                ),
+                hint: const Text(
+                  'Sélectionnez le type d\'établissement',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 items:
                     _embassyTypes.map((type) {
                       return DropdownMenuItem(
                         value: type,
-                        child: Text(_getTypeLabel(type)),
+                        child: Text(
+                          _getTypeLabel(type),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                 onChanged: (value) {
@@ -528,11 +547,16 @@ class _AdminCreateEmbassyScreenState
       children: [
         icon,
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        // Expanded : les titres longs (« Localisation GPS (optionnel) »)
+        // passent à la ligne aux grandes échelles de police au lieu de
+        // déborder de la Row.
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
