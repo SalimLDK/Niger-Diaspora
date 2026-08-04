@@ -62,7 +62,7 @@ class SupportTicketSupabaseDatasource {
       'senderName': ticket.userName,
       'isFromSupport': false,
       'content': ticket.description,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
     };
 
     final row = await _supabase
@@ -246,12 +246,12 @@ class SupportTicketSupabaseDatasource {
       'senderName': message.senderName,
       'isFromSupport': message.isFromSupport,
       'content': message.content,
-      'createdAt': message.createdAt.toIso8601String(),
+      'createdAt': message.createdAt.toUtc().toIso8601String(),
     });
 
     await _supabase.from('support_tickets').update({
       'messages': current,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
       if (message.isFromSupport) 'has_unread_support_messages': true,
       if (!message.isFromSupport) 'has_unread_user_messages': true,
     }).eq('id', ticketId);
@@ -264,7 +264,7 @@ class SupportTicketSupabaseDatasource {
   ) async {
     await _supabase.from('support_tickets').update({
       'status': status.name,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', ticketId);
   }
 

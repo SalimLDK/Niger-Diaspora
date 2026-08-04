@@ -61,7 +61,7 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
       data['id'] = doc.id;
       if (data['createdAt'] is Timestamp) {
         data['createdAt'] =
-            (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
 
       return ProfileShareLinkModel.fromJson(data);
@@ -126,11 +126,11 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
       data['id'] = doc.id;
       if (data['createdAt'] is Timestamp) {
         data['createdAt'] =
-            (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
       if (data['expiresAt'] is Timestamp) {
         data['expiresAt'] =
-            (data['expiresAt'] as Timestamp).toDate().toIso8601String();
+            (data['expiresAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
 
       return ProfileShareLinkModel.fromJson(data);

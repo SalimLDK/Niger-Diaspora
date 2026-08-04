@@ -41,7 +41,7 @@ class HomeContentModel with _$HomeContentModel {
     quickActions: entity.quickActions
         .map((a) => QuickActionModel.fromEntity(a))
         .toList(),
-    lastUpdated: entity.lastUpdated?.toIso8601String(),
+    lastUpdated: entity.lastUpdated?.toUtc().toIso8601String(),
   );
 }
 
@@ -116,7 +116,7 @@ class NearbyMemberModel with _$NearbyMemberModel {
     city: entity.city,
     country: entity.country,
     distanceKm: entity.distanceKm,
-    lastSeen: entity.lastSeen?.toIso8601String(),
+    lastSeen: entity.lastSeen?.toUtc().toIso8601String(),
     isOnline: entity.isOnline,
   );
 }
@@ -152,7 +152,7 @@ class UpcomingEventModel with _$UpcomingEventModel {
       UpcomingEventModel(
         id: entity.id,
         title: entity.title,
-        startDate: entity.startDate.toIso8601String(),
+        startDate: entity.startDate.toUtc().toIso8601String(),
         imageUrl: entity.imageUrl,
         location: entity.location,
         attendeesCount: entity.attendeesCount,

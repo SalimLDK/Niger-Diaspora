@@ -38,7 +38,7 @@ class PendingAction {
     'documentId': documentId,
     'actionType': actionType.name,
     'data': data,
-    'createdAt': createdAt.toIso8601String(),
+    'createdAt': createdAt.toUtc().toIso8601String(),
     'retryCount': retryCount,
   };
 
@@ -343,7 +343,7 @@ class OfflineSyncService {
   /// Enregistre la dernière synchronisation
   Future<void> recordLastSync(String key) async {
     final box = Hive.box<String>(_syncMetadataBox);
-    await box.put('${key}_lastSync', DateTime.now().toIso8601String());
+    await box.put('${key}_lastSync', DateTime.now().toUtc().toIso8601String());
   }
 
   /// Récupère la dernière synchronisation

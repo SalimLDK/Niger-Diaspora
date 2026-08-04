@@ -58,7 +58,7 @@ class PendingMessage {
     'content': content,
     'type': type,
     'filePath': filePath,
-    'createdAt': createdAt.toIso8601String(),
+    'createdAt': createdAt.toUtc().toIso8601String(),
     'retryCount': retryCount,
   };
 

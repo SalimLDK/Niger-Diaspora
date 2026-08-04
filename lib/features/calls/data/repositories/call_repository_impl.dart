@@ -35,7 +35,7 @@ class CallRepositoryImpl implements CallRepository {
         calleePhotoUrl: calleePhotoUrl,
         type: type.name,
         status: 'ringing',
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now().toUtc().toIso8601String(),
       );
 
       final result = await _remoteDataSource.createCall(callModel);

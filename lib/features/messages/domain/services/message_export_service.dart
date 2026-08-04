@@ -118,7 +118,7 @@ class MessageExportService {
         'id': conversation.id,
         'displayName': _getDisplayName(conversation),
         'type': conversation.type.name,
-        'exportedAt': DateTime.now().toIso8601String(),
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
       },
       'messages':
           messages
@@ -130,7 +130,7 @@ class MessageExportService {
                   'content':
                       m.deletedForEveryone ? '[Message supprime]' : m.content,
                   'type': m.type.name,
-                  'createdAt': m.createdAt.toIso8601String(),
+                  'createdAt': m.createdAt.toUtc().toIso8601String(),
                   'isDeleted': m.deletedForEveryone,
                 },
               )

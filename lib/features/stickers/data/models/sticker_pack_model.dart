@@ -74,8 +74,8 @@ class StickerPackModel {
       'isPublic': isPublic,
       'status': status,
       if (moderationNotes != null) 'moderationNotes': moderationNotes,
-      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
-      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+      if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
+      if (updatedAt != null) 'updatedAt': updatedAt!.toUtc().toIso8601String(),
       'downloadCount': downloadCount,
     };
   }
@@ -85,8 +85,8 @@ class StickerPackModel {
   Map<String, dynamic> toFirestore() {
     final json = toJson();
     json.remove('id');
-    json['createdAt'] = DateTime.now().toIso8601String();
-    json['updatedAt'] = DateTime.now().toIso8601String();
+    json['createdAt'] = DateTime.now().toUtc().toIso8601String();
+    json['updatedAt'] = DateTime.now().toUtc().toIso8601String();
     return json;
   }
 

@@ -430,7 +430,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     final result = Map<String, dynamic>.from(data);
     result.forEach((key, value) {
       if (value is Timestamp) {
-        result[key] = value.toDate().toIso8601String();
+        result[key] = value.toDate().toUtc().toIso8601String();
       }
     });
     return result;

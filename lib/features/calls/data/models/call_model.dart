@@ -63,7 +63,7 @@ class CallModel extends Equatable {
     final data = <String, dynamic>{'id': doc.id};
     rawData.forEach((key, value) {
       if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+        data[key] = value.toDate().toUtc().toIso8601String();
       } else {
         data[key] = value;
       }
@@ -142,9 +142,9 @@ class CallModel extends Equatable {
       calleePhotoUrl: entity.calleePhotoUrl,
       type: entity.type.name,
       status: entity.status.name,
-      createdAt: entity.createdAt.toIso8601String(),
-      answeredAt: entity.answeredAt?.toIso8601String(),
-      endedAt: entity.endedAt?.toIso8601String(),
+      createdAt: entity.createdAt.toUtc().toIso8601String(),
+      answeredAt: entity.answeredAt?.toUtc().toIso8601String(),
+      endedAt: entity.endedAt?.toUtc().toIso8601String(),
       durationSeconds: entity.durationSeconds,
       endReason: entity.endReason,
     );
@@ -186,15 +186,15 @@ class CallModel extends Equatable {
 
   static String _parseTimestamp(dynamic timestamp) {
     if (timestamp == null) {
-      return DateTime.now().toIso8601String();
+      return DateTime.now().toUtc().toIso8601String();
     }
     if (timestamp is Timestamp) {
-      return timestamp.toDate().toIso8601String();
+      return timestamp.toDate().toUtc().toIso8601String();
     }
     if (timestamp is String) {
       return timestamp;
     }
-    return DateTime.now().toIso8601String();
+    return DateTime.now().toUtc().toIso8601String();
   }
 
   static CallType _parseCallType(String type) {

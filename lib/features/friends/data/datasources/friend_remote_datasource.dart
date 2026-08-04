@@ -245,11 +245,11 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
       data['id'] = doc.id;
       if (data['createdAt'] is Timestamp) {
         data['createdAt'] =
-            (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
       if (data['updatedAt'] is Timestamp) {
         data['updatedAt'] =
-            (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+            (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
       return FriendRequestModel.fromJson(data);
     } on FirebaseException catch (e) {
@@ -271,11 +271,11 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
             data['id'] = doc.id;
             if (data['createdAt'] is Timestamp) {
               data['createdAt'] =
-                  (data['createdAt'] as Timestamp).toDate().toIso8601String();
+                  (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
             }
             if (data['updatedAt'] is Timestamp) {
               data['updatedAt'] =
-                  (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+                  (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
             }
             return FriendRequestModel.fromJson(data);
           }).toList();
@@ -296,11 +296,11 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
             data['id'] = doc.id;
             if (data['createdAt'] is Timestamp) {
               data['createdAt'] =
-                  (data['createdAt'] as Timestamp).toDate().toIso8601String();
+                  (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
             }
             if (data['updatedAt'] is Timestamp) {
               data['updatedAt'] =
-                  (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+                  (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
             }
             return FriendRequestModel.fromJson(data);
           }).toList();
@@ -372,7 +372,7 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
             data['id'] = doc.id;
             if (data['addedAt'] is Timestamp) {
               data['addedAt'] =
-                  (data['addedAt'] as Timestamp).toDate().toIso8601String();
+                  (data['addedAt'] as Timestamp).toDate().toUtc().toIso8601String();
             }
             return FriendModel.fromJson(data);
           }).toList();
@@ -462,10 +462,10 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
           data['id'] = doc.id;
           if (data['addedAt'] is Timestamp) {
             data['addedAt'] =
-                (data['addedAt'] as Timestamp).toDate().toIso8601String();
+                (data['addedAt'] as Timestamp).toDate().toUtc().toIso8601String();
           } else if (data['addedAt'] == null) {
             // Si addedAt n'existe pas, utiliser la date actuelle
-            data['addedAt'] = DateTime.now().toIso8601String();
+            data['addedAt'] = DateTime.now().toUtc().toIso8601String();
           }
 
           final displayName = (data['displayName'] as String? ?? '').toLowerCase();

@@ -175,7 +175,7 @@ class PodcastNotifier extends AsyncNotifier<void> {
         isExplicit: isExplicit,
         status: 'draft',
         episodeFrequency: episodeFrequency,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now().toUtc().toIso8601String(),
       );
 
       final createdModel = await _dataSource.createPodcast(tempModel);
@@ -266,13 +266,13 @@ class PodcastNotifier extends AsyncNotifier<void> {
                 : scheduledPublishAt != null
                 ? 'scheduled'
                 : 'published',
-        scheduledPublishAt: scheduledPublishAt?.toIso8601String(),
+        scheduledPublishAt: scheduledPublishAt?.toUtc().toIso8601String(),
         // Un brouillon n'est pas publié : pas de date de publication, sinon
         // il compterait dans le rythme de publication des statistiques.
         publishedAt: (asDraft || scheduledPublishAt != null)
             ? null
-            : DateTime.now().toIso8601String(),
-        createdAt: DateTime.now().toIso8601String(),
+            : DateTime.now().toUtc().toIso8601String(),
+        createdAt: DateTime.now().toUtc().toIso8601String(),
         isPremium: isPremium,
         mediaType: mediaType,
         videoUrl: videoUrl,

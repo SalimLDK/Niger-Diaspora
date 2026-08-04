@@ -184,11 +184,11 @@ class GroupRequestDataSourceImpl implements GroupRequestDataSource {
         data['id'] = doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+              (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         if (data['processedAt'] is Timestamp) {
           data['processedAt'] =
-              (data['processedAt'] as Timestamp).toDate().toIso8601String();
+              (data['processedAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         return GroupRequestModel.fromJson(data);
       }).toList();
@@ -209,7 +209,7 @@ class GroupRequestDataSourceImpl implements GroupRequestDataSource {
         data['id'] = doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+              (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         return GroupRequestModel.fromJson(data);
       }).toList();
@@ -352,11 +352,11 @@ class GroupRequestDataSourceImpl implements GroupRequestDataSource {
         data['id'] = doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+              (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         if (data['respondedAt'] is Timestamp) {
           data['respondedAt'] =
-              (data['respondedAt'] as Timestamp).toDate().toIso8601String();
+              (data['respondedAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         return GroupInviteModel.fromJson(data);
       }).toList();
@@ -377,7 +377,7 @@ class GroupRequestDataSourceImpl implements GroupRequestDataSource {
         data['id'] = doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+              (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         return GroupInviteModel.fromJson(data);
       }).toList();

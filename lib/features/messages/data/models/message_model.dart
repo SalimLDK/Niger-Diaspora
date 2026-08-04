@@ -201,7 +201,7 @@ final class MessageModel {
     final data = <String, dynamic>{'id': doc.id};
     rawData.forEach((key, value) {
       if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+        data[key] = value.toDate().toUtc().toIso8601String();
       } else {
         data[key] = value;
       }
@@ -233,10 +233,10 @@ final class MessageModel {
       if (readAt.isNotEmpty) 'readAt': readAt,
       if (deliveredTo.isNotEmpty) 'deliveredTo': deliveredTo,
       if (deliveredAt.isNotEmpty) 'deliveredAt': deliveredAt,
-      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+      if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
       if (deletedFor.isNotEmpty) 'deletedFor': deletedFor,
       'deletedForEveryone': deletedForEveryone,
-      if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+      if (deletedAt != null) 'deletedAt': deletedAt!.toUtc().toIso8601String(),
       if (reportedBy.isNotEmpty) 'reportedBy': reportedBy,
       if (reactions.isNotEmpty) 'reactions': reactions,
       if (replyToId != null) 'replyToId': replyToId,
@@ -254,10 +254,10 @@ final class MessageModel {
       if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
       'isForwarded': isForwarded,
       if (starredBy.isNotEmpty) 'starredBy': starredBy,
-      if (editedAt != null) 'editedAt': editedAt!.toIso8601String(),
+      if (editedAt != null) 'editedAt': editedAt!.toUtc().toIso8601String(),
       if (editHistory != null && editHistory!.isNotEmpty) 'editHistory': editHistory,
-      if (expiresAt != null) 'expiresAt': expiresAt!.toIso8601String(),
-      if (mediaExpiresAt != null) 'mediaExpiresAt': mediaExpiresAt!.toIso8601String(),
+      if (expiresAt != null) 'expiresAt': expiresAt!.toUtc().toIso8601String(),
+      if (mediaExpiresAt != null) 'mediaExpiresAt': mediaExpiresAt!.toUtc().toIso8601String(),
       if (mediaExpired) 'mediaExpired': mediaExpired,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
@@ -284,7 +284,7 @@ final class MessageModel {
       readAt.forEach((key, value) {
         try {
           if (value is DateTime) {
-            readAtTimestamps[key] = value.toIso8601String();
+            readAtTimestamps[key] = value.toUtc().toIso8601String();
           } else if (value is String) {
             readAtTimestamps[key] = value;
           }
@@ -303,7 +303,7 @@ final class MessageModel {
       deliveredAt.forEach((key, value) {
         try {
           if (value is DateTime) {
-            deliveredAtTimestamps[key] = value.toIso8601String();
+            deliveredAtTimestamps[key] = value.toUtc().toIso8601String();
           } else if (value is String) {
             deliveredAtTimestamps[key] = value;
           }
@@ -403,9 +403,9 @@ final class MessageModel {
     videoDuration: entity.videoDuration,
     blurhash: entity.blurhash,
     readBy: entity.readBy,
-    readAt: entity.readAt.map((k, v) => MapEntry(k, v.toIso8601String())),
+    readAt: entity.readAt.map((k, v) => MapEntry(k, v.toUtc().toIso8601String())),
     deliveredTo: entity.deliveredTo,
-    deliveredAt: entity.deliveredAt.map((k, v) => MapEntry(k, v.toIso8601String())),
+    deliveredAt: entity.deliveredAt.map((k, v) => MapEntry(k, v.toUtc().toIso8601String())),
     createdAt: entity.createdAt,
     deletedFor: entity.deletedFor,
     deletedForEveryone: entity.deletedForEveryone,

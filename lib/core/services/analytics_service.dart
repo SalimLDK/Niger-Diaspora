@@ -67,7 +67,7 @@ class AnalyticsService {
       name: 'journey_start',
       parameters: {
         'journey_name': journeyName,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
         ...?additionalParams,
       },
     );
@@ -86,7 +86,7 @@ class AnalyticsService {
         'journey_name': journeyName,
         'step_name': stepName,
         'step_number': stepNumber,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
         ...?additionalParams,
       },
     );
@@ -103,7 +103,7 @@ class AnalyticsService {
       parameters: {
         'journey_name': journeyName,
         'success': success,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
         ...?additionalParams,
       },
     );
@@ -121,7 +121,7 @@ class AnalyticsService {
         'journey_name': journeyName,
         'last_step': lastStep,
         if (reason != null) 'reason': reason,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -133,7 +133,7 @@ class AnalyticsService {
     await logEvent(
       name: 'onboarding_start',
       parameters: {
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -143,7 +143,7 @@ class AnalyticsService {
       name: 'onboarding_consent',
       parameters: {
         'step': 'consent_given',
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -160,7 +160,7 @@ class AnalyticsService {
         'has_photo': hasPhoto,
         'has_bio': hasBio,
         if (country != null) 'country': country,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -170,7 +170,7 @@ class AnalyticsService {
       name: 'onboarding_intro_seen',
       parameters: {
         'step': 'intro_completed',
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -182,7 +182,7 @@ class AnalyticsService {
       name: 'onboarding_complete',
       parameters: {
         'duration_seconds': totalDuration.inSeconds,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -261,7 +261,7 @@ class AnalyticsService {
       parameters: {
         'value': totalValue,
         'item_count': itemCount,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -285,7 +285,7 @@ class AnalyticsService {
         'value': totalValue,
         'item_count': itemCount,
         if (paymentMethod != null) 'payment_method': paymentMethod,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -299,7 +299,7 @@ class AnalyticsService {
       parameters: {
         'reason': reason,
         if (attemptedValue != null) 'attempted_value': attemptedValue,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -317,7 +317,7 @@ class AnalyticsService {
         'amount': amount,
         'currency': currency,
         if (recipientCountry != null) 'recipient_country': recipientCountry,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -331,7 +331,7 @@ class AnalyticsService {
       parameters: {
         'is_new_recipient': isNewRecipient,
         'is_friend': isFriend,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -349,7 +349,7 @@ class AnalyticsService {
         'amount': amount,
         'currency': currency,
         'recipient_country': recipientCountry,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -363,7 +363,7 @@ class AnalyticsService {
       parameters: {
         'reason': reason,
         if (attemptedAmount != null) 'attempted_amount': attemptedAmount,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -398,7 +398,7 @@ class AnalyticsService {
         'action_type': actionType.name,
         'target_type': targetType,
         'target_id': targetId,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -419,7 +419,7 @@ class AnalyticsService {
         'search_term': searchTerm,
         if (category != null) 'category': category,
         'result_count': resultCount,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }
@@ -441,7 +441,7 @@ class AnalyticsService {
             : errorMessage,
         if (screenName != null) 'screen_name': screenName,
         if (userId != null) 'user_id': userId,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
   }

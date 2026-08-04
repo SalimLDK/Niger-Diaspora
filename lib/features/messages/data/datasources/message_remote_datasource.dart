@@ -642,7 +642,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   }) {
     return _messagesRef(conversationId)
         .orderByChild('createdAt')
-        .startAt(afterTimestamp.toIso8601String())
+        .startAt(afterTimestamp.toUtc().toIso8601String())
         .onValue
         .map((event) {
           if (event.snapshot.value == null) return [];
@@ -871,7 +871,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     }
 
     final nowDateTime = DateTime.now();
-    final now = nowDateTime.toIso8601String();
+    final now = nowDateTime.toUtc().toIso8601String();
 
     final cryptoResult = await _encryptContent(
       plaintext: content,
@@ -883,7 +883,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     // Calculate expiresAt if auto-delete is enabled
     String? expiresAt;
     if (autoDeleteSeconds != null) {
-      expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+      expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toUtc().toIso8601String();
     }
 
     final messageData = {
@@ -998,7 +998,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         muteValue = 'forever';
       } else {
         final expirationTime = DateTime.now().add(duration);
-        muteValue = expirationTime.toIso8601String();
+        muteValue = expirationTime.toUtc().toIso8601String();
       }
 
       await _conversationsCollection.doc(conversationId).update({
@@ -1229,7 +1229,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
 
       final nowDateTime = DateTime.now();
-      final now = nowDateTime.toIso8601String();
+      final now = nowDateTime.toUtc().toIso8601String();
       // For video/image/audio file, use caption only - never show filename to users
       final contentText =
           (type == 'video' || type == 'image' || type == 'audioFile')
@@ -1245,7 +1245,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       // Calculate expiresAt if auto-delete is enabled
       String? expiresAt;
       if (autoDeleteSeconds != null) {
-        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toUtc().toIso8601String();
       }
 
       final messageData = {
@@ -1272,7 +1272,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         if (audioWaveform != null) 'audioWaveform': audioWaveform,
         if (blurhash != null) 'blurhash': blurhash,
         if (expiresAt != null) 'expiresAt': expiresAt,
-        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toIso8601String(),
+        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toUtc().toIso8601String(),
         'mediaExpired': false,
       };
 
@@ -2007,12 +2007,12 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
 
       final nowDateTime = DateTime.now();
-      final now = nowDateTime.toIso8601String();
+      final now = nowDateTime.toUtc().toIso8601String();
 
       // Calculate expiresAt if auto-delete is enabled
       String? expiresAt;
       if (autoDeleteSeconds != null) {
-        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toUtc().toIso8601String();
       }
 
       final messageData = {
@@ -2037,7 +2037,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'replyToMessageData': replyToMessageData,
         if (isForwarded) 'isForwarded': true,
         if (expiresAt != null) 'expiresAt': expiresAt,
-        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toIso8601String(),
+        'mediaExpiresAt': nowDateTime.add(const Duration(days: 15)).toUtc().toIso8601String(),
         'mediaExpired': false,
       };
 
@@ -2100,12 +2100,12 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
 
       final nowDateTime = DateTime.now();
-      final now = nowDateTime.toIso8601String();
+      final now = nowDateTime.toUtc().toIso8601String();
 
       // Calculate expiresAt if auto-delete is enabled
       String? expiresAt;
       if (autoDeleteSeconds != null) {
-        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toUtc().toIso8601String();
       }
 
       // Location: coordinates stay AES (they are numeric, already low-precision).
@@ -2190,12 +2190,12 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
 
       final nowDateTime = DateTime.now();
-      final now = nowDateTime.toIso8601String();
+      final now = nowDateTime.toUtc().toIso8601String();
 
       // Calculate expiresAt if auto-delete is enabled
       String? expiresAt;
       if (autoDeleteSeconds != null) {
-        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toIso8601String();
+        expiresAt = nowDateTime.add(Duration(seconds: autoDeleteSeconds)).toUtc().toIso8601String();
       }
 
       final messageData = {
@@ -2532,7 +2532,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       // 3. Update message to mark as deleted for everyone
       await messageRef.update({
         'deletedForEveryone': true,
-        'deletedAt': DateTime.now().toIso8601String(),
+        'deletedAt': DateTime.now().toUtc().toIso8601String(),
         'content': '', // Clear content
         'fileUrl': null, // Clear file URL if any
         'thumbnailUrl': null, // Clear thumbnail
@@ -2676,7 +2676,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String content,
   }) async {
     try {
-      final now = DateTime.now().toIso8601String();
+      final now = DateTime.now().toUtc().toIso8601String();
 
       final messageData = {
         'senderId': 'system',
@@ -2821,7 +2821,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       }
 
       final data = _safeMap(snapshot.value);
-      final now = DateTime.now().toIso8601String();
+      final now = DateTime.now().toUtc().toIso8601String();
 
       // Get existing edit history or create new one
       List<Map<String, dynamic>> editHistory = [];
@@ -3155,7 +3155,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     try {
       final snapshot = await _messagesRef(conversationId)
           .orderByChild('createdAt')
-          .startAt(since.toIso8601String())
+          .startAt(since.toUtc().toIso8601String())
           .limitToLast(limit)
           .get();
 

@@ -56,7 +56,7 @@ class LegalRemoteDataSourceImpl implements LegalRemoteDataSource {
 
         // Convertir les timestamps
         if (data['updatedAt'] is Timestamp) {
-          data['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+          data['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
 
         // Convertir les sections
@@ -110,7 +110,7 @@ class LegalRemoteDataSourceImpl implements LegalRemoteDataSource {
       // Convertir le timestamp
       if (acceptanceData['acceptedAt'] is Timestamp) {
         acceptanceData['acceptedAt'] =
-            (acceptanceData['acceptedAt'] as Timestamp).toDate().toIso8601String();
+            (acceptanceData['acceptedAt'] as Timestamp).toDate().toUtc().toIso8601String();
       }
 
       return UserLegalAcceptance.fromJson(acceptanceData);

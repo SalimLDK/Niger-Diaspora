@@ -285,7 +285,7 @@ class KeyManagerService {
         'keyId': signedPreKey.keyId,
         'publicKey': signedPreKey.publicKeyBase64,
         'signature': signedPreKey.signatureBase64,
-        'createdAt': signedPreKey.createdAt.toIso8601String(),
+        'createdAt': signedPreKey.createdAt.toUtc().toIso8601String(),
       },
       'platform': defaultTargetPlatform.name,
       'last_active': DateTime.now().toUtc().toIso8601String(),
@@ -504,7 +504,7 @@ class KeyManagerService {
           'keyId': newSignedPreKey.keyId,
           'publicKey': newSignedPreKey.publicKeyBase64,
           'signature': newSignedPreKey.signatureBase64,
-          'createdAt': newSignedPreKey.createdAt.toIso8601String(),
+          'createdAt': newSignedPreKey.createdAt.toUtc().toIso8601String(),
         },
         'last_active': DateTime.now().toUtc().toIso8601String(),
       }).eq('user_id', userId).eq('device_id', deviceId);

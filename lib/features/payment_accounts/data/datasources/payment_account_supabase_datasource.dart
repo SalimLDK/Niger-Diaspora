@@ -166,7 +166,7 @@ class PaymentAccountSupabaseDatasource {
       'label': account.label,
       'is_default': account.isDefault,
       'data': _toData(account),
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', account.id);
   }
 
@@ -184,7 +184,7 @@ class PaymentAccountSupabaseDatasource {
     await _clearDefaultFlag(userId);
     await _supabase
         .from('payment_accounts')
-        .update({'is_default': true, 'updated_at': DateTime.now().toIso8601String()})
+        .update({'is_default': true, 'updated_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', accountId)
         .eq('user_id', userId);
   }

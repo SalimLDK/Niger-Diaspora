@@ -391,7 +391,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final eventData = <String, dynamic>{
       'eventId': created.id,
       'title': created.title,
-      'startDate': created.startDate.toIso8601String(),
+      'startDate': created.startDate.toUtc().toIso8601String(),
       'location': created.location,
       'isOnline': created.isOnline,
     };

@@ -56,13 +56,13 @@ class BusinessModel with _$BusinessModel {
 
     // Conversion des timestamps
     if (data['createdAt'] is Timestamp) {
-      processedData['createdAt'] = (data['createdAt'] as Timestamp).toDate().toIso8601String();
+      processedData['createdAt'] = (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
     if (data['updatedAt'] is Timestamp) {
-      processedData['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+      processedData['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
     if (data['boostExpiresAt'] is Timestamp) {
-      processedData['boostExpiresAt'] = (data['boostExpiresAt'] as Timestamp).toDate().toIso8601String();
+      processedData['boostExpiresAt'] = (data['boostExpiresAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
 
     // Assurer que les listes sont bien des List<String>

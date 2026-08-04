@@ -71,7 +71,7 @@ class E2EEEncryptedMessage {
         'ciphertext': ciphertext,
         if (senderEphemeralKey != null) 'senderEphemeralKey': senderEphemeralKey,
         'protocolVersion': protocolVersion,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
       };
 
   factory E2EEEncryptedMessage.fromJson(Map<String, dynamic> json) {
@@ -160,7 +160,7 @@ class E2EESignedPreKey {
         'publicKey': publicKeyBase64,
         'privateKey': privateKeyBase64,
         'signature': signatureBase64,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
       };
 
   factory E2EESignedPreKey.fromJson(Map<String, dynamic> json) {
@@ -178,7 +178,7 @@ class E2EESignedPreKey {
         'keyId': keyId,
         'publicKey': publicKeyBase64,
         'signature': signatureBase64,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
       };
 }
 
@@ -312,8 +312,8 @@ class E2EEDeviceInfo {
         'deviceName': deviceName,
         'platform': platform,
         'identityKeyPublic': identityKeyPublic,
-        'createdAt': createdAt.toIso8601String(),
-        'lastActive': lastActive.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
+        'lastActive': lastActive.toUtc().toIso8601String(),
       };
 
   factory E2EEDeviceInfo.fromJson(Map<String, dynamic> json) {
@@ -571,7 +571,7 @@ class E2EEEncryptedBackup {
         'ciphertext': ciphertextBase64,
         'authTag': authTagBase64,
         'deviceInfo': deviceInfo,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
       };
 
   factory E2EEEncryptedBackup.fromJson(Map<String, dynamic> json) {

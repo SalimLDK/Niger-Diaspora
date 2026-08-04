@@ -37,7 +37,7 @@ class BackgroundPendingMessage {
     'senderId': senderId,
     'senderName': senderName,
     'senderPhotoUrl': senderPhotoUrl,
-    'createdAt': createdAt.toIso8601String(),
+    'createdAt': createdAt.toUtc().toIso8601String(),
     'retryCount': retryCount,
   };
 
@@ -205,12 +205,12 @@ class BackgroundReplyService {
       data['last_message'] = encryptedLastMessage;
       data['last_message_sender_id'] = senderId;
       data['last_message_status'] = 'sent';
-      data['last_message_at'] = DateTime.now().toIso8601String();
+      data['last_message_at'] = DateTime.now().toUtc().toIso8601String();
       data['unread_counts'] = unreadCounts;
 
       await Supabase.instance.client
           .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toIso8601String()})
+          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
           .eq('id', conversationId);
     } catch (e) {
       // Non critique - le message est déjà envoyé
@@ -239,7 +239,7 @@ class BackgroundReplyService {
 
       await Supabase.instance.client
           .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toIso8601String()})
+          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
           .eq('id', conversationId);
       return true;
     } catch (e) {

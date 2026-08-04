@@ -123,7 +123,7 @@ class KeyBackupService {
         contentType: 'application/json',
         customMetadata: {
           'version': backup.version.toString(),
-          'createdAt': backup.createdAt.toIso8601String(),
+          'createdAt': backup.createdAt.toUtc().toIso8601String(),
           'deviceInfo': backup.deviceInfo,
         },
       ),

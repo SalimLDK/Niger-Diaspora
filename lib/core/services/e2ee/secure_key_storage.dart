@@ -545,7 +545,7 @@ class SecureKeyStorage {
       'signedPreKey': currentSignedPreKey?.toJson(),
       'oneTimePreKeys': oneTimePreKeys,
       'sessions': sessions,
-      'exportedAt': DateTime.now().toIso8601String(),
+      'exportedAt': DateTime.now().toUtc().toIso8601String(),
     };
   }
 

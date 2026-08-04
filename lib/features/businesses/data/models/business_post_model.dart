@@ -42,14 +42,14 @@ class BusinessPostModel with _$BusinessPostModel {
       originalPrice: entity.originalPrice,
       discountedPrice: entity.discountedPrice,
       discountPercent: entity.discountPercent,
-      offerStartDate: entity.offerStartDate?.toIso8601String(),
-      offerEndDate: entity.offerEndDate?.toIso8601String(),
+      offerStartDate: entity.offerStartDate?.toUtc().toIso8601String(),
+      offerEndDate: entity.offerEndDate?.toUtc().toIso8601String(),
       promoCode: entity.promoCode,
       viewCount: entity.viewCount,
       likeCount: entity.likeCount,
       isActive: entity.isActive,
-      createdAt: entity.createdAt?.toIso8601String(),
-      updatedAt: entity.updatedAt?.toIso8601String(),
+      createdAt: entity.createdAt?.toUtc().toIso8601String(),
+      updatedAt: entity.updatedAt?.toUtc().toIso8601String(),
     );
   }
 

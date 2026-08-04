@@ -76,7 +76,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
           if (contextType == 'group') 'created_by': userId,
           'question': question,
           'allow_multiple': allowMultiple,
-          'ends_at': endsAt?.toIso8601String(),
+          'ends_at': endsAt?.toUtc().toIso8601String(),
         })
         .select()
         .single();

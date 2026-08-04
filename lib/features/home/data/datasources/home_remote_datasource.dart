@@ -64,7 +64,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         nearbyMembers: results[1] as List<NearbyMemberModel>,
         upcomingEvents: results[2] as List<UpcomingEventModel>,
         quickActions: _getDefaultQuickActions(),
-        lastUpdated: DateTime.now().toIso8601String(),
+        lastUpdated: DateTime.now().toUtc().toIso8601String(),
       );
     } catch (e) {
       debugPrint('HomeRemoteDataSource: Error getting home content: $e');
@@ -187,7 +187,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                   lastSeen:
                       (data['lastSeen'] as Timestamp?)
                           ?.toDate()
-                          .toIso8601String(),
+                          .toUtc().toIso8601String(),
                   isOnline: data['isOnline'] as bool? ?? false,
                 ),
               );
@@ -227,7 +227,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           id: doc.id,
           title: data['title'] as String? ?? '',
           startDate:
-              (data['startDate'] as Timestamp).toDate().toIso8601String(),
+              (data['startDate'] as Timestamp).toDate().toUtc().toIso8601String(),
           imageUrl: data['imageUrl'] as String?,
           location: data['location'] as String?,
           attendeesCount: attendees.length,

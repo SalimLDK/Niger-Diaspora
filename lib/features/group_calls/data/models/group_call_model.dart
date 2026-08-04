@@ -63,7 +63,7 @@ class GroupCallModel extends Equatable {
       mode: json['mode'] as String? ?? 'mesh',
       isE2EEEnabled: json['isE2EEEnabled'] as bool? ?? true,
       e2eeKeyId: json['e2eeKeyId'] as String?,
-      createdAt: _timestampToString(json['createdAt']) ?? DateTime.now().toIso8601String(),
+      createdAt: _timestampToString(json['createdAt']) ?? DateTime.now().toUtc().toIso8601String(),
       startedAt: _timestampToString(json['startedAt']),
       endedAt: _timestampToString(json['endedAt']),
       durationSeconds: json['durationSeconds'] as int?,
@@ -77,7 +77,7 @@ class GroupCallModel extends Equatable {
     final data = <String, dynamic>{'id': doc.id};
     rawData.forEach((key, value) {
       if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+        data[key] = value.toDate().toUtc().toIso8601String();
       } else {
         data[key] = value;
       }
@@ -160,9 +160,9 @@ class GroupCallModel extends Equatable {
       mode: entity.mode.name,
       isE2EEEnabled: entity.isE2EEEnabled,
       e2eeKeyId: entity.e2eeKeyId,
-      createdAt: entity.createdAt.toIso8601String(),
-      startedAt: entity.startedAt?.toIso8601String(),
-      endedAt: entity.endedAt?.toIso8601String(),
+      createdAt: entity.createdAt.toUtc().toIso8601String(),
+      startedAt: entity.startedAt?.toUtc().toIso8601String(),
+      endedAt: entity.endedAt?.toUtc().toIso8601String(),
       durationSeconds: entity.durationSeconds,
       livekitRoomName: entity.livekitRoomName,
       groupId: entity.groupId,
@@ -219,7 +219,7 @@ class GroupCallModel extends Equatable {
   static String? _timestampToString(dynamic timestamp) {
     if (timestamp == null) return null;
     if (timestamp is Timestamp) {
-      return timestamp.toDate().toIso8601String();
+      return timestamp.toDate().toUtc().toIso8601String();
     }
     if (timestamp is String) return timestamp;
     return null;

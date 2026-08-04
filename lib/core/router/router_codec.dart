@@ -64,7 +64,7 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
   Map<String, dynamic> _encodeMap(Map<String, dynamic> map) {
     return map.map((key, value) {
       if (value is DateTime) {
-        return MapEntry(key, {'__type': 'DateTime', 'value': value.toIso8601String()});
+        return MapEntry(key, {'__type': 'DateTime', 'value': value.toUtc().toIso8601String()});
       }
       return MapEntry(key, value);
     });
@@ -84,7 +84,7 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'isPrivate': entity.isPrivate,
     'location': entity.location,
     'tags': entity.tags,
-    'createdAt': entity.createdAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
   };
 
   // ============ ProfileEntity ============
@@ -115,10 +115,10 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'connectionsCount': entity.connectionsCount,
     'groupsCount': entity.groupsCount,
     'eventsCount': entity.eventsCount,
-    'createdAt': entity.createdAt?.toIso8601String(),
-    'lastLoginAt': entity.lastLoginAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
+    'lastLoginAt': entity.lastLoginAt?.toUtc().toIso8601String(),
     'isOnline': entity.isOnline,
-    'lastSeen': entity.lastSeen?.toIso8601String(),
+    'lastSeen': entity.lastSeen?.toUtc().toIso8601String(),
     'showOnlineStatus': entity.showOnlineStatus,
   };
 
@@ -127,8 +127,8 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'id': entity.id,
     'title': entity.title,
     'description': entity.description,
-    'startDate': entity.startDate.toIso8601String(),
-    'endDate': entity.endDate?.toIso8601String(),
+    'startDate': entity.startDate.toUtc().toIso8601String(),
+    'endDate': entity.endDate?.toUtc().toIso8601String(),
     'location': entity.location,
     'address': entity.address,
     'latitude': entity.latitude,
@@ -143,10 +143,10 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'onlineLink': entity.onlineLink,
     'category': entity.category.index,
     'status': entity.status.index,
-    'createdAt': entity.createdAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
     'recapPhotoUrls': entity.recapPhotoUrls,
     'recapDescription': entity.recapDescription,
-    'recapCreatedAt': entity.recapCreatedAt?.toIso8601String(),
+    'recapCreatedAt': entity.recapCreatedAt?.toUtc().toIso8601String(),
   };
 
   // ============ EmbassyEntity ============
@@ -167,14 +167,14 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'openingHours': entity.openingHours,
     'isVerified': entity.isVerified,
     'isSuspended': entity.isSuspended,
-    'verifiedAt': entity.verifiedAt?.toIso8601String(),
+    'verifiedAt': entity.verifiedAt?.toUtc().toIso8601String(),
     'rejectionReason': entity.rejectionReason,
     'jurisdictionCountries': entity.jurisdictionCountries,
     'activities': entity.activities.map(_encodeEmbassyActivity).toList(),
     'news': entity.news.map(_encodeEmbassyNews).toList(),
     'isTemporarilyClosed': entity.isTemporarilyClosed,
     'closureMessage': entity.closureMessage,
-    'reopenDate': entity.reopenDate?.toIso8601String(),
+    'reopenDate': entity.reopenDate?.toUtc().toIso8601String(),
     'upcomingServices': entity.upcomingServices,
   };
 
@@ -182,7 +182,7 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'id': activity.id,
     'title': activity.title,
     'description': activity.description,
-    'date': activity.date.toIso8601String(),
+    'date': activity.date.toUtc().toIso8601String(),
     'location': activity.location,
     'imageUrl': activity.imageUrl,
   };
@@ -191,7 +191,7 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'id': news.id,
     'title': news.title,
     'content': news.content,
-    'date': news.date.toIso8601String(),
+    'date': news.date.toUtc().toIso8601String(),
     'imageUrl': news.imageUrl,
   };
 
@@ -216,14 +216,14 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'openingHours': entity.openingHours.map((k, v) => MapEntry(k, v.toJson())),
     'isVerified': entity.isVerified,
     'isBoosted': entity.isBoosted,
-    'boostExpiresAt': entity.boostExpiresAt?.toIso8601String(),
+    'boostExpiresAt': entity.boostExpiresAt?.toUtc().toIso8601String(),
     'averageRating': entity.averageRating,
     'reviewCount': entity.reviewCount,
     'viewCount': entity.viewCount,
     'tags': entity.tags,
     'services': entity.services,
-    'createdAt': entity.createdAt?.toIso8601String(),
-    'updatedAt': entity.updatedAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
+    'updatedAt': entity.updatedAt?.toUtc().toIso8601String(),
   };
 
   // ============ ProductEntity ============
@@ -247,8 +247,8 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'isTaxable': entity.isTaxable,
     'customTaxRate': entity.customTaxRate,
     'taxIncludedInPrice': entity.taxIncludedInPrice,
-    'createdAt': entity.createdAt?.toIso8601String(),
-    'updatedAt': entity.updatedAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
+    'updatedAt': entity.updatedAt?.toUtc().toIso8601String(),
   };
 
   // ============ RecipientEntity ============
@@ -265,8 +265,8 @@ class _AppRouterEncoder extends Converter<Object?, Object?> {
     'city': entity.city,
     'address': entity.address,
     'isFavorite': entity.isFavorite,
-    'createdAt': entity.createdAt?.toIso8601String(),
-    'lastUsedAt': entity.lastUsedAt?.toIso8601String(),
+    'createdAt': entity.createdAt?.toUtc().toIso8601String(),
+    'lastUsedAt': entity.lastUsedAt?.toUtc().toIso8601String(),
   };
 }
 

@@ -68,7 +68,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
 
       await _supabase.from('group_requests').update({
         'status': 'approved',
-        'processed_at': DateTime.now().toIso8601String(),
+        'processed_at': DateTime.now().toUtc().toIso8601String(),
         'processed_by': _supabase.auth.currentUser?.id,
       }).eq('id', requestId);
 
@@ -98,7 +98,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
       await _supabase.from('group_requests').update({
         'status': 'rejected',
-        'processed_at': DateTime.now().toIso8601String(),
+        'processed_at': DateTime.now().toUtc().toIso8601String(),
         'processed_by': _supabase.auth.currentUser?.id,
       }).eq('id', requestId);
     } catch (e) {
@@ -187,7 +187,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
 
       await _supabase.from('group_invites').update({
         'status': 'accepted',
-        'responded_at': DateTime.now().toIso8601String(),
+        'responded_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', inviteId);
 
       final groupRow = await _supabase
@@ -216,7 +216,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
       await _supabase.from('group_invites').update({
         'status': 'declined',
-        'responded_at': DateTime.now().toIso8601String(),
+        'responded_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', inviteId);
     } catch (e) {
       throw ServerException(e.toString());

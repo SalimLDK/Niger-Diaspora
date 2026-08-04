@@ -112,7 +112,7 @@ final class ConversationModel {
     final data = <String, dynamic>{'id': doc.id};
     rawData.forEach((key, value) {
       if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+        data[key] = value.toDate().toUtc().toIso8601String();
       } else {
         data[key] = value;
       }
@@ -135,10 +135,10 @@ final class ConversationModel {
       if (lastMessageSenderId != null) 'lastMessageSenderId': lastMessageSenderId,
       'lastMessageStatus': lastMessageStatus.name,
       if (lastMessageType != null) 'lastMessageType': lastMessageType!.name,
-      if (lastMessageAt != null) 'lastMessageAt': lastMessageAt!.toIso8601String(),
+      if (lastMessageAt != null) 'lastMessageAt': lastMessageAt!.toUtc().toIso8601String(),
       if (lastMessageReadBy.isNotEmpty) 'lastMessageReadBy': lastMessageReadBy,
       if (lastMessageDeliveredTo.isNotEmpty) 'lastMessageDeliveredTo': lastMessageDeliveredTo,
-      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+      if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
       'createdBy': createdBy,
       if (unreadCount.isNotEmpty) 'unreadCount': unreadCount,
       if (unreadMentions.isNotEmpty) 'unreadMentions': unreadMentions,
@@ -150,8 +150,8 @@ final class ConversationModel {
         'autoDeleteAfterSeconds': autoDeleteAfterSeconds,
       'requestStatus': requestStatus,
       if (requesterId != null) 'requesterId': requesterId,
-      if (requestedAt != null) 'requestedAt': requestedAt!.toIso8601String(),
-      if (respondedAt != null) 'respondedAt': respondedAt!.toIso8601String(),
+      if (requestedAt != null) 'requestedAt': requestedAt!.toUtc().toIso8601String(),
+      if (respondedAt != null) 'respondedAt': respondedAt!.toUtc().toIso8601String(),
     };
   }
 
@@ -163,17 +163,17 @@ final class ConversationModel {
     json['createdAt'] = FieldValue.serverTimestamp();
 
     if (lastMessageAt != null) {
-      json['lastMessageAt'] = lastMessageAt!.toIso8601String();
+      json['lastMessageAt'] = lastMessageAt!.toUtc().toIso8601String();
     }
 
     json['lastMessageStatus'] = lastMessageStatus.name;
 
     // Handle request timestamps
     if (requestedAt != null) {
-      json['requestedAt'] = requestedAt!.toIso8601String();
+      json['requestedAt'] = requestedAt!.toUtc().toIso8601String();
     }
     if (respondedAt != null) {
-      json['respondedAt'] = respondedAt!.toIso8601String();
+      json['respondedAt'] = respondedAt!.toUtc().toIso8601String();
     }
 
     return json;
@@ -233,13 +233,13 @@ final class ConversationModel {
         createdBy: entity.createdBy,
         unreadCount: entity.unreadCount.map((k, v) => MapEntry(k, v)),
         unreadMentions: entity.unreadMentions.map((k, v) => MapEntry(k, v)),
-        mutedBy: entity.mutedBy.map((k, v) => MapEntry(k, v?.toIso8601String() ?? 'forever')),
+        mutedBy: entity.mutedBy.map((k, v) => MapEntry(k, v?.toUtc().toIso8601String() ?? 'forever')),
         archivedBy: entity.archivedBy.map((k, v) => MapEntry(k, v)),
         pinnedBy: entity.pinnedBy.map(
-          (k, v) => MapEntry(k, v.toIso8601String()),
+          (k, v) => MapEntry(k, v.toUtc().toIso8601String()),
         ),
         deletedBy: entity.deletedBy.map(
-          (k, v) => MapEntry(k, v.toIso8601String()),
+          (k, v) => MapEntry(k, v.toUtc().toIso8601String()),
         ),
         autoDeleteAfterSeconds: entity.autoDeleteAfterSeconds,
         requestStatus: entity.requestStatus.name,

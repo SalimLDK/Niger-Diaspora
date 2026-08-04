@@ -31,7 +31,7 @@ class LoggerService {
   ]) {
     if (level == LogLevel.debug && !_showDebugLogs) return;
 
-    final timestamp = DateTime.now().toIso8601String();
+    final timestamp = DateTime.now().toUtc().toIso8601String();
     final emoji = _showEmojis ? _getEmoji(level) : '';
     final label = _getLabel(level);
 

@@ -104,7 +104,7 @@ class GroupModel extends Equatable {
       'isPrivate': isPrivate,
       'location': location,
       'tags': tags,
-      'createdAt': createdAt?.toIso8601String(),
+      'createdAt': createdAt?.toUtc().toIso8601String(),
       'country': country,
       'originRegion': originRegion,
       'permissions': permissions,

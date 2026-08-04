@@ -42,15 +42,15 @@ class ReviewModel with _$ReviewModel {
     // Conversion des timestamps
     if (data['createdAt'] is Timestamp) {
       processedData['createdAt'] =
-          (data['createdAt'] as Timestamp).toDate().toIso8601String();
+          (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
     if (data['updatedAt'] is Timestamp) {
       processedData['updatedAt'] =
-          (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+          (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
     if (data['ownerReplyAt'] is Timestamp) {
       processedData['ownerReplyAt'] =
-          (data['ownerReplyAt'] as Timestamp).toDate().toIso8601String();
+          (data['ownerReplyAt'] as Timestamp).toDate().toUtc().toIso8601String();
     }
 
     // Assurer que les listes sont bien des List<String>
@@ -107,8 +107,8 @@ class ReviewModel with _$ReviewModel {
         helpfulByUserIds: entity.helpfulByUserIds,
         status: entity.status.name,
         ownerReply: entity.ownerReply,
-        ownerReplyAt: entity.ownerReplyAt?.toIso8601String(),
-        createdAt: entity.createdAt?.toIso8601String(),
-        updatedAt: entity.updatedAt?.toIso8601String(),
+        ownerReplyAt: entity.ownerReplyAt?.toUtc().toIso8601String(),
+        createdAt: entity.createdAt?.toUtc().toIso8601String(),
+        updatedAt: entity.updatedAt?.toUtc().toIso8601String(),
       );
 }

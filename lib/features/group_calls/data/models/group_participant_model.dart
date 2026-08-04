@@ -53,7 +53,7 @@ class GroupParticipantModel extends Equatable {
       videoQuality: json['videoQuality'] as String? ?? 'medium',
       audioLevel: (json['audioLevel'] as num?)?.toDouble() ?? 0.0,
       networkQuality: json['networkQuality'] as int? ?? 0,
-      joinedAt: _timestampToString(json['joinedAt']) ?? DateTime.now().toIso8601String(),
+      joinedAt: _timestampToString(json['joinedAt']) ?? DateTime.now().toUtc().toIso8601String(),
       leftAt: _timestampToString(json['leftAt']),
     );
   }
@@ -62,7 +62,7 @@ class GroupParticipantModel extends Equatable {
     final data = <String, dynamic>{'id': doc.id};
     rawData.forEach((key, value) {
       if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+        data[key] = value.toDate().toUtc().toIso8601String();
       } else {
         data[key] = value;
       }
@@ -104,7 +104,7 @@ class GroupParticipantModel extends Equatable {
       videoQuality: data['videoQuality'] as String? ?? 'medium',
       audioLevel: (data['audioLevel'] as num?)?.toDouble() ?? 0.0,
       networkQuality: data['networkQuality'] as int? ?? 0,
-      joinedAt: data['joinedAt'] as String? ?? DateTime.now().toIso8601String(),
+      joinedAt: data['joinedAt'] as String? ?? DateTime.now().toUtc().toIso8601String(),
       leftAt: data['leftAt'] as String?,
     );
   }
@@ -173,8 +173,8 @@ class GroupParticipantModel extends Equatable {
       videoQuality: entity.videoQuality.name,
       audioLevel: entity.audioLevel,
       networkQuality: entity.networkQuality,
-      joinedAt: entity.joinedAt.toIso8601String(),
-      leftAt: entity.leftAt?.toIso8601String(),
+      joinedAt: entity.joinedAt.toUtc().toIso8601String(),
+      leftAt: entity.leftAt?.toUtc().toIso8601String(),
     );
   }
 
@@ -217,7 +217,7 @@ class GroupParticipantModel extends Equatable {
   static String? _timestampToString(dynamic timestamp) {
     if (timestamp == null) return null;
     if (timestamp is Timestamp) {
-      return timestamp.toDate().toIso8601String();
+      return timestamp.toDate().toUtc().toIso8601String();
     }
     if (timestamp is String) return timestamp;
     return null;

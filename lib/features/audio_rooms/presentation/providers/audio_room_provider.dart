@@ -281,10 +281,10 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
         hostName: currentUser.displayName ?? 'Utilisateur',
         hostPhotoUrl: currentUser.photoUrl,
         status: scheduledAt != null ? 'scheduled' : 'live',
-        scheduledAt: scheduledAt?.toIso8601String(),
+        scheduledAt: scheduledAt?.toUtc().toIso8601String(),
         startedAt:
-            scheduledAt == null ? DateTime.now().toIso8601String() : null,
-        createdAt: DateTime.now().toIso8601String(),
+            scheduledAt == null ? DateTime.now().toUtc().toIso8601String() : null,
+        createdAt: DateTime.now().toUtc().toIso8601String(),
         isPrivate: isPrivate,
         isRecordingEnabled: isRecordingEnabled,
         isVideoEnabled: isVideoEnabled,

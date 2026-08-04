@@ -534,7 +534,7 @@ class ContentModerationService {
   Map<String, dynamic> generateModerationMetadata(ModerationResult result) {
     return {
       'moderationVersion': 1,
-      'checkedAt': DateTime.now().toIso8601String(),
+      'checkedAt': DateTime.now().toUtc().toIso8601String(),
       'flags': result.issues.map((i) => i.type.name).toList(),
       'requiresReview': result.requiresReview,
       // Ne PAS inclure le contenu ou des détails révélateurs

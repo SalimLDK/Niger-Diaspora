@@ -449,7 +449,7 @@ class SenderKeyEncryptedMessage {
         'keyId': keyId,
         'chainIndex': chainIndex,
         'ciphertext': ciphertext,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt.toUtc().toIso8601String(),
       };
 
   factory SenderKeyEncryptedMessage.fromJson(Map<String, dynamic> json) {

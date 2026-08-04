@@ -210,7 +210,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         status: 'waiting',
         mode: mode.name,
         isE2EEEnabled: enableE2EE,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now().toUtc().toIso8601String(),
       );
 
       final docRef = await _firestore
@@ -300,7 +300,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         status: 'active',
         mode: mode.name,
         isE2EEEnabled: true,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now().toUtc().toIso8601String(),
       );
 
       final docRef = await _firestore

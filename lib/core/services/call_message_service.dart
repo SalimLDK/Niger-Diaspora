@@ -100,13 +100,13 @@ class CallMessageService {
           .maybeSingle();
       final data = Map<String, dynamic>.from(existing?['data'] as Map? ?? {});
       data['last_message'] = messageContent;
-      data['last_message_at'] = DateTime.now().toIso8601String();
+      data['last_message_at'] = DateTime.now().toUtc().toIso8601String();
       data['last_message_sender_id'] = currentUserId;
       data['last_message_type'] = 'call';
       data['last_call_status'] = callStatus;
       await Supabase.instance.client
           .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toIso8601String()})
+          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
           .eq('id', convId);
 
       debugPrint('appel: Supabase conversation updated');
@@ -160,12 +160,12 @@ class CallMessageService {
         'type': 'individual',
         'participant_ids': [user1Id, user2Id],
         'created_by': user1Id,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
         'data': {
           'created_by': user1Id,
           'unread_counts': {user1Id: 0, user2Id: 0},
-          'last_message_at': DateTime.now().toIso8601String(),
+          'last_message_at': DateTime.now().toUtc().toIso8601String(),
         },
       });
       debugPrint('appel: New conversation created: $newId');

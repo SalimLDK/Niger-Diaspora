@@ -413,7 +413,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'display_name': displayName ?? user.displayName,
         'avatar_url': photoUrl ?? user.photoURL,
         'phone_number': user.phoneNumber,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       }, onConflict: 'id',);
       if (kDebugMode) dev.log('_upsertUserToSupabase: upsert effectue avec succes', name: _tag);
     } catch (e, stackTrace) {

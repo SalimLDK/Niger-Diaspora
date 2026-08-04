@@ -78,7 +78,7 @@ class NotificationModel with _$NotificationModel {
   static String? _timestampToIso(dynamic timestamp) {
     if (timestamp == null) return null;
     if (timestamp is Timestamp) {
-      return timestamp.toDate().toIso8601String();
+      return timestamp.toDate().toUtc().toIso8601String();
     }
     if (timestamp is String) return timestamp;
     return null;

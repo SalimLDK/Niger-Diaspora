@@ -113,7 +113,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
     if (data['category'] != null) updates['category'] = data['category'];
     if (data['status'] != null) updates['status'] = data['status'];
     if (data['isExplicit'] != null) updates['is_explicit'] = data['isExplicit'];
-    updates['updated_at'] = DateTime.now().toIso8601String();
+    updates['updated_at'] = DateTime.now().toUtc().toIso8601String();
 
     await _supabase.from('podcasts').update(updates).eq('id', podcastId);
   }
@@ -209,7 +209,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
           // Sans date de publication, la section « Rythme de publication » des
           // statistiques n'a rien à mesurer. Un brouillon n'en a pas.
           if (status == 'published')
-            'published_at': DateTime.now().toIso8601String(),
+            'published_at': DateTime.now().toUtc().toIso8601String(),
         })
         .select()
         .single();
@@ -237,7 +237,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
       // Publication différée (brouillon -> publié) : dater le passage, sinon
       // l'épisode compterait comme publié sans date.
       if (data['status'] == 'published') {
-        updates['published_at'] = DateTime.now().toIso8601String();
+        updates['published_at'] = DateTime.now().toUtc().toIso8601String();
       }
     }
     if (data['audioUrl'] != null) updates['audio_url'] = data['audioUrl'];
@@ -378,7 +378,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
       'user_id': userId,
       'podcast_id': await _podcastIdForEpisode(episodeId),
       'liked': true,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'user_id,episode_id',);
     await _refreshLikeCount(episodeId);
   }
@@ -387,7 +387,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
   Future<void> unlikeEpisode(String episodeId, String userId) async {
     await _supabase
         .from('podcast_user_data')
-        .update({'liked': false, 'updated_at': DateTime.now().toIso8601String()})
+        .update({'liked': false, 'updated_at': DateTime.now().toUtc().toIso8601String()})
         .eq('episode_id', episodeId)
         .eq('user_id', userId);
     await _refreshLikeCount(episodeId);
@@ -415,7 +415,7 @@ class PodcastSupabaseDataSource implements PodcastRemoteDataSource {
       'podcast_id': await _podcastIdForEpisode(episodeId),
       'progress_seconds': progressSeconds,
       'completed': completed,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'user_id,episode_id',);
   }
 

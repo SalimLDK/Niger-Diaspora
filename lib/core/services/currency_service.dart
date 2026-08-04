@@ -511,7 +511,7 @@ class ExchangeRate {
     'from': from.code,
     'to': to.code,
     'rate': rate,
-    'timestamp': timestamp.toIso8601String(),
+    'timestamp': timestamp.toUtc().toIso8601String(),
   };
 
   factory ExchangeRate.fromJson(Map<String, dynamic> json) => ExchangeRate(
@@ -1073,7 +1073,7 @@ class CurrencyService {
       );
       await prefs.setString(_cacheKey, encoded);
       if (_lastFetch != null) {
-        await prefs.setString(_lastFetchKey, _lastFetch!.toIso8601String());
+        await prefs.setString(_lastFetchKey, _lastFetch!.toUtc().toIso8601String());
       }
     } catch (e) {
       debugPrint('CurrencyService: Error saving cached rates: $e');

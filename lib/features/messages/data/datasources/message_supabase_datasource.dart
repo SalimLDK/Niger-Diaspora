@@ -808,7 +808,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (audioWaveform != null) 'audioWaveform': audioWaveform,
         if (blurhash != null) 'blurhash': blurhash,
         'mediaExpiresAt':
-            DateTime.now().add(const Duration(days: 15)).toIso8601String(),
+            DateTime.now().add(const Duration(days: 15)).toUtc().toIso8601String(),
         'mediaExpired': false,
       };
 
@@ -1546,7 +1546,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     final muteValue =
         duration == null
             ? 'forever'
-            : DateTime.now().add(duration).toIso8601String();
+            : DateTime.now().add(duration).toUtc().toIso8601String();
     await _mergeConvData(conversationId, {
       'mutedBy': {userId: muteValue},
     }, merge: true);
@@ -1993,7 +1993,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // Return oldest message's createdAt as cursor for next page
       final newCursor =
           messages.isNotEmpty
-              ? messages.last.createdAt?.toIso8601String()
+              ? messages.last.createdAt?.toUtc().toIso8601String()
               : null;
 
       // Reverse to oldest-first for display

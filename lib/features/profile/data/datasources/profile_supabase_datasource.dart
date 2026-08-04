@@ -181,7 +181,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
           'skills': profile.skills,
           'languages': profile.languages,
           'show_online_status': profile.showOnlineStatus,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .select()
         .maybeSingle();
@@ -209,7 +209,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     await _supabase.from('users').update({
       'latitude': latitude,
       'longitude': longitude,
-      'location_updated_at': DateTime.now().toIso8601String(),
+      'location_updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', userId);
   }
 
@@ -217,7 +217,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   Future<void> updateLastLogin(String userId) async {
     await _requireAuth();
     await _supabase.from('users').update({
-      'last_active_at': DateTime.now().toIso8601String(),
+      'last_active_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', userId);
   }
 
@@ -230,7 +230,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     await _requireAuth();
     await _supabase.from('users').update({
       'is_online': isOnline,
-      'last_seen_at': lastSeen.toIso8601String(),
+      'last_seen_at': lastSeen.toUtc().toIso8601String(),
     }).eq('id', userId);
   }
 

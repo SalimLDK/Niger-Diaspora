@@ -86,7 +86,7 @@ class SupabaseAuthBridge {
           'user_metadata': payload['user_metadata'] ?? <String, dynamic>{},
           'created_at': DateTime.fromMillisecondsSinceEpoch(
             ((payload['iat'] as num?)?.toInt() ?? 0) * 1000,
-          ).toIso8601String(),
+          ).toUtc().toIso8601String(),
         };
       } catch (e) {
         debugPrint('SupabaseAuthBridge: JWT decode failed: $e');

@@ -340,7 +340,7 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
         _supabase
             .from('users')
             .select('id')
-            .gte('last_active_at', yesterday.toIso8601String())
+            .gte('last_active_at', yesterday.toUtc().toIso8601String())
             .count(CountOption.exact)
             .then((r) => r.count)
             .catchError((_) => 0),
@@ -539,7 +539,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
           .from('businesses')
           .update({
             'is_verified': true,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', businessId);
 
@@ -569,7 +569,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
           .from('businesses')
           .update({
             'is_verified': false,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', businessId);
 
@@ -599,13 +599,13 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     try {
       final updates = <String, dynamic>{
         'is_boosted': boost,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
       if (boost) {
         updates['boost_expires_at'] = DateTime.now()
             .add(Duration(days: days))
-            .toIso8601String();
+            .toUtc().toIso8601String();
       } else {
         updates['boost_expires_at'] = null;
       }
@@ -776,7 +776,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
           .from('events')
           .update({
             'status': 'cancelled',
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', eventId);
 
@@ -831,7 +831,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
           .from('groups')
           .update({
             'is_private': isPrivate,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', groupId);
 
@@ -1064,7 +1064,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
             'admin_note': adminNote,
             'action_taken': action,
             'reviewed_by': adminId,
-            'reviewed_at': DateTime.now().toIso8601String(),
+            'reviewed_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', reportId);
 
@@ -1140,7 +1140,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
             'status': 'dismissed',
             'admin_note': reason,
             'reviewed_by': adminId,
-            'reviewed_at': DateTime.now().toIso8601String(),
+            'reviewed_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', reportId);
 
@@ -1339,7 +1339,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
           .from('products')
           .update({
             'is_available': isAvailable,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', productId);
 
@@ -1398,7 +1398,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
             'dispute_resolution': resolution,
             'dispute_note': adminNote,
             'dispute_resolved_by': adminId,
-            'dispute_resolved_at': DateTime.now().toIso8601String(),
+            'dispute_resolved_at': DateTime.now().toUtc().toIso8601String(),
             'is_in_dispute': false,
             'has_dispute': false,
           })
@@ -1509,7 +1509,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       await _supabase.from('users').update({
         'is_banned': true,
         'ban_reason': reason,
-        'banned_at': DateTime.now().toIso8601String(),
+        'banned_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', userId);
 
       final newSessionId = 'banned_${DateTime.now().millisecondsSinceEpoch}';
@@ -1625,7 +1625,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     try {
       await _supabase.from('users').update({
         'is_verified': true,
-        'verified_at': DateTime.now().toIso8601String(),
+        'verified_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', userId);
 
       await AdminAuditHelper.log(
@@ -1843,7 +1843,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
             'status': 'refunded',
             'refund_reason': reason,
             'refunded_by': adminId,
-            'refunded_at': DateTime.now().toIso8601String(),
+            'refunded_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', transactionId);
 
@@ -1875,7 +1875,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
           .update({
             'status': 'completed',
             'completed_by': adminId,
-            'completed_at': DateTime.now().toIso8601String(),
+            'completed_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', transactionId);
 
@@ -2029,7 +2029,7 @@ class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
       final newUsersToday = await countWhere(
         'users',
         column: 'created_at',
-        gte: todayStart.toIso8601String(),
+        gte: todayStart.toUtc().toIso8601String(),
       );
 
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -2037,14 +2037,14 @@ class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
         'users',
         column: 'created_at',
         gte: DateTime(weekStart.year, weekStart.month, weekStart.day)
-            .toIso8601String(),
+            .toUtc().toIso8601String(),
       );
 
       final monthStart = DateTime(now.year, now.month, 1);
       final newUsersThisMonth = await countWhere(
         'users',
         column: 'created_at',
-        gte: monthStart.toIso8601String(),
+        gte: monthStart.toUtc().toIso8601String(),
       );
 
       // User growth by month (last 6 months)
@@ -2056,8 +2056,8 @@ class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
           final resp = await _supabase
               .from('users')
               .select('id')
-              .gte('created_at', month.toIso8601String())
-              .lt('created_at', nextMonth.toIso8601String())
+              .gte('created_at', month.toUtc().toIso8601String())
+              .lt('created_at', nextMonth.toUtc().toIso8601String())
               .count(CountOption.exact);
           final monthKey =
               '${month.year}-${month.month.toString().padLeft(2, '0')}';

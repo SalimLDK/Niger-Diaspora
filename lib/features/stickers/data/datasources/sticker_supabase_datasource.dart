@@ -213,7 +213,7 @@ class StickerSupabaseDataSource {
     await _supabase.from('user_sticker_packs').upsert({
       'user_id': userId,
       'pack_id': packId,
-      'added_at': DateTime.now().toIso8601String(),
+      'added_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
 
@@ -295,7 +295,7 @@ class StickerSupabaseDataSource {
     await _supabase.from('user_recent_stickers').upsert({
       'user_id': userId,
       'sticker_id': sticker.id,
-      'used_at': DateTime.now().toIso8601String(),
+      'used_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
 
@@ -371,7 +371,7 @@ class StickerSupabaseDataSource {
       await _supabase.from('user_favorite_stickers').upsert({
         'user_id': userId,
         'sticker_id': sticker.id,
-        'added_at': DateTime.now().toIso8601String(),
+        'added_at': DateTime.now().toUtc().toIso8601String(),
       });
       return true;
     }

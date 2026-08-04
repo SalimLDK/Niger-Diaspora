@@ -30,7 +30,7 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
         final data = doc.data();
         data['id'] = doc.id;
         if (data['blockedAt'] is Timestamp) {
-          data['blockedAt'] = (data['blockedAt'] as Timestamp).toDate().toIso8601String();
+          data['blockedAt'] = (data['blockedAt'] as Timestamp).toDate().toUtc().toIso8601String();
         }
         return BlockedUserModel.fromJson(data);
       }).toList();

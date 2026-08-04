@@ -1331,7 +1331,7 @@ class NotificationService {
       if (!tokens.contains(token)) tokens.add(token);
       await Supabase.instance.client
           .from('users')
-          .update({'fcm_tokens': tokens, 'last_token_update': DateTime.now().toIso8601String()})
+          .update({'fcm_tokens': tokens, 'last_token_update': DateTime.now().toUtc().toIso8601String()})
           .eq('id', uid);
     } catch (e) {
       debugPrint('Error saving FCM token to database: $e');
@@ -1365,7 +1365,7 @@ class NotificationService {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
       await Supabase.instance.client
           .from('users')
-          .update({'voip_token': voipToken, 'last_token_update': DateTime.now().toIso8601String()})
+          .update({'voip_token': voipToken, 'last_token_update': DateTime.now().toUtc().toIso8601String()})
           .eq('id', userId);
     } catch (e) {
       debugPrint('Error saving VoIP token: $e');

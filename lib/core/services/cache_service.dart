@@ -414,7 +414,7 @@ class CacheService {
     final metaBox = Hive.box<String>(_metadataBox);
     await metaBox.put(
       '${boxName}_${key}_timestamp',
-      DateTime.now().toIso8601String(),
+      DateTime.now().toUtc().toIso8601String(),
     );
   }
 

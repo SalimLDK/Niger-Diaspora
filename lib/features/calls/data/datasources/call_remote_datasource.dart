@@ -146,7 +146,7 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
           calleePhotoUrl: call.calleePhotoUrl,
           type: call.type,
           status: 'busy',
-          createdAt: DateTime.now().toIso8601String(),
+          createdAt: DateTime.now().toUtc().toIso8601String(),
           endReason: 'callee_busy',
         );
         final docRef = await _callsCollection.add(busyCall.toFirestore());

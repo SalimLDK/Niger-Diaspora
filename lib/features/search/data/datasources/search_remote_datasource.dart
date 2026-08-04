@@ -105,7 +105,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         groups: results[1] as List<GroupModel>,
         friends: results[2] as List<FriendModel>,
         conversations: results[3] as List<ConversationModel>,
-        searchedAt: DateTime.now().toIso8601String(),
+        searchedAt: DateTime.now().toUtc().toIso8601String(),
       );
     } catch (e) {
       debugPrint('SearchRemoteDataSource: Error searching all: $e');

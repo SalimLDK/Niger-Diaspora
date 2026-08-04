@@ -403,7 +403,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
         // Add new entry at the beginning
         history.insert(0, {
           'recordingId': recordingId,
-          'listenedAt': DateTime.now().toIso8601String(),
+          'listenedAt': DateTime.now().toUtc().toIso8601String(),
           'progressSeconds': 0,
           'completed': false,
         });

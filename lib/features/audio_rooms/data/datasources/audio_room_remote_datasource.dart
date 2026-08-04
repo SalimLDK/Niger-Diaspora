@@ -193,7 +193,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
     try {
       await _roomsTable.update({
         'status': 'live',
-        'startedAt': DateTime.now().toIso8601String(),
+        'startedAt': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', roomId);
     } catch (e) {
       debugPrint('AudioRoomDataSource: Error starting room: $e');
@@ -206,7 +206,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
     try {
       await _roomsTable.update({
         'status': 'ended',
-        'endedAt': DateTime.now().toIso8601String(),
+        'endedAt': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', roomId);
 
       // Cleanup RTDB data
@@ -285,7 +285,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
       // Update in RTDB for real-time
       await _roomParticipantsRef(roomId).child(oderId).update({
         'hasHandRaised': true,
-        'handRaisedAt': DateTime.now().toIso8601String(),
+        'handRaisedAt': DateTime.now().toUtc().toIso8601String(),
       });
     } catch (e) {
       debugPrint('AudioRoomDataSource: Error raising hand: $e');
@@ -384,7 +384,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
       final muted = Map<String, dynamic>.from(
         (row['mutedSpeakers'] as Map?) ?? {},
       );
-      muted[oderId] = DateTime.now().toIso8601String();
+      muted[oderId] = DateTime.now().toUtc().toIso8601String();
       await _roomsTable.update({'mutedSpeakers': muted}).eq('id', roomId);
 
       await _roomParticipantsRef(
@@ -560,7 +560,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
         'connectionState': 'connected',
         'isMuted': true,
         'isSpeaking': false,
-        'joinedAt': DateTime.now().toIso8601String(),
+        'joinedAt': DateTime.now().toUtc().toIso8601String(),
         'hasHandRaised': false,
         'isCameraOn': false,
         'isGhostMode': true,
@@ -576,7 +576,7 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
     try {
       await _roomsTable.update({
         'status': 'ended',
-        'endedAt': DateTime.now().toIso8601String(),
+        'endedAt': DateTime.now().toUtc().toIso8601String(),
         'endedByAdmin': true,
         'endReason': reason,
       }).eq('id', roomId);
@@ -602,14 +602,14 @@ class AudioRoomRemoteDataSourceImpl implements AudioRoomRemoteDataSource {
       );
       warnings.add({
         'message': message,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       });
       await _roomsTable.update({'adminWarnings': warnings}).eq('id', roomId);
 
       // Also send to RTDB for real-time notification
       await _database.ref('audioRooms/$roomId/warnings').push().set({
         'message': message,
-        'timestamp': DateTime.now().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
         'read': false,
       });
     } catch (e) {

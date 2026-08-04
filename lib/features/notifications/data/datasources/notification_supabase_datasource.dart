@@ -51,7 +51,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
           .eq('user_id', userId);
 
       if (startAfter != null) {
-        query = query.lt('created_at', startAfter.toIso8601String());
+        query = query.lt('created_at', startAfter.toUtc().toIso8601String());
       }
 
       final rows = await query

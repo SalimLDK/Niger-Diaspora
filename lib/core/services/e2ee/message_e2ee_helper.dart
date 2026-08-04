@@ -365,7 +365,7 @@ class MessageE2EEHelper {
         'senderIdentityKey': encrypted.senderIdentityKey,
         'senderDeviceId': encrypted.senderDeviceId,
         'senderRegistrationId': encrypted.senderRegistrationId,
-        'createdAt': encrypted.createdAt.toIso8601String(),
+        'createdAt': encrypted.createdAt.toUtc().toIso8601String(),
       };
     });
 
@@ -385,7 +385,7 @@ class MessageE2EEHelper {
         'senderDeviceId': payload.encryptedMessage.senderDeviceId,
         'keyId': payload.encryptedMessage.keyId,
         'chainIndex': payload.encryptedMessage.chainIndex,
-        'createdAt': payload.encryptedMessage.createdAt.toIso8601String(),
+        'createdAt': payload.encryptedMessage.createdAt.toUtc().toIso8601String(),
       },
       'keyId': payload.keyId,
       'moderationFlags': payload.moderationMetadata,
