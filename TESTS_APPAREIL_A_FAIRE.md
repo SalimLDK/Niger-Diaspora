@@ -38,11 +38,25 @@ appareil, **hors du fuseau UTC**.
       l'heure n'a pas bougé (valide le réencodage UTC des écritures)
 - [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure
 
-⚠️ Données déjà en base : les écritures antérieures partaient parfois sans
-suffixe de fuseau (`toIso8601String()` sur une date locale), et Postgres les a
-donc enregistrées comme de l'UTC. Ces lignes-là restent décalées ; le correctif
-ne vaut que pour les écritures suivantes. À trancher : reprise de données ou
-non.
+**Données déjà en base : audité le 2026-08-04, rien à reprendre.**
+Les écritures antérieures partaient parfois sans suffixe de fuseau, et Postgres
+les a enregistrées comme de l'UTC. Audit exécuté sur le projet
+`zyrfkcjjrhddpfxcgezo` via `supabase db query --linked`, en comparant chaque
+colonne écrite par le client à un `created_at` posé par le serveur :
+
+| colonne | lignes fautives | total |
+|---|---|---|
+| `group_requests.processed_at` | **1** | 1 |
+| les 11 autres colonnes auditées | 0 | — |
+
+L'unique ligne fautive date du 2026-05-26, avec un écart de 3 h 15 —
+signature d'un `processed_at` écrit 45 min après la création avec les
+composantes locales de Toronto (UTC−4). Aucun horodatage dans le futur, donc
+aucune trace d'écriture depuis un fuseau à l'est d'UTC.
+
+Décision : **on ne répare pas**. Une seule ligne de test concernée, et le
+décalage n'est enregistré nulle part — il n'existe pas de correction uniforme
+applicable à des utilisateurs répartis sur plusieurs fuseaux.
 
 ---
 
