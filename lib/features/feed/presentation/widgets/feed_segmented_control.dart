@@ -119,12 +119,19 @@ class _SegmentOption<T> extends StatelessWidget {
           children: [
             SizedBox(width: 16, height: 16, child: segment.icon(fg)),
             const SizedBox(width: 6),
-            Text(
-              segment.label,
-              style: TextStyle(
-                fontSize: 13,
-                color: fg,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            // Souple et tronquable : un libellé un peu long (« Abonnements »)
+            // débordait du segment, avec le bandeau jaune et noir par-dessus.
+            // Le `Row` est en `MainAxisSize.min`, donc rien ne le contraignait.
+            Flexible(
+              child: Text(
+                segment.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: fg,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
             ),
           ],

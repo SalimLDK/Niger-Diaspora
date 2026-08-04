@@ -252,6 +252,35 @@ Deux points non vus, faute d'un compte qui les produise : l'avatar en
 **pointillés** (le compte de test a une photo, donc le contour plein) et le
 focus sur « ville » / « bio ».
 
+## 6a — Fil, Nocturne
+
+Codé et vu par la session parallèle (`841d2a9` le FAB creux, `e6b58c6`
+l'interlettrage du titre). Relu ici contre la fiche.
+
+**Conforme** : fond #161826, cartes #232532 rayon 8, accent #9184D9, titre
+« Le fil. » en Inter avec le point à l'accent, onglet actif en **contour**
+1,5 px et non en fond plein, avatar d'en-tête, hashtags #D2CEFD, et le FAB
+creux à contour net.
+
+**Un écart de copie corrigé** : la fiche nomme l'onglet « Abonnements »,
+l'app disait « Suivis » — et 5d appelle déjà « Abonnements » le même concept.
+
+Ce simple renommage a fait **déborder le segment** : `FeedSegmentedControl`
+posait son libellé dans un `Row` en `MainAxisSize.min`, sans rien pour le
+contraindre. Le libellé est désormais `Flexible` + ellipsis, ce qui vaut pour
+n'importe quelle langue et n'importe quel libellé long. Couvert par
+`test/features/feed/feed_segmented_control_test.dart`, qui échoue bien sans
+le correctif (« overflowed by 54 pixels »).
+
+**Écarts assumés** : la fiche 6a demande que l'avatar d'en-tête ouvre Messages
+(5f) ; il ouvre Mon espace, et la fiche 5a demande l'inverse — les deux se
+contredisent, on garde le code. La ligne de date en sur-titre et les icônes
+d'onglet viennent de 4g, que ce document ne couvre pas.
+
+**Non revu à l'écran après le correctif** : le téléphone était piloté en
+parallèle par l'autre session (ses formulaires de test s'ouvraient sous mes
+gestes). Le correctif est prouvé par le test, pas par une capture.
+
 ## 16e — Créer un événement
 
 Le formulaire existait déjà et portait la quasi-totalité des champs (le
