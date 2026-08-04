@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messages/presentation/providers/conversation_actions_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../../../messages/presentation/widgets/media_gallery_grid.dart';
@@ -254,11 +255,14 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 58,
-                          height: 58,
+                          width: 66,
+                          height: 66,
                           decoration: BoxDecoration(
-                            color: context.adaptiveSecondaryColor,
-                            borderRadius: BorderRadius.circular(17),
+                            // Vert de groupe de la fiche 9d/9e (#1B5E32) :
+                            // c'est la couleur qui identifie « groupe » dans
+                            // toute la messagerie, pas l'accent du compte.
+                            color: context.successColor,
+                            borderRadius: BorderRadius.circular(22),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child:
@@ -288,8 +292,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              DesignTitle(group.name, size: 23),
-                              const SizedBox(height: 6),
+                              DesignTitle(group.name, size: 20),
+                              const SizedBox(height: 3),
                               Row(
                                 children: [
                                   Icon(
@@ -299,14 +303,21 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                                     size: 13,
                                     color: context.textTertiaryColor,
                                   ),
-                                  const SizedBox(width: 5),
+                                  const SizedBox(width: 7),
                                   Expanded(
                                     child: Text(
+                                      // Fiche 9d : « Privé · Montréal ·
+                                      // depuis 2023 ». La catégorie sort de
+                                      // cette ligne — elle dit moins que le
+                                      // lieu et l'ancienneté du groupe.
                                       [
                                         group.isPrivate
                                             ? l10n.private
                                             : l10n.public,
-                                        group.category.label,
+                                        if ((group.location ?? '').isNotEmpty)
+                                          group.location!,
+                                        if (group.createdAt != null)
+                                          'depuis ${group.createdAt!.toLocal().year}',
                                       ].join(' · '),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -324,93 +335,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
-                    // Stats
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(kDesignRadius),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _StatItem(
-                            icon: Icons.people,
-                            value: '${group.memberIds.length}',
-                            label: l10n.membersLabel,
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: context.borderColor,
-                          ),
-                          _StatItem(
-                            icon: Icons.admin_panel_settings,
-                            value: '${group.adminIds.length}',
-                            label: l10n.admins,
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: context.borderColor,
-                          ),
-                          _StatItem(
-                            icon: group.isPrivate ? Icons.lock : Icons.public,
-                            value: group.isPrivate ? l10n.private : l10n.public,
-                            label: l10n.access,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Description
-                    Text(
-                      l10n.aboutGroup,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
+                    // Description en clair (fiche 9d) : ni intertitre « À
+                    // propos » ni carte — le texte se lit directement sous
+                    // l'identité. Le bloc de stats a disparu : la ligne de
+                    // méta dit déjà l'accès, et la section Membres le compte.
+                    if (group.description.trim().isNotEmpty)
+                      Text(
                         group.description,
                         style: TextStyle(
                           fontSize: 14,
-                          color: context.textSecondaryColor,
-                          height: 1.5,
+                          height: 1.55,
+                          color: context.textPrimaryColor,
                         ),
                       ),
-                    ),
 
-                    if (group.location != null) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          AppIcon(
-                            AppIcon.location,
-                            size: 18,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            group.location!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                        ],
+                    if (isMember) ...[
+                      const SizedBox(height: 14),
+                      _GroupActionRow(
+                        group: group,
+                        onOpenDiscussion: () => _startGroupConversation(group),
                       ),
                     ],
 
@@ -514,6 +459,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     ),
                   )
                   : isMember
+                  // « Ouvrir la discussion » est remontée dans le contenu
+                  // (fiche 9d) : la barre du bas ne garde que la sortie.
                   ? Row(
                     children: [
                       Expanded(
@@ -551,19 +498,6 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                               ),
                             );
                           },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _startGroupConversation(group),
-                          icon: const AppIcon(AppIcon.chatBubble),
-                          label: Text(l10n.discussion),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.adaptivePrimaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
                         ),
                       ),
                     ],
@@ -1218,36 +1152,89 @@ class _MemberListItem extends ConsumerWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
+/// Barre d'action de la fiche 9d : « Ouvrir la discussion » pleine largeur au
+/// vert de groupe, et la coupure des notifications à côté.
+///
+/// Le bouton mute n'apparaît que si la conversation du groupe existe déjà :
+/// l'état muet vit sur la conversation (`mutedBy`), pas sur le groupe, et la
+/// créer juste pour afficher une cloche serait un effet de bord invisible.
+class _GroupActionRow extends ConsumerWidget {
+  final GroupEntity group;
+  final VoidCallback onOpenDiscussion;
 
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
+  const _GroupActionRow({required this.group, required this.onOpenDiscussion});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final me = ref.watch(currentUserProvider).valueOrNull?.id;
+    final conversations = ref.watch(conversationsProvider).valueOrNull ?? [];
+    final conversation =
+        conversations.where((c) => c.groupId == group.id).firstOrNull;
+    final isMuted =
+        me != null &&
+        conversation != null &&
+        conversation.mutedBy.containsKey(me);
+
+    return Row(
       children: [
-        Icon(icon, color: context.adaptivePrimaryColor, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: context.textPrimaryColor,
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: ElevatedButton(
+              onPressed: onOpenDiscussion,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.successColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+              child: const Text(
+                'Ouvrir la discussion',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+              ),
+            ),
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-        ),
+        if (conversation != null) ...[
+          const SizedBox(width: 8),
+          Tooltip(
+            message:
+                isMuted
+                    ? 'Réactiver les notifications'
+                    : 'Couper les notifications',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(13),
+              onTap: () async {
+                await ref
+                    .read(conversationActionsNotifierProvider.notifier)
+                    .muteConversation(conversation.id, !isMuted);
+                ref.invalidate(conversationsProvider);
+              },
+              child: Container(
+                width: 46,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: context.borderColor),
+                ),
+                child: Icon(
+                  isMuted
+                      ? Icons.notifications_off_rounded
+                      : Icons.notifications_active_outlined,
+                  size: 20,
+                  color:
+                      isMuted
+                          ? context.adaptivePrimaryColor
+                          : context.textSecondaryColor,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 }
+
