@@ -51,7 +51,29 @@ appareil, **hors du fuseau UTC**.
       relit depuis le serveur et affiche **« Aujourd'hui · 04:36 »**. Avec le
       bug : 08:36. La publication de test reste en ligne volontairement
       (décision de Salim), comme la précédente sur ce compte.
-- [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure.
+- [x] **Cache hors-ligne — le contenu est correct.** Le fichier
+      `app_flutter/feed_cache.hive` a été extrait de l'appareil (`adb run-as`)
+      et inspecté : chaque horodatage porte le suffixe `Z` et correspond
+      exactement à la base — `2026-08-04T08:36:36.212535Z` (= 04:36 Toronto),
+      `2026-08-04T06:01:04.327625Z` (= 02:01), `2026-05-26T19:08:23.377349Z`
+      (= 15:08). Avant le correctif, `toIso8601String()` nu y aurait écrit
+      `2026-08-04T04:36:36.212535`, sans fuseau. L'aller-retour est donc sûr.
+      À noter : seul le **fil** consomme réellement le cache — les autres
+      `CacheService.cacheXxx` ne sont branchées à aucun lecteur.
+
+⚠️ **Bug distinct trouvé au passage — le repli hors-ligne ne fonctionne pas.**
+Rien à voir avec le fuseau. En mode avion réel (vérifié : `airplane_mode=1`,
+`wlan0` coupée) :
+
+- le démarrage à froid reste **~2 min sur le splash** avant d'atteindre
+  l'accueil ;
+- l'écran « Le fil » affiche des **squelettes de chargement indéfiniment**
+  au lieu des publications en cache, alors que le cache est bien présent et
+  valide ;
+- l'app finit par revenir au splash (redémarrage).
+
+Le repli annoncé (maquette 2a : « si une page est en cache, on l'affiche
+plutôt qu'un fil vide ») ne se déclenche donc pas. À traiter à part.
 
 Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
 `timeago`, calculé sur l'epoch — il n'a jamais été affecté, et rien n'y est à
