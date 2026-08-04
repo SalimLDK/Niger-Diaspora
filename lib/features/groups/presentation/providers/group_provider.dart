@@ -168,14 +168,25 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
     );
   }
 
+  /// Motif du dernier échec d'écriture, pour que l'écran puisse le dire à
+  /// l'utilisateur au lieu d'un « Erreur » générique.
+  String? lastError;
+
   Future<bool> createGroup(GroupEntity group) async {
+    lastError = null;
     final repository = ref.read(groupRepositoryProvider);
     final result = await repository.createGroup(group);
-    return result.fold((failure) => false, (created) {
-      final currentGroups = state.valueOrNull ?? [];
-      state = AsyncValue.data([created, ...currentGroups]);
-      return true;
-    });
+    return result.fold(
+      (failure) {
+        lastError = failure.message;
+        return false;
+      },
+      (created) {
+        final currentGroups = state.valueOrNull ?? [];
+        state = AsyncValue.data([created, ...currentGroups]);
+        return true;
+      },
+    );
   }
 
   Future<bool> updateGroup(GroupEntity group) async {

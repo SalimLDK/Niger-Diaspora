@@ -1178,22 +1178,29 @@ class _GroupActionRow extends ConsumerWidget {
     return Row(
       children: [
         Expanded(
-          child: SizedBox(
-            height: 44,
-            child: ElevatedButton(
-              onPressed: onOpenDiscussion,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: context.successColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                ),
+          // Hauteur **minimale** et non figée : à 44 px fixes, le libellé se
+          // faisait rogner par le bas dès que l'appareil dépasse font_scale 1
+          // (constaté à 1.1 sur le SM A515F). Le bouton grandit désormais avec
+          // le texte.
+          child: ElevatedButton(
+            onPressed: onOpenDiscussion,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.successColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              minimumSize: const Size.fromHeight(44),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
               ),
-              child: const Text(
-                'Ouvrir la discussion',
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
               ),
+            ),
+            child: const Text(
+              'Ouvrir la discussion',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
             ),
           ),
         ),

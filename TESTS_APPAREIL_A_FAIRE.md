@@ -14,6 +14,205 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`
+
+Programme de test exécuté au pilotage `adb` (taps + `dumpsys` + logcat), thème
+clair, `font_scale` 1.1, batterie sur secteur. **Aucune réinstallation** : l'APK
+en place contenait déjà tout jusqu'à `54083d6`.
+
+⚠️ **Une session concurrente tournait sur le même téléphone et le même dépôt.**
+`lastUpdateTime` est passé de 15:18:51 → 15:25 → 15:41:59 (logcat :
+`Killing … due to installPackageLI` en plein démarrage à froid), avec des
+process Gradle/`dart`/`flutter_tester` actifs côté PC. **Tous les constats de la
+première passe 0 ont été jetés** ; seuls figurent ci-dessous ceux obtenus après
+15:47, fenêtre où plus rien n'installait. À retenir pour les prochaines fois :
+vérifier `lastUpdateTime` **avant et après** chaque mesure.
+
+### 🔴 Trouvé — sauvegarde des clés E2EE impossible, et ça bloque la génération
+
+Reproduit à **3 démarrages à froid sur 3**, dans logcat :
+
+```
+KeyBackupService: backup presence unknown (FirebaseException):
+[firebase_storage/unauthorized] User is not authorized to perform the desired action
+```
+
+Cause, vérifiée dans le dépôt : **`storage.rules` ne déclare aucune règle pour
+`key_backups/`**. Le chemin `key_backups/{userId}/backup.enc` tombe donc dans le
+`match /{allPaths=**} { allow read, write: if false; }` final — exactement le
+même piège que celui déjà corrigé pour `/posts` et `/stories`.
+
+Les cinq opérations de `key_backup_service.dart` sont concernées (`uploadBackup`,
+`downloadBackup`, `checkBackupPresence`, `getBackupMetadata`, `deleteBackup`).
+
+**La conséquence dépasse la sauvegarde.** Dans `e2ee_backup_coordinator.dart`,
+`checkBackupPresence` renvoie `unknown` au lieu de `absent`, et le cas `unknown`
+**saute délibérément la génération de clés** (pour ne pas écraser une identité
+restaurable). Sur un appareil sans clés locales, aucune identité Signal n'est
+donc jamais créée : la messagerie reste silencieusement sur le repli AES global,
+et le bandeau de sauvegarde n'apparaît jamais. Le garde-fou est correct — c'est
+la règle Storage manquante qui le déclenche à tort.
+
+- [x] **Règle écrite le 2026-08-04** dans `storage.rules` :
+      `match /key_backups/{userId}/{allPaths=**}`, lecture **et** écriture
+      réservées à `isOwner(userId)` (contrairement aux médias chiffrés, un
+      backup de clés ne doit pas être lisible par tout compte connecté : il est
+      protégé par une passphrase, mais l'exposer offrirait le fichier à une
+      attaque hors ligne). `create`/`update` séparés de `delete` car
+      `request.resource` est nul sur une suppression — sans ça `deleteBackup()`
+      serait refusé. Compilation vérifiée par l'émulateur Storage
+      (`firebase emulators:exec --only storage`), avec témoin négatif : une
+      règle volontairement cassée sort bien `token recognition error … :134`,
+      le fichier réel n'en sort aucune.
+- [x] **Déployé le 2026-08-04 à 16:07** (`firebase deploy --only storage`,
+      projet `diaspo-niger`) : « rules file storage.rules compiled successfully »
+      puis « released rules storage.rules to firebase.storage ».
+- [x] **Vérifié sur appareil dans la foulée (16:08 → 16:11, SM A515F).** Plus
+      aucun `unauthorized` au démarrage à froid, et **toute la chaîne E2EE s'est
+      déroulée pour la première fois sur cet appareil** :
+
+      ```
+      KeyManagerService: Initializing keys for user vQZE49dT…
+      SecureKeyStorage: Stored identity key pair
+      SecureKeyStorage: Stored signed pre-key 954080014
+      SecureKeyStorage: Stored 100 one-time pre-keys
+      KeyManagerService: Published 100 one-time pre-keys
+      KeyManagerService: Published keys to Supabase
+      MessagingE2EEService: Initialized / key maintenance done
+      ```
+
+      Avant le correctif, la génération était sautée et rien de tout ceci
+      n'apparaissait. Le repli AES global n'est donc plus la seule option.
+- [x] **Le bandeau de sauvegarde s'affiche enfin** (« Sauvegardez vos clés de
+      chiffrement… » / Pas maintenant · Sauvegarder), rendu correct en thème
+      **nocturne**, sans débordement. Il n'avait jamais été atteignable.
+- [x] `/settings/security/backup` s'ouvre et propose « Créer une sauvegarde »
+      (générateur de passphrase, jauge de force, bouton inactif tant que la
+      passphrase est faible) — donc la **lecture** du chemin `key_backups/`
+      aboutit désormais.
+- [ ] ⚠ **La branche écriture n'est pas testée** : `uploadBackup` n'a pas été
+      exercé. Créer une sauvegarde génère une passphrase que **Salim seul** doit
+      consigner — sans elle, un futur appareil neuf verrait `needsRestore`, ne
+      générerait aucune clé, et resterait bloqué. À faire par lui, en notant la
+      passphrase. C'est le dernier point qui valide la règle en écriture.
+- [ ] Sur un **second appareil** : vérifier que la restauration fonctionne
+      (`needsRestore` + saisie de la passphrase).
+- [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
+      clés sont bien générées et que le bandeau « sauvegarder » apparaît.
+- [ ] **Piste à confirmer** : ceci explique peut-être le point ouvert 20b
+      (« CET APPAREIL » absent de la liste des appareils) — sans génération de
+      clés après un vidage de données, aucun enregistrement E2EE n'a lieu.
+
+### 🔴 Trouvé — Firebase App Check refuse l'attestation à chaque démarrage
+
+À chaque démarrage à froid (3/3) :
+
+```
+⚠️ Erreur lors de la récupération du debug token: [firebase_app_check/unknown]
+FirebaseException: Error returned from API. code: 403 body: App attestation failed.
+```
+
+- [ ] Sans conséquence visible tant qu'App Check n'est pas en *enforcement* —
+      mais si un backend Firebase passe en enforcement, tous les appels de cet
+      appareil seront rejetés. Vérifier l'état d'enforcement côté console, et
+      enregistrer le jeton de debug pour les builds debug.
+
+### ✅ Vérifié sur appareil pendant cette passe
+
+- [x] **Démarrage à froid propre** : `/splash` → `/home`, **0 exception Flutter,
+      0 `RenderFlex overflowed`** sur deux démarrages complets. Compter ~25 s
+      entre le lancement et l'accueil (Supabase, Maps, App Check, GoRouter).
+- [x] **Les 5 onglets de la barre basse** (Accueil, Carte, Groupes, Messages,
+      Profil) : navigation correcte, **aucun débordement** à `font_scale` 1.1 en
+      thème clair. Écran Messages conforme (chips Tous/Non lus/Groupes/Archives,
+      sur-titres « CETTE SEMAINE » / « PLUS ANCIEN », tuile « Mes notes »).
+- [x] **§9b — le clavier de recherche se lève au premier tap.** Cas décisif
+      prouvé par `dumpsys input_method` : `mInputShown=false` avant le tap,
+      `mInputShown=true` + `mIsInputViewShown=true` après **un seul** tap. C'est
+      le correctif `27f52a3` vérifié en vrai.
+- [x] **§9b non-régression visuelle** : en-tête replié (← + champ), bordure
+      accent orange, loupe orange, halo, puces de filtre escamotées, curseur
+      dans le champ. Rien d'anormal au repos.
+
+### ⚠ À confirmer au doigt — intermittence du clavier de recherche
+
+Sur 7 cycles ouverture/fermeture enchaînés par script (tap champ → `dumpsys` →
+tap ←), le clavier est monté **5 fois sur 7**. Les deux échecs sont survenus
+juste après une fermeture, donc probablement pendant l'animation de repli — mon
+automatisation retape plus vite qu'un humain. **Ce n'est pas un bug établi.**
+
+- [ ] Refaire une dizaine d'ouvertures/fermetures **au doigt**, à rythme normal :
+      si le clavier monte à chaque fois, clore le point ; sinon, le §9b n'est
+      qu'à moitié corrigé.
+
+### ⚪ Fausses alertes — ne pas les rouvrir
+
+- Le **liseré blanc au bord gauche**, visible à la même hauteur sur trois
+  captures d'écrans différents, est la surcouche Samsung « Edge panel »
+  (`com.samsung.android.app.cocktailbarservice`), **pas** un widget qui déborde.
+- Une navigation spontanée vers `/profile` observée une fois n'est **pas**
+  reproductible (0 navigation en 70 s puis en 30 s d'observation immobile) :
+  c'était un tap extérieur sur le téléphone, pas l'app.
+
+### À arbitrer
+
+- [ ] Depuis l'onglet Messages, le **retour Android quitte l'app** au lieu de
+      revenir sur Accueil. Comportement courant, mais à trancher.
+
+### Deuxième tour (16:13 → 16:21) — passe nocturne, et un test avorté
+
+- [x] **Balayage nocturne des 5 onglets** : **0 débordement, 0 exception** dans
+      logcat, à `font_scale` 1.1. Écran Groupes correct (onglets pleins, carte de
+      groupe, puces Niger / 1 / Autre).
+- [x] **Carte en nocturne** : les tuiles adoptent bien le **style sombre**.
+      ⚪ **Fausse alerte évitée** : capturée 8 s après l'ouverture, la zone de
+      carte est un **aplat crème** sans aucune rue — ce n'est pas un jeton clair
+      figé, ce sont les tuiles pas encore chargées (`ClientParamsBlocking` dans
+      logcat). Laisser ~30 s avant de conclure quoi que ce soit sur la carte.
+- [x] **En-tête du panneau de la carte non tronqué** : « 1 membre autour · 50 km »
+      puis « 0 membre autour · 50 km » s'affichent en entier, avec la ligne de
+      fraîcheur résolue. Le défaut cosmétique « Memb… » n'est pas reproduit.
+- [x] **Position de repli = Niamey** quand la localisation n'est pas disponible
+      (constaté avec la demande de permission à l'écran). Cohérent pour l'app.
+- ⚠ **Demande de permission de localisation** rencontrée à l'écran : **laissée
+      sans réponse volontairement**, accorder une permission système n'est pas
+      une décision d'agent. À traiter par Salim.
+
+**Conséquence bien réelle du bug `key_backups` — constatée dans « Mes notes ».**
+Le message du 19 juil. s'affiche « 🔒 **Message chiffré** », avec le bandeau
+« Restaurez vos clés de chiffrement pour lire vos messages chiffrés sur cet
+appareil ». Les clés locales ont été perdues lors d'une réinstallation, et
+**aucune sauvegarde n'existait** puisque la fonctionnalité était cassée : ce
+message E2EE est donc définitivement illisible sur cet appareil. Les messages
+partis en **repli AES** (« Note validee », « Verif citation 4a ») restent
+lisibles, eux. C'est exactement le scénario que la sauvegarde doit empêcher —
+raison de plus pour créer la sauvegarde maintenant que la règle est déployée.
+
+- [ ] ⛔ **Brouillon restauré : test NON concluant, à refaire.** Deux tentatives
+      avorties — mes taps sur le champ de saisie n'ont pas donné le focus
+      (`mInputShown=false`), donc aucun texte n'a été saisi et il n'y avait aucun
+      brouillon à restaurer. **Ce n'est pas un bug de l'app**, c'est un test raté.
+      À refaire au doigt : taper du texte, bouton accueil, relancer, rouvrir la
+      conversation, et vérifier que le bouton d'envoi est là **d'emblée**.
+
+⚠️ **La session concurrente n'a pas cessé** : nouvelle réinstallation à 16:14:42
+(`installPackageLI`), process de l'app redémarré à 16:18:42 puis 16:19:30, et une
+navigation vers `/groups` que je n'ai pas déclenchée. **Les passes restantes
+demandent l'appareil pour soi seul** — sinon chaque mesure est à jeter.
+
+### Reste du programme, non exécuté faute de temps
+
+- [ ] Brouillon restauré → bouton d'envoi (dépend des `SharedPreferences`, donc
+      à faire **avant** toute réinstallation).
+- [ ] Feuille de partage fantôme au démarrage + partage entrant réel.
+- [ ] Lien profond reçu **app déjà lancée** (`onNewIntent` + `singleTask`) — le
+      changement de `launchMode` est encore **non committé** dans l'arbre.
+- [ ] Repli hors-ligne (splash de ~2 min + squelettes infinis, bug déjà ouvert).
+- [ ] Admin : champ « Type * » à la création d'ambassade.
+- [ ] Passe complète en **thème nocturne**.
+
+---
+
 ## Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)
 
 Bug constaté sur appareil (SM A515F, build debug, nocturne, reproduit 3 fois) :
@@ -109,9 +308,25 @@ durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
   bancaire** (les menus « banque » et « ville » n'existent que dans ce mode —
   aucun test ne les couvre), puis vérifier les trois menus.
 - [ ] **Recherche d'employés d'une ambassade** : filtre « Département » —
-  aucun test ne couvre cet écran, son datasource tape le réseau au démarrage.
+  désormais monté par `test/features/embassies/employee_search_overflow_test.dart`,
+  mais ce test ne prouve **pas** le correctif (vérifié par mutation : il passe
+  aussi sans `isExpanded`, l'ellipse sur l'élément masquant le débordement).
+  L'écran reste donc à regarder pour de vrai.
 - [ ] Créer une entreprise, créer un podcast, fiche entreprise (feuille « Type
   de publication ») : vérifier qu'aucun libellé n'est tronqué à tort.
+
+### Ellipse sur les éléments eux-mêmes (complément, 2026-08-04)
+
+Durcissement récupéré d'une session parallèle : `maxLines: 1` + ellipse sur les
+libellés des éléments, en plus d'`isExpanded` sur le champ. Le risque n'est plus
+le débordement mais la **troncature abusive** — un « … » là où le libellé tenait.
+
+- [ ] **Créer un podcast → « Langue » et « Fréquence de publication »** : les
+  libellés traduits (haoussa, zarma) s'affichent en entier, pas en « … ».
+- [ ] **Boutique → « Vendre un produit », menu « Pays »** : les deux listes
+  (pays prioritaires **et** le reste, sous le séparateur) — le drapeau reste
+  collé au nom et aucun nom de pays n'est coupé à l'échelle 1.0.
+- [ ] Les mêmes à `font_scale` 1.1 : là, une ellipse est normale.
 
 ---
 

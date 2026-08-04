@@ -122,10 +122,23 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   Future<void> _createGroup() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (currentUser == null) return;
-
     setState(() => _isLoading = true);
+
+    // `currentUserAsyncProvider` est un StreamProvider **autoDispose** que cet
+    // écran ne regarde jamais : un `ref.read(...).valueOrNull` démarrait
+    // l'abonnement à l'instant du tap et rendait `AsyncLoading`, donc `null`.
+    // La méthode sortait alors sur un `return` nu — bouton mort, sans spinner,
+    // sans message et sans trace dans logcat. On attend la première émission.
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
+    if (!mounted) return;
+    if (currentUser == null) {
+      setState(() => _isLoading = false);
+      ToastUtils.showError(
+        context,
+        'Session expirée — reconnectez-vous pour créer un groupe.',
+      );
+      return;
+    }
 
     // Upload image if selected
     String? imageUrl;
@@ -185,13 +198,22 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       );
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success && mounted) {
+    if (success) {
       ToastUtils.showSuccess(context, 'Groupe créé avec succès');
       context.pop();
-    } else if (mounted) {
-      ToastUtils.showError(context, 'Erreur lors de la création du groupe');
+    } else {
+      // La raison remonte du dépôt : « Erreur lors de la création » tout court
+      // n'apprenait rien, ni à l'utilisateur ni au diagnostic.
+      final reason = ref.read(myGroupsNotifierProvider.notifier).lastError;
+      ToastUtils.showError(
+        context,
+        reason == null || reason.isEmpty
+            ? 'Erreur lors de la création du groupe'
+            : 'Création impossible : $reason',
+      );
     }
   }
 

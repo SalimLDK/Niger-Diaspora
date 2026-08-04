@@ -794,7 +794,16 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(width: 12),
-                        Text(country.label),
+                        // `isExpanded` est déjà là, donc cette Row reçoit une
+                        // largeur contrainte : sans Expanded, un nom de pays
+                        // long la ferait déborder à son tour.
+                        Expanded(
+                          child: Text(
+                            country.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -817,7 +826,15 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                               style: const TextStyle(fontSize: 20),
                             ),
                             const SizedBox(width: 12),
-                            Text(country.label),
+                            // Même Row que les pays prioritaires ci-dessus, et
+                            // c'est la liste la plus longue : même borne.
+                            Expanded(
+                              child: Text(
+                                country.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ),

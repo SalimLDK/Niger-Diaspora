@@ -28,7 +28,7 @@ Trois niveaux, à ne pas confondre :
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | ✅ | ✅ | ✅ | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | ✅ | ✅ | ✅ | `settings/…/devices_screen.dart` |
-| 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
+| 20d | Réglages de notifications | ✅ | ✅ | ✅ | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
@@ -43,7 +43,7 @@ Trois niveaux, à ne pas confondre :
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
-| 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
+| 9d | Groupe — fiche | ✅ | ✅ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
 ---
@@ -767,6 +767,61 @@ Pour rendre ce panneau vérifiable il faut au moins une ambassade en base :
 collection **Firestore** `embassies`, lecture publique, écriture réservée à
 `isAdmin()`, via l'écran `/admin/embassies/create`. C'est une **écriture en
 production visible par tous les utilisateurs** — à ne pas faire pour tester.
+
+---
+
+## Bouton « Créer le groupe » — mort, et pourquoi
+
+Signalé par Salim, reproduit à l'écran : appuyer sur « Créer le groupe » ne
+produisait **rien** — ni indicateur de chargement, ni message, ni navigation —
+et `logcat` restait muet.
+
+Cause : `create_group_screen` faisait
+`ref.read(currentUserAsyncProvider).valueOrNull`. Or `currentUserAsync` est un
+**StreamProvider autoDispose** que cet écran ne regarde jamais. Le `ref.read`
+démarrait donc l'abonnement à l'instant du tap et rendait `AsyncLoading` :
+`valueOrNull` valait `null`, et la méthode sortait sur un `return` nu, avant
+même de poser `_isLoading`. D'où l'absence totale de signe extérieur.
+
+Corrigé en attendant la première émission (`.future`), et en disant à
+l'utilisateur si la session a réellement expiré.
+
+Deux filets posés au passage, sur le même chemin :
+- Le dépôt ne rattrapait que `ServerException`. Un `PostgrestException` (RLS,
+  RPC absente…) traversait dépôt, notifier et écran sans être vu. Un `catch`
+  large renvoie désormais un `ServerFailure` porteur du message.
+- L'abonnement au topic FCM et la création de la conversation de groupe se
+  faisaient **après** l'insertion, sans protection : leur échec faisait
+  échouer une création pourtant réussie côté serveur. Ils sont maintenant
+  isolés — le groupe existe, le reste est accessoire.
+
+Le motif d'échec remonte enfin jusqu'au toast (`lastError` sur le notifier) :
+« Erreur lors de la création du groupe » n'apprenait rien à personne.
+
+Vérifié : le groupe se crée, apparaît dans « Mes groupes » avec le cadenas
+privé, et 9c/9d sont enfin observables.
+
+## 9d — correction vue à l'écran
+
+Le libellé « Ouvrir la discussion » était **rogné par le bas** : le bouton
+avait une hauteur figée de 44 px, insuffisante dès que l'appareil dépasse
+font_scale 1 (le SM A515F est à 1.1). La hauteur devient un minimum, le bouton
+grandit avec le texte.
+
+---
+
+## 8b — l'utilisateur se voyait dans ses propres « membres autour »
+
+Repéré par Salim à la validation. La requête de proximité renvoie aussi
+l'utilisateur courant : il apparaissait dans sa propre liste à
+« 0 m · en ligne », et son marqueur était dessiné **deux fois** sur la carte —
+une fois comme position, une fois comme membre, l'un par-dessus l'autre.
+
+Le filtre calculait pourtant déjà `currentUserId`, mais ne s'en servait que
+pour écarter ceux qui vous ont bloqué. Une ligne manquait.
+
+Corrigé et vérifié : « 0 membre autour », « Aucun membre à proximité », et un
+seul marqueur sur la carte.
 
 ---
 

@@ -136,9 +136,10 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
                 // Department filter
                 DropdownButtonFormField<String>(
                   initialValue: _selectedDepartment,
-                  // Les départements viennent du serveur : leur longueur n'est
-                  // pas maîtrisée ici, et le plus long dicterait la largeur du
-                  // champ replié sans `isExpanded`.
+                  // `_departments` est une liste const (voir plus haut), donc
+                  // « Tous les départements » dicterait la largeur du champ
+                  // replié sans `isExpanded` — l'ellipse sur l'élément borne
+                  // le reste.
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Département',
