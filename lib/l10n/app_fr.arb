@@ -858,6 +858,14 @@
   "originCity": "Ville d'origine au Niger",
   "interests": "Centres d'intérêt",
   "spokenLanguages": "Langues parlées",
+  "spokenLanguagesEmptyAction": "Choisir mes langues",
+  "@spokenLanguagesEmptyAction": {
+    "description": "Puce d'ouverture du sélecteur de langues quand aucune n'est encore choisie (§20a)"
+  },
+  "interestsEmptyAction": "Choisir mes centres d'intérêt",
+  "@interestsEmptyAction": {
+    "description": "Puce d'ouverture du sélecteur de centres d'intérêt quand aucun n'est encore choisi (§20a)"
+  },
   "otherMembersCanSee": "Les autres membres peuvent voir votre profil",
   "connections": "Connexions",
   "myLocation": "Ma localisation",

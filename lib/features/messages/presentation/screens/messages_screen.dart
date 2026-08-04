@@ -304,7 +304,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: DesignSearchField(
                   controller: _searchController,
-                  hintText: l10n.searchPlaceholder,
+                  // La fiche 9a annonce ce que la recherche couvre. La clé
+                  // l10n `searchPlaceholder` (« Rechercher... ») sert cinq
+                  // autres écrans : on ne la détourne pas pour un seul.
+                  hintText: 'Rechercher une personne, un message',
                   onChanged: (value) => setState(() => _searchQuery = value),
                   onClear: () {
                     _searchController.clear();
@@ -666,18 +669,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final useSections =
         !showArchived && _searchQuery.isEmpty && pinned.isNotEmpty;
 
-    // Liste d'entrées : marqueurs d'en-tête (String) + conversations.
-    final entries = <Object>[];
-    if (showSelfNotesTile) entries.add(_kSelfNotesMarker);
-    if (useSections) {
-      entries.add(l10n.pinnedSection);
-      entries.addAll(pinned);
-      if (others.isNotEmpty) entries.add(l10n.otherConversations);
-      entries.addAll(others);
-    } else {
-      entries.addAll(filtered);
-    }
-
     ConversationItem buildItem(
       ConversationEntity conversation, {
       required bool flat,
@@ -718,30 +709,56 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           ],
         ),
       );
-      if (showSelfNotesTile || others.isNotEmpty) {
-        children.add(DesignSectionLabel(l10n.otherConversations));
-      }
-    } else if (showSelfNotesTile || filtered.isNotEmpty) {
-      children.add(const SizedBox(height: 8));
     }
 
-    final flatEntries = <Object>[
-      if (showSelfNotesTile) _kSelfNotesMarker,
-      ...(useSections ? others : filtered),
-    ];
-    for (var i = 0; i < flatEntries.length; i++) {
-      if (i > 0) {
+    // Le reste de la liste se regroupe par période (fiche 9a : « Cette
+    // semaine », puis le plus ancien) au lieu d'un fourre-tout « Autres ».
+    // Les conversations sans date atterrissent dans le plus ancien plutôt
+    // que de disparaître.
+    final now = DateTime.now();
+    final rest = useSections ? others : filtered;
+    final thisWeek = <ConversationEntity>[];
+    final older = <ConversationEntity>[];
+    for (final c in rest) {
+      final at = c.lastMessageAt?.toLocal();
+      if (at != null && now.difference(at).inDays < 7) {
+        thisWeek.add(c);
+      } else {
+        older.add(c);
+      }
+    }
+
+    void addFlatSection(String? label, List<Object> items) {
+      if (items.isEmpty) return;
+      if (label != null) {
+        children.add(DesignSectionLabel(label));
+      } else {
+        children.add(const SizedBox(height: 8));
+      }
+      for (var i = 0; i < items.length; i++) {
+        if (i > 0) {
+          children.add(
+            Divider(height: 1, thickness: 1, color: context.dividerColor),
+          );
+        }
+        final entry = items[i];
         children.add(
-          Divider(height: 1, thickness: 1, color: context.dividerColor),
+          entry == _kSelfNotesMarker
+              ? _buildSelfNotesTile(context)
+              : buildItem(entry as ConversationEntity, flat: true),
         );
       }
-      final entry = flatEntries[i];
-      children.add(
-        entry == _kSelfNotesMarker
-            ? _buildSelfNotesTile(context)
-            : buildItem(entry as ConversationEntity, flat: true),
-      );
     }
+
+    // Les intertitres de période valent pour la liste principale, même sans
+    // épinglée : ni les archives ni des résultats de recherche ne se
+    // découpent en « Cette semaine ».
+    final showTimeSections = !showArchived && _searchQuery.isEmpty;
+    addFlatSection(showTimeSections ? l10n.thisWeek : null, [
+      if (showSelfNotesTile) _kSelfNotesMarker,
+      ...thisWeek,
+    ]);
+    addFlatSection(showTimeSections ? l10n.older : null, older);
 
     return RefreshIndicator(
       onRefresh: () async {

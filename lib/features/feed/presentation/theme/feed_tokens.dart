@@ -179,17 +179,14 @@ class FeedTokens {
     iconTileRadius: 8,
     compactCardRadius: 8,
     overline: Color(0xFFC08A5A),
-    fabBg: Colors.transparent,
+    // Fiche 6a : « FAB creux contour #9184D9 sur fond #161826 ». Le fond était
+    // transparent et un anneau gris pit 1 px l'entourait (repris d'une ombre
+    // du prototype), ce qui donnait un bouton terne au lieu d'un contour net.
+    // Aucune ombre : le guide de style l'interdit en nocturne.
+    fabBg: Color(0xFF161826),
     fabFg: Color(0xFF9184D9),
     fabBorder: Color(0xFF9184D9),
-    fabShadow: [
-      BoxShadow(color: Color(0xFF9397AB), blurRadius: 0, spreadRadius: 1),
-      BoxShadow(
-        color: Color(0xA6000000),
-        blurRadius: 40,
-        offset: Offset(0, 16),
-      ),
-    ],
+    fabShadow: [],
     segmentActiveBg: Colors.transparent,
     segmentActiveFg: Color(0xFF9184D9),
     segmentActiveBorder: Color(0xFF9184D9),

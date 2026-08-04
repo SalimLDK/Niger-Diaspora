@@ -1797,6 +1797,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spokenLanguages => 'Spoken languages';
 
   @override
+  String get spokenLanguagesEmptyAction => 'Choose my languages';
+
+  @override
+  String get interestsEmptyAction => 'Choose my interests';
+
+  @override
   String get otherMembersCanSee => 'Other members can see your profile';
 
   @override

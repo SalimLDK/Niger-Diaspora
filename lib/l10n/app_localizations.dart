@@ -3356,6 +3356,18 @@ abstract class AppLocalizations {
   /// **'Langues parlées'**
   String get spokenLanguages;
 
+  /// Puce d'ouverture du sélecteur de langues quand aucune n'est encore choisie (§20a)
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir mes langues'**
+  String get spokenLanguagesEmptyAction;
+
+  /// Puce d'ouverture du sélecteur de centres d'intérêt quand aucun n'est encore choisi (§20a)
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir mes centres d\'intérêt'**
+  String get interestsEmptyAction;
+
   /// No description provided for @otherMembersCanSee.
   ///
   /// In fr, this message translates to:
