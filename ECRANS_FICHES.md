@@ -38,8 +38,8 @@ Trois niveaux, à ne pas confondre :
 | 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
-| 4a | Discussion cliquable | ◐ | ◐ | — | `messages/…/conversation_screen.dart` |
-| 6b | Discussion — Nocturne | ✅ | — | — | idem 4a |
+| 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
@@ -597,10 +597,40 @@ Un écart délibéré : la fiche réserve le cadenas au nocturne (« absent en
 clair »). L'app l'affiche dans les deux thèmes — retirer un rappel de
 chiffrement en mode clair serait un recul, pas une conformité.
 
+**Deux écarts trouvés en reprenant la fiche point par point, corrigés :**
+
+- **La pastille de présence n'existait pas.** Le code portait bien la
+  référence `§4a`, mais l'état n'était écrit qu'en toutes lettres sous le nom
+  (« En ligne »). Le point de couleur bordé de la couleur d'en-tête, que la
+  fiche pose sur l'avatar, était absent.
+- **Le bloc de citation ne suivait pas la fiche.** Elle demande « bordure
+  gauche blanche translucide » : un filet de 2 px, 9 px de retrait, sans aplat
+  ni rayon. Il portait un liseré de 4 px opaque sur un fond translucide
+  arrondi — une seconde bulle dans la bulle. L'aplat reste sur les bulles
+  **reçues** : sur fond blanc, le filet seul n'a aucun contraste à exploiter.
+- **6b : la bordure des bulles reçues en nocturne** venait de
+  `context.borderColor` (`#2A241E`), invisible sur une bulle `#252119` posée
+  sur un fond `#0F0D0A`. La fiche nomme `#3D352C` — ajoutée comme
+  `AppColors.bubbleBorderDark` plutôt que figée dans le widget, pour ne pas
+  refaire le coup de `_kRecvBorderDark`.
+
+**Vu à l'écran le 2026-08-04**, clair et nocturne : pastille de présence,
+citation au filet fin sur bulle verte (réponse réellement envoyée dans
+« Mes notes »), bulles reçues nocturne dont la bordure se détache enfin du
+fond, en-tête, bandeau épinglé, chips Médias/ÉCO, lecteur vocal, composer.
+
+**Reste non conforme, non fait :** le bouton micro du composer. La fiche 4a le
+veut en **pastille avec le mot « MAINTENIR »** (hauteur 44, rayon 22, fond
+`#1B5E32`, libellé monospace 11/600) ; c'est un bouton rond à icône seule. Le
+libellé enseigne le geste, que rien n'indique autrement — mais ce bouton porte
+toute la gestuelle d'enregistrement (glisser pour annuler, glisser pour
+verrouiller, cadenas flottant en position absolue) et il est couvert par
+`message_input_composer_test.dart`. Le passer en pastille change sa géométrie
+dans tous les états : c'est un chantier, pas un ajustement.
+
 **Ce n'est pas une passe complète** : les ~6 500 lignes de
 `conversation_screen.dart` + `message_bubble.dart` n'ont pas été comparées
-ligne à ligne à la fiche. Seuls les points que les fiches désignent ont été
-contrôlés, et rien n'a été vu à l'écran.
+ligne à ligne. Seuls les points que les fiches désignent ont été contrôlés.
 
 ---
 
