@@ -26,11 +26,11 @@ Trois niveaux, à ne pas confondre :
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
-| 20a | Modifier mon profil | 🔨 | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
+| 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | — | — | — | à déterminer |
 | 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
-| 16e | Créer un événement | — | — | — | à déterminer |
+| 16e | Créer un événement | ✅ | ✅ | — | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
 | 7d | Carte — couches, panneau 3 positions | — | — | — | à déterminer |
@@ -146,6 +146,84 @@ réciprocité par ligne.
 
 Non vérifié : les hashtags (le compte de test n'en suit aucun) et la
 recherche.
+
+## 20a — Modifier mon profil (partiel)
+
+L'écran avait déjà été largement repris sur §20a par des sessions
+précédentes (langues en feuille multi-choix, puces repliées, compteur de bio
+sur la ligne du libellé, origine et visibilité en une ligne). Cette passe n'a
+corrigé que ce qui s'écartait encore de la fiche **à l'écran** :
+
+- **Le ✕ était invisible** : pastille blanche à 20 % et glyphe blanc, restes
+  de l'époque où la barre était un hero terracotta. Sur le fond crème actuel,
+  il n'y avait littéralement rien à voir en haut à gauche. Devenu un ✕ 24 px
+  dans la couleur du texte.
+- **Pastille appareil photo** : elle était un second aplat d'accent collé à
+  l'avatar. Passée en pastille neutre 26 px cerclée du fond de page, glyphe
+  sombre — l'accent reste sur « Modifier la photo ». Avatar 66/22 (fiche).
+- **« Qui peut voir mon numéro ? » n'affichait aucune valeur** : le profil
+  portait une chaîne absente de `phoneVisibilityOptions`, et le `?? ''` la
+  remplaçait par du vide en silence. Les valeurs inconnues sont désormais
+  ramenées sur la valeur par défaut, à la lecture comme à l'affichage.
+
+**Reste à trancher — restructuration, pas restylage.** La fiche décrit un
+formulaire nu : libellé au-dessus, champ 48 px radius 14, **aucune icône dans
+les champs**, **aucun en-tête de section**, et un ordre différent
+(Nom → Bio → Profession → Langues → Intérêts → Origine → Téléphone). L'écran
+actuel a des en-têtes de section (« INFORMATIONS DE BASE »), des icônes de
+préfixe, un champ « Nom d'utilisateur » que la fiche ne montre pas, et un
+bouton d'aperçu (👁) absent de la maquette. Le titre est en serif alors que
+la fiche demande Inter 700/18 — mais **tout le reste de l'app est en serif**,
+c'est une décision de design system, pas un détail d'écran.
+
+Rien de tout ça n'a été touché : ce sont des suppressions de fonctions
+existantes (le champ poignée alimente 5a) ou des choix qui débordent de
+l'écran. À arbitrer avec Salim.
+
+## 16e — Créer un événement
+
+Le formulaire existait déjà et portait la quasi-totalité des champs (le
+`EventEntity` a `maxAttendees`, `price`, `isOnline`, `onlineLink`,
+`posterUrls`) : la reprise a été une **restructuration**, pas un ajout de
+fonctions.
+
+- En-tête 48 px : ✕, « Nouvel événement » 18/700, mention « Brouillon ».
+- **Zone d'affiche remontée en tête** (elle était tout en bas) : cadre
+  pointillé 104 px — `_DashedBorderPainter`, Flutter n'ayant pas de bordure en
+  pointillés —, « Ajouter une affiche » / « Recommandé · 3:2 ».
+- Tous les champs au même gabarit : 50 px, rayon 14, libellé 12.5/600.
+- Date et Heure côte à côte, icônes 17 px.
+- **Le format devient un segment** « Sur place » / « En ligne » (actif à
+  l'encre pleine) : c'était un interrupteur « Événement en ligne ».
+- **Participants max et Prix côte à côte**, et « Gratuit » s'affiche en vert
+  comme état par défaut du champ vide — pas comme une valeur à saisir.
+- **Barre de pied fixe** « Aperçu » / « Publier l'événement » : le bouton
+  unique était noyé en fin de liste.
+
+Écarts assumés :
+- **« Prévenir mes groupes » n'est pas implémenté.** La maquette montre un
+  interrupteur qui diffuserait l'événement dans plusieurs groupes ; le modèle
+  n'a qu'un `groupId`, et il n'existe aucun mécanisme de diffusion multi-groupes.
+  Envoyer des messages dans les groupes de quelqu'un sur la foi d'une maquette
+  n'est pas une décision à prendre ici. L'interrupteur affiché à cet endroit
+  reste celui qui existe — visibilité publique — et seulement quand
+  l'événement naît d'une discussion.
+- **« Brouillon » n'est pas persisté** : rien n'est sauvegardé en sortant.
+  Plutôt que de laisser le mot mentir, le ✕ demande confirmation dès que le
+  formulaire contient quelque chose (`PopScope` + `_isDirty`).
+- **« Aperçu » était « non maquetté »** : plutôt qu'un bouton mort, il valide
+  le formulaire puis ouvre une feuille montrant les valeurs réellement
+  saisies. Les champs vides n'y figurent pas.
+- La fiche ne montre ni description, ni catégorie, ni date de fin. Ils sont
+  conservés — la description est **obligatoire**, la reléguer hors champ
+  ferait échouer la validation sans qu'on voie pourquoi.
+- Le libellé de la description affichait « La description est requise » :
+  `l10n.descriptionRequired` est un message d'erreur, pas un libellé.
+- Le champ Participants max coupait son placeholder à « Laissez vide pou… » :
+  passé à `maxAttendeesHint` (« Ex: 50 »).
+
+Non vérifié : le sélecteur d'affiche (permission galerie), la feuille
+« Aperçu » et la publication réelle.
 
 ---
 

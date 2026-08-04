@@ -97,6 +97,19 @@ validées une par une avec Salim avant branchement.
   Restent à vérifier : la **recherche** (le compte n'a qu'un abonnement), les
   **lignes de hashtag** sous Abonnements (aucun hashtag suivi sur ce compte),
   et le basculement Suivre → Suivi au doigt.
+- [x] **20a « Modifier le profil »** — vérifié le 2026-08-04 : ✕ enfin
+  visible, pastille photo neutre, et « Qui peut voir mon numéro ? » affiche
+  « Tout le monde » (elle n'affichait rien). Restent à vérifier : la carte
+  du numéro **vérifié** (le compte de test n'a pas de numéro vérifié, donc
+  ni le masquage « +33 6 12 •• •• 47 » ni « Vérifié par SMS » n'ont été vus),
+  et le sélecteur de visibilité au doigt.
+- ⚠ **Piège de build** : après une dizaine d'`adb install -r` d'affilée, un
+  APK est sorti avec un **paquet d'assets corrompu** — toutes les icônes
+  Material rendues en idéogrammes CJK, les SVG absents, et des écrans en
+  erreur. Ce n'était **pas** une régression de code : le même build cassait
+  aussi des écrans non modifiés. `flutter clean` + rebuild règle le
+  problème. Vérifier sur un second écran avant d'accuser son propre
+  changement.
 - ⚠ **Publication de test à supprimer** : un post public « Publication de test
   pour verifier l affichage de Mes publications - a ignorer #DiasporaNiger » a
   été publié le 2026-08-04 depuis le compte `Sim A.` pour valider 5b/5c. Il

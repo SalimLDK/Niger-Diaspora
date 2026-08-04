@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -407,612 +406,845 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
   }
 
+  /// Le formulaire contient-il quelque chose que fermer ferait perdre ?
+  bool get _isDirty =>
+      _titleController.text.trim().isNotEmpty ||
+      _descriptionController.text.trim().isNotEmpty ||
+      _addressController.text.trim().isNotEmpty ||
+      _onlineLinkController.text.trim().isNotEmpty ||
+      _maxAttendeesController.text.trim().isNotEmpty ||
+      _priceController.text.trim().isNotEmpty ||
+      _selectedPosters.isNotEmpty;
+
+  /// ✕ de l'en-tête. La fiche affiche « Brouillon » à côté, mais rien n'est
+  /// persisté : plutôt que de laisser croire à une reprise, on demande
+  /// confirmation dès que le formulaire contient quelque chose.
+  Future<void> _handleClose() async {
+    if (!_isDirty) {
+      if (mounted) context.pop();
+      return;
+    }
+    final leave = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Abandonner cet événement ?'),
+            content: const Text(
+              "Le brouillon n'est pas conservé : ce qui est saisi ici sera perdu.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Continuer la saisie'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'Abandonner',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+    if (leave == true && mounted) context.pop();
+  }
+
+  /// « Aperçu » — non maquetté dans la fiche. Montre l'événement tel qu'il
+  /// sera enregistré, à partir des valeurs réellement saisies : aucun champ
+  /// n'est inventé, ceux qui sont vides n'apparaissent pas.
+  void _showPreview() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final locale = Localizations.localeOf(context).languageCode;
+    final startDateTime = DateTime(
+      _startDate.year,
+      _startDate.month,
+      _startDate.day,
+      _startTime.hour,
+      _startTime.minute,
+    );
+    final price =
+        double.tryParse(_priceController.text.trim().replaceAll(',', '.')) ??
+        0.0;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.backgroundColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder:
+          (ctx) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Aperçu',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (_selectedPosters.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: AspectRatio(
+                        aspectRatio: 3 / 2,
+                        child: Image.file(
+                          File(_selectedPosters.first.path),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                  Text(
+                    _titleController.text.trim(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _PreviewRow(
+                    icon: Icons.event_outlined,
+                    text:
+                        '${DateFormat('EEEE d MMMM', locale).format(startDateTime)}'
+                        ' · ${DateFormat('HH:mm', locale).format(startDateTime)}',
+                  ),
+                  _PreviewRow(
+                    icon: _isOnline ? Icons.videocam_outlined : Icons.place_outlined,
+                    text:
+                        _isOnline
+                            ? (_onlineLinkController.text.trim().isEmpty
+                                ? 'En ligne'
+                                : _onlineLinkController.text.trim())
+                            : _locationController.text.trim(),
+                  ),
+                  if (_maxAttendeesController.text.trim().isNotEmpty)
+                    _PreviewRow(
+                      icon: Icons.people_outline,
+                      text:
+                          '${_maxAttendeesController.text.trim()} participants max',
+                    ),
+                  _PreviewRow(
+                    icon: Icons.local_offer_outlined,
+                    text: price <= 0 ? 'Gratuit' : '$price €',
+                    color: price <= 0 ? context.successColor : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _descriptionController.text.trim(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
-    final dateFormat = DateFormat('dd MMM yyyy', locale);
+    // « 2 août » comme la fiche, et non « 02 août 2026 ».
+    final dateFormat = DateFormat('d MMMM', locale);
     final timeFormat = DateFormat('HH:mm', locale);
+    final fromDiscussion =
+        widget.groupId != null || widget.conversationId != null;
 
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) await _handleClose();
+      },
+      child: Scaffold(
         backgroundColor: context.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        title: DesignTitle(l10n.createEvent, size: 22),
-        leading: IconButton(
-          icon: AppIcon(AppIcon.close, color: Theme.of(context).iconTheme.color!),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // Titre
-            _buildLabel(l10n.eventTitleRequired),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _titleController,
-              decoration: _inputDecoration(l10n.eventTitleHint, context),
-              style: TextStyle(color: context.textPrimaryColor),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return l10n.eventTitleRequiredError;
-                }
-                if (value.trim().length < 5) {
-                  return l10n.eventTitleTooShort;
-                }
-                return null;
-              },
+        appBar: AppBar(
+          toolbarHeight: 48,
+          backgroundColor: context.backgroundColor,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          titleSpacing: 0,
+          leading: IconButton(
+            icon: AppIcon(
+              AppIcon.close,
+              color: Theme.of(context).iconTheme.color!,
             ),
-
-            const SizedBox(height: 20),
-
-            // Description
-            _buildLabel(l10n.descriptionRequired),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: _inputDecoration(l10n.descriptionHint, context),
-              style: TextStyle(color: context.textPrimaryColor),
-              maxLines: 4,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return l10n.descriptionRequiredError;
-                }
-                if (value.trim().length < 20) {
-                  return l10n.descriptionTooShort;
-                }
-                return null;
-              },
+            onPressed: _handleClose,
+          ),
+          title: Text(
+            'Nouvel événement',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
             ),
-
-            const SizedBox(height: 20),
-
-            // Catégorie
-            _buildLabel(l10n.category),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: context.surfaceColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: context.borderColor),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<EventCategory>(
-                  value: _selectedCategory,
-                  isExpanded: true,
-                  dropdownColor: context.surfaceColor,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: context.textPrimaryColor,
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: Text(
+                  'Brouillon',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.textTertiaryColor,
                   ),
-                  items:
-                      EventCategory.values
-                          .map(
-                            (category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(
-                                category.label,
-                                style: TextStyle(
-                                  color: context.textPrimaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            children: [
+              _buildPosterZone(l10n),
+              const SizedBox(height: 16),
+
+              _buildLabel('Titre'),
+              const SizedBox(height: 7),
+              TextFormField(
+                controller: _titleController,
+                decoration: _inputDecoration(l10n.eventTitleHint, context),
+                style: _fieldTextStyle(context),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return l10n.eventTitleRequiredError;
+                  }
+                  if (value.trim().length < 5) return l10n.eventTitleTooShort;
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+
+              // La fiche ne montre pas la description, mais elle est
+              // obligatoire : la reléguer sous la ligne de flottaison ferait
+              // échouer la validation sans que l'on voie pourquoi.
+              // `descriptionRequired` est un message d'erreur (« La
+              // description est requise »), pas un libellé de champ.
+              _buildLabel(l10n.description),
+              const SizedBox(height: 7),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: _inputDecoration(l10n.descriptionHint, context),
+                style: _fieldTextStyle(context),
+                maxLines: 4,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return l10n.descriptionRequiredError;
+                  }
+                  if (value.trim().length < 20) return l10n.descriptionTooShort;
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _buildPickerField(
+                      label: 'Date',
+                      icon: AppIcon(
+                        AppIcon.event,
+                        size: 17,
+                        color: context.textTertiaryColor,
+                      ),
+                      value: dateFormat.format(_startDate),
+                      onTap: _selectStartDate,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildPickerField(
+                      label: 'Heure',
+                      icon: AppIcon(
+                        AppIcon.clock,
+                        size: 17,
+                        color: context.textTertiaryColor,
+                      ),
+                      value: timeFormat.format(
+                        DateTime(2024, 1, 1, _startTime.hour, _startTime.minute),
+                      ),
+                      onTap: _selectStartTime,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              _buildLabel(l10n.endDateTimeOptional),
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildPickerField(
+                      icon: AppIcon(
+                        AppIcon.event,
+                        size: 17,
+                        color: context.textTertiaryColor,
+                      ),
+                      value:
+                          _endDate != null
+                              ? dateFormat.format(_endDate!)
+                              : l10n.endDate,
+                      muted: _endDate == null,
+                      onTap: _selectEndDate,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildPickerField(
+                      icon: AppIcon(
+                        AppIcon.clock,
+                        size: 17,
+                        color: context.textTertiaryColor,
+                      ),
+                      value:
+                          _endTime != null
+                              ? timeFormat.format(
+                                DateTime(
+                                  2024,
+                                  1,
+                                  1,
+                                  _endTime!.hour,
+                                  _endTime!.minute,
                                 ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
+                              )
+                              : l10n.endTime,
+                      muted: _endTime == null,
+                      onTap: _endDate != null ? _selectEndTime : null,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              _buildLabel('Format'),
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFormatOption(
+                      label: 'Sur place',
+                      active: !_isOnline,
+                      onTap: () => setState(() => _isOnline = false),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildFormatOption(
+                      label: 'En ligne',
+                      active: _isOnline,
+                      onTap: () => setState(() => _isOnline = true),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              if (_isOnline)
+                TextFormField(
+                  controller: _onlineLinkController,
+                  decoration: _inputDecoration(
+                    l10n.videoConferenceLinkHint,
+                    context,
+                  ).copyWith(
+                    prefixIcon: Icon(
+                      Icons.videocam_outlined,
+                      size: 17,
+                      color: context.textTertiaryColor,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 24,
+                    ),
+                  ),
+                  style: _fieldTextStyle(context),
+                  keyboardType: TextInputType.url,
+                )
+              else ...[
+                TextFormField(
+                  controller: _locationController,
+                  decoration: _inputDecoration(
+                    l10n.locationHint,
+                    context,
+                  ).copyWith(
+                    prefixIcon: AppIcon(
+                      AppIcon.location,
+                      size: 17,
+                      color: context.textTertiaryColor,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 24,
+                    ),
+                  ),
+                  style: _fieldTextStyle(context),
+                  validator: (value) {
+                    if (!_isOnline && (value == null || value.trim().isEmpty)) {
+                      return l10n.locationRequiredError;
                     }
+                    return null;
                   },
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Date et heure de début
-            _buildLabel(l10n.startDateTime),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _selectStartDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: 18,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            dateFormat.format(_startDate),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _selectStartTime,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          AppIcon(AppIcon.clock,
-                            size: 18,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            timeFormat.format(
-                              DateTime(
-                                2024,
-                                1,
-                                1,
-                                _startTime.hour,
-                                _startTime.minute,
-                              ),
-                            ),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 14),
+                _buildLabel(l10n.addressOptional),
+                const SizedBox(height: 7),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: _inputDecoration(l10n.addressHint, context),
+                  style: _fieldTextStyle(context),
                 ),
               ],
-            ),
+              const SizedBox(height: 14),
 
-            const SizedBox(height: 20),
-
-            // Date et heure de fin (optionnel)
-            _buildLabel(l10n.endDateTimeOptional),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _selectEndDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: 18,
-                            color:
-                                _endDate != null
-                                    ? context.adaptivePrimaryColor
-                                    : context.textTertiaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            _endDate != null
-                                ? dateFormat.format(_endDate!)
-                                : l10n.endDate,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color:
-                                  _endDate != null
-                                      ? context.textPrimaryColor
-                                      : context.textTertiaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _endDate != null ? _selectEndTime : null,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          AppIcon(AppIcon.clock,
-                            size: 18,
-                            color:
-                                _endTime != null
-                                    ? context.adaptivePrimaryColor
-                                    : context.textTertiaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            _endTime != null
-                                ? timeFormat.format(
-                                  DateTime(
-                                    2024,
-                                    1,
-                                    1,
-                                    _endTime!.hour,
-                                    _endTime!.minute,
-                                  ),
-                                )
-                                : l10n.endTime,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color:
-                                  _endTime != null
-                                      ? context.textPrimaryColor
-                                      : context.textTertiaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Événement en ligne
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.surfaceColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          l10n.onlineEvent,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: context.textPrimaryColor,
+                        _buildLabel('Participants max'),
+                        const SizedBox(height: 7),
+                        TextFormField(
+                          controller: _maxAttendeesController,
+                          // `unlimitedAttendees` (« Laissez vide pour un
+                          // nombre illimité ») est une phrase d'aide : dans un
+                          // champ demi-largeur elle se coupe à « Laissez vide
+                          // pou… ».
+                          decoration: _inputDecoration(
+                            l10n.maxAttendeesHint,
+                            context,
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.onlineEventDescription,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: context.textTertiaryColor,
-                          ),
+                          style: _fieldTextStyle(context),
+                          keyboardType: TextInputType.number,
                         ),
                       ],
                     ),
                   ),
-                  Switch(
-                    value: _isOnline,
-                    onChanged: (value) => setState(() => _isOnline = value),
-                    activeThumbColor: context.adaptivePrimaryColor,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLabel('Prix'),
+                        const SizedBox(height: 7),
+                        TextFormField(
+                          controller: _priceController,
+                          // Champ vide = gratuit : le libellé « Gratuit » en
+                          // vert de la fiche est l'état par défaut, pas une
+                          // valeur à saisir.
+                          decoration: _inputDecoration(
+                            'Gratuit',
+                            context,
+                          ).copyWith(
+                            hintStyle: TextStyle(
+                              color: context.successColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                            suffixText:
+                                _priceController.text.trim().isEmpty ? null : '€',
+                            suffixStyle: TextStyle(
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                          style: _fieldTextStyle(context),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
 
-            // Visibilité (créé depuis une discussion — DM ou groupe) : par
-            // défaut réservé aux participants/membres, avec option pour le
-            // publier aussi dans le fil public (écran Événements global).
-            if (widget.groupId != null || widget.conversationId != null) ...[
-              const SizedBox(height: 20),
+              _buildLabel(l10n.category),
+              const SizedBox(height: 7),
               Container(
-                padding: const EdgeInsets.all(16),
+                height: 50,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
                   color: context.surfaceColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: context.borderColor),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Publier dans le fil public',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _publishToFeed
-                                ? 'Visible par tout le monde dans Événements, en plus de la discussion.'
-                                : (widget.groupId != null
-                                    ? 'Visible uniquement par les membres du groupe.'
-                                    : 'Visible uniquement par les participants de la conversation.'),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: context.textTertiaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _publishToFeed,
-                      onChanged: (value) =>
-                          setState(() => _publishToFeed = value),
-                      activeThumbColor: context.adaptivePrimaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Lieu ou lien
-            if (_isOnline) ...[
-              _buildLabel(l10n.videoConferenceLink),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _onlineLinkController,
-                decoration: _inputDecoration(
-                  l10n.videoConferenceLinkHint,
-                  context,
-                ),
-                style: TextStyle(color: context.textPrimaryColor),
-                keyboardType: TextInputType.url,
-              ),
-            ] else ...[
-              _buildLabel(l10n.locationRequired),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _locationController,
-                decoration: _inputDecoration(l10n.locationHint, context),
-                style: TextStyle(color: context.textPrimaryColor),
-                validator: (value) {
-                  if (!_isOnline && (value == null || value.trim().isEmpty)) {
-                    return l10n.locationRequiredError;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildLabel(l10n.addressOptional),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _addressController,
-                decoration: _inputDecoration(l10n.addressHint, context),
-                style: TextStyle(color: context.textPrimaryColor),
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Nombre max de participants
-            _buildLabel(l10n.maxAttendeesOptional),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _maxAttendeesController,
-              decoration: _inputDecoration(l10n.maxAttendeesHint, context),
-              style: TextStyle(color: context.textPrimaryColor),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.unlimitedAttendees,
-              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Prix du billet (§16e) — 0 = gratuit
-            _buildLabel(l10n.eventPriceOptional),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _priceController,
-              decoration: _inputDecoration(l10n.eventPriceHint, context).copyWith(
-                suffixText: '€',
-                suffixStyle: TextStyle(color: context.textSecondaryColor),
-              ),
-              style: TextStyle(color: context.textPrimaryColor),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.eventPriceFreeHelper,
-              style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Event Posters Section
-            _buildLabel(l10n.eventPostersOptional),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.surfaceColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: context.borderColor),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.eventPostersUpTo5,
-                    style: TextStyle(
-                      fontSize: 13,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<EventCategory>(
+                    value: _selectedCategory,
+                    isExpanded: true,
+                    dropdownColor: context.surfaceColor,
+                    icon: Icon(
+                      Icons.keyboard_arrow_down,
                       color: context.textTertiaryColor,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_selectedPosters.isEmpty)
-                    Center(
-                      child: OutlinedButton.icon(
-                        onPressed: _pickPosters,
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: Text(l10n.eventSelectImages),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: context.adaptivePrimaryColor,
-                          side: BorderSide(color: context.adaptivePrimaryColor),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    Column(
-                      children: [
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                childAspectRatio: 1,
-                              ),
-                          itemCount: _selectedPosters.length,
-                          itemBuilder: (context, index) {
-                            final poster = _selectedPosters[index];
-                            return Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(poster.path),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
+                    style: _fieldTextStyle(context),
+                    items:
+                        EventCategory.values
+                            .map(
+                              (category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(
+                                  category.label,
+                                  style: _fieldTextStyle(context),
                                 ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () => _removePoster(index),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const AppIcon(AppIcon.close,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        if (_selectedPosters.length < 5) ...[
-                          const SizedBox(height: 12),
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: _pickPosters,
-                              icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
-                              label: Text(
-                                'Ajouter (${_selectedPosters.length}/5)',
                               ),
-                              style: TextButton.styleFrom(
-                                foregroundColor: context.adaptivePrimaryColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Bouton créer
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _createEvent,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.adaptivePrimaryColor,
-                  foregroundColor: context.onPrimaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                            )
+                            .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedCategory = value);
+                      }
+                    },
                   ),
                 ),
-                child:
-                    _isLoading
-                        ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: context.onPrimaryColor,
-                            strokeWidth: 2,
-                          ),
-                        )
-                        : Text(
-                          l10n.createEventButton,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+              ),
+
+              // Visibilité : uniquement quand l'événement naît d'une
+              // discussion. La fiche montre ici « Prévenir mes groupes », qui
+              // diffuserait dans plusieurs groupes — voir ECRANS_FICHES.md.
+              if (fromDiscussion) ...[
+                const SizedBox(height: 14),
+                _buildToggleCard(
+                  title: 'Publier dans le fil public',
+                  subtitle:
+                      _publishToFeed
+                          ? 'Visible par tout le monde dans Événements, en plus de la discussion.'
+                          : (widget.groupId != null
+                              ? 'Visible uniquement par les membres du groupe.'
+                              : 'Visible uniquement par les participants de la conversation.'),
+                  value: _publishToFeed,
+                  onChanged: (v) => setState(() => _publishToFeed = v),
+                ),
+              ],
+            ],
+          ),
+        ),
+        bottomNavigationBar: _buildFooter(),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Blocs de la fiche 16e
+  // ---------------------------------------------------------------------------
+
+  /// Zone d'affiche en tête de formulaire : cadre pointillé de 104 px tant
+  /// qu'aucune image n'est choisie, grille des affiches ensuite.
+  Widget _buildPosterZone(AppLocalizations l10n) {
+    if (_selectedPosters.isEmpty) {
+      return GestureDetector(
+        onTap: _pickPosters,
+        child: CustomPaint(
+          painter: _DashedBorderPainter(
+            color: context.borderStrongColor,
+            radius: 18,
+          ),
+          child: Container(
+            height: 104,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AppIcon(
+                  AppIcon.image,
+                  size: 24,
+                  color: context.adaptivePrimaryColor,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Ajouter une affiche',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Recommandé · 3:2',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 3 / 2,
+          ),
+          itemCount: _selectedPosters.length,
+          itemBuilder: (context, index) {
+            final poster = _selectedPosters[index];
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(File(poster.path), fit: BoxFit.cover),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () => _removePoster(index),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const AppIcon(
+                        AppIcon.close,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        if (_selectedPosters.length < 5)
+          TextButton.icon(
+            onPressed: _pickPosters,
+            icon: AppIcon(AppIcon.add, color: context.adaptivePrimaryColor),
+            label: Text('${l10n.eventSelectImages} (${_selectedPosters.length}/5)'),
+            style: TextButton.styleFrom(
+              foregroundColor: context.adaptivePrimaryColor,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Champ non saisissable ouvrant un sélecteur (date, heure) : même gabarit
+  /// 50 px / rayon 14 que les champs de texte.
+  Widget _buildPickerField({
+    String? label,
+    required Widget icon,
+    required String value,
+    required VoidCallback? onTap,
+    bool muted = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label != null) ...[_buildLabel(label), const SizedBox(height: 7)],
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: context.borderColor),
+            ),
+            child: Row(
+              children: [
+                icon,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color:
+                          muted
+                              ? context.textTertiaryColor
+                              : context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormatOption({
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? context.textPrimaryColor : context.surfaceColor,
+          borderRadius: BorderRadius.circular(13),
+          border: active ? null : Border.all(color: context.borderColor),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+            color: active ? context.backgroundColor : context.textSecondaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleCard({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: context.textTertiaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: Colors.white,
+            activeTrackColor: context.successColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Barre de pied fixe : « Aperçu » en contour, « Publier l'événement » plein.
+  Widget _buildFooter() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        border: Border(top: BorderSide(color: context.borderColor)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            OutlinedButton(
+              onPressed: _isLoading ? null : _showPreview,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+                foregroundColor: context.textSecondaryColor,
+                side: BorderSide(color: context.borderStrongColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text(
+                'Aperçu',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
-
-            const SizedBox(height: 32),
+            const SizedBox(width: 10),
+            Expanded(
+              child: SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _createEvent,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.adaptivePrimaryColor,
+                    foregroundColor: context.onPrimaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child:
+                      _isLoading
+                          ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: context.onPrimaryColor,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            "Publier l'événement",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -1023,36 +1255,112 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: 12.5,
         fontWeight: FontWeight.w600,
-        color: context.textPrimaryColor,
+        color: context.textSecondaryColor,
       ),
     );
   }
 
+  TextStyle _fieldTextStyle(BuildContext context) => TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    color: context.textPrimaryColor,
+  );
+
   InputDecoration _inputDecoration(String hint, BuildContext context) {
+    OutlineInputBorder border(Color color) => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: color),
+    );
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: context.textTertiaryColor),
+      hintStyle: TextStyle(color: context.textTertiaryColor, fontSize: 14),
       filled: true,
       fillColor: context.surfaceColor,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: context.borderColor),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: context.borderColor),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: context.adaptivePrimaryColor),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.red),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      isDense: true,
+      border: border(context.borderColor),
+      enabledBorder: border(context.borderColor),
+      focusedBorder: border(context.adaptivePrimaryColor),
+      errorBorder: border(Colors.red),
+      focusedErrorBorder: border(Colors.red),
+      // 15 px de haut + 20 de ligne ≈ les 50 px de la fiche.
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
     );
   }
+}
+
+class _PreviewRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color? color;
+
+  const _PreviewRow({required this.icon, required this.text, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: context.textTertiaryColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: color ?? context.textPrimaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cadre pointillé de la zone d'affiche. Flutter n'a pas de bordure en
+/// pointillés : on trace le rectangle arrondi et on n'en peint qu'un segment
+/// sur deux.
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  static const double dash = 5;
+  static const double gap = 4;
+
+  const _DashedBorderPainter({required this.color, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
+    final path =
+        Path()..addRRect(
+          RRect.fromRectAndRadius(
+            Offset.zero & size,
+            Radius.circular(radius),
+          ),
+        );
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = distance + dash;
+        canvas.drawPath(
+          metric.extractPath(distance, next.clamp(0, metric.length)),
+          paint,
+        );
+        distance = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
 }
