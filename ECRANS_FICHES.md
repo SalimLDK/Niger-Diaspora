@@ -742,7 +742,11 @@ production visible par tous les utilisateurs** — à ne pas faire pour tester.
   sur un conteneur déjà coloré (5b, 5d), il faut neutraliser `filled` **et**
   `enabledBorder`/`focusedBorder` — `border: InputBorder.none` seul ne fait
   rien, le thème gagne.
-- **Bouton Suivre hors palette** : `FollowButtonVariant.filled` utilise
+- **Bouton Suivre hors palette** : `FollowButtonVariant.filled` utilisait
   `Theme.of(context).primaryColor`, donc l'accent choisi par l'utilisateur
-  s'affichait au milieu du fil. Réglé par la variante `pill` pour 5d ; les
-  autres usages de `filled` restent à revoir.
+  s'affichait au milieu du fil. Réglé par la variante `pill` pour 5d, puis
+  **la variante `filled` a été supprimée** : son dernier usage
+  (`reposters_screen`, une liste du fil) avait le même défaut, et garder une
+  variante dont le seul comportement est de casser la palette, c'était la
+  laisser à portée de main. `pill` devient le défaut, il ne reste que `pill`
+  et `text`.
