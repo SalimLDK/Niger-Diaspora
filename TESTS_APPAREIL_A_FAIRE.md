@@ -271,6 +271,54 @@ L'intent de tâche a d'abord été réarmé par un vrai lien profond
       (image, vidéo, PDF, sélection multiple) — non testable en pilotage `adb`
       sans passer par le sélecteur système.
 
+### ✅ Repli hors-ligne — le bug documenté NE se reproduit PAS (16:47, mode avion réel)
+
+Mode avion activé par Salim. État vérifié avant de commencer :
+`airplane_mode_on=1`, Wi-Fi désactivé, **`Active default network: none`**.
+⚠ Un agent réseau **VPN reste « CONNECTED »** dans `dumpsys connectivity`, mais
+il n'est plus le réseau par défaut — c'est probablement là toute la différence
+avec la mesure précédente, où `connectivity_plus` voyait « connecté » et l'app
+n'entrait donc jamais en mode hors-ligne. **Hypothèse, pas preuve.**
+
+Aucun des trois symptômes décrits plus bas ne se reproduit :
+
+- [x] **Splash de ~2 min → NON.** `/splash` à 16:47:46, `/home` à 16:47:57 :
+      **11 secondes**.
+- [x] **Squelettes infinis dans le fil → NON.** « Le fil » affiche le bandeau
+      **« 🕐 Fil hors ligne · dernière mise à jour Il y a 1 heure(s) »** puis
+      rend les **trois publications en cache** en entier. Le repli annoncé par la
+      maquette 2a fonctionne donc.
+- [x] **Retour au splash → NON.** Un seul `setting initial location` sur toute la
+      session, pid inchangé : aucun redémarrage.
+- [x] Liste des conversations hors ligne : servie par le cache, « Mes notes »
+      affiche bien son dernier message.
+- [x] **0 `RenderFlex overflowed`, 0 exception Flutter** hors ligne. (Attention
+      au faux positif : un `Select-String "EXCEPTION"` insensible à la casse
+      remonte 102 lignes qui sont toutes des `SocketException` /
+      `AuthRetryableFetchException` — filtrer sur `RenderFlex` et
+      `EXCEPTION CAUGHT` uniquement.)
+
+**Le bug « repli hors-ligne » est donc à refermer**, sauf à le reproduire dans
+les conditions exactes d'origine (VPN actif comme réseau par défaut).
+
+### 🔴 Trouvé hors ligne — trois défauts distincts
+
+- [ ] **Aucun indicateur « hors ligne » hors du fil.** L'accueil, la carte, les
+      messages et le profil ne signalent rien : l'app a l'air normale alors que
+      rien ne se charge. Seul « Le fil » a son bandeau. À uniformiser.
+- [ ] **Le nom du correspondant retombe sur « Utilisateur »** dans la liste des
+      conversations (« Salim L. » en ligne, « Utilisateur » + initiale « U »
+      hors ligne). Le dernier message, lui, est bien en cache — c'est donc le
+      profil du correspondant qui n'est pas mis en cache.
+- [ ] **Boucle de rafraîchissement du jeton sans backoff.** Hors ligne,
+      `SupabaseAuthBridge` rejoue le rafraîchissement **toutes les ~13 s**
+      indéfiniment (16:47:53, 16:48:06, 16:48:19, 16:48:31…), chaque tour
+      déclenchant plusieurs requêtes qui échouent en `Failed host lookup`.
+      Coût batterie et bruit de journal. Prévoir un backoff, ou suspendre tant
+      que `connectivity` annonce l'absence de réseau.
+- [ ] « Autour de vous » (accueil) reste sur **4 avatars squelettes** hors ligne,
+      sans état vide.
+
 ### Bilan du programme — ce qui reste, et pourquoi
 
 - [ ] **Repli hors-ligne** (splash de ~2 min + squelettes infinis) — ⚠ **je ne
