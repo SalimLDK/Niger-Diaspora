@@ -103,6 +103,15 @@ lancement d'un compte sans ville renseignée.
       message d'aide existe, il ne s'affiche jamais. À câbler — c'est un
       trou de câblage de la même famille que le mode Éco.
 
+**Modifier le profil (§20a) — barre d'en-tête repliée**
+
+- [x] La `SliverAppBar` était figée sur `AppColors.primary` : une fois
+      repliée, elle virait au terracotta plein sur toute la largeur, seul
+      écran de l'app à le faire, et le jeton ne suivait pas le thème. Elle
+      prend maintenant `context.backgroundColor` + `surfaceTintColor`
+      transparent. Vérifié replié : fond sombre, seul « Enregistrer » reste
+      terracotta — c'est l'action principale, elle doit l'être.
+
 **Reste à exercer sur cet appareil** : tous les autres écrans basculés
 (profil, config profil, réglages, carte, notifications, recherche,
 messagerie), le mode Éco en réception, le brouillon d'épisode, et

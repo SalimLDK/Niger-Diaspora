@@ -547,7 +547,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 expandedHeight: 240,
                 pinned: true,
                 stretch: true,
-                backgroundColor: AppColors.primary,
+                // Repliée, cette barre virait au terracotta plein sur toute
+                // la largeur — le seul écran de l'app à faire ça, et le
+                // jeton était figé sur la palette claire. Elle suit
+                // désormais le fond de la page, comme partout ailleurs.
+                backgroundColor: context.backgroundColor,
+                surfaceTintColor: Colors.transparent,
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
