@@ -106,7 +106,10 @@ class _SegmentOption<T> extends StatelessWidget {
           color: isActive ? tokens.segmentActiveBg : Colors.transparent,
           border:
               isActive && tokens.segmentActiveBorder != null
-                  ? Border.all(color: tokens.segmentActiveBorder!)
+                  // 1.5 px : la fiche 6a décrit l'onglet actif du fil nocturne
+                  // comme « un contour 1.5px » — à 1 px il se confondait avec
+                  // le filet du conteneur.
+                  ? Border.all(color: tokens.segmentActiveBorder!, width: 1.5)
                   : null,
         ),
         child: Row(
