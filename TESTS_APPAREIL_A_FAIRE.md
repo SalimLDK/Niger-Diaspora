@@ -810,6 +810,34 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 
 ---
 
+## Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)
+
+`storage.rules` : `match /messages/{conversationId}/{allPaths=**}` passait
+`allow read: if isAuthenticated()`. Or `read` couvre `get` ET `list` — connaître
+un `conversationId` suffisait donc à énumérer puis télécharger tout le média de
+la conversation, y compris pour un membre exclu d'un groupe. Séparé en
+`allow get` / `allow list: if false`, **déployé sur `diaspo-niger`**.
+
+Vérifié après déploiement : aucun plantage, aucune erreur Storage dans logcat,
+la conversation et la liste s'affichent à l'identique.
+
+- [ ] **Confirmer qu'un média s'affiche toujours.** Non vérifié : l'unique
+      média du compte de test était déjà un rectangle noir *avant* le
+      changement, donc la comparaison ne prouve rien. Envoyer une image dans
+      une conversation et vérifier qu'elle s'affiche, en réception comme en
+      envoi.
+- [ ] Vérifier la galerie « Médias » d'une conversation (si elle liste des
+      objets Storage plutôt que des lignes de base, elle casserait).
+
+Rollback si besoin : remettre `allow read: if isAuthenticated();` dans
+`storage.rules` puis `firebase deploy --only storage --project diaspo-niger`.
+
+⚠️ Ce n'est PAS la restriction aux participants : les règles Storage ne savent
+interroger que Firestore, or l'appartenance vit dans Supabase. Voir
+CHIFFREMENT_MEDIAS_PLAN.md.
+
+---
+
 ## Fuseau horaire — heures affichées en UTC (2026-08-04)
 
 Bug constaté sur appareil (SM A515F, `America/Toronto` = UTC-4) : une
