@@ -15589,4 +15589,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changePhotoAction => 'Change photo';
+
+  @override
+  String get mapSortNearest => 'Nearest';
+
+  @override
+  String get mapSortByName => 'By name';
 }

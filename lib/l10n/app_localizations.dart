@@ -28807,6 +28807,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Modifier la photo'**
   String get changePhotoAction;
+
+  /// Tri de la liste des membres ; court, il partage sa rangee avec le titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Proximité'**
+  String get mapSortNearest;
+
+  /// Tri de la liste des membres
+  ///
+  /// In fr, this message translates to:
+  /// **'Par nom'**
+  String get mapSortByName;
 }
 
 class _AppLocalizationsDelegate

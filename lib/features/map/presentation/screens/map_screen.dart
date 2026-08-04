@@ -3350,11 +3350,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   // — refonte 7d, remplace le panneau ancré + chip de réouverture.
                   if (!_isReciprocityRestricted)
                     DraggableScrollableSheet(
-                      initialChildSize: 0.18,
-                      minChildSize: 0.18,
+                      initialChildSize: 0.38,
+                      minChildSize: 0.38,
                       maxChildSize: 0.92,
                       snap: true,
-                      snapSizes: const [0.18, 0.45, 0.92],
+                      snapSizes: const [0.38, 0.6, 0.92],
                       builder: (context, scrollController) {
                         final members = _applySort(_getFilteredMembers());
                         return Container(
@@ -3405,6 +3405,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                             children: [
                                               Text(
                                                 l10n.membersNearby,
+                                                // Une seule ligne : sans ça
+                                                // le titre se repliait en
+                                                // colonne, coupé en plein
+                                                // mot, quand ses voisins de
+                                                // rangée prenaient la place.
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .titleMedium,
@@ -3528,9 +3536,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                                 context.adaptivePrimaryColor,
                                           ),
                                           label: Text(
+                                            // Libellé court : il partage sa
+                                            // rangée avec le titre du volet,
+                                            // qui se repliait caractère par
+                                            // caractère quand celui-ci
+                                            // prenait toute la place.
                                             _sort == _MemberSort.nearest
-                                                ? 'Les plus proches'
-                                                : 'Par nom',
+                                                ? l10n.mapSortNearest
+                                                : l10n.mapSortByName,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,

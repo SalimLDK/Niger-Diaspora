@@ -62,6 +62,22 @@ lancement d'un compte sans ville renseignée.
       un dimensionnement : le volet replié ne peut pas contenir ce qu'on lui
       demande d'afficher.
 
+      ✅ **Soldé le 2026-08-03 — plus aucun débordement sur la carte.**
+      Trois changements, vérifiés ensemble sur le SM A515F : le tri passe de
+      « Les plus proches » à « Proximité » (et cesse d'être en dur), le titre
+      du volet prend `maxLines: 1` + ellipse, et `minChildSize` monte de 0.18
+      à 0.38. Journal de lancement : **0 `overflowed`**.
+
+      ⚠️ **Un défaut cosmétique subsiste** : le titre s'affiche « Memb… ».
+      La rangée d'en-tête reste trop étroite pour lui — les trois contrôles
+      de droite (« Aucun membre », « Liste », « Proximité ») occupent
+      légitimement les deux tiers de la largeur. Ce n'est plus une erreur de
+      rendu, juste une mise en page à revoir : **déplacer les contrôles sur
+      une seconde ligne sous le titre** est la seule vraie solution, et c'est
+      une restructuration, pas un réglage.
+
+      Historique conservé ci-dessous, il documente deux impasses.
+
       🔴 **`minChildSize` relevé le 2026-08-03 : essayé, mesuré, annulé.**
       0.18 → 0.35 ramène le débordement de 146 px à 14 ; 0.38 le supprime
       complètement. Mais le volet, enfin assez haut pour montrer son en-tête,

@@ -7987,5 +7987,13 @@
   "changePhotoAction": "Modifier la photo",
   "@changePhotoAction": {
     "description": "Lien sous l avatar de l editeur de profil"
+  },
+  "mapSortNearest": "Proximité",
+  "@mapSortNearest": {
+    "description": "Tri de la liste des membres ; court, il partage sa rangee avec le titre"
+  },
+  "mapSortByName": "Par nom",
+  "@mapSortByName": {
+    "description": "Tri de la liste des membres"
   }
 }

@@ -15738,4 +15738,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changePhotoAction => 'Modifier la photo';
+
+  @override
+  String get mapSortNearest => 'Proximité';
+
+  @override
+  String get mapSortByName => 'Par nom';
 }
