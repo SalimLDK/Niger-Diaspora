@@ -16,10 +16,13 @@ class FeedText {
   }) {
     final c = color ?? tokens.text;
     if (tokens.isDark) {
+      // Fiche 6a : « Titre en Inter (pas Caprasimo) 24/500 » avec un
+      // interlettrage de -0.5. Il était à -0.2, donc le titre nocturne
+      // paraissait plus lâche que la maquette.
       return GoogleFonts.inter(
         fontSize: size,
         fontWeight: FontWeight.w500,
-        letterSpacing: -0.2,
+        letterSpacing: -0.5,
         color: c,
       );
     }
