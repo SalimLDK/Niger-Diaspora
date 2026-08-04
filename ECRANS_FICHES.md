@@ -246,7 +246,7 @@ est obligatoire à l'inscription, il gonflerait le score sans rien dire.
 Vérifié à l'écran le 2026-08-04 : titre chiffré, fraction « 2/5 », barre à
 40 %, phrase d'explication, trois lignes à compléter avec leur bouton
 « Ajouter », puis « Photo de profil » et « Votre métier » atténués avec la
-coche verte.  ouvre bien 20a **et** la feuille des langues.
+coche verte. `?focus=languages` ouvre bien 20a **et** la feuille des langues.
 
 Deux points non vus, faute d'un compte qui les produise : l'avatar en
 **pointillés** (le compte de test a une photo, donc le contour plein) et le
