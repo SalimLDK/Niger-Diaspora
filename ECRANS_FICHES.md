@@ -31,9 +31,9 @@ Trois niveaux, à ne pas confondre :
 | 20d | Réglages de notifications | ✅ | ✅ | ✅ | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
-| 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
-| 8c | Carte — sans localisation | ✅ | ✅ | — | `map/…/map_screen.dart` |
-| 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | — | `map/…/map_screen.dart` |
+| 8b | Carte — Nocturne | ✅ | ✅ | ✅ | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
+| 8c | Carte — sans localisation | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
+| 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
 | 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
@@ -822,6 +822,35 @@ pour écarter ceux qui vous ont bloqué. Une ligne manquait.
 
 Corrigé et vérifié : « 0 membre autour », « Aucun membre à proximité », et un
 seul marqueur sur la carte.
+
+## 7d — Carte : couches et panneau à trois positions
+
+Le panneau des membres déclarait bien ses trois crans (18 / 45 / 92 %, avec
+`snap`), **mais il était figé**. `DraggableScrollableSheet` ne réagit qu'aux
+glissements qui traversent le `scrollController` de sa liste ; or la poignée et
+l'en-tête sont posés au-dessus de cette liste, hors du défilement. Attraper la
+barrette — le geste que tout le monde fait — ne produisait rien, et avec
+« Aucun membre à proximité » il n'y avait même pas de liste à saisir.
+
+La poignée et l'en-tête pilotent désormais la feuille par un
+`DraggableScrollableController` : glissement suivi au doigt, puis accrochage au
+cran le plus proche au relâcher. Un **tap** sur la poignée passe au cran
+suivant et revient au plus bas depuis le haut — une porte de sortie pour qui ne
+devine pas le geste.
+
+Les trois crans vérifiés au doigt par Salim. Panneau de couches (« Calques » :
+Membres, Ambassades) vu à l'écran.
+
+## Carte — on se voyait dans ses propres « membres autour »
+
+Repéré en validant 8b : le compte courant figurait dans sa propre liste, à
+« 0 m · en ligne », et son marqueur était dessiné deux fois — une fois comme
+position, une fois comme membre. La requête de proximité renvoie l'utilisateur
+courant, et le filtre ne l'excluait pas : `currentUserId` ne servait qu'à
+écarter ceux qui l'ont bloqué. Corrigé, le compteur passe de « 1 membre
+autour » à « 0 membre autour » — ce qui est la vérité.
+
+---
 
 ---
 

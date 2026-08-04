@@ -65,6 +65,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Ordre de la liste des membres (§7e) : il était fixe et muet.
   _MemberSort _sort = _MemberSort.nearest;
 
+  /// Positions de la feuille des membres (fiche 7d).
+  static const List<double> _kSheetSnaps = [0.18, 0.45, 0.92];
+
+  /// Pilote la feuille depuis sa poignée. `DraggableScrollableSheet` ne
+  /// réagit qu'aux glissements passant par le `scrollController` de sa liste ;
+  /// la poignée et l'en-tête sont fixes, donc les attraper — le geste naturel —
+  /// ne faisait rien du tout. Ce contrôleur leur rend la main.
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+
   /// Mode « liste seule » (§7e) : consulter les membres proches sans
   /// charger la carte, utile en données réduites.
   bool _listOnly = false;
@@ -178,8 +188,52 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _membersRefreshTimer?.cancel();
     _uiRefreshTimer?.cancel();
     _updateMarkersDebounce?.cancel();
+    _sheetController.dispose();
     _controller.future.then((c) => c.dispose());
     super.dispose();
+  }
+
+  /// Glissement sur la poignée / l'en-tête de la feuille des membres.
+  void _onSheetDrag(DragUpdateDetails details) {
+    if (!_sheetController.isAttached) return;
+    final height = MediaQuery.of(context).size.height;
+    if (height == 0) return;
+    final next = (_sheetController.size - details.delta.dy / height).clamp(
+      _kSheetSnaps.first,
+      _kSheetSnaps.last,
+    );
+    _sheetController.jumpTo(next);
+  }
+
+  /// Accroche la feuille au cran le plus proche une fois le doigt relâché.
+  void _snapSheet() {
+    if (!_sheetController.isAttached) return;
+    final current = _sheetController.size;
+    var best = _kSheetSnaps.first;
+    for (final snap in _kSheetSnaps) {
+      if ((snap - current).abs() < (best - current).abs()) best = snap;
+    }
+    _sheetController.animateTo(
+      best,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  /// Tap sur la poignée : passe au cran suivant, et revient au plus bas une
+  /// fois en haut. Donne une porte de sortie à qui ne devine pas le geste.
+  void _cycleSheet() {
+    if (!_sheetController.isAttached) return;
+    final current = _sheetController.size;
+    final next = _kSheetSnaps.firstWhere(
+      (s) => s > current + 0.02,
+      orElse: () => _kSheetSnaps.first,
+    );
+    _sheetController.animateTo(
+      next,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -3670,11 +3724,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       // Le minimum était à 38 %, donc la « position basse »
                       // n'existait pas : le panneau mangeait toujours plus
                       // du tiers de l'écran.
+                      controller: _sheetController,
                       initialChildSize: 0.45,
-                      minChildSize: 0.18,
-                      maxChildSize: 0.92,
+                      minChildSize: _kSheetSnaps.first,
+                      maxChildSize: _kSheetSnaps.last,
                       snap: true,
-                      snapSizes: const [0.18, 0.45, 0.92],
+                      snapSizes: _kSheetSnaps,
                       builder: (context, scrollController) {
                         final members = _applySort(_getFilteredMembers());
                         return Container(
@@ -3698,187 +3753,203 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           ),
                           child: Column(
                             children: [
-                              // Poignée + en-tête (fixes).
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  10,
-                                  20,
-                                  10,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Center(
-                                      child: Container(
-                                        width: 40,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: context.borderColor,
-                                          borderRadius: BorderRadius.circular(
-                                            2,
+                              // Poignée + en-tête (fixes) — mais rendus
+                              // sensibles au glissement : sans ça, seule la
+                              // liste bougeait la feuille, et attraper la
+                              // poignée ne faisait rien.
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onVerticalDragUpdate: _onSheetDrag,
+                                onVerticalDragEnd: (_) => _snapSheet(),
+                                onVerticalDragCancel: _snapSheet,
+                                onTap: _cycleSheet,
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    10,
+                                    20,
+                                    10,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Container(
+                                          width: 40,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: context.borderColor,
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    // En-tête de la fiche 7d : le compte est
-                                    // dans le titre, le rayon le suit en
-                                    // sourdine, et une seule action à droite.
-                                    //
-                                    // Cinq contrôles se disputaient cette
-                                    // rangée (titre, fraîcheur ×2, pastille
-                                    // de compte, bascule Liste, tri) : tout
-                                    // s'y tronquait, le titre tombait à
-                                    // « Membres … » et la fraîcheur à
-                                    // « À l'i… ».
-                                    //
-                                    // Le titre et le rayon sont groupés dans
-                                    // un `Expanded` : mis à plat, le titre
-                                    // `Flexible` et le `Spacer` avaient tous
-                                    // deux flex 1 et se partageaient l'espace
-                                    // libre moitié-moitié — « 0 membre autour »
-                                    // se tronquait en « 0 membre a… » avec du
-                                    // vide à sa droite. Groupés, le titre est
-                                    // le seul flexible de sa rangée.
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.baseline,
-                                            textBaseline:
-                                                TextBaseline.alphabetic,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  // Littéral comme le reste de la
-                                                  // reprise sur fiches : la clé
-                                                  // l10n existante (« Membres à
-                                                  // proximité ») ne porte pas le
-                                                  // compte, et ajouter un pluriel
-                                                  // à l'ARB pour deux mots casse
-                                                  // gen-l10n si la métadonnée
-                                                  // manque.
-                                                  '${members.length} '
-                                                  '${members.length > 1 ? "membres" : "membre"} autour',
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700,
-                                                    color:
-                                                        context
-                                                            .textPrimaryColor,
+                                      const SizedBox(height: 12),
+                                      // En-tête de la fiche 7d : le compte est
+                                      // dans le titre, le rayon le suit en
+                                      // sourdine, et une seule action à droite.
+                                      //
+                                      // Cinq contrôles se disputaient cette
+                                      // rangée (titre, fraîcheur ×2, pastille
+                                      // de compte, bascule Liste, tri) : tout
+                                      // s'y tronquait, le titre tombait à
+                                      // « Membres … » et la fraîcheur à
+                                      // « À l'i… ».
+                                      //
+                                      // Le titre et le rayon sont groupés dans
+                                      // un `Expanded` : mis à plat, le titre
+                                      // `Flexible` et le `Spacer` avaient tous
+                                      // deux flex 1 et se partageaient l'espace
+                                      // libre moitié-moitié — « 0 membre autour »
+                                      // se tronquait en « 0 membre a… » avec du
+                                      // vide à sa droite. Groupés, le titre est
+                                      // le seul flexible de sa rangée.
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.baseline,
+                                              textBaseline:
+                                                  TextBaseline.alphabetic,
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    // Littéral comme le reste de la
+                                                    // reprise sur fiches : la clé
+                                                    // l10n existante (« Membres à
+                                                    // proximité ») ne porte pas le
+                                                    // compte, et ajouter un pluriel
+                                                    // à l'ARB pour deux mots casse
+                                                    // gen-l10n si la métadonnée
+                                                    // manque.
+                                                    '${members.length} '
+                                                    '${members.length > 1 ? "membres" : "membre"} autour',
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          context
+                                                              .textPrimaryColor,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                '· ${_radiusLabel(l10n)}',
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '· ${_radiusLabel(l10n)}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        context
+                                                            .textTertiaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // Bascule Carte / Liste (§7e) : sans
+                                          // libellé, elle ne peut plus pousser
+                                          // le titre hors de la rangée.
+                                          IconButton(
+                                            onPressed:
+                                                () => setState(
+                                                  () => _listOnly = !_listOnly,
+                                                ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            constraints: const BoxConstraints(),
+                                            padding: const EdgeInsets.all(6),
+                                            tooltip:
+                                                _listOnly ? 'Carte' : 'Liste',
+                                            icon: Icon(
+                                              _listOnly
+                                                  ? Icons.map_outlined
+                                                  : Icons.list,
+                                              size: 18,
+                                              color: context.textSecondaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () => _showSortSheet(l10n),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
+                                              child: Text(
+                                                'Trier',
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: 12.5,
+                                                  fontWeight: FontWeight.w600,
                                                   color:
-                                                      context.textTertiaryColor,
+                                                      context
+                                                          .adaptivePrimaryColor,
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        // Bascule Carte / Liste (§7e) : sans
-                                        // libellé, elle ne peut plus pousser
-                                        // le titre hors de la rangée.
-                                        IconButton(
-                                          onPressed:
-                                              () => setState(
-                                                () => _listOnly = !_listOnly,
-                                              ),
-                                          visualDensity: VisualDensity.compact,
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(6),
-                                          tooltip:
-                                              _listOnly ? 'Carte' : 'Liste',
-                                          icon: Icon(
-                                            _listOnly
-                                                ? Icons.map_outlined
-                                                : Icons.list,
-                                            size: 18,
-                                            color: context.textSecondaryColor,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () => _showSortSheet(l10n),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 4,
                                             ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      // Fraîcheur des données sur sa propre
+                                      // ligne, pleine largeur : plus rien ne
+                                      // la comprime.
+                                      Row(
+                                        children: [
+                                          AppIcon(
+                                            AppIcon.groups,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
                                             child: Text(
-                                              'Trier',
+                                              _formatRelativeTime(
+                                                _lastMembersUpdate,
+                                                l10n,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                fontSize: 12.5,
-                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
                                                 color:
-                                                    context
-                                                        .adaptivePrimaryColor,
+                                                    context.textTertiaryColor,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    // Fraîcheur des données sur sa propre
-                                    // ligne, pleine largeur : plus rien ne
-                                    // la comprime.
-                                    Row(
-                                      children: [
-                                        AppIcon(
-                                          AppIcon.groups,
-                                          size: 12,
-                                          color: context.textTertiaryColor,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            _formatRelativeTime(
-                                              _lastMembersUpdate,
-                                              l10n,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: context.textTertiaryColor,
+                                          const SizedBox(width: 12),
+                                          Icon(
+                                            Icons.my_location,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              _formatRelativeTime(
+                                                _lastPositionUpdate,
+                                                l10n,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color:
+                                                    context.textTertiaryColor,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Icon(
-                                          Icons.my_location,
-                                          size: 12,
-                                          color: context.textTertiaryColor,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            _formatRelativeTime(
-                                              _lastPositionUpdate,
-                                              l10n,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: context.textTertiaryColor,
-                                            ),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                      ],
-                                    ),
-                                  ],
+                                          const Spacer(),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               Divider(height: 1, color: context.borderColor),
