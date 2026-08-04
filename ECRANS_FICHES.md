@@ -24,8 +24,8 @@ Trois niveaux, à ne pas confondre :
 | 5a | Mon espace | ✅ | ✅ | ✅ | `feed/presentation/screens/mon_espace_screen.dart` |
 | 5b | Mes publications (+ repartages) | ✅ | ✅ | ✅ | `feed/presentation/screens/my_posts_screen.dart`, `widgets/my_post_card.dart` |
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
-| 5c | Enregistrés | ✅ | ✅ | — | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
-| 5d | Abonnés / abonnements | — | — | — | `feed/presentation/screens/follows_screen.dart` |
+| 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
+| 5d | Abonnés / abonnements | ✅ | ✅ | — | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | — | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | — | — | — | à déterminer |
@@ -115,6 +115,38 @@ jeton `overline`.
 Non vérifié : les filtres Photos / Vidéos (le compte de test n'a qu'un post
 texte) et la feuille « Partager ».
 
+## 5d — Mon réseau
+
+En-tête « Mon réseau » (le titre l10n disait « Abonnés et abonnements »),
+onglets pleins avec compteur permanent — extraits en `feed_pill_tabs.dart`,
+partagés avec 5b comme la fiche le demande —, barre de recherche qui filtre
+sur nom / ville / pays / poignée, lignes de contact au gabarit de la fiche
+(avatar 44, nom 14.5/600, contexte 12/400, filet sous chaque ligne) et
+pastille Suivre/Suivi.
+
+Nouvelle variante `FollowButtonVariant.pill` : l'ancien bouton plein prenait
+`Theme.of(context).primaryColor`, donc **l'accent choisi par l'utilisateur
+écrasait la palette du fil**. La pastille prend ses couleurs de `FeedTokens`.
+
+La ligne de contexte se déduit de l'onglet — sous Abonnés tout le monde
+« vous suit », sous Abonnements « vous suivez » — ce qui évite une requête de
+réciprocité par ligne.
+
+Écarts assumés :
+- **« 3 amis en commun », « 14 publications ce mois », « suivie par Fatouma »**
+  ne sont pas affichés : aucune de ces données n'existe côté modèle.
+- **« Suggestions pour vous » n'est pas implémenté** : il n'y a aucun
+  fournisseur de suggestions dans le dépôt. Inventer une liste de comptes
+  serait pire que l'absence.
+- Les hashtags suivis apparaissent sous Abonnements (carré au glyphe tag,
+  « Hashtag », pastille Suivi qui désabonne) mais **sans compteur de
+  publications** — la donnée n'existe pas non plus.
+- La pastille dit « Suivi » et non `l10n.unfollowUser` (« Ne plus suivre ») :
+  elle indique un état, pas une action.
+
+Non vérifié : les hashtags (le compte de test n'en suit aucun) et la
+recherche.
+
 ---
 
 ## Ce que la reprise a fait tomber au passage
@@ -132,3 +164,12 @@ texte) et la feuille « Partager ».
   Contourné dans `formatPostMeta` (`toLocal()`) ; **le fond du problème
   touche tout le fil** (`timeAgo`, `formatMessageDate`) et reste ouvert.
 - **Rail de stories** : débordement de 2 px sous « Ma story » (corrigé à part).
+- **Champs de recherche cerclés de blanc** : le thème global impose
+  `filled: true` **et** un contour via `enabledBorder`. Dans un champ posé
+  sur un conteneur déjà coloré (5b, 5d), il faut neutraliser `filled` **et**
+  `enabledBorder`/`focusedBorder` — `border: InputBorder.none` seul ne fait
+  rien, le thème gagne.
+- **Bouton Suivre hors palette** : `FollowButtonVariant.filled` utilise
+  `Theme.of(context).primaryColor`, donc l'accent choisi par l'utilisateur
+  s'affichait au milieu du fil. Réglé par la variante `pill` pour 5d ; les
+  autres usages de `filled` restent à revoir.
