@@ -30,7 +30,7 @@ Trois niveaux, à ne pas confondre :
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | — | — | — | à déterminer |
 | 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
-| 16e | Créer un événement | — | — | — | à déterminer |
+| 16e | Créer un événement | ✅ | ✅ | — | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
 | 7d | Carte — couches, panneau 3 positions | — | — | — | à déterminer |
@@ -179,6 +179,51 @@ c'est une décision de design system, pas un détail d'écran.
 Rien de tout ça n'a été touché : ce sont des suppressions de fonctions
 existantes (le champ poignée alimente 5a) ou des choix qui débordent de
 l'écran. À arbitrer avec Salim.
+
+## 16e — Créer un événement
+
+Le formulaire existait déjà et portait la quasi-totalité des champs (le
+`EventEntity` a `maxAttendees`, `price`, `isOnline`, `onlineLink`,
+`posterUrls`) : la reprise a été une **restructuration**, pas un ajout de
+fonctions.
+
+- En-tête 48 px : ✕, « Nouvel événement » 18/700, mention « Brouillon ».
+- **Zone d'affiche remontée en tête** (elle était tout en bas) : cadre
+  pointillé 104 px — `_DashedBorderPainter`, Flutter n'ayant pas de bordure en
+  pointillés —, « Ajouter une affiche » / « Recommandé · 3:2 ».
+- Tous les champs au même gabarit : 50 px, rayon 14, libellé 12.5/600.
+- Date et Heure côte à côte, icônes 17 px.
+- **Le format devient un segment** « Sur place » / « En ligne » (actif à
+  l'encre pleine) : c'était un interrupteur « Événement en ligne ».
+- **Participants max et Prix côte à côte**, et « Gratuit » s'affiche en vert
+  comme état par défaut du champ vide — pas comme une valeur à saisir.
+- **Barre de pied fixe** « Aperçu » / « Publier l'événement » : le bouton
+  unique était noyé en fin de liste.
+
+Écarts assumés :
+- **« Prévenir mes groupes » n'est pas implémenté.** La maquette montre un
+  interrupteur qui diffuserait l'événement dans plusieurs groupes ; le modèle
+  n'a qu'un `groupId`, et il n'existe aucun mécanisme de diffusion multi-groupes.
+  Envoyer des messages dans les groupes de quelqu'un sur la foi d'une maquette
+  n'est pas une décision à prendre ici. L'interrupteur affiché à cet endroit
+  reste celui qui existe — visibilité publique — et seulement quand
+  l'événement naît d'une discussion.
+- **« Brouillon » n'est pas persisté** : rien n'est sauvegardé en sortant.
+  Plutôt que de laisser le mot mentir, le ✕ demande confirmation dès que le
+  formulaire contient quelque chose (`PopScope` + `_isDirty`).
+- **« Aperçu » était « non maquetté »** : plutôt qu'un bouton mort, il valide
+  le formulaire puis ouvre une feuille montrant les valeurs réellement
+  saisies. Les champs vides n'y figurent pas.
+- La fiche ne montre ni description, ni catégorie, ni date de fin. Ils sont
+  conservés — la description est **obligatoire**, la reléguer hors champ
+  ferait échouer la validation sans qu'on voie pourquoi.
+- Le libellé de la description affichait « La description est requise » :
+  `l10n.descriptionRequired` est un message d'erreur, pas un libellé.
+- Le champ Participants max coupait son placeholder à « Laissez vide pou… » :
+  passé à `maxAttendeesHint` (« Ex: 50 »).
+
+Non vérifié : le sélecteur d'affiche (permission galerie), la feuille
+« Aperçu » et la publication réelle.
 
 ---
 
