@@ -7527,5 +7527,9 @@
   "phoneVisibilityQuestion": "Who can see my number?",
   "@phoneVisibilityQuestion": {
     "description": "Ligne de visibilite du numero"
+  },
+  "originSummaryPlaceholder": "region and city",
+  "@originSummaryPlaceholder": {
+    "description": "Texte gris de la ligne Origine tant que rien n est choisi"
   }
 }

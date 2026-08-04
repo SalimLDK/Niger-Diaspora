@@ -15760,4 +15760,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get phoneVisibilityQuestion => 'Qui peut voir mon numéro ?';
+
+  @override
+  String get originSummaryPlaceholder => 'région et ville';
 }

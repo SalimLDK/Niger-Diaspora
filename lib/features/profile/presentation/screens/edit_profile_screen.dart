@@ -68,6 +68,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// rouvrir tout seul exposerait le numéro à chaque ouverture.
   bool _editingPhone = false;
 
+  /// L'origine au Niger tient en une ligne repliée (§20a) : deux listes
+  /// déroulantes empilées pour un champ optionnel, c'était trois fois la
+  /// hauteur de ce qu'il vaut. Elle s'ouvre déjà dépliée si elle est
+  /// renseignée, pour qu'on voie qu'il y a quelque chose à corriger.
+  bool _showOrigin = false;
+
   bool _showAllInterests = false;
   bool _showAllLanguages = false;
 
@@ -213,6 +219,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     if (region != null && region.isNotEmpty) {
       if (ProfileOptions.regions.contains(region)) {
         _selectedOriginRegion = region;
+        _showOrigin = true;
       } else {
         _selectedOriginRegion = 'Autre';
       }
@@ -915,6 +922,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 prefixIcon: Icons.location_city_outlined,
                               ),
                               const SizedBox(height: 20),
+                              // Ligne de résumé repliable (§20a).
+                              _buildOriginRow(l10n),
+                              if (_showOrigin) ...[
                               // Origine au Niger
                               Text(
                                 l10n.originAtNiger,
@@ -967,6 +977,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                   label: l10n.profileSpecifyOriginCity,
                                   prefixIcon: Icons.edit_outlined,
                                 ),
+                              ],
                               ],
                             ],
                           ),
@@ -1436,6 +1447,77 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               );
             },
           ),
+    );
+  }
+
+  /// « Origine au Niger » en une ligne : ce qui est choisi, ou un texte gris
+  /// s'il n'y a rien. L'appui déplie les deux listes en place — pas de
+  /// feuille modale pour un champ optionnel.
+  Widget _buildOriginRow(AppLocalizations l10n) {
+    final parties = <String>[
+      if ((_selectedOriginRegion ?? '').isNotEmpty &&
+          _selectedOriginRegion != 'Autre')
+        _selectedOriginRegion!,
+      if ((_selectedOriginCity ?? '').isNotEmpty &&
+          _selectedOriginCity != 'Autre')
+        _selectedOriginCity!,
+    ];
+    final rempli = parties.isNotEmpty;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => setState(() => _showOrigin = !_showOrigin),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          decoration: BoxDecoration(
+            color: context.surfaceVariantColor.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.home_outlined,
+                size: 18,
+                color: context.textSecondaryColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.originAtNiger,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  rempli
+                      ? parties.join(' \u00b7 ')
+                      : l10n.originSummaryPlaceholder,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: rempli
+                        ? context.textSecondaryColor
+                        : context.textTertiaryColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                _showOrigin ? Icons.expand_less : Icons.chevron_right,
+                size: 20,
+                color: context.textTertiaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

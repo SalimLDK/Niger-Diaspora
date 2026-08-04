@@ -28843,6 +28843,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Qui peut voir mon numéro ?'**
   String get phoneVisibilityQuestion;
+
+  /// Texte gris de la ligne Origine tant que rien n est choisi
+  ///
+  /// In fr, this message translates to:
+  /// **'région et ville'**
+  String get originSummaryPlaceholder;
 }
 
 class _AppLocalizationsDelegate

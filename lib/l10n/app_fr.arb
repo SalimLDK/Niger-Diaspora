@@ -8021,5 +8021,9 @@
   "phoneVisibilityQuestion": "Qui peut voir mon numéro ?",
   "@phoneVisibilityQuestion": {
     "description": "Ligne de visibilite du numero"
+  },
+  "originSummaryPlaceholder": "région et ville",
+  "@originSummaryPlaceholder": {
+    "description": "Texte gris de la ligne Origine tant que rien n est choisi"
   }
 }

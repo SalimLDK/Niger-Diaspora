@@ -15611,4 +15611,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phoneVisibilityQuestion => 'Who can see my number?';
+
+  @override
+  String get originSummaryPlaceholder => 'region and city';
 }
