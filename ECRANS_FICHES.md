@@ -32,19 +32,19 @@ Trois niveaux, à ne pas confondre :
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
-| 8c | Carte — sans localisation | ✅ | — | — | `map/…/map_screen.dart` |
-| 7d | Carte — couches, panneau 3 positions | ✅ | — | — | `map/…/map_screen.dart` |
-| 6a | Fil — Nocturne | ✅ | — | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
-| 11d | Mon profil — Nocturne | ✅ | — | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
-| 11e | Réglages — Nocturne | ✅ | — | — | `settings/…/settings_screen.dart` |
-| 11f | Profil incomplet | ✅ | ❌ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
-| 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
-| 6b | Discussion — Nocturne | — | — | — | idem 4a |
+| 8c | Carte — sans localisation | ✅ | ✅ | — | `map/…/map_screen.dart` |
+| 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | — | `map/…/map_screen.dart` |
+| 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
+| 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
+| 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
+| 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
+| 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
-| 9b | Messages — recherche | ✅ | ◐ | — | idem 9a |
-| 9c | Groupes — mes groupes, découverte | — | — | — | `groups/…` |
+| 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
+| 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
-| 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
+| 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
 ---
 
@@ -243,7 +243,43 @@ donner le focus n'ouvrirait rien d'utile — le formulaire s'ouvre en haut.
 On garde les cinq déjà câblés (photo, ville, métier, langues, bio) : le nom
 est obligatoire à l'inscription, il gonflerait le score sans rien dire.
 
-**Jamais vu à l'écran** : le téléphone s'est déconnecté avant la vérification.
+Vérifié à l'écran le 2026-08-04 : titre chiffré, fraction « 2/5 », barre à
+40 %, phrase d'explication, trois lignes à compléter avec leur bouton
+« Ajouter », puis « Photo de profil » et « Votre métier » atténués avec la
+coche verte. `?focus=languages` ouvre bien 20a **et** la feuille des langues.
+
+Deux points non vus, faute d'un compte qui les produise : l'avatar en
+**pointillés** (le compte de test a une photo, donc le contour plein) et le
+focus sur « ville » / « bio ».
+
+## 6a — Fil, Nocturne
+
+Codé et vu par la session parallèle (`841d2a9` le FAB creux, `e6b58c6`
+l'interlettrage du titre). Relu ici contre la fiche.
+
+**Conforme** : fond #161826, cartes #232532 rayon 8, accent #9184D9, titre
+« Le fil. » en Inter avec le point à l'accent, onglet actif en **contour**
+1,5 px et non en fond plein, avatar d'en-tête, hashtags #D2CEFD, et le FAB
+creux à contour net.
+
+**Un écart de copie corrigé** : la fiche nomme l'onglet « Abonnements »,
+l'app disait « Suivis » — et 5d appelle déjà « Abonnements » le même concept.
+
+Ce simple renommage a fait **déborder le segment** : `FeedSegmentedControl`
+posait son libellé dans un `Row` en `MainAxisSize.min`, sans rien pour le
+contraindre. Le libellé est désormais `Flexible` + ellipsis, ce qui vaut pour
+n'importe quelle langue et n'importe quel libellé long. Couvert par
+`test/features/feed/feed_segmented_control_test.dart`, qui échoue bien sans
+le correctif (« overflowed by 54 pixels »).
+
+**Écarts assumés** : la fiche 6a demande que l'avatar d'en-tête ouvre Messages
+(5f) ; il ouvre Mon espace, et la fiche 5a demande l'inverse — les deux se
+contredisent, on garde le code. La ligne de date en sur-titre et les icônes
+d'onglet viennent de 4g, que ce document ne couvre pas.
+
+**Non revu à l'écran après le correctif** : le téléphone était piloté en
+parallèle par l'autre session (ses formulaires de test s'ouvraient sous mes
+gestes). Le correctif est prouvé par le test, pas par une capture.
 
 ## 16e — Créer un événement
 
@@ -302,11 +338,12 @@ Structure de la fiche : interrupteur maître isolé (« Notifications push » /
 cartes radius 18 à bordure, lignes 13.5/600 + 11.5/400, note de pied à
 l'icône info — l'ancien pavé d'information teinté a disparu.
 
-**Changement de comportement à trancher** : « Messages système » devient
-**verrouillé actif** (interrupteur grisé à 60 %, non désactivable), comme la
-fiche le demande. La préférence enregistrée est remise à `true` si elle valait
-`false`. C'est une capacité retirée à l'utilisateur — dis-moi si tu préfères
-la garder désactivable.
+**Écart tranché par Salim** : la fiche verrouille « Messages système » (grisé,
+non désactivable). **On ne l'a pas suivie** — la catégorie reste désactivable
+comme les autres, plutôt que de retirer une capacité à l'utilisateur. La note
+de pied de la fiche (« Les messages système restent toujours actifs »)
+deviendrait fausse : elle dit maintenant que couper l'interrupteur maître
+suspend toutes les catégories, messages système compris.
 
 Cinq sous-titres hérités ne disaient rien et trois répétaient leur propre
 titre (« Rappels d'événements » / « Rappels d'événements », « Son » et
@@ -364,6 +401,19 @@ version précédente refusait de faire faute de données :
 - Le titre et la pastille restent ceux de `DesignEmptyState` (Playfair 21,
   icône 40) au lieu d'Inter 19 / icône 44 : c'est le kit partagé de toute
   l'app, le repeindre pour un écran désaccorderait tous les autres états vides.
+
+**Vu le 2026-08-04.** Le compte de test a deux conversations, donc l'état vide
+« réel » est hors d'atteinte sans détruire des données. Il a été rendu par le
+filtre **« Non lus »** (aucun message non lu) : c'est le même
+`_buildEmptyState`, au même endroit de l'arbre. Cercle, titre « Aucune
+conversation », corps, bouton plein « Nouvelle conversation » et ligne de
+chiffrement : tout est en place.
+
+⚠️ **Les deux amorces ne se sont pas affichées** — et c'est le comportement
+attendu : le compte n'a aucun profil proche chargé (localisation non
+accordée) et aucun groupe public n'existe en base. Le widget rend donc du vide
+au lieu d'inventer, ce qui est correct, mais **leur mise en page reste non
+vérifiée**.
 
 ⚠️ **Jamais vu à l'écran** : le compte de test a des conversations, donc
 l'état vide est inatteignable sans vider les données (`adb install -r`, qui
@@ -485,9 +535,52 @@ Corrigé en gardant le champ au même rang d'enfant dans les deux états et en n
 faisant varier que ce qui l'entoure. `requestFocus` en post-frame ne suffisait
 pas.
 
-État de vérification : l'en-tête de recherche a été vu au bon gabarit, **mais
-la frappe et les résultats n'ont jamais été rendus** — le bug de focus l'a
-empêché, et le correctif n'a pas pu être testé (téléphone déconnecté).
+**Le même piège, deux crans plus bas** (voir « deux taps » ci-dessous) : garder
+le rang ne suffit pas non plus. Ce qui compte est que l'**élément** du champ
+survive au rebuild — le rang n'y donne droit que si les frères sont stables.
+
+**Vu et vérifié de bout en bout** (2026-08-04, SM A515F, nocturne) : puces
+« Tout · 2 / Personnes · 1 / Conversations · 1 », section Personnes avec
+l'avatar rond, « **Sal**im L. » surligné dans les conversations, et la ligne
+d'explication sur le chiffrement.
+
+Le surlignage a dû être décliné en nocturne : posées telles quelles sur le
+fond sombre, les valeurs claires de la maquette (`#F7E0CE`) faisaient un pavé
+beige lumineux. En sombre : fond `#3A2A1C`, texte `#F4A574`.
+
+**Le « deux taps » du clavier — résolu (2026-08-04).** Le premier tap ouvrait
+l'en-tête de recherche et le champ gardait le focus, mais le clavier ne se
+levait qu'au second tap.
+
+Ce n'était pas un problème de focus, et c'est pourquoi les trois pistes
+tentées (`requestFocus` en post-frame,
+`SystemChannels.textInput.invokeMethod('TextInput.show')`, maintien du rang
+dans la `Row` et la `Column`) ne pouvaient pas marcher : le `FocusNode` ne
+perdait jamais le focus. C'était la `TextInputConnection` qui se fermait.
+
+Mécanique exacte : `EditableTextState.dispose()` ferme la connexion clavier
+mais **ne défocalise pas** le `FocusNode` externe ; et `initState()` n'ouvre
+aucune connexion — seul un *changement* de focus le fait. Donc dès que
+l'élément du champ est démonté puis réinflaté alors que le nœud est déjà
+focalisé, le clavier tombe et **plus rien ne le rappelle**. Le second tap
+marchait parce que `TextField` appelle `requestKeyboard()`, qui rouvre la
+connexion explicitement quand le focus est déjà là.
+
+Deux endroits démontaient l'élément, il fallait corriger les deux :
+
+1. `DesignSearchField` renvoyait `TextField` quand inactif et
+   `DecoratedBox(child: TextField)` quand actif. Changer de type de widget au
+   même rang force Flutter à réinflater. → le `DecoratedBox` est désormais
+   permanent, `boxShadow: const []` quand inactif.
+2. Dans la `Column` de l'écran, le bloc du champ n'avait pas de clé. À
+   l'ouverture, l'en-tête (rang 0) change de type et les puces de filtre
+   (rang 2) disparaissent : `updateChildren` n'apparie donc le bloc ni par le
+   haut ni par le bas, il tombe dans la zone « milieu » — où tout enfant sans
+   clé est démonté. → `ValueKey('messages-search-field')` sur le `Padding`.
+
+À retenir pour les autres écrans : **garder un widget au même rang ne préserve
+son élément que si ses frères sont stables**. Dès que des frères
+apparaissent, disparaissent ou changent de type, seule une clé le sauve.
 
 ## 9d — Groupe, fiche
 
@@ -518,7 +611,162 @@ rendus.
 
 **Défaut repéré au passage** : l'onglet « Découvrir » de 9c affiche une zone
 entièrement blanche quand il n'y a aucun groupe — pas de liste, pas d'état
-vide, pas d'indicateur de chargement.
+vide, pas d'indicateur de chargement. *Corrigé depuis (commit `5ad0a49`), et
+**vérifié à l'écran le 2026-08-04** : « Aucun groupe public pour l'instant /
+Personne n'a encore créé de groupe public. Le premier, c'est peut-être le
+vôtre. » avec le bouton « Créer un groupe ».*
+
+Nouvelle tentative le 2026-08-04, même blocage : **la base ne contient aucun
+groupe, ni public ni rejoint**. Il n'existe donc aucun chemin de navigation
+vers cet écran. Le seul moyen de le rendre serait de créer un groupe de test
+sur le compte — écriture persistante en production, à décider par Salim.
+
+**Troisième tentative (2026-08-04, Salim ayant donné son accord)** : création
+d'un groupe **privé** « Diaspora Paris » (localisation Paris) depuis
+`/groups/create`. Le formulaire se remplit correctement — nom, description,
+ville, bascule « Groupe privé » activée, tout vérifié à l'écran — mais
+**l'appui sur « Créer le groupe » n'aboutit pas** : l'app saute sur un écran
+de détail de publication et « Mes groupes » reste à 0.
+
+Ce n'est pas un défaut de 9d. C'est le symptôme de l'**intent rejoué au
+démarrage** : à chaque fois que l'app se stabilise, elle atterrit sur « Fil
+d'actualité → détail de publication », y compris sans action de ma part.
+L'écran est arraché sous les doigts en plein milieu d'un formulaire. C'est
+exactement le bug traité en parallèle (« Vider l'intent de partage rejoué à
+chaque démarrage »).
+
+**Rien n'a été écrit** : aucun groupe créé, aucun commentaire posté (le post
+« In kwana » avait déjà ses 2 commentaires avant). À reprendre une fois le
+correctif d'intent en place — le chemin est connu et le formulaire tient en
+quatre champs.
+
+## 9c — Groupes
+
+L'essentiel de la fiche existait déjà (onglets Mes groupes / Découvrir,
+bannière d'invitations, badge ACTIF/CALME, filtres géographiques). Ce qui a
+été repris :
+
+**L'onglet « Découvrir » rendait un écran entièrement blanc**, et par trois
+chemins qu'on ne pouvait pas distinguer : profil sans ville (la section
+« Suggéré » se retirait en silence), aucun groupe public au backend, et
+**erreur de chargement rendue en `SizedBox.shrink()`** — un échec réseau était
+donc indiscernable de « rien à découvrir ». La décision est maintenant prise en
+un seul endroit (`_buildDiscoverTab`), qui a toujours quelque chose à montrer :
+squelettes en chargement, état d'erreur avec réessai, et un état vide dont le
+texte change selon qu'un filtre géographique est actif (« rien ici, élargissez »)
+ou non (« personne n'a encore créé de groupe public »).
+
+Sur une carte de groupe rejoint, la pastille « Membre » — dont le seul effet
+était de **quitter le groupe au tap**, sans confirmation — devient « Ouvrir »
+et entre dans la discussion, comme la fiche le demande. La sortie du groupe
+vit en 9d, où elle est délibérée. Si la conversation du groupe n'existe pas
+encore (elle naît au premier message), « Ouvrir » bascule sur la fiche du
+groupe plutôt que de rester sans effet.
+
+Non fait, faute de donnée : la note épinglée en sous-carte (une requête par
+carte, N+1 sur la liste), la pile d'avatars de membres, et « 14 messages
+aujourd'hui » — aucun compteur de messages par jour n'existe.
+
+**Vu et vérifié** (2026-08-04) : l'onglet « Découvrir » affiche bien l'état
+vide « Aucun groupe public pour l'instant » avec la sortie « Créer un
+groupe », là où il rendait une page blanche. L'onglet « Mes groupes » à zéro
+affiche son propre état vide.
+
+Non vérifié : la carte de groupe elle-même (badge ACTIF/CALME, « Ouvrir »),
+faute d'un groupe rejoint sur le compte de test.
+
+## 4a / 6b — Discussion, clair et nocturne
+
+Ces deux fiches sont **déjà largement implémentées** par la refonte
+précédente : le code porte des références `§4a` explicites (pastille de
+présence sur l'avatar 38, cadenas de chiffrement à côté du statut, bulles,
+lecteur vocal, composer). Ce lot n'a donc rien réécrit.
+
+Les deltas que la fiche 6b nomme ont été vérifiés **statiquement**, un par un,
+et sont tous en place :
+
+| Delta 6b | État |
+|---|---|
+| Bulle sortante `#1B5E32` → `#2D7D46` | `_kSentBubbleLight` / `_kSentBubbleDark` |
+| Bouton vocal plein | `_kVoiceGreen` / `_kVoiceGreenLight` |
+| Forme d'onde inactive `#DDD3C4` → `#4A423A` | présent |
+| Cadenas près du statut | `_buildStatusWithLock` |
+
+Un écart délibéré : la fiche réserve le cadenas au nocturne (« absent en
+clair »). L'app l'affiche dans les deux thèmes — retirer un rappel de
+chiffrement en mode clair serait un recul, pas une conformité.
+
+**Deux écarts trouvés en reprenant la fiche point par point, corrigés :**
+
+- **La pastille de présence n'existait pas.** Le code portait bien la
+  référence `§4a`, mais l'état n'était écrit qu'en toutes lettres sous le nom
+  (« En ligne »). Le point de couleur bordé de la couleur d'en-tête, que la
+  fiche pose sur l'avatar, était absent.
+- **Le bloc de citation ne suivait pas la fiche.** Elle demande « bordure
+  gauche blanche translucide » : un filet de 2 px, 9 px de retrait, sans aplat
+  ni rayon. Il portait un liseré de 4 px opaque sur un fond translucide
+  arrondi — une seconde bulle dans la bulle. L'aplat reste sur les bulles
+  **reçues** : sur fond blanc, le filet seul n'a aucun contraste à exploiter.
+- **6b : la bordure des bulles reçues en nocturne** venait de
+  `context.borderColor` (`#2A241E`), invisible sur une bulle `#252119` posée
+  sur un fond `#0F0D0A`. La fiche nomme `#3D352C` — ajoutée comme
+  `AppColors.bubbleBorderDark` plutôt que figée dans le widget, pour ne pas
+  refaire le coup de `_kRecvBorderDark`.
+
+**Vu à l'écran le 2026-08-04**, clair et nocturne : pastille de présence,
+citation au filet fin sur bulle verte (réponse réellement envoyée dans
+« Mes notes »), bulles reçues nocturne dont la bordure se détache enfin du
+fond, en-tête, bandeau épinglé, chips Médias/ÉCO, lecteur vocal, composer.
+
+**Reste non conforme, non fait :** le bouton micro du composer. La fiche 4a le
+veut en **pastille avec le mot « MAINTENIR »** (hauteur 44, rayon 22, fond
+`#1B5E32`, libellé monospace 11/600) ; c'est un bouton rond à icône seule. Le
+libellé enseigne le geste, que rien n'indique autrement — mais ce bouton porte
+toute la gestuelle d'enregistrement (glisser pour annuler, glisser pour
+verrouiller, cadenas flottant en position absolue) et il est couvert par
+`message_input_composer_test.dart`. Le passer en pastille change sa géométrie
+dans tous les états : c'est un chantier, pas un ajustement.
+
+**Ce n'est pas une passe complète** : les ~6 500 lignes de
+`conversation_screen.dart` + `message_bubble.dart` n'ont pas été comparées
+ligne à ligne. Seuls les points que les fiches désignent ont été contrôlés.
+
+---
+
+## 8c — Carte sans localisation, repli par ville
+
+La carte d'explication (réciprocité, trois garanties, « Activer » / « Réglages
+de confidentialité ») est **vue** sur l'appareil, service de localisation
+coupé.
+
+Le panneau bas « Sans localisation, explorez par ville » est codé
+(`_buildExploreByCityPanel`) mais **n'a pas pu être vu** : il n'y a aucune
+ambassade en base (`/embassies` affiche « Aucune ambassade disponible ») et le
+compte de test n'a aucun groupe. Le garde `cities.isEmpty` l'escamote — c'est
+le bon comportement, mais ça veut dire que sa mise en page reste non vérifiée.
+
+Trois défauts corrigés en le reprenant sur la fiche :
+- **les groupes privés y étaient listés**, nom et nombre de membres compris,
+  sous l'étiquette « groupe privé » — une porte fermée proposée en découverte,
+  et une fuite pour qui n'a pas le droit d'entrer ;
+- la ligne d'ambassade ouvrait la liste `/embassies` au lieu de la fiche ;
+- « 1 membres ».
+
+La sélection des villes et des lieux est sortie dans
+`map/domain/city_fallback.dart` et couverte par
+`test/features/map/city_fallback_test.dart` : l'exclusion des groupes privés
+est une règle de confidentialité, elle doit casser un test si quelqu'un la
+retire. Une ville qui n'a que des groupes privés ne reçoit pas de chip, sinon
+il mènerait à une liste vide.
+
+Écart assumé : pas de « ouvert » calculé sur les ambassades. Le format de
+`openingHours` n'est pas garanti côté back — c'est déjà la règle retenue sur
+la fiche ambassade. Seul `isTemporarilyClosed` est fiable.
+
+Pour rendre ce panneau vérifiable il faut au moins une ambassade en base :
+collection **Firestore** `embassies`, lecture publique, écriture réservée à
+`isAdmin()`, via l'écran `/admin/embassies/create`. C'est une **écriture en
+production visible par tous les utilisateurs** — à ne pas faire pour tester.
 
 ---
 
@@ -542,7 +790,11 @@ vide, pas d'indicateur de chargement.
   sur un conteneur déjà coloré (5b, 5d), il faut neutraliser `filled` **et**
   `enabledBorder`/`focusedBorder` — `border: InputBorder.none` seul ne fait
   rien, le thème gagne.
-- **Bouton Suivre hors palette** : `FollowButtonVariant.filled` utilise
+- **Bouton Suivre hors palette** : `FollowButtonVariant.filled` utilisait
   `Theme.of(context).primaryColor`, donc l'accent choisi par l'utilisateur
-  s'affichait au milieu du fil. Réglé par la variante `pill` pour 5d ; les
-  autres usages de `filled` restent à revoir.
+  s'affichait au milieu du fil. Réglé par la variante `pill` pour 5d, puis
+  **la variante `filled` a été supprimée** : son dernier usage
+  (`reposters_screen`, une liste du fil) avait le même défaut, et garder une
+  variante dont le seul comportement est de casser la palette, c'était la
+  laisser à portée de main. `pill` devient le défaut, il ne reste que `pill`
+  et `text`.

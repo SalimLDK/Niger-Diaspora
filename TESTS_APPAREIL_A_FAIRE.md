@@ -14,6 +14,156 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)
+
+Bug constaté sur appareil (SM A515F, build debug, nocturne, reproduit 3 fois) :
+le premier tap sur le champ de recherche ouvrait bien l'en-tête replié (← +
+champ à bordure accent) et le champ **gardait** le focus, mais le clavier ne se
+levait pas. Un second tap le faisait apparaître, et tout marchait ensuite.
+
+Cause : **pas le focus** — c'est la `TextInputConnection` qui se fermait.
+`EditableTextState.dispose()` ferme la connexion sans défocaliser le `FocusNode`
+externe, et `initState()` n'en rouvre aucune (seul un *changement* de focus le
+fait). Dès que l'élément du champ était démonté puis réinflaté alors que le
+nœud était déjà focalisé, le clavier tombait et rien ne le rappelait. Le 2e tap
+marchait via `requestKeyboard()`, qui rouvre la connexion explicitement.
+
+Deux endroits démontaient l'élément, corrigés tous les deux (commit `27f52a3`) :
+le changement de type de widget dans `DesignSearchField` (`TextField` →
+`DecoratedBox(child: TextField)` quand `active` bascule), et l'absence de clé
+sur le bloc du champ dans la `Column` de `messages_screen.dart` — à l'ouverture
+l'en-tête change de type et les puces de filtre disparaissent, donc le bloc
+tombe dans la zone « milieu » de `updateChildren` où tout enfant sans clé est
+démonté.
+
+⚠ **Rien n'est prouvé hors appareil** : contrairement au cas « brouillon
+restauré » ci-dessous, aucun test ne couvre ça — la remontée du clavier logiciel
+n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
+
+- [ ] **Le cas décisif** : depuis la liste des messages, **un seul tap** sur le
+      champ de recherche → le clavier doit monter immédiatement et **rester**.
+- [ ] Enchaîner : saisir un terme sans re-toucher le champ, vérifier que le
+      filtrage et les sections **Personnes** / **Conversations** répondent.
+- [ ] Fermer par la flèche ←, puis rouvrir par un tap : le clavier doit remonter
+      du premier coup **à chaque fois**, pas seulement la première.
+- [ ] Non-régression visuelle (fiche 9b) : bordure accent, loupe orange et halo
+      3 px toujours présents en recherche — et **aucune ombre** quand le champ
+      est au repos (le `DecoratedBox` est désormais permanent).
+- [ ] Refaire la passe en **clair et en nocturne** : le correctif touche
+      `design_kit.dart`, donc tous les autres `DesignSearchField` du projet
+      (boutique, groupes, carte) — vérifier qu'aucun n'a gagné d'ombre parasite.
+- [ ] Boîte de réception **vide** : le champ n'est pas affiché dans cet état, la
+      recherche n'y est donc pas ouvrable — confirmer que c'est bien voulu.
+
+---
+
+## Brouillon restauré — le composer restait sur le micro (2026-08-04)
+
+Bug constaté sur appareil (SM A515F, build debug, conversation « Mes notes ») :
+texte tapé sans envoyer, app quittée par le bouton accueil, puis relancée — le
+brouillon est bien restauré dans le champ, **mais le bouton de droite affiche
+le micro** au lieu du bouton d'envoi. Toucher le champ suffisait à le faire
+réapparaître. Conséquence : on croit ne pas pouvoir envoyer son brouillon.
+
+Cause : dans `message_input.dart`, `_loadDraft()` est appelé depuis `initState`
+**avant** que le listener du contrôleur ne soit posé. L'écriture du brouillon
+dans le contrôleur n'atteignait donc aucun listener, et `_hasText` restait à
+`false` (comme `_isOverLimit` et le contrôleur de morphing). Corrigé en
+recalculant l'état dérivé depuis `controller.text` au moment de l'injection,
+sans animation à l'ouverture.
+
+**Prouvé hors appareil** : cas ajouté à `message_input_composer_test.dart`
+(brouillon semé dans `PreferencesService`, puis badge cadenas E2EE attendu sans
+aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
+14/14 au vert avec. Mais un test widget ne rejoue pas un vrai cycle de process.
+
+- [ ] **Le cas décisif** : taper sans envoyer, **bouton accueil**, relancer
+      l'app, rouvrir la conversation → le bouton d'envoi bleu doit être là
+      **d'emblée**, sans toucher au champ.
+- [ ] Envoyer directement ce brouillon restauré, sans toucher le champ au
+      préalable : l'envoi doit aboutir.
+- [ ] Le bouton doit être **présent immédiatement**, pas apparaître en fondu :
+      le morphing est volontairement court-circuité à la restauration.
+- [ ] Non-régression : une conversation **sans** brouillon doit toujours
+      afficher le micro.
+- [ ] Brouillon de **plus de 2000 caractères** : l'état « dépassement » doit
+      être restauré lui aussi (bouton d'envoi inactif), pas seulement `_hasText`.
+- [ ] ⚠ **Ne pas réinstaller entre les deux étapes** : `adb install -r` vide les
+      données, donc les `SharedPreferences` — le brouillon disparaît et le test
+      ne prouve rien. Relancer l'app déjà installée (`am start` / icône).
+
+---
+
+## Débordement du champ « Type * » — création d'ambassade (2026-08-04)
+
+Corrigé à l'aveugle (pas d'appareil branché pendant la correction), couvert
+par `test/features/admin/admin_create_embassy_overflow_test.dart`.
+
+- [ ] **/admin/embassies/create, champ « Type * »** : plus de bandeau
+  « RIGHT OVERFLOWED BY 54 PIXELS ». Vérifier aussi que le libellé
+  « Ambassade » reste lisible et que la flèche du menu est à sa place.
+- [ ] **Menu déroulant ouvert** : les quatre types (dont « Mission
+  diplomatique », le plus long) s'affichent en entier, sans ellipse.
+- [ ] **Même écran à `font_scale` 1.1** : les six en-têtes de section
+  (« Localisation GPS (optionnel) » est le plus long) passent à la ligne au
+  lieu de déborder.
+
+---
+
+## Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)
+
+Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
+l'appareil de référence.
+
+- [x] **6a — Fil Nocturne** : fond `#161826`, point d'accent violet sur
+  « Le fil », onglet actif en **contour** (pas en fond plein), cartes de post
+  radius 8, et le **FAB creux à contour net** en bas à droite. Le rail
+  « Ma story » ne déborde plus.
+- [x] **11d — Mon profil Nocturne** : fond `#0F0D0A`, cartes `#1A1714` à
+  liseré `#2A241E`, puce métier teintée vert sur fond vert sombre, point
+  d'accent orange après le nom. ⚠ Le **badge « vérifié » n'a pas pu être
+  vu** : le compte de test n'est pas vérifié. À reprendre avec un compte qui
+  l'est.
+- [x] **11e — Réglages Nocturne** : « Supprimer mon compte » en rouge clair
+  `#F87171`, « Déconnexion » en ambre, liseré de la zone sensible net. Avant
+  le correctif, ces trois-là étaient sur les jetons du thème clair, donc
+  sombres sur `#0F0D0A`.
+- [x] **7d — Carte, panneau à trois positions** : recherche fixe, bouton
+  calques, chips, feuille draggable. **Un défaut trouvé et corrigé sur place**
+  (voir ci-dessous).
+- [x] **8c — Carte sans localisation** : carte à pastille `location_off`,
+  trois garanties à coche verte, bouton « Activer » plein + « Réglages de
+  confidentialité » en contour, le tout décliné en nocturne.
+
+**Défaut trouvé pendant la passe** : l'en-tête du panneau de la carte
+affichait « 0 membre a… » tronqué, avec du vide à sa droite. Le titre était
+dans un `Flexible` et la rangée contenait un `Spacer()` — tous deux `flex: 1`,
+donc l'espace libre était partagé en deux au lieu d'aller au titre. Titre et
+rayon regroupés dans un `Expanded` ; vérifié réparé sur l'appareil.
+
+**Fausse alerte notée pour mémoire** : la ligne de fraîcheur du panneau
+affiche deux « Chargement… » tant que la position n'est pas acquise. Ce n'est
+pas un champ mort — au bout des 15 s de `timeLimit`, en intérieur sans fix
+GPS, l'écran bascule sur 8c. Ne pas rouvrir ce faux bug.
+
+**Complément 7d, même session** : une fois la position obtenue (Montréal), le
+panneau affiche « 1 membre autour · 50 km » en entier, la ligne de fraîcheur
+se résout en « À l'instant / Il y a 49 s », et la ligne de membre s'affiche
+avec son bouton 💬. En-tête, fraîcheur et ligne de membre sont donc vérifiés.
+
+**Reste à vérifier sur ces fiches :**
+- [ ] 8c — le panneau bas « Sans localisation, explorez par ville » **existe**
+  (`_buildExploreByCityPanel`) mais **n'a pas pu être vu** : il n'y a
+  aucune ambassade en base (`/embassies` affiche « Aucune ambassade
+  disponible ») et le compte de test n'a aucun groupe. Le panneau s'escamote
+  correctement au lieu d'afficher une coquille vide. À revérifier dès qu'une
+  ambassade ou un groupe public existe avec une ville renseignée.
+- [ ] 7d — cluster de pins et les trois crans de la feuille (18/45/92 %) non
+  exercés : un seul membre autour, donc pas de cluster.
+- [ ] 11d — badge « vérifié ».
+
+---
+
 ## Feuille de partage fantôme au démarrage (2026-08-04)
 
 Bug constaté sur appareil (SM A515F) : la feuille « Envoyer à… / Partagé
@@ -87,22 +237,90 @@ l'URI. Deux causes, corrigées ensemble :
 
 ⚠️ **Le clic sur un lien n'ouvre l'app que si sa signature est déclarée.**
 `assetlinks.json` couvre maintenant Play App Signing **et la clé release
-locale** (`DD:A6:5C:…`) — donc un APK release installé à la main vérifie ses
-liens, une fois le hosting redéployé. La clé **debug** (`87:32:AD:…`) n'y est
-pas : sur un build debug, Android ouvrira Chrome. Tester alors avec un intent
-explicite, qui contourne la vérification :
+locale** (`DD:A6:5C:…`), et il est **déployé** depuis le 2026-08-04 sur
+`diasponiger.web.app` comme sur `diaspo-niger.web.app` — donc un APK release
+installé à la main vérifie ses liens. La clé **debug** (`87:32:AD:…`) n'y est
+pas : sur un build debug, Android ouvrira Chrome.
+
+**Constaté le 2026-08-04** sur l'APK debug installé (signature `87:32:AD:…`) :
+`pm verify-app-links --re-verify` **ne peut pas aboutir**, l'état reste `1024`
+(échec) sur les deux domaines — le serveur ne déclare pas cette empreinte. Ce
+n'est pas un problème de fichier ni de cache, c'est la signature.
+
+Contournement retenu, **déjà appliqué sur le téléphone de test** : approuver
+les domaines à la main, ce qui court-circuite la vérification serveur (le
+`Selection state` passe à `Enabled`, `Verification link handling allowed:
+true`). À refaire après chaque réinstallation :
+
+```
+adb shell pm set-app-links-user-selection --user 0 --package com.diasponiger.diasponiger true diasponiger.web.app
+adb shell pm set-app-links-user-selection --user 0 --package com.diasponiger.diasponiger true diasponiger.com
+adb shell pm get-app-links --user 0 com.diasponiger.diasponiger
+```
+
+À défaut, un intent explicite contourne aussi la résolution — mais il ne teste
+alors plus le chemin réel d'un clic sur un lien :
 
 ```
 adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
 ```
 
-- [ ] **App tuée** (`am force-stop`) puis lien : doit ouvrir la publication,
-      pas l'accueil. C'est le cas décisif — celui que la mise de côté corrige.
-- [ ] App en arrière-plan puis lien : même résultat, sans passer par le splash.
+**Vérifié sur appareil le 2026-08-04** (SM A515F, Android 13, APK debug de
+14:25 contenant bien `flutter_deeplinking_enabled` — vérifié par
+`aapt2 dump xmltree` sur l'APK tiré du téléphone) :
+
+- [x] **App tuée** (`am force-stop`) puis **intent VIEW implicite** (aucun
+      package précisé, donc résolution réelle par Android) sur
+      `https://diasponiger.web.app/feed/0d9abb43-…` : l'app s'ouvre — pas
+      Chrome — et affiche `PostDetailScreen` avec le bon post (« Test fuseau
+      horaire - a ignorer »), zone de commentaires comprise. Capture à l'appui.
+      Compter ~17 s entre l'intent et l'arrivée sur la publication.
+
+      ⚠️ **Ce n'est PAS la mise de côté (étape 0/10) qui a opéré ici.** Les logs
+      GoRouter disent `setting initial location /splash` : Flutter ne transmet
+      pas l'URI comme route initiale sur ce chemin, elle arrive plus tard par le
+      canal de navigation, quand l'authentification est déjà résolue —
+      `redirecting to /feed/0d9abb43-…` sur `/feed/:postId`. La mise de côté
+      reste un filet pour les cas où l'URI arriverait *pendant* le chargement
+      (session déjà chaude, ou utilisateur déconnecté), non exercés ici.
+- [x] **App en arrière-plan puis lien : ÉCHOUAIT — corrigé et VÉRIFIÉ sur
+      appareil le 2026-08-04.** Trois liens vers trois publications
+      différentes, envoyés app en arrière-plan : chacune s'est ouverte, sans
+      repasser par le splash. Captures à l'appui.
+
+      Symptôme initial : l'app revenait au premier plan sur l'écran qu'on venait
+      de quitter, le lien perdu. **Il a fallu corriger deux choses**, la
+      première masquant la seconde :
+
+      1. `flutter_deeplinking_enabled` ne couvre que le **démarrage**. Le moteur
+         mis en cache qu'impose `AudioServiceFragmentActivity` fait que
+         l'embedding ne relaie pas les nouveaux intents au canal de navigation.
+         → `MainActivity.onNewIntent()` pousse la route lui-même (chemin +
+         requête + fragment).
+      2. Ce hook n'était **jamais appelé** : avec `launchMode="singleTop"`,
+         Android ramenait la tâche au premier plan en jetant l'intent. →
+         `launchMode="singleTask"`.
+
+      Deux pièges de diagnostic à retenir :
+
+      - ⚠️ **Le warning `am start` ment.** « Activity not started, its current
+        task has been brought to the front » s'affiche **même quand l'intent est
+        bien délivré** à `onNewIntent` — il apparaît encore aujourd'hui, alors
+        que le lien fonctionne. Ne pas conclure sur ce message.
+      - ⚠️ **`pushRouteInformation` ne produit aucun log GoRouter**, contrairement
+        aux redirections. L'absence de log ne prouve rien : seul l'écran fait
+        foi. Pour trancher, instrumenter temporairement `onNewIntent` avec
+        `android.util.Log` (retiré depuis — il exposait les URL consultées).
+
+      ⚠️ **`singleTask` change le comportement de la pile pour toute l'app** :
+      un nouvel intent efface les activités empilées au-dessus. Non testé avec
+      un appel entrant CallKit (`INCOMING_CALL_AFFINITY` a sa propre tâche, donc
+      a priori non concerné) — à surveiller au premier appel reçu.
 - [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
       la publication** une fois connecté.
-- [ ] Non-régression : un démarrage normal (icône du launcher) doit toujours
-      aller sur `/splash` puis `/home`, sans jamais rouvrir un ancien lien.
+- [x] Non-régression vérifiée le 2026-08-04 : lancement par le launcher
+      (`monkey -c android.intent.category.LAUNCHER`) → l'app arrive bien sur
+      l'accueil, aucun ancien lien n'est rejoué.
 - [ ] Lien vers un post supprimé ou un id inexistant : vérifier que
       `PostDetailScreen` dégrade proprement au lieu de planter.
 - [ ] Lien de profil `https://diasponiger.com/p/u/<uid>` : la route de
@@ -115,11 +333,11 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 
 **À faire hors appareil :**
 
-- [ ] ⛔ **Redéployer le hosting — BLOQUÉ, ne pas lancer `firebase deploy`
-      en l'état.** Vérifié le 2026-08-04 : `public/` est un vestige, la
-      production n'a **jamais** été déployée depuis ce dépôt. Les 8 fichiers du
-      site sont plus riches en ligne que dans le dépôt (contenu comparé hors
-      fins de ligne) :
+- [x] ✅ **Hosting déployé le 2026-08-04**, après rapatriement — voir plus bas.
+      Le blocage décrit ci-dessous est **levé**, il est conservé pour mémoire.
+- [ ] ⛔ *(historique)* **`public/` était un vestige** : la production n'avait
+      **jamais** été déployée depuis ce dépôt. Les 8 fichiers versionnés étaient
+      plus pauvres que ceux en ligne (contenu comparé hors fins de ligne) :
 
       | Fichier | Dépôt | En ligne |
       |---|---|---|
@@ -138,14 +356,36 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
       amputerait l'AASA (Universal Links iOS). Le déploiement Firebase est
       atomique : impossible de n'envoyer que `assetlinks.json`.
 
-      Ordre à suivre : rapatrier d'abord les fichiers en ligne dans `public/`,
-      réappliquer le correctif `assetlinks.json` par-dessus, **puis** déployer.
-- [ ] ⚠️ **`firebase.json` ne déclare qu'un site sur les trois** du projet
-      (`firebase hosting:sites:list`) : `diaspo-niger`, `diaspo-niger-admin` et
-      `diasponiger`. Les liens de l'app pointent sur **`diasponiger.web.app`**
-      (`DEEP_LINK_BASE_URL` + App Links du manifest), qui n'est pas déclaré :
-      un `firebase deploy --only hosting` ne toucherait donc même pas le domaine
-      concerné. À déclarer avant tout déploiement.
+      S'y ajoutaient **9 fichiers servis en production et totalement absents du
+      dépôt** — toutes les versions anglaises (`*-en.html`) et le code de
+      conduite (`code-of-conduct.html`, `code-of-conduct-en.html`) — ainsi que
+      les 9 rewrites sans extension correspondants, absents de `firebase.json`.
+
+      Résolu : les 21 fichiers réellement servis ont été récupérés depuis
+      `diasponiger.web.app` (contenu identique sur les deux sites, vérifié
+      fichier par fichier) et versionnés, `assetlinks.json` réappliqué
+      par-dessus, rewrites complétés. Avant déploiement, `public/` ne s'écartait
+      de la production que par ce seul fichier.
+- [x] ✅ **`firebase.json` déclare désormais les deux sites publics.** Le projet
+      en a trois (`firebase hosting:sites:list`) : `diaspo-niger`,
+      `diaspo-niger-admin` et `diasponiger`. Seul le premier était déclaré,
+      alors que les liens de l'app pointent sur **`diasponiger.web.app`**
+      (`DEEP_LINK_BASE_URL` + App Links du manifest) — un déploiement n'aurait
+      même pas touché le domaine concerné. Les deux sites publics ont maintenant
+      leur bloc (config identique, même dossier `public`) ; `diaspo-niger-admin`
+      reste délibérément hors périmètre.
+
+      ⚠️ Une **cible multi-sites ne fonctionne pas** : `firebase target:apply
+      hosting <cible> siteA siteB` est accepté, mais `deploy` et
+      `hosting:channel:deploy` refusent ensuite avec « linked to multiple sites,
+      but only one is permitted » (CLI 14.27). D'où la duplication du bloc — si
+      l'un des deux est modifié, penser à l'autre.
+
+      ⚠️ Les fins de ligne diffèrent d'un fichier à l'autre en production (CRLF
+      dans `index.html`, LF dans les pages `-en`) et git a prévenu qu'il
+      convertira en CRLF « la prochaine fois qu'il touchera » ces fichiers. Un
+      futur `git checkout` changerait donc leur contenu octet à octet sans rien
+      changer au rendu. Comparer avec la prod avant de redéployer.
 - [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
       App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
       pour une app déjà installée.
@@ -280,9 +520,9 @@ validées une par une avec Salim avant branchement.
 - [ ] **20d — sélecteur d'heures calmes** : le tap sur « De 22:00 à 08:00 »
   doit enchaîner deux sélecteurs (début puis fin) et n'enregistrer que si les
   deux sont confirmés. Jamais ouvert sur appareil.
-- [ ] **20d — « Messages système » verrouillé** : l'interrupteur doit être
-  grisé et insensible au tap, et la préférence doit revenir à « actif » si
-  elle avait été coupée avant cette version.
+- [ ] **20d — « Messages système » désactivable** : le verrou de la fiche a
+  été abandonné (choix de Salim). L'interrupteur doit se couper et se
+  rallumer normalement, et l'état doit survivre à une relance.
 
 - [ ] **5a « Mon espace »** (`lib/features/feed/presentation/screens/mon_espace_screen.dart`) —
   refait sur la fiche : ligne d'identité `@poignée · Origine → Ville`, **trois**

@@ -13198,7 +13198,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get forYouTab => 'Pour toi';
 
   @override
-  String get followingTab => 'Suivis';
+  String get followingTab => 'Abonnements';
 
   @override
   String get recentTab => 'Récent';

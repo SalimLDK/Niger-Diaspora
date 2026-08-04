@@ -810,10 +810,20 @@ class _HighlightedName extends StatelessWidget {
           if (start > 0) TextSpan(text: text.substring(0, start)),
           TextSpan(
             text: text.substring(start, end),
-            style: const TextStyle(
-              backgroundColor: Color(0xFFF7E0CE),
-              color: Color(0xFF8C491A),
-            ),
+            // La maquette 9b est en clair ; posé tel quel sur le fond
+            // nocturne, le beige vif faisait un pavé lumineux. En sombre on
+            // garde le principe (fond chaud discret, texte à l'accent) avec
+            // les valeurs de la palette Nocturne.
+            style:
+                Theme.of(context).brightness == Brightness.dark
+                    ? const TextStyle(
+                      backgroundColor: Color(0xFF3A2A1C),
+                      color: Color(0xFFF4A574),
+                    )
+                    : const TextStyle(
+                      backgroundColor: Color(0xFFF7E0CE),
+                      color: Color(0xFF8C491A),
+                    ),
           ),
           if (end < text.length) TextSpan(text: text.substring(end)),
         ],

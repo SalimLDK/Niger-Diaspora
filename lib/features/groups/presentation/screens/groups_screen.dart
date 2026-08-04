@@ -12,6 +12,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../providers/group_request_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -142,6 +143,103 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   /// Groupes correspondant au pays/région du profil de l'utilisateur, qu'il
   /// n'a pas encore rejoints. Le groupe officiel du pays (s'il est present)
   /// est mis en avant en premier.
+  /// Onglet « Découvrir » (fiche 9c).
+  ///
+  /// Il rendait un écran **entièrement blanc** dans trois cas indistinguables :
+  /// profil sans ville (la section « Suggéré » se retirait), aucun groupe
+  /// public au backend, et erreur de chargement (`SizedBox.shrink()`). Aucun
+  /// de ces cas ne disait rien à l'utilisateur. L'onglet décide désormais en
+  /// un seul endroit et a toujours quelque chose à montrer.
+  Widget _buildDiscoverTab(
+    BuildContext context,
+    AppLocalizations l10n,
+    String? currentUserId,
+    AsyncValue<List<GroupEntity>> allGroupsAsync,
+    AsyncValue<List<GroupEntity>> myGroupsAsync,
+  ) {
+    if (allGroupsAsync.isLoading || myGroupsAsync.isLoading) {
+      return _buildDiscoverLoading(l10n);
+    }
+    if (allGroupsAsync.hasError || myGroupsAsync.hasError) {
+      return _buildErrorWidget(l10n.loadingError);
+    }
+
+    final myGroupIds =
+        (myGroupsAsync.valueOrNull ?? []).map((g) => g.id).toSet();
+    final notJoined =
+        (allGroupsAsync.valueOrNull ?? [])
+            .where((g) => !myGroupIds.contains(g.id))
+            .toList();
+    final discoverGroups = _applyFilters(notJoined);
+
+    final suggested = _buildSuggestedSection(
+      context,
+      l10n,
+      currentUserId,
+      allGroupsAsync,
+      myGroupsAsync,
+    );
+    final hasSuggested = suggested is! SizedBox;
+
+    // Ni suggestion, ni groupe à découvrir : on l'écrit, avec la sortie qui
+    // convient. Le filtre géographique change le message — « rien ici » et
+    // « rien nulle part » n'appellent pas la même action.
+    if (!hasSuggested && discoverGroups.isEmpty) {
+      final filtered = notJoined.isNotEmpty;
+      return Padding(
+        padding: const EdgeInsets.only(top: 28),
+        child: DesignEmptyState(
+          icon: Icons.travel_explore_outlined,
+          title:
+              filtered
+                  ? 'Aucun groupe ne correspond à ces filtres'
+                  : 'Aucun groupe public pour l\'instant',
+          body:
+              filtered
+                  ? 'Élargissez la zone, ou créez le groupe qui manque.'
+                  : 'Personne n\'a encore créé de groupe public. '
+                      'Le premier, c\'est peut-être le vôtre.',
+          children: [
+            DesignPrimaryButton(
+              label: l10n.createGroup,
+              onPressed: () => context.push('/groups/create'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        suggested,
+        if (discoverGroups.isNotEmpty) ...[
+          const SizedBox(height: 28),
+          _SectionHeader(
+            title: l10n.discover,
+            icon: Icons.explore,
+            iconColor: context.adaptiveSecondaryColor,
+          ),
+          const SizedBox(height: 16),
+          ...discoverGroups.map(
+            (group) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _GroupCard(
+                group: group,
+                isJoined: false,
+                currentUserId: currentUserId ?? '',
+                onTap:
+                    () => context.push('/groups/${group.id}', extra: group),
+                onJoinLeave: () => _joinGroup(group.id),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ],
+    );
+  }
+
   Widget _buildSuggestedSection(
     BuildContext context,
     AppLocalizations l10n,
@@ -364,6 +462,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                             extra: group,
                                           ),
                                       onJoinLeave: () => _leaveGroup(group.id),
+                                      onOpen: () => _openGroupChat(group),
                                     ),
                                   ),
                                 )
@@ -374,70 +473,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                     error: (error, _) => _buildErrorWidget(l10n.loadingError),
                   ),
 
-                  // Suggéré pour toi (pays/région du profil) - masquée si rien à suggérer
                   if (_tab == _GroupsTab.discover)
-                    _buildSuggestedSection(context, l10n, currentUser?.id, allGroupsAsync, myGroupsAsync),
-
-                  // Section Découvrir - masquée si aucun groupe à découvrir
-                  if (_tab == _GroupsTab.discover)
-                  allGroupsAsync.when(
-                    skipLoadingOnRefresh: true,
-                    data: (allGroups) {
-                      // Wait for myGroups to load before filtering
-                      return myGroupsAsync.when(
-                        data: (myGroups) {
-                          // Filtrer les groupes déjà rejoints
-                          final myGroupIds = myGroups.map((g) => g.id).toSet();
-                          final notJoinedGroups =
-                              allGroups
-                                  .where((g) => !myGroupIds.contains(g.id))
-                                  .toList();
-
-                          // Appliquer tous les filtres
-                          final discoverGroups = _applyFilters(notJoinedGroups);
-
-                          // Ne rien afficher si aucun groupe à découvrir
-                          if (discoverGroups.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 28),
-                              _SectionHeader(
-                                title: l10n.discover,
-                                icon: Icons.explore,
-                                iconColor: context.adaptiveSecondaryColor,
-                              ),
-                              const SizedBox(height: 16),
-                              ...discoverGroups.map(
-                                (group) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: _GroupCard(
-                                    group: group,
-                                    isJoined: false,
-                                    currentUserId: currentUser?.id ?? '',
-                                    onTap:
-                                        () => context.push(
-                                          '/groups/${group.id}',
-                                          extra: group,
-                                        ),
-                                    onJoinLeave: () => _joinGroup(group.id),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                            ],
-                          );
-                        },
-                        loading: () => _buildDiscoverLoading(l10n),
-                        error: (_, __) => const SizedBox.shrink(),
-                      );
-                    },
-                    loading: () => _buildDiscoverLoading(l10n),
-                    error: (error, _) => const SizedBox.shrink(),
-                  ),
+                    _buildDiscoverTab(
+                      context,
+                      l10n,
+                      currentUser?.id,
+                      allGroupsAsync,
+                      myGroupsAsync,
+                    ),
                 ]),
               ),
             ),
@@ -448,6 +491,31 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
         ),
         ),
       ),
+    );
+  }
+
+  /// « Ouvrir » d'une carte de groupe rejoint (fiche 9c) : entre dans la
+  /// discussion. La conversation d'un groupe n'existe qu'à partir du premier
+  /// message — si elle n'est pas encore là, on ouvre la fiche du groupe (9d)
+  /// plutôt que de laisser le bouton sans effet.
+  Future<void> _openGroupChat(GroupEntity group) async {
+    final conversationId = await ref.read(
+      groupConversationIdProvider(group.id).future,
+    );
+    if (!mounted) return;
+    if (conversationId == null || conversationId.isEmpty) {
+      context.push('/groups/${group.id}', extra: group);
+      return;
+    }
+    context.push(
+      '/messages/$conversationId',
+      extra: {
+        'name': group.name,
+        'imageUrl': group.imageUrl,
+        'isGroup': true,
+        'groupId': group.id,
+        'otherUserId': null,
+      },
     );
   }
 
@@ -752,12 +820,17 @@ class _GroupCard extends ConsumerWidget {
   final VoidCallback onTap;
   final VoidCallback onJoinLeave;
 
+  /// Entrer dans la discussion du groupe (fiche 9c). Uniquement utilisé quand
+  /// [isJoined] : sur un groupe non rejoint, il n'y a pas de discussion.
+  final VoidCallback? onOpen;
+
   const _GroupCard({
     required this.group,
     required this.isJoined,
     required this.currentUserId,
     required this.onTap,
     required this.onJoinLeave,
+    this.onOpen,
   });
 
   @override
@@ -993,39 +1066,36 @@ class _GroupCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
+            // Groupe rejoint : l'action utile est d'entrer dans la discussion
+            // (fiche 9c, « Ouvrir »), pas d'afficher une pastille « Membre »
+            // dont le seul effet était de quitter le groupe. La sortie vit
+            // désormais en 9d, où elle est délibérée.
             GestureDetector(
-              onTap: onJoinLeave,
+              onTap: isJoined ? onOpen : onJoinLeave,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  gradient: isJoined ? null : context.adaptiveSecondaryGradient,
-                  color: isJoined ? context.primaryBackgroundColor : null,
+                  gradient: context.adaptiveSecondaryGradient,
                   borderRadius: BorderRadius.circular(14),
-                  boxShadow:
-                      isJoined
-                          ? null
-                          : [
-                            BoxShadow(
-                              color: context.adaptiveSecondaryColor.withValues(
-                                alpha: 0.3,
-                              ),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.adaptiveSecondaryColor.withValues(
+                        alpha: 0.3,
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Text(
-                  isJoined ? l10n.member : l10n.joinGroup,
-                  style: TextStyle(
+                  isJoined ? 'Ouvrir' : l10n.joinGroup,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isJoined
-                            ? context.adaptivePrimaryColor
-                            : AppColors.white,
+                    color: AppColors.white,
                   ),
                 ),
               ),

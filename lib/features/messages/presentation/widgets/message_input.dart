@@ -208,6 +208,35 @@ class _MessageInputState extends State<MessageInput>
       _controller.selection = TextSelection.fromPosition(
         TextPosition(offset: draft.length),
       );
+      // Le brouillon est injecté depuis initState, avant que le listener du
+      // contrôleur ne soit posé : personne ne recalcule l'état dérivé. Sans
+      // ça, le bouton reste sur le micro tant que l'utilisateur n'a pas tapé.
+      _syncTextState(animateMorph: false);
+    }
+  }
+
+  /// Recalcule l'état dérivé du texte (`_hasText`, `_isOverLimit`, morphing)
+  /// à partir du contrôleur, au lieu d'attendre une frappe.
+  ///
+  /// Appelé depuis `initState` (brouillon restauré) : on assigne les champs
+  /// directement, le premier build n'a pas encore eu lieu.
+  void _syncTextState({required bool animateMorph}) {
+    _hasText = _controller.text.trim().isNotEmpty;
+    _isOverLimit = _controller.text.length > _maxCharCount;
+
+    if (_hasText && !_isOverLimit) {
+      // Pas d'animation à l'ouverture : le bouton d'envoi doit être là d'emblée.
+      if (animateMorph) {
+        _morphController.forward();
+      } else {
+        _morphController.value = _morphController.upperBound;
+      }
+    } else {
+      if (animateMorph) {
+        _morphController.reverse();
+      } else {
+        _morphController.value = _morphController.lowerBound;
+      }
     }
   }
 

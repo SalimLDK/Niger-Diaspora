@@ -67,6 +67,42 @@
                     "destination": "/forgot-password.html"
                 },
                 {
+                    "source": "/code-of-conduct",
+                    "destination": "/code-of-conduct.html"
+                },
+                {
+                    "source": "/index-en",
+                    "destination": "/index-en.html"
+                },
+                {
+                    "source": "/child-safety-standards-en",
+                    "destination": "/child-safety-standards-en.html"
+                },
+                {
+                    "source": "/privacy-policy-en",
+                    "destination": "/privacy-policy-en.html"
+                },
+                {
+                    "source": "/terms-of-service-en",
+                    "destination": "/terms-of-service-en.html"
+                },
+                {
+                    "source": "/contact-en",
+                    "destination": "/contact-en.html"
+                },
+                {
+                    "source": "/delete-account-en",
+                    "destination": "/delete-account-en.html"
+                },
+                {
+                    "source": "/forgot-password-en",
+                    "destination": "/forgot-password-en.html"
+                },
+                {
+                    "source": "/code-of-conduct-en",
+                    "destination": "/code-of-conduct-en.html"
+                },
+                {
                     "source": "**",
                     "destination": "/index.html"
                 }
@@ -106,14 +142,73 @@
             ]
         },
         {
-            "site": "diaspo-niger-admin",
-            "public": "build/web-admin",
+            "site": "diasponiger",
+            "public": "public",
             "ignore": [
                 "firebase.json",
-                "**/.*",
                 "**/node_modules/**"
             ],
             "rewrites": [
+                {
+                    "source": "/child-safety-standards",
+                    "destination": "/child-safety-standards.html"
+                },
+                {
+                    "source": "/privacy-policy",
+                    "destination": "/privacy-policy.html"
+                },
+                {
+                    "source": "/terms-of-service",
+                    "destination": "/terms-of-service.html"
+                },
+                {
+                    "source": "/contact",
+                    "destination": "/contact.html"
+                },
+                {
+                    "source": "/delete-account",
+                    "destination": "/delete-account.html"
+                },
+                {
+                    "source": "/forgot-password",
+                    "destination": "/forgot-password.html"
+                },
+                {
+                    "source": "/code-of-conduct",
+                    "destination": "/code-of-conduct.html"
+                },
+                {
+                    "source": "/index-en",
+                    "destination": "/index-en.html"
+                },
+                {
+                    "source": "/child-safety-standards-en",
+                    "destination": "/child-safety-standards-en.html"
+                },
+                {
+                    "source": "/privacy-policy-en",
+                    "destination": "/privacy-policy-en.html"
+                },
+                {
+                    "source": "/terms-of-service-en",
+                    "destination": "/terms-of-service-en.html"
+                },
+                {
+                    "source": "/contact-en",
+                    "destination": "/contact-en.html"
+                },
+                {
+                    "source": "/delete-account-en",
+                    "destination": "/delete-account-en.html"
+                },
+                {
+                    "source": "/forgot-password-en",
+                    "destination": "/forgot-password-en.html"
+                },
+                {
+                    "source": "/code-of-conduct-en",
+                    "destination": "/code-of-conduct-en.html"
+                },
                 {
                     "source": "**",
                     "destination": "/index.html"
@@ -121,11 +216,33 @@
             ],
             "headers": [
                 {
-                    "source": "**/*.@(js|css)",
+                    "source": "/.well-known/assetlinks.json",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Cache-Control",
+                            "value": "public, max-age=3600"
+                        }
+                    ]
+                },
+                {
+                    "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
                     "headers": [
                         {
                             "key": "Cache-Control",
-                            "value": "max-age=31536000"
+                            "value": "public, max-age=3600"
+                        }
+                    ]
+                },
+                {
+                    "source": "**/*.@(html)",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "public, max-age=0, must-revalidate"
                         }
                     ]
                 }

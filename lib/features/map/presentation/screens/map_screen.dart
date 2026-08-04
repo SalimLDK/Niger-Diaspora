@@ -26,6 +26,7 @@ import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/domain/entities/group_entity.dart';
+import '../../domain/city_fallback.dart';
 import '../../../businesses/presentation/providers/business_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import '../../../../core/extensions/business_entity_extensions.dart';
@@ -60,6 +61,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   List<ProfileModel> _nearbyMembers = [];
   List<EmbassyEntity> _embassies = [];
   List<BusinessEntity> _businesses = [];
+
   /// Ordre de la liste des membres (§7e) : il était fixe et muet.
   _MemberSort _sort = _MemberSort.nearest;
 
@@ -700,13 +702,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
         Paint()
           ..color = Colors.black.withValues(alpha: 0.18)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(center.dx, center.dy + 6), radius, ambientShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 6),
+      radius,
+      ambientShadowPaint,
+    );
 
     final colorShadowPaint =
         Paint()
           ..color = color.withValues(alpha: 0.28)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(center.dx, center.dy + 3), radius, colorShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 3),
+      radius,
+      colorShadowPaint,
+    );
 
     // 2. Fond blanc du cercle
     final bgPaint =
@@ -964,13 +974,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
         Paint()
           ..color = Colors.black.withValues(alpha: 0.18)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(center.dx, center.dy + 6), radius, ambientShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 6),
+      radius,
+      ambientShadowPaint,
+    );
 
     final colorShadowPaint =
         Paint()
           ..color = userColor.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(center.dx, center.dy + 3), radius, colorShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 3),
+      radius,
+      colorShadowPaint,
+    );
 
     // 2. Fond blanc du cercle
     final bgPaint =
@@ -1062,13 +1080,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
         Paint()
           ..color = Colors.black.withValues(alpha: 0.18)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(center.dx, center.dy + 6), radius, ambientShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 6),
+      radius,
+      ambientShadowPaint,
+    );
 
     final colorShadowPaint =
         Paint()
           ..color = embassyColor.withValues(alpha: 0.28)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(center.dx, center.dy + 3), radius, colorShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 3),
+      radius,
+      colorShadowPaint,
+    );
 
     // 2. Fond blanc du cercle
     final bgPaint =
@@ -1206,9 +1232,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       ),
                       child: Row(
                         children: [
-                          AppIcon(AppIcon.warning,
-                            color: context.warningColor,
-                          ),
+                          AppIcon(AppIcon.warning, color: context.warningColor),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -1246,7 +1270,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            AppIcon(AppIcon.location,
+                            AppIcon(
+                              AppIcon.location,
                               color: context.adaptivePrimaryColor,
                               size: 20,
                             ),
@@ -1449,13 +1474,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
         Paint()
           ..color = Colors.black.withValues(alpha: 0.18)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(center.dx, center.dy + 6), radius, ambientShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 6),
+      radius,
+      ambientShadowPaint,
+    );
 
     final colorShadowPaint =
         Paint()
           ..color = businessColor.withValues(alpha: 0.28)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(center.dx, center.dy + 3), radius, colorShadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + 3),
+      radius,
+      colorShadowPaint,
+    );
 
     // 2. Fond blanc du cercle
     final bgPaint =
@@ -1526,10 +1559,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ..style = PaintingStyle.fill;
       canvas.drawCircle(badgeCenter, 7, badgePaint);
 
-      const starSpan = TextSpan(
-        text: '⭐',
-        style: TextStyle(fontSize: 10),
-      );
+      const starSpan = TextSpan(text: '⭐', style: TextStyle(fontSize: 10));
       final starPainter = TextPainter(
         text: starSpan,
         textDirection: TextDirection.ltr,
@@ -1724,19 +1754,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              AppIcon(AppIcon.location,
+                              AppIcon(
+                                AppIcon.location,
                                 color: context.adaptivePrimaryColor,
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  [
-                                    business.address,
-                                    business.fullLocation,
-                                  ].where((s) => s != null && s.isNotEmpty).join(
-                                    ', ',
-                                  ),
+                                  [business.address, business.fullLocation]
+                                      .where((s) => s != null && s.isNotEmpty)
+                                      .join(', '),
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: context.textSecondaryColor,
@@ -2076,12 +2104,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final lat = membre.latitude;
     final lng = membre.longitude;
     if (lat == null || lng == null) return null;
-    return Geolocator.distanceBetween(
-          pos.latitude,
-          pos.longitude,
-          lat,
-          lng,
-        ) /
+    return Geolocator.distanceBetween(pos.latitude, pos.longitude, lat, lng) /
         1000;
   }
 
@@ -2138,13 +2161,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               width: 100,
                               height: 100,
                               errorBuilder:
-                                  (_, __, ___) => AppIcon(AppIcon.person,
+                                  (_, __, ___) => AppIcon(
+                                    AppIcon.person,
                                     color: context.surfaceColor,
                                     size: 50,
                                   ),
                             ),
                           )
-                          : AppIcon(AppIcon.person,
+                          : AppIcon(
+                            AppIcon.person,
                             color: context.surfaceColor,
                             size: 50,
                           ),
@@ -2291,7 +2316,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             extra: member.toEntity(),
                           );
                         },
-                        icon: AppIcon(AppIcon.person, color: context.adaptivePrimaryColor),
+                        icon: AppIcon(
+                          AppIcon.person,
+                          color: context.adaptivePrimaryColor,
+                        ),
                         label: Text(l10n.viewProfile),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -2334,7 +2362,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                 );
                               }
                             },
-                            icon: AppIcon(AppIcon.chatBubble, color: context.warningColor),
+                            icon: AppIcon(
+                              AppIcon.chatBubble,
+                              color: context.warningColor,
+                            ),
                             label: Text(l10n.message),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
@@ -2542,34 +2573,35 @@ class _MapScreenState extends ConsumerState<MapScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ctx.borderColor,
-                    borderRadius: BorderRadius.circular(2),
+      builder:
+          (ctx) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: ctx.borderColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.information,
+                    style: Theme.of(ctx).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  const MapLegend(),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.information,
-                style: Theme.of(ctx).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              const MapLegend(),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -2603,76 +2635,85 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Feuille « Calques » (§7d) : consolide les bascules de couches auparavant
   /// dispersées dans l'AppBar (membres, commerces, ambassades).
   void _showLayersSheet(BuildContext context) {
-    final businessDirectoryEnabled =
-        ref.read(isBusinessDirectoryEnabledProvider);
+    final businessDirectoryEnabled = ref.read(
+      isBusinessDirectoryEnabledProvider,
+    );
     showModalBottomSheet(
       context: context,
       backgroundColor: context.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => SafeArea(
-        child: StatefulBuilder(
-          builder: (ctx, setModalState) => Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ctx.borderColor,
-                      borderRadius: BorderRadius.circular(2),
+      builder:
+          (ctx) => SafeArea(
+            child: StatefulBuilder(
+              builder:
+                  (ctx, setModalState) => Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: ctx.borderColor,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Calques',
+                          style: Theme.of(ctx).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        // Membres (état privé partagé, via provider).
+                        Consumer(
+                          builder: (c, r, _) {
+                            final on = r.watch(nearbyMembersEnabledProvider);
+                            return SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              secondary: const Icon(Icons.people_alt_outlined),
+                              title: const Text('Membres'),
+                              value: on,
+                              onChanged:
+                                  (v) => r
+                                      .read(
+                                        nearbyMembersEnabledProvider.notifier,
+                                      )
+                                      .setEnabled(v),
+                            );
+                          },
+                        ),
+                        if (businessDirectoryEnabled)
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            secondary: const Icon(Icons.storefront_outlined),
+                            title: const Text('Commerces'),
+                            value: _showBusinesses,
+                            onChanged: (v) {
+                              _toggleBusinessesLayer(v);
+                              setModalState(() {});
+                            },
+                          ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          secondary: const Icon(Icons.account_balance_outlined),
+                          title: const Text('Ambassades'),
+                          value: _showEmbassies,
+                          onChanged: (v) {
+                            setState(() => _showEmbassies = v);
+                            setModalState(() {});
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text('Calques', style: Theme.of(ctx).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                // Membres (état privé partagé, via provider).
-                Consumer(
-                  builder: (c, r, _) {
-                    final on = r.watch(nearbyMembersEnabledProvider);
-                    return SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(Icons.people_alt_outlined),
-                      title: const Text('Membres'),
-                      value: on,
-                      onChanged: (v) => r
-                          .read(nearbyMembersEnabledProvider.notifier)
-                          .setEnabled(v),
-                    );
-                  },
-                ),
-                if (businessDirectoryEnabled)
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.storefront_outlined),
-                    title: const Text('Commerces'),
-                    value: _showBusinesses,
-                    onChanged: (v) {
-                      _toggleBusinessesLayer(v);
-                      setModalState(() {});
-                    },
-                  ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.account_balance_outlined),
-                  title: const Text('Ambassades'),
-                  value: _showEmbassies,
-                  onChanged: (v) {
-                    setState(() => _showEmbassies = v);
-                    setModalState(() {});
-                  },
-                ),
-              ],
             ),
           ),
-        ),
-      ),
     );
   }
 
@@ -2861,9 +2902,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           : l10n.mapSortByName,
                       style: TextStyle(
                         fontWeight:
-                            _sort == option
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            _sort == option ? FontWeight.w600 : FontWeight.w400,
                         color: ctx.textPrimaryColor,
                       ),
                     ),
@@ -2921,12 +2960,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final groups =
         ref.watch(groupsNotifierProvider).valueOrNull ?? const <GroupEntity>[];
 
-    final cities = <String>{
-      for (final e in embassies)
-        if (e.city.trim().isNotEmpty) e.city.trim(),
-      for (final g in groups)
-        if ((g.location ?? '').trim().isNotEmpty) g.location!.trim(),
-    }.toList()..sort();
+    // Sélection déportée dans `CityFallback` : l'exclusion des groupes privés
+    // est une règle de confidentialité, elle est testée à part.
+    final cities = CityFallback.cities(embassies: embassies, groups: groups);
 
     if (cities.isEmpty) return const SizedBox.shrink();
 
@@ -2935,10 +2971,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ? _exploreCity!
             : cities.first;
 
-    final cityEmbassies =
-        embassies.where((e) => e.city.trim() == selected).toList();
-    final cityGroups =
-        groups.where((g) => (g.location ?? '').trim() == selected).toList();
+    final cityEmbassies = CityFallback.embassiesIn(embassies, selected);
+    final cityGroups = CityFallback.groupsIn(groups, selected);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -2983,7 +3017,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 // temporaire est un état sûr côté modèle.
                 if (embassy.isTemporarilyClosed) 'fermé temporairement',
               ].where((e) => e.isNotEmpty).join(' · '),
-              onTap: () => context.push('/embassies'),
+              // La fiche de l'ambassade, pas la liste : la route
+              // `/embassies/:id` attend l'entité en `extra`, on l'a sous la
+              // main. Rouvrir la liste obligeait à re-chercher la ligne qu'on
+              // vient de toucher.
+              onTap:
+                  () =>
+                      context.push('/embassies/${embassy.id}', extra: embassy),
             ),
           for (final group in cityGroups)
             _explorePlaceRow(
@@ -2991,8 +3031,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
               iconColor: context.adaptivePrimaryColor,
               title: group.name,
               subtitle:
-                  '${group.memberIds.length} membres · '
-                  '${group.isPrivate ? "groupe privé" : "groupe public"}',
+                  '${group.memberIds.length} '
+                  '${group.memberIds.length > 1 ? "membres" : "membre"} · '
+                  'groupe public',
               onTap: () => context.push('/groups/${group.id}'),
             ),
           if (cityEmbassies.isEmpty && cityGroups.isEmpty)
@@ -3129,16 +3170,18 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 color: context.adaptivePrimaryColor,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: member.photoUrl != null
-                  ? Image.network(
-                      member.photoUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => AppIcon(
-                        AppIcon.person,
-                        color: context.onPrimaryColor,
-                      ),
-                    )
-                  : AppIcon(AppIcon.person, color: context.onPrimaryColor),
+              child:
+                  member.photoUrl != null
+                      ? Image.network(
+                        member.photoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (_, __, ___) => AppIcon(
+                              AppIcon.person,
+                              color: context.onPrimaryColor,
+                            ),
+                      )
+                      : AppIcon(AppIcon.person, color: context.onPrimaryColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -3368,8 +3411,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               decoration: BoxDecoration(
                                 color: context.surfaceColor,
                                 borderRadius: BorderRadius.circular(20),
-                                border:
-                                    Border.all(color: context.borderColor),
+                                border: Border.all(color: context.borderColor),
                               ),
                               child: Text(
                                 'tuiles allégées',
@@ -3389,8 +3431,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             ),
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
-                              onPressed: () =>
-                                  setState(() => _listOnly = false),
+                              onPressed:
+                                  () => setState(() => _listOnly = false),
                               icon: const Icon(Icons.open_in_full, size: 16),
                               label: const Text('Plein écran'),
                               style: OutlinedButton.styleFrom(
@@ -3404,41 +3446,42 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       ),
                     )
                   else
-                  // Google Map
-                  GoogleMap(
-                    initialCameraPosition: const CameraPosition(
-                      target: _defaultPosition,
-                      zoom: 12,
+                    // Google Map
+                    GoogleMap(
+                      initialCameraPosition: const CameraPosition(
+                        target: _defaultPosition,
+                        zoom: 12,
+                      ),
+                      style:
+                          context.isDarkMode ? _darkMapStyle : _lightMapStyle,
+                      onCameraMove: _onCameraMove,
+                      onTap: (_) {
+                        if (_selectedMarkerId != null) {
+                          setState(() => _selectedMarkerId = null);
+                          _updateMarkers();
+                        }
+                      },
+                      onMapCreated: (controller) {
+                        if (!_controller.isCompleted) {
+                          _controller.complete(controller);
+                        }
+                        // Move camera to current position if available
+                        if (_currentPosition != null) {
+                          controller.animateCamera(
+                            CameraUpdate.newLatLngZoom(_currentPosition!, 12),
+                          );
+                        }
+                      },
+                      markers: {
+                        ..._markers,
+                        if (_showEmbassies) ..._embassyMarkers,
+                        ..._businessMarkers,
+                      },
+                      myLocationEnabled: false,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      mapToolbarEnabled: false,
                     ),
-                    style: context.isDarkMode ? _darkMapStyle : _lightMapStyle,
-                    onCameraMove: _onCameraMove,
-                    onTap: (_) {
-                      if (_selectedMarkerId != null) {
-                        setState(() => _selectedMarkerId = null);
-                        _updateMarkers();
-                      }
-                    },
-                    onMapCreated: (controller) {
-                      if (!_controller.isCompleted) {
-                        _controller.complete(controller);
-                      }
-                      // Move camera to current position if available
-                      if (_currentPosition != null) {
-                        controller.animateCamera(
-                          CameraUpdate.newLatLngZoom(_currentPosition!, 12),
-                        );
-                      }
-                    },
-                    markers: {
-                      ..._markers,
-                      if (_showEmbassies) ..._embassyMarkers,
-                      ..._businessMarkers,
-                    },
-                    myLocationEnabled: false,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    mapToolbarEnabled: false,
-                  ),
 
                   // Loading indicator
                   if (_isLoading)
@@ -3465,109 +3508,114 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       right: 24,
                       child: _EmptyAreaCard(
                         onZoomOut: _zoomOut,
-                        onShowEmbassies: _showEmbassies
-                            ? null
-                            : () => setState(() => _showEmbassies = true),
+                        onShowEmbassies:
+                            _showEmbassies
+                                ? null
+                                : () => setState(() => _showEmbassies = true),
                       ),
                     ),
 
                   // Filter Chips — masqués tant que la liste de résultats de
                   // recherche est ouverte (elle descend jusqu'à ~top:296).
                   if (!_isSearchResultsOpen)
-                  Positioned(
-                    top: 76,
-                    left: 16,
-                    right: 16,
-                    child:
-                        _isReciprocityRestricted
-                            ? Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: context.warningBackgroundColor,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: context.warningColor),
-                                boxShadow:
-                                    context.isDarkMode
-                                        ? null
-                                        : [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    nearbyEnabled
-                                        ? Icons.location_disabled
-                                        : Icons.visibility_off,
+                    Positioned(
+                      top: 76,
+                      left: 16,
+                      right: 16,
+                      child:
+                          _isReciprocityRestricted
+                              ? Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: context.warningBackgroundColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
                                     color: context.warningColor,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
+                                  boxShadow:
+                                      context.isDarkMode
+                                          ? null
+                                          : [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
                                       nearbyEnabled
-                                          ? l10n.locationRequiredToSeeMembers
-                                          : l10n.nearbyMembersDisabled,
-                                      style: TextStyle(
-                                        color: context.textPrimaryColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                          ? Icons.location_disabled
+                                          : Icons.visibility_off,
+                                      color: context.warningColor,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        nearbyEnabled
+                                            ? l10n.locationRequiredToSeeMembers
+                                            : l10n.nearbyMembersDisabled,
+                                        style: TextStyle(
+                                          color: context.textPrimaryColor,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  TextButton(
-                                    onPressed: nearbyEnabled
-                                        ? _initializeLocation
-                                        : () => ref
-                                            .read(
-                                              nearbyMembersEnabledProvider
-                                                  .notifier,
-                                            )
-                                            .setEnabled(true),
-                                    child: Text(l10n.mapEnable),
-                                  ),
-                                ],
-                              ),
-                            )
-                            : SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children:
-                                    _filterKeys
-                                        .map(
-                                          (filterKey) => Padding(
-                                            padding: EdgeInsets.only(
-                                              right:
-                                                  filterKey != _filterKeys.last
-                                                      ? 8
-                                                      : 0,
-                                            ),
-                                            child: GestureDetector(
-                                              onTap:
-                                                  () => _onFilterSelected(
+                                    TextButton(
+                                      onPressed:
+                                          nearbyEnabled
+                                              ? _initializeLocation
+                                              : () => ref
+                                                  .read(
+                                                    nearbyMembersEnabledProvider
+                                                        .notifier,
+                                                  )
+                                                  .setEnabled(true),
+                                      child: Text(l10n.mapEnable),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children:
+                                      _filterKeys
+                                          .map(
+                                            (filterKey) => Padding(
+                                              padding: EdgeInsets.only(
+                                                right:
+                                                    filterKey !=
+                                                            _filterKeys.last
+                                                        ? 8
+                                                        : 0,
+                                              ),
+                                              child: GestureDetector(
+                                                onTap:
+                                                    () => _onFilterSelected(
+                                                      filterKey,
+                                                    ),
+                                                child: _FilterChip(
+                                                  label: _getFilterLabel(
                                                     filterKey,
+                                                    l10n,
                                                   ),
-                                              child: _FilterChip(
-                                                label: _getFilterLabel(
-                                                  filterKey,
-                                                  l10n,
+                                                  isSelected:
+                                                      _selectedFilter ==
+                                                      filterKey,
                                                 ),
-                                                isSelected:
-                                                    _selectedFilter ==
-                                                    filterKey,
                                               ),
                                             ),
-                                          ),
-                                        )
-                                        .toList(),
+                                          )
+                                          .toList(),
+                                ),
                               ),
-                            ),
-                  ),
+                    ),
 
                   // Barre de recherche de lieu — peinte APRÈS les chips :
                   // sa liste de suggestions se déploie vers le bas et doit
@@ -3647,8 +3695,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             children: [
                               // Poignée + en-tête (fixes).
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  10,
+                                ),
                                 child: Column(
                                   children: [
                                     Center(
@@ -3657,8 +3709,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: context.borderColor,
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -3673,48 +3726,68 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                     // s'y tronquait, le titre tombait à
                                     // « Membres … » et la fraîcheur à
                                     // « À l'i… ».
+                                    //
+                                    // Le titre et le rayon sont groupés dans
+                                    // un `Expanded` : mis à plat, le titre
+                                    // `Flexible` et le `Spacer` avaient tous
+                                    // deux flex 1 et se partageaient l'espace
+                                    // libre moitié-moitié — « 0 membre autour »
+                                    // se tronquait en « 0 membre a… » avec du
+                                    // vide à sa droite. Groupés, le titre est
+                                    // le seul flexible de sa rangée.
                                     Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.baseline,
-                                      textBaseline: TextBaseline.alphabetic,
                                       children: [
-                                        Flexible(
-                                          child: Text(
-                                            // Littéral comme le reste de la
-                                            // reprise sur fiches : la clé
-                                            // l10n existante (« Membres à
-                                            // proximité ») ne porte pas le
-                                            // compte, et ajouter un pluriel
-                                            // à l'ARB pour deux mots casse
-                                            // gen-l10n si la métadonnée
-                                            // manque.
-                                            '${members.length} '
-                                            '${members.length > 1 ? "membres" : "membre"} autour',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                              color: context.textPrimaryColor,
-                                            ),
+                                        Expanded(
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.baseline,
+                                            textBaseline:
+                                                TextBaseline.alphabetic,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  // Littéral comme le reste de la
+                                                  // reprise sur fiches : la clé
+                                                  // l10n existante (« Membres à
+                                                  // proximité ») ne porte pas le
+                                                  // compte, et ajouter un pluriel
+                                                  // à l'ARB pour deux mots casse
+                                                  // gen-l10n si la métadonnée
+                                                  // manque.
+                                                  '${members.length} '
+                                                  '${members.length > 1 ? "membres" : "membre"} autour',
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color:
+                                                        context
+                                                            .textPrimaryColor,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                '· ${_radiusLabel(l10n)}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color:
+                                                      context.textTertiaryColor,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '· ${_radiusLabel(l10n)}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: context.textTertiaryColor,
-                                          ),
-                                        ),
-                                        const Spacer(),
                                         // Bascule Carte / Liste (§7e) : sans
                                         // libellé, elle ne peut plus pousser
                                         // le titre hors de la rangée.
                                         IconButton(
-                                          onPressed: () => setState(
-                                            () => _listOnly = !_listOnly,
-                                          ),
+                                          onPressed:
+                                              () => setState(
+                                                () => _listOnly = !_listOnly,
+                                              ),
                                           visualDensity: VisualDensity.compact,
                                           constraints: const BoxConstraints(),
                                           padding: const EdgeInsets.all(6),
@@ -3733,8 +3806,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                           behavior: HitTestBehavior.opaque,
                                           onTap: () => _showSortSheet(l10n),
                                           child: Padding(
-                                            padding:
-                                                const EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                               vertical: 4,
                                             ),
                                             child: Text(
@@ -3742,8 +3814,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                               style: TextStyle(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.w600,
-                                                color: context
-                                                    .adaptivePrimaryColor,
+                                                color:
+                                                    context
+                                                        .adaptivePrimaryColor,
                                               ),
                                             ),
                                           ),
@@ -3807,47 +3880,53 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               // Liste verticale : la faire défiler redimensionne
                               // la feuille (scrollController de la sheet).
                               Expanded(
-                                child: members.isEmpty
-                                    ? ListView(
-                                        controller: scrollController,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 40,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                l10n.noMembersNearby,
-                                                style: TextStyle(
-                                                  color: context
-                                                      .textTertiaryColor,
-                                                  fontSize: 14,
+                                child:
+                                    members.isEmpty
+                                        ? ListView(
+                                          controller: scrollController,
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 40,
+                                                  ),
+                                              child: Center(
+                                                child: Text(
+                                                  l10n.noMembersNearby,
+                                                  style: TextStyle(
+                                                    color:
+                                                        context
+                                                            .textTertiaryColor,
+                                                    fontSize: 14,
+                                                  ),
                                                 ),
                                               ),
                                             ),
+                                          ],
+                                        )
+                                        : ListView.separated(
+                                          controller: scrollController,
+                                          padding: EdgeInsets.only(
+                                            bottom:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).viewPadding.bottom +
+                                                90,
                                           ),
-                                        ],
-                                      )
-                                    : ListView.separated(
-                                        controller: scrollController,
-                                        padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context)
-                                                  .viewPadding
-                                                  .bottom +
-                                              90,
+                                          itemCount: members.length,
+                                          separatorBuilder:
+                                              (_, __) => Divider(
+                                                height: 1,
+                                                indent: 76,
+                                                color: context.borderColor,
+                                              ),
+                                          itemBuilder:
+                                              (context, index) =>
+                                                  _buildMemberSheetItem(
+                                                    members[index],
+                                                    l10n,
+                                                  ),
                                         ),
-                                        itemCount: members.length,
-                                        separatorBuilder: (_, __) => Divider(
-                                          height: 1,
-                                          indent: 76,
-                                          color: context.borderColor,
-                                        ),
-                                        itemBuilder: (context, index) =>
-                                            _buildMemberSheetItem(
-                                          members[index],
-                                          l10n,
-                                        ),
-                                      ),
                               ),
                             ],
                           ),
@@ -3889,7 +3968,8 @@ class _FilterChip extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: isSelected ? context.onPrimaryColor : context.textSecondaryColor,
+          color:
+              isSelected ? context.onPrimaryColor : context.textSecondaryColor,
         ),
       ),
     );
@@ -3906,10 +3986,7 @@ class _EmptyAreaCard extends StatelessWidget {
   /// l'activer une deuxième fois n'aiderait pas.
   final VoidCallback? onShowEmbassies;
 
-  const _EmptyAreaCard({
-    required this.onZoomOut,
-    this.onShowEmbassies,
-  });
+  const _EmptyAreaCard({required this.onZoomOut, this.onShowEmbassies});
 
   @override
   Widget build(BuildContext context) {
@@ -3920,15 +3997,16 @@ class _EmptyAreaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: context.isDarkMode
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow:
+            context.isDarkMode
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

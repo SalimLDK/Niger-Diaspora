@@ -76,11 +76,19 @@
              depuis la bannière CallKit sur l'écran verrouillé, MainActivity doit
              pouvoir s'afficher par-dessus le verrouillage et rallumer l'écran.
              Sans ça l'appel était accepté mais l'écran d'appel restait invisible
-             derrière le keyguard. -->
+             derrière le keyguard.
+
+             launchMode singleTask et non singleTop : vérifié sur appareil le
+             2026-08-04, avec singleTop un lien reçu alors que l'app tournait
+             déjà ne lui était PAS délivré — Android répondait « its current
+             task has been brought to the front », ramenait la tâche au premier
+             plan et jetait l'intent, sans jamais appeler onNewIntent.
+             singleTask garantit la livraison à l'instance existante. C'est
+             aussi ce que recommande le README de receive_sharing_intent. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:showWhenLocked="true"
