@@ -41,7 +41,9 @@ SELECT
 --
 -- Les tables absentes sont ignorées (le schéma distant a dérivé du dépôt).
 
-DROP TABLE IF EXISTS resultat_audit_fuseau;
+-- `pg_temp.` explicite : sans lui, un `DROP TABLE IF EXISTS resultat_audit_fuseau`
+-- se résout via le search_path et pourrait viser une table réelle de `public`.
+DROP TABLE IF EXISTS pg_temp.resultat_audit_fuseau;
 CREATE TEMP TABLE resultat_audit_fuseau (
   cible          text,
   lignes_ko      bigint,
