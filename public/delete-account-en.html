@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suppression de compte — Diaspo Niger</title>
+    <title>Delete Account — Diaspo Niger</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,300&family=Sora:wght@300;400;600&display=swap"
@@ -21,13 +21,7 @@
             --muted: rgba(253, 249, 244, 0.45);
         }
 
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Sora', sans-serif;
@@ -38,7 +32,6 @@
             flex-direction: column;
         }
 
-        /* Noise overlay */
         body::before {
             content: '';
             position: fixed;
@@ -49,7 +42,6 @@
             opacity: 0.4;
         }
 
-        /* Ambient glow */
         body::after {
             content: '';
             position: fixed;
@@ -62,7 +54,6 @@
             pointer-events: none;
         }
 
-        /* NAV */
         nav {
             display: flex;
             align-items: center;
@@ -87,9 +78,7 @@
             color: var(--warm-white);
         }
 
-        .logo span {
-            color: var(--orange);
-        }
+        .logo span { color: var(--orange); }
 
         .logo img {
             width: 32px;
@@ -97,6 +86,36 @@
             border-radius: 8px;
             border: 1px solid rgba(233, 116, 36, 0.3);
         }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .lang-pill {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            padding: 0.22rem 0.65rem;
+            border-radius: 100px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .lang-active {
+            background: rgba(233, 116, 36, 0.15);
+            border: 1px solid rgba(233, 116, 36, 0.3);
+            color: var(--orange);
+        }
+
+        .lang-inactive {
+            background: rgba(253, 249, 244, 0.06);
+            border: 1px solid rgba(253, 249, 244, 0.07);
+            color: var(--muted);
+        }
+
+        .lang-inactive:hover { color: var(--warm-white); }
 
         .nav-back {
             display: flex;
@@ -109,11 +128,8 @@
             transition: color 0.3s;
         }
 
-        .nav-back:hover {
-            color: var(--orange);
-        }
+        .nav-back:hover { color: var(--orange); }
 
-        /* MAIN */
         main {
             flex: 1;
             display: flex;
@@ -133,15 +149,8 @@
         }
 
         @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card-top {
@@ -180,11 +189,8 @@
             line-height: 1.6;
         }
 
-        .card-body {
-            padding: 2rem 2.5rem 2.5rem;
-        }
+        .card-body { padding: 2rem 2.5rem 2.5rem; }
 
-        /* ALERT BOX */
         .alert-box {
             display: flex;
             gap: 0.8rem;
@@ -195,11 +201,7 @@
             margin-bottom: 2rem;
         }
 
-        .alert-box-icon {
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            margin-top: 0.05rem;
-        }
+        .alert-box-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.05rem; }
 
         .alert-box p {
             font-size: 0.83rem;
@@ -208,15 +210,9 @@
             color: rgba(253, 249, 244, 0.7);
         }
 
-        .alert-box strong {
-            color: #fca5a5;
-            font-weight: 600;
-        }
+        .alert-box strong { color: #fca5a5; font-weight: 600; }
 
-        /* FORM */
-        .form-group {
-            margin-bottom: 1.4rem;
-        }
+        .form-group { margin-bottom: 1.4rem; }
 
         label {
             display: block;
@@ -227,9 +223,7 @@
             letter-spacing: 0.03em;
         }
 
-        input[type="email"],
-        input[type="password"],
-        input[type="text"] {
+        input[type="email"], input[type="password"], input[type="text"] {
             width: 100%;
             padding: 0.85rem 1rem;
             background: rgba(253, 249, 244, 0.04);
@@ -243,19 +237,9 @@
             outline: none;
         }
 
-        input::placeholder {
-            color: rgba(253, 249, 244, 0.25);
-        }
-
-        input:focus {
-            border-color: var(--orange);
-            background: rgba(233, 116, 36, 0.04);
-        }
-
-        input.confirm-input:focus {
-            border-color: var(--red);
-            background: rgba(231, 76, 60, 0.04);
-        }
+        input::placeholder { color: rgba(253, 249, 244, 0.25); }
+        input:focus { border-color: var(--orange); background: rgba(233, 116, 36, 0.04); }
+        input.confirm-input:focus { border-color: var(--red); background: rgba(231, 76, 60, 0.04); }
 
         .btn-connect {
             width: 100%;
@@ -272,17 +256,8 @@
             margin-top: 0.5rem;
         }
 
-        .btn-connect:hover {
-            opacity: 0.88;
-            transform: translateY(-1px);
-        }
-
-        .btn-connect:disabled {
-            background: rgba(253, 249, 244, 0.08);
-            color: var(--muted);
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-connect:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-connect:disabled { background: rgba(253, 249, 244, 0.08); color: var(--muted); cursor: not-allowed; transform: none; }
 
         .btn-delete {
             width: 100%;
@@ -299,19 +274,9 @@
             margin-top: 0.5rem;
         }
 
-        .btn-delete:hover {
-            opacity: 0.88;
-            transform: translateY(-1px);
-        }
+        .btn-delete:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-delete:disabled { background: rgba(231, 76, 60, 0.15); color: rgba(231, 76, 60, 0.4); cursor: not-allowed; transform: none; }
 
-        .btn-delete:disabled {
-            background: rgba(231, 76, 60, 0.15);
-            color: rgba(231, 76, 60, 0.4);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* CONFIRM SECTION */
         #confirmSection {
             display: none;
             margin-top: 1.5rem;
@@ -328,12 +293,8 @@
             line-height: 1.6;
         }
 
-        .confirm-label-hint strong {
-            color: #fca5a5;
-            font-weight: 600;
-        }
+        .confirm-label-hint strong { color: #fca5a5; font-weight: 600; }
 
-        /* MESSAGES */
         .msg {
             display: none;
             padding: 0.9rem 1.1rem;
@@ -344,25 +305,10 @@
             margin-bottom: 1.2rem;
         }
 
-        .msg-error {
-            background: rgba(231, 76, 60, 0.08);
-            border: 1px solid rgba(231, 76, 60, 0.25);
-            color: #fca5a5;
-        }
+        .msg-error { background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.25); color: #fca5a5; }
+        .msg-success { background: rgba(21, 128, 61, 0.08); border: 1px solid rgba(21, 128, 61, 0.25); color: #86efac; }
 
-        .msg-success {
-            background: rgba(21, 128, 61, 0.08);
-            border: 1px solid rgba(21, 128, 61, 0.25);
-            color: #86efac;
-        }
-
-        /* LOADER */
-        #loader {
-            display: none;
-            text-align: center;
-            padding: 2.5rem 0;
-            color: var(--muted);
-        }
+        #loader { display: none; text-align: center; padding: 2.5rem 0; color: var(--muted); }
 
         .spinner {
             width: 36px;
@@ -374,23 +320,10 @@
             margin: 0 auto 1rem;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loader p { font-size: 0.85rem; font-weight: 300; }
 
-        #loader p {
-            font-size: 0.85rem;
-            font-weight: 300;
-        }
-
-        /* DATA LIST */
-        .data-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(253, 249, 244, 0.06);
-        }
+        .data-section { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(253, 249, 244, 0.06); }
 
         .data-section h3 {
             font-family: 'Fraunces', serif;
@@ -417,19 +350,8 @@
             line-height: 1.55;
         }
 
-        .data-list li::before {
-            content: '✕';
-            color: var(--red);
-            font-size: 0.65rem;
-            flex-shrink: 0;
-            margin-top: 0.25rem;
-            opacity: 0.7;
-        }
-
-        .data-list li strong {
-            color: rgba(253, 249, 244, 0.75);
-            font-weight: 600;
-        }
+        .data-list li::before { content: '✕'; color: var(--red); font-size: 0.65rem; flex-shrink: 0; margin-top: 0.25rem; opacity: 0.7; }
+        .data-list li strong { color: rgba(253, 249, 244, 0.75); font-weight: 600; }
 
         .help-line {
             margin-top: 1.5rem;
@@ -440,16 +362,9 @@
             color: var(--muted);
         }
 
-        .help-line a {
-            color: var(--orange);
-            text-decoration: none;
-        }
+        .help-line a { color: var(--orange); text-decoration: none; }
+        .help-line a:hover { text-decoration: underline; }
 
-        .help-line a:hover {
-            text-decoration: underline;
-        }
-
-        /* FOOTER */
         footer {
             border-top: 1px solid rgba(253, 249, 244, 0.05);
             padding: 1.5rem 3rem;
@@ -460,19 +375,9 @@
         }
 
         @media (max-width: 600px) {
-            nav {
-                padding: 1rem 1.2rem;
-            }
-
-            .card-top,
-            .card-body {
-                padding-left: 1.5rem;
-                padding-right: 1.5rem;
-            }
-
-            main {
-                padding: 2rem 1rem 4rem;
-            }
+            nav { padding: 1rem 1.2rem; }
+            .card-top, .card-body { padding-left: 1.5rem; padding-right: 1.5rem; }
+            main { padding: 2rem 1rem 4rem; }
         }
     </style>
 </head>
@@ -484,10 +389,10 @@
             <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
             Diaspo <span>Niger</span>
         </a>
-        <div style="display:flex;align-items:center;gap:0.8rem;">
-            <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.05em;padding:0.22rem 0.65rem;border-radius:100px;background:rgba(233,116,36,0.15);border:1px solid rgba(233,116,36,0.3);color:var(--orange);">🇫🇷 FR</span>
-            <a href="/delete-account-en" style="font-size:0.72rem;font-weight:600;letter-spacing:0.05em;padding:0.22rem 0.65rem;border-radius:100px;background:rgba(253,249,244,0.06);border:1px solid rgba(253,249,244,0.06);color:var(--muted);text-decoration:none;">🇬🇧 EN</a>
-            <a href="/" class="nav-back">← Retour à l'accueil</a>
+        <div class="nav-right">
+            <a href="/delete-account" class="lang-pill lang-inactive">🇫🇷 FR</a>
+            <span class="lang-pill lang-active">🇬🇧 EN</span>
+            <a href="/" class="nav-back">← Back to home</a>
         </div>
     </nav>
 
@@ -496,8 +401,8 @@
             <div class="card-top">
                 <div class="card-icon">🗑️</div>
                 <div class="card-top-text">
-                    <h1>Supprimer mon compte</h1>
-                    <p>Cette action est irréversible. Toutes vos données seront définitivement effacées.</p>
+                    <h1>Delete my account</h1>
+                    <p>This action is irreversible. All your data will be permanently erased.</p>
                 </div>
             </div>
 
@@ -508,56 +413,50 @@
 
                 <div id="loader">
                     <div class="spinner"></div>
-                    <p>Traitement en cours…</p>
+                    <p>Processing…</p>
                 </div>
 
                 <div id="formSection">
                     <div class="alert-box">
                         <span class="alert-box-icon">⚠️</span>
-                        <p><strong>Attention :</strong> La suppression de votre compte est une action irréversible.
-                            Toutes vos données seront définitivement effacées et ne pourront pas être récupérées.</p>
+                        <p><strong>Warning:</strong> Deleting your account is irreversible. All your data will be permanently erased and cannot be recovered.</p>
                     </div>
 
                     <form id="deleteForm">
                         <div class="form-group">
-                            <label for="email">Adresse email</label>
-                            <input type="email" id="email" name="email" required placeholder="votre@email.com">
+                            <label for="email">Email address</label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
                         </div>
                         <div class="form-group">
-                            <label for="password">Mot de passe</label>
-                            <input type="password" id="password" name="password" required
-                                placeholder="Votre mot de passe">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required placeholder="Your password">
                         </div>
-                        <button type="submit" id="submitBtn" class="btn-connect">Se connecter</button>
+                        <button type="submit" id="submitBtn" class="btn-connect">Sign in</button>
                     </form>
 
                     <div id="confirmSection">
-                        <p class="confirm-label-hint">Pour confirmer, tapez <strong>SUPPRIMER</strong> dans le champ
-                            ci-dessous :</p>
+                        <p class="confirm-label-hint">To confirm, type <strong>DELETE</strong> in the field below:</p>
                         <div class="form-group">
-                            <input type="text" id="confirmText" class="confirm-input" placeholder="Tapez SUPPRIMER">
+                            <input type="text" id="confirmText" class="confirm-input" placeholder="Type DELETE">
                         </div>
                         <button id="confirmDeleteBtn" class="btn-delete" disabled>
-                            Supprimer définitivement mon compte
+                            Permanently delete my account
                         </button>
                     </div>
                 </div>
 
-                <!-- Data info -->
                 <div class="data-section">
-                    <h3>Données supprimées</h3>
+                    <h3>Data that will be deleted</h3>
                     <ul class="data-list">
-                        <li><span><strong>Profil :</strong> Nom, email, téléphone, photo, biographie, profession,
-                                ville.</span></li>
-                        <li><span><strong>Authentification :</strong> Vos identifiants de connexion.</span></li>
-                        <li><span><strong>Messages :</strong> Tous vos messages et conversations privées.</span></li>
-                        <li><span><strong>Groupes & Événements :</strong> Retrait ou suppression si vous êtes seul
-                                membre.</span></li>
-                        <li><span><strong>Localisation :</strong> Votre dernière position connue.</span></li>
+                        <li><span><strong>Profile:</strong> Name, email, phone, photo, biography, profession, city.</span></li>
+                        <li><span><strong>Authentication:</strong> Your login credentials.</span></li>
+                        <li><span><strong>Messages:</strong> All your messages and private conversations.</span></li>
+                        <li><span><strong>Groups &amp; Events:</strong> Removal or deletion if you are the sole member.</span></li>
+                        <li><span><strong>Location:</strong> Your last known position.</span></li>
                     </ul>
 
                     <p class="help-line">
-                        Besoin d'aide ? Contactez <a href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a>
+                        Need help? Contact <a href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a>
                     </p>
                 </div>
 
@@ -565,9 +464,8 @@
         </div>
     </main>
 
-    <footer>© 2025 Diaspo Niger. Tous droits réservés.</footer>
+    <footer>© 2025 Diaspo Niger. All rights reserved.</footer>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -628,21 +526,21 @@
                 setLoading(false);
             } catch (error) {
                 setLoading(false);
-                let errorMsg = 'Erreur de connexion. Vérifiez vos identifiants.';
-                if (error.code === 'auth/user-not-found') errorMsg = 'Aucun compte trouvé avec cet email.';
-                else if (error.code === 'auth/wrong-password') errorMsg = 'Mot de passe incorrect.';
-                else if (error.code === 'auth/invalid-email') errorMsg = 'Adresse email invalide.';
-                else if (error.code === 'auth/too-many-requests') errorMsg = 'Trop de tentatives. Réessayez plus tard.';
+                let errorMsg = 'Login error. Please check your credentials.';
+                if (error.code === 'auth/user-not-found') errorMsg = 'No account found with this email.';
+                else if (error.code === 'auth/wrong-password') errorMsg = 'Incorrect password.';
+                else if (error.code === 'auth/invalid-email') errorMsg = 'Invalid email address.';
+                else if (error.code === 'auth/too-many-requests') errorMsg = 'Too many attempts. Please try again later.';
                 showError(errorMsg);
             }
         });
 
         confirmText.addEventListener('input', (e) => {
-            confirmDeleteBtn.disabled = e.target.value !== 'SUPPRIMER';
+            confirmDeleteBtn.disabled = e.target.value !== 'DELETE';
         });
 
         confirmDeleteBtn.addEventListener('click', async () => {
-            if (!currentUser) { showError('Erreur: utilisateur non connecté'); return; }
+            if (!currentUser) { showError('Error: user not authenticated'); return; }
             setLoading(true);
             try {
                 const userId = currentUser.uid;
@@ -694,19 +592,19 @@
 
                 setLoading(false);
                 formSection.innerHTML = '';
-                showSuccess('✅ Votre compte a été supprimé avec succès. Toutes vos données ont été effacées.');
+                showSuccess('✅ Your account has been successfully deleted. All your data has been erased.');
                 setTimeout(() => { window.location.href = '/'; }, 3000);
 
             } catch (error) {
                 setLoading(false);
-                let errorMsg = 'Erreur lors de la suppression du compte.';
+                let errorMsg = 'Error while deleting the account.';
                 if (error.code === 'auth/requires-recent-login') {
-                    errorMsg = 'Pour des raisons de sécurité, veuillez vous reconnecter et réessayer.';
+                    errorMsg = 'For security reasons, please sign in again and try once more.';
                     deleteForm.style.display = 'block';
                     confirmSection.style.display = 'none';
                     currentUser = null;
                 }
-                showError(errorMsg + ' Contactez support@diasponiger.com si le problème persiste.');
+                showError(errorMsg + ' Contact support@diasponiger.com if the problem persists.');
             }
         });
     </script>

@@ -3,9 +3,25 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.diasponiger.diaspo_niger",
-        "paths": ["*"]
+        "appID": "VOTRE_TEAM_ID.com.diasponiger.diaspo_niger",
+        "paths": [
+          "/groups/*",
+          "/profile/*",
+          "/p/u/*",
+          "/events/*",
+          "/businesses/*",
+          "/marketplace/*",
+          "/audio-rooms/*",
+          "/podcasts/*",
+          "/calls/*",
+          "/invite"
+        ]
       }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "VOTRE_TEAM_ID.com.diasponiger.diaspo_niger"
     ]
   }
 }

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact — Diaspo Niger</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,300&family=Sora:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --orange: #E97424;
+            --green: #15803d;
+            --dark: #0f0d0a;
+            --dark2: #1a1612;
+            --warm-white: #fdf9f4;
+            --muted: rgba(253, 249, 244, 0.45);
+            --border: rgba(253, 249, 244, 0.07);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--dark);
+            color: var(--warm-white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 60vh;
+            background: radial-gradient(ellipse, rgba(233, 116, 36, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 3rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 13, 10, 0.85);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: var(--warm-white);
+        }
+
+        .logo span { color: var(--orange); }
+        .logo img { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(233, 116, 36, 0.3); }
+
+        .nav-back { color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 300; transition: color 0.3s; }
+        .nav-back:hover { color: var(--orange); }
+
+        .page-header {
+            padding: 4rem 3rem 3.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(233, 116, 36, 0.08) 0%, rgba(21, 128, 61, 0.06) 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 80% at 50% 120%, rgba(233, 116, 36, 0.1) 0%, transparent 60%);
+        }
+
+        .page-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(233, 116, 36, 0.1);
+            border: 1px solid rgba(233, 116, 36, 0.22);
+            color: var(--orange);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            padding: 0.35rem 0.9rem;
+            border-radius: 100px;
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .page-header-badge::before { content: '●'; font-size: 0.45rem; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .page-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.7rem;
+            position: relative;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 300;
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .lang-switch {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+            position: relative;
+        }
+
+        .lang-pill {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            padding: 0.25rem 0.7rem;
+            border-radius: 100px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .lang-active { background: rgba(233, 116, 36, 0.15); border: 1px solid rgba(233, 116, 36, 0.3); color: var(--orange); }
+        .lang-inactive { background: rgba(253, 249, 244, 0.06); border: 1px solid var(--border); color: var(--muted); }
+        .lang-inactive:hover { color: var(--warm-white); }
+
+        main { flex: 1; max-width: 900px; margin: 0 auto; padding: 4rem 2rem 6rem; width: 100%; }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .contact-card {
+            background: var(--dark2);
+            padding: 2rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .contact-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(233, 116, 36, 0.06) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .contact-card:hover { background: rgba(233, 116, 36, 0.04); }
+        .contact-card:hover::before { opacity: 1; }
+
+        .card-icon { font-size: 1.8rem; line-height: 1; margin-bottom: 0.3rem; }
+
+        .card-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--warm-white);
+        }
+
+        .card-desc { font-size: 0.83rem; font-weight: 300; color: var(--muted); line-height: 1.6; flex: 1; }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--orange);
+            font-size: 0.83rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: gap 0.2s;
+            margin-top: 0.3rem;
+        }
+
+        .card-link:hover { gap: 0.7rem; }
+        .card-link::after { content: '→'; }
+
+        .info-section { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem; animation: fadeUp 0.7s 0.15s ease both; }
+
+        .info-box {
+            background: var(--dark2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1.2rem;
+            align-items: flex-start;
+        }
+
+        .info-box-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+        .info-box-content h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .info-box-content p { font-size: 0.85rem; font-weight: 300; color: rgba(253, 249, 244, 0.55); line-height: 1.75; margin: 0; }
+        .info-box-content strong { color: rgba(253, 249, 244, 0.8); font-weight: 600; }
+
+        .resource-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
+
+        .resource-list li { display: flex; align-items: center; gap: 0.5rem; }
+        .resource-list li::before { content: '→'; color: var(--orange); font-size: 0.72rem; opacity: 0.7; }
+
+        .resource-list a { color: var(--orange); text-decoration: none; font-size: 0.85rem; font-weight: 300; transition: opacity 0.2s; }
+        .resource-list a:hover { opacity: 0.75; }
+
+        .app-cta {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(233, 116, 36, 0.06) 0%, rgba(21, 128, 61, 0.05) 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            animation: fadeUp 0.7s 0.3s ease both;
+        }
+
+        .app-cta h3 { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+        .app-cta p { color: var(--muted); font-size: 0.9rem; font-weight: 300; max-width: 380px; margin: 0 auto 2rem; line-height: 1.7; }
+
+        .app-cta a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: var(--orange);
+            color: white;
+            padding: 0.9rem 1.8rem;
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: 0 6px 24px rgba(233, 116, 36, 0.3);
+        }
+
+        .app-cta a:hover { opacity: 0.88; transform: translateY(-2px); }
+
+        .back-btn { display: block; color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 300; transition: color 0.3s; margin-top: 2rem; }
+        .back-btn:hover { color: var(--orange); }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 2rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .footer-logo { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700; }
+        .footer-logo span { color: var(--orange); }
+
+        .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .footer-links a { color: rgba(253, 249, 244, 0.35); font-size: 0.82rem; font-weight: 300; text-decoration: none; transition: color 0.3s; }
+        .footer-links a:hover { color: var(--orange); }
+
+        .footer-copy { color: rgba(253, 249, 244, 0.2); font-size: 0.78rem; }
+
+        @media (max-width: 640px) {
+            nav { padding: 1rem 1.2rem; }
+            .page-header { padding: 2.5rem 1.5rem 2rem; }
+            main { padding: 2.5rem 1.2rem 4rem; }
+            .contact-grid { grid-template-columns: 1fr; }
+            footer { flex-direction: column; text-align: center; padding: 1.5rem; }
+            .footer-links { justify-content: center; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="/" class="logo">
+            <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+            Diaspo <span>Niger</span>
+        </a>
+        <a href="/" class="nav-back">← Back to home</a>
+    </nav>
+
+    <div class="page-header">
+        <div class="page-header-badge">Online</div>
+        <h1>Contact Us</h1>
+        <p>Have a question, a problem, or just want to say hello? We'd love to hear from you.</p>
+        <div class="lang-switch">
+            <a href="/contact" class="lang-pill lang-inactive">🇫🇷 Français</a>
+            <span class="lang-pill lang-active">🇬🇧 English</span>
+        </div>
+    </div>
+
+    <main>
+
+        <div class="contact-grid">
+            <a href="mailto:support@diasponiger.com" class="contact-card">
+                <div class="card-icon">📧</div>
+                <div class="card-title">General support</div>
+                <div class="card-desc">For any question about the app, your account, or our services.</div>
+                <span class="card-link">support@diasponiger.com</span>
+            </a>
+
+            <a href="mailto:privacy@diasponiger.com" class="contact-card">
+                <div class="card-icon">🔒</div>
+                <div class="card-title">Privacy</div>
+                <div class="card-desc">Questions about your personal data or privacy rights.</div>
+                <span class="card-link">privacy@diasponiger.com</span>
+            </a>
+
+            <a href="mailto:bugs@diasponiger.com" class="contact-card">
+                <div class="card-icon">🐛</div>
+                <div class="card-title">Report a bug</div>
+                <div class="card-desc">Found a technical issue? Help us improve.</div>
+                <span class="card-link">bugs@diasponiger.com</span>
+            </a>
+
+            <a href="mailto:support@diasponiger.com?subject=Partnership" class="contact-card">
+                <div class="card-icon">💼</div>
+                <div class="card-title">Partnerships</div>
+                <div class="card-desc">Collaboration opportunities, press, or diaspora projects.</div>
+                <span class="card-link">Get in touch</span>
+            </a>
+        </div>
+
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-box-icon">⏰</div>
+                <div class="info-box-content">
+                    <h3>Response time</h3>
+                    <p>We aim to respond to all requests within <strong>48 business hours</strong>. For urgent security or privacy issues, we typically respond within <strong>24 hours</strong>.</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-icon">💡</div>
+                <div class="info-box-content">
+                    <h3>Before contacting us</h3>
+                    <p>Check our helpful resources — you may find your answer there:</p>
+                    <ul class="resource-list">
+                        <li><a href="/privacy-policy-en">Privacy Policy</a></li>
+                        <li><a href="/terms-of-service-en">Terms of Service</a></li>
+                        <li><a href="/code-of-conduct-en">Code of Conduct</a></li>
+                        <li><a href="/child-safety-standards-en">Child Safety Standards</a></li>
+                        <li><a href="/delete-account-en">How to delete my account</a></li>
+                        <li><a href="/forgot-password-en">Forgot password</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-cta">
+            <h3>Stay connected with the community</h3>
+            <p>Download the app and join thousands of Nigeriens from around the world.</p>
+            <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank" rel="noopener">
+                📲 Download Diaspo Niger
+            </a>
+        </div>
+
+        <a href="/" class="back-btn">← Back to home</a>
+
+    </main>
+
+    <footer>
+        <div class="footer-logo">Diaspo <span>Niger</span></div>
+        <div class="footer-links">
+            <a href="/terms-of-service-en">Terms of Service</a>
+            <a href="/privacy-policy-en">Privacy Policy</a>
+            <a href="/code-of-conduct-en">Code of Conduct</a>
+            <a href="/contact-en">Contact</a>
+        </div>
+        <div class="footer-copy">© 2025 Diaspo Niger. All rights reserved.</div>
+    </footer>
+
+</body>
+
+</html>

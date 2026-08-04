@@ -2,6 +2,15 @@
   "projects": {
     "default": "diaspo-niger"
   },
-  "targets": {},
+  "targets": {
+    "diaspo-niger": {
+      "hosting": {
+        "web": [
+          "diaspo-niger",
+          "diasponiger"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

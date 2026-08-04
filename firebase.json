@@ -35,7 +35,8 @@
     },
     "hosting": [
         {
-            "site": "diaspo-niger",
+            "_comment": "Cible `web` = les sites diaspo-niger ET diasponiger (cf. .firebaserc), qui servent le même contenu. Les liens de l'app pointent sur diasponiger.web.app : ne déployer que diaspo-niger laissait le domaine utilisé par les App Links sur une version périmée. Le site diaspo-niger-admin est délibérément hors cible.",
+            "target": "web",
             "public": "public",
             "ignore": [
                 "firebase.json",
@@ -65,6 +66,42 @@
                 {
                     "source": "/forgot-password",
                     "destination": "/forgot-password.html"
+                },
+                {
+                    "source": "/code-of-conduct",
+                    "destination": "/code-of-conduct.html"
+                },
+                {
+                    "source": "/index-en",
+                    "destination": "/index-en.html"
+                },
+                {
+                    "source": "/child-safety-standards-en",
+                    "destination": "/child-safety-standards-en.html"
+                },
+                {
+                    "source": "/privacy-policy-en",
+                    "destination": "/privacy-policy-en.html"
+                },
+                {
+                    "source": "/terms-of-service-en",
+                    "destination": "/terms-of-service-en.html"
+                },
+                {
+                    "source": "/contact-en",
+                    "destination": "/contact-en.html"
+                },
+                {
+                    "source": "/delete-account-en",
+                    "destination": "/delete-account-en.html"
+                },
+                {
+                    "source": "/forgot-password-en",
+                    "destination": "/forgot-password-en.html"
+                },
+                {
+                    "source": "/code-of-conduct-en",
+                    "destination": "/code-of-conduct-en.html"
                 },
                 {
                     "source": "**",
