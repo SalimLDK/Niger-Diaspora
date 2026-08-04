@@ -44,7 +44,7 @@ Trois niveaux, à ne pas confondre :
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
-| 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
+| 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
 ---
 
@@ -373,6 +373,19 @@ version précédente refusait de faire faute de données :
   icône 40) au lieu d'Inter 19 / icône 44 : c'est le kit partagé de toute
   l'app, le repeindre pour un écran désaccorderait tous les autres états vides.
 
+**Vu le 2026-08-04.** Le compte de test a deux conversations, donc l'état vide
+« réel » est hors d'atteinte sans détruire des données. Il a été rendu par le
+filtre **« Non lus »** (aucun message non lu) : c'est le même
+`_buildEmptyState`, au même endroit de l'arbre. Cercle, titre « Aucune
+conversation », corps, bouton plein « Nouvelle conversation » et ligne de
+chiffrement : tout est en place.
+
+⚠️ **Les deux amorces ne se sont pas affichées** — et c'est le comportement
+attendu : le compte n'a aucun profil proche chargé (localisation non
+accordée) et aucun groupe public n'existe en base. Le widget rend donc du vide
+au lieu d'inventer, ce qui est correct, mais **leur mise en page reste non
+vérifiée**.
+
 ⚠️ **Jamais vu à l'écran** : le compte de test a des conversations, donc
 l'état vide est inatteignable sans vider les données (`adb install -r`, qui
 déconnecterait le compte). À vérifier sur un compte neuf.
@@ -569,7 +582,15 @@ rendus.
 
 **Défaut repéré au passage** : l'onglet « Découvrir » de 9c affiche une zone
 entièrement blanche quand il n'y a aucun groupe — pas de liste, pas d'état
-vide, pas d'indicateur de chargement.
+vide, pas d'indicateur de chargement. *Corrigé depuis (commit `5ad0a49`), et
+**vérifié à l'écran le 2026-08-04** : « Aucun groupe public pour l'instant /
+Personne n'a encore créé de groupe public. Le premier, c'est peut-être le
+vôtre. » avec le bouton « Créer un groupe ».*
+
+Nouvelle tentative le 2026-08-04, même blocage : **la base ne contient aucun
+groupe, ni public ni rejoint**. Il n'existe donc aucun chemin de navigation
+vers cet écran. Le seul moyen de le rendre serait de créer un groupe de test
+sur le compte — écriture persistante en production, à décider par Salim.
 
 ## 9c — Groupes
 
