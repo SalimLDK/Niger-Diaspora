@@ -45,8 +45,12 @@ appareil, **hors du fuseau UTC**.
       non-régression, pas comme preuve du correctif.)
 - [ ] Commentaires, notifications, événements (début/fin), appels (journal),
       stories : mêmes vérifications — pas de données sur le compte de test.
-- [ ] Aller-retour serveur : publier, **quitter et rouvrir l'app**, vérifier que
-      l'heure n'a pas bougé (valide le réencodage UTC des écritures).
+- [x] **Aller-retour serveur.** Publication « Test fuseau horaire - a ignorer »
+      créée à `04:36:36` heure appareil ; stockée `08:36:36` **UTC** en base
+      (= `04:36:36` Toronto). Après `am force-stop` et démarrage à froid, l'app
+      relit depuis le serveur et affiche **« Aujourd'hui · 04:36 »**. Avec le
+      bug : 08:36. ⚠️ Cette publication de test est toujours en ligne, en
+      visibilité *Public* — à supprimer.
 - [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure.
 
 Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
