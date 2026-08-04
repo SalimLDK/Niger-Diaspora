@@ -25,8 +25,8 @@ Trois niveaux, à ne pas confondre :
 | 5b | Mes publications (+ repartages) | ✅ | ✅ | ✅ | `feed/presentation/screens/my_posts_screen.dart`, `widgets/my_post_card.dart` |
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
-| 5d | Abonnés / abonnements | ✅ | ✅ | — | `feed/presentation/screens/follows_screen.dart` |
-| 20a | Modifier mon profil | — | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
+| 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
+| 20a | Modifier mon profil | 🔨 | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | — | — | — | à déterminer |
 | 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
