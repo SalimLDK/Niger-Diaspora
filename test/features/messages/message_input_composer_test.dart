@@ -96,4 +96,22 @@ void main() {
 
     expect(_lockBadge(), findsOneWidget);
   });
+
+  testWidgets('un brouillon restauré affiche le bouton d\'envoi sans frappe', (
+    tester,
+  ) async {
+    // Brouillon laissé lors d'une session précédente sur cette conversation.
+    await PreferencesService.instance.saveMessageDraft(
+      'conv-test',
+      'Message pas encore envoyé',
+    );
+
+    await _pump(tester);
+
+    // Le texte est bien restauré...
+    expect(find.text('Message pas encore envoyé'), findsOneWidget);
+    // ...et le composer est en mode envoi d'emblée, sans toucher au champ :
+    // sinon l'utilisateur croit ne pas pouvoir envoyer son brouillon.
+    expect(_lockBadge(), findsOneWidget);
+  });
 }
