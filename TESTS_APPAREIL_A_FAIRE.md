@@ -47,9 +47,30 @@ lancement d'un compte sans ville renseignée.
       (`map_screen.dart:3413`) : la rangée du volet des membres alignait deux
       libellés de temps relatif (« mis à jour il y a… ») côte à côte, sans
       possibilité de rétrécir. Les deux passent en `Flexible` + ellipse.
-- [ ] `RenderFlex overflowed by 146 pixels on the bottom` : non localisé, le
-      journal ne donne pas le widget fautif. À reprendre avec DevTools ouvert
-      sur l'écran.
+- [ ] `RenderFlex overflowed` en bas : **cause racine trouvée le 2026-08-03**,
+      correctif non appliqué faute d'arbitrage.
+
+      Le widget est enfin identifié — `Column` à `map_screen.dart:3379` —
+      mais seulement après avoir soldé le débordement horizontal : Flutter
+      n'imprime le détail que de la **première** erreur de rendu par frame.
+      Tant que la ligne des horodatages débordait, celui-ci restait réduit à
+      « Another exception was thrown ».
+
+      Cette colonne est le contenu du `DraggableScrollableSheet`, replié à
+      `initialChildSize: 0.18` — **18 % de la hauteur d'écran, trop court
+      pour son propre en-tête**. Ce n'est pas un défaut de mise en page mais
+      un dimensionnement : le volet replié ne peut pas contenir ce qu'on lui
+      demande d'afficher.
+
+      ⚠️ **Deux corrections possibles, toutes deux des décisions de design :**
+      relever `minChildSize` / `initialChildSize` (le volet couvre alors plus
+      de carte), ou alléger l'en-tête du volet. À trancher avant d'agir.
+
+      Piste écartée en cours de route : passer la ligne des horodatages sur
+      deux lignes supprime bien le débordement horizontal, mais **aggrave le
+      vertical de 23 px** (146 → 169). Un `Wrap` ne convient pas non plus —
+      il donne une largeur non bornée à ses enfants, donc `Flexible` y est
+      sans effet et le débordement se déplace à l'intérieur de l'enfant.
 - [ ] ⛔ **`assets/map_styles/light.json` et `dark.json` n'existent pas.**
       Ni les fichiers, ni le dossier, ni la déclaration dans `pubspec.yaml` —
       seul l'appel `rootBundle.loadString` existe (`map_screen.dart:228-229`).
