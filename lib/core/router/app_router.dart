@@ -129,6 +129,11 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 GoRouter? _cachedRouter;
 _SimpleNotifier? _cachedAuthNotifier;
 
+/// Destination réclamée par un lien profond, mise de côté le temps que
+/// l'authentification et l'onboarding se terminent (cf. étapes 0 et 10 du
+/// `redirect`). Nulle en dehors de cette fenêtre.
+String? _pendingDeepLink;
+
 final routerProvider = Provider<GoRouter>((ref) {
   // Return cached router if it exists to prevent duplicate GlobalKey errors.
   // Re-register all listeners under the new ref so they are properly disposed.
@@ -206,6 +211,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/settings/terms' ||
           state.matchedLocation == '/settings/privacy' ||
           state.matchedLocation == '/settings/code-of-conduct';
+
+      // 0. Mise de côté de la destination d'un lien profond.
+      //
+      // Un lien ouvre l'app directement sur son contenu, mais au démarrage à
+      // froid l'authentification n'est pas encore résolue : l'étape 1 renvoie
+      // sur /splash, l'étape 2 sur /auth/login, et l'étape 10 terminerait sur
+      // /home. La destination était perdue à tous les coups — c'est ce qui
+      // faisait qu'un lien partagé n'ouvrait jamais son post. On la garde ici
+      // pour la rejouer à l'étape 10, une fois l'utilisateur prêt.
+      // `isLegalRoute` en fait partie : conditions et confidentialité sont
+      // consultables sans compte (étape 2), les retenir enverrait l'utilisateur
+      // sur les CGU juste après sa connexion.
+      final isTechnicalRoute =
+          isSplashRoute ||
+          isAuthRoute ||
+          isConsentRoute ||
+          isProfileConfigRoute ||
+          isOnboardingRoute ||
+          isMaintenanceRoute ||
+          isLegalRoute;
+      if (!isTechnicalRoute && (isAuthLoading || !isAuthenticated)) {
+        // `uri` et non `matchedLocation` : les paramètres de requête font
+        // partie de la destination (ex. /feed?hashtag=niamey).
+        _pendingDeepLink = state.uri.toString();
+      }
 
       // 1. If auth is loading, stay on splash
       if (isAuthLoading) {
@@ -293,7 +323,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           isConsentRoute ||
           isProfileConfigRoute ||
           isOnboardingRoute) {
-        return '/home';
+        // Le lien profond mis de côté à l'étape 0 reprend la main ici. Consommé
+        // une seule fois : sans ça, chaque retour sur l'accueil y renverrait.
+        final pending = _pendingDeepLink;
+        _pendingDeepLink = null;
+        return pending ?? '/home';
       }
 
       return null;

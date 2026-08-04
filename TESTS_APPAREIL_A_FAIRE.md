@@ -71,12 +71,58 @@ qui survive au redémarrage du process. Aucune des deux n'a tourné sur appareil
       instance** de MainActivity — le FlutterEngine est mis en cache par
       audio_service, deux activités branchées dessus poseraient problème.
 
-**Dettes ouvertes, non traitées ici :**
+### Liens profonds routés vers `/feed/:id` (2026-08-04)
 
-- [ ] Les **liens profonds ne sont routés par personne** : aucun plugin
-      (`app_links`/`uni_links`) ne les consomme. Ouvrir un lien `/feed/:id`
-      lance l'app sur l'accueil au lieu du post — le partage externe ne
-      retombe donc pas sur son contenu.
+Ouvrir un lien de publication lançait l'app sur l'accueil : rien ne consommait
+l'URI. Deux causes, corrigées ensemble :
+
+1. `flutter_deeplinking_enabled` n'était pas déclaré au manifest — Flutter
+   ignorait l'URI et la route initiale restait « / ». Les liens générés par
+   `DeepLinkService` sont déjà des chemins d'app (`/feed/<id>`), donc GoRouter
+   sait les router tels quels une fois l'URI transmise.
+2. Même transmise, la destination était **perdue** : au démarrage à froid
+   l'authentification n'est pas résolue, le `redirect` renvoyait sur `/splash`
+   puis `/home`. Elle est maintenant mise de côté (étape 0) et rejouée une fois
+   l'utilisateur prêt (étape 10).
+
+⚠️ **Sur un build debug, le clic sur un lien n'ouvrira PAS l'app** : la
+vérification App Links exige que l'empreinte de signature figure dans
+`assetlinks.json`, et seule celle de Play App Signing y est. Android ouvrira
+Chrome. Tester avec un intent explicite, qui contourne la vérification :
+
+```
+adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
+```
+
+- [ ] **App tuée** (`am force-stop`) puis lien : doit ouvrir la publication,
+      pas l'accueil. C'est le cas décisif — celui que la mise de côté corrige.
+- [ ] App en arrière-plan puis lien : même résultat, sans passer par le splash.
+- [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
+      la publication** une fois connecté.
+- [ ] Non-régression : un démarrage normal (icône du launcher) doit toujours
+      aller sur `/splash` puis `/home`, sans jamais rouvrir un ancien lien.
+- [ ] Lien vers un post supprimé ou un id inexistant : vérifier que
+      `PostDetailScreen` dégrade proprement au lieu de planter.
+- [ ] Lien de profil `https://diasponiger.com/p/u/<uid>` : la route de
+      redirection existe déjà, vérifier qu'elle mène bien au profil.
+- [ ] Limite connue : le schéma `diasponiger://feed/<id>` **ne marchera pas**
+      (Flutter ne lit que le chemin de l'URI, et « feed » y est l'hôte). Les
+      liens partagés étant en `https://`, ça ne bloque rien — mais le raccourci
+      `diasponiger://design-v2` du README de `design_v2` ne fonctionne pas non
+      plus, pour la même raison.
+
+**À faire hors appareil :**
+
+- [ ] **Redéployer le hosting** (`firebase deploy --only hosting`) : le
+      `assetlinks.json` versionné était en retard sur celui servi en ligne — il
+      ne déclarait que l'ancien package `com.diasponiger.diaspo_niger`. Il a été
+      aligné sur la production ; sans ce réalignement, un déploiement depuis le
+      dépôt aurait **cassé les App Links en production**. Rien n'est déployé
+      pour l'instant.
+- [ ] Décider si l'empreinte de la clé **release locale**
+      (`DD:A6:5C:…`, cf. `gradlew signingReport`) doit être ajoutée sous
+      `com.diasponiger.diasponiger` pour tester les liens sur un APK release
+      installé à la main. Non fait : ça élargit qui peut revendiquer le domaine.
 
 ---
 
