@@ -172,24 +172,6 @@ class CacheService {
 
   // ==================== Conversations Cache ====================
 
-  Future<void> cacheConversation(String id, Map<String, dynamic> data) async {
-    final box = Hive.box<String>(_conversationsBox);
-    await box.put(id, jsonEncode(data));
-    await _updateTimestamp(_conversationsBox, id);
-  }
-
-  Map<String, dynamic>? getCachedConversation(String id) {
-    final box = Hive.box<String>(_conversationsBox);
-    final data = box.get(id);
-    if (data == null) return null;
-    try {
-      return jsonDecode(data) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('CacheService: Error decoding cached conversation $id: $e');
-      return null;
-    }
-  }
-
   Future<void> cacheConversations(
     List<Map<String, dynamic>> conversations,
   ) async {
@@ -268,13 +250,6 @@ class CacheService {
     await _updateTimestamp(_messagesBox, key);
   }
 
-  Future<void> cacheMessage(
-    String conversationId,
-    Map<String, dynamic> message,
-  ) async {
-    await cacheMessages(conversationId, [message]);
-  }
-
   List<Map<String, dynamic>> getCachedMessages(
     String conversationId, {
     int? limit,
@@ -328,12 +303,6 @@ class CacheService {
     }
   }
 
-  Future<void> clearMessagesCache(String conversationId) async {
-    final box = Hive.box<String>(_messagesBox);
-    final key = _messagesKey(conversationId);
-    await box.delete(key);
-  }
-
   Future<void> cacheMessagesLRU(
     String conversationId,
     List<Map<String, dynamic>> messages, {
@@ -349,9 +318,6 @@ class CacheService {
     await cacheMessages(conversationId, messages);
   }
 
-  Future<void> clearAllMessagesCache() async {
-    await Hive.box<String>(_messagesBox).clear();
-  }
 
   // ==================== Legal Content Cache ====================
 
@@ -404,7 +370,7 @@ class CacheService {
 
   /// Quand la page en cache a été reçue — l'écran l'affiche pour que
   /// l'utilisateur sache à quel point ce qu'il lit est vieux.
-  DateTime? getFeedCachedAt(String key) => getLastUpdateTime(_feedBox, key);
+  DateTime? getFeedCachedAt(String key) => _getLastUpdateTime(_feedBox, key);
 
   Future<void> clearFeedCache() async => Hive.box<String>(_feedBox).clear();
 
@@ -418,47 +384,35 @@ class CacheService {
     );
   }
 
-  DateTime? getLastUpdateTime(String boxName, String key) {
+  DateTime? _getLastUpdateTime(String boxName, String key) {
     final metaBox = Hive.box<String>(_metadataBox);
     final timestamp = metaBox.get('${boxName}_${key}_timestamp');
     if (timestamp == null) return null;
     return DateTime.parse(timestamp).toLocal();
   }
 
-  bool isCacheValid(
-    String boxName,
-    String key, {
-    Duration maxAge = const Duration(hours: 1),
-  }) {
-    final lastUpdate = getLastUpdateTime(boxName, key);
-    if (lastUpdate == null) return false;
-    return DateTime.now().difference(lastUpdate) < maxAge;
-  }
-
   // ==================== Clear Cache ====================
 
+  /// Appelée à la déconnexion et à la suppression de compte : tout ce qui est
+  /// propre à l'utilisateur doit disparaître de l'appareil.
+  ///
+  /// `_feedBox` en fait partie et manquait. Le fil « Pour toi » est personnel,
+  /// et depuis que `FeedNotifier` affiche le cache avant même d'interroger le
+  /// réseau, le compte suivant voyait le fil du précédent à chaque démarrage à
+  /// froid. Avant ce changement la fuite existait déjà, mais seulement en cas
+  /// d'échec réseau.
+  ///
+  /// `_legalBox` n'y est pas, volontairement : CGU et politique de
+  /// confidentialité sont impersonnelles, les purger ne ferait que forcer un
+  /// retéléchargement.
   Future<void> clearAllCache() async {
     await Hive.box<String>(_profilesBox).clear();
     await Hive.box<String>(_eventsBox).clear();
     await Hive.box<String>(_groupsBox).clear();
     await Hive.box<String>(_conversationsBox).clear();
     await Hive.box<String>(_messagesBox).clear();
+    await Hive.box<String>(_feedBox).clear();
     await Hive.box<String>(_metadataBox).clear();
   }
 
-  Future<void> clearProfileCache() async {
-    await Hive.box<String>(_profilesBox).clear();
-  }
-
-  Future<void> clearEventsCache() async {
-    await Hive.box<String>(_eventsBox).clear();
-  }
-
-  Future<void> clearGroupsCache() async {
-    await Hive.box<String>(_groupsBox).clear();
-  }
-
-  Future<void> clearConversationsCache() async {
-    await Hive.box<String>(_conversationsBox).clear();
-  }
 }

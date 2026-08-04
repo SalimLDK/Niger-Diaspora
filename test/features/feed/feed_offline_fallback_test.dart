@@ -130,6 +130,32 @@ void main() {
     expect(state.isFromCache, isFalse);
   });
 
+  test(
+    'la déconnexion purge le fil : le compte suivant ne voit pas le précédent',
+    () async {
+      await semerLeCache(createdAtIso: '2026-08-04T06:01:00.000Z');
+      expect(
+        CacheService.instance.getCachedFeed(
+          CacheService.feedKey(mode: FeedMode.forYou.name),
+        ),
+        isNotEmpty,
+      );
+
+      // `clearAllCache` est ce qu'appelle `signOut` / `deleteAccount`.
+      await CacheService.instance.clearAllCache();
+
+      expect(
+        CacheService.instance.getCachedFeed(
+          CacheService.feedKey(mode: FeedMode.forYou.name),
+        ),
+        isEmpty,
+        reason: 'le fil « Pour toi » est personnel : il ne doit pas survivre '
+            'à une déconnexion, a fortiori depuis qu\'il est affiché avant '
+            'même la requête réseau',
+      );
+    },
+  );
+
   test('le cache traverse l\'aller-retour sans décaler l\'instant', () async {
     await semerLeCache(createdAtIso: '2026-08-04T06:01:00.000Z');
 
