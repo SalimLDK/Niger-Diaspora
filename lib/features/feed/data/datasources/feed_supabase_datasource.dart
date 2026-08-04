@@ -174,8 +174,21 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
 
   @override
   Future<PostModel> getPostById(String postId) async {
-    final data = await _supabase.from('posts').select().eq('id', postId).single();
-    return PostModel.fromJson(_mapPost(data));
+    try {
+      final data =
+          await _supabase.from('posts').select().eq('id', postId).single();
+      return PostModel.fromJson(_mapPost(data));
+    } on PostgrestException catch (e) {
+      // `.single()` répond PGRST116 quand aucune ligne ne correspond : c'est le
+      // cas d'un lien partagé vers une publication supprimée, ou d'un id
+      // inexistant. Sans cette traduction l'exception s'échappait de la couche
+      // data (le repository n'attrape que ServerException), et l'écran de
+      // détail restait indéfiniment sur son squelette de chargement.
+      if (e.code == 'PGRST116') {
+        throw NotFoundException('Publication introuvable');
+      }
+      throw ServerException(e.message);
+    }
   }
 
   @override

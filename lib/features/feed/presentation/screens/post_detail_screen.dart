@@ -111,7 +111,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final post = ref.watch(postDetailProvider(widget.postId));
+    final detail = ref.watch(postDetailProvider(widget.postId));
+    final post = detail.post;
     final commentsState = ref.watch(commentsProvider(widget.postId));
     final tokens = FeedTokens.of(context);
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -133,6 +134,25 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       ),
       body: Column(
         children: [
+          // Le post est introuvable ou en échec : on n'affiche ni squelette ni
+          // commentaires, et surtout pas le composer — inviter à commenter une
+          // publication qui n'existe pas n'a aucun sens.
+          if (detail.status == PostDetailStatus.notFound ||
+              detail.status == PostDetailStatus.failed)
+            Expanded(
+              child: _PostUnavailable(
+                isNotFound: detail.status == PostDetailStatus.notFound,
+                l10n: l10n,
+                onRetry: detail.status == PostDetailStatus.failed
+                    ? () => ref
+                        .read(postDetailProvider(widget.postId).notifier)
+                        .refresh(widget.postId)
+                    : null,
+                onBack: () =>
+                    context.canPop() ? context.pop() : context.go('/home'),
+              ),
+            )
+          else ...[
           Expanded(
             child: ListView(
               controller: _scrollController,
@@ -184,6 +204,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             },
             l10n: l10n,
           ),
+          ],
         ],
       ),
     );
@@ -226,6 +247,90 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       }
     }
     return widgets;
+  }
+}
+
+/// État affiché quand la publication ne peut pas être montrée.
+///
+/// Deux cas distincts : elle n'existe pas (rien à réessayer, on propose le
+/// retour au fil), ou le chargement a échoué (réessayer a du sens).
+class _PostUnavailable extends StatelessWidget {
+  final bool isNotFound;
+  final AppLocalizations l10n;
+  final VoidCallback? onRetry;
+  final VoidCallback onBack;
+
+  const _PostUnavailable({
+    required this.isNotFound,
+    required this.l10n,
+    required this.onRetry,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = FeedTokens.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: tokens.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: AppIcon(
+                  isNotFound ? AppIcon.searchOff : AppIcon.refresh,
+                  color: tokens.mutedText,
+                  size: 32,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              isNotFound ? l10n.postNotFoundTitle : l10n.postLoadFailedTitle,
+              textAlign: TextAlign.center,
+              style: FeedText.heading(tokens, size: 19),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isNotFound
+                  ? l10n.postNotFoundMessage
+                  : l10n.postLoadFailedMessage,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: tokens.mutedText),
+            ),
+            const SizedBox(height: 24),
+            if (onRetry != null)
+              FilledButton(
+                onPressed: onRetry,
+                child: Text(l10n.retry),
+              )
+            else
+              FilledButton(
+                onPressed: onBack,
+                child: Text(l10n.backToFeed),
+              ),
+            if (onRetry != null)
+              TextButton(
+                onPressed: onBack,
+                child: Text(
+                  l10n.backToFeed,
+                  style: TextStyle(color: tokens.mutedText),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

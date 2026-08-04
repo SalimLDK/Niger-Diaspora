@@ -12280,6 +12280,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noComments => 'No comments yet';
 
   @override
+  String get postNotFoundTitle => 'Post not found';
+
+  @override
+  String get postNotFoundMessage =>
+      'It may have been deleted by its author, or the link is incorrect.';
+
+  @override
+  String get postLoadFailedTitle => 'Can\'t show this post';
+
+  @override
+  String get postLoadFailedMessage => 'Check your connection, then try again.';
+
+  @override
+  String get backToFeed => 'Back to feed';
+
+  @override
   String get deleteComment => 'Delete comment';
 
   @override
