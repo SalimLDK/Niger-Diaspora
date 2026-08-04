@@ -53,6 +53,23 @@ class DateFormatter {
     }
   }
 
+  /// Ancienneté compacte des cartes « Enregistrés » (fiche 5c) : « 12 min »,
+  /// « 3 j », « 2 sem. » — sans le « Il y a » de [timeAgo], la maquette
+  /// posant déjà un « · » devant.
+  ///
+  /// `toLocal()` pour la même raison que [formatPostMeta].
+  static String timeAgoShort(DateTime date) {
+    final diff = DateTime.now().difference(date.toLocal());
+    if (diff.inMinutes < 1) return 'à l\'instant';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
+    if (diff.inHours < 24) return '${diff.inHours} h';
+    if (diff.inDays < 7) return '${diff.inDays} j';
+    if (diff.inDays < 30) return '${(diff.inDays / 7).floor()} sem.';
+    if (diff.inDays < 365) return '${(diff.inDays / 30).floor()} mois';
+    final years = (diff.inDays / 365).floor();
+    return '$years an${years > 1 ? 's' : ''}';
+  }
+
   /// Méta d'une publication à soi, format « Hier · 18:40 » (fiche 5b).
   /// Jour du jour / de la veille nommé, jour de la semaine en toutes lettres
   /// dans les 7 jours, date courte au-delà.

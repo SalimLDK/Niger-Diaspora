@@ -24,7 +24,7 @@ Trois niveaux, à ne pas confondre :
 | 5a | Mon espace | ✅ | ✅ | ✅ | `feed/presentation/screens/mon_espace_screen.dart` |
 | 5b | Mes publications (+ repartages) | ✅ | ✅ | ✅ | `feed/presentation/screens/my_posts_screen.dart`, `widgets/my_post_card.dart` |
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
-| 5c | Enregistrés | — | — | — | `feed/presentation/screens/saved_posts_screen.dart` |
+| 5c | Enregistrés | ✅ | ✅ | — | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | — | — | — | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | — | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
@@ -89,6 +89,31 @@ Le FAB suit **l'invitation**, pas le compte : il reste affiché même si
 l'onglet Repartages, lui, n'est pas vide.
 
 Non vérifié : les deux amorces (la photo demande la permission galerie).
+
+## 5c — Enregistrés
+
+Les filtres et le regroupement Cette semaine / Plus ancien existaient déjà ;
+ce qui manquait, c'est la **carte** : `saved_post_card.dart` remplace la carte
+du fil par le format court de la fiche — vignette 72×72 à gauche, ligne
+d'auteur (avatar 22, nom 13/600, ancienneté compacte « 15 min »), texte clampé
+à deux lignes, puis « Retirer » / « Partager ».
+
+En-tête sur mesure avec le compteur à droite, chips au gabarit exact
+(pilule 6/12, gap 7, actif à l'encre pleine), sur-titres monospace au nouveau
+jeton `overline`.
+
+Écarts assumés :
+- La fiche écrit « Tout », l'app affiche « Tous » (clé l10n `all`, partagée
+  avec d'autres écrans — pas touchée pour un mot).
+- Le glissement pour retirer est conservé **en plus** du lien « Retirer » :
+  la fiche ne le mentionne pas, mais c'est un geste existant, on ne retire pas
+  une capacité sans raison.
+- Sans média, la vignette 72×72 porte un glyphe de type (texte, lieu). La
+  maquette montre un sondage — les posts-sondages n'ont pas de marqueur
+  distinct au modèle, donc pas d'icône dédiée.
+
+Non vérifié : les filtres Photos / Vidéos (le compte de test n'a qu'un post
+texte) et la feuille « Partager ».
 
 ---
 

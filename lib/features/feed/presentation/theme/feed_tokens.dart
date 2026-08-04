@@ -41,6 +41,7 @@ class FeedTokens {
     required this.statCardRadius,
     required this.iconTileRadius,
     required this.compactCardRadius,
+    required this.overline,
     required this.fabBg,
     required this.fabFg,
     required this.fabBorder,
@@ -131,6 +132,10 @@ class FeedTokens {
   /// Organic 24 ; Nocturne 8.
   final double compactCardRadius;
 
+  /// Sur-titre de section en petites capitales monospace (« CETTE SEMAINE »,
+  /// « MON ESPACE »). Organic #9A6A3A ; Nocturne #C08A5A, comme la fiche 11d.
+  final Color overline;
+
   final Color fabBg;
   final Color fabFg;
   final Color? fabBorder;
@@ -173,6 +178,7 @@ class FeedTokens {
     statCardRadius: 8,
     iconTileRadius: 8,
     compactCardRadius: 8,
+    overline: Color(0xFFC08A5A),
     fabBg: Colors.transparent,
     fabFg: Color(0xFF9184D9),
     fabBorder: Color(0xFF9184D9),
@@ -226,6 +232,7 @@ class FeedTokens {
     statCardRadius: 18,
     iconTileRadius: 11,
     compactCardRadius: 24,
+    overline: Color(0xFF9A6A3A),
     fabBg: Color(0xFFC67139),
     fabFg: Color(0xFFF5EAD8),
     fabBorder: null,
