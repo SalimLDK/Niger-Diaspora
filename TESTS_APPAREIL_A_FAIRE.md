@@ -62,6 +62,27 @@ lancement d'un compte sans ville renseignée.
       un dimensionnement : le volet replié ne peut pas contenir ce qu'on lui
       demande d'afficher.
 
+      🔴 **`minChildSize` relevé le 2026-08-03 : essayé, mesuré, annulé.**
+      0.18 → 0.35 ramène le débordement de 146 px à 14 ; 0.38 le supprime
+      complètement. Mais le volet, enfin assez haut pour montrer son en-tête,
+      **révèle un défaut bien pire** : « Membres à proximité » s'affiche
+      **une lettre par ligne**, en colonne le long du bord gauche.
+
+      Le titre est écrasé à une largeur quasi nulle par ses voisins de
+      rangée (« Aucun membre », « Liste », « Les plus proches »), qui
+      prennent toute la place. C'est le même défaut que le débordement
+      horizontal de 12 px encore ouvert — la rangée d'en-tête du volet
+      distribue mal sa largeur.
+
+      Le volet trop court **masquait** ce problème. Les deux ne peuvent donc
+      pas être traités séparément : relever la hauteur sans corriger la
+      répartition de largeur remplace un débordement invisible par un titre
+      illisible. `map_screen.dart` est revenu à son état committé.
+
+      **Ordre à respecter** : corriger d'abord la rangée d'en-tête (titre en
+      `Expanded`, contrôles en `MainAxisSize.min`), vérifier que le titre
+      tient sur une ligne, puis seulement relever `minChildSize` à 0.38.
+
       ⚠️ **Deux corrections possibles, toutes deux des décisions de design :**
       relever `minChildSize` / `initialChildSize` (le volet couvre alors plus
       de carte), ou alléger l'en-tête du volet. À trancher avant d'agir.
