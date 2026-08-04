@@ -14,6 +14,7 @@ import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/dashed_border_painter.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart'
     show groupConversationIdProvider;
@@ -957,7 +958,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return GestureDetector(
         onTap: _pickPosters,
         child: CustomPaint(
-          painter: _DashedBorderPainter(
+          painter: DashedBorderPainter(
             color: context.borderStrongColor,
             radius: 18,
           ),
@@ -1320,47 +1321,4 @@ class _PreviewRow extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Cadre pointillé de la zone d'affiche. Flutter n'a pas de bordure en
-/// pointillés : on trace le rectangle arrondi et on n'en peint qu'un segment
-/// sur deux.
-class _DashedBorderPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  static const double dash = 5;
-  static const double gap = 4;
-
-  const _DashedBorderPainter({required this.color, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1;
-    final path =
-        Path()..addRRect(
-          RRect.fromRectAndRadius(
-            Offset.zero & size,
-            Radius.circular(radius),
-          ),
-        );
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final next = distance + dash;
-        canvas.drawPath(
-          metric.extractPath(distance, next.clamp(0, metric.length)),
-          paint,
-        );
-        distance = next + gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
 }

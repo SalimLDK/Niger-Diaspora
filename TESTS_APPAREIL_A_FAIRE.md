@@ -34,15 +34,45 @@ Rien de tout ça n'est vérifiable sans appareil :
       réarmer l'intent de tâche, puis `am force-stop` + relance : **la feuille
       ne doit plus apparaître**. C'est le cas décisif.
 - [ ] Répéter la relance 3 ou 4 fois de suite — le symptôme était systématique.
-- [ ] Fermer la feuille sans envoyer (quand elle pourra s'ouvrir légitimement)
-      puis relancer : le contenu ne doit pas revenir.
+- [ ] Fermer la feuille sans envoyer puis relancer : le contenu ne doit pas
+      revenir.
+
+### Partage entrant activé le même jour
+
+Les `intent-filter ACTION_SEND` / `SEND_MULTIPLE` ont été ajoutés au manifest
+dans la foulée (text, image, video, `*/*`) : jusque-là l'app n'apparaissait pas
+dans le sélecteur « Partager » et `ShareToConversationScreen` n'était
+atteignable par aucun partage réel.
+
+⚠️ **Ça remet le bug ci-dessus en jeu pour de vrai** : un partage devient
+l'intent d'origine de la tâche, qu'Android redonne à chaque relance — et un
+`text/plain` légitime n'est plus filtrable comme l'était le faux `url`. Deux
+barrières ajoutées : `MainActivity.clearSharedIntent()` (neutralise
+`activity.getIntent()`, couvre rotation et retour depuis les récents) et une
+**empreinte SHA-256 persistée** du dernier partage présenté, seule protection
+qui survive au redémarrage du process. Aucune des deux n'a tourné sur appareil.
+
+- [ ] Partager un texte depuis Chrome ou Messages : Diaspo Niger doit
+      apparaître dans le sélecteur, la feuille s'ouvrir, l'envoi aboutir.
+- [ ] **Puis `am force-stop` + relance : la feuille ne doit PAS revenir.**
+      C'est le cas décisif de l'empreinte persistée.
+- [ ] Idem avec une image, une vidéo, un PDF, et une sélection multiple
+      d'images (`SEND_MULTIPLE`).
+- [ ] Partager pendant que l'app tourne déjà (flux temps réel, pas le contenu
+      initial) — vérifier qu'une seule feuille s'ouvre, sans doublon.
+- [ ] Tourner l'écran feuille ouverte, puis revenir depuis les récents : pas de
+      seconde feuille.
+- [ ] Limite assumée : partager **exactement** le même contenu deux fois de
+      suite en tuant l'app entre les deux est ignoré la 2ᵉ fois. Vérifier que
+      ça reste supportable en usage réel.
+- [ ] `launchMode` est resté `singleTop` (le README du plugin conseille
+      `singleTask`) : non changé pour ne pas perturber CallKit et
+      `showWhenLocked`. Surveiller qu'un partage ne crée pas une **seconde
+      instance** de MainActivity — le FlutterEngine est mis en cache par
+      audio_service, deux activités branchées dessus poseraient problème.
 
 **Dettes ouvertes, non traitées ici :**
 
-- [ ] Le partage entrant est **mort** côté Android : aucun `intent-filter
-      ACTION_SEND` au manifest, donc l'app n'apparaît pas dans le sélecteur
-      « Partager » et `ShareToConversationScreen` n'est jamais atteignable par
-      un vrai partage. Soit on déclare le filtre, soit on retire l'écran.
 - [ ] Les **liens profonds ne sont routés par personne** : aucun plugin
       (`app_links`/`uni_links`) ne les consomme. Ouvrir un lien `/feed/:id`
       lance l'app sur l'accueil au lieu du post — le partage externe ne

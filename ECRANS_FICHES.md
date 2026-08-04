@@ -27,23 +27,23 @@ Trois niveaux, à ne pas confondre :
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | ✅ | ✅ | ✅ | `profile/presentation/screens/edit_profile_screen.dart` |
-| 20b | Appareils connectés | ✅ | ✅ | — | `settings/…/devices_screen.dart` |
+| 20b | Appareils connectés | ✅ | ✅ | ✅ | `settings/…/devices_screen.dart` |
 | 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
-| 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
-| 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
-| 7d | Carte — couches, panneau 3 positions | — | — | — | à déterminer |
-| 6a | Fil — Nocturne | — | — | — | `feed/presentation/screens/feed_screen.dart` |
-| 11d | Mon profil — Nocturne | — | — | — | `profile/presentation/screens/profile_screen.dart` |
-| 11e | Réglages — Nocturne | — | — | — | à déterminer |
+| 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
+| 8c | Carte — sans localisation | ✅ | — | — | `map/…/map_screen.dart` |
+| 7d | Carte — couches, panneau 3 positions | ✅ | — | — | `map/…/map_screen.dart` |
+| 6a | Fil — Nocturne | ✅ | — | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
+| 11d | Mon profil — Nocturne | ✅ | — | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
+| 11e | Réglages — Nocturne | ✅ | — | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | — | — | — | à déterminer |
 | 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | — | — | — | idem 4a |
-| 9a | Messages — liste | — | — | — | `messages/…/messages_screen.dart` |
-| 9b | Messages — recherche | — | — | — | idem 9a |
+| 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
+| 9b | Messages — recherche | ✅ | ◐ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | — | — | — | `groups/…` |
-| 9d | Groupe — fiche | — | — | — | `groups/…` |
+| 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
 
 ---
@@ -410,6 +410,85 @@ pu être identifié dans la liste. Vérifiez l'empreinte avant de révoquer quoi
 que ce soit. »
 
 Non vérifié : le renommage réel et la révocation (écritures sur le compte).
+
+## 9a — Messages, liste
+
+La section fourre-tout « Autres » devient le découpage temporel de la fiche :
+« Cette semaine » puis « Plus ancien », intertitres affichés dès qu'on est sur
+la liste principale — pas seulement quand une conversation est épinglée. Ni
+les archives ni les résultats de recherche ne se découpent ainsi ; les
+conversations sans date tombent dans le plus ancien plutôt que de disparaître.
+
+L'accusé de lecture passe du bleu WhatsApp au vert `#2D7D46` de la fiche : ce
+bleu n'appartenait à aucune des cinq palettes du guide.
+
+Le reste (en-tête à deux actions carrées, carte blanche des épinglées, avatars
+50, micro pour les notes vocales, cloche coupée, badge rouge sur « Non lus »)
+existait déjà et est conforme.
+
+Vu à l'écran, en clair et en nocturne.
+
+## 9b — Messages, recherche
+
+⚠️ **Deux portées de la fiche sont irréalisables en l'état.** « Messages · 9 »
+et « Fichiers · 2 » supposent une recherche dans le contenu ; or les messages
+sont chiffrés de bout en bout et la seule recherche du dépôt,
+`searchMessagesInConversation`, fait un `ILIKE` Postgres sur `data->>content`
+— donc sur du texte chiffré. Elle ne peut structurellement rien trouver, et
+elle est limitée à une seule conversation. Il n'existe aucun index local des
+messages déchiffrés. Les rétablir demande un index de recherche côté appareil,
+pas un écran.
+
+Ce qui est livré : en-tête replié sur ← + champ actif (bordure accent, halo
+3 px, loupe orange — nouveau drapeau `active` sur `DesignSearchField`), puces
+de portée « Tout · N / Personnes · N / Conversations · N » qui ne comptent que
+ce qui est réellement cherché, section **Personnes** (avatars ronds 56, via
+`searchProfilesNotifierProvider`, débounce 350 ms), conversations trouvées avec
+le terme surligné (`<mark>` de la fiche : fond `#F7E0CE`, texte `#8C491A`), et
+une ligne qui dit à l'utilisateur que la recherche porte sur les noms parce que
+le contenu est chiffré.
+
+**Piège payé** : ouvrir la recherche déplaçait le champ dans un autre
+sous-arbre, donc Flutter le reconstruisait, le focus tombait et **le clavier ne
+s'ouvrait jamais** — l'utilisateur tapait dans le vide, sans aucune erreur.
+Corrigé en gardant le champ au même rang d'enfant dans les deux états et en ne
+faisant varier que ce qui l'entoure. `requestFocus` en post-frame ne suffisait
+pas.
+
+État de vérification : l'en-tête de recherche a été vu au bon gabarit, **mais
+la frappe et les résultats n'ont jamais été rendus** — le bug de focus l'a
+empêché, et le correctif n'a pas pu être testé (téléphone déconnecté).
+
+## 9d — Groupe, fiche
+
+Identité au gabarit de la fiche : pastille 66 radius 22 au vert de groupe
+(`#1B5E32`, la couleur qui identifie « groupe » dans toute la messagerie, pas
+l'accent du compte), nom 20, ligne de méta « Privé · Ville · depuis AAAA » —
+la catégorie en sort, elle dit moins que le lieu et l'ancienneté.
+
+La description se lit en clair sous l'identité : ni intertitre « À propos » ni
+carte. Le bloc de trois stats disparaît — la méta dit déjà l'accès, la section
+Membres donne le compte.
+
+« Ouvrir la discussion » remonte dans le contenu (pleine largeur, vert,
+radius 13) avec la coupure des notifications à côté ; la barre du bas ne garde
+que la sortie du groupe. Le mute agit sur `mutedBy` de la conversation du
+groupe et **ne s'affiche pas** si cette conversation n'existe pas encore :
+la créer juste pour afficher une cloche serait un effet de bord invisible.
+
+Non fait : la carte info groupée (Épinglés / Médias / Prochaine rencontre en
+une seule carte) et le bouton « J'y vais ». La carte d'événement existante est
+plus riche que la ligne de la fiche (pastille de date, titre, lieu, heure) —
+la replier ferait perdre de l'information.
+
+⚠️ **Jamais vu à l'écran** : le compte de test a rejoint 0 groupe et l'onglet
+« Découvrir » ne remonte aucun groupe public — le backend est vide. Ni
+l'identité, ni la barre d'action membre, ni les badges de rôle n'ont été
+rendus.
+
+**Défaut repéré au passage** : l'onglet « Découvrir » de 9c affiche une zone
+entièrement blanche quand il n'y a aucun groupe — pas de liste, pas d'état
+vide, pas d'indicateur de chargement.
 
 ---
 

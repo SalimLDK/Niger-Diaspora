@@ -1,9 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Canal natif servant à neutraliser l'intent de partage de l'activité.
+/// Voir `MainActivity.clearSharedIntent()`.
+const _shareIntentChannel = MethodChannel('diaspo_niger/share_intent');
+
+/// Empreinte du dernier partage déjà présenté à l'utilisateur.
+const _kLastConsumedShareKey = 'shared_media.last_consumed_signature';
 
 /// Service for receiving media/text shared from other apps into Diaspo Niger.
 /// Wraps receive_sharing_intent and exposes a Riverpod provider.
@@ -76,6 +87,9 @@ class SharedMediaService {
 
   /// Returns media received when the app was cold-started from a share intent.
   /// Only returns a non-null value once; subsequent calls return null.
+  ///
+  /// Rend aussi `null` pour un partage **déjà présenté** lors d'un démarrage
+  /// précédent : cf. [_alreadyConsumedAcrossRestarts].
   Future<List<SharedMediaFile>?> consumeInitialMedia() async {
     if (_initialConsumed) return null;
     await _initialMediaReady;
@@ -85,7 +99,47 @@ class SharedMediaService {
     final media = _initialMedia;
     _initialMedia = null;
     unawaited(_resetPlatformIntent());
+    if (media == null) return null;
+    if (await _alreadyConsumedAcrossRestarts(media)) return null;
     return media;
+  }
+
+  /// Vrai si ce partage exact a déjà ouvert la feuille lors d'un démarrage
+  /// précédent — auquel cas il ne faut pas la rouvrir.
+  ///
+  /// Le drapeau `_initialConsumed` ne vit que le temps du process, or Android
+  /// redonne à l'activité racine l'intent d'origine de sa tâche à chaque
+  /// relance : un partage reçu une fois revenait donc à tous les démarrages à
+  /// froid suivants. Ni `reset()` côté plugin ni `setIntent()` côté activité
+  /// n'y changent quoi que ce soit, l'intent étant reconstruit par le système.
+  /// D'où cette empreinte persistée, seule barrière qui survit au process.
+  ///
+  /// Limite assumée : repartager un contenu strictement identique après avoir
+  /// tué l'app est ignoré. Le même partage répété app vivante passe, lui, par
+  /// le flux temps réel et n'est pas concerné.
+  Future<bool> _alreadyConsumedAcrossRestarts(List<SharedMediaFile> media) async {
+    // Empreinte hachée : le contenu partagé peut être un message privé, il n'a
+    // rien à faire en clair dans les préférences.
+    final fingerprint = sha256
+        .convert(
+          utf8.encode(
+            jsonEncode([
+              for (final f in media) [f.type.value, f.path, f.message ?? ''],
+            ]),
+          ),
+        )
+        .toString();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getString(_kLastConsumedShareKey) == fingerprint) return true;
+      await prefs.setString(_kLastConsumedShareKey, fingerprint);
+    } catch (error) {
+      // Préférences indisponibles : mieux vaut présenter la feuille en trop
+      // que perdre un partage.
+      debugPrint('SharedMediaService fingerprint error: $error');
+    }
+    return false;
   }
 
   /// Efface le contenu initial après traitement — y compris quand l'utilisateur
@@ -102,11 +156,22 @@ class SharedMediaService {
   /// Purge la copie que le plugin garde côté natif : elle survit à la
   /// consommation côté Dart et serait resservie à un nouveau rattachement de
   /// l'activité au moteur Flutter.
+  ///
+  /// Neutralise dans la foulée l'intent porté par l'activité (Android), sans
+  /// quoi une simple recréation d'activité — rotation, retour depuis les
+  /// récents — la rouvrirait. Ça ne couvre pas le redémarrage complet du
+  /// process, d'où l'empreinte persistée en complément.
   Future<void> _resetPlatformIntent() async {
     try {
       await ReceiveSharingIntent.instance.reset();
     } catch (error) {
       debugPrint('SharedMediaService reset error: $error');
+    }
+    if (!Platform.isAndroid) return;
+    try {
+      await _shareIntentChannel.invokeMethod<void>('clearSharedIntent');
+    } catch (error) {
+      debugPrint('SharedMediaService clearSharedIntent error: $error');
     }
   }
 

@@ -30,6 +30,10 @@ class ConversationItem extends ConsumerStatefulWidget {
   /// épinglées, regroupées dans un [DesignListCard] par le parent.
   final bool flat;
 
+  /// Terme à surligner dans le nom (fiche 9b), déjà en minuscules. Vide hors
+  /// recherche.
+  final String highlight;
+
   const ConversationItem({
     super.key,
     required this.conversation,
@@ -40,6 +44,7 @@ class ConversationItem extends ConsumerStatefulWidget {
     this.isSelected = false,
     this.onSelectionChanged,
     this.flat = false,
+    this.highlight = '',
   });
 
   @override
@@ -252,16 +257,15 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            displayName,
+                          child: _HighlightedName(
+                            text: displayName,
+                            highlight: widget.highlight,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight:
                                   hasUnread ? FontWeight.w700 : FontWeight.w600,
                               color: context.textPrimaryColor,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -775,5 +779,48 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         }
         return AppIcon(AppIcon.check, size: 14, color: color);
     }
+  }
+}
+
+/// Nom de conversation avec le terme cherché surligné (fiche 9b : fond
+/// #F7E0CE, texte #8C491A, radius 3). Rend un `Text` simple hors recherche.
+class _HighlightedName extends StatelessWidget {
+  final String text;
+  final String highlight;
+  final TextStyle style;
+
+  const _HighlightedName({
+    required this.text,
+    required this.highlight,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final needle = highlight.trim();
+    final start =
+        needle.isEmpty ? -1 : text.toLowerCase().indexOf(needle.toLowerCase());
+    if (start < 0) {
+      return Text(text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
+    }
+    final end = start + needle.length;
+    return Text.rich(
+      TextSpan(
+        children: [
+          if (start > 0) TextSpan(text: text.substring(0, start)),
+          TextSpan(
+            text: text.substring(start, end),
+            style: const TextStyle(
+              backgroundColor: Color(0xFFF7E0CE),
+              color: Color(0xFF8C491A),
+            ),
+          ),
+          if (end < text.length) TextSpan(text: text.substring(end)),
+        ],
+      ),
+      style: style,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }

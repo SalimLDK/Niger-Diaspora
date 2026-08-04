@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +22,15 @@ import '../../../../shared/widgets/sheet_handle.dart';
 /// / Groupes / Archives, un seul rang de puces mutuellement exclusives).
 enum _MessagesFilter { all, unread, groups, archives }
 
+/// Portée des résultats de recherche (fiche 9b).
+///
+/// La fiche prévoit aussi « Messages » et « Fichiers ». Ils sont absents ici :
+/// le contenu des messages est chiffré de bout en bout, et la seule recherche
+/// du dépôt (`searchMessagesInConversation`) fait un `ILIKE` Postgres sur le
+/// champ chiffré — elle ne peut structurellement rien trouver. Les rétablir
+/// demande un index de recherche local, pas un écran.
+enum _SearchScope { all, people, conversations }
+
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
 
@@ -29,13 +40,57 @@ class MessagesScreen extends ConsumerStatefulWidget {
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
   String _searchQuery = '';
   _MessagesFilter _filter = _MessagesFilter.all;
 
+  /// Recherche ouverte (fiche 9b) : l'en-tête se replie sur ← + champ actif.
+  bool _searchOpen = false;
+  _SearchScope _searchScope = _SearchScope.all;
+  Timer? _profileSearchDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocus.addListener(() {
+      if (_searchFocus.hasFocus && !_searchOpen) {
+        setState(() => _searchOpen = true);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _profileSearchDebounce?.cancel();
+    _searchFocus.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _searchScope = _SearchScope.all;
+    });
+    // La recherche de profils tape le réseau : on attend que la frappe se
+    // pose avant de partir.
+    _profileSearchDebounce?.cancel();
+    _profileSearchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      ref.read(searchProfilesNotifierProvider.notifier).search(value.trim());
+    });
+  }
+
+  void _closeSearch() {
+    _profileSearchDebounce?.cancel();
+    _searchController.clear();
+    _searchFocus.unfocus();
+    ref.read(searchProfilesNotifierProvider.notifier).clear();
+    setState(() {
+      _searchQuery = '';
+      _searchOpen = false;
+      _searchScope = _SearchScope.all;
+    });
   }
 
   List<ConversationEntity> _filterConversations(
@@ -276,47 +331,87 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         bottom: false,
         child: Column(
           children: [
-            DesignScreenHeader(
-              title: l10n.messagesTitle,
-              subtitle:
-                  isEmptyInbox
-                      ? l10n.noConversation
-                      : subtitleParts.join(' · '),
-              actions: [
-                if (!isEmptyInbox)
+            // En recherche (fiche 9b), l'en-tête se replie sur ← + champ actif.
+            // Le champ garde sa place d'enfant n°2 de la colonne dans les deux
+            // états : le déplacer dans un autre sous-arbre le ferait
+            // reconstruire, il perdrait le focus et le clavier ne s'ouvrirait
+            // jamais (constaté à l'écran).
+            if (_searchOpen)
+              const SizedBox.shrink()
+            else
+              DesignScreenHeader(
+                title: l10n.messagesTitle,
+                subtitle:
+                    isEmptyInbox
+                        ? l10n.noConversation
+                        : subtitleParts.join(' · '),
+                actions: [
+                  if (!isEmptyInbox)
+                    DesignSquareAction(
+                      icon: Icons.inbox_outlined,
+                      tooltip: l10n.archives,
+                      onPressed:
+                          () => setState(
+                            () => _filter = _MessagesFilter.archives,
+                          ),
+                    ),
                   DesignSquareAction(
-                    icon: Icons.inbox_outlined,
-                    tooltip: l10n.archives,
-                    onPressed:
-                        () =>
-                            setState(() => _filter = _MessagesFilter.archives),
+                    icon: Icons.edit_outlined,
+                    filled: true,
+                    tooltip: l10n.newConversation,
+                    onPressed: () => context.push('/messages/new'),
                   ),
-                DesignSquareAction(
-                  icon: Icons.edit_outlined,
-                  filled: true,
-                  tooltip: l10n.newConversation,
-                  onPressed: () => context.push('/messages/new'),
-                ),
-              ],
-            ),
-            if (!isEmptyInbox) ...[
+                ],
+              ),
+            if (isEmptyInbox && !_searchOpen)
+              const SizedBox.shrink()
+            else
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: DesignSearchField(
-                  controller: _searchController,
-                  // La fiche 9a annonce ce que la recherche couvre. La clé
-                  // l10n `searchPlaceholder` (« Rechercher... ») sert cinq
-                  // autres écrans : on ne la détourne pas pour un seul.
-                  hintText: 'Rechercher une personne, un message',
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
+                padding:
+                    _searchOpen
+                        ? const EdgeInsets.fromLTRB(16, 4, 16, 12)
+                        : const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Row(
+                  children: [
+                    if (_searchOpen) ...[
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _closeSearch,
+                        child: SizedBox(
+                          width: 24,
+                          height: 44,
+                          child: Center(
+                            child: AppIcon(
+                              AppIcon.arrowBack,
+                              size: 24,
+                              color: context.textPrimaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: DesignSearchField(
+                        controller: _searchController,
+                        focusNode: _searchFocus,
+                        active: _searchOpen,
+                        // La fiche 9a annonce ce que la recherche couvre. La
+                        // clé l10n `searchPlaceholder` (« Rechercher... »)
+                        // sert cinq autres écrans : on ne la détourne pas.
+                        hintText: 'Rechercher une personne, un message',
+                        onChanged: _onSearchChanged,
+                        onClear: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            if (!isEmptyInbox && !_searchOpen)
               _buildFilterChips(context, l10n, unreadTotal),
-            ],
             Expanded(
               child: conversationsAsync.when(
                 skipLoadingOnRefresh: true,
@@ -343,6 +438,15 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         }
                       }
                     }
+                  }
+
+                  if (_searchOpen && _searchQuery.trim().isNotEmpty) {
+                    return _buildSearchResults(
+                      conversations: conversations,
+                      currentUserId: currentUserId,
+                      blockedUserIds: blockedUserIds,
+                      participantNames: participantNames,
+                    );
                   }
 
                   return _buildConversationList(
@@ -391,6 +495,179 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Résultats de recherche (fiche 9b) : les personnes en tête, puis les
+  /// conversations trouvées, le terme surligné.
+  ///
+  /// Les portées « Messages » et « Fichiers » de la fiche sont absentes : le
+  /// contenu est chiffré de bout en bout et n'est pas cherchable côté serveur.
+  /// Un bandeau le dit à l'utilisateur plutôt que de laisser croire à une
+  /// recherche qui ne trouve rien.
+  Widget _buildSearchResults({
+    required List<ConversationEntity> conversations,
+    required String currentUserId,
+    required Set<String> blockedUserIds,
+    required Map<String, String> participantNames,
+  }) {
+    final query = _searchQuery.trim();
+    final lower = query.toLowerCase();
+
+    final matchedConversations =
+        _filterConversations(
+          conversations,
+          currentUserId: currentUserId,
+          showArchived: false,
+          blockedUserIds: blockedUserIds,
+          participantNames: participantNames,
+        ).toList();
+
+    final people =
+        (ref.watch(searchProfilesNotifierProvider).valueOrNull ?? [])
+            .where((p) => p.id != currentUserId)
+            .toList();
+
+    final showPeople =
+        _searchScope != _SearchScope.conversations && people.isNotEmpty;
+    final showConversations =
+        _searchScope != _SearchScope.people && matchedConversations.isNotEmpty;
+
+    final children = <Widget>[
+      Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final (scope, label, count) in <(
+                _SearchScope,
+                String,
+                int,
+              )>[
+                (
+                  _SearchScope.all,
+                  'Tout',
+                  people.length + matchedConversations.length,
+                ),
+                (_SearchScope.people, 'Personnes', people.length),
+                (
+                  _SearchScope.conversations,
+                  'Conversations',
+                  matchedConversations.length,
+                ),
+              ]) ...[
+                DesignFilterChip(
+                  label: '$label · $count',
+                  selected: _searchScope == scope,
+                  onTap: () => setState(() => _searchScope = scope),
+                ),
+                const SizedBox(width: 9),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ];
+
+    if (showPeople) {
+      children.add(const DesignSectionLabel('Personnes'));
+      children.add(
+        SizedBox(
+          height: 92,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: people.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, i) {
+              final profile = people[i];
+              final name = (profile.displayName ?? '').trim();
+              return _PersonResult(
+                name: name.isEmpty ? '?' : name,
+                photoUrl: profile.photoUrl,
+                onTap:
+                    () => context.push('/messages/new?userId=${profile.id}'),
+              );
+            },
+          ),
+        ),
+      );
+      children.add(const SizedBox(height: 18));
+    }
+
+    if (showConversations) {
+      children.add(const DesignSectionLabel('Conversations'));
+      for (var i = 0; i < matchedConversations.length; i++) {
+        if (i > 0) {
+          children.add(
+            Divider(height: 1, thickness: 1, color: context.dividerColor),
+          );
+        }
+        final c = matchedConversations[i];
+        children.add(
+          ConversationItem(
+            conversation: c,
+            currentUserId: currentUserId,
+            flat: true,
+            highlight: lower,
+            onTap: () {
+              context.push(
+                '/messages/${c.id}',
+                extra: {
+                  'name': c.name ?? 'Conversation',
+                  'imageUrl': c.imageUrl,
+                  'isGroup': c.isGroup,
+                  'groupId': c.groupId,
+                  'otherUserId':
+                      c.isGroup ? null : c.getOtherParticipantId(currentUserId),
+                },
+              );
+            },
+            onLongPress:
+                () => _showConversationOptions(context, c, currentUserId),
+          ),
+        );
+      }
+      children.add(const SizedBox(height: 18));
+    }
+
+    if (!showPeople && !showConversations) {
+      children.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Center(
+            child: Text(
+              'Aucun nom ne correspond à « $query ».',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    children.add(
+      DesignInfoLine(
+        icon: Icons.lock_outline,
+        text:
+            'La recherche porte sur les noms. Le contenu des messages est '
+            'chiffré de bout en bout : il ne peut pas être cherché depuis '
+            'le serveur.',
+      ),
+    );
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        16 + MediaQuery.of(context).padding.bottom,
+      ),
+      children: children,
     );
   }
 
@@ -985,4 +1262,73 @@ class _GroupBadge extends StatelessWidget {
       child: const AppIcon(AppIcon.groups, size: 18, color: Colors.white),
     );
   }
+}
+
+/// Personne trouvée par la recherche (fiche 9b) : avatar rond 56 et prénom.
+class _PersonResult extends StatelessWidget {
+  final String name;
+  final String? photoUrl;
+  final VoidCallback onTap;
+
+  const _PersonResult({
+    required this.name,
+    required this.photoUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final firstName = name.split(' ').first;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: context.adaptivePrimaryColor,
+              ),
+              clipBehavior: Clip.antiAlias,
+              alignment: Alignment.center,
+              child:
+                  (photoUrl != null && photoUrl!.isNotEmpty)
+                      ? Image.network(
+                        photoUrl!,
+                        fit: BoxFit.cover,
+                        width: 56,
+                        height: 56,
+                        errorBuilder: (_, __, ___) => _initial(context),
+                      )
+                      : _initial(context),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              firstName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _initial(BuildContext context) => Text(
+    name[0].toUpperCase(),
+    style: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+      color: context.onPrimaryColor,
+    ),
+  );
 }
