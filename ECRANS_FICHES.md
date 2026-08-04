@@ -37,7 +37,7 @@ Trois niveaux, à ne pas confondre :
 | 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
-| 11f | Profil incomplet | ✅ | ✅ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
+| 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | ◐ | ◐ | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | ✅ | — | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
@@ -601,6 +601,43 @@ chiffrement en mode clair serait un recul, pas une conformité.
 `conversation_screen.dart` + `message_bubble.dart` n'ont pas été comparées
 ligne à ligne à la fiche. Seuls les points que les fiches désignent ont été
 contrôlés, et rien n'a été vu à l'écran.
+
+---
+
+## 8c — Carte sans localisation, repli par ville
+
+La carte d'explication (réciprocité, trois garanties, « Activer » / « Réglages
+de confidentialité ») est **vue** sur l'appareil, service de localisation
+coupé.
+
+Le panneau bas « Sans localisation, explorez par ville » est codé
+(`_buildExploreByCityPanel`) mais **n'a pas pu être vu** : il n'y a aucune
+ambassade en base (`/embassies` affiche « Aucune ambassade disponible ») et le
+compte de test n'a aucun groupe. Le garde `cities.isEmpty` l'escamote — c'est
+le bon comportement, mais ça veut dire que sa mise en page reste non vérifiée.
+
+Trois défauts corrigés en le reprenant sur la fiche :
+- **les groupes privés y étaient listés**, nom et nombre de membres compris,
+  sous l'étiquette « groupe privé » — une porte fermée proposée en découverte,
+  et une fuite pour qui n'a pas le droit d'entrer ;
+- la ligne d'ambassade ouvrait la liste `/embassies` au lieu de la fiche ;
+- « 1 membres ».
+
+La sélection des villes et des lieux est sortie dans
+`map/domain/city_fallback.dart` et couverte par
+`test/features/map/city_fallback_test.dart` : l'exclusion des groupes privés
+est une règle de confidentialité, elle doit casser un test si quelqu'un la
+retire. Une ville qui n'a que des groupes privés ne reçoit pas de chip, sinon
+il mènerait à une liste vide.
+
+Écart assumé : pas de « ouvert » calculé sur les ambassades. Le format de
+`openingHours` n'est pas garanti côté back — c'est déjà la règle retenue sur
+la fiche ambassade. Seul `isTemporarilyClosed` est fiable.
+
+Pour rendre ce panneau vérifiable il faut au moins une ambassade en base :
+collection **Firestore** `embassies`, lecture publique, écriture réservée à
+`isAdmin()`, via l'écran `/admin/embassies/create`. C'est une **écriture en
+production visible par tous les utilisateurs** — à ne pas faire pour tester.
 
 ---
 

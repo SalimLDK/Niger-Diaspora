@@ -26,6 +26,7 @@ import '../../../embassies/presentation/providers/embassies_provider.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/domain/entities/group_entity.dart';
+import '../../domain/city_fallback.dart';
 import '../../../businesses/presentation/providers/business_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import '../../../../core/extensions/business_entity_extensions.dart';
@@ -2959,19 +2960,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final groups =
         ref.watch(groupsNotifierProvider).valueOrNull ?? const <GroupEntity>[];
 
-    // Groupes publics uniquement. Un groupe privé listé ici est une porte
-    // fermée — et son nom comme son nombre de membres seraient exposés à
-    // quelqu'un qui n'a pas le droit d'y entrer.
-    final publicGroups = groups.where((g) => !g.isPrivate).toList();
-
-    final cities =
-        <String>{
-            for (final e in embassies)
-              if (e.city.trim().isNotEmpty) e.city.trim(),
-            for (final g in publicGroups)
-              if ((g.location ?? '').trim().isNotEmpty) g.location!.trim(),
-          }.toList()
-          ..sort();
+    // Sélection déportée dans `CityFallback` : l'exclusion des groupes privés
+    // est une règle de confidentialité, elle est testée à part.
+    final cities = CityFallback.cities(embassies: embassies, groups: groups);
 
     if (cities.isEmpty) return const SizedBox.shrink();
 
@@ -2980,12 +2971,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ? _exploreCity!
             : cities.first;
 
-    final cityEmbassies =
-        embassies.where((e) => e.city.trim() == selected).toList();
-    final cityGroups =
-        publicGroups
-            .where((g) => (g.location ?? '').trim() == selected)
-            .toList();
+    final cityEmbassies = CityFallback.embassiesIn(embassies, selected);
+    final cityGroups = CityFallback.groupsIn(groups, selected);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
