@@ -469,10 +469,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                     if (profile?.isVerified ?? false) ...[
                       const SizedBox(width: 6),
-                      const Icon(
+                      // Le bleu était figé sur le jeton clair (#1976D2), donc
+                      // presque noyé en nocturne. `infoColor` donne le
+                      // #60A5FA de la fiche 11d en sombre — et le glyphe
+                      // `verified` laisse voir le fond au travers du chevron,
+                      // ce qui produit le « check foncé » décrit.
+                      Icon(
                         Icons.verified_rounded,
                         size: 18,
-                        color: Color(0xFF1976D2),
+                        color: context.infoColor,
                       ),
                     ],
                   ],
@@ -506,9 +511,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (originChip != null) _ProfileTag(label: originChip),
+                      // Fiche 11d : le trajet prend l'accent, le métier prend
+                      // le vert. Les deux étaient gris, donc indistincts.
+                      if (originChip != null)
+                        _ProfileTag(
+                          label: originChip,
+                          tone: DesignTagTone.accent,
+                        ),
                       if (professionChip != null)
-                        _ProfileTag(label: professionChip),
+                        _ProfileTag(
+                          label: professionChip,
+                          tone: DesignTagTone.success,
+                        ),
                     ],
                   ),
                 ],
@@ -1026,9 +1040,10 @@ class _AnimatedProfileStat extends StatelessWidget {
 /// deux profils (le mien et celui d'un membre) partagent la même puce.
 class _ProfileTag extends StatelessWidget {
   final String label;
+  final DesignTagTone tone;
 
-  const _ProfileTag({required this.label});
+  const _ProfileTag({required this.label, this.tone = DesignTagTone.neutral});
 
   @override
-  Widget build(BuildContext context) => DesignTag(label);
+  Widget build(BuildContext context) => DesignTag(label, tone: tone);
 }
