@@ -14,6 +14,49 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)
+
+Bug constaté sur appareil (SM A515F, build debug, nocturne, reproduit 3 fois) :
+le premier tap sur le champ de recherche ouvrait bien l'en-tête replié (← +
+champ à bordure accent) et le champ **gardait** le focus, mais le clavier ne se
+levait pas. Un second tap le faisait apparaître, et tout marchait ensuite.
+
+Cause : **pas le focus** — c'est la `TextInputConnection` qui se fermait.
+`EditableTextState.dispose()` ferme la connexion sans défocaliser le `FocusNode`
+externe, et `initState()` n'en rouvre aucune (seul un *changement* de focus le
+fait). Dès que l'élément du champ était démonté puis réinflaté alors que le
+nœud était déjà focalisé, le clavier tombait et rien ne le rappelait. Le 2e tap
+marchait via `requestKeyboard()`, qui rouvre la connexion explicitement.
+
+Deux endroits démontaient l'élément, corrigés tous les deux (commit `27f52a3`) :
+le changement de type de widget dans `DesignSearchField` (`TextField` →
+`DecoratedBox(child: TextField)` quand `active` bascule), et l'absence de clé
+sur le bloc du champ dans la `Column` de `messages_screen.dart` — à l'ouverture
+l'en-tête change de type et les puces de filtre disparaissent, donc le bloc
+tombe dans la zone « milieu » de `updateChildren` où tout enfant sans clé est
+démonté.
+
+⚠ **Rien n'est prouvé hors appareil** : contrairement au cas « brouillon
+restauré » ci-dessous, aucun test ne couvre ça — la remontée du clavier logiciel
+n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
+
+- [ ] **Le cas décisif** : depuis la liste des messages, **un seul tap** sur le
+      champ de recherche → le clavier doit monter immédiatement et **rester**.
+- [ ] Enchaîner : saisir un terme sans re-toucher le champ, vérifier que le
+      filtrage et les sections **Personnes** / **Conversations** répondent.
+- [ ] Fermer par la flèche ←, puis rouvrir par un tap : le clavier doit remonter
+      du premier coup **à chaque fois**, pas seulement la première.
+- [ ] Non-régression visuelle (fiche 9b) : bordure accent, loupe orange et halo
+      3 px toujours présents en recherche — et **aucune ombre** quand le champ
+      est au repos (le `DecoratedBox` est désormais permanent).
+- [ ] Refaire la passe en **clair et en nocturne** : le correctif touche
+      `design_kit.dart`, donc tous les autres `DesignSearchField` du projet
+      (boutique, groupes, carte) — vérifier qu'aucun n'a gagné d'ombre parasite.
+- [ ] Boîte de réception **vide** : le champ n'est pas affiché dans cet état, la
+      recherche n'y est donc pas ouvrable — confirmer que c'est bien voulu.
+
+---
+
 ## Brouillon restauré — le composer restait sur le micro (2026-08-04)
 
 Bug constaté sur appareil (SM A515F, build debug, conversation « Mes notes ») :
