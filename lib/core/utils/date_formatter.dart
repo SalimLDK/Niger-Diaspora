@@ -52,4 +52,26 @@ class DateFormatter {
       return formatDate(date);
     }
   }
+
+  /// Méta d'une publication à soi, format « Hier · 18:40 » (fiche 5b).
+  /// Jour du jour / de la veille nommé, jour de la semaine en toutes lettres
+  /// dans les 7 jours, date courte au-delà.
+  static String formatPostMeta(DateTime date) =>
+      '${_postDayLabel(date)} · ${formatTime(date)}';
+
+  static String _postDayLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+
+    if (day == today) return "Aujourd'hui";
+    if (day == today.subtract(const Duration(days: 1))) return 'Hier';
+    if (today.difference(day).inDays < 7) {
+      final weekday = DateFormat('EEEE', 'fr_FR').format(date);
+      return weekday.isEmpty
+          ? weekday
+          : weekday[0].toUpperCase() + weekday.substring(1);
+    }
+    return DateFormat('d MMMM', 'fr_FR').format(date);
+  }
 }

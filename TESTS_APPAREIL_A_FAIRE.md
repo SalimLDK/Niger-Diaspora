@@ -29,16 +29,30 @@ validées une par une avec Salim avant branchement.
   ville s'affiche bien quand `originCity`/`currentCity` sont renseignés, les
   compteurs ne restent pas bloqués sur « — », et le rendu en nocturne (rayons
   serrés) reste cohérent.
-- [ ] **Brouillons de publication multiples** (`preferences_service.dart`,
-  `create_post_screen.dart`) — le brouillon unique devient une liste
-  (`post_drafts`), migration SharedPreferences v1 → v2. À vérifier sur
-  l'appareil **déjà installé** (donc avec un `post_draft` v1 en base) :
-  1) rédiger un post, quitter sans publier, relancer → le brouillon est
-  toujours là ; 2) en rédiger un second, quitter → **les deux** sont comptés
-  (« 2 publications non envoyées ») au lieu que le second écrase le premier ;
-  3) reprendre depuis Mon espace → l'éditeur ouvre le bon texte ; 4) publier →
-  le brouillon correspondant disparaît. ⚠ `adb install -r` vide les données :
-  installer **sans** réinstaller pour tester la migration.
+- [x] **Brouillons de publication multiples** (`preferences_service.dart`,
+  `create_post_screen.dart`) — vérifié le 2026-08-04 sur SM A515F : rédiger un
+  post puis « Annuler » écrit bien `flutter.post_drafts`, et la carte
+  brouillon apparaît dans Mes publications après relance de l'app.
+  ⚠ Le premier essai ne sauvegardait **rien** : `dispose()` appelait
+  `ref.read(...)`, ce qui lève, et `main.dart` renvoyant `FlutterError.onError`
+  vers Crashlytics, l'exception n'apparaissait **ni dans logcat ni à l'écran**.
+  Corrigé en capturant le notifier à l'`initState` + autosave débounce 800 ms.
+  Reste à vérifier à la main : 1) **deux** brouillons coexistent (le second
+  n'écrase pas le premier) ; 2) « Reprendre » ouvre le bon texte ; 3) publier
+  supprime le bon brouillon ; 4) la migration v1 → v2 sur une install qui
+  possède un `post_draft` d'avant (⚠ `adb install -r` vide les données).
+- [ ] **5b « Mes publications »** (`my_posts_screen.dart`, `my_post_card.dart`)
+  — en-tête sur mesure + loupe (filtre local), onglets pleins
+  « Publications · N » / « Repartages · N », carte de post compacte (méta,
+  vignette 56×56, barre d'engagement, « Modifier », menu ⋯). **Jamais vue avec
+  une vraie publication** : le compte de test en a zéro, seules la carte
+  brouillon et l'état vide ont été rendus à l'écran. À revoir sur un compte
+  qui publie : la ligne de méta (« Hier · 18:40 · Public »), la vignette
+  média, le compteur de repartages qui disparaît à 0, et la recherche.
+- [x] **5g « Votre première publication »** — vérifié le 2026-08-04 : cercle
+  104, titre Caprasimo, deux amorces, bouton plein et FAB. Les deux amorces
+  ouvrent l'éditeur pré-configuré (`?compose=photo|poll`) : **non testées**,
+  la photo demande la permission galerie sur l'appareil.
 
 ---
 

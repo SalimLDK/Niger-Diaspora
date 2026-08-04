@@ -350,7 +350,8 @@ class _NavCard extends ConsumerWidget {
         iconColor: tokens.accent2,
         label: 'Mes repartages',
         count: reposts,
-        onTap: () => context.push('/profile/reposts'),
+        // §5b, onglet Repartages actif — et non l'ancien écran dédié.
+        onTap: () => context.push('/profile/my-posts?tab=1'),
       ),
       _NavRow(
         tokens: tokens,

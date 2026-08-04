@@ -40,6 +40,7 @@ class FeedTokens {
     required this.listCardRadius,
     required this.statCardRadius,
     required this.iconTileRadius,
+    required this.compactCardRadius,
     required this.fabBg,
     required this.fabFg,
     required this.fabBorder,
@@ -125,6 +126,11 @@ class FeedTokens {
   /// Organic 11 ; Nocturne 8.
   final double iconTileRadius;
 
+  /// Carte de post compacte — celle de « Mes publications » (5b), sans
+  /// en-tête d'auteur, plus resserrée que la carte du fil ([cardRadius]).
+  /// Organic 24 ; Nocturne 8.
+  final double compactCardRadius;
+
   final Color fabBg;
   final Color fabFg;
   final Color? fabBorder;
@@ -166,6 +172,7 @@ class FeedTokens {
     listCardRadius: 8,
     statCardRadius: 8,
     iconTileRadius: 8,
+    compactCardRadius: 8,
     fabBg: Colors.transparent,
     fabFg: Color(0xFF9184D9),
     fabBorder: Color(0xFF9184D9),
@@ -218,6 +225,7 @@ class FeedTokens {
     listCardRadius: 22,
     statCardRadius: 18,
     iconTileRadius: 11,
+    compactCardRadius: 24,
     fabBg: Color(0xFFC67139),
     fabFg: Color(0xFFF5EAD8),
     fabBorder: null,

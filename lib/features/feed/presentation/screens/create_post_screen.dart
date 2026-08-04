@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +23,9 @@ import '../widgets/hashtag_highlighting_controller.dart';
 import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+
+/// Ce que l'éditeur doit ouvrir à l'arrivée (amorces de l'état vide §5g).
+enum ComposeIntent { blank, photo, poll }
 
 /// Brouillon de sondage composé avant publication (le post n'a pas encore
 /// d'id — voir `_publish()`).
@@ -60,13 +64,23 @@ class CreatePostScreen extends ConsumerStatefulWidget {
   /// l'utilisateur quitte l'écran sans publier.
   final String? draftId;
 
-  const CreatePostScreen({super.key, this.editingPost, this.draftId});
+  /// Amorce depuis l'état vide de Mes publications (§5g) : ouvre directement
+  /// le sélecteur de photos ou la feuille de sondage à l'arrivée.
+  final ComposeIntent compose;
+
+  const CreatePostScreen({
+    super.key,
+    this.editingPost,
+    this.draftId,
+    this.compose = ComposeIntent.blank,
+  });
 
   @override
   ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
 }
 
-class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
+class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
+    with WidgetsBindingObserver {
   final _contentController = HashtagHighlightingController();
   final _uploadService = ImageUploadService();
   final _videoUploadService = VideoUploadService();
@@ -100,6 +114,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   /// successives ne s'écrasent plus l'une l'autre.
   late final String _draftId;
 
+  /// Notifier des brouillons capturé à l'`initState`. **Ne pas remplacer par
+  /// un `ref.read` dans `dispose()`** : `ref` n'y est plus utilisable, et
+  /// comme `main.dart` renvoie `FlutterError.onError` vers Crashlytics,
+  /// l'exception ne s'affiche nulle part — le brouillon disparaissait en
+  /// silence.
+  PostDraftsNotifier? _draftsNotifier;
+
+  /// Sauvegarde différée pendant la frappe : le texte survit à un crash ou à
+  /// un « kill » de l'app, sans écrire à chaque caractère.
+  Timer? _draftDebounce;
+
   bool get _isEditing => widget.editingPost != null;
 
   /// Un post vidéo n'autorise pas l'ajout/suppression d'images en édition.
@@ -109,6 +134,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final post = widget.editingPost;
     if (post != null) {
       _contentController.text = post.content;
@@ -121,25 +147,65 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       // Nouvelle publication : reprend le brouillon demandé s'il y en a un
       // (carte « Brouillons » de Mon espace §5a, cartes brouillon §5b).
       _draftId = widget.draftId ?? const Uuid().v4();
-      final draft = ref.read(postDraftsProvider.notifier).byId(_draftId);
+      _draftsNotifier = ref.read(postDraftsProvider.notifier);
+      final draft = _draftsNotifier!.byId(_draftId);
       if (draft != null) {
         _contentController.text = draft.text;
       }
+      _contentController.addListener(_scheduleDraftSave);
+      // Amorces de §5g : on attend la première frame, sinon le sélecteur
+      // s'ouvrirait avant que l'écran ne soit monté.
+      if (widget.compose != ComposeIntent.blank) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          switch (widget.compose) {
+            case ComposeIntent.photo:
+              _pickImages();
+            case ComposeIntent.poll:
+              _pickPoll();
+            case ComposeIntent.blank:
+              break;
+          }
+        });
+      }
+    }
+  }
+
+  /// Quitter l'app par le bouton Accueil ne dépile pas l'écran : `dispose()`
+  /// n'est jamais appelé et le texte serait perdu. On sauvegarde donc aussi
+  /// dès que l'app passe en arrière-plan.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _persistDraft();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _draftDebounce?.cancel();
+    _contentController.removeListener(_scheduleDraftSave);
     // Quitter sans publier sauvegarde le texte en brouillon (édition d'un
     // post existant exclue : ce n'est pas un brouillon de nouvelle publication).
-    // Un texte vide supprime le brouillon plutôt que d'en laisser un fantôme.
-    if (!_isEditing && !_didPublish) {
-      ref
-          .read(postDraftsProvider.notifier)
-          .save(_draftId, _contentController.text);
-    }
+    _persistDraft();
     _contentController.dispose();
     super.dispose();
+  }
+
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(
+      const Duration(milliseconds: 800),
+      _persistDraft,
+    );
+  }
+
+  /// Un texte vide supprime le brouillon plutôt que d'en laisser un fantôme.
+  void _persistDraft() {
+    if (_isEditing || _didPublish) return;
+    _draftsNotifier?.save(_draftId, _contentController.text);
   }
 
   Future<void> _pickImages() async {

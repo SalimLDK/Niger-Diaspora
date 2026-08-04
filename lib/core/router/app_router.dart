@@ -356,7 +356,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // → écran « Profil supprimé ». (Ordre = priorité de matching dans GoRouter.)
       GoRoute(
         path: '/profile/my-posts',
-        builder: (context, state) => const MyPostsScreen(),
+        // ?tab=1 ouvre directement l'onglet Repartages (§5a → §5b).
+        builder:
+            (context, state) => MyPostsScreen(
+              initialTab:
+                  state.uri.queryParameters['tab'] == '1' ? 1 : 0,
+            ),
       ),
       GoRoute(
         path: '/profile/saved-posts',
@@ -870,12 +875,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/feed/create',
-        // ?draft=<id> reprend un brouillon local existant (§5a/§5b) ; sans
-        // paramètre, l'éditeur ouvre une nouvelle rédaction.
-        builder:
-            (context, state) => CreatePostScreen(
-              draftId: state.uri.queryParameters['draft'],
-            ),
+        // ?draft=<id> reprend un brouillon local existant (§5a/§5b) ;
+        // ?compose=photo|poll ouvre directement le sélecteur correspondant
+        // (amorces de l'état vide §5g). Sans paramètre : rédaction vierge.
+        builder: (context, state) {
+          final compose = switch (state.uri.queryParameters['compose']) {
+            'photo' => ComposeIntent.photo,
+            'poll' => ComposeIntent.poll,
+            _ => ComposeIntent.blank,
+          };
+          return CreatePostScreen(
+            draftId: state.uri.queryParameters['draft'],
+            compose: compose,
+          );
+        },
       ),
       // Hub « Mon espace » — doit précéder '/feed/:postId' (sinon « space »
       // serait interprété comme un postId).
