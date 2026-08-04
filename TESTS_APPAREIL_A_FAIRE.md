@@ -14,6 +14,38 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Fuseau horaire — heures affichées en UTC (2026-08-04)
+
+Bug constaté sur appareil (SM A515F, `America/Toronto` = UTC-4) : une
+publication créée à 02:01 s'affichait « 06:01 ». Les dates étaient
+désérialisées avec `DateTime.parse` sur des chaînes ISO terminées par `Z`,
+donc en UTC, et `DateFormat` imprime les composantes telles quelles.
+
+Corrigé en normalisant **à la désérialisation** (tout `DateTime` sortant d'un
+modèle est local, cf. `lib/core/utils/date_parsing.dart`) et en réencodant
+en UTC explicite à la sérialisation. 21 tests unitaires couvrent la
+régression, mais rien de tout cela ne prouve le rendu réel : à vérifier sur
+appareil, **hors du fuseau UTC**.
+
+- [ ] Fil : l'heure d'une publication récente correspond à l'horloge du téléphone
+- [ ] Fil : « il y a X min » cohérent juste après publication
+- [ ] Discussion : horodatage des messages, et séparateurs de jour
+      (« Aujourd'hui » / « Hier ») — tester en particulier un message envoyé
+      **après 20:00 heure locale**, cas qui basculait au lendemain
+- [ ] Commentaires, notifications, événements (début/fin), appels (journal),
+      stories : mêmes vérifications
+- [ ] Aller-retour serveur : publier, **quitter et rouvrir l'app**, vérifier que
+      l'heure n'a pas bougé (valide le réencodage UTC des écritures)
+- [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure
+
+⚠️ Données déjà en base : les écritures antérieures partaient parfois sans
+suffixe de fuseau (`toIso8601String()` sur une date locale), et Postgres les a
+donc enregistrées comme de l'UTC. Ces lignes-là restent décalées ; le correctif
+ne vaut que pour les écritures suivantes. À trancher : reprise de données ou
+non.
+
+---
+
 ## Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)
 
 Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
