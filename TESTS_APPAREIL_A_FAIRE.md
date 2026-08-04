@@ -141,8 +141,9 @@ l'URI. Deux causes, corrigées ensemble :
 
 ⚠️ **Le clic sur un lien n'ouvre l'app que si sa signature est déclarée.**
 `assetlinks.json` couvre maintenant Play App Signing **et la clé release
-locale** (`DD:A6:5C:…`) — donc un APK release installé à la main vérifie ses
-liens, une fois le hosting redéployé. La clé **debug** (`87:32:AD:…`) n'y est
+locale** (`DD:A6:5C:…`), et il est **déployé** depuis le 2026-08-04 sur
+`diasponiger.web.app` comme sur `diaspo-niger.web.app` — donc un APK release
+installé à la main vérifie ses liens. La clé **debug** (`87:32:AD:…`) n'y est
 pas : sur un build debug, Android ouvrira Chrome. Tester alors avec un intent
 explicite, qui contourne la vérification :
 
@@ -169,11 +170,11 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 
 **À faire hors appareil :**
 
-- [ ] ⛔ **Redéployer le hosting — BLOQUÉ, ne pas lancer `firebase deploy`
-      en l'état.** Vérifié le 2026-08-04 : `public/` est un vestige, la
-      production n'a **jamais** été déployée depuis ce dépôt. Les 8 fichiers du
-      site sont plus riches en ligne que dans le dépôt (contenu comparé hors
-      fins de ligne) :
+- [x] ✅ **Hosting déployé le 2026-08-04**, après rapatriement — voir plus bas.
+      Le blocage décrit ci-dessous est **levé**, il est conservé pour mémoire.
+- [ ] ⛔ *(historique)* **`public/` était un vestige** : la production n'avait
+      **jamais** été déployée depuis ce dépôt. Les 8 fichiers versionnés étaient
+      plus pauvres que ceux en ligne (contenu comparé hors fins de ligne) :
 
       | Fichier | Dépôt | En ligne |
       |---|---|---|
@@ -192,14 +193,36 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
       amputerait l'AASA (Universal Links iOS). Le déploiement Firebase est
       atomique : impossible de n'envoyer que `assetlinks.json`.
 
-      Ordre à suivre : rapatrier d'abord les fichiers en ligne dans `public/`,
-      réappliquer le correctif `assetlinks.json` par-dessus, **puis** déployer.
-- [ ] ⚠️ **`firebase.json` ne déclare qu'un site sur les trois** du projet
-      (`firebase hosting:sites:list`) : `diaspo-niger`, `diaspo-niger-admin` et
-      `diasponiger`. Les liens de l'app pointent sur **`diasponiger.web.app`**
-      (`DEEP_LINK_BASE_URL` + App Links du manifest), qui n'est pas déclaré :
-      un `firebase deploy --only hosting` ne toucherait donc même pas le domaine
-      concerné. À déclarer avant tout déploiement.
+      S'y ajoutaient **9 fichiers servis en production et totalement absents du
+      dépôt** — toutes les versions anglaises (`*-en.html`) et le code de
+      conduite (`code-of-conduct.html`, `code-of-conduct-en.html`) — ainsi que
+      les 9 rewrites sans extension correspondants, absents de `firebase.json`.
+
+      Résolu : les 21 fichiers réellement servis ont été récupérés depuis
+      `diasponiger.web.app` (contenu identique sur les deux sites, vérifié
+      fichier par fichier) et versionnés, `assetlinks.json` réappliqué
+      par-dessus, rewrites complétés. Avant déploiement, `public/` ne s'écartait
+      de la production que par ce seul fichier.
+- [x] ✅ **`firebase.json` déclare désormais les deux sites publics.** Le projet
+      en a trois (`firebase hosting:sites:list`) : `diaspo-niger`,
+      `diaspo-niger-admin` et `diasponiger`. Seul le premier était déclaré,
+      alors que les liens de l'app pointent sur **`diasponiger.web.app`**
+      (`DEEP_LINK_BASE_URL` + App Links du manifest) — un déploiement n'aurait
+      même pas touché le domaine concerné. Les deux sites publics ont maintenant
+      leur bloc (config identique, même dossier `public`) ; `diaspo-niger-admin`
+      reste délibérément hors périmètre.
+
+      ⚠️ Une **cible multi-sites ne fonctionne pas** : `firebase target:apply
+      hosting <cible> siteA siteB` est accepté, mais `deploy` et
+      `hosting:channel:deploy` refusent ensuite avec « linked to multiple sites,
+      but only one is permitted » (CLI 14.27). D'où la duplication du bloc — si
+      l'un des deux est modifié, penser à l'autre.
+
+      ⚠️ Les fins de ligne diffèrent d'un fichier à l'autre en production (CRLF
+      dans `index.html`, LF dans les pages `-en`) et git a prévenu qu'il
+      convertira en CRLF « la prochaine fois qu'il touchera » ces fichiers. Un
+      futur `git checkout` changerait donc leur contenu octet à octet sans rien
+      changer au rendu. Comparer avec la prod avant de redéployer.
 - [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
       App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
       pour une app déjà installée.

@@ -4,12 +4,7 @@
   },
   "targets": {
     "diaspo-niger": {
-      "hosting": {
-        "web": [
-          "diaspo-niger",
-          "diasponiger"
-        ]
-      }
+      "hosting": {}
     }
   },
   "etags": {}
