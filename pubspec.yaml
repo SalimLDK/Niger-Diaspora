@@ -241,4 +241,8 @@ flutter:
     - .env
     - assets/images/
     - assets/icons/
+    # Styles Google Maps clair/sombre (fiches 7d et 8b). Sans cette
+    # déclaration, `GoogleMap.style` reste nul et la carte garde le rendu
+    # Google par défaut — clair, même en thème nocturne.
+    - assets/map_styles/
 

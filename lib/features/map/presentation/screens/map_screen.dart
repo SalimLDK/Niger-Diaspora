@@ -241,6 +241,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
       });
     } catch (e, stackTrace) {
       LoggerService.w('MapScreen: failed to load map styles', e, stackTrace);
+      // Les deux JSON ont manqué au bundle pendant longtemps sans que rien ne
+      // le montre : le style restait nul et la carte gardait le rendu Google
+      // par défaut, clair même en nocturne. L'assert casse le débogage plutôt
+      // que de laisser repasser la panne en silence.
+      assert(false, 'assets/map_styles/{light,dark}.json introuvables : $e');
     }
   }
 
