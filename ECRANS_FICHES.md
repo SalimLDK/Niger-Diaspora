@@ -493,6 +493,10 @@ Corrigé en gardant le champ au même rang d'enfant dans les deux états et en n
 faisant varier que ce qui l'entoure. `requestFocus` en post-frame ne suffisait
 pas.
 
+**Le même piège, deux crans plus bas** (voir « deux taps » ci-dessous) : garder
+le rang ne suffit pas non plus. Ce qui compte est que l'**élément** du champ
+survive au rebuild — le rang n'y donne droit que si les frères sont stables.
+
 **Vu et vérifié de bout en bout** (2026-08-04, SM A515F, nocturne) : puces
 « Tout · 2 / Personnes · 1 / Conversations · 1 », section Personnes avec
 l'avatar rond, « **Sal**im L. » surligné dans les conversations, et la ligne
@@ -502,13 +506,39 @@ Le surlignage a dû être décliné en nocturne : posées telles quelles sur le
 fond sombre, les valeurs claires de la maquette (`#F7E0CE`) faisaient un pavé
 beige lumineux. En sombre : fond `#3A2A1C`, texte `#F4A574`.
 
-⚠️ **Défaut ouvert, non résolu** : le premier tap sur le champ ouvre l'en-tête
-de recherche et le champ garde le focus, **mais le clavier ne se lève qu'au
-second tap**. Trois pistes essayées sans succès — `requestFocus` en
-post-frame, `SystemChannels.textInput.invokeMethod('TextInput.show')`, et le
-maintien du champ au même rang d'enfant dans la `Row` comme dans la `Column`.
-La saisie et les résultats fonctionnent une fois le clavier levé. À reprendre
-en instrumentant `FocusManager`, pas à l'aveugle.
+**Le « deux taps » du clavier — résolu (2026-08-04).** Le premier tap ouvrait
+l'en-tête de recherche et le champ gardait le focus, mais le clavier ne se
+levait qu'au second tap.
+
+Ce n'était pas un problème de focus, et c'est pourquoi les trois pistes
+tentées (`requestFocus` en post-frame,
+`SystemChannels.textInput.invokeMethod('TextInput.show')`, maintien du rang
+dans la `Row` et la `Column`) ne pouvaient pas marcher : le `FocusNode` ne
+perdait jamais le focus. C'était la `TextInputConnection` qui se fermait.
+
+Mécanique exacte : `EditableTextState.dispose()` ferme la connexion clavier
+mais **ne défocalise pas** le `FocusNode` externe ; et `initState()` n'ouvre
+aucune connexion — seul un *changement* de focus le fait. Donc dès que
+l'élément du champ est démonté puis réinflaté alors que le nœud est déjà
+focalisé, le clavier tombe et **plus rien ne le rappelle**. Le second tap
+marchait parce que `TextField` appelle `requestKeyboard()`, qui rouvre la
+connexion explicitement quand le focus est déjà là.
+
+Deux endroits démontaient l'élément, il fallait corriger les deux :
+
+1. `DesignSearchField` renvoyait `TextField` quand inactif et
+   `DecoratedBox(child: TextField)` quand actif. Changer de type de widget au
+   même rang force Flutter à réinflater. → le `DecoratedBox` est désormais
+   permanent, `boxShadow: const []` quand inactif.
+2. Dans la `Column` de l'écran, le bloc du champ n'avait pas de clé. À
+   l'ouverture, l'en-tête (rang 0) change de type et les puces de filtre
+   (rang 2) disparaissent : `updateChildren` n'apparie donc le bloc ni par le
+   haut ni par le bas, il tombe dans la zone « milieu » — où tout enfant sans
+   clé est démonté. → `ValueKey('messages-search-field')` sur le `Padding`.
+
+À retenir pour les autres écrans : **garder un widget au même rang ne préserve
+son élément que si ses frères sont stables**. Dès que des frères
+apparaissent, disparaissent ou changent de type, seule une clé le sauve.
 
 ## 9d — Groupe, fiche
 

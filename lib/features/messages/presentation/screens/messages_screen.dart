@@ -54,13 +54,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     super.initState();
     _searchFocus.addListener(() {
       if (_searchFocus.hasFocus && !_searchOpen) {
-        // ⚠ Défaut ouvert : le premier tap ouvre bien l'en-tête de recherche
-        // et le champ garde le focus, mais le clavier ne se lève qu'au second
-        // tap. Trois pistes essayées sans succès — `requestFocus` en
-        // post-frame, `SystemChannels.textInput.invokeMethod('TextInput.show')`,
-        // et le maintien du champ au même rang d'enfant dans la `Row` comme
-        // dans la `Column`. La saisie et les résultats fonctionnent, eux.
-        // Ne pas retenter à l'aveugle : instrumenter `FocusManager` d'abord.
+        // Ce `setState` reconstruit l'écran pendant que le champ vient de
+        // prendre le focus. Il ne doit RIEN démonter sur le chemin du champ :
+        // un `EditableText` recréé ferme sa `TextInputConnection` (clavier qui
+        // retombe) sans que ce `FocusNode` perde le focus, donc plus rien ne la
+        // rouvre — c'était le bug « il faut deux taps ». Deux gardes le
+        // protègent : la `ValueKey` sur le bloc du champ plus bas, et le type
+        // de widget constant dans `DesignSearchField`. Ne pas les retirer.
         setState(() => _searchOpen = true);
       }
     });
@@ -339,10 +339,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         child: Column(
           children: [
             // En recherche (fiche 9b), l'en-tête se replie sur ← + champ actif.
-            // Le champ garde sa place d'enfant n°2 de la colonne dans les deux
-            // états : le déplacer dans un autre sous-arbre le ferait
-            // reconstruire, il perdrait le focus et le clavier ne s'ouvrirait
-            // jamais (constaté à l'écran).
+            // Le champ reste au même rang dans la colonne, mais le rang seul ne
+            // suffit pas à préserver son élément quand ses frères changent :
+            // c'est la `ValueKey` posée dessus qui s'en charge (voir plus bas).
             if (_searchOpen)
               const SizedBox.shrink()
             else
@@ -374,6 +373,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               const SizedBox.shrink()
             else
               Padding(
+                // Clé indispensable, pas décorative. À l'ouverture de la
+                // recherche, deux frères changent d'un coup : l'en-tête (rang 0)
+                // change de type et les puces de filtre (rang 2) disparaissent.
+                // `updateChildren` ne peut alors apparier ce bloc ni par le haut
+                // ni par le bas : il tombe dans la zone « milieu », où tout
+                // enfant SANS clé est démonté. Le champ serait reconstruit, sa
+                // `TextInputConnection` fermée, et le clavier ne remonterait
+                // qu'au second tap. Avec une clé stable, l'élément est réapparié
+                // et l'`EditableText` survit au rebuild.
+                key: const ValueKey('messages-search-field'),
                 padding:
                     _searchOpen
                         ? const EdgeInsets.fromLTRB(16, 4, 16, 12)

@@ -1177,16 +1177,25 @@ class DesignSearchField extends StatelessWidget {
                 : null,
       ),
     );
-    if (!active) return field;
+    // Le widget rendu ici doit garder le MÊME type dans les deux états. Passer
+    // de `TextField` à `DecoratedBox(child: TextField)` quand `active` bascule
+    // change le type au même rang : Flutter démonte l'élément et réinflate le
+    // sous-arbre. L'`EditableText` recréé ferme sa `TextInputConnection` (le
+    // clavier retombe) sans que le `FocusNode` externe perde le focus — donc
+    // aucun événement de focus ne vient la rouvrir, et il faut un second tap.
+    // On garde donc le `DecoratedBox` en permanence, sans ombre quand inactif.
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
-            spreadRadius: 3,
-          ),
-        ],
+        boxShadow:
+            active
+                ? [
+                  BoxShadow(
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
+                    spreadRadius: 3,
+                  ),
+                ]
+                : const [],
       ),
       child: field,
     );
