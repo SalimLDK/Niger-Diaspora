@@ -74,8 +74,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// renseignée, pour qu'on voie qu'il y a quelque chose à corriger.
   bool _showOrigin = false;
 
-  bool _showAllInterests = false;
-
   // Pays et ville actuelle
   CountryOption? _selectedCountry;
 
@@ -370,16 +368,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   /// Ce qu'on montre d'une liste de puces : tout si elle est dépliée, sinon
   /// les seuls choix déjà faits. Repliée et vide, elle ne laisse que la puce
-  /// « +N » — un seul appui pour ouvrir le catalogue.
-  Iterable<String> _visibleEntries(
-    Iterable<String> toutes,
-    List<String> choisies,
-    bool depliee,
-  ) {
-    if (depliee) return toutes;
-    return toutes.where(choisies.contains);
-  }
-
   String _getFinalProfession() {
     if (_selectedProfession == 'Autre') {
       return _customProfessionController.text.trim();
@@ -762,105 +750,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
                           // Langues parlées
                           _FieldLabel(l10n.spokenLanguages),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ..._visibleEntries(
-                                _languagesWithFlags.keys,
-                                _selectedLanguages,
-                                // Jamais déplié sur place : le choix se fait
-                                // dans la feuille.
-                                false,
-                              ).map((cle) {
-                                final entry = MapEntry(
-                                  cle,
-                                  _languagesWithFlags[cle]!,
-                                );
-                                final isSelected = _selectedLanguages.contains(
-                                  entry.key,
-                                );
-                                return _LanguageChip(
-                                  language: entry.key,
-                                  code: entry.value,
-                                  isSelected: isSelected,
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedLanguages.remove(entry.key);
-                                      } else {
-                                        _selectedLanguages.add(entry.key);
-                                      }
-                                    });
-                                  },
-                                );
-                              }),
-                              // Masquée quand tout est déjà choisi : une puce
-                              // « +0 langues » n'aurait rien à ouvrir.
-                              if (_selectedLanguages.length <
-                                  _languagesWithFlags.length)
-                                _MoreChip(
-                                  label: l10n.plusMoreLanguages(
-                                    _languagesWithFlags.length -
-                                        _selectedLanguages.length,
-                                  ),
-                                  onTap: _choisirLangues,
-                                ),
-                            ],
+                          _ChipsField(
+                            options: _languagesWithFlags,
+                            selection: _selectedLanguages,
+                            restantLabel: l10n.plusMoreLanguages,
+                            videLabel: l10n.spokenLanguagesEmptyAction,
+                            onOuvrir: _choisirLangues,
+                            onRetirer: (cle) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedLanguages.remove(cle));
+                            },
                           ),
                           const SizedBox(height: 24),
 
                           // Centres d'intérêt
                           _FieldLabel(l10n.interests),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ..._visibleEntries(
-                                _interestsWithIcons.keys,
-                                _selectedInterests,
-                                _showAllInterests,
-                              ).map((cle) {
-                                final entry = MapEntry(
-                                  cle,
-                                  _interestsWithIcons[cle]!,
-                                );
-                                final isSelected = _selectedInterests.contains(
-                                  entry.key,
-                                );
-                                return _SelectableChip(
-                                  label: entry.key,
-                                  icon: entry.value,
-                                  isSelected: isSelected,
-                                  color: AppColors.primary,
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedInterests.remove(entry.key);
-                                      } else {
-                                        _selectedInterests.add(entry.key);
-                                      }
-                                    });
-                                  },
-                                );
-                              }),
-                              if (!_showAllInterests)
-                                _MoreChip(
-                                  label: l10n.plusMoreCount(
-                                    _interestsWithIcons.length -
-                                        _visibleEntries(
-                                          _interestsWithIcons.keys,
-                                          _selectedInterests,
-                                          false,
-                                        ).length,
-                                  ),
-                                  onTap: () => setState(
-                                    () => _showAllInterests = true,
-                                  ),
-                                ),
-                            ],
+                          _ChipsField(
+                            options: {
+                              for (final cle in _interestsWithIcons.keys)
+                                cle: null,
+                            },
+                            selection: _selectedInterests,
+                            restantLabel: l10n.plusMoreCount,
+                            videLabel: l10n.interestsEmptyAction,
+                            onOuvrir: _choisirInterets,
+                            onRetirer: (cle) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedInterests.remove(cle));
+                            },
                           ),
                           const SizedBox(height: 24),
 
@@ -1578,9 +1495,36 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   ///
   /// La sélection se fait sur une copie : fermer la feuille sans valider
   /// laisse le profil intact.
-  Future<void> _choisirLangues() async {
+  Future<void> _choisirLangues() => _choisirDansListe(
+    titre: AppLocalizations.of(context)!.spokenLanguages,
+    options: _languagesWithFlags,
+    selection: _selectedLanguages,
+  );
+
+  /// Sélecteur multi-choix des centres d'intérêt (§20a).
+  ///
+  /// La puce « +N » dépliait la liste **sur place** : la page doublait de
+  /// hauteur et tout ce qui suivait partait sous le pli. Elle ouvre désormais
+  /// la même feuille que les langues — deux blocs jumeaux, deux mécaniques
+  /// identiques.
+  Future<void> _choisirInterets() => _choisirDansListe(
+    titre: AppLocalizations.of(context)!.interests,
+    options: {for (final cle in _interestsWithIcons.keys) cle: null},
+    selection: _selectedInterests,
+  );
+
+  /// Feuille commune aux langues et aux centres d'intérêt.
+  ///
+  /// [options] associe chaque libellé à un code court facultatif (« FR »,
+  /// « HA »…), affiché en tête de ligne. La sélection se fait sur une copie :
+  /// fermer la feuille sans valider laisse le profil intact.
+  Future<void> _choisirDansListe({
+    required String titre,
+    required Map<String, String?> options,
+    required List<String> selection,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
-    final brouillon = List<String>.from(_selectedLanguages);
+    final brouillon = List<String>.from(selection);
 
     final valide = await showModalBottomSheet<bool>(
       context: context,
@@ -1603,7 +1547,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   children: [
                     Expanded(
                       child: Text(
-                        l10n.spokenLanguages,
+                        titre,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -1625,7 +1569,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  children: _languagesWithFlags.entries.map((e) {
+                  children: options.entries.map((e) {
                     final choisie = brouillon.contains(e.key);
                     return CheckboxListTile(
                       value: choisie,
@@ -1645,15 +1589,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                         e.key,
                         style: TextStyle(color: ctx.textPrimaryColor),
                       ),
-                      secondary: Text(
-                        e.value,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                          color: ctx.textTertiaryColor,
-                        ),
-                      ),
+                      secondary:
+                          e.value == null
+                              ? null
+                              : Text(
+                                e.value!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                  color: ctx.textTertiaryColor,
+                                ),
+                              ),
                     );
                   }).toList(),
                 ),
@@ -1690,7 +1637,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
 
     if (valide == true && mounted) {
-      setState(() => _selectedLanguages = brouillon);
+      setState(() {
+        selection
+          ..clear()
+          ..addAll(brouillon);
+      });
     }
   }
 
@@ -1847,135 +1798,137 @@ class _FieldLabel extends StatelessWidget {
 }
 
 
-class _SelectableChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
+/// Rangée de puces d'un champ multi-choix (langues, centres d'intérêt).
+///
+/// Ne montre que ce qui est **retenu**, plus une puce d'ouverture. Rien de
+/// sélectionné n'affichait auparavant qu'un « +10 » nu, qui ne dit ni ce
+/// qu'on choisit ni qu'on peut le faire : la puce porte alors une invitation
+/// en toutes lettres.
+class _ChipsField extends StatelessWidget {
+  /// Libellé → code court facultatif, dans l'ordre d'affichage.
+  final Map<String, String?> options;
+  final List<String> selection;
 
-  const _SelectableChip({
-    required this.label,
-    required this.icon,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
+  /// Libellé de la puce d'ouverture quand il reste des choix à faire.
+  final String Function(int) restantLabel;
+
+  /// Libellé de la puce d'ouverture quand rien n'est encore choisi.
+  final String videLabel;
+  final VoidCallback onOuvrir;
+  final ValueChanged<String> onRetirer;
+
+  const _ChipsField({
+    required this.options,
+    required this.selection,
+    required this.restantLabel,
+    required this.videLabel,
+    required this.onOuvrir,
+    required this.onRetirer,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? color.withValues(alpha: 0.15)
-                  : context.surfaceVariantColor.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? color : context.borderColor,
-            width: isSelected ? 2 : 1,
+    final retenues = options.keys.where(selection.contains).toList();
+    final restant = options.length - retenues.length;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final cle in retenues)
+          _ProfileChip(
+            label: cle,
+            code: options[cle],
+            isSelected: true,
+            onTap: () => onRetirer(cle),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? color : context.textTertiaryColor,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? color : context.textSecondaryColor,
-              ),
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              AppIcon(AppIcon.checkCircle, size: 16, color: color),
-            ],
-          ],
-        ),
-      ),
+        // Masquée quand tout est déjà retenu : une puce « +0 » n'aurait rien
+        // à ouvrir.
+        if (restant > 0)
+          _ProfileChip(
+            label: retenues.isEmpty ? videLabel : restantLabel(restant),
+            isSelected: false,
+            onTap: onOuvrir,
+          ),
+      ],
     );
   }
 }
 
-class _LanguageChip extends StatelessWidget {
-  final String language;
-  final String code;
+/// Puce de sélection du profil (§20a) : pilule au rayon 999, remplie à
+/// l'encre quand elle est retenue, en simple contour sinon.
+///
+/// Une seule puce pour les langues et les centres d'intérêt : la fiche leur
+/// donne le même traitement, seul le code court de deux lettres change.
+/// L'ancienne paire (`_SelectableChip` / `_LanguageChip`) divergeait sur le
+/// rayon, la couleur d'accent et jusqu'à la coche de sélection.
+class _ProfileChip extends StatelessWidget {
+  final String label;
+
+  /// Code court affiché avant le libellé (« FR », « HA »). Absent pour les
+  /// centres d'intérêt.
+  final String? code;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _LanguageChip({
-    required this.language,
-    required this.code,
+  const _ProfileChip({
+    required this.label,
     required this.isSelected,
     required this.onTap,
+    this.code,
   });
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor = context.adaptiveSecondaryColor;
+    final fond = isSelected ? context.textPrimaryColor : Colors.transparent;
+    final texte =
+        isSelected ? context.backgroundColor : context.textSecondaryColor;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? secondaryColor.withValues(alpha: 0.15)
-                  : context.surfaceVariantColor.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? secondaryColor : context.borderColor,
-            width: isSelected ? 2 : 1,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: fond,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isSelected
+                  ? context.textPrimaryColor
+                  : context.borderStrongColor,
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 28,
-              height: 20,
-              decoration: BoxDecoration(
-                color: isSelected ? secondaryColor : context.textTertiaryColor,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  code,
-                  style: const TextStyle(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (code != null) ...[
+                Text(
+                  code!,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
                     fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+                    fontWeight: FontWeight.w700,
+                    // Le code reste lisible sans voler la vedette au nom :
+                    // même encre, atténuée.
+                    color: texte.withValues(alpha: 0.7),
                   ),
                 ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: texte,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              language,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? secondaryColor : context.textSecondaryColor,
-              ),
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              AppIcon(AppIcon.checkCircle, size: 16, color: secondaryColor),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -2546,38 +2499,3 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
   }
 }
 
-/// Puce « +N » qui déplie le catalogue complet (§20a). En contour : elle
-/// n'est pas un choix, c'est une porte.
-class _MoreChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _MoreChip({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: context.borderStrongColor),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w600,
-              color: context.textSecondaryColor,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

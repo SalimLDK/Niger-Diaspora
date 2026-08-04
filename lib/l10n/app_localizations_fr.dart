@@ -1818,6 +1818,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get spokenLanguages => 'Langues parlées';
 
   @override
+  String get spokenLanguagesEmptyAction => 'Choisir mes langues';
+
+  @override
+  String get interestsEmptyAction => 'Choisir mes centres d\'intérêt';
+
+  @override
   String get otherMembersCanSee =>
       'Les autres membres peuvent voir votre profil';
 
