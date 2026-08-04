@@ -20,6 +20,10 @@ class CustomTextField extends StatefulWidget {
   /// Passer une chaîne vide masque le compteur natif : certains écrans
   /// affichent le leur sur la ligne du libellé (§20a).
   final String? counterText;
+
+  /// Widget aligné à droite sur la ligne du libellé — un compteur de
+  /// caractères, par exemple (§20a).
+  final Widget? labelTrailing;
   final bool enabled;
   final bool readOnly;
   final void Function(String)? onChanged;
@@ -44,6 +48,7 @@ class CustomTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.counterText,
+    this.labelTrailing,
     this.enabled = true,
     this.readOnly = false,
     this.onChanged,
@@ -105,13 +110,21 @@ class _CustomTextFieldState extends State<CustomTextField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.showLabel) ...[
-          Text(
-            widget.label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: labelColor,
-            ),
+          Row(
+            children: [
+              Text(
+                widget.label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: labelColor,
+                ),
+              ),
+              if (widget.labelTrailing != null) ...[
+                const Spacer(),
+                widget.labelTrailing!,
+              ],
+            ],
           ),
           const SizedBox(height: AppSpacing.spacing8),
         ],

@@ -807,33 +807,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               // Sélecteur de visibilité du numéro
                               _buildPhoneVisibilitySelector(),
                               const SizedBox(height: 16),
-                              // Compteur de bio (§20a). Il est posé au-dessus
-                              // du champ plutôt que dans sa décoration : le
-                              // compteur natif de Flutter s'affiche sous le
-                              // champ, où il se confond avec un texte d'aide.
-                              // `counterText: ''` le neutralise.
-                              ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _bioController,
-                                builder: (context, value, _) {
-                                  final n = value.text.characters.length;
-                                  return Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(bottom: 6),
-                                      child: Text(
-                                        '$n/$_kBioMaxLength',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: n >= _kBioMaxLength
-                                              ? context.errorColor
-                                              : context.textTertiaryColor,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                              // Compteur de bio (§20a), sur la ligne du
+                              // libellé. Posé au-dessus du champ il flottait
+                              // sans attache et semblait appartenir au bloc
+                              // précédent. Le compteur natif de Flutter, lui,
+                              // s'affiche sous le champ où il se confond avec
+                              // un texte d'aide : `counterText: ''` l'éteint.
                               CustomTextField(
                                 controller: _bioController,
                                 label: l10n.bio,
@@ -841,6 +820,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 maxLines: 3,
                                 maxLength: _kBioMaxLength,
                                 counterText: '',
+                                labelTrailing:
+                                    ValueListenableBuilder<TextEditingValue>(
+                                  valueListenable: _bioController,
+                                  builder: (context, value, _) {
+                                    final n = value.text.characters.length;
+                                    return Text(
+                                      '$n/$_kBioMaxLength',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: n >= _kBioMaxLength
+                                            ? context.errorColor
+                                            : context.textTertiaryColor,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
