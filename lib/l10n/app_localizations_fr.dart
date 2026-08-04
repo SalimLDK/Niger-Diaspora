@@ -15594,6 +15594,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileCompleteYours => 'Complétez votre profil';
 
   @override
+  String profileCompletionPercent(int percent) {
+    return 'Votre profil est complété à $percent %';
+  }
+
+  @override
+  String get profileCompletionPitch =>
+      'Un profil complet vous rend visible dans la recherche et sur la carte des membres.';
+
+  @override
+  String get profileCompletionAdd => 'Ajouter';
+
+  @override
+  String get profileToComplete => 'Profil à compléter';
+
+  @override
   String get profileCompleteMine => 'Compléter mon profil';
 
   @override

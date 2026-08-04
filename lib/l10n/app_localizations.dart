@@ -28586,6 +28586,30 @@ abstract class AppLocalizations {
   /// **'Complétez votre profil'**
   String get profileCompleteYours;
 
+  /// Titre du bandeau de complétude du profil (§11f)
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre profil est complété à {percent} %'**
+  String profileCompletionPercent(int percent);
+
+  /// Phrase d'explication du bandeau de complétude (§11f)
+  ///
+  /// In fr, this message translates to:
+  /// **'Un profil complet vous rend visible dans la recherche et sur la carte des membres.'**
+  String get profileCompletionPitch;
+
+  /// Bouton d'une ligne à compléter du bandeau de complétude (§11f)
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get profileCompletionAdd;
+
+  /// Sous-ligne d'identité quand le profil est incomplet (§11f)
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil à compléter'**
+  String get profileToComplete;
+
   /// Action du bandeau de completude
   ///
   /// In fr, this message translates to:

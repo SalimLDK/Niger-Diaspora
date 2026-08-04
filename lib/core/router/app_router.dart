@@ -347,7 +347,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Routes outside of shell (no bottom navigation)
       GoRoute(
         path: '/profile/edit',
-        builder: (context, state) => const EditProfileScreen(),
+        // ?focus=photo|city|job|languages|bio — le bandeau de complétude
+        // (§11f) ouvre le formulaire sur le champ qu'il propose d'ajouter.
+        builder:
+            (context, state) => EditProfileScreen(
+              focusField: state.uri.queryParameters['focus'],
+            ),
       ),
       // ⚠️ Les sous-routes statiques /profile/* DOIVENT être déclarées AVANT
       // '/profile/:userId' : sinon GoRouter capture "my-posts" / "saved-posts" /
