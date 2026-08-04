@@ -94,6 +94,27 @@ aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
 
 ---
 
+## Menus déroulants bornés partout (`isExpanded`, 2026-08-04)
+
+Balayage des 16 menus restants, même cause que le champ « Type * » ci-dessous.
+Un seul écran débordait réellement à l'échelle 1.0 ; le reste est du
+durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
+
+- [ ] **Ambassade → « Demande administrative »** : le champ « Type de demande »
+  ne déborde plus. C'est le cas le plus visible (débordait de 234 px en test).
+- [ ] **Boutique → « Vendre un produit »** : l'en-tête de carte « Paramètres de
+  taxe » ne déborde plus, et les menus Devise / Catégorie / État / Pays sont
+  lisibles.
+- [ ] **Transferts → « Ajouter un bénéficiaire »** : choisir le type **compte
+  bancaire** (les menus « banque » et « ville » n'existent que dans ce mode —
+  aucun test ne les couvre), puis vérifier les trois menus.
+- [ ] **Recherche d'employés d'une ambassade** : filtre « Département » —
+  aucun test ne couvre cet écran, son datasource tape le réseau au démarrage.
+- [ ] Créer une entreprise, créer un podcast, fiche entreprise (feuille « Type
+  de publication ») : vérifier qu'aucun libellé n'est tronqué à tort.
+
+---
+
 ## Débordement du champ « Type * » — création d'ambassade (2026-08-04)
 
 Corrigé à l'aveugle (pas d'appareil branché pendant la correction), couvert

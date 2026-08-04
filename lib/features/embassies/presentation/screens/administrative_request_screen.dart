@@ -400,12 +400,21 @@ class _AdministrativeRequestScreenState
               const SizedBox(height: 8),
               DropdownButtonFormField<AdministrativeRequestType>(
                 initialValue: _selectedType,
+                // Sans `isExpanded`, la largeur du champ replié est dictée par
+                // le plus long libellé de la liste (« Nouvelle demande de
+                // passeport »), que l'IndexedStack interne mesure même quand
+                // il ne l'affiche pas.
+                isExpanded: true,
                 decoration: _inputDecoration(''),
                 items:
                     AdministrativeRequestType.values.map((type) {
                       return DropdownMenuItem(
                         value: type,
-                        child: Text(_getTypeLabel(type)),
+                        child: Text(
+                          _getTypeLabel(type),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                 onChanged: (value) {

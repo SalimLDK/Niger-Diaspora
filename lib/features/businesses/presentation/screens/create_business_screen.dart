@@ -206,6 +206,10 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 8),
             DropdownButtonFormField<BusinessCategory>(
               initialValue: _selectedCategory,
+              // L'item est une Row icône + libellé : `isExpanded` borne la
+              // pile interne, et l'Expanded empêche cette Row-là de déborder
+              // à son tour une fois bornée.
+              isExpanded: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
               ),
@@ -216,7 +220,13 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                     children: [
                       Icon(category.icon, size: 20),
                       const SizedBox(width: 8),
-                      Text(category.label),
+                      Expanded(
+                        child: Text(
+                          category.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 );

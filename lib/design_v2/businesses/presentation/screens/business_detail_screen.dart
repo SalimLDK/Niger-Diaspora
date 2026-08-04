@@ -802,6 +802,10 @@ class _PostsSection extends ConsumerWidget {
                       children: [
                         DropdownButtonFormField<BusinessPostType>(
                           initialValue: selectedType,
+                          // Champ dans une feuille modale, donc encore plus
+                          // étroit que dans une page : `isExpanded` borne la
+                          // pile interne et l'Expanded borne la Row de l'item.
+                          isExpanded: true,
                           decoration: const InputDecoration(labelText: 'Type'),
                           items:
                               BusinessPostType.values.map((type) {
@@ -815,7 +819,13 @@ class _PostsSection extends ConsumerWidget {
                                         color: type.color,
                                       ),
                                       const SizedBox(width: 8),
-                                      Text(type.label),
+                                      Expanded(
+                                        child: Text(
+                                          type.label,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
