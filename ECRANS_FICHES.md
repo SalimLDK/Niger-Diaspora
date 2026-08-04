@@ -173,19 +173,29 @@ corrigé que ce qui s'écartait encore de la fiche **à l'écran** :
   remplaçait par du vide en silence. Les valeurs inconnues sont désormais
   ramenées sur la valeur par défaut, à la lecture comme à l'affichage.
 
-**Reste à trancher — restructuration, pas restylage.** La fiche décrit un
-formulaire nu : libellé au-dessus, champ 48 px radius 14, **aucune icône dans
-les champs**, **aucun en-tête de section**, et un ordre différent
-(Nom → Bio → Profession → Langues → Intérêts → Origine → Téléphone). L'écran
-actuel a des en-têtes de section (« INFORMATIONS DE BASE »), des icônes de
-préfixe, un champ « Nom d'utilisateur » que la fiche ne montre pas, et un
-bouton d'aperçu (👁) absent de la maquette. Le titre est en serif alors que
-la fiche demande Inter 700/18 — mais **tout le reste de l'app est en serif**,
-c'est une décision de design system, pas un détail d'écran.
+Puis, sur retour de Salim (« ça ne correspond pas »), le formulaire a été
+**remis à plat** sur la fiche :
 
-Rien de tout ça n'a été touché : ce sont des suppressions de fonctions
-existantes (le champ poignée alimente 5a) ou des choix qui débordent de
-l'écran. À arbitrer avec Salim.
+- Les cinq en-têtes de section (« INFORMATIONS DE BASE », « LOCALISATION »…)
+  et les cartes qui les suivaient ont disparu. La fiche n'a pas de section :
+  un libellé, un champ.
+- Plus d'icône de préfixe dans les champs.
+- Les deux sélecteurs (Profession, Pays) portent leur libellé **au-dessus**
+  comme les champs texte, au lieu d'une étiquette flottante dans le contour.
+- Ordre de la fiche : Nom → (poignée) → Bio → Profession → Langues →
+  Centres d'intérêt → … → Origine au Niger → Téléphone.
+- Le bloc téléphone est regroupé (`_buildPhoneBlock`) : numéro — carte en
+  lecture seule s'il est vérifié, champ + « Vérifier » sinon — puis la ligne
+  de visibilité, comme la carte à deux lignes de la maquette.
+
+**Conservé volontairement, contre la lettre de la fiche :**
+- Le champ **« Nom d'utilisateur »**, absent de la maquette : c'est lui qui
+  alimente la ligne d'identité de « Mon espace » (5a).
+- **Pays**, **Ville actuelle** et **Profil visible**, placés à la suite. Les
+  retirer supprimerait des données, pas de la décoration.
+- Le bouton d'aperçu (👁) de l'en-tête et le titre en **serif** : la fiche
+  demande Inter 700/18, mais tout le reste de l'app est en serif — c'est une
+  décision de design system, pas un détail d'écran.
 
 ## 16e — Créer un événement
 
