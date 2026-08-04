@@ -139,7 +139,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           _completePhoneNumber = existingProfile.phoneNumber ?? '';
           _currentCityController.text = existingProfile.currentCity ?? '';
           _isVisible = existingProfile.isVisible;
-          _phoneVisibility = existingProfile.phoneVisibility;
+          _phoneVisibility = _normaliserVisibilite(
+            existingProfile.phoneVisibility,
+          );
           _isPhoneVerified = existingProfile.isPhoneVerified;
           // Si le numéro est vérifié, stocker le numéro vérifié
           if (existingProfile.isPhoneVerified &&
@@ -543,7 +545,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
             setState(() {
               _isVisible = profile.isVisible;
-              _phoneVisibility = profile.phoneVisibility;
+              _phoneVisibility = _normaliserVisibilite(profile.phoneVisibility);
               _isPhoneVerified = profile.isPhoneVerified;
               // Si le numéro est vérifié, stocker le numéro vérifié
               if (profile.isPhoneVerified && profile.phoneNumber != null) {
@@ -596,14 +598,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 // désormais le fond de la page, comme partout ailleurs.
                 backgroundColor: context.backgroundColor,
                 surfaceTintColor: Colors.transparent,
+                // §20a : simple ✕ dans la couleur du texte. Il restait de
+                // l'époque où la barre était un hero terracotta : pastille
+                // blanche à 20 % et glyphe blanc, donc **invisible** une fois
+                // la barre passée au fond crème de la page.
                 leading: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const AppIcon(AppIcon.close, color: Colors.white),
+                  icon: AppIcon(
+                    AppIcon.close,
+                    size: 24,
+                    color: context.textPrimaryColor,
                   ),
                   onPressed: () => context.pop(),
                 ),
@@ -1199,11 +1202,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: 66,
+                  height: 66,
                   decoration: BoxDecoration(
                     color: context.adaptivePrimaryColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
                     image: _photoUrl != null
                         ? DecorationImage(
                             image: NetworkImage(_photoUrl!),
@@ -1223,23 +1226,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                         )
                       : null,
                 ),
+                // §20a : pastille neutre cerclée du fond de page, pas un
+                // second aplat d'accent collé à l'avatar — la maquette veut
+                // que l'accent reste sur « Modifier la photo ».
                 Positioned(
-                  right: -4,
-                  bottom: -4,
+                  right: -3,
+                  bottom: -3,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    width: 26,
+                    height: 26,
                     decoration: BoxDecoration(
-                      color: context.adaptivePrimaryColor,
+                      color: context.surfaceColor,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: context.backgroundColor,
-                        width: 2.5,
+                        width: 2,
                       ),
                     ),
+                    alignment: Alignment.center,
                     child: Icon(
                       Icons.photo_camera_outlined,
-                      size: 14,
-                      color: context.onPrimaryColor,
+                      size: 15,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ),
@@ -1610,10 +1618,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// Visibilité du numéro (§20a) : une ligne avec la valeur courante et un
   /// chevron, au lieu de trois gros boutons occupant toute la largeur. Le
   /// réglage est rarement touché — il n'a pas à peser autant qu'un champ.
+  /// Ramène une valeur stockée inconnue sur la valeur par défaut. Sans ça,
+  /// la ligne « Qui peut voir mon numéro ? » n'affichait **aucune** valeur :
+  /// le profil de test portait une chaîne absente de
+  /// [ProfileOptions.phoneVisibilityOptions], et le `?? ''` la remplaçait par
+  /// du vide, en silence.
+  String _normaliserVisibilite(String valeur) =>
+      ProfileOptions.phoneVisibilityOptions.containsKey(valeur)
+          ? valeur
+          : ProfileOptions.phoneVisibilityEveryone;
+
   Widget _buildPhoneVisibilitySelector() {
     final l10n = AppLocalizations.of(context)!;
     final libelle =
-        ProfileOptions.phoneVisibilityOptions[_phoneVisibility] ?? '';
+        ProfileOptions.phoneVisibilityOptions[_phoneVisibility] ??
+        ProfileOptions.phoneVisibilityOptions[
+            ProfileOptions.phoneVisibilityEveryone]!;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(14),

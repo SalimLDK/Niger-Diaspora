@@ -26,7 +26,7 @@ Trois niveaux, à ne pas confondre :
 | 5g | Mes publications — état vide | ✅ | ✅ | ✅ | idem 5b (`_FirstPostInvitation`) |
 | 5c | Enregistrés | ✅ | ✅ | ✅ | `feed/presentation/screens/saved_posts_screen.dart`, `widgets/saved_post_card.dart` |
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
-| 20a | Modifier mon profil | 🔨 | — | — | `profile/presentation/screens/edit_profile_screen.dart` |
+| 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
 | 20d | Réglages de notifications | — | — | — | à déterminer |
 | 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
@@ -146,6 +146,39 @@ réciprocité par ligne.
 
 Non vérifié : les hashtags (le compte de test n'en suit aucun) et la
 recherche.
+
+## 20a — Modifier mon profil (partiel)
+
+L'écran avait déjà été largement repris sur §20a par des sessions
+précédentes (langues en feuille multi-choix, puces repliées, compteur de bio
+sur la ligne du libellé, origine et visibilité en une ligne). Cette passe n'a
+corrigé que ce qui s'écartait encore de la fiche **à l'écran** :
+
+- **Le ✕ était invisible** : pastille blanche à 20 % et glyphe blanc, restes
+  de l'époque où la barre était un hero terracotta. Sur le fond crème actuel,
+  il n'y avait littéralement rien à voir en haut à gauche. Devenu un ✕ 24 px
+  dans la couleur du texte.
+- **Pastille appareil photo** : elle était un second aplat d'accent collé à
+  l'avatar. Passée en pastille neutre 26 px cerclée du fond de page, glyphe
+  sombre — l'accent reste sur « Modifier la photo ». Avatar 66/22 (fiche).
+- **« Qui peut voir mon numéro ? » n'affichait aucune valeur** : le profil
+  portait une chaîne absente de `phoneVisibilityOptions`, et le `?? ''` la
+  remplaçait par du vide en silence. Les valeurs inconnues sont désormais
+  ramenées sur la valeur par défaut, à la lecture comme à l'affichage.
+
+**Reste à trancher — restructuration, pas restylage.** La fiche décrit un
+formulaire nu : libellé au-dessus, champ 48 px radius 14, **aucune icône dans
+les champs**, **aucun en-tête de section**, et un ordre différent
+(Nom → Bio → Profession → Langues → Intérêts → Origine → Téléphone). L'écran
+actuel a des en-têtes de section (« INFORMATIONS DE BASE »), des icônes de
+préfixe, un champ « Nom d'utilisateur » que la fiche ne montre pas, et un
+bouton d'aperçu (👁) absent de la maquette. Le titre est en serif alors que
+la fiche demande Inter 700/18 — mais **tout le reste de l'app est en serif**,
+c'est une décision de design system, pas un détail d'écran.
+
+Rien de tout ça n'a été touché : ce sont des suppressions de fonctions
+existantes (le champ poignée alimente 5a) ou des choix qui débordent de
+l'écran. À arbitrer avec Salim.
 
 ---
 
