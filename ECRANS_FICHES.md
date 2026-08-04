@@ -38,11 +38,11 @@ Trois niveaux, à ne pas confondre :
 | 11d | Mon profil — Nocturne | ✅ | — | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | — | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ❌ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
-| 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
-| 6b | Discussion — Nocturne | — | — | — | idem 4a |
+| 4a | Discussion cliquable | ◐ | — | — | `messages/…/conversation_screen.dart` |
+| 6b | Discussion — Nocturne | ◐ | — | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ◐ | — | idem 9a |
-| 9c | Groupes — mes groupes, découverte | — | — | — | `groups/…` |
+| 9c | Groupes — mes groupes, découverte | ✅ | ❌ | — | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ❌ | — | idem 9a (`_buildEmptyState`) |
 
@@ -519,6 +519,61 @@ rendus.
 **Défaut repéré au passage** : l'onglet « Découvrir » de 9c affiche une zone
 entièrement blanche quand il n'y a aucun groupe — pas de liste, pas d'état
 vide, pas d'indicateur de chargement.
+
+## 9c — Groupes
+
+L'essentiel de la fiche existait déjà (onglets Mes groupes / Découvrir,
+bannière d'invitations, badge ACTIF/CALME, filtres géographiques). Ce qui a
+été repris :
+
+**L'onglet « Découvrir » rendait un écran entièrement blanc**, et par trois
+chemins qu'on ne pouvait pas distinguer : profil sans ville (la section
+« Suggéré » se retirait en silence), aucun groupe public au backend, et
+**erreur de chargement rendue en `SizedBox.shrink()`** — un échec réseau était
+donc indiscernable de « rien à découvrir ». La décision est maintenant prise en
+un seul endroit (`_buildDiscoverTab`), qui a toujours quelque chose à montrer :
+squelettes en chargement, état d'erreur avec réessai, et un état vide dont le
+texte change selon qu'un filtre géographique est actif (« rien ici, élargissez »)
+ou non (« personne n'a encore créé de groupe public »).
+
+Sur une carte de groupe rejoint, la pastille « Membre » — dont le seul effet
+était de **quitter le groupe au tap**, sans confirmation — devient « Ouvrir »
+et entre dans la discussion, comme la fiche le demande. La sortie du groupe
+vit en 9d, où elle est délibérée. Si la conversation du groupe n'existe pas
+encore (elle naît au premier message), « Ouvrir » bascule sur la fiche du
+groupe plutôt que de rester sans effet.
+
+Non fait, faute de donnée : la note épinglée en sous-carte (une requête par
+carte, N+1 sur la liste), la pile d'avatars de membres, et « 14 messages
+aujourd'hui » — aucun compteur de messages par jour n'existe.
+
+⚠️ **Jamais vu à l'écran** : le téléphone s'est déconnecté avant le build.
+
+## 4a / 6b — Discussion, clair et nocturne
+
+Ces deux fiches sont **déjà largement implémentées** par la refonte
+précédente : le code porte des références `§4a` explicites (pastille de
+présence sur l'avatar 38, cadenas de chiffrement à côté du statut, bulles,
+lecteur vocal, composer). Ce lot n'a donc rien réécrit.
+
+Les deltas que la fiche 6b nomme ont été vérifiés **statiquement**, un par un,
+et sont tous en place :
+
+| Delta 6b | État |
+|---|---|
+| Bulle sortante `#1B5E32` → `#2D7D46` | `_kSentBubbleLight` / `_kSentBubbleDark` |
+| Bouton vocal plein | `_kVoiceGreen` / `_kVoiceGreenLight` |
+| Forme d'onde inactive `#DDD3C4` → `#4A423A` | présent |
+| Cadenas près du statut | `_buildStatusWithLock` |
+
+Un écart délibéré : la fiche réserve le cadenas au nocturne (« absent en
+clair »). L'app l'affiche dans les deux thèmes — retirer un rappel de
+chiffrement en mode clair serait un recul, pas une conformité.
+
+**Ce n'est pas une passe complète** : les ~6 500 lignes de
+`conversation_screen.dart` + `message_bubble.dart` n'ont pas été comparées
+ligne à ligne à la fiche. Seuls les points que les fiches désignent ont été
+contrôlés, et rien n'a été vu à l'écran.
 
 ---
 
