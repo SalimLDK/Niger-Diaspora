@@ -7995,5 +7995,23 @@
   "mapSortByName": "Par nom",
   "@mapSortByName": {
     "description": "Tri de la liste des membres"
+  },
+  "plusMoreCount": "+{count}",
+  "@plusMoreCount": {
+    "description": "Puce de repli : nombre d elements masques",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plusMoreLanguages": "+{count} langues",
+  "@plusMoreLanguages": {
+    "description": "Puce de repli des langues",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

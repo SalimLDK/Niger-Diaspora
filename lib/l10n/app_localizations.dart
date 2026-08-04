@@ -28819,6 +28819,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Par nom'**
   String get mapSortByName;
+
+  /// Puce de repli : nombre d elements masques
+  ///
+  /// In fr, this message translates to:
+  /// **'+{count}'**
+  String plusMoreCount(int count);
+
+  /// Puce de repli des langues
+  ///
+  /// In fr, this message translates to:
+  /// **'+{count} langues'**
+  String plusMoreLanguages(int count);
 }
 
 class _AppLocalizationsDelegate

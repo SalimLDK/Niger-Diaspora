@@ -59,6 +59,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   // Profession
   String? _selectedProfession;
 
+  /// §20a : les deux listes de puces sont repliées par défaut. Elles
+  /// affichaient l'intégralité du catalogue en permanence — une trentaine de
+  /// puces qui repoussaient la moitié du formulaire hors de l'écran. Repliées,
+  /// on ne voit que ses propres choix, plus une puce « +N » pour ouvrir.
+  bool _showAllInterests = false;
+  bool _showAllLanguages = false;
+
   // Pays et ville actuelle
   CountryOption? _selectedCountry;
 
@@ -346,6 +353,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         orElse: () {},
       );
     }
+  }
+
+  /// Ce qu'on montre d'une liste de puces : tout si elle est dépliée, sinon
+  /// les seuls choix déjà faits. Repliée et vide, elle ne laisse que la puce
+  /// « +N » — un seul appui pour ouvrir le catalogue.
+  Iterable<String> _visibleEntries(
+    Iterable<String> toutes,
+    List<String> choisies,
+    bool depliee,
+  ) {
+    if (depliee) return toutes;
+    return toutes.where(choisies.contains);
   }
 
   String _getFinalProfession() {
@@ -966,8 +985,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               Wrap(
                                 spacing: 10,
                                 runSpacing: 10,
-                                children:
-                                    _interestsWithIcons.entries.map((entry) {
+                                children: [
+                                  ..._visibleEntries(
+                                    _interestsWithIcons.keys,
+                                    _selectedInterests,
+                                    _showAllInterests,
+                                  ).map((cle) {
+                                      final entry = MapEntry(
+                                        cle,
+                                        _interestsWithIcons[cle]!,
+                                      );
                                       final isSelected = _selectedInterests
                                           .contains(entry.key);
                                       return _SelectableChip(
@@ -988,7 +1015,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                           });
                                         },
                                       );
-                                    }).toList(),
+                                    }),
+                                  if (!_showAllInterests)
+                                    _MoreChip(
+                                      label: l10n.plusMoreCount(
+                                        _interestsWithIcons.length -
+                                            _visibleEntries(
+                                              _interestsWithIcons.keys,
+                                              _selectedInterests,
+                                              false,
+                                            ).length,
+                                      ),
+                                      onTap: () => setState(
+                                        () => _showAllInterests = true,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ],
                           ),
@@ -1016,8 +1058,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               Wrap(
                                 spacing: 10,
                                 runSpacing: 10,
-                                children:
-                                    _languagesWithFlags.entries.map((entry) {
+                                children: [
+                                  ..._visibleEntries(
+                                    _languagesWithFlags.keys,
+                                    _selectedLanguages,
+                                    _showAllLanguages,
+                                  ).map((cle) {
+                                      final entry = MapEntry(
+                                        cle,
+                                        _languagesWithFlags[cle]!,
+                                      );
                                       final isSelected = _selectedLanguages
                                           .contains(entry.key);
                                       return _LanguageChip(
@@ -1037,7 +1087,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                           });
                                         },
                                       );
-                                    }).toList(),
+                                    }),
+                                  if (!_showAllLanguages)
+                                    _MoreChip(
+                                      label: l10n.plusMoreLanguages(
+                                        _languagesWithFlags.length -
+                                            _visibleEntries(
+                                              _languagesWithFlags.keys,
+                                              _selectedLanguages,
+                                              false,
+                                            ).length,
+                                      ),
+                                      onTap: () => setState(
+                                        () => _showAllLanguages = true,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ],
                           ),
@@ -2342,6 +2407,42 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Puce « +N » qui déplie le catalogue complet (§20a). En contour : elle
+/// n'est pas un choix, c'est une porte.
+class _MoreChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _MoreChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: context.borderStrongColor),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: context.textSecondaryColor,
+            ),
           ),
         ),
       ),

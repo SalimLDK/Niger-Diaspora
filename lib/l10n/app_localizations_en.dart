@@ -15595,4 +15595,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapSortByName => 'By name';
+
+  @override
+  String plusMoreCount(int count) {
+    return '+$count';
+  }
+
+  @override
+  String plusMoreLanguages(int count) {
+    return '+$count languages';
+  }
 }

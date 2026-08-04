@@ -15744,4 +15744,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapSortByName => 'Par nom';
+
+  @override
+  String plusMoreCount(int count) {
+    return '+$count';
+  }
+
+  @override
+  String plusMoreLanguages(int count) {
+    return '+$count langues';
+  }
 }
