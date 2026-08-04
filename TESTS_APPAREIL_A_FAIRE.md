@@ -51,6 +51,19 @@ non.
 Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
 validées une par une avec Salim avant branchement.
 
+- [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
+  `notification_settings_screen.dart`) : la ligne « Notifications » de
+  Réglages → Application ouvrait une feuille modale doublant l'écran ; elle
+  pointe maintenant sur `/notifications/settings` et la modale est supprimée.
+  À vérifier au doigt : le tap ouvre bien le nouvel écran (l'écran lui-même a
+  été vu, mais pas ce chemin — build cassé par une session concurrente).
+- [ ] **20d — sélecteur d'heures calmes** : le tap sur « De 22:00 à 08:00 »
+  doit enchaîner deux sélecteurs (début puis fin) et n'enregistrer que si les
+  deux sont confirmés. Jamais ouvert sur appareil.
+- [ ] **20d — « Messages système » verrouillé** : l'interrupteur doit être
+  grisé et insensible au tap, et la préférence doit revenir à « actif » si
+  elle avait été coupée avant cette version.
+
 - [ ] **5a « Mon espace »** (`lib/features/feed/presentation/screens/mon_espace_screen.dart`) —
   refait sur la fiche : ligne d'identité `@poignée · Origine → Ville`, **trois**
   cases de stats (Publications / Abonnés / Abonnements) au lieu de deux, les

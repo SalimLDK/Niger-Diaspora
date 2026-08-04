@@ -28,9 +28,9 @@ Trois niveaux, à ne pas confondre :
 | 5d | Abonnés / abonnements | ✅ | ✅ | ✅ | `feed/presentation/screens/follows_screen.dart` |
 | 20a | Modifier mon profil | 🔨 | ✅ | — | `profile/presentation/screens/edit_profile_screen.dart` |
 | 20b | Appareils connectés | — | — | — | à déterminer |
-| 20d | Réglages de notifications | — | — | — | à déterminer |
+| 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | — | — | — | `calls/…/call_history_screen.dart` |
-| 16e | Créer un événement | ✅ | ✅ | — | `events/presentation/screens/create_event_screen.dart` |
+| 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
 | 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
 | 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
 | 7d | Carte — couches, panneau 3 positions | — | — | — | à déterminer |
@@ -224,6 +224,52 @@ fonctions.
 
 Non vérifié : le sélecteur d'affiche (permission galerie), la feuille
 « Aperçu » et la publication réelle.
+
+## 20d — Réglages de notifications
+
+**Branché** : Réglages (10b) → Application → « Notifications » ouvrait une
+**feuille modale qui doublait cet écran** sur les mêmes préférences
+(`_NotificationPreferencesModal`, ~130 lignes). La ligne pointe désormais sur
+`/notifications/settings` et le doublon est supprimé.
+
+Structure de la fiche : interrupteur maître isolé (« Notifications push » /
+« Coupe tout d'un seul geste »), une seule liste « Ce qui vous alerte »,
+cartes radius 18 à bordure, lignes 13.5/600 + 11.5/400, note de pied à
+l'icône info — l'ancien pavé d'information teinté a disparu.
+
+**Changement de comportement à trancher** : « Messages système » devient
+**verrouillé actif** (interrupteur grisé à 60 %, non désactivable), comme la
+fiche le demande. La préférence enregistrée est remise à `true` si elle valait
+`false`. C'est une capacité retirée à l'utilisateur — dis-moi si tu préfères
+la garder désactivable.
+
+Cinq sous-titres hérités ne disaient rien et trois répétaient leur propre
+titre (« Rappels d'événements » / « Rappels d'événements », « Son » et
+« Vibration » partageant « Recevoir des notifications », « Demandes d'amis »
+décrivant un écran). Réécrits dans le registre de la fiche : ils annoncent ce
+qu'on va recevoir.
+
+Écarts assumés :
+- **« Mentions uniquement » et « Transferts » ne sont pas ajoutés** : aucune
+  préférence ne les porte et rien ne les lirait — deux interrupteurs morts.
+- Les catégories réelles que la fiche ne nomme pas (demandes d'amis, groupes,
+  événements, rappels, son, vibration) sont **conservées** : la fiche n'en
+  parle pas, ce n'est pas une raison pour retirer des réglages qui marchent.
+- L'overline dit « Heures calmes » et non « Heures calmes · proposition » : le
+  mot « proposition » tracé dans la maquette venait de ce que l'auteur n'avait
+  pas confirmé le bloc dans le code — il y est.
+- Le titre garde `DesignTitle` (Playfair + point d'accent) au lieu de
+  l'Inter 18/700 de la maquette : c'est l'en-tête de tous les écrans de l'app.
+- Les interrupteurs restent des `Switch` Material à la couleur d'accent de
+  l'utilisateur, pas la pastille 46×27 verte de la maquette (accessibilité et
+  comportement plateforme ; le vert #1B5E32 écraserait l'accent choisi).
+
+Vérifié à l'écran : les deux vues de la liste, le verrou visible sur
+« Messages système », et la ligne « De 22:00 à 08:00 » qui apparaît quand
+« Silence la nuit » est actif.
+
+Non vérifié : le tap Réglages → Notifications et le sélecteur d'heures — le
+build est cassé depuis par une autre session (voir plus bas).
 
 ---
 

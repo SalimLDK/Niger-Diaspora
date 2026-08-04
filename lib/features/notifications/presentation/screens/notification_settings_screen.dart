@@ -8,6 +8,11 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 
+/// Réglages de notifications (fiche 20d).
+///
+/// Un interrupteur maître isolé, une seule liste « Ce qui vous alerte », les
+/// sons, puis les heures calmes résumées sur une ligne. « Messages système »
+/// est verrouillé : la fiche en fait une catégorie non désactivable.
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -16,6 +21,21 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final preferences = ref.watch(notificationPreferencesNotifierProvider);
 
+    // « Messages système » devient verrouillé actif : si la préférence
+    // enregistrée dit le contraire, on la remet d'aplomb une fois, sinon
+    // l'interrupteur afficherait un état que plus rien ne peut changer.
+    if (!preferences.systemMessagesEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(notificationPreferencesNotifierProvider.notifier)
+            .setSystemMessagesEnabled(true);
+      });
+    }
+
+    final notifier = ref.read(
+      notificationPreferencesNotifierProvider.notifier,
+    );
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
@@ -23,30 +43,24 @@ class NotificationSettingsScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
-        title: DesignTitle(l10n.notificationSettings, size: 22),
+        title: const DesignTitle('Notifications', size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
-          // Interrupteur maître (§8) — coupe toutes les notifications.
+          // Interrupteur maître — carte isolée, sous-titre invariable : il
+          // décrit ce que fait le geste, pas l'état courant.
           _SettingsCard(
             children: [
               _SettingsSwitchTile(
-                title: l10n.enableNotifications,
-                subtitle:
-                    preferences.masterEnabled
-                        ? l10n.notificationsMasterOnDesc
-                        : l10n.notificationsMasterOffDesc,
+                title: 'Notifications push',
+                subtitle: "Coupe tout d'un seul geste",
                 value: preferences.masterEnabled,
-                onChanged: (value) {
-                  ref
-                      .read(notificationPreferencesNotifierProvider.notifier)
-                      .setMasterEnabled(value);
-                },
+                onChanged: notifier.setMasterEnabled,
               ),
             ],
           ),
@@ -61,209 +75,108 @@ class NotificationSettingsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Section: Content
-                  _buildSectionHeader(
-                    context,
-                    l10n.notificationContent,
-                    Icons.notifications_outlined,
-                  ),
-                  const SizedBox(height: 8),
+                  _SectionLabel('Ce qui vous alerte'),
                   _SettingsCard(
                     children: [
                       _SettingsSwitchTile(
                         title: l10n.notifyMessages,
-                        subtitle: l10n.receiveNotificationsDesc,
+                        subtitle: 'Conversations et groupes',
                         value: preferences.messagesEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setMessagesEnabled(value);
-                        },
+                        onChanged: notifier.setMessagesEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
                         title: l10n.notifyFriendRequests,
-                        subtitle: l10n.receivedRequestsHint,
+                        // `receivedRequestsHint` décrit un écran (« …
+                        // apparaîtront ici »), pas ce qui vous alerte.
+                        subtitle: 'Quand quelqu\'un veut se connecter',
                         value: preferences.friendRequestsEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setFriendRequestsEnabled(value);
-                        },
+                        onChanged: notifier.setFriendRequestsEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
                         title: l10n.notifyGroups,
                         subtitle: l10n.groupActivity,
                         value: preferences.groupsEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setGroupsEnabled(value);
-                        },
+                        onChanged: notifier.setGroupsEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
                         title: l10n.notifyEvents,
-                        subtitle: l10n.newEvents,
+                        subtitle: 'Invitations et changements d\'horaire',
                         value: preferences.eventsEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setEventsEnabled(value);
-                        },
+                        onChanged: notifier.setEventsEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
                         title: l10n.notifyEventReminders,
-                        subtitle: l10n.eventReminders,
+                        // `eventReminders` répétait le titre mot pour mot.
+                        subtitle: 'La veille et une heure avant',
                         value: preferences.eventRemindersEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setEventRemindersEnabled(value);
-                        },
+                        onChanged: notifier.setEventRemindersEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
-                        title: 'Evenements locaux',
-                        subtitle:
-                            'Recevoir des notifications pour les nouveaux evenements dans ma ville',
+                        title: 'Événements locaux',
+                        subtitle: 'Nouveaux événements dans votre ville',
                         value: preferences.localEventsEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setLocalEventsEnabled(value);
-                        },
+                        onChanged: notifier.setLocalEventsEnabled,
                       ),
                       const _SettingsDivider(),
-                      _SettingsSwitchTile(
+                      const _SettingsSwitchTile(
                         title: 'Messages système',
-                        subtitle:
-                            'Recevoir des notifications pour les évènements système (ex: nouveau membre)',
-                        value: preferences.systemMessagesEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setSystemMessagesEnabled(value);
-                        },
+                        subtitle: 'Sécurité, mises à jour importantes',
+                        value: true,
+                        onChanged: null,
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
-
-                  // Section: Alerts
-                  _buildSectionHeader(
-                    context,
-                    l10n.notificationAlerts,
-                    Icons.volume_up_outlined,
-                  ),
-                  const SizedBox(height: 8),
+                  _SectionLabel('Sons et vibrations'),
                   _SettingsCard(
                     children: [
                       _SettingsSwitchTile(
                         title: l10n.notificationSound,
-                        subtitle: l10n.receiveNotifications,
+                        // Les deux portaient « Recevoir des notifications » :
+                        // le même sous-titre pour deux réglages différents.
+                        subtitle: 'Sonnerie à chaque alerte',
                         value: preferences.soundEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setSoundEnabled(value);
-                        },
+                        onChanged: notifier.setSoundEnabled,
                       ),
                       const _SettingsDivider(),
                       _SettingsSwitchTile(
                         title: l10n.notificationVibration,
-                        subtitle: l10n.receiveNotifications,
+                        subtitle: 'Vibrer même en silencieux',
                         value: preferences.vibrationEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setVibrationEnabled(value);
-                        },
+                        onChanged: notifier.setVibrationEnabled,
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
-
-                  // Section: Advanced
-                  _buildSectionHeader(
-                    context,
-                    l10n.notificationAdvanced,
-                    Icons.tune_outlined,
-                  ),
-                  const SizedBox(height: 8),
+                  _SectionLabel('Heures calmes'),
                   _SettingsCard(
                     children: [
                       _SettingsSwitchTile(
-                        title: l10n.quietHours,
-                        subtitle: l10n.quietHoursDesc,
+                        title: 'Silence la nuit',
+                        subtitle: 'Utile avec le décalage Niamey – Paris',
                         value: preferences.quietHoursEnabled,
-                        onChanged: (value) {
-                          ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setQuietHoursEnabled(value);
-                        },
+                        onChanged: notifier.setQuietHoursEnabled,
                       ),
                       if (preferences.quietHoursEnabled) ...[
                         const _SettingsDivider(),
-                        _QuietHoursTimePicker(
-                          label: l10n.quietHoursStart,
-                          hour: preferences.quietHoursStartHour,
-                          minute: preferences.quietHoursStartMinute,
-                          onTimeChanged: (hour, minute) {
-                            ref
-                                .read(
-                                  notificationPreferencesNotifierProvider
-                                      .notifier,
-                                )
-                                .setQuietHoursStartTime(hour, minute);
-                          },
-                        ),
-                        const _SettingsDivider(),
-                        _QuietHoursTimePicker(
-                          label: l10n.quietHoursEnd,
-                          hour: preferences.quietHoursEndHour,
-                          minute: preferences.quietHoursEndMinute,
-                          onTimeChanged: (hour, minute) {
-                            ref
-                                .read(
-                                  notificationPreferencesNotifierProvider
-                                      .notifier,
-                                )
-                                .setQuietHoursEndTime(hour, minute);
+                        // Une seule ligne « De 22:00 à 07:00 » au lieu de deux
+                        // sélecteurs : la plage se lit d'un coup d'œil, et le
+                        // tap enchaîne les deux heures.
+                        _QuietHoursRange(
+                          startHour: preferences.quietHoursStartHour,
+                          startMinute: preferences.quietHoursStartMinute,
+                          endHour: preferences.quietHoursEndHour,
+                          endMinute: preferences.quietHoursEndMinute,
+                          onChanged: (sh, sm, eh, em) async {
+                            await notifier.setQuietHoursStartTime(sh, sm);
+                            await notifier.setQuietHoursEndTime(eh, em);
                           },
                         ),
                       ],
@@ -274,53 +187,47 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Info card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.infoColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: context.infoColor.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, color: context.infoColor, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    l10n.notificationPreferences,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: context.textSecondaryColor,
-                      height: 1.4,
-                    ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: context.textSecondaryColor,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Les messages système restent toujours actifs.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.45,
+                    color: context.textSecondaryColor,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(
-    BuildContext context,
-    String title,
-    // Conservé pour ne pas toucher aux appels ; §20d n'affiche plus de
-    // pictogramme devant le libellé de section.
-    IconData icon,
-  ) {
-    // §20d : le libellé de section est une étiquette en chasse fixe, pas une
-    // ligne à pictogramme. La pastille teintée attirait l'œil autant que les
-    // réglages eux-mêmes ; l'étiquette se lit et s'oublie.
+/// Étiquette de section en chasse fixe (§20d) : elle se lit et s'oublie, là
+/// où la pastille teintée attirait l'œil autant que les réglages eux-mêmes.
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+      padding: const EdgeInsets.only(left: 4, bottom: 10, top: 4),
       child: Text(
-        title.toUpperCase(),
+        text.toUpperCase(),
         style: GoogleFonts.robotoMono(
           fontSize: 10.5,
           fontWeight: FontWeight.w700,
@@ -332,56 +239,47 @@ class NotificationSettingsScreen extends ConsumerWidget {
   }
 }
 
-// Quiet Hours Time Picker Widget
-class _QuietHoursTimePicker extends StatelessWidget {
-  final String label;
-  final int hour;
-  final int minute;
-  final void Function(int hour, int minute) onTimeChanged;
+/// Ligne « De 22:00 à 07:00 » : ouvre le sélecteur du début puis celui de la
+/// fin, et n'enregistre que si les deux ont été confirmés.
+class _QuietHoursRange extends StatelessWidget {
+  final int startHour;
+  final int startMinute;
+  final int endHour;
+  final int endMinute;
+  final Future<void> Function(int, int, int, int) onChanged;
 
-  const _QuietHoursTimePicker({
-    required this.label,
-    required this.hour,
-    required this.minute,
-    required this.onTimeChanged,
+  const _QuietHoursRange({
+    required this.startHour,
+    required this.startMinute,
+    required this.endHour,
+    required this.endMinute,
+    required this.onChanged,
   });
+
+  String _fmt(int h, int m) =>
+      '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _selectTime(context),
+      onTap: () => _pick(context),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
           children: [
             Expanded(
               child: Text(
-                label,
+                'De ${_fmt(startHour, startMinute)} à ${_fmt(endHour, endMinute)}',
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: context.textPrimaryColor,
+                  fontSize: 13.5,
+                  color: context.textSecondaryColor,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: context.adaptivePrimaryColor.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Text(
-                _formatTime(hour, minute),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: context.adaptivePrimaryColor,
-                ),
-              ),
+            Icon(
+              Icons.chevron_right,
+              size: 19,
+              color: context.textSecondaryColor,
             ),
           ],
         ),
@@ -389,35 +287,47 @@ class _QuietHoursTimePicker extends StatelessWidget {
     );
   }
 
-  String _formatTime(int hour, int minute) {
-    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  Future<void> _pick(BuildContext context) async {
+    final start = await _showPicker(
+      context,
+      TimeOfDay(hour: startHour, minute: startMinute),
+      'Début du silence',
+    );
+    if (start == null || !context.mounted) return;
+    final end = await _showPicker(
+      context,
+      TimeOfDay(hour: endHour, minute: endMinute),
+      'Fin du silence',
+    );
+    if (end == null) return;
+    await onChanged(start.hour, start.minute, end.hour, end.minute);
   }
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<TimeOfDay?> _showPicker(
+    BuildContext context,
+    TimeOfDay initial,
+    String helpText,
+  ) {
+    return showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: hour, minute: minute),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: context.surfaceColor,
-              hourMinuteTextColor: context.textPrimaryColor,
-              dayPeriodTextColor: context.textPrimaryColor,
-              dialHandColor: context.adaptivePrimaryColor,
-              dialBackgroundColor: context.adaptivePrimaryColor.withValues(
-                alpha: 0.1,
+      initialTime: initial,
+      helpText: helpText,
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              timePickerTheme: TimePickerThemeData(
+                backgroundColor: context.surfaceColor,
+                hourMinuteTextColor: context.textPrimaryColor,
+                dayPeriodTextColor: context.textPrimaryColor,
+                dialHandColor: context.adaptivePrimaryColor,
+                dialBackgroundColor: context.adaptivePrimaryColor.withValues(
+                  alpha: 0.1,
+                ),
               ),
             ),
+            child: child!,
           ),
-          child: child!,
-        );
-      },
     );
-
-    if (picked != null) {
-      onTimeChanged(picked.hour, picked.minute);
-    }
   }
 }
 
@@ -432,7 +342,8 @@ class _SettingsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: context.borderColor.withValues(alpha: 0.6)),
         boxShadow:
             context.isDarkMode
                 ? null
@@ -449,12 +360,14 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-// Settings Switch Tile Widget
+/// Ligne à interrupteur. [onChanged] à `null` = catégorie verrouillée : elle
+/// s'affiche active mais grisée, pour signaler qu'elle n'est pas au choix de
+/// l'utilisateur plutôt que de faire croire à un simple « activé ».
 class _SettingsSwitchTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   const _SettingsSwitchTile({
     required this.title,
@@ -465,8 +378,9 @@ class _SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locked = onChanged == null;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
           Expanded(
@@ -476,17 +390,17 @@ class _SettingsSwitchTile extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
                     color: context.textPrimaryColor,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 11.5,
                       color: context.textSecondaryColor,
                     ),
                   ),
@@ -495,10 +409,13 @@ class _SettingsSwitchTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: context.adaptivePrimaryColor,
+          Opacity(
+            opacity: locked ? 0.6 : 1,
+            child: Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: context.adaptivePrimaryColor,
+            ),
           ),
         ],
       ),
@@ -514,8 +431,8 @@ class _SettingsDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Divider(
       height: 1,
-      indent: 16,
-      endIndent: 16,
+      indent: 14,
+      endIndent: 14,
       color: context.borderColor.withValues(alpha: 0.5),
     );
   }
