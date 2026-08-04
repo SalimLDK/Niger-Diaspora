@@ -90,11 +90,16 @@ la règle Storage manquante qui le déclenche à tort.
       (générateur de passphrase, jauge de force, bouton inactif tant que la
       passphrase est faible) — donc la **lecture** du chemin `key_backups/`
       aboutit désormais.
-- [ ] ⚠ **La branche écriture n'est pas testée** : `uploadBackup` n'a pas été
-      exercé. Créer une sauvegarde génère une passphrase que **Salim seul** doit
-      consigner — sans elle, un futur appareil neuf verrait `needsRestore`, ne
-      générerait aucune clé, et resterait bloqué. À faire par lui, en notant la
-      passphrase. C'est le dernier point qui valide la règle en écriture.
+- [x] **Branche écriture validée le 2026-08-04 à 18:21** — sauvegarde créée par
+      Salim (la passphrase doit être consignée par un humain : une passphrase
+      perdue laisse un futur appareil en `needsRestore` sans pouvoir restaurer,
+      donc pire que pas de sauvegarde). L'écran affiche **« Sauvegarde active »**,
+      « Créée le : 4/8/2026 à 18:21 », « Appareil : android Device », plus la
+      section « Restaurer sur cet appareil ». `uploadBackup` **et** la lecture
+      des métadonnées fonctionnent : la règle `key_backups/` est donc prouvée en
+      **lecture et en écriture**, de bout en bout.
+- [ ] Cosmétique relevé au passage : le libellé d'appareil est « android
+      Device », peu lisible pour un utilisateur.
 - [ ] Sur un **second appareil** : vérifier que la restauration fonctionne
       (`needsRestore` + saisie de la passphrase).
 - [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
@@ -965,12 +970,20 @@ validées une par une avec Salim avant branchement.
   qu'un échec affiche bien une erreur (l'écran affichait « Appareil renommé »
   quoi qu'il arrive). ⚠ La migration `20260720120200` doit être appliquée au
   distant, sinon le repli garde la liste mais ignore le nom.
-- [ ] **20b — « CET APPAREIL » absent** : sur le SM A515F, aucun des deux
-  appareils listés n'est reconnu comme l'appareil courant (`getCurrentDevice`
-  renvoie null ou un id absent de la liste). Probablement les `adb install -r`
-  qui vident les données sans rejouer l'enregistrement E2EE — à confirmer sur
-  une installation qui n'a pas été écrasée. Un bandeau d'avertissement le
-  signale en attendant.
+- [x] **20b — « CET APPAREIL » : RÉSOLU, vérifié le 2026-08-04 à 18:22.** La
+  liste affiche maintenant **3 appareils sur 5**, et le courant porte bien la
+  pastille verte « CET APPAREIL » avec son empreinte et le bouton « Renommer ».
+  Le bandeau d'avertissement a disparu.
+
+  ⚠ **La cause n'était pas celle qu'on croyait.** Ce n'étaient pas les
+  `adb install -r` : c'était la règle Storage `key_backups/` manquante, qui
+  faisait sauter la génération des clés (voir plus haut). Sans génération,
+  aucun enregistrement E2EE n'avait lieu, donc aucun appareil courant. La
+  règle déployée ce matin a débloqué la chaîne, et l'entrée de cet appareil a
+  été créée dans la foulée — d'où le passage de 2 à 3 appareils.
+- [ ] Conséquence à surveiller : chaque perte de clés locales ajoute une entrée
+  au lieu de réutiliser l'existante. Avec un plafond à 5, vérifier ce qui se
+  passe quand il est atteint (le bandeau annonce qu'il faudra en révoquer un).
 - [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
   `notification_settings_screen.dart`) : la ligne « Notifications » de
   Réglages → Application ouvrait une feuille modale doublant l'écran ; elle
