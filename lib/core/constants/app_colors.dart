@@ -100,6 +100,14 @@ class AppColors {
   /// Bordure marquee dark
   static const Color borderStrongDark = Color(0xFF544A3D);
 
+  /// Bordure des bulles recues en nocturne (fiche 6b).
+  ///
+  /// Ni [borderDark] ni [borderStrongDark] : sur une bulle #252119 posee sur
+  /// un fond #0F0D0A, la bordure de theme (#2A241E) est invisible et la
+  /// bordure marquee (#544A3D) fait un cadre. La fiche nomme cette valeur
+  /// pour ce role precis.
+  static const Color bubbleBorderDark = Color(0xFF3D352C);
+
   // ============================================
   // TEXT COLORS - LIGHT THEME
   // ============================================
