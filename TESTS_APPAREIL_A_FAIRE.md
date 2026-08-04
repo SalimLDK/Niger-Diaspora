@@ -85,10 +85,12 @@ l'URI. Deux causes, corrigées ensemble :
    puis `/home`. Elle est maintenant mise de côté (étape 0) et rejouée une fois
    l'utilisateur prêt (étape 10).
 
-⚠️ **Sur un build debug, le clic sur un lien n'ouvrira PAS l'app** : la
-vérification App Links exige que l'empreinte de signature figure dans
-`assetlinks.json`, et seule celle de Play App Signing y est. Android ouvrira
-Chrome. Tester avec un intent explicite, qui contourne la vérification :
+⚠️ **Le clic sur un lien n'ouvre l'app que si sa signature est déclarée.**
+`assetlinks.json` couvre maintenant Play App Signing **et la clé release
+locale** (`DD:A6:5C:…`) — donc un APK release installé à la main vérifie ses
+liens, une fois le hosting redéployé. La clé **debug** (`87:32:AD:…`) n'y est
+pas : sur un build debug, Android ouvrira Chrome. Tester alors avec un intent
+explicite, qui contourne la vérification :
 
 ```
 adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
@@ -119,10 +121,22 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
       aligné sur la production ; sans ce réalignement, un déploiement depuis le
       dépôt aurait **cassé les App Links en production**. Rien n'est déployé
       pour l'instant.
-- [ ] Décider si l'empreinte de la clé **release locale**
-      (`DD:A6:5C:…`, cf. `gradlew signingReport`) doit être ajoutée sous
-      `com.diasponiger.diasponiger` pour tester les liens sur un APK release
-      installé à la main. Non fait : ça élargit qui peut revendiquer le domaine.
+- [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
+      App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
+      pour une app déjà installée.
+
+      ```
+      adb shell pm verify-app-links --re-verify com.diasponiger.diasponiger
+      adb shell pm get-app-links com.diasponiger.diasponiger
+      ```
+
+      La seconde commande doit afficher `verified` pour `diasponiger.web.app` et
+      `diasponiger.com`.
+- [x] Empreinte de la clé **release locale** (`DD:A6:5C:…`, cf.
+      `gradlew signingReport`) ajoutée sous `com.diasponiger.diasponiger` —
+      décision de Salim, pour tester les liens sur un APK release installé à la
+      main sans passer par le Play Store. Élargit d'autant qui peut revendiquer
+      le domaine : à retirer si la keystore venait à circuler.
 
 ---
 

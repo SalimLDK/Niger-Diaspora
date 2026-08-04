@@ -20,7 +20,8 @@
             "namespace": "android_app",
             "package_name": "com.diasponiger.diasponiger",
             "sha256_cert_fingerprints": [
-                "91:71:E2:D7:EB:0F:B2:59:CC:95:06:C5:3E:B7:63:34:F9:BA:84:0A:0E:85:8A:A6:C2:1F:43:CF:28:2A:39:B0"
+                "91:71:E2:D7:EB:0F:B2:59:CC:95:06:C5:3E:B7:63:34:F9:BA:84:0A:0E:85:8A:A6:C2:1F:43:CF:28:2A:39:B0",
+                "DD:A6:5C:3E:BC:08:BD:67:4F:FA:37:26:40:5C:4C:B7:5B:25:3E:DE:55:85:BB:E2:22:DA:34:20:51:94:CF:5D"
             ]
         }
     }
