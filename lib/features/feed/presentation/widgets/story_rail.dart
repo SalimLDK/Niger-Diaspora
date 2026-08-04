@@ -16,6 +16,22 @@ import '../theme/feed_tokens.dart';
 /// hauteur du rail (`StoryRail._railHeight`) pour qu'ils ne divergent pas.
 const double _labelFontSize = 11.5;
 
+/// Interligne du libellé, imposé explicitement. Sans lui, le `Text` hérite du
+/// `height` de `bodyMedium` (1.55, cf. `AppTheme._buildTextTheme`) : la ligne
+/// mesurait 17,8 px là où le rail n'en réservait que 16, d'où le
+/// « BOTTOM OVERFLOWED BY 2.0 PIXELS » sous « Ma story ». En le figeant ici, la
+/// ligne vaut `fontSize × _labelLineHeight` arrondi au pixel le plus proche —
+/// indépendamment du thème ambiant et de la police — donc toujours ≤ ce que
+/// `_railHeight` provisionne avec `ceilToDouble`.
+const double _labelLineHeight = 1.3;
+
+/// Style commun aux libellés du rail, mesurable par `_railHeight`.
+TextStyle _labelStyle(FeedTokens tokens) => TextStyle(
+      fontSize: _labelFontSize,
+      height: _labelLineHeight,
+      color: tokens.mutedText,
+    );
+
 /// Rail de stories/actus (§4) — cercles d'avatars en haut du fil, anneau
 /// accent pour les non-vues. Mon avatar en premier, avec « + » si je n'ai
 /// pas de story active. Se replie en barre compacte au défilement
@@ -34,9 +50,13 @@ class StoryRail extends ConsumerWidget {
   /// + la ligne de libellé, qui grandit avec le réglage d'accessibilité du
   /// système. Elle était figée à 96 px : dès `font_scale = 1.1` le libellé
   /// « Ajouter » débordait de 6 px (constaté sur SM A515F, 2026-08-03).
+  /// L'interligne est celui de `_labelStyle`, pas celui du thème : le facteur
+  /// était estimé à 1.35 alors que `bodyMedium` en impose 1.55, ce qui laissait
+  /// déborder le libellé de 2 px même à `font_scale = 1.0` (SM A515F,
+  /// 2026-08-04). `ceilToDouble` absorbe l'arrondi restant.
   static double _railHeight(BuildContext context) {
-    final labelHeight =
-        MediaQuery.textScalerOf(context).scale(_labelFontSize) * 1.35;
+    final labelHeight = MediaQuery.textScalerOf(context).scale(_labelFontSize) *
+        _labelLineHeight;
     return 16 + 60 + 6 + labelHeight.ceilToDouble();
   }
 
@@ -349,10 +369,7 @@ class _MyStoryAvatar extends ConsumerWidget {
               hasStory ? 'Ma story' : 'Ajouter',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: _labelFontSize,
-                color: tokens.mutedText,
-              ),
+              style: _labelStyle(tokens),
             ),
           ],
         ),
@@ -388,10 +405,7 @@ class _StoryAvatar extends StatelessWidget {
               group.authorName.split(' ').first,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: _labelFontSize,
-                color: tokens.mutedText,
-              ),
+              style: _labelStyle(tokens),
             ),
           ],
         ),
