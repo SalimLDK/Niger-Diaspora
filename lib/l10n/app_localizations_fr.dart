@@ -12406,6 +12406,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noComments => 'Aucun commentaire pour le moment';
 
   @override
+  String get postNotFoundTitle => 'Publication introuvable';
+
+  @override
+  String get postNotFoundMessage =>
+      'Elle a peut-être été supprimée par son auteur, ou le lien est incorrect.';
+
+  @override
+  String get postLoadFailedTitle => 'Impossible d\'afficher cette publication';
+
+  @override
+  String get postLoadFailedMessage =>
+      'Vérifiez votre connexion, puis réessayez.';
+
+  @override
+  String get backToFeed => 'Retour au fil';
+
+  @override
   String get deleteComment => 'Supprimer le commentaire';
 
   @override

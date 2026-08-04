@@ -239,12 +239,39 @@ L'exception est pourtant bien levée et journalisée, puis avalée :
 `PostgrestException(message: Cannot coerce the result to a single JSON object,
 code: PGRST116)` — c'est le `.single()` sur un résultat vide.
 
-- [ ] Traiter `PGRST116` comme « introuvable » et afficher un état vide explicite
-      (titre + bouton retour), au lieu de laisser le `AsyncValue` en `loading`.
-- [ ] Masquer le champ de commentaire tant que la publication n'est pas chargée.
-- [ ] Rejouer avec une publication **réellement supprimée** (pas seulement un id
-      inventé) : c'est le cas que rencontrera un vrai utilisateur via un lien
-      partagé.
+**✅ Corrigé le 2026-08-04.** Trois couches touchées, car il y avait deux causes
+enchaînées :
+
+1. `feed_supabase_datasource.dart` traduit désormais `PostgrestException`
+   PGRST116 en `NotFoundException` (avant, l'exception s'échappait de la couche
+   data et, `_load` n'étant pas attendu, partait en erreur asynchrone non gérée
+   — le `fold` n'était même jamais atteint) ;
+2. `feed_repository_impl.dart` mappe `NotFoundException` → `NotFoundFailure`,
+   avec un `catch` de dernier recours pour ne plus rien laisser s'échapper ;
+3. `feed_provider.dart` remplace `PostEntity?` par un `PostDetailState`
+   (`loading` / `loaded` / `notFound` / `failed`) — `null` ne peut plus vouloir
+   dire deux choses.
+
+L'écran affiche maintenant « Publication introuvable » (avec « Retour au fil »)
+ou « Impossible d'afficher cette publication » (avec « Réessayer », qui n'a de
+sens que sur une panne), et **le champ de commentaire est masqué** dans les deux
+cas.
+
+Couvert par `test/features/feed/post_detail_not_found_test.dart` (4 cas).
+Le test du repository a été **vérifié rouge sans le correctif** (l'exception
+traverse le repository), il n'est donc pas vide de sens. `flutter analyze`
+propre, 17/17 sur `test/features/feed/`.
+
+- [ ] ⚠ **Pas encore vu sur appareil** : le correctif est dans le code, pas dans
+      l'APK installé. Il faut réinstaller pour le vérifier — **et une
+      réinstallation vide les données**, donc elle détruirait l'identité Signal
+      générée aujourd'hui, dont **aucune sauvegarde n'existe encore**. Créer la
+      sauvegarde E2EE **avant** de réinstaller.
+- [ ] Après réinstallation : rejouer
+      `am start -a VIEW -d https://diasponiger.web.app/feed/00000000-…-000000000999`
+      et vérifier l'écran « Publication introuvable ».
+- [ ] Rejouer aussi avec une publication **réellement supprimée** (pas seulement
+      un id inventé) : c'est le cas que rencontrera un vrai utilisateur.
 
 ### ⚠ Empreinte mémoire à surveiller
 

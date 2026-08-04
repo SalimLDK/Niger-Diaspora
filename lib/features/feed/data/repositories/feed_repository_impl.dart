@@ -48,8 +48,17 @@ class FeedRepositoryImpl implements FeedRepository {
     try {
       final model = await _dataSource.getPostById(postId);
       return Right(model.toEntity());
+    } on NotFoundException catch (e) {
+      // Publication supprimée ou id inexistant : l'appelant doit pouvoir le
+      // distinguer d'une panne, pour afficher « introuvable » et non un
+      // chargement sans fin.
+      return Left(NotFoundFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Filet : toute autre erreur (réseau, schéma) doit rester un Left plutôt
+      // que de s'échapper vers un appelant qui ne l'attend pas.
+      return Left(ServerFailure(e.toString()));
     }
   }
 

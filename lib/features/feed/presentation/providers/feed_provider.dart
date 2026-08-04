@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/cache_service.dart';
@@ -714,32 +715,78 @@ final feedNotifierProvider = NotifierProvider<FeedNotifier, FeedState>(
 // Post detail notifier
 // ============================================================================
 
-class PostDetailNotifier extends FamilyNotifier<PostEntity?, String> {
+/// Issue du chargement du post ouvert en détail.
+enum PostDetailStatus {
+  /// Requête en cours : c'est le seul cas où un squelette est légitime.
+  loading,
+
+  /// Le post est chargé et disponible dans [PostDetailState.post].
+  loaded,
+
+  /// Le post n'existe pas (supprimé, ou id inexistant dans un lien partagé).
+  notFound,
+
+  /// Panne : réseau, RLS, schéma. Distinct de [notFound] car réessayer a du sens.
+  failed,
+}
+
+/// État du post ouvert en détail.
+///
+/// Un simple `PostEntity?` ne suffisait pas : `null` confondait « pas encore
+/// chargé » et « n'existe pas ». Un lien vers une publication supprimée
+/// laissait donc l'écran indéfiniment sur son squelette, sans le moindre
+/// message — constaté sur appareil le 2026-08-04, encore présent après 105 s.
+class PostDetailState {
+  final PostEntity? post;
+  final PostDetailStatus status;
+
+  const PostDetailState({
+    this.post,
+    this.status = PostDetailStatus.loading,
+  });
+
+  const PostDetailState.loaded(PostEntity this.post)
+      : status = PostDetailStatus.loaded;
+
+  bool get isLoading => status == PostDetailStatus.loading;
+}
+
+class PostDetailNotifier extends FamilyNotifier<PostDetailState, String> {
   @override
-  PostEntity? build(String postId) {
+  PostDetailState build(String postId) {
     _load(postId);
     // Temps réel : reflète les mises à jour (compteurs/édition) du post ouvert.
     final sub = ref
         .read(feedRepositoryProvider)
         .watchPostUpdates(postId: postId)
-        .listen((p) => state = p);
+        .listen((p) => state = PostDetailState.loaded(p));
     ref.onDispose(sub.cancel);
-    return null;
+    return const PostDetailState();
   }
 
   Future<void> _load(String postId) async {
     final result = await ref.read(feedRepositoryProvider).getPostById(postId);
-    result.fold((_) {}, (post) => state = post);
+    state = result.fold(
+      (failure) => PostDetailState(
+        status: failure is NotFoundFailure
+            ? PostDetailStatus.notFound
+            : PostDetailStatus.failed,
+      ),
+      PostDetailState.loaded,
+    );
   }
 
-  void refresh(String postId) => _load(postId);
+  void refresh(String postId) {
+    state = const PostDetailState();
+    _load(postId);
+  }
 
   /// Remplace le post affiché (ex. après une édition) sans re-fetch.
-  void setPost(PostEntity post) => state = post;
+  void setPost(PostEntity post) => state = PostDetailState.loaded(post);
 }
 
 final postDetailProvider =
-    NotifierProvider.family<PostDetailNotifier, PostEntity?, String>(
+    NotifierProvider.family<PostDetailNotifier, PostDetailState, String>(
   PostDetailNotifier.new,
 );
 
@@ -892,7 +939,7 @@ class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
         );
       }
     } else {
-      final post = ref.read(postDetailProvider(postId));
+      final post = ref.read(postDetailProvider(postId)).post;
       if (post != null && post.authorId.isNotEmpty && post.authorId != me) {
         NotificationService().createNotification(
           userId: post.authorId,

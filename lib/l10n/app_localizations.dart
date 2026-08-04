@@ -22898,6 +22898,36 @@ abstract class AppLocalizations {
   /// **'Aucun commentaire pour le moment'**
   String get noComments;
 
+  /// No description provided for @postNotFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication introuvable'**
+  String get postNotFoundTitle;
+
+  /// No description provided for @postNotFoundMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle a peut-être été supprimée par son auteur, ou le lien est incorrect.'**
+  String get postNotFoundMessage;
+
+  /// No description provided for @postLoadFailedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'afficher cette publication'**
+  String get postLoadFailedTitle;
+
+  /// No description provided for @postLoadFailedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiez votre connexion, puis réessayez.'**
+  String get postLoadFailedMessage;
+
+  /// No description provided for @backToFeed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour au fil'**
+  String get backToFeed;
+
   /// No description provided for @deleteComment.
   ///
   /// In fr, this message translates to:
@@ -24365,7 +24395,7 @@ abstract class AppLocalizations {
   /// No description provided for @followingTab.
   ///
   /// In fr, this message translates to:
-  /// **'Suivis'**
+  /// **'Abonnements'**
   String get followingTab;
 
   /// No description provided for @recentTab.
