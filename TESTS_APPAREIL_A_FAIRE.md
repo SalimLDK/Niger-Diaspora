@@ -2270,6 +2270,29 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 ---
 
+## Carte — délai d'affichage des membres autour (2026-08-04)
+
+`map_screen.dart` : trois changements qui ne se voient que sur un vrai GPS et
+un vrai cache d'images, `flutter analyze` n'en dit rien.
+
+- [ ] **Ouverture à froid de la carte** : la dernière position connue doit
+  peupler la carte **tout de suite** (marqueur rouge + liste des membres),
+  sans attendre le point GPS frais. Mesurer le délai entre le tap sur
+  l'onglet Carte et le premier pin visible — avant, le spinner tenait 3 à
+  15 s. Refaire l'essai après `adb shell am force-stop` pour être sûr que
+  le cache de position est bien froid.
+- [ ] **Première ouverture après installation** (aucune position connue) :
+  vérifier que le spinner reste puis cède la place à la carte normale, et
+  **pas** au bandeau « accès restreint par réciprocité ».
+- [ ] **GPS coupé pendant que la carte est ouverte** : le bandeau de
+  restriction ne doit apparaître que si aucune position n'a jamais été
+  obtenue ; sinon la carte garde la dernière position et continue le suivi.
+- [ ] **Pins générés en parallèle** : avec plusieurs membres autour et le
+  cache d'avatars vidé (réinstallation), tous les pins doivent apparaître
+  d'un coup après ~3 s max, pas un par un.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

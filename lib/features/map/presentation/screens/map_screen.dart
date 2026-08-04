@@ -396,6 +396,31 @@ class _MapScreenState extends ConsumerState<MapScreen>
       _isReciprocityRestricted = false; // Reset restriction flag when retrying
     });
 
+    // Premier rendu immédiat : `getLastKnownPosition` répond tout de suite,
+    // là où un point GPS frais demande 3 à 15 s. Pendant ces secondes la carte
+    // restait voilée par le spinner, sans marqueur ni liste — c'était la
+    // principale raison pour laquelle « les membres autour » n'arrivaient pas
+    // instantanément. On affiche donc la dernière position connue, puis on
+    // laisse le point frais raffiner l'affichage en arrière-plan.
+    Position? lastKnown;
+    try {
+      lastKnown = await LocationService.instance.getLastKnownPosition();
+    } catch (_) {
+      lastKnown = null; // permission pas encore accordée : on continue
+    }
+    if (!mounted) return;
+    final known = lastKnown;
+    if (known != null) {
+      setState(() {
+        _currentPosition = LatLng(known.latitude, known.longitude);
+        _lastPositionUpdate = DateTime.now();
+        _isLoading = false;
+      });
+      // Sans `await` : le point GPS frais est demandé en parallèle.
+      unawaited(_loadNearbyMembers(known.latitude, known.longitude));
+      unawaited(_loadNearbyBusinesses(known.latitude, known.longitude));
+    }
+
     try {
       final position = await LocationService.instance.getCurrentPosition();
 
@@ -450,11 +475,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
       // debugPrint('Erreur de localisation: $e');
       if (!mounted) return;
 
-      setState(() {
-        _isReciprocityRestricted = true;
-        _nearbyMembers = []; // Clear members due to reciprocity
-      });
-      _updateMarkers();
+      // Un GPS qui dépasse son `timeLimit` tombait ici et affichait « accès
+      // restreint par réciprocité » — un message faux. Si la dernière position
+      // connue a déjà servi à peupler la carte, on la garde et on continue le
+      // suivi ; la restriction n'est annoncée que faute de toute position.
+      if (_currentPosition == null) {
+        setState(() {
+          _isReciprocityRestricted = true;
+          _nearbyMembers = []; // Clear members due to reciprocity
+        });
+        _updateMarkers();
+      } else {
+        _startPositionStream();
+        _startMembersRefreshTimer();
+      }
 
       // if (e.toString().contains('Location services are disabled')) {
       //   _showLocationError(enableLocationMsg, settingsLabel);
@@ -1962,13 +1996,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
         }
       }
 
+      // Génération en parallèle (voir la note de la branche « zoom élevé »).
+      final clusterFutures = <Future<void>>[];
+
       for (final entry in clusters.entries) {
         final clusterMembers = entry.value;
         if (clusterMembers.isEmpty) continue;
 
         if (clusterMembers.length == 1) {
           // Un seul membre : afficher le marqueur normal
-          await _addSingleMarker(markers, clusterMembers.first, ref);
+          clusterFutures.add(_addSingleMarker(markers, clusterMembers.first, ref));
         } else {
           // Cluster : afficher un marqueur de groupe
           // Position moyenne
@@ -1983,33 +2020,45 @@ class _MapScreenState extends ConsumerState<MapScreen>
             lngSum / clusterMembers.length,
           );
 
-          final icon = await _createClusterMarker(
-            clusterMembers.length,
-            members: clusterMembers,
-          );
-
-          markers.add(
-            Marker(
-              markerId: MarkerId('cluster_${entry.key.x}_${entry.key.y}'),
-              position: center,
-              icon: icon,
-              onTap: () {
-                // Zoom sur le cluster
-                _controller.future.then((c) {
-                  c.animateCamera(
-                    CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
-                  );
-                });
-              },
-            ),
+          final key = entry.key;
+          clusterFutures.add(
+            _createClusterMarker(
+              clusterMembers.length,
+              members: clusterMembers,
+            ).then((icon) {
+              markers.add(
+                Marker(
+                  markerId: MarkerId('cluster_${key.x}_${key.y}'),
+                  position: center,
+                  icon: icon,
+                  onTap: () {
+                    // Zoom sur le cluster
+                    _controller.future.then((c) {
+                      c.animateCamera(
+                        CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
+                      );
+                    });
+                  },
+                ),
+              );
+            }),
           );
         }
       }
+
+      await Future.wait(clusterFutures);
     } else {
-      // Zoom élevé : afficher tous les marqueurs individuellement
-      for (final member in filteredMembers) {
-        await _addSingleMarker(markers, member, ref);
-      }
+      // Zoom élevé : afficher tous les marqueurs individuellement.
+      //
+      // En série, chaque pin pouvait attendre jusqu'à 3 s le téléchargement de
+      // son avatar (`MarkerImageLoader`), et le `setState` final n'a lieu
+      // qu'après la boucle entière : au cache froid, la carte restait vide
+      // pendant la somme de ces attentes. En parallèle, l'attente totale
+      // retombe à celle du pin le plus lent.
+      await Future.wait([
+        for (final member in filteredMembers)
+          _addSingleMarker(markers, member, ref),
+      ]);
     }
 
     // Vérifier que cette mise à jour est toujours la plus récente
