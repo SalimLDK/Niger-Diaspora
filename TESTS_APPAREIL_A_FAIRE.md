@@ -91,6 +91,12 @@ validées une par une avec Salim avant branchement.
   Restent à vérifier : les filtres **Photos** et **Vidéos** (le compte de test
   n'a qu'un post texte, donc la vignette 72×72 n'a jamais affiché d'image), la
   feuille **Partager**, et le glissement latéral pour retirer.
+- [x] **5d « Mon réseau »** (`follows_screen.dart`, `feed_pill_tabs.dart`,
+  `follow_button.dart`) — vérifié le 2026-08-04 : en-tête, onglets à compteur
+  permanent, barre de recherche, ligne de contact et pastille « Suivi ».
+  Restent à vérifier : la **recherche** (le compte n'a qu'un abonnement), les
+  **lignes de hashtag** sous Abonnements (aucun hashtag suivi sur ce compte),
+  et le basculement Suivre → Suivi au doigt.
 - ⚠ **Publication de test à supprimer** : un post public « Publication de test
   pour verifier l affichage de Mes publications - a ignorer #DiasporaNiger » a
   été publié le 2026-08-04 depuis le compte `Sim A.` pour valider 5b/5c. Il

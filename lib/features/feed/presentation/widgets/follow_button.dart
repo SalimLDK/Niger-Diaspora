@@ -13,6 +13,12 @@ enum FollowButtonVariant {
   /// Simple libellé texte en couleur d'accent — utilisé dans l'en-tête des
   /// cartes du fil (refonte tour 4 : « Suivre » devient un lien discret).
   text,
+
+  /// Pastille des listes « Mon réseau » (fiche 5d) : rayon 999, « Suivre »
+  /// plein à l'accent, « Suivi » en contour. Contrairement à [filled], elle
+  /// prend ses couleurs de `FeedTokens` et non du thème global — sinon
+  /// l'accent choisi par l'utilisateur écrase la palette du fil.
+  pill,
 }
 
 class FollowButton extends ConsumerWidget {
@@ -50,6 +56,43 @@ class FollowButton extends ConsumerWidget {
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                   color: isFollowing ? tokens.mutedText : tokens.accent,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (variant == FollowButtonVariant.pill) {
+      return asyncFollowing.when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (isFollowing) {
+          final tokens = FeedTokens.of(context);
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              await ref.read(feedRepositoryProvider).toggleFollow(targetUserId);
+              ref.invalidate(isFollowingProvider(targetUserId));
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: isFollowing ? Colors.transparent : tokens.accent,
+                borderRadius: BorderRadius.circular(999),
+                border:
+                    isFollowing ? Border.all(color: tokens.divider) : null,
+              ),
+              child: Text(
+                // « Suivi » et non `l10n.unfollowUser` (« Ne plus suivre ») :
+                // la pastille indique un état, pas une action, et la fiche
+                // 5d ne laisse pas la place à quatre mots.
+                isFollowing ? 'Suivi' : 'Suivre',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: isFollowing ? tokens.actionLabel : tokens.onAccent,
                 ),
               ),
             ),

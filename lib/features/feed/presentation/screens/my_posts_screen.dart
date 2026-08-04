@@ -11,6 +11,7 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/feed_empty_state.dart';
+import '../widgets/feed_pill_tabs.dart';
 import '../widgets/my_post_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
@@ -123,7 +124,7 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: _Tabs(
+              child: FeedPillTabs(
                 tokens: tokens,
                 selected: _tab,
                 labels: [
@@ -602,7 +603,13 @@ class _Header extends StatelessWidget {
                         cursorColor: tokens.accent,
                         decoration: InputDecoration(
                           isDense: true,
+                          // Le thème global remplit les champs en blanc et
+                          // les cercle : dans un en-tête, ça pose une pilule
+                          // blanche. `border` seul ne suffit pas.
+                          filled: false,
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           hintText: 'Rechercher dans mes publications',
                           hintStyle: FeedText.body(
                             tokens,
@@ -646,67 +653,3 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Onglets pleins de la fiche 5b : deux pastilles de largeur égale, l'active
-/// remplie à l'accent. Distinct de [FeedSegmentedControl] (pilule à contour
-/// avec icônes) que le reste du fil utilise.
-class _Tabs extends StatelessWidget {
-  final FeedTokens tokens;
-  final int selected;
-  final List<String> labels;
-  final ValueChanged<int> onChanged;
-
-  const _Tabs({
-    required this.tokens,
-    required this.selected,
-    required this.labels,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(tokens.isDark ? tokens.radiusMd : 13);
-    return Row(
-      children: [
-        for (var i = 0; i < labels.length; i++) ...[
-          if (i > 0) const SizedBox(width: 6),
-          Expanded(
-            child: Material(
-              color: selected == i ? tokens.segmentActiveBg : tokens.surface,
-              borderRadius: radius,
-              child: InkWell(
-                borderRadius: radius,
-                onTap: () => onChanged(i),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: radius,
-                    border:
-                        selected == i && tokens.segmentActiveBorder != null
-                            ? Border.all(color: tokens.segmentActiveBorder!)
-                            : null,
-                  ),
-                  child: Text(
-                    labels[i],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: FeedText.body(
-                      tokens,
-                      size: 13,
-                      weight:
-                          selected == i ? FontWeight.w600 : FontWeight.w500,
-                      color:
-                          selected == i
-                              ? tokens.segmentActiveFg
-                              : tokens.actionLabel,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
