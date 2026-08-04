@@ -159,6 +159,47 @@ automatisation retape plus vite qu'un humain. **Ce n'est pas un bug établi.**
 - [ ] Depuis l'onglet Messages, le **retour Android quitte l'app** au lieu de
       revenir sur Accueil. Comportement courant, mais à trancher.
 
+### Deuxième tour (16:13 → 16:21) — passe nocturne, et un test avorté
+
+- [x] **Balayage nocturne des 5 onglets** : **0 débordement, 0 exception** dans
+      logcat, à `font_scale` 1.1. Écran Groupes correct (onglets pleins, carte de
+      groupe, puces Niger / 1 / Autre).
+- [x] **Carte en nocturne** : les tuiles adoptent bien le **style sombre**.
+      ⚪ **Fausse alerte évitée** : capturée 8 s après l'ouverture, la zone de
+      carte est un **aplat crème** sans aucune rue — ce n'est pas un jeton clair
+      figé, ce sont les tuiles pas encore chargées (`ClientParamsBlocking` dans
+      logcat). Laisser ~30 s avant de conclure quoi que ce soit sur la carte.
+- [x] **En-tête du panneau de la carte non tronqué** : « 1 membre autour · 50 km »
+      puis « 0 membre autour · 50 km » s'affichent en entier, avec la ligne de
+      fraîcheur résolue. Le défaut cosmétique « Memb… » n'est pas reproduit.
+- [x] **Position de repli = Niamey** quand la localisation n'est pas disponible
+      (constaté avec la demande de permission à l'écran). Cohérent pour l'app.
+- ⚠ **Demande de permission de localisation** rencontrée à l'écran : **laissée
+      sans réponse volontairement**, accorder une permission système n'est pas
+      une décision d'agent. À traiter par Salim.
+
+**Conséquence bien réelle du bug `key_backups` — constatée dans « Mes notes ».**
+Le message du 19 juil. s'affiche « 🔒 **Message chiffré** », avec le bandeau
+« Restaurez vos clés de chiffrement pour lire vos messages chiffrés sur cet
+appareil ». Les clés locales ont été perdues lors d'une réinstallation, et
+**aucune sauvegarde n'existait** puisque la fonctionnalité était cassée : ce
+message E2EE est donc définitivement illisible sur cet appareil. Les messages
+partis en **repli AES** (« Note validee », « Verif citation 4a ») restent
+lisibles, eux. C'est exactement le scénario que la sauvegarde doit empêcher —
+raison de plus pour créer la sauvegarde maintenant que la règle est déployée.
+
+- [ ] ⛔ **Brouillon restauré : test NON concluant, à refaire.** Deux tentatives
+      avorties — mes taps sur le champ de saisie n'ont pas donné le focus
+      (`mInputShown=false`), donc aucun texte n'a été saisi et il n'y avait aucun
+      brouillon à restaurer. **Ce n'est pas un bug de l'app**, c'est un test raté.
+      À refaire au doigt : taper du texte, bouton accueil, relancer, rouvrir la
+      conversation, et vérifier que le bouton d'envoi est là **d'emblée**.
+
+⚠️ **La session concurrente n'a pas cessé** : nouvelle réinstallation à 16:14:42
+(`installPackageLI`), process de l'app redémarré à 16:18:42 puis 16:19:30, et une
+navigation vers `/groups` que je n'ai pas déclenchée. **Les passes restantes
+demandent l'appareil pour soi seul** — sinon chaque mesure est à jeter.
+
 ### Reste du programme, non exécuté faute de temps
 
 - [ ] Brouillon restauré → bouton d'envoi (dépend des `SharedPreferences`, donc
