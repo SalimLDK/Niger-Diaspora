@@ -64,10 +64,39 @@ la règle Storage manquante qui le déclenche à tort.
       (`firebase emulators:exec --only storage`), avec témoin négatif : une
       règle volontairement cassée sort bien `token recognition error … :134`,
       le fichier réel n'en sort aucune.
-- [ ] ⚠ **Pas encore déployé** — `firebase deploy --only storage`. Tant que ce
-      n'est pas fait, rien ne change sur l'appareil.
-- [ ] Après déploiement : revérifier que le log passe de
-      `backup presence unknown` à `absent` (ou `present`).
+- [x] **Déployé le 2026-08-04 à 16:07** (`firebase deploy --only storage`,
+      projet `diaspo-niger`) : « rules file storage.rules compiled successfully »
+      puis « released rules storage.rules to firebase.storage ».
+- [x] **Vérifié sur appareil dans la foulée (16:08 → 16:11, SM A515F).** Plus
+      aucun `unauthorized` au démarrage à froid, et **toute la chaîne E2EE s'est
+      déroulée pour la première fois sur cet appareil** :
+
+      ```
+      KeyManagerService: Initializing keys for user vQZE49dT…
+      SecureKeyStorage: Stored identity key pair
+      SecureKeyStorage: Stored signed pre-key 954080014
+      SecureKeyStorage: Stored 100 one-time pre-keys
+      KeyManagerService: Published 100 one-time pre-keys
+      KeyManagerService: Published keys to Supabase
+      MessagingE2EEService: Initialized / key maintenance done
+      ```
+
+      Avant le correctif, la génération était sautée et rien de tout ceci
+      n'apparaissait. Le repli AES global n'est donc plus la seule option.
+- [x] **Le bandeau de sauvegarde s'affiche enfin** (« Sauvegardez vos clés de
+      chiffrement… » / Pas maintenant · Sauvegarder), rendu correct en thème
+      **nocturne**, sans débordement. Il n'avait jamais été atteignable.
+- [x] `/settings/security/backup` s'ouvre et propose « Créer une sauvegarde »
+      (générateur de passphrase, jauge de force, bouton inactif tant que la
+      passphrase est faible) — donc la **lecture** du chemin `key_backups/`
+      aboutit désormais.
+- [ ] ⚠ **La branche écriture n'est pas testée** : `uploadBackup` n'a pas été
+      exercé. Créer une sauvegarde génère une passphrase que **Salim seul** doit
+      consigner — sans elle, un futur appareil neuf verrait `needsRestore`, ne
+      générerait aucune clé, et resterait bloqué. À faire par lui, en notant la
+      passphrase. C'est le dernier point qui valide la règle en écriture.
+- [ ] Sur un **second appareil** : vérifier que la restauration fonctionne
+      (`needsRestore` + saisie de la passphrase).
 - [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
       clés sont bien générées et que le bandeau « sauvegarder » apparaît.
 - [ ] **Piste à confirmer** : ceci explique peut-être le point ouvert 20b
