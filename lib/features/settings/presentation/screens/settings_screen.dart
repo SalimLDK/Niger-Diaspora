@@ -366,19 +366,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsCard(
             isDanger: true,
             children: [
+              // Jetons adaptatifs et non `AppColors.warning`/`.error` bruts :
+              // ces deux-là sont les valeurs du thème clair, donc sombres et
+              // peu lisibles sur le fond #0F0D0A du nocturne. La fiche 11e
+              // demande explicitement le rouge clair #F87171 (`errorDark`)
+              // plutôt que le #C23E2D du mode clair.
               _SettingsTile(
                 icon: const Icon(Icons.logout_outlined),
                 title: l10n.logout,
-                iconColor: AppColors.warning,
-                titleColor: AppColors.warning,
+                iconColor: context.warningColor,
+                titleColor: context.warningColor,
                 onTap: () => _confirmLogout(l10n),
               ),
               const _SettingsDivider(),
               _SettingsTile(
                 icon: const Icon(Icons.delete_outline),
                 title: l10n.deleteAccount,
-                iconColor: AppColors.error,
-                titleColor: AppColors.error,
+                iconColor: context.errorColor,
+                titleColor: context.errorColor,
                 onTap: () => _confirmDeleteAccount(l10n),
               ),
             ],
@@ -1076,7 +1081,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: context.warningColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.logout, color: AppColors.warning),
+                  // Le fond de la pastille est déjà adaptatif juste au-dessus :
+                  // le glyphe restait sur le jeton clair, donc sombre sur
+                  // sombre en nocturne.
+                  child: Icon(Icons.logout, color: context.warningColor),
                 ),
                 const SizedBox(width: 12),
                 Text(l10n.logout),
@@ -1133,9 +1141,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: context.errorColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_forever,
-                    color: AppColors.error,
+                    color: context.errorColor,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1518,9 +1526,13 @@ class _SettingsCard extends StatelessWidget {
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(kDesignRadius),
         border: Border.all(
-          color: isDanger
-              ? AppColors.error.withValues(alpha: 0.35)
-              : context.borderColor,
+          // Même correction que les lignes de la zone sensible : le rouge
+          // clair figé donnait un liseré presque invisible en nocturne, là
+          // où la fiche 11e attend un contour rougeâtre net (#4A2620).
+          color:
+              isDanger
+                  ? context.errorColor.withValues(alpha: 0.35)
+                  : context.borderColor,
         ),
       ),
       clipBehavior: Clip.antiAlias,
