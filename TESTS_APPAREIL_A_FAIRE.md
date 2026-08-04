@@ -71,12 +71,97 @@ qui survive au redémarrage du process. Aucune des deux n'a tourné sur appareil
       instance** de MainActivity — le FlutterEngine est mis en cache par
       audio_service, deux activités branchées dessus poseraient problème.
 
-**Dettes ouvertes, non traitées ici :**
+### Liens profonds routés vers `/feed/:id` (2026-08-04)
 
-- [ ] Les **liens profonds ne sont routés par personne** : aucun plugin
-      (`app_links`/`uni_links`) ne les consomme. Ouvrir un lien `/feed/:id`
-      lance l'app sur l'accueil au lieu du post — le partage externe ne
-      retombe donc pas sur son contenu.
+Ouvrir un lien de publication lançait l'app sur l'accueil : rien ne consommait
+l'URI. Deux causes, corrigées ensemble :
+
+1. `flutter_deeplinking_enabled` n'était pas déclaré au manifest — Flutter
+   ignorait l'URI et la route initiale restait « / ». Les liens générés par
+   `DeepLinkService` sont déjà des chemins d'app (`/feed/<id>`), donc GoRouter
+   sait les router tels quels une fois l'URI transmise.
+2. Même transmise, la destination était **perdue** : au démarrage à froid
+   l'authentification n'est pas résolue, le `redirect` renvoyait sur `/splash`
+   puis `/home`. Elle est maintenant mise de côté (étape 0) et rejouée une fois
+   l'utilisateur prêt (étape 10).
+
+⚠️ **Le clic sur un lien n'ouvre l'app que si sa signature est déclarée.**
+`assetlinks.json` couvre maintenant Play App Signing **et la clé release
+locale** (`DD:A6:5C:…`) — donc un APK release installé à la main vérifie ses
+liens, une fois le hosting redéployé. La clé **debug** (`87:32:AD:…`) n'y est
+pas : sur un build debug, Android ouvrira Chrome. Tester alors avec un intent
+explicite, qui contourne la vérification :
+
+```
+adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
+```
+
+- [ ] **App tuée** (`am force-stop`) puis lien : doit ouvrir la publication,
+      pas l'accueil. C'est le cas décisif — celui que la mise de côté corrige.
+- [ ] App en arrière-plan puis lien : même résultat, sans passer par le splash.
+- [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
+      la publication** une fois connecté.
+- [ ] Non-régression : un démarrage normal (icône du launcher) doit toujours
+      aller sur `/splash` puis `/home`, sans jamais rouvrir un ancien lien.
+- [ ] Lien vers un post supprimé ou un id inexistant : vérifier que
+      `PostDetailScreen` dégrade proprement au lieu de planter.
+- [ ] Lien de profil `https://diasponiger.com/p/u/<uid>` : la route de
+      redirection existe déjà, vérifier qu'elle mène bien au profil.
+- [ ] Limite connue : le schéma `diasponiger://feed/<id>` **ne marchera pas**
+      (Flutter ne lit que le chemin de l'URI, et « feed » y est l'hôte). Les
+      liens partagés étant en `https://`, ça ne bloque rien — mais le raccourci
+      `diasponiger://design-v2` du README de `design_v2` ne fonctionne pas non
+      plus, pour la même raison.
+
+**À faire hors appareil :**
+
+- [ ] ⛔ **Redéployer le hosting — BLOQUÉ, ne pas lancer `firebase deploy`
+      en l'état.** Vérifié le 2026-08-04 : `public/` est un vestige, la
+      production n'a **jamais** été déployée depuis ce dépôt. Les 8 fichiers du
+      site sont plus riches en ligne que dans le dépôt (contenu comparé hors
+      fins de ligne) :
+
+      | Fichier | Dépôt | En ligne |
+      |---|---|---|
+      | `privacy-policy.html` | 3 917 car. | 32 342 |
+      | `terms-of-service.html` | 14 263 | 43 082 |
+      | `child-safety-standards.html` | 20 140 | 34 798 |
+      | `delete-account.html` | 16 108 | 24 550 |
+      | `index.html` | 14 319 | 36 483 |
+      | `contact.html` | 6 072 | 18 658 |
+      | `forgot-password.html` | 4 608 | 14 067 |
+      | `.well-known/apple-app-site-association` | 158 | 508 |
+
+      Un déploiement remplacerait la politique de confidentialité, les CGU, la
+      page de suppression de compte et la page sécurité des enfants — toutes
+      exigées par le Play Store — par des versions courtes et obsolètes, et
+      amputerait l'AASA (Universal Links iOS). Le déploiement Firebase est
+      atomique : impossible de n'envoyer que `assetlinks.json`.
+
+      Ordre à suivre : rapatrier d'abord les fichiers en ligne dans `public/`,
+      réappliquer le correctif `assetlinks.json` par-dessus, **puis** déployer.
+- [ ] ⚠️ **`firebase.json` ne déclare qu'un site sur les trois** du projet
+      (`firebase hosting:sites:list`) : `diaspo-niger`, `diaspo-niger-admin` et
+      `diasponiger`. Les liens de l'app pointent sur **`diasponiger.web.app`**
+      (`DEEP_LINK_BASE_URL` + App Links du manifest), qui n'est pas déclaré :
+      un `firebase deploy --only hosting` ne toucherait donc même pas le domaine
+      concerné. À déclarer avant tout déploiement.
+- [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
+      App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
+      pour une app déjà installée.
+
+      ```
+      adb shell pm verify-app-links --re-verify com.diasponiger.diasponiger
+      adb shell pm get-app-links com.diasponiger.diasponiger
+      ```
+
+      La seconde commande doit afficher `verified` pour `diasponiger.web.app` et
+      `diasponiger.com`.
+- [x] Empreinte de la clé **release locale** (`DD:A6:5C:…`, cf.
+      `gradlew signingReport`) ajoutée sous `com.diasponiger.diasponiger` —
+      décision de Salim, pour tester les liens sur un APK release installé à la
+      main sans passer par le Play Store. Élargit d'autant qui peut revendiquer
+      le domaine : à retirer si la keystore venait à circuler.
 
 ---
 

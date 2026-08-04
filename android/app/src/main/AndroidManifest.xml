@@ -96,6 +96,15 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Sans ce drapeau, Flutter ignore l'URI des intents VIEW : la route
+                 initiale reste « / » et un lien partagé ouvrait l'accueil au lieu
+                 de son contenu. Avec, le chemin de l'URI est passé tel quel à
+                 GoRouter — d'où des liens construits sur les vrais chemins de
+                 l'app (`/feed/<id>`, cf. DeepLinkService.generatePostLink). -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="true"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

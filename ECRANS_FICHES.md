@@ -37,7 +37,7 @@ Trois niveaux, à ne pas confondre :
 | 6a | Fil — Nocturne | ✅ | — | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | — | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | — | — | `settings/…/settings_screen.dart` |
-| 11f | Profil incomplet | — | — | — | à déterminer |
+| 11f | Profil incomplet | ✅ | ❌ | — | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | — | — | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
@@ -214,6 +214,36 @@ jumeaux dans la fiche, ils divergeaient sur tout dans le code.
 Non vérifié sur appareil : la carte du numéro **vérifié** — le compte de
 test n'a pas de numéro vérifié, donc ni le masquage « +33 6 12 •• •• 47 »
 ni la ligne « Vérifié par SMS » n'ont été rendus à l'écran.
+
+## 11f — Profil incomplet
+
+Ce n'est pas un écran mais un **état conditionnel de 10a** : le bandeau de
+complétude de `profile_screen.dart`, affiché tant qu'il manque un champ.
+
+- Titre chiffré « Votre profil est complété à 40 % », fraction « 2/5 » en
+  monospace 13/700 à l'accent, barre 8 px rayon 4.
+- Phrase d'explication (« vous rend visible dans la recherche et sur la carte
+  des membres ») : le bandeau disait quoi faire, pas pourquoi.
+- Chaque champ manquant porte son **bouton « Ajouter »** — pastille pleine à
+  l'accent — qui ouvre 20a sur le bon champ via `?focus=`. Avant, la seule
+  sortie était « Compléter mon profil », qui ouvrait le formulaire en haut.
+- Icône teintée par nature du champ, au lieu du même cercle vide pour tous.
+- **Les champs déjà faits restent affichés**, atténués à 70 % avec une coche
+  verte, sous les lignes actionnables. La fiche y tient : les effacer laisse
+  une barre qui avance sans qu'on voie pourquoi.
+- Sans photo, l'avatar passe en **contour pointillé** avec le glyphe « ajouter
+  une photo » au lieu des initiales — rien n'invite à agir dans une case
+  déjà pleine.
+
+`?focus=` ouvre le sélecteur de photo, celui des langues, ou pose le curseur
+dans « ville » / « bio ». **`job` n'est pas géré** : c'est un sélecteur, lui
+donner le focus n'ouvrirait rien d'utile — le formulaire s'ouvre en haut.
+
+Écart assumé : la fiche compte nom + pays de résidence parmi les cinq champs.
+On garde les cinq déjà câblés (photo, ville, métier, langues, bio) : le nom
+est obligatoire à l'inscription, il gonflerait le score sans rien dire.
+
+**Jamais vu à l'écran** : le téléphone s'est déconnecté avant la vérification.
 
 ## 16e — Créer un événement
 

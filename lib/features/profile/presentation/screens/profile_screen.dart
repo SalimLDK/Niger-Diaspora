@@ -403,32 +403,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               children: [
                 Hero(
                   tag: 'profile_avatar',
-                  child: Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      color: context.surfaceVariantColor,
-                      border: Border.all(color: context.borderColor, width: 2),
-                      image: photoUrl != null
-                          ? DecorationImage(
-                              image: NetworkImage(photoUrl),
-                              fit: BoxFit.cover,
+                  // §11f : sans photo, l'emplacement se montre **vide**
+                  // (contour pointillé, glyphe « ajouter une photo ») au lieu
+                  // d'afficher des initiales qui ressemblent à un avatar
+                  // déjà rempli. Rien n'invite à agir dans une case pleine.
+                  child: DottedBorder(
+                    active: photoUrl == null,
+                    color: context.borderColor,
+                    radius: 24,
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        color: context.surfaceVariantColor,
+                        border: photoUrl != null
+                            ? Border.all(color: context.borderColor, width: 2)
+                            : null,
+                        image: photoUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(photoUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: photoUrl == null
+                          ? Icon(
+                              Icons.add_a_photo_outlined,
+                              size: 30,
+                              color: context.textTertiaryColor,
                             )
                           : null,
                     ),
-                    child: photoUrl == null
-                        ? Center(
-                            child: Text(
-                              _getInitials(displayName ?? 'U'),
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: context.adaptivePrimaryColor,
-                              ),
-                            ),
-                          )
-                        : null,
                   ),
                 ),
                 Positioned(
@@ -534,48 +540,69 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  /// Bandeau « profil incomplet » (§11f) : progression n/5 + jusqu'à trois
-  /// champs manquants nommés avec leur bénéfice, CTA « Compléter » + « Plus tard ».
+  /// Bandeau « profil incomplet » (§11f) : progression n/5, les champs qui
+  /// manquent avec un bouton « Ajouter » chacun, puis ceux déjà faits,
+  /// atténués — la fiche les garde à l'écran plutôt que de les effacer, pour
+  /// que la barre de progression ait un sens.
   Widget _buildCompletionBanner(dynamic user, AppLocalizations l10n) {
     if (user == null || _completionDismissed) return const SizedBox.shrink();
     final profile = ref.watch(profileNotifierProvider(user.id)).valueOrNull;
     if (profile == null) return const SizedBox.shrink();
 
-    // 5 champs de complétude, chacun avec son bénéfice.
-    final fields = <({bool filled, String label, String benefit})>[
-      (
+    // 5 champs de complétude : libellé, bénéfice, glyphe teinté par nature,
+    // et l'ancre qui ouvre 20a au bon endroit.
+    final fields = <_CompletionField>[
+      _CompletionField(
         filled: (profile.photoUrl ?? '').trim().isNotEmpty,
         label: l10n.profilePhotoTitle,
         benefit: l10n.profileCompletionPhotoBenefit,
+        icon: Icons.photo_camera_outlined,
+        tint: context.adaptivePrimaryColor,
+        ancre: 'photo',
       ),
-      (
+      _CompletionField(
         filled: (profile.currentCity ?? '').trim().isNotEmpty,
-        label: 'Ville actuelle',
+        label: 'Votre ville actuelle',
         benefit: l10n.profileCompletionCityBenefit,
+        icon: Icons.location_on_outlined,
+        tint: context.adaptivePrimaryColor,
+        ancre: 'city',
       ),
-      (
+      _CompletionField(
         filled: (profile.profession ?? '').trim().isNotEmpty,
-        label: l10n.profileFieldOccupation,
+        label: 'Votre métier',
         benefit: l10n.profileCompletionJobBenefit,
+        icon: Icons.work_outline,
+        tint: context.successColor,
+        ancre: 'job',
       ),
-      (
+      _CompletionField(
         filled: profile.languages.isNotEmpty,
         label: l10n.spokenLanguages,
         benefit: "Utile pour l'entraide et les démarches",
+        icon: Icons.translate_outlined,
+        tint: context.textSecondaryColor,
+        ancre: 'languages',
       ),
-      (
+      _CompletionField(
         filled: (profile.bio ?? '').trim().isNotEmpty,
         label: 'Bio',
         benefit: l10n.profileCompletionBioBenefit,
+        icon: Icons.notes_outlined,
+        tint: context.textSecondaryColor,
+        ancre: 'bio',
       ),
     ];
 
-    final filledCount = fields.where((f) => f.filled).length;
+    final faits = fields.where((f) => f.filled).toList();
     final total = fields.length;
-    if (filledCount >= total) return const SizedBox.shrink();
+    if (faits.length >= total) return const SizedBox.shrink();
 
-    final missing = fields.where((f) => !f.filled).take(3).toList();
+    // Trois champs suffisent à faire basculer le profil : au-delà, la liste
+    // devient un formulaire et non une invitation.
+    final manquants = fields.where((f) => !f.filled).take(3).toList();
     final accent = context.adaptivePrimaryColor;
+    final pourcent = (faits.length * 100 / total).round();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
@@ -586,10 +613,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(
-                    l10n.profileCompleteYours,
+                    l10n.profileCompletionPercent(pourcent),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -597,11 +625,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
-                  '$filledCount/$total',
+                  '${faits.length}/$total',
                   style: TextStyle(
+                    fontFamily: 'monospace',
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: accent,
                   ),
                 ),
@@ -609,54 +639,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             ),
             const SizedBox(height: 10),
             ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: filledCount / total,
-                minHeight: 6,
+                value: faits.length / total,
+                minHeight: 8,
                 backgroundColor: context.surfaceVariantColor,
                 valueColor: AlwaysStoppedAnimation<Color>(accent),
               ),
             ),
-            const SizedBox(height: 12),
-            ...missing.map(
-              (f) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.radio_button_unchecked,
-                      size: 18,
-                      color: context.textTertiaryColor,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            f.label,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
-                          Text(
-                            f.benefit,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.profileCompletionPitch,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.45,
+                color: context.textSecondaryColor,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 14),
+            for (final f in manquants)
+              _CompletionRow(
+                champ: f,
+                actionLabel: l10n.profileCompletionAdd,
+                onAdd: () => context.push('/profile/edit?focus=${f.ancre}'),
+              ),
+            if (faits.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              for (final f in faits) _CompletionRow(champ: f),
+            ],
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -825,14 +836,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return DesignSectionLabel(title);
   }
 
-
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : 'U';
-  }
 
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
@@ -1046,4 +1049,177 @@ class _ProfileTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DesignTag(label, tone: tone);
+}
+
+/// Un champ de la complétude du profil (§11f).
+@immutable
+class _CompletionField {
+  final bool filled;
+  final String label;
+  final String benefit;
+  final IconData icon;
+  final Color tint;
+
+  /// Ancre passée à 20a (`/profile/edit?focus=…`) pour ouvrir le formulaire
+  /// sur le champ concerné plutôt qu'en haut de page.
+  final String ancre;
+
+  const _CompletionField({
+    required this.filled,
+    required this.label,
+    required this.benefit,
+    required this.icon,
+    required this.tint,
+    required this.ancre,
+  });
+}
+
+/// Ligne du bandeau de complétude.
+///
+/// Sans [onAdd], la ligne est un champ **déjà rempli** : coche verte et
+/// opacité réduite. La fiche 11f les garde à l'écran, reléguées sous les
+/// lignes actionnables — les effacer laisserait une barre de progression qui
+/// avance sans qu'on voie pourquoi.
+class _CompletionRow extends StatelessWidget {
+  final _CompletionField champ;
+  final String? actionLabel;
+  final VoidCallback? onAdd;
+
+  const _CompletionRow({required this.champ, this.actionLabel, this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final fait = onAdd == null;
+
+    return Opacity(
+      opacity: fait ? 0.7 : 1,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Row(
+          children: [
+            Icon(
+              fait ? Icons.check_circle_rounded : champ.icon,
+              size: 18,
+              color: fait ? context.successColor : champ.tint,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    champ.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  // Le bénéfice ne concerne que ce qu'il reste à faire :
+                  // sur une ligne acquise, ce serait de la publicité tardive.
+                  if (!fait)
+                    Text(
+                      champ.benefit,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (!fait) ...[
+              const SizedBox(width: 10),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onAdd,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Text(
+                    actionLabel ?? '',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: context.onPrimaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Contour pointillé posé autour de [child] quand [active] est vrai.
+///
+/// Signale un emplacement **à remplir** (fiche 11f) : un contour plein dirait
+/// « voici votre photo », un pointillé dit « il en manque une ».
+class DottedBorder extends StatelessWidget {
+  final bool active;
+  final Color color;
+  final double radius;
+  final Widget child;
+
+  const DottedBorder({
+    super.key,
+    required this.active,
+    required this.color,
+    required this.radius,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!active) return child;
+    return CustomPaint(
+      painter: _DottedPainter(color: color, radius: radius),
+      child: child,
+    );
+  }
+}
+
+class _DottedPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+
+  const _DottedPainter({required this.color, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final trace = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          Radius.circular(radius),
+        ),
+      );
+    final crayon = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    // 5 px de trait, 4 px de vide, le long du contour arrondi.
+    for (final segment in trace.computeMetrics()) {
+      var depart = 0.0;
+      while (depart < segment.length) {
+        final fin = (depart + 5).clamp(0.0, segment.length);
+        canvas.drawPath(segment.extractPath(depart, fin), crayon);
+        depart = fin + 4;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DottedPainter old) =>
+      old.color != color || old.radius != radius;
 }

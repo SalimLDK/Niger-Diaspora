@@ -217,7 +217,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       border:
           widget.isMe
               ? null
-              : Border.all(color: context.borderColor, width: 1),
+              // En nocturne, la bordure de thème (#2A241E) disparaît sur une
+              // bulle #252119 : la fiche 6b nomme #3D352C pour ce rôle.
+              : Border.all(
+                color: isDark ? AppColors.bubbleBorderDark : context.borderColor,
+                width: 1,
+              ),
     );
   }
 
@@ -2002,19 +2007,30 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       },
       child: Container(
         margin: const EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 4),
-        padding: const EdgeInsets.all(10),
+        // Fiche 4a : « citation bordure gauche blanche translucide » — un
+        // filet de 2 px et 9 px de retrait, sans aplat ni rayon. Le bloc
+        // portait un liseré de 4 px opaque sur un fond translucide arrondi,
+        // qui faisait une seconde bulle dans la bulle.
+        padding: const EdgeInsets.only(left: 9, top: 2, bottom: 2, right: 4),
         decoration: BoxDecoration(
+          // Sur la bulle verte, le filet suffit à détacher la citation. Sur
+          // une bulle reçue (fond blanc), il n'y a aucun contraste à
+          // exploiter : on garde l'aplat discret, sinon la citation se
+          // confond avec le message.
           color:
               isMe
-                  ? Colors.white.withValues(alpha: 0.25)
+                  ? null
                   : isDarkMode
                   ? Colors.black.withValues(alpha: 0.35)
                   : Colors.black.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: isMe ? null : BorderRadius.circular(10),
           border: Border(
             left: BorderSide(
-              color: isMe ? AppColors.white : context.adaptivePrimaryColor,
-              width: 4,
+              color:
+                  isMe
+                      ? Colors.white.withValues(alpha: 0.55)
+                      : context.adaptivePrimaryColor,
+              width: 2,
             ),
           ),
         ),

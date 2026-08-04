@@ -1219,8 +1219,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             if (_chatBackground != null &&
                 _chatBackground!.isPattern &&
                 ChatWallpaper.byId(_chatBackground!.patternId) != null)
-              ChatWallpaper.byId(_chatBackground!.patternId)!
-                  .fill(context.isDarkMode),
+              ChatWallpaper.byId(
+                _chatBackground!.patternId,
+              )!.fill(context.isDarkMode),
             // Semi-transparent overlay for readability
             if (_chatBackground != null && !_chatBackground!.isDefault)
               Container(
@@ -2918,87 +2919,115 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             children: [
-              // Avatar
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  // Aplat, plus de dégradé : vert pour un groupe, terracotta
-                  // pour une personne (§3b, §3c).
-                  color:
-                      widget.isGroup
-                          ? context.adaptiveSecondaryColor
-                          : context.adaptivePrimaryColor,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child:
-                    displayImage != null
-                        ? ClipRRect(
-                          borderRadius: BorderRadius.circular(13),
-                          child: CachedNetworkImage(
-                            imageUrl: displayImage,
-                            fit: BoxFit.cover,
-                            placeholder:
-                                (_, __) => Center(
-                                  child:
-                                      widget.isGroup
-                                          ? const AppIcon(
-                                            AppIcon.groups,
-                                            color: AppColors.white,
-                                            size: 20,
-                                          )
-                                          : Text(
-                                            initials,
-                                            style: const TextStyle(
-                                              color: AppColors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                ),
-                            errorWidget:
-                                (_, __, ___) => Center(
-                                  child:
-                                      widget.isGroup
-                                          ? const AppIcon(
-                                            AppIcon.groups,
-                                            color: AppColors.white,
-                                            size: 20,
-                                          )
-                                          : Text(
-                                            initials,
-                                            style: const TextStyle(
-                                              color: AppColors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                ),
-                          ),
-                        )
-                        : Center(
-                          child:
-                              widget.isSelfNotes
-                                  ? const Icon(
-                                    Icons.bookmark_rounded,
-                                    color: AppColors.white,
-                                    size: 22,
-                                  )
-                                  : widget.isGroup
-                                  ? const AppIcon(
-                                    AppIcon.groups,
-                                    color: AppColors.white,
-                                    size: 20,
-                                  )
-                                  : Text(
-                                    initials,
-                                    style: const TextStyle(
-                                      color: AppColors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
+              // Avatar + pastille de présence (fiche 4a). La pastille manquait :
+              // l'en-tête ne disait « En ligne » qu'en toutes lettres, sous le
+              // nom, là où la maquette la pose sur l'avatar.
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      // Aplat, plus de dégradé : vert pour un groupe, terracotta
+                      // pour une personne (§3b, §3c).
+                      color:
+                          widget.isGroup
+                              ? context.adaptiveSecondaryColor
+                              : context.adaptivePrimaryColor,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child:
+                        displayImage != null
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(13),
+                              child: CachedNetworkImage(
+                                imageUrl: displayImage,
+                                fit: BoxFit.cover,
+                                placeholder:
+                                    (_, __) => Center(
+                                      child:
+                                          widget.isGroup
+                                              ? const AppIcon(
+                                                AppIcon.groups,
+                                                color: AppColors.white,
+                                                size: 20,
+                                              )
+                                              : Text(
+                                                initials,
+                                                style: const TextStyle(
+                                                  color: AppColors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                     ),
-                                  ),
+                                errorWidget:
+                                    (_, __, ___) => Center(
+                                      child:
+                                          widget.isGroup
+                                              ? const AppIcon(
+                                                AppIcon.groups,
+                                                color: AppColors.white,
+                                                size: 20,
+                                              )
+                                              : Text(
+                                                initials,
+                                                style: const TextStyle(
+                                                  color: AppColors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                    ),
+                              ),
+                            )
+                            : Center(
+                              child:
+                                  widget.isSelfNotes
+                                      ? const Icon(
+                                        Icons.bookmark_rounded,
+                                        color: AppColors.white,
+                                        size: 22,
+                                      )
+                                      : widget.isGroup
+                                      ? const AppIcon(
+                                        AppIcon.groups,
+                                        color: AppColors.white,
+                                        size: 20,
+                                      )
+                                      : Text(
+                                        initials,
+                                        style: const TextStyle(
+                                          color: AppColors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                            ),
+                  ),
+                  if (!widget.isGroup &&
+                      widget.otherUserId != null &&
+                      !isDeletedUser)
+                    Positioned(
+                      right: -1,
+                      bottom: -1,
+                      // Le liseré reprend le fond de l'en-tête : la pastille
+                      // doit se détacher de l'avatar, pas s'y fondre.
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: context.surfaceColor,
+                          shape: BoxShape.circle,
                         ),
+                        child: OnlineStatusIndicator(
+                          userId: widget.otherUserId!,
+                          showText: false,
+                          dotSize: 11,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(

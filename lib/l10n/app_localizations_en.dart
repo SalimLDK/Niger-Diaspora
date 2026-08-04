@@ -15446,6 +15446,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileCompleteYours => 'Complete your profile';
 
   @override
+  String profileCompletionPercent(int percent) {
+    return 'Your profile is $percent% complete';
+  }
+
+  @override
+  String get profileCompletionPitch =>
+      'A complete profile makes you visible in search and on the members map.';
+
+  @override
+  String get profileCompletionAdd => 'Add';
+
+  @override
+  String get profileToComplete => 'Profile to complete';
+
+  @override
   String get profileCompleteMine => 'Complete my profile';
 
   @override

@@ -7287,6 +7287,23 @@
     "description": "Benefice d un champ manquant"
   },
   "profileCompleteYours": "Complete your profile",
+  "profileCompletionPercent": "Your profile is {percent}% complete",
+  "@profileCompletionPercent": {
+    "description": "Titre du bandeau de complétude du profil (§11f)",
+    "placeholders": { "percent": { "type": "int" } }
+  },
+  "profileCompletionPitch": "A complete profile makes you visible in search and on the members map.",
+  "@profileCompletionPitch": {
+    "description": "Phrase d'explication du bandeau de complétude (§11f)"
+  },
+  "profileCompletionAdd": "Add",
+  "@profileCompletionAdd": {
+    "description": "Bouton d'une ligne à compléter du bandeau de complétude (§11f)"
+  },
+  "profileToComplete": "Profile to complete",
+  "@profileToComplete": {
+    "description": "Sous-ligne d'identité quand le profil est incomplet (§11f)"
+  },
   "@profileCompleteYours": {
     "description": "Titre du bandeau de completude"
   },

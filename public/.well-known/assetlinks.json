@@ -11,5 +11,18 @@
                 "35:67:B0:E9:C9:01:C2:0E:B8:76:E3:CB:0B:2A:69:28:5D:5D:BB:DC:FB:89:07:0D:9C:26:91:3E:91:3F:D1:F4"
             ]
         }
+    },
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.diasponiger.diasponiger",
+            "sha256_cert_fingerprints": [
+                "91:71:E2:D7:EB:0F:B2:59:CC:95:06:C5:3E:B7:63:34:F9:BA:84:0A:0E:85:8A:A6:C2:1F:43:CF:28:2A:39:B0",
+                "DD:A6:5C:3E:BC:08:BD:67:4F:FA:37:26:40:5C:4C:B7:5B:25:3E:DE:55:85:BB:E2:22:DA:34:20:51:94:CF:5D"
+            ]
+        }
     }
 ]

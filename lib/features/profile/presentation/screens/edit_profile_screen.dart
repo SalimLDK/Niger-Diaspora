@@ -24,7 +24,12 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 const int _kBioMaxLength = 160;
 
 class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({super.key});
+  /// Champ sur lequel ouvrir le formulaire, venu du bandeau de complétude
+  /// (§11f) : `photo`, `city`, `job`, `languages` ou `bio`. `null` ouvre en
+  /// haut de page, comme un accès normal depuis le profil.
+  final String? focusField;
+
+  const EditProfileScreen({super.key, this.focusField});
 
   @override
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -36,6 +41,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   final _displayNameController = TextEditingController();
   final _bioController = TextEditingController();
   final _currentCityController = TextEditingController();
+
+  /// Cibles du paramètre `?focus=` (§11f) : le curseur se pose dans le champ
+  /// concerné, ce qui le fait défiler à l'écran par la même occasion.
+  final _bioFocus = FocusNode();
+  final _cityFocus = FocusNode();
   final _customProfessionController = TextEditingController();
   final _customCountryController = TextEditingController();
   final _customOriginCityController = TextEditingController();
@@ -118,6 +128,29 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
     _loadCurrentProfile();
     _animationController.forward();
+    _appliquerFocusDemande();
+  }
+
+  /// Ouvre le formulaire sur le champ demandé par le bandeau de complétude.
+  /// Après la première frame : avant, ni le champ ni la feuille n'existent.
+  void _appliquerFocusDemande() {
+    final cible = widget.focusField;
+    if (cible == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (cible) {
+        case 'photo':
+          _showImagePickerOptions();
+        case 'languages':
+          _choisirLangues();
+        case 'city':
+          _cityFocus.requestFocus();
+        case 'bio':
+          _bioFocus.requestFocus();
+        // `job` est un sélecteur : lui « donner le focus » n'ouvrirait rien
+        // d'utile, le formulaire s'ouvre simplement en haut.
+      }
+    });
   }
 
   void _loadCurrentProfile() {
@@ -241,6 +274,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     _displayNameController.dispose();
     _bioController.dispose();
     _currentCityController.dispose();
+    _bioFocus.dispose();
+    _cityFocus.dispose();
     _customProfessionController.dispose();
     _customCountryController.dispose();
     _customOriginCityController.dispose();
@@ -703,6 +738,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                           // (`counterText: ''` l'éteint).
                           CustomTextField(
                             controller: _bioController,
+                            focusNode: _bioFocus,
                             label: l10n.bio,
                             maxLines: 3,
                             maxLength: _kBioMaxLength,
@@ -802,6 +838,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                           const SizedBox(height: 16),
                           CustomTextField(
                             controller: _currentCityController,
+                            focusNode: _cityFocus,
                             label: l10n.currentCity,
                           ),
                           const SizedBox(height: 16),
