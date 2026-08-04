@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:developer' as dev;
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../../core/errors/failures.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
@@ -60,8 +63,17 @@ SendPasswordResetEmail sendPasswordResetEmailUseCase(Ref ref) {
 
 @riverpod
 class AuthNotifier extends _$AuthNotifier {
+  /// Au-delà, on considère le profil serveur injoignable et on démarre sur la
+  /// session Firebase locale. Le routeur maintient `/splash` tant que
+  /// `isAuthLoading` : sans borne, un démarrage hors ligne y restait bloqué
+  /// plus de deux minutes (constaté sur appareil le 2026-08-04).
+  static const _profileTimeout = Duration(seconds: 8);
+
+  bool _disposed = false;
+
   @override
   AuthState build() {
+    ref.onDispose(() => _disposed = true);
     _initAuthState();
     return const AuthState.initial();
   }
@@ -96,8 +108,75 @@ class AuthNotifier extends _$AuthNotifier {
 
   Future<void> _loadUserData(String userId) async {
     final repository = ref.read(authRepositoryProvider);
-    final result = await repository.getCurrentUser();
+    // `getCurrentUser()` enchaîne trois allers-retours Supabase (échange du
+    // jeton Firebase, upsert du compte, lecture du profil). Hors ligne, aucun
+    // ne rend la main : c'est là que se jouaient les deux minutes de splash.
+    final pending = repository.getCurrentUser();
+    final Either<Failure, UserEntity?> result;
+    try {
+      result = await pending.timeout(_profileTimeout);
+    } on TimeoutException {
+      _startFromLocalSession();
+      // La requête n'est pas annulée par `timeout` : si elle finit par
+      // aboutir (réseau revenu), le profil complet remplacera de lui-même la
+      // session minimale, sans second appel ni action de l'utilisateur.
+      //
+      // Une réponse tardive en ÉCHEC, elle, est ignorée : `_applyUser`
+      // basculerait sur `unauthenticated` et jetterait dehors quelqu'un déjà
+      // entré dans l'app. La décision a été prise à l'expiration.
+      unawaited(
+        pending
+            .then((late) => late.fold((_) {}, (user) {
+                  if (user != null) _applyUser(late);
+                }))
+            .catchError((Object _) {}),
+      );
+      return;
+    }
+    _applyUser(result);
+  }
 
+  /// Démarre sur ce que la session Firebase locale nous apprend, faute de
+  /// pouvoir joindre le profil serveur.
+  ///
+  /// On ne bascule surtout pas sur `unauthenticated` : le routeur enverrait
+  /// vers `/auth/login`, or se reconnecter exige le réseau — précisément ce
+  /// qui manque. L'utilisateur se retrouverait dehors sans pouvoir rentrer.
+  void _startFromLocalSession() {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) {
+      _setState(const AuthState.unauthenticated());
+      return;
+    }
+    dev.log('$_tag: profil serveur injoignable, démarrage sur la session locale');
+    _setState(
+      AuthState.authenticated(
+        UserEntity(
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoUrl: firebaseUser.photoURL,
+          phoneNumber: firebaseUser.phoneNumber,
+          // `adminRole` reste `none` : aucun privilège n'est accordé sur la
+          // seule foi d'une session locale, il faut le profil serveur.
+        ),
+      ),
+    );
+    // Consentement, onboarding, config de profil : tout est en
+    // SharedPreferences, donc lisible hors ligne. Sans ce refresh, le routeur
+    // resterait sur /splash à l'étape `onboardingState.isLoading`.
+    ref.read(onboardingNotifierProvider.notifier).refresh();
+  }
+
+  /// Peut être appelé tardivement (requête revenue après l'expiration), donc
+  /// après la destruction du notifier : écrire `state` lèverait alors.
+  void _setState(AuthState next) {
+    if (_disposed) return;
+    state = next;
+  }
+
+  void _applyUser(Either<Failure, UserEntity?> result) {
+    if (_disposed) return;
     result.fold((failure) => state = const AuthState.unauthenticated(), (user) {
       if (user != null) {
         state = AuthState.authenticated(user);
