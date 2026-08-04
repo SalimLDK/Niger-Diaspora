@@ -1,4 +1,5 @@
 
+import '../../../../core/utils/date_parsing.dart';
 import '../../domain/entities/post_entity.dart';
 
 class PostModel {
@@ -53,10 +54,10 @@ class PostModel {
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic value) {
-      if (value is String) return DateTime.parse(value);
-      return DateTime.now();
-    }
+    // `toLocal()` : un `created_at` Supabase arrive en ISO terminé par `Z`,
+    // donc `DateTime.parse` renvoie de l'UTC que `DateFormat` imprimerait tel
+    // quel (02:01 affiché « 06:01 » à Toronto). Voir `core/utils/date_parsing`.
+    DateTime parseDate(dynamic value) => parseLocalDate(value);
 
     return PostModel(
       id: json['id'] as String? ?? '',
@@ -107,8 +108,11 @@ class PostModel {
     'likeCount': likeCount,
     'commentCount': commentCount,
     'shareCount': shareCount,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
+    // UTC explicite : les dates sont locales depuis `parseDate`, et
+    // `toIso8601String()` seul produirait une chaîne sans fuseau, ambiguë pour
+    // qui la relit (cache comme serveur).
+    'createdAt': toIsoUtc(createdAt),
+    'updatedAt': toIsoUtc(updatedAt),
     'isEdited': isEdited,
     'mentionedUsers': mentionedUsers,
     'mentionedGroups': mentionedGroups,

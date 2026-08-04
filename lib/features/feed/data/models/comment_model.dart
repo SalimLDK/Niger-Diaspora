@@ -1,4 +1,5 @@
 
+import '../../../../core/utils/date_parsing.dart';
 import '../../domain/entities/comment_entity.dart';
 import '../../domain/entities/post_entity.dart';
 
@@ -32,10 +33,8 @@ class CommentModel {
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic value) {
-      if (value is String) return DateTime.parse(value);
-      return DateTime.now();
-    }
+    // Même normalisation que `PostModel` : voir `core/utils/date_parsing`.
+    DateTime parseDate(dynamic value) => parseLocalDate(value);
 
     return CommentModel(
       id: json['id'] as String? ?? '',
@@ -68,7 +67,8 @@ class CommentModel {
     'authorName': authorName,
     'authorPhotoUrl': authorPhotoUrl,
     'content': content,
-    'createdAt': createdAt.toIso8601String(),
+    // UTC explicite, cf. `PostModel.toJson`.
+    'createdAt': toIsoUtc(createdAt),
     'mentionedUsers': mentionedUsers,
     'mentionedGroups': mentionedGroups,
     'hashtags': hashtags,

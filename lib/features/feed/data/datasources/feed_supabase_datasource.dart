@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../../../core/utils/date_parsing.dart';
 import '../../domain/repositories/feed_repository.dart';
 import '../models/comment_model.dart';
 import '../models/post_model.dart';
@@ -735,9 +736,8 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
         reposterId: r['reposter_id'] as String? ?? '',
         reposterName: r['reposter_name'] as String? ?? '',
         comment: r['comment'] as String?,
-        repostedAt:
-            DateTime.tryParse(r['repost_created_at']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0),
+        repostedAt: tryParseLocalDate(r['repost_created_at']?.toString()) ??
+            DateTime.fromMillisecondsSinceEpoch(0),
       );
     }).toList();
   }
