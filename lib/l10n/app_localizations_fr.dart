@@ -15735,4 +15735,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whoCanSeeMyNumber => 'Qui peut voir mon numéro ?';
+
+  @override
+  String get changePhotoAction => 'Modifier la photo';
 }

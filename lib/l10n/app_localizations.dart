@@ -28801,6 +28801,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Qui peut voir mon numéro ?'**
   String get whoCanSeeMyNumber;
+
+  /// Lien sous l avatar de l editeur de profil
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la photo'**
+  String get changePhotoAction;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -544,9 +543,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             slivers: [
               // Header avec photo de profil
               SliverAppBar(
-                expandedHeight: 240,
+                // §20a : la barre n'a plus de hero. L'avatar est descendu
+                // dans le contenu, en ligne — l'écran commence donc sur un
+                // champ et non sur un tiers de page décoratif.
                 pinned: true,
-                stretch: true,
+                title: Text(
+                  AppLocalizations.of(context)!.editProfileTitle,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
                 // Repliée, cette barre virait au terracotta plein sur toute
                 // la largeur — le seul écran de l'app à faire ça, et le
                 // jeton était figé sur la palette claire. Elle suit
@@ -580,41 +588,43 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       );
                     },
                   ),
+                  // §20a : « Enregistrer » est un lien texte, pas une pilule
+                  // pleine. La pilule mangeait la largeur et tronquait le
+                  // titre en « Modifier le p… ».
                   Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: TextButton.icon(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: TextButton(
                       onPressed: _isLoading ? null : _saveProfile,
-                      icon:
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 40),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child:
                           _isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation(
-                                    AppColors.white,
+                                    context.adaptivePrimaryColor,
                                   ),
                                 ),
                               )
-                              : const AppIcon(AppIcon.check, color: Colors.white),
-                      label: Text(
-                        l10n.save,
-                        style: TextStyle(
-                          color: context.onPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: context.adaptivePrimaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                              : Text(
+                                l10n.save,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: context.adaptivePrimaryColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                     ),
                   ),
                 ],
-                flexibleSpace: FlexibleSpaceBar(background: _buildHeader()),
               ),
+              SliverToBoxAdapter(child: _buildHeader()),
 
               // Contenu du formulaire
               SliverPadding(
@@ -1060,181 +1070,80 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
   }
 
+  /// Identité en ligne (§20a) : avatar à gauche, invitation à changer la
+  /// photo à côté. La maquette a supprimé le hero de 240 px, ses cercles
+  /// décoratifs et le bandeau terracotta — l'écran est désormais plat, et
+  /// l'avatar ne prend plus le tiers de la page avant le premier champ.
   Widget _buildHeader() {
-    // En-tête plat (§20a) : le dégradé terracotta et ses cercles blancs
-    // décoratifs disparaissent. Sur le crème, ces cercles n'auraient plus
-    // aucun contraste — ils passent en accent très dilué.
-    return Container(
-      color: context.backgroundColor,
-      child: Stack(
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      child: Row(
         children: [
-          // Motifs décoratifs
-          Positioned(
-            top: -30,
-            right: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 40,
-            left: -30,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.white.withValues(alpha: 0.03),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 80,
-            left: 40,
-            child: Transform.rotate(
-              angle: math.pi / 4,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: context.adaptivePrimaryColor.withValues(alpha: 0.08),
+          GestureDetector(
+            onTap: _showImagePickerOptions,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: context.adaptivePrimaryColor,
+                    borderRadius: BorderRadius.circular(20),
+                    image: _photoUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(_photoUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: _photoUrl == null
+                      ? Text(
+                          _getInitials(_displayNameController.text),
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: context.onPrimaryColor,
+                          ),
+                        )
+                      : null,
                 ),
-              ),
+                Positioned(
+                  right: -4,
+                  bottom: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: context.adaptivePrimaryColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: context.backgroundColor,
+                        width: 2.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.photo_camera_outlined,
+                      size: 14,
+                      color: context.onPrimaryColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-
-          // Avatar au centre
-          SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  GestureDetector(
-                    onTap: _showImagePickerOptions,
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.white.withValues(alpha: 0.4),
-                                AppColors.white.withValues(alpha: 0.1),
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: Hero(
-                            tag: 'profile_avatar',
-                            child: Container(
-                              width: 110,
-                              height: 110,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.white.withValues(alpha: 0.2),
-                                border: Border.all(
-                                  color: AppColors.white,
-                                  width: 3,
-                                ),
-                                image:
-                                    _photoUrl != null
-                                        ? DecorationImage(
-                                          image: NetworkImage(_photoUrl!),
-                                          fit: BoxFit.cover,
-                                        )
-                                        : null,
-                              ),
-                              child:
-                                  _photoUrl == null
-                                      ? Center(
-                                        child: Text(
-                                          _getInitials(
-                                            _displayNameController
-                                                    .text
-                                                    .isNotEmpty
-                                                ? _displayNameController.text
-                                                : 'U',
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.white,
-                                          ),
-                                        ),
-                                      )
-                                      : null,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        if (_isLoading)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.5),
-                              ),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
-                                    AppColors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Ce libellé était blanc sur le dégradé : sur le crème il
-                  // serait invisible. Il passe en accent, comme l'invite
-                  // « Ajouter une photo » de la configuration (§16f).
-                  Text(
-                    'Modifier la photo',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: context.adaptivePrimaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: GestureDetector(
+              onTap: _showImagePickerOptions,
+              child: Text(
+                l10n.changePhotoAction,
+                style: TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.adaptivePrimaryColor,
+                ),
               ),
             ),
           ),

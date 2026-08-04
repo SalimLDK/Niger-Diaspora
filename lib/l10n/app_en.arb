@@ -7489,5 +7489,9 @@
   "whoCanSeeMyNumber": "Who can see my number?",
   "@whoCanSeeMyNumber": {
     "description": "Titre du reglage de visibilite du numero de telephone"
+  },
+  "changePhotoAction": "Change photo",
+  "@changePhotoAction": {
+    "description": "Lien sous l avatar de l editeur de profil"
   }
 }
