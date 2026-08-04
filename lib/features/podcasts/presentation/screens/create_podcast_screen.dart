@@ -220,6 +220,9 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
             // Category
             DropdownButtonFormField<PodcastCategory>(
               initialValue: _category,
+              // Libellés traduits : leur longueur varie selon la langue, et
+              // le plus long dicterait la largeur du champ replié.
+              isExpanded: true,
               decoration: InputDecoration(
                 labelText: l10n.podcastsCategoryRequired,
                 border: const OutlineInputBorder(),
@@ -239,7 +242,11 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
                         ).categoryLabel;
                     return DropdownMenuItem(
                       value: category,
-                      child: Text(label),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
               onChanged: (value) {
@@ -251,6 +258,7 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
             // Language
             DropdownButtonFormField<String>(
               initialValue: _language,
+              isExpanded: true,
               decoration: InputDecoration(
                 labelText: l10n.podcastsLanguageRequired,
                 border: const OutlineInputBorder(),
@@ -273,6 +281,7 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
             // Episode frequency
             DropdownButtonFormField<String?>(
               initialValue: _episodeFrequency,
+              isExpanded: true,
               decoration: InputDecoration(
                 labelText: l10n.podcastsPublicationFrequency,
                 border: const OutlineInputBorder(),
