@@ -621,6 +621,25 @@ groupe, ni public ni rejoint**. Il n'existe donc aucun chemin de navigation
 vers cet écran. Le seul moyen de le rendre serait de créer un groupe de test
 sur le compte — écriture persistante en production, à décider par Salim.
 
+**Troisième tentative (2026-08-04, Salim ayant donné son accord)** : création
+d'un groupe **privé** « Diaspora Paris » (localisation Paris) depuis
+`/groups/create`. Le formulaire se remplit correctement — nom, description,
+ville, bascule « Groupe privé » activée, tout vérifié à l'écran — mais
+**l'appui sur « Créer le groupe » n'aboutit pas** : l'app saute sur un écran
+de détail de publication et « Mes groupes » reste à 0.
+
+Ce n'est pas un défaut de 9d. C'est le symptôme de l'**intent rejoué au
+démarrage** : à chaque fois que l'app se stabilise, elle atterrit sur « Fil
+d'actualité → détail de publication », y compris sans action de ma part.
+L'écran est arraché sous les doigts en plein milieu d'un formulaire. C'est
+exactement le bug traité en parallèle (« Vider l'intent de partage rejoué à
+chaque démarrage »).
+
+**Rien n'a été écrit** : aucun groupe créé, aucun commentaire posté (le post
+« In kwana » avait déjà ses 2 commentaires avant). À reprendre une fois le
+correctif d'intent en place — le chemin est connu et le formulaire tient en
+quatre champs.
+
 ## 9c — Groupes
 
 L'essentiel de la fiche existait déjà (onglets Mes groupes / Découvrir,
