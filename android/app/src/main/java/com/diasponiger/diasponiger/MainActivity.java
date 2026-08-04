@@ -1,6 +1,7 @@
 package com.diasponiger.diasponiger;
 
 import android.content.Intent;
+import android.net.Uri;
 
 import com.ryanheise.audioservice.AudioServiceFragmentActivity;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -26,9 +27,17 @@ public class MainActivity extends AudioServiceFragmentActivity {
     /** Canal appelé par SharedMediaService une fois le partage présenté. */
     private static final String SHARE_INTENT_CHANNEL = "diaspo_niger/share_intent";
 
+    /**
+     * Moteur courant, retenu pour `onNewIntent`. Réaffecté à chaque
+     * rattachement — le moteur étant mis en cache par audio_service, il survit
+     * à l'activité, mais la référence doit rester celle qu'on nous passe.
+     */
+    private FlutterEngine flutterEngine;
+
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
         super.configureFlutterEngine(flutterEngine);
+        this.flutterEngine = flutterEngine;
         // Le moteur étant désormais mis en cache par audio_service, cette méthode
         // peut être appelée plusieurs fois sur le même moteur (recréation de
         // l'activité). PluginRegistry.add() ignore les doublons, l'ajout reste sûr.
@@ -63,5 +72,44 @@ public class MainActivity extends AudioServiceFragmentActivity {
      */
     private void clearSharedIntent() {
         setIntent(new Intent(Intent.ACTION_MAIN));
+    }
+
+    /**
+     * Transmet à Flutter les liens reçus alors que l'application tourne déjà.
+     *
+     * `flutter_deeplinking_enabled` ne couvre que le démarrage : vérifié sur
+     * appareil le 2026-08-04, un lien ouvert avec l'app en arrière-plan était
+     * bien délivré ici (« intent has been delivered to currently running
+     * top-most instance ») mais n'atteignait jamais GoRouter — aucune
+     * navigation, l'app revenait simplement au premier plan sur l'écran quitté.
+     *
+     * En cause, le moteur mis en cache qu'impose audio_service : l'embedding
+     * Flutter ne relaie pas les nouveaux intents au canal de navigation dans ce
+     * montage. On pousse donc la route nous-mêmes, exactement comme le fait
+     * l'embedding au démarrage — chemin + requête + fragment, sans le schéma ni
+     * l'hôte, que GoRouter n'attend pas.
+     */
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        pushRouteFromIntent(intent);
+    }
+
+    private void pushRouteFromIntent(Intent intent) {
+        if (!Intent.ACTION_VIEW.equals(intent.getAction())) return;
+        Uri data = intent.getData();
+        if (data == null) return;
+
+        String path = data.getPath();
+        // Un schéma custom (diasponiger://feed/<id>) porte « feed » dans l'hôte
+        // et non dans le chemin : il n'y a alors rien de routable à pousser.
+        if (path == null || path.isEmpty()) return;
+
+        StringBuilder route = new StringBuilder(path);
+        if (data.getQuery() != null) route.append('?').append(data.getQuery());
+        if (data.getFragment() != null) route.append('#').append(data.getFragment());
+
+        if (flutterEngine == null) return;
+        flutterEngine.getNavigationChannel().pushRouteInformation(route.toString());
     }
 }

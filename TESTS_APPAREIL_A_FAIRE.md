@@ -267,11 +267,30 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
       `redirecting to /feed/0d9abb43-…` sur `/feed/:postId`. La mise de côté
       reste un filet pour les cas où l'URI arriverait *pendant* le chargement
       (session déjà chaude, ou utilisateur déconnecté), non exercés ici.
-- [ ] App en arrière-plan puis lien : même résultat, sans passer par le splash.
+- [x] **App en arrière-plan puis lien : ÉCHOUAIT — bug trouvé et corrigé le
+      2026-08-04, correctif compilé mais PAS revérifié sur appareil.**
+
+      Symptôme : l'app revenait au premier plan sur l'écran qu'on venait de
+      quitter, le lien perdu. `am start` répondait « Activity not started, its
+      current task has been brought to the front » et **aucun log GoRouter**
+      n'apparaissait. Même en forçant `FLAG_ACTIVITY_SINGLE_TOP` (`-f
+      0x20000000`), où Android confirme pourtant « intent has been delivered to
+      currently running top-most instance », Flutter ne journalisait rien :
+      l'intent atteignait l'activité sans jamais atteindre le routeur.
+
+      Cause : `flutter_deeplinking_enabled` ne couvre que le **démarrage**. Le
+      moteur mis en cache qu'impose `AudioServiceFragmentActivity` fait que
+      l'embedding ne relaie pas les nouveaux intents au canal de navigation.
+      Corrigé en poussant la route depuis `MainActivity.onNewIntent()` (chemin
+      + requête + fragment), comme le fait l'embedding au démarrage.
+
+      À revérifier : app à l'accueil → HOME → lien vers un **autre** post →
+      doit ouvrir ce post sans repasser par le splash.
 - [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
       la publication** une fois connecté.
-- [ ] Non-régression : un démarrage normal (icône du launcher) doit toujours
-      aller sur `/splash` puis `/home`, sans jamais rouvrir un ancien lien.
+- [x] Non-régression vérifiée le 2026-08-04 : lancement par le launcher
+      (`monkey -c android.intent.category.LAUNCHER`) → l'app arrive bien sur
+      l'accueil, aucun ancien lien n'est rejoué.
 - [ ] Lien vers un post supprimé ou un id inexistant : vérifier que
       `PostDetailScreen` dégrade proprement au lieu de planter.
 - [ ] Lien de profil `https://diasponiger.com/p/u/<uid>` : la route de
