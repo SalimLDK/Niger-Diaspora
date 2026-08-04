@@ -227,16 +227,36 @@ class FeedNotifier extends Notifier<FeedState> {
       hashtagFilter: hashtagFilter ?? state.hashtagFilter,
     );
     final filter = hashtagFilter ?? state.hashtagFilter;
-    final result = await _repo.getFeedPaginated(
-      limit: _pageSize,
-      hashtagFilter: filter,
-      mode: state.mode,
-    );
-    // Extraction synchrone : pas de closure async passee a fold (sinon une
-    // exception dans le travail async serait avalee et isLoading resterait true).
-    final paginated = result.fold((_) => null, (p) => p);
+
+    // Le cache d'abord. L'écran ne montre ses squelettes que tant que `posts`
+    // est vide : en le remplissant tout de suite, un utilisateur hors ligne
+    // voit son fil immédiatement au lieu d'attendre l'expiration du réseau.
+    // La requête continue derrière et remplacera ces posts si elle aboutit.
+    if (state.posts.isEmpty) _showCachedIfAny(filter);
+
+    final PaginatedPosts? paginated;
+    final String? message;
+    try {
+      final result = await _repo
+          .getFeedPaginated(
+            limit: _pageSize,
+            hashtagFilter: filter,
+            mode: state.mode,
+          )
+          // Sans borne, un réseau qui *pend* au lieu d'échouer (mode avion,
+          // portail captif, TURN injoignable) ne rend jamais la main : le
+          // repli sur le cache n'était alors jamais atteint et le fil restait
+          // sur ses squelettes indéfiniment.
+          .timeout(_networkTimeout);
+      // Extraction synchrone : pas de closure async passee a fold (sinon une
+      // exception dans le travail async serait avalee et isLoading resterait true).
+      paginated = result.fold((_) => null, (p) => p);
+      message = result.fold((failure) => failure.message, (_) => null);
+    } on TimeoutException {
+      await _handleLoadFailure('timeout', filter);
+      return;
+    }
     if (paginated == null) {
-      final message = result.fold((failure) => failure.message, (_) => null);
       await _handleLoadFailure(message, filter);
       return;
     }
@@ -252,13 +272,22 @@ class FeedNotifier extends Notifier<FeedState> {
       Set<String> repostIds = const {};
       if (userId.isNotEmpty && posts.isNotEmpty) {
         final ids = posts.map((p) => p.id).toList();
-        final likedResult = await _repo.getLikedPostIds(ids, userId);
+        // Bornés eux aussi : un de ces appels qui pend retenait le fil en
+        // chargement alors que les publications étaient déjà là. En cas
+        // d'expiration, le `catch` ci-dessous affiche les posts sans ces états.
+        final likedResult =
+            await _repo.getLikedPostIds(ids, userId).timeout(_enrichTimeout);
         likedIds = likedResult.fold((_) => const {}, (ids) => ids);
-        final bookmarkResult = await _repo.getBookmarkedPostIds(userId);
+        final bookmarkResult =
+            await _repo.getBookmarkedPostIds(userId).timeout(_enrichTimeout);
         bookmarkIds = bookmarkResult.fold((_) => const {}, (ids) => ids);
-        final repostResult = await _repo.getRepostedPostIds(userId);
+        final repostResult =
+            await _repo.getRepostedPostIds(userId).timeout(_enrichTimeout);
         repostIds = repostResult.fold((_) => const {}, (ids) => ids);
       }
+      // `isFromCache` / `cachedAt` se réinitialisent d'eux-mêmes dans copyWith
+      // (convention « état du dernier chargement ») : le bandeau « hors ligne »
+      // posé par _showCachedIfAny disparaît donc ici.
       state = state.copyWith(
         posts: posts,
         isLoading: false,
@@ -283,6 +312,46 @@ class FeedNotifier extends Notifier<FeedState> {
     }
   }
 
+  /// Au-delà, on considère le réseau perdu et on bascule sur le cache.
+  static const _networkTimeout = Duration(seconds: 10);
+
+  /// Likes, favoris et repartages ne sont qu'un enrichissement : ils ne doivent
+  /// jamais retenir l'affichage des publications déjà reçues.
+  static const _enrichTimeout = Duration(seconds: 5);
+
+  /// Affiche la dernière page mise en cache, si elle existe. Utilisé avant même
+  /// d'interroger le réseau (cf. [loadInitial]) et en cas d'échec.
+  ///
+  /// Ne touche pas à `isLoading` : la requête réseau est toujours en cours et
+  /// c'est elle qui terminera le chargement.
+  void _showCachedIfAny(String? filter) {
+    final (cached, cachedAt) = _readCache(filter);
+    if (cached.isEmpty) return;
+    state = state.copyWith(
+      posts: cached,
+      isFromCache: true,
+      cachedAt: cachedAt,
+      hasMore: false, // pas de pagination sur du cache
+    );
+  }
+
+  /// Dernière page mise en cache, ou une liste vide si elle est absente ou
+  /// illisible. Le cache est un confort : son échec ne doit rien casser.
+  (List<PostEntity>, DateTime?) _readCache(String? filter) {
+    try {
+      final key = _cacheKey(filter);
+      final raw = CacheService.instance.getCachedFeed(key);
+      if (raw.isEmpty) return (const [], null);
+      return (
+        raw.map((j) => PostModel.fromJson(j).toEntity()).toList(),
+        CacheService.instance.getFeedCachedAt(key),
+      );
+    } catch (e) {
+      debugPrint('FeedNotifier: lecture du cache impossible: $e');
+      return (const [], null);
+    }
+  }
+
   String _cacheKey(String? hashtagFilter) =>
       CacheService.feedKey(mode: state.mode.name, hashtagFilter: hashtagFilter);
 
@@ -304,15 +373,7 @@ class FeedNotifier extends Notifier<FeedState> {
   Future<void> _handleLoadFailure(String? message, String? filter) async {
     final failure = _classifyFailure(message);
 
-    List<PostEntity> cached = const [];
-    DateTime? cachedAt;
-    try {
-      final raw = CacheService.instance.getCachedFeed(_cacheKey(filter));
-      cached = raw.map((j) => PostModel.fromJson(j).toEntity()).toList();
-      cachedAt = CacheService.instance.getFeedCachedAt(_cacheKey(filter));
-    } catch (e) {
-      debugPrint('FeedNotifier: lecture du cache impossible: $e');
-    }
+    final (cached, cachedAt) = _readCache(filter);
 
     state = state.copyWith(
       isLoading: false,
@@ -351,14 +412,24 @@ class FeedNotifier extends Notifier<FeedState> {
   Future<void> loadMore() async {
     if (!state.hasMore || state.isLoadingMore) return;
     state = state.copyWith(isLoadingMore: true);
-    final result = await _repo.getFeedPaginated(
-      limit: _pageSize,
-      offset: state.lastOffset,
-      hashtagFilter: state.hashtagFilter,
-      mode: state.mode,
-    );
-    // Extraction synchrone : pas de closure async passee a fold.
-    final paginated = result.fold((_) => null, (p) => p);
+    final PaginatedPosts? paginated;
+    try {
+      final result = await _repo
+          .getFeedPaginated(
+            limit: _pageSize,
+            offset: state.lastOffset,
+            hashtagFilter: state.hashtagFilter,
+            mode: state.mode,
+          )
+          // Même borne que loadInitial : sans elle, un réseau qui pend laissait
+          // le spinner de pagination tourner sans fin.
+          .timeout(_networkTimeout);
+      // Extraction synchrone : pas de closure async passee a fold.
+      paginated = result.fold((_) => null, (p) => p);
+    } on TimeoutException {
+      state = state.copyWith(isLoadingMore: false);
+      return;
+    }
     if (paginated == null) {
       state = state.copyWith(isLoadingMore: false);
       return;
@@ -369,10 +440,9 @@ class FeedNotifier extends Notifier<FeedState> {
       final mergedLikedIds = Set<String>.from(state.likedPostIds);
       final mergedBookmarkIds = Set<String>.from(state.bookmarkedPostIds);
       if (userId.isNotEmpty && newPosts.isNotEmpty) {
-        final likedResult = await _repo.getLikedPostIds(
-          newPosts.map((p) => p.id).toList(),
-          userId,
-        );
+        final likedResult = await _repo
+            .getLikedPostIds(newPosts.map((p) => p.id).toList(), userId)
+            .timeout(_enrichTimeout);
         likedResult.fold((_) => null, (ids) => mergedLikedIds.addAll(ids));
       }
       if (state.mode == FeedMode.forYou) {
