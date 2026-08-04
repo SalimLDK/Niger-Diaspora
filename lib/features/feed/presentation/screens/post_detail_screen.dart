@@ -148,8 +148,13 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         .read(postDetailProvider(widget.postId).notifier)
                         .refresh(widget.postId)
                     : null,
+                // `/feed` et non `/home` : le bouton dit « Retour au fil », et
+                // on arrive typiquement ici par un lien partagé, sans pile de
+                // navigation — renvoyer à l'accueil ne tiendrait pas la
+                // promesse du libellé. Vérifié sur appareil : le bouton menait
+                // bien à l'accueil avant ce changement.
                 onBack: () =>
-                    context.canPop() ? context.pop() : context.go('/home'),
+                    context.canPop() ? context.pop() : context.go('/feed'),
               ),
             )
           else ...[

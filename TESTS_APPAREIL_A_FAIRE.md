@@ -262,16 +262,30 @@ Le test du repository a été **vérifié rouge sans le correctif** (l'exception
 traverse le repository), il n'est donc pas vide de sens. `flutter analyze`
 propre, 17/17 sur `test/features/feed/`.
 
-- [ ] ⚠ **Pas encore vu sur appareil** : le correctif est dans le code, pas dans
-      l'APK installé. Il faut réinstaller pour le vérifier — **et une
-      réinstallation vide les données**, donc elle détruirait l'identité Signal
-      générée aujourd'hui, dont **aucune sauvegarde n'existe encore**. Créer la
-      sauvegarde E2EE **avant** de réinstaller.
-- [ ] Après réinstallation : rejouer
-      `am start -a VIEW -d https://diasponiger.web.app/feed/00000000-…-000000000999`
-      et vérifier l'écran « Publication introuvable ».
-- [ ] Rejouer aussi avec une publication **réellement supprimée** (pas seulement
-      un id inventé) : c'est le cas que rencontrera un vrai utilisateur.
+**✅ Vérifié sur appareil le 2026-08-04 à 17:50**, APK debug réinstallé
+(`lastUpdateTime=17:48:20`) :
+
+- [x] `am start -a VIEW -d …/feed/00000000-…-000000000999` sur app tuée →
+      l'écran affiche **« Publication introuvable »**, « Elle a peut-être été
+      supprimée par son auteur, ou le lien est incorrect. » et le bouton
+      « Retour au fil ». **Plus aucun squelette, et plus de champ de
+      commentaire.** Rendu correct en thème nocturne.
+- [x] **Non-régression, une vraie publication** : le même chemin avec
+      `d8888ee4-…` (« In kwana », id relevé via `supabase db query --linked`)
+      charge la publication en entier — carte, barre d'engagement, commentaire
+      « Cool », et le champ de commentaire bien présent. Aucune
+      `PostgrestException`.
+- [x] Le bouton fonctionne. ⚠ Il menait à `/home` alors qu'il dit « Retour au
+      fil » : corrigé vers `/feed` **après** la vérification appareil, donc
+      cette ligne-là n'est couverte que par `analyze` + les tests. Pas de
+      seconde réinstallation pour si peu (chacune vide les données).
+- [ ] Rejouer avec une publication **réellement supprimée** (pas seulement un id
+      inventé) : c'est le cas que rencontrera un vrai utilisateur.
+
+⚠️ **La réinstallation n'a PAS vidé les données cette fois** : session
+conservée, ni `/consent` ni assistant de profil. Le piège documenté n'est donc
+pas systématique — mais l'identité Signal générée dans la journée n'a toujours
+**aucune sauvegarde**, et la passphrase reste à créer par Salim.
 
 ### ⚠ Empreinte mémoire à surveiller
 
