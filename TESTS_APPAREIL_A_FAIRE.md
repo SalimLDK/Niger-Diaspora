@@ -190,6 +190,22 @@ lancement d'un compte sans ville renseignée.
       transparent. Vérifié replié : fond sombre, seul « Enregistrer » reste
       terracotta — c'est l'action principale, elle doit l'être.
 
+**Sélecteur multi-choix des langues (§20a)** — écrit, **jamais lancé**
+
+- [ ] Le téléphone s'est déconnecté avant que je puisse l'ouvrir. `flutter
+      analyze` passe, mais rien n'a été vu. À vérifier :
+  - la puce « +N langues » ouvre bien une feuille, et ne déplie plus la
+    liste sur place ;
+  - cocher/décocher met à jour le compteur « N sélectionné(s) » en tête de
+    feuille **en direct** ;
+  - **fermer la feuille sans « Terminer » ne modifie rien** — c'est le point
+    le plus important, la sélection travaille sur une copie ;
+  - « Terminer » reporte le choix sur les puces de la carte ;
+  - quand les 7 langues sont choisies, la puce « +N » **disparaît** au lieu
+    d'afficher « +0 langues » ;
+  - à `font_scale = 1.1`, la feuille reste utilisable et le bouton
+    « Terminer » atteignable (elle est en `isScrollControlled`).
+
 **Reste à exercer sur cet appareil** : tous les autres écrans basculés
 (profil, config profil, réglages, carte, notifications, recherche,
 messagerie), le mode Éco en réception, le brouillon d'épisode, et

@@ -75,7 +75,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   bool _showOrigin = false;
 
   bool _showAllInterests = false;
-  bool _showAllLanguages = false;
 
   // Pays et ville actuelle
   CountryOption? _selectedCountry;
@@ -1082,7 +1081,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                   ..._visibleEntries(
                                     _languagesWithFlags.keys,
                                     _selectedLanguages,
-                                    _showAllLanguages,
+                                    // Jamais déplié sur place : le choix
+                                    // se fait dans la feuille.
+                                    false,
                                   ).map((cle) {
                                       final entry = MapEntry(
                                         cle,
@@ -1108,19 +1109,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                         },
                                       );
                                     }),
-                                  if (!_showAllLanguages)
+                                  // Masquée quand tout est déjà choisi : une
+                                  // puce « +0 langues » n'aurait rien à ouvrir.
+                                  if (_selectedLanguages.length <
+                                      _languagesWithFlags.length)
                                     _MoreChip(
                                       label: l10n.plusMoreLanguages(
                                         _languagesWithFlags.length -
-                                            _visibleEntries(
-                                              _languagesWithFlags.keys,
-                                              _selectedLanguages,
-                                              false,
-                                            ).length,
+                                            _selectedLanguages.length,
                                       ),
-                                      onTap: () => setState(
-                                        () => _showAllLanguages = true,
-                                      ),
+                                      onTap: _choisirLangues,
                                     ),
                                 ],
                               ),
@@ -1665,6 +1663,131 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   /// Feuille de choix de la visibilité du numéro.
+  /// Sélecteur multi-choix des langues parlées (§20a).
+  ///
+  /// La puce « +N langues » dépliait la liste sur place : la carte doublait
+  /// de hauteur et poussait tout le formulaire vers le bas. Elle ouvre
+  /// désormais une feuille — on choisit, on valide, et la carte ne montre
+  /// que les langues retenues.
+  ///
+  /// La sélection se fait sur une copie : fermer la feuille sans valider
+  /// laisse le profil intact.
+  Future<void> _choisirLangues() async {
+    final l10n = AppLocalizations.of(context)!;
+    final brouillon = List<String>.from(_selectedLanguages);
+
+    final valide = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, majFeuille) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              const SheetHandle(),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.spokenLanguages,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: ctx.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.selectedCount(brouillon.length),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: ctx.textTertiaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: _languagesWithFlags.entries.map((e) {
+                    final choisie = brouillon.contains(e.key);
+                    return CheckboxListTile(
+                      value: choisie,
+                      onChanged: (_) {
+                        HapticFeedback.selectionClick();
+                        majFeuille(() {
+                          if (choisie) {
+                            brouillon.remove(e.key);
+                          } else {
+                            brouillon.add(e.key);
+                          }
+                        });
+                      },
+                      activeColor: ctx.adaptivePrimaryColor,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      title: Text(
+                        e.key,
+                        style: TextStyle(color: ctx.textPrimaryColor),
+                      ),
+                      secondary: Text(
+                        e.value,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: ctx.textTertiaryColor,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ctx.adaptivePrimaryColor,
+                      foregroundColor: ctx.onPrimaryColor,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.finish,
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (valide == true && mounted) {
+      setState(() => _selectedLanguages = brouillon);
+    }
+  }
+
   Future<void> _choisirVisibiliteNumero() async {
     final choix = await showModalBottomSheet<String>(
       context: context,
