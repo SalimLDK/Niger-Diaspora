@@ -79,9 +79,22 @@ lancement d'un compte sans ville renseignée.
       répartition de largeur remplace un débordement invisible par un titre
       illisible. `map_screen.dart` est revenu à son état committé.
 
-      **Ordre à respecter** : corriger d'abord la rangée d'en-tête (titre en
-      `Expanded`, contrôles en `MainAxisSize.min`), vérifier que le titre
-      tient sur une ligne, puis seulement relever `minChildSize` à 0.38.
+      ⚠️ **Correction de mon propre diagnostic** : j'avais écrit « mettre le
+      titre en `Expanded` ». C'est faux — **il l'est déjà** (ligne 3401). Ne
+      pas perdre de temps là-dessus.
+
+      La cause est l'inverse : ce sont les trois contrôles de droite — puce
+      « Aucun membre », bascule « Liste », tri « Les plus proches » — qui
+      imposent leur largeur intrinsèque. L'`Expanded` ne reçoit que le reste,
+      quasi nul, et le titre se replie caractère par caractère.
+
+      **Ordre à respecter** :
+      1. faire céder les contrôles de droite — le candidat le plus probable
+         est « Les plus proches », le plus long : `Flexible` + ellipse, ou
+         icône seule quand la place manque ;
+      2. vérifier sur appareil que le titre tient sur une ligne ;
+      3. **puis** relever `minChildSize` à 0.38 — valeur déjà mesurée, elle
+         supprime le débordement vertical.
 
       ⚠️ **Deux corrections possibles, toutes deux des décisions de design :**
       relever `minChildSize` / `initialChildSize` (le volet couvre alors plus
