@@ -43,7 +43,7 @@ Trois niveaux, à ne pas confondre :
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
-| 9d | Groupe — fiche | ✅ | ❌ | — | `groups/…/group_detail_screen.dart` |
+| 9d | Groupe — fiche | ✅ | ✅ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
 ---
@@ -767,6 +767,46 @@ Pour rendre ce panneau vérifiable il faut au moins une ambassade en base :
 collection **Firestore** `embassies`, lecture publique, écriture réservée à
 `isAdmin()`, via l'écran `/admin/embassies/create`. C'est une **écriture en
 production visible par tous les utilisateurs** — à ne pas faire pour tester.
+
+---
+
+## Bouton « Créer le groupe » — mort, et pourquoi
+
+Signalé par Salim, reproduit à l'écran : appuyer sur « Créer le groupe » ne
+produisait **rien** — ni indicateur de chargement, ni message, ni navigation —
+et `logcat` restait muet.
+
+Cause : `create_group_screen` faisait
+`ref.read(currentUserAsyncProvider).valueOrNull`. Or `currentUserAsync` est un
+**StreamProvider autoDispose** que cet écran ne regarde jamais. Le `ref.read`
+démarrait donc l'abonnement à l'instant du tap et rendait `AsyncLoading` :
+`valueOrNull` valait `null`, et la méthode sortait sur un `return` nu, avant
+même de poser `_isLoading`. D'où l'absence totale de signe extérieur.
+
+Corrigé en attendant la première émission (`.future`), et en disant à
+l'utilisateur si la session a réellement expiré.
+
+Deux filets posés au passage, sur le même chemin :
+- Le dépôt ne rattrapait que `ServerException`. Un `PostgrestException` (RLS,
+  RPC absente…) traversait dépôt, notifier et écran sans être vu. Un `catch`
+  large renvoie désormais un `ServerFailure` porteur du message.
+- L'abonnement au topic FCM et la création de la conversation de groupe se
+  faisaient **après** l'insertion, sans protection : leur échec faisait
+  échouer une création pourtant réussie côté serveur. Ils sont maintenant
+  isolés — le groupe existe, le reste est accessoire.
+
+Le motif d'échec remonte enfin jusqu'au toast (`lastError` sur le notifier) :
+« Erreur lors de la création du groupe » n'apprenait rien à personne.
+
+Vérifié : le groupe se crée, apparaît dans « Mes groupes » avec le cadenas
+privé, et 9c/9d sont enfin observables.
+
+## 9d — correction vue à l'écran
+
+Le libellé « Ouvrir la discussion » était **rogné par le bas** : le bouton
+avait une hauteur figée de 44 px, insuffisante dès que l'appareil dépasse
+font_scale 1 (le SM A515F est à 1.1). La hauteur devient un minimum, le bouton
+grandit avec le texte.
 
 ---
 

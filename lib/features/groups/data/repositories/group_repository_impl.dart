@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -113,21 +114,31 @@ class GroupRepositoryImpl implements GroupRepository {
       final groupModel = GroupModel.fromEntity(group);
       final created = await remoteDataSource.createGroup(groupModel);
 
-      // Subscribe to group topic
-      await NotificationService().subscribeToTopic('group_${created.id}');
-
-      // Automatically create the group conversation
-      await messageRepository.createGroupConversation(
-        creatorId: created.creatorId,
-        participantIds: created.memberIds,
-        groupName: created.name,
-        groupImageUrl: created.imageUrl,
-        groupId: created.id,
-      );
+      // Le groupe existe désormais côté serveur. Ce qui suit est accessoire :
+      // si l'abonnement au topic ou la création de la conversation échoue, on
+      // ne doit pas faire croire que la création a échoué — sinon l'écran
+      // affiche une erreur alors que le groupe est bel et bien créé.
+      try {
+        await NotificationService().subscribeToTopic('group_${created.id}');
+        await messageRepository.createGroupConversation(
+          creatorId: created.creatorId,
+          participantIds: created.memberIds,
+          groupName: created.name,
+          groupImageUrl: created.imageUrl,
+          groupId: created.id,
+        );
+      } catch (e) {
+        debugPrint('createGroup: étape accessoire échouée — $e');
+      }
 
       return Right(created.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Un PostgrestException (RLS, RPC absente…) n'est pas une
+      // ServerException : sans ce filet, il traversait le dépôt, le notifier
+      // et l'écran, et le bouton restait muet.
+      return Left(ServerFailure('$e'));
     }
   }
 
