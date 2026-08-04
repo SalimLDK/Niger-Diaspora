@@ -22,7 +22,6 @@ import '../../../messages/presentation/widgets/chat_background_picker_modal.dart
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../features/settings/data/models/chat_background_model.dart';
 import '../../domain/entities/chat_background_entity.dart';
-import '../providers/notification_preferences_provider.dart';
 import '../widgets/blocked_users_modal.dart';
 import '../widgets/bug_report_dialog.dart';
 import '../../../../core/services/app_version_service.dart';
@@ -243,8 +242,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _SettingsDivider(),
               _SettingsTile(
                 icon: const Icon(Icons.tune),
-                title: l10n.notificationPreferences,
-                onTap: () => _showNotificationPreferences(),
+                // §20d : la ligne ouvrait une feuille modale qui doublait
+                // l'écran de réglages sur les mêmes préférences. Un seul
+                // endroit désormais.
+                title: 'Notifications',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/notifications/settings');
+                },
               ),
               const _SettingsDivider(),
               _SettingsTile(
@@ -437,15 +442,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await NotificationService().unsubscribeFromTopic('general');
     }
     _saveSettingsToProfile();
-  }
-
-  void _showNotificationPreferences() {
-    HapticFeedback.lightImpact();
-    showModalBottomSheet(
-      backgroundColor: Colors.transparent,
-      context: context,
-      builder: (context) => const _NotificationPreferencesModal(),
-    );
   }
 
   void _showBlockedUsers() {
@@ -1851,134 +1847,6 @@ class _HelpOption extends StatelessWidget {
   }
 }
 
-class _NotificationPreferencesModal extends ConsumerWidget {
-  const _NotificationPreferencesModal();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final prefs = ref.watch(notificationPreferencesNotifierProvider);
-    final l10n = AppLocalizations.of(context)!;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(child: SheetHandle()),
-          const SizedBox(height: 20),
-          Text(
-            l10n.notificationPreferences,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildNotificationOption(
-            context,
-            l10n.messages,
-            prefs.messagesEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setMessagesEnabled(value),
-          ),
-          _buildNotificationOption(
-            context,
-            l10n.newEvents,
-            prefs.eventsEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setEventsEnabled(value),
-          ),
-          _buildNotificationOption(
-            context,
-            l10n.friends,
-            prefs.friendRequestsEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setFriendRequestsEnabled(value),
-          ),
-          _buildNotificationOption(
-            context,
-            l10n.groupActivity,
-            prefs.groupsEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setGroupsEnabled(value),
-          ),
-          _buildNotificationOption(
-            context,
-            l10n.eventReminders,
-            prefs.eventRemindersEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setEventRemindersEnabled(value),
-          ),
-          const SizedBox(height: 16),
-          Divider(color: context.borderColor),
-          const SizedBox(height: 16),
-          Text(
-            l10n.soundAndVibration,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: context.textTertiaryColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildNotificationOption(
-            context,
-            l10n.notificationSound,
-            prefs.soundEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setSoundEnabled(value),
-          ),
-          _buildNotificationOption(
-            context,
-            'Vibration',
-            prefs.vibrationEnabled,
-            (value) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setVibrationEnabled(value),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationOption(
-    BuildContext context,
-    String title,
-    bool value,
-    Future<void> Function(bool) onChanged,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 16, color: context.textPrimaryColor),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: context.adaptivePrimaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ============================================================================
 // Sélecteur de devise avec catégories et recherche
