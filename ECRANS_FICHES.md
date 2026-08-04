@@ -31,12 +31,12 @@ Trois niveaux, à ne pas confondre :
 | 20d | Réglages de notifications | ✅ | ✅ | — | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
-| 8b | Carte — Nocturne | — | — | — | déclinaison de 7d |
-| 8c | Carte — sans localisation | — | — | — | déclinaison de 7d |
-| 7d | Carte — couches, panneau 3 positions | — | — | — | à déterminer |
-| 6a | Fil — Nocturne | — | — | — | `feed/presentation/screens/feed_screen.dart` |
-| 11d | Mon profil — Nocturne | — | — | — | `profile/presentation/screens/profile_screen.dart` |
-| 11e | Réglages — Nocturne | — | — | — | à déterminer |
+| 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
+| 8c | Carte — sans localisation | ✅ | — | — | `map/…/map_screen.dart` |
+| 7d | Carte — couches, panneau 3 positions | ✅ | — | — | `map/…/map_screen.dart` |
+| 6a | Fil — Nocturne | ✅ | — | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
+| 11d | Mon profil — Nocturne | ✅ | — | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
+| 11e | Réglages — Nocturne | ✅ | — | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | — | — | — | à déterminer |
 | 4a | Discussion cliquable | — | — | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | — | — | — | idem 4a |
