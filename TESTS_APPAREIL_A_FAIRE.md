@@ -27,16 +27,31 @@ en UTC explicite à la sérialisation. 21 tests unitaires couvrent la
 régression, mais rien de tout cela ne prouve le rendu réel : à vérifier sur
 appareil, **hors du fuseau UTC**.
 
-- [ ] Fil : l'heure d'une publication récente correspond à l'horloge du téléphone
-- [ ] Fil : « il y a X min » cohérent juste après publication
-- [ ] Discussion : horodatage des messages, et séparateurs de jour
-      (« Aujourd'hui » / « Hier ») — tester en particulier un message envoyé
-      **après 20:00 heure locale**, cas qui basculait au lendemain
+**Vérifié sur appareil le 2026-08-04** (SM A515F, `America/Toronto`, APK du
+04:13 qui contient bien le correctif — symboles `parseLocalDate` /
+`LocalDateTimeConverter` retrouvés dans `kernel_blob.bin`). Chaque affichage a
+été comparé à la valeur réelle en base via `supabase db query --linked` :
+
+- [x] **Discussion — le cas décisif.** Dernier message de la conversation
+      « Salim L. » : base = `27/07 22:15:54` Toronto, soit **`28/07 02:15` UTC**.
+      L'app affiche **22:15** sous le séparateur **« 27 juil. 2026 »**. Sans le
+      correctif : `02:15` sous « 28 juil. » — mauvaise heure ET mauvais jour.
+      C'est exactement le cas « message après 20:00 » qui basculait au lendemain.
+- [x] Discussion — message précédent : base `26/07 12:06` Toronto (`16:06` UTC),
+      app « 26 juil. 2026 » · **12:06**.
+- [x] Liste des conversations : « 27 juil. » et non « 28 juil. ».
+- [x] Mes publications : base `04/08 06:01:04` UTC = `02:01:04` Toronto, app
+      **« Aujourd'hui · 02:01 »**. (Écran déjà corrigé avant : vaut comme
+      non-régression, pas comme preuve du correctif.)
 - [ ] Commentaires, notifications, événements (début/fin), appels (journal),
-      stories : mêmes vérifications
+      stories : mêmes vérifications — pas de données sur le compte de test.
 - [ ] Aller-retour serveur : publier, **quitter et rouvrir l'app**, vérifier que
-      l'heure n'a pas bougé (valide le réencodage UTC des écritures)
-- [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure
+      l'heure n'a pas bougé (valide le réencodage UTC des écritures).
+- [ ] Mode hors-ligne : contenu servi par le cache affiché à la bonne heure.
+
+Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
+`timeago`, calculé sur l'epoch — il n'a jamais été affecté, et rien n'y est à
+vérifier.
 
 **Données déjà en base : audité le 2026-08-04, rien à reprendre.**
 Les écritures antérieures partaient parfois sans suffixe de fuseau, et Postgres
