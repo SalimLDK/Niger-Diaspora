@@ -200,16 +200,96 @@ raison de plus pour créer la sauvegarde maintenant que la règle est déployée
 navigation vers `/groups` que je n'ai pas déclenchée. **Les passes restantes
 demandent l'appareil pour soi seul** — sinon chaque mesure est à jeter.
 
-### Reste du programme, non exécuté faute de temps
+### Troisième tour (16:24 → 16:40), appareil enfin libre
 
-- [ ] Brouillon restauré → bouton d'envoi (dépend des `SharedPreferences`, donc
-      à faire **avant** toute réinstallation).
-- [ ] Feuille de partage fantôme au démarrage + partage entrant réel.
-- [ ] Lien profond reçu **app déjà lancée** (`onNewIntent` + `singleTask`) — le
-      changement de `launchMode` est encore **non committé** dans l'arbre.
-- [ ] Repli hors-ligne (splash de ~2 min + squelettes infinis, bug déjà ouvert).
-- [ ] Admin : champ « Type * » à la création d'ambassade.
-- [ ] Passe complète en **thème nocturne**.
+**✅ Brouillon restauré — le cas décisif passe.** Prémisse établie par capture
+(texte « BrouillonTest0804 » dans le champ, bouton d'envoi bleu à cadenas), puis
+bouton accueil, `am force-stop`, relance à froid, réouverture de « Mes notes » :
+
+- [x] Le brouillon est restauré **et le bouton d'envoi bleu est là d'emblée**,
+      sans toucher au champ. Correctif `20042b7` vérifié en vrai.
+- [x] **Envoi direct du brouillon restauré**, sans toucher le champ au
+      préalable : le message part et s'affiche dans le fil de la conversation.
+- [x] **Non-régression** : après envoi, le composer revient au **micro**
+      (conversation sans brouillon).
+- [ ] Reste le cas du brouillon de **plus de 2000 caractères** (état
+      « dépassement » à restaurer) — tentative ratée, mon tap avait atterri sur
+      le clavier. À refaire.
+
+⚠ **Les deux échecs précédents n'étaient pas des bugs** : `mInputShown=false`
+après le tap = le tap n'avait pas atteint le champ. Avec le clavier ouvert, le
+composer remonte à ~1300 px et non ~2170 px — vérifier `mInputShown` avant de
+conclure quoi que ce soit.
+
+### 🔴 Trouvé — un lien vers une publication inexistante reste bloqué sur les squelettes
+
+`am start -a VIEW -d https://diasponiger.web.app/feed/00000000-…-000000000999`
+(app tuée au préalable). Le routage fonctionne — `/splash` puis redirection vers
+`/feed/00000000-…`, donc la mise de côté du lien opère bien ici. Mais l'écran
+d'arrivée ne dégrade pas proprement :
+
+- des **squelettes de chargement permanents** à la place de la publication —
+  toujours là à **105 s**, vérifié par deux captures espacées ;
+- **aucun message d'erreur**, aucun « publication introuvable » ;
+- pire, « Aucun commentaire pour le moment » s'affiche et **le champ de
+  commentaire est actif** : on invite l'utilisateur à commenter une publication
+  qui n'existe pas.
+
+L'exception est pourtant bien levée et journalisée, puis avalée :
+`PostgrestException(message: Cannot coerce the result to a single JSON object,
+code: PGRST116)` — c'est le `.single()` sur un résultat vide.
+
+- [ ] Traiter `PGRST116` comme « introuvable » et afficher un état vide explicite
+      (titre + bouton retour), au lieu de laisser le `AsyncValue` en `loading`.
+- [ ] Masquer le champ de commentaire tant que la publication n'est pas chargée.
+- [ ] Rejouer avec une publication **réellement supprimée** (pas seulement un id
+      inventé) : c'est le cas que rencontrera un vrai utilisateur via un lien
+      partagé.
+
+### ⚠ Empreinte mémoire à surveiller
+
+`dumpsys meminfo` pendant la passe : **TOTAL PSS ≈ 1,0 Go** (Native Heap 100 Mo,
+Dalvik 26 Mo), et le système tuait des process en arrière-plan au même moment
+(`edgelighting`, `mobileservice`, `turbo:aab`). C'est un **build debug** avec
+Impeller et la carte Google ouverte, donc non représentatif tel quel.
+
+- [ ] Refaire la mesure sur un **build release**, carte fermée puis ouverte, pour
+      savoir si le pic vient de la carte ou du mode debug.
+
+### ✅ Feuille de partage fantôme — ne réapparaît plus (3 relances sur 3)
+
+L'intent de tâche a d'abord été réarmé par un vrai lien profond
+(`am start -a VIEW -d https://diasponiger.web.app/feed/…`), puis trois cycles
+`am force-stop` + relance par le launcher :
+
+- [x] **Aucune feuille de partage** aux trois relances, et **aucun rejeu du
+      lien** : l'app arrive sur `/home` à chaque fois. C'est le cas décisif de la
+      purge `reset()` + de l'empreinte persistée.
+- [x] Les seules traces « share » dans le journal sont bénignes (« Encryption
+      service initialized with shared key », et la route `/share` dans la liste).
+- [ ] Reste à faire : un **vrai partage entrant** depuis Chrome ou Messages
+      (image, vidéo, PDF, sélection multiple) — non testable en pilotage `adb`
+      sans passer par le sélecteur système.
+
+### Bilan du programme — ce qui reste, et pourquoi
+
+- [ ] **Repli hors-ligne** (splash de ~2 min + squelettes infinis) — ⚠ **je ne
+      peux pas le faire seul** : couper le réseau est une modification de réglage
+      système. Bonne nouvelle, **le piège du VPN a disparu** : le réseau de l'app
+      est `wlan0` avec la capacité `NOT_VPN`, donc un vrai état hors-ligne est
+      atteignable, contrairement au 2026-07-28. **À faire par Salim** : activer
+      le mode avion, puis me le dire — je démarre à froid et je chronomètre.
+- [ ] **Admin, champ « Type * »** — ⚠ **inatteignable sur ce compte**. Le routeur
+      conditionne `/admin/embassies/create` à `user.isAdmin`
+      (`app_router.dart:193`), et aucune entrée « Administration » n'existe dans
+      les Réglages. À reprendre avec un compte administrateur.
+- [ ] **Lien profond reçu app déjà lancée** (`onNewIntent` + `singleTask`) — sans
+      objet pour l'instant : le passage à `launchMode="singleTask"` est toujours
+      **non committé**, donc absent de l'APK installé. Rien à prouver tant qu'un
+      build ne l'embarque pas.
+- [ ] **Brouillon de plus de 2000 caractères** (état « dépassement » restauré).
+- [ ] **Sauvegarde E2EE en écriture** — à faire par Salim, avec la passphrase
+      notée (cf. plus haut).
 
 ---
 
