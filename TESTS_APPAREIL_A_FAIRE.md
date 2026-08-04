@@ -14,6 +14,43 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Brouillon restauré — le composer restait sur le micro (2026-08-04)
+
+Bug constaté sur appareil (SM A515F, build debug, conversation « Mes notes ») :
+texte tapé sans envoyer, app quittée par le bouton accueil, puis relancée — le
+brouillon est bien restauré dans le champ, **mais le bouton de droite affiche
+le micro** au lieu du bouton d'envoi. Toucher le champ suffisait à le faire
+réapparaître. Conséquence : on croit ne pas pouvoir envoyer son brouillon.
+
+Cause : dans `message_input.dart`, `_loadDraft()` est appelé depuis `initState`
+**avant** que le listener du contrôleur ne soit posé. L'écriture du brouillon
+dans le contrôleur n'atteignait donc aucun listener, et `_hasText` restait à
+`false` (comme `_isOverLimit` et le contrôleur de morphing). Corrigé en
+recalculant l'état dérivé depuis `controller.text` au moment de l'injection,
+sans animation à l'ouverture.
+
+**Prouvé hors appareil** : cas ajouté à `message_input_composer_test.dart`
+(brouillon semé dans `PreferencesService`, puis badge cadenas E2EE attendu sans
+aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
+14/14 au vert avec. Mais un test widget ne rejoue pas un vrai cycle de process.
+
+- [ ] **Le cas décisif** : taper sans envoyer, **bouton accueil**, relancer
+      l'app, rouvrir la conversation → le bouton d'envoi bleu doit être là
+      **d'emblée**, sans toucher au champ.
+- [ ] Envoyer directement ce brouillon restauré, sans toucher le champ au
+      préalable : l'envoi doit aboutir.
+- [ ] Le bouton doit être **présent immédiatement**, pas apparaître en fondu :
+      le morphing est volontairement court-circuité à la restauration.
+- [ ] Non-régression : une conversation **sans** brouillon doit toujours
+      afficher le micro.
+- [ ] Brouillon de **plus de 2000 caractères** : l'état « dépassement » doit
+      être restauré lui aussi (bouton d'envoi inactif), pas seulement `_hasText`.
+- [ ] ⚠ **Ne pas réinstaller entre les deux étapes** : `adb install -r` vide les
+      données, donc les `SharedPreferences` — le brouillon disparaît et le test
+      ne prouve rien. Relancer l'app déjà installée (`am start` / icône).
+
+---
+
 ## Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)
 
 Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
