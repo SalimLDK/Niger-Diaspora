@@ -348,10 +348,14 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               children: [
                 Icon(Icons.receipt_long, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  'Parametres de taxe',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                // Expanded : en-tête de carte, donc déjà plus étroit que la
+                // page — le titre déborde sans lui aux grandes échelles.
+                Expanded(
+                  child: Text(
+                    'Parametres de taxe',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -707,6 +711,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Category
             DropdownButtonFormField<ProductCategory>(
               initialValue: _selectedCategory,
+              // L'item est une Row icône + libellé : `isExpanded` borne la
+              // pile interne, et l'Expanded empêche cette Row-là de déborder
+              // à son tour une fois bornée.
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Categorie',
                 border: OutlineInputBorder(),
@@ -719,7 +727,13 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                         children: [
                           Icon(category.icon, size: 20),
                           const SizedBox(width: 8),
-                          Text(category.label),
+                          Expanded(
+                            child: Text(
+                              category.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -735,6 +749,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Condition
             DropdownButtonFormField<ProductCondition>(
               initialValue: _selectedCondition,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Etat',
                 border: OutlineInputBorder(),
@@ -743,7 +758,11 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   ProductCondition.values.map((condition) {
                     return DropdownMenuItem(
                       value: condition,
-                      child: Text(condition.label),
+                      child: Text(
+                        condition.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
               onChanged: (value) {

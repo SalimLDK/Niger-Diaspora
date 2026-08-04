@@ -315,13 +315,24 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
   Widget _buildMobileWalletFields() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedMobileProvider,
+      // `prefixIcon` retire ~48 px à la largeur disponible : sans `isExpanded`
+      // la pile interne du menu, dimensionnée sur son plus long libellé,
+      // déborde d'autant plus tôt.
+      isExpanded: true,
       decoration: const InputDecoration(
         labelText: 'Opérateur mobile *',
         prefixIcon: Icon(Icons.sim_card_outlined),
       ),
       items:
           _mobileProviders.map((provider) {
-            return DropdownMenuItem(value: provider, child: Text(provider));
+            return DropdownMenuItem(
+              value: provider,
+              child: Text(
+                provider,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
           }).toList(),
       onChanged: (value) {
         setState(() {
@@ -345,13 +356,21 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
               _bankNameController.text.isEmpty
                   ? null
                   : _bankNameController.text,
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Nom de la banque *',
             prefixIcon: Icon(Icons.account_balance_outlined),
           ),
           items:
               _nigerBanks.map((bank) {
-                return DropdownMenuItem(value: bank, child: Text(bank));
+                return DropdownMenuItem(
+                  value: bank,
+                  child: Text(
+                    bank,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
               }).toList(),
           onChanged: (value) {
             setState(() {
@@ -427,13 +446,21 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
           initialValue: _cityController.text.isEmpty ? null : _cityController.text,
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Ville',
             prefixIcon: Icon(Icons.location_city_outlined),
           ),
           items:
               _nigerCities.map((city) {
-                return DropdownMenuItem(value: city, child: Text(city));
+                return DropdownMenuItem(
+                  value: city,
+                  child: Text(
+                    city,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
               }).toList(),
           onChanged: (value) {
             setState(() {

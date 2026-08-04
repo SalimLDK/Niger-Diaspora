@@ -136,6 +136,10 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
                 // Department filter
                 DropdownButtonFormField<String>(
                   initialValue: _selectedDepartment,
+                  // Les départements viennent du serveur : leur longueur n'est
+                  // pas maîtrisée ici, et le plus long dicterait la largeur du
+                  // champ replié sans `isExpanded`.
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Département',
                     border: OutlineInputBorder(
@@ -145,7 +149,14 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
                   ),
                   items:
                       _departments.map((dept) {
-                        return DropdownMenuItem(value: dept, child: Text(dept));
+                        return DropdownMenuItem(
+                          value: dept,
+                          child: Text(
+                            dept,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
                       }).toList(),
                   onChanged: (value) {
                     setState(() => _selectedDepartment = value);
