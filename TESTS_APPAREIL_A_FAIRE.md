@@ -280,9 +280,9 @@ validées une par une avec Salim avant branchement.
 - [ ] **20d — sélecteur d'heures calmes** : le tap sur « De 22:00 à 08:00 »
   doit enchaîner deux sélecteurs (début puis fin) et n'enregistrer que si les
   deux sont confirmés. Jamais ouvert sur appareil.
-- [ ] **20d — « Messages système » verrouillé** : l'interrupteur doit être
-  grisé et insensible au tap, et la préférence doit revenir à « actif » si
-  elle avait été coupée avant cette version.
+- [ ] **20d — « Messages système » désactivable** : le verrou de la fiche a
+  été abandonné (choix de Salim). L'interrupteur doit se couper et se
+  rallumer normalement, et l'état doit survivre à une relance.
 
 - [ ] **5a « Mon espace »** (`lib/features/feed/presentation/screens/mon_espace_screen.dart`) —
   refait sur la fiche : ligne d'identité `@poignée · Origine → Ville`, **trois**

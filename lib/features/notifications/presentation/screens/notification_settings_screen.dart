@@ -11,8 +11,10 @@ import '../../../settings/presentation/providers/notification_preferences_provid
 /// Réglages de notifications (fiche 20d).
 ///
 /// Un interrupteur maître isolé, une seule liste « Ce qui vous alerte », les
-/// sons, puis les heures calmes résumées sur une ligne. « Messages système »
-/// est verrouillé : la fiche en fait une catégorie non désactivable.
+/// sons, puis les heures calmes résumées sur une ligne.
+///
+/// La fiche verrouille « Messages système » ; on ne l'a pas suivie sur ce
+/// point (choix de Salim) : la catégorie reste désactivable comme les autres.
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -20,17 +22,6 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final preferences = ref.watch(notificationPreferencesNotifierProvider);
-
-    // « Messages système » devient verrouillé actif : si la préférence
-    // enregistrée dit le contraire, on la remet d'aplomb une fois, sinon
-    // l'interrupteur afficherait un état que plus rien ne peut changer.
-    if (!preferences.systemMessagesEnabled) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(notificationPreferencesNotifierProvider.notifier)
-            .setSystemMessagesEnabled(true);
-      });
-    }
 
     final notifier = ref.read(
       notificationPreferencesNotifierProvider.notifier,
@@ -123,11 +114,11 @@ class NotificationSettingsScreen extends ConsumerWidget {
                         onChanged: notifier.setLocalEventsEnabled,
                       ),
                       const _SettingsDivider(),
-                      const _SettingsSwitchTile(
+                      _SettingsSwitchTile(
                         title: 'Messages système',
                         subtitle: 'Sécurité, mises à jour importantes',
-                        value: true,
-                        onChanged: null,
+                        value: preferences.systemMessagesEnabled,
+                        onChanged: notifier.setSystemMessagesEnabled,
                       ),
                     ],
                   ),
@@ -199,7 +190,11 @@ class NotificationSettingsScreen extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Les messages système restent toujours actifs.',
+                  // La note de la fiche (« Les messages système restent
+                  // toujours actifs ») décrivait le verrou, abandonné : elle
+                  // serait fausse. Celle-ci dit ce qui reste vrai.
+                  'Couper les notifications push suspend toutes les '
+                      'catégories, messages système compris.',
                   style: TextStyle(
                     fontSize: 11.5,
                     height: 1.45,
@@ -360,14 +355,12 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-/// Ligne à interrupteur. [onChanged] à `null` = catégorie verrouillée : elle
-/// s'affiche active mais grisée, pour signaler qu'elle n'est pas au choix de
-/// l'utilisateur plutôt que de faire croire à un simple « activé ».
+/// Ligne à interrupteur de la liste des catégories.
 class _SettingsSwitchTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool value;
-  final ValueChanged<bool>? onChanged;
+  final ValueChanged<bool> onChanged;
 
   const _SettingsSwitchTile({
     required this.title,
@@ -378,7 +371,6 @@ class _SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locked = onChanged == null;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
@@ -409,13 +401,10 @@ class _SettingsSwitchTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Opacity(
-            opacity: locked ? 0.6 : 1,
-            child: Switch(
-              value: value,
-              onChanged: onChanged,
-              activeThumbColor: context.adaptivePrimaryColor,
-            ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: context.adaptivePrimaryColor,
           ),
         ],
       ),

@@ -302,11 +302,12 @@ Structure de la fiche : interrupteur maître isolé (« Notifications push » /
 cartes radius 18 à bordure, lignes 13.5/600 + 11.5/400, note de pied à
 l'icône info — l'ancien pavé d'information teinté a disparu.
 
-**Changement de comportement à trancher** : « Messages système » devient
-**verrouillé actif** (interrupteur grisé à 60 %, non désactivable), comme la
-fiche le demande. La préférence enregistrée est remise à `true` si elle valait
-`false`. C'est une capacité retirée à l'utilisateur — dis-moi si tu préfères
-la garder désactivable.
+**Écart tranché par Salim** : la fiche verrouille « Messages système » (grisé,
+non désactivable). **On ne l'a pas suivie** — la catégorie reste désactivable
+comme les autres, plutôt que de retirer une capacité à l'utilisateur. La note
+de pied de la fiche (« Les messages système restent toujours actifs »)
+deviendrait fausse : elle dit maintenant que couper l'interrupteur maître
+suspend toutes les catégories, messages système compris.
 
 Cinq sous-titres hérités ne disaient rien et trois répétaient leur propre
 titre (« Rappels d'événements » / « Rappels d'événements », « Son » et
