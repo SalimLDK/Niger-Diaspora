@@ -18,6 +18,7 @@ import '../../domain/usecases/send_password_reset_email.dart';
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/file_download_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
@@ -301,6 +302,9 @@ class AuthNotifier extends _$AuthNotifier {
     // (brouillons, hashtags suivis…) : aucune de ces clés ne porte d'uid, le
     // compte suivant sur ce téléphone en héritait.
     await PreferencesService.instance.clearUserData();
+    // …et les pieces jointes telechargees, en clair sur le disque, avec leur
+    // index `media_dl_<messageId>` (cles dynamiques, hors de clearUserData).
+    await FileDownloadService().clearDownloadedFiles();
 
     final result = await ref.read(signOutUseCaseProvider).call();
 
@@ -332,6 +336,7 @@ class AuthNotifier extends _$AuthNotifier {
         SessionService.instance.dispose();
         await CacheService.instance.clearAllCache();
         await PreferencesService.instance.clearUserData();
+        await FileDownloadService().clearDownloadedFiles();
         state = const AuthState.unauthenticated();
         return true;
       },
