@@ -3058,7 +3058,8 @@ Ce que les tests ne voient pas :
   plupart des stickers, seul le nom du pack remontera. À confirmer sur les
   vraies données.
 - [ ] **Grille en paysage** : 4 colonnes à 390 dp, davantage au-delà (sinon les
-  tuiles feraient 180 dp).
+  tuiles feraient 180 dp). Non vu : aucun pack en base, l'onglet Stickers ne
+  s'affiche pas.
 - [ ] **Chrome resserré sous 190 dp** : en paysage la ligne d'info disparaît et
   la barre d'onglets se tasse. Vérifier que ça reste lisible.
 - [ ] **Nocturne** : pilule sélectionnée sur `textPrimary`, contours sur
@@ -3116,6 +3117,47 @@ refuse désormais un id `temp_…` :
   appui long → Épingler) : doit afficher « Attendez l'envoi du message pour
   l'épingler » et ne rien écrire en base. Vérifier ensuite qu'une fois le
   message parti, l'épinglage fonctionne normalement.
+
+---
+
+## Paysage — overflow quand le chrome dépasse la hauteur (2026-08-05)
+
+Testé sur le SM A515F en forçant `user_rotation 1`. **L'app tourne bien** : elle
+passe sur un rail de navigation latéral, et la conversation reste correcte.
+
+**Vu et sain :**
+- [x] Conversation en paysage, composeur vide : rien ne déborde, l'heure et
+  « · Envoyé » restent sous la bulle.
+- [x] Panneau émojis ouvert en paysage : pas de débordement, les pilules et la
+  loupe tiennent sur la ligne. La liste des messages est réduite à zéro par
+  l'`Expanded` — c'est le comportement attendu sur 392 dp de haut.
+
+**Deux débordements, tous deux hors du périmètre des quatre lots :**
+
+- [ ] ⚠ **Conversation « Salim L. » en paysage : `BOTTOM OVERFLOWED BY 240
+  PIXELS`.** Reproduit avec le bandeau « Restaurez vos clés de chiffrement »
+  affiché **et** un brouillon de 6 lignes dans le composeur. La cause est
+  `computeMessagePickerHeight` (`message_input.dart`) : elle réserve **176 dp
+  de chrome en dur**, calibrés sur en-tête 58 + composeur 64 + bandeau épinglé
+  44. Or le bandeau de restauration des clés (~90 dp) n'y est pas compté, et un
+  composeur à 6 lignes fait ~150 dp au lieu de 64. Sur 392 dp de haut, le
+  compte est dépassé de ~240.
+  Le même écran **sans** ces deux conditions ne déborde pas.
+- [ ] ⚠ **Écran de recherche des messages en paysage, clavier levé :
+  `OVERFLOWED BY 190`.** Cet écran n'a été touché par aucun des lots — c'est
+  le même défaut structurel, ailleurs.
+
+**Ce n'est donc pas une régression de la refonte** : c'est le motif « une
+`Column` dont les enfants fixes dépassent la hauteur de l'écran », que le
+paysage rend visible et que la réserve de chrome en dur ne peut pas suivre.
+Un correctif honnête ne se limite pas au composeur — à trancher à part.
+
+Pistes, par coût croissant :
+1. Borner `maxLines` du champ en paysage (6 lignes sur 392 dp n'a pas de sens).
+2. Compter le bandeau de restauration dans la réserve de chrome.
+3. Remplacer la réserve en dur par une mesure réelle (`LayoutBuilder` autour du
+   corps de la conversation), seule solution qui suive tous les bandeaux
+   conditionnels.
 
 ---
 
