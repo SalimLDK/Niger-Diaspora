@@ -4687,13 +4687,49 @@ exactement 1 conversation chacun, et `yflqsRLMMhTPpiW0NFHx` garde celle du
 (scratchpad de session, `conversations_yflqs_avant_fusion.json`) — elle
 disparaîtra avec la session, à récupérer maintenant si elle a de la valeur.
 
-- [ ] **À élucider — un message a disparu tout seul.** Le message de la
-  conversation 22:21 (envoyé à 22:22:34) était encore là au début de l'analyse
-  et absent quelques minutes plus tard, avant toute suppression de conversation.
-  Si ce n'est pas un ménage manuel (app ou dashboard Supabase), c'est un défaut
-  à part entière : un message ne doit pas s'effacer seul. Refaire le test —
-  envoyer un message dans un groupe, attendre 10 min, recompter — avant de
-  conclure.
+**Message disparu : très probablement un ménage manuel.** Le message de la
+conversation 22:21 (envoyé à 22:22:34) était présent au début de l'analyse,
+absent quelques minutes plus tard, avant toute suppression de conversation.
+Rien dans le système ne peut faire ça tout seul, vérifié :
+
+- `pg_cron` a 3 tâches, toutes des `http_post` vers des Edge Functions de
+  rappels — aucune ne supprime de données.
+- Aucun déclencheur sur `messages` ; sur `conversations`, seulement
+  `update_updated_at`.
+- Pas de messages éphémères dans l'app (les occurrences « ephemeral » sont les
+  clés X3DH de l'E2EE, sans rapport).
+- `deleteMessageForEveryone` et `deleteMessageForMe` sont des suppressions
+  **douces** (`is_deleted`, `data.deletedForEveryone`) : la ligne reste, elle
+  serait encore comptée.
+- **Aucun `from('messages').delete()` dans tout le code** — l'app n'a pas de
+  chemin pour supprimer physiquement un message.
+
+Conclusion : la ligne a été retirée hors de l'app (éditeur SQL ou dashboard).
+Si ce n'était pas toi, alors rouvrir le sujet — mais il n'y a pas de mécanisme
+applicatif à incriminer.
+
+- [ ] **Défaut trouvé au passage — « supprimer pour tout le monde » laisse les
+  messages orphelins.** `MessageSupabaseDataSource.deleteConversation`
+  (ligne ~1676) fait `from('conversations').delete()` avec le commentaire
+  « Hard delete (cascade deletes messages) ». **Il n'y a pas de cascade** :
+  `messages.conversation_id` n'a aucune clé étrangère vers `conversations`
+  (seules `events` et `group_pinned_items` en ont une, en CASCADE). Chaque
+  suppression de conversation « pour tout le monde » abandonne donc en base
+  tous ses messages — invisibles, et chiffrés E2EE, donc jamais récupérables ni
+  purgés. Zéro orphelin aujourd'hui (les messages du groupe de test avaient été
+  retirés avant), mais la prochaine suppression réelle en créera.
+
+  Correctif proposé (migration **non appliquée**, à valider) :
+  ```sql
+  alter table public.messages
+    add constraint messages_conversation_id_fkey
+    foreign key (conversation_id) references public.conversations(id)
+    on delete cascade;
+  ```
+  Prérequis rempli : `select count(*) from public.messages m where not exists
+  (select 1 from public.conversations c where c.id=m.conversation_id)` = 0.
+  Alternative si on préfère garder les messages : retirer le commentaire
+  mensonger et supprimer explicitement les messages avant la conversation.
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
