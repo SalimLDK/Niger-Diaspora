@@ -43,14 +43,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  /// Version de l'app, lue sur le paquet installé plutôt qu'écrite en dur.
-  /// Chaîne vide tant qu'elle n'est pas résolue : on n'affiche alors que le
-  /// libellé, jamais un numéro inventé.
-  String _versionLabel(AppLocalizations l10n) {
-    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
-    return version.isEmpty ? l10n.version : '${l10n.version} $version';
-  }
-
   bool _profileVisible = true;
   bool _locationEnabled = true;
   bool _showOnlineStatus = true;
@@ -298,7 +290,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       DesignSettingsTile(
                         icon: const Icon(Icons.palette_outlined),
                         title: l10n.theme,
-                        subtitle: _getThemeLabel(
+                        subtitle: themeModeLabel(
                           ref.watch(themeModeNotifierProvider),
                           l10n,
                         ),
@@ -352,7 +344,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       DesignSettingsTile(
                         icon: const Icon(Icons.info_outline),
                         title: l10n.about,
-                        subtitle: _versionLabel(l10n),
+                        subtitle: appVersionLabel(
+                          l10n,
+                          ref.watch(appVersionProvider).valueOrNull ?? '',
+                        ),
                         onTap: () => _showAbout(l10n),
                       ),
                       DesignSettingsTile(
@@ -489,17 +484,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       isScrollControlled: true,
       builder: (context) => const BlockedUsersModal(),
     );
-  }
-
-  String _getThemeLabel(AppThemeMode mode, AppLocalizations l10n) {
-    switch (mode) {
-      case AppThemeMode.light:
-        return l10n.light;
-      case AppThemeMode.dark:
-        return l10n.dark;
-      case AppThemeMode.system:
-        return l10n.system;
-    }
   }
 
   void _showThemeSelector(AppLocalizations l10n) {
@@ -1055,7 +1039,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                       ),
                       Text(
-                        _versionLabel(l10n),
+                        appVersionLabel(
+                          l10n,
+                          ref.watch(appVersionProvider).valueOrNull ?? '',
+                        ),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,

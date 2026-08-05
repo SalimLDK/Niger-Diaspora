@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/preferences_service.dart';
 
 part 'theme_provider.g.dart';
 
 enum AppThemeMode { light, dark, system }
+
+/// Libellé traduit d'un mode de thème. Vit ici, à côté de l'énumération dont
+/// il traduit le vocabulaire : Profil et Réglages en tenaient chacun une copie
+/// identique au caractère près.
+String themeModeLabel(AppThemeMode mode, AppLocalizations l10n) {
+  switch (mode) {
+    case AppThemeMode.light:
+      return l10n.light;
+    case AppThemeMode.dark:
+      return l10n.dark;
+    case AppThemeMode.system:
+      return l10n.system;
+  }
+}
 
 @riverpod
 class ThemeModeNotifier extends _$ThemeModeNotifier {

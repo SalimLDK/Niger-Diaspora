@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,8 +25,7 @@ class AppVersionService {
     try {
       final info = await PackageInfo.fromPlatform();
       final build = info.buildNumber;
-      final value =
-          build.isEmpty ? info.version : '${info.version} ($build)';
+      final value = build.isEmpty ? info.version : '${info.version} ($build)';
       _cached = value;
       return value;
     } catch (e) {
@@ -40,3 +40,9 @@ class AppVersionService {
 final appVersionProvider = FutureProvider<String>(
   (ref) => AppVersionService.displayVersion(),
 );
+
+/// Libellé « Version 1.2.3 », ou « Version » seul tant que la lecture n'a pas
+/// abouti — on n'affiche jamais un numéro inventé. Fonction pure : Profil et
+/// Réglages en tenaient chacun une copie couplée à `ref`.
+String appVersionLabel(AppLocalizations l10n, String version) =>
+    version.isEmpty ? l10n.version : '${l10n.version} $version';

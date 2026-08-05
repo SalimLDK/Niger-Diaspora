@@ -31,12 +31,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  /// Version de l'app, lue sur le paquet installé plutôt qu'écrite en dur.
-  String _versionLabel(AppLocalizations l10n) {
-    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
-    return version.isEmpty ? l10n.version : '${l10n.version} $version';
-  }
-
   bool _locationEnabled = true;
   bool _profileVisible = true;
   bool _completionDismissed = false;
@@ -317,13 +311,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     icon: const Icon(Icons.tune_outlined),
                     title: l10n.settingsAppearanceLanguage,
                     subtitle:
-                        '${_getThemeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
+                        '${themeModeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
                     onTap: () => context.push('/settings?section=appearance'),
                   ),
                   DesignSettingsTile(
                     icon: const Icon(Icons.help_outline),
                     title: l10n.settingsHelpAbout,
-                    subtitle: _versionLabel(l10n),
+                    subtitle: appVersionLabel(
+                      l10n,
+                      ref.watch(appVersionProvider).valueOrNull ?? '',
+                    ),
                     onTap: () => context.push('/settings?section=help'),
                   ),
                 ],
@@ -853,17 +850,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       userPhotoUrl: profile?.photoUrl ?? currentUser?.photoUrl,
       userId: profile?.id ?? currentUser?.id,
     );
-  }
-
-  String _getThemeLabel(AppThemeMode mode, AppLocalizations l10n) {
-    switch (mode) {
-      case AppThemeMode.light:
-        return l10n.light;
-      case AppThemeMode.dark:
-        return l10n.dark;
-      case AppThemeMode.system:
-        return l10n.system;
-    }
   }
 }
 
