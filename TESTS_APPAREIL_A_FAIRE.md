@@ -3445,6 +3445,26 @@ Couvert par `test/features/shell/tablet_navigation_rail_landscape_test.dart`
 - [ ] **Retour au portrait** après avoir fait défiler le rail : pas d'état de
       défilement résiduel qui décalerait la barre du bas.
 
+### Le paysage fait basculer TROIS bascules « large », pas une
+
+À 914 dp de large, le téléphone en paysage franchit trois seuils indépendants.
+Il faut donc lire tout bug de paysage comme un bug de **mode tablette** :
+
+| Seuil | Où | Ce qui bascule | État |
+|---|---|---|---|
+| 700 dp | `main_shell.dart` (`_kTabletBreakpoint`) | rail latéral au lieu de la barre du bas | **débordait — corrigé** |
+| 700 dp | `feed_screen.dart:179` | rail droit (filtres villes + hashtags), FAB 64 au lieu de 52 | sain : le rail droit est une `ListView` |
+| 600 dp | `responsive_service.dart` (`isTablet`) | `profile_screen` passe en largeurs tablette | sain : ce ne sont que des `maxWidth` dans des slivers |
+
+Le seuil admin (`admin_dashboard_screen.dart:226`, 1200 dp) n'est pas franchi
+en paysage. Vérifier quand même à l'œil, une fois, que le fil et le profil en
+paysage ne sont pas juste « non débordants » mais **utilisables** :
+
+- [ ] **Fil en paysage** : le rail droit de 330 dp ne mange pas la colonne
+      centrale (elle passe de 640 à ~498 dp), et le FAB à 64 ne recouvre pas le
+      dernier post.
+- [ ] **Profil en paysage** : contenu centré, pas collé au rail de gauche.
+
 Restent ouverts, même famille : le `BOTTOM OVERFLOWED BY 240` de la
 conversation (ci-dessus), et le `PodcastMiniPlayer` (hauteur fixe 64, hors
 `Expanded` dans la branche paysage de `MainShell`) qui déborderait si le corps
