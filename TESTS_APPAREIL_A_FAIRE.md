@@ -1169,6 +1169,21 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
   été publié le 2026-08-04 depuis le compte `Sim A.` pour valider 5b/5c. Il
   est **toujours en ligne** et visible dans le fil de la diaspora.
 
+## Doublons Profil / Réglages (2026-08-05)
+
+- [ ] **Profil : un seul filet entre les lignes** (`profile_screen.dart`) —
+  chaque séparation en affichait **trois** superposés : `DesignListCard` insère
+  déjà un filet entre ses enfants (retrait 16) et l'écran lui passait en plus
+  ses propres `_SettingsDivider` (retrait 72). Le défaut ne se voyait pas comme
+  un bug mais comme un trait épais et flou. Vérifier à l'œil qu'il ne reste
+  qu'un filet, aligné sur le texte, et que **Réglages n'a pas bougé d'un pixel**.
+- [ ] **« ZONE SENSIBLE » en couleur d'alerte** (`settings_screen.dart`) — le
+  drapeau `isWarning` était passé mais ignoré, le libellé s'affichait à la
+  couleur d'accent comme les trois autres sections. À vérifier en clair et en
+  nocturne (le rouge doit rester lisible sur `#0F0D0A`).
+
+---
+
 ---
 
 ## Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée

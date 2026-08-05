@@ -220,28 +220,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.account,
-                const Icon(Icons.person_outline),
-              ),
-              _SettingsCard(
+              DesignSectionLabel(l10n.account),
+              DesignSettingsCard(
                 children: [
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.edit_outlined),
                     title: l10n.editProfile,
                     subtitle: l10n.modifyYourInfo,
                     onTap: () => context.push('/profile/edit'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.article_outlined),
                     title: l10n.myPostsTitle,
                     subtitle:
                         '${ref.watch(userPostsCountProvider).valueOrNull ?? 0} ${l10n.posts}',
                     onTap: () => context.push('/profile/my-posts'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.bookmark_outline),
                     title: l10n.savedPostsTitle,
                     subtitle: l10n.savedPostsCount(
@@ -249,38 +244,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                     onTap: () => context.push('/profile/saved-posts'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.people_outline),
                     title: l10n.myFriends,
                     subtitle: l10n.manageConnections,
                     onTap: () => context.push('/friends'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.people_alt_outlined),
                     title: l10n.myFollowsTitle,
                     subtitle: l10n.myFollowsSubtitle,
                     onTap: () => context.push('/profile/follows'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.share_outlined),
                     title: l10n.shareMyProfile,
                     subtitle: l10n.qrCodeAndShareLink,
                     onTap: () => _showShareProfileModal(),
                   ),
-                  const _SettingsDivider(),
                   // CallHistoryScreen était injoignable : la route existait,
                   // mais aucun écran n'y renvoyait.
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.call_outlined),
                     title: l10n.callHistoryTitle,
                     subtitle: l10n.callHistorySubtitle,
                     onTap: () => context.push('/calls/history'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.notifications_outlined),
                     // Cette ligne mène à la LISTE des notifications reçues,
                     // pas aux réglages. Elle s'appelait « Notifications »
@@ -308,13 +298,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                l10n.settings,
-                const Icon(Icons.settings_outlined),
-              ),
-              _SettingsCard(
+              DesignSectionLabel(l10n.settings),
+              DesignSettingsCard(
                 children: [
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.shield_outlined),
                     title: l10n.settingsPrivacySecurity,
                     subtitle: () {
@@ -326,16 +313,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     }(),
                     onTap: () => context.push('/settings?section=privacy'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.tune_outlined),
                     title: l10n.settingsAppearanceLanguage,
                     subtitle:
                         '${_getThemeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
                     onTap: () => context.push('/settings?section=appearance'),
                   ),
-                  const _SettingsDivider(),
-                  _SettingsTile(
+                  DesignSettingsTile(
                     icon: const Icon(Icons.help_outline),
                     title: l10n.settingsHelpAbout,
                     subtitle: _versionLabel(l10n),
@@ -853,9 +838,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   /// Libellé de section (§10a) : petites capitales en chasse fixe. L'icône
   /// en pastille a disparu — les appels la passent encore, elle est ignorée.
-  Widget _buildSectionHeader(String title, Widget icon) {
-    return DesignSectionLabel(title);
-  }
 
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
@@ -886,131 +868,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 }
 
 // Widgets réutilisables améliorés
-
-class _SettingsCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _SettingsCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return DesignListCard(children: children);
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final Widget icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          if (onTap != null) {
-            HapticFeedback.selectionClick();
-            onTap!();
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      context.adaptivePrimaryColor.withValues(alpha: 0.15),
-                      context.adaptivePrimaryColor.withValues(alpha: 0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: IconTheme.merge(
-                    data: IconThemeData(
-                      size: 18,
-                      color: context.adaptivePrimaryColor,
-                    ),
-                    child: icon,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null)
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: context.surfaceVariantColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: context.textTertiaryColor,
-                    size: 18,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsDivider extends StatelessWidget {
-  const _SettingsDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 72),
-      child: Divider(
-        height: 1,
-        color: context.borderColor.withValues(alpha: 0.5),
-      ),
-    );
-  }
-}
 
 class _AnimatedProfileStat extends StatelessWidget {
   final String value;
