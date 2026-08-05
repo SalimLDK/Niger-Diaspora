@@ -3139,14 +3139,27 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
   - [ ] **Appui long puis simple relâchement** (sans glissement) : NON vérifié.
     La dernière tentative est tombée sur l'écran Profil, l'app ayant navigué
     entre-temps. C'est le geste le plus courant, il reste à faire.
-- [ ] ⚠ **Défaut trouvé pendant ce test — libellés tronqués dans le bandeau
+- [x] ⚠ **Défaut trouvé pendant ce test — libellés tronqués dans le bandeau
   d'enregistrement**, à font_scale 1.1 sur le A51 : « Relâc… » au lieu de
-  « Relâchez pour annuler », « L'enregi… » au lieu de « L'enregistrement sera
-  supprimé », et « Glisser ‹… » en permanence. Seul « Relâchez pour
-  verrouiller » tient en entier. L'utilisateur ne peut pas lire ce qui va lui
-  arriver au moment où il annule — c'est précisément le moment où il faudrait
-  qu'il comprenne. À corriger dans `_buildCancelHint` /
-  `_buildDefaultRecordingHint` (`message_input.dart`).
+  « Relâcher pour annuler », « L'enregi… » au lieu de « L'enregistrement sera
+  supprimé », et « Glisser ‹… » en permanence. L'utilisateur ne pouvait pas lire
+  ce qui allait lui arriver au moment où il annule — précisément le moment où il
+  faudrait qu'il comprenne.
+  **Cause** : le libellé partageait sa ligne avec la minuterie et le waveform et
+  n'en recevait que 2/5 (`Expanded(flex: 2)` contre `flex: 3` au waveform).
+  **Correctif** : le libellé a sa propre ligne, pleine largeur, sous la ligne
+  minuterie + waveform ; les textes passent à `maxLines: 2` pour encaisser les
+  fortes échelles au lieu de se couper.
+  **Vérifié à l'écran le 2026-08-05 (06:44 → 06:47)**, APK `255dd2f`, thème
+  sombre, font_scale 1.1 : « Glisser ‹ pour annuler · ↑ pour verrouiller » puis
+  « Relâcher pour annuler » / « L'enregistrement sera supprimé » s'affichent en
+  entier. Le relâchement annule bien (aucun vocal envoyé), zéro `RenderFlex`
+  dans le tampon.
+- [ ] **Observation à part** : « Mes notes » affiche maintenant « Aucun
+  message » et un bandeau **« Ce groupe a été supprimé »** à la place du
+  composeur. Sans rapport avec les gestes vocaux (rien n'a été supprimé pendant
+  la passe) — vraisemblablement le ménage des données de test. À vérifier : une
+  auto-conversation ne devrait pas pouvoir tomber dans l'état « supprimé ».
 - [ ] **font_scale 1.1 avec un texte réel** : les mesures ci-dessus sont à
   l'échelle 1.0 du banc. Vérifier qu'un vrai message long garde une largeur
   confortable sur l'appareil.
@@ -3245,10 +3258,15 @@ Restent à voir (demandent un second appareil, ou un build à jour installé) :
   les groupes vivent dans Firestore et les épingles dans Supabase, **aucun
   message de groupe ne peut être épinglé**. Le filtre `group_id` du bandeau
   reste donc non prouvé — il n'y a rien à afficher.
-- [ ] ⚠ **Contenu déchiffré dans le bandeau** : toujours pas vu. L'appareil
-  affiche le repli « Message épinglé » parce que les clés E2EE sont perdues sur
-  ce build (bandeau « Restaurez vos clés » présent, bulles « 🔐 Message
-  chiffré »). Ce point ne pourra se solder qu'après restauration des clés.
+- [ ] ⚠ **Contenu déchiffré dans le bandeau** : toujours pas vu. Les clés E2EE
+  sont perdues sur ce build (bandeau « Restaurez vos clés » présent, bulles
+  « 🔐 Message chiffré ») et les 3 épingles de test pointent toutes sur du
+  texte chiffré (`gcm:` ou `iv:ciphertext`, vérifié en base). Ce point ne
+  pourra se solder qu'après restauration des clés.
+- [x] **Repli illisible corrigé** (2026-08-05) : dans ce cas le bandeau
+  affichait « Message épinglé » **sous** le libellé « Message épinglé 1 », soit
+  deux fois la même chose. Il dit maintenant « 🔐 Message chiffré ». À revoir à
+  l'écran sur un build à jour.
 
 Et sur un seul appareil, après le correctif de `group_pinned_banner.dart` (la
 pastille était perdue avec la ligne quand l'épingle n'était pas résoluble).

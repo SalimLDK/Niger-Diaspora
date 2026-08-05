@@ -246,8 +246,15 @@ class _PinnedRow extends ConsumerWidget {
       final c = (msg.postData?['content'] as String?)?.trim();
       return '🔗 ${c != null && c.isNotEmpty ? c : 'Publication'}';
     }
-    // Texte lisible (déchiffré) : on l'affiche tel quel.
-    if (msg.isText && text.isNotEmpty && !looksEncrypted) return text;
+    if (msg.isText) {
+      // Texte lisible (déchiffré) : on l'affiche tel quel.
+      if (text.isNotEmpty && !looksEncrypted) return text;
+      // Illisible sur cet appareil (clés E2EE absentes) : le dire. Sans ça, le
+      // repli générique répétait mot pour mot le libellé de la ligne — le
+      // bandeau affichait « Message épinglé 1 » au-dessus de « Message
+      // épinglé », soit deux fois rien.
+      return text.isEmpty ? 'Message' : '🔐 Message chiffré';
+    }
     // Sinon, libellé par type de média.
     return _mediaLabel(msg.type);
   }
@@ -267,8 +274,10 @@ class _PinnedRow extends ConsumerWidget {
         return '📍 Position';
       case MessageType.sticker:
         return 'Sticker';
+      case MessageType.text:
+        return 'Message';
       default:
-        return 'Message épinglé';
+        return 'Message';
     }
   }
 
