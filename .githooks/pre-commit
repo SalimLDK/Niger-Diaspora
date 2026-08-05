@@ -1,0 +1,56 @@
+#!/bin/sh
+# Refuse un commit qui reintroduirait une cle JSON dupliquee dans un fichier ARB.
+#
+# Un ARB a cle dupliquee est un JSON ambigu : le parseur applique last-wins,
+# donc la valeur retenue depend de l ordre d ecriture, et une edition faite sur
+# la mauvaise occurrence reste sans effet. Voir tools/dedupe_arb.py.
+#
+# Activation (par clone, y compris les worktrees) :
+#     git config core.hooksPath .githooks
+
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.arb$' || true)
+[ -z "$staged" ] && exit 0
+
+root=$(git rev-parse --show-toplevel)
+checker="$root/tools/dedupe_arb.py"
+[ -f "$checker" ] || exit 0
+
+if command -v python >/dev/null 2>&1; then
+    py=python
+elif command -v python3 >/dev/null 2>&1; then
+    py=python3
+else
+    echo "pre-commit : python introuvable, verification des ARB ignoree." >&2
+    exit 0
+fi
+
+# On verifie le contenu INDEXE, pas celui de l arbre de travail : c est ce qui
+# part dans le commit qui compte.
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT INT TERM
+
+for file in $staged; do
+    mkdir -p "$tmp/$(dirname "$file")"
+    git show ":$file" > "$tmp/$file"
+done
+
+if ! (cd "$tmp" && PYTHONIOENCODING=utf-8 "$py" "$checker" --check $staged); then
+    cat >&2 <<'MESSAGE'
+
+pre-commit : cle ARB declaree plusieurs fois, commit refuse.
+
+  Pour voir les valeurs concurrentes :
+      python tools/dedupe_arb.py --report lib/l10n/app_en.arb
+
+  Pour corriger (garde la position de la premiere occurrence et la valeur de
+  la derniere, celle que le parseur retient deja, donc sans changer un texte) :
+      python tools/dedupe_arb.py lib/l10n/app_en.arb lib/l10n/app_fr.arb
+      flutter gen-l10n
+
+MESSAGE
+    exit 1
+fi
+
+exit 0
