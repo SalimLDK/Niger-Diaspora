@@ -1171,28 +1171,48 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
 
 ## Doublons Profil / Réglages (2026-08-05)
 
-- [ ] **Profil : un seul filet entre les lignes** (`profile_screen.dart`) —
+- [x] **Profil : un seul filet entre les lignes** (`profile_screen.dart`) —
   chaque séparation en affichait **trois** superposés : `DesignListCard` insère
   déjà un filet entre ses enfants (retrait 16) et l'écran lui passait en plus
   ses propres `_SettingsDivider` (retrait 72). Le défaut ne se voyait pas comme
   un bug mais comme un trait épais et flou. Vérifier à l'œil qu'il ne reste
   qu'un filet, aligné sur le texte, et que **Réglages n'a pas bougé d'un pixel**.
-- [ ] **Une bascule n'en écrase plus trois** (`settings_screen.dart`) —
+- [x] **Une bascule n'en écrase plus trois** (`settings_screen.dart`) —
   Réglages → couper **Ma localisation** seule → revenir → rouvrir Réglages :
   *Profil visible* et *Statut en ligne* doivent être restés dans leur état
   réel, pas remis à activé. C'est le scénario qui échouait.
-- [ ] **Le sous-titre du Profil suit** (`profile_screen.dart`) — couper
+- [x] **Le sous-titre du Profil suit** (`profile_screen.dart`) — couper
   *Profil visible* dans Réglages, revenir au Profil : « Confidentialité et
   sécurité » doit se mettre à jour **sans relancer l'app**.
-- [ ] **Les notifications se coupent vraiment** — réglages fins des
+- [x] **Les notifications se coupent vraiment** — réglages fins des
   notifications → couper l'interrupteur maître → vérifier en base que
-  `profiles.notifications_enabled` est passé à `false`
+  `public.users.notifications_enabled` est passé à `false`
   (`supabase db query --linked`). Avant, seul l'affichage local était coupé :
   le serveur continuait d'envoyer.
-- [ ] **« ZONE SENSIBLE » en couleur d'alerte** (`settings_screen.dart`) — le
+- [x] **« ZONE SENSIBLE » en couleur d'alerte** (`settings_screen.dart`) — le
   drapeau `isWarning` était passé mais ignoré, le libellé s'affichait à la
   couleur d'accent comme les trois autres sections. À vérifier en clair et en
   nocturne (le rouge doit rester lisible sur `#0F0D0A`).
+
+---
+
+**Vérifié sur SM A515F le 2026-08-05, en clair.** Les cinq points ci-dessus
+sont passés, dont trois confirmés **en base** et pas seulement à l'écran :
+
+| Colonne de `public.users` | Avant | Après « Ma localisation » coupée |
+|---|---|---|
+| `share_location` | true | **false** |
+| `is_visible` | true | true |
+| `show_online_status` | true | true |
+
+C'est la preuve que cherchait le lot 4b : l'ancien code réécrivait les quatre
+champs d'un coup. Couper l'interrupteur push a bien mis
+`notifications_enabled` à `false` côté serveur, là où seule la préférence
+locale changeait avant. **Les quatre valeurs ont été remises à leur état
+d'origine après le test.**
+
+L'ancrage des sections marche aussi : « Apparence et langue » ouvre Réglages
+directement sur la section APPLICATION.
 
 ---
 

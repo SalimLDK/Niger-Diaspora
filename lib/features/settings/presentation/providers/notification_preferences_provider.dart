@@ -115,8 +115,8 @@ class NotificationPreferencesNotifier
   /// Il n'en écrivait qu'un. Or le commutateur vit à trois endroits qui
   /// décident chacun d'autre chose : la préférence locale décide de
   /// l'**affichage** (`notification_service.dart` la lit avant de montrer une
-  /// notification), la colonne Supabase `notifications_enabled` décide de
-  /// l'**envoi** (`functions/supabase.js` la sélectionne pour filtrer les
+  /// notification), la colonne `public.users.notifications_enabled` décide
+  /// de l'**envoi** (`functions/supabase.js` la sélectionne pour filtrer les
   /// destinataires), et le topic FCM `general` décide de la réception des
   /// diffusions. Couper depuis les réglages n'éteignait donc que l'affichage :
   /// le serveur continuait d'envoyer, et l'appareil de recevoir.
