@@ -72,11 +72,28 @@ service cloud.firestore {
       // Allow getting individual profiles - authenticated users
       allow get: if isAuthenticated();
 
-      // Allow write only if accessing own document (includes create, update, delete)
+      // `write` etait un seul bloc couvrant create, update ET delete, et il
+      // appelait `diff(resource.data)` sans garde. Sur une CREATION, `resource`
+      // est nul : la regle ne renvoyait pas false, elle **plantait** — « Null
+      // value error, ligne 79, colonne 71 » (verifie le 2026-08-05 par l'API
+      // `firebaserules:test`). Consequence : personne ne pouvait creer son
+      // propre document `users`, et toute ecriture par lot qui en contenait une
+      // etait refusee en entier — c'est ce qui bloquait l'acceptation d'une
+      // demande d'ami, dont le batch fait un `set(merge)` sur les deux profils.
+      //
+      // D'ou la separation en create / update / delete : sur un `update`,
+      // `resource` existe toujours, et le `diff` ne peut plus planter.
+
+      // Creation de son propre profil, sans se donner de role admin.
+      allow create: if isOwner(userId)
+        && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']);
+
+      allow delete: if isOwner(userId);
+
       // Exception: allow updating friendIds array when accepting/removing a friend request
       // Exception: allow updating blockedByUserIds when being blocked/unblocked
       // Security: block users from modifying their own admin fields
-      allow write: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
         isAuthenticated() &&
         (
           // Friend request handling

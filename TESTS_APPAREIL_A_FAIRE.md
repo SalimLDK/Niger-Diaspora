@@ -139,8 +139,37 @@ notifications d'un groupe une par une.
   base `attendeeIds = ["vQZE49…"]` sur l'événement dont l'organisateur est
   quelqu'un d'autre. Titre et date inchangés : le garde-fou de la règle tient,
   seul `attendeeIds` a bougé.
-- [ ] **« Accepter / Refuser » sur une demande d'ami** : jamais rejoué depuis
-  la refonte.
+- [x] **Carte « demande d'ami » conforme à la maquette** — pastille verte,
+  « Accepter » plein + « Refuser » en contour. Demande et notification
+  fabriquées à la main, le compte n'en avait aucune.
+- [x] **🔴 Trouvé — accepter une demande d'ami était impossible, et l'échec
+  était muet.** Tap sur « Accepter » : rien à l'écran, rien en base
+  (`status` toujours `pending`, `friendIds` vides). logcat :
+  `PERMISSION_DENIED` sur le batch.
+  **Cause, isolée par l'API `firebaserules:test` sans toucher aux données** —
+  la règle `users/{userId}` couvrait create + update + delete dans un seul
+  `allow write` appelant `diff(resource.data)` sans garde. Sur une **création**
+  `resource` est nul : la règle ne renvoyait pas `false`, elle **plantait**
+  (« Null value error, ligne 79, colonne 71 »). Donc **personne ne pouvait
+  créer son propre document `users`** — ce qui explique aussi que le document
+  du compte de test n'ait jamais existé malgré un onboarding complet, et le
+  `PERMISSION_DENIED` sur `users/{uid}` qui traînait depuis le 2026-08-03.
+  Le batch d'acceptation contenant un `set(merge)` sur les deux profils, il
+  était refusé en entier.
+  **Corrigé** : `write` séparé en `create` / `update` / `delete` — sur un
+  `update`, `resource` existe toujours et le `diff` ne peut plus planter. La
+  création interdit toujours de se donner `isAdmin`/`adminRole`. Quatre cas
+  validés par l'API de test (créer son profil : autorisé ; se donner isAdmin :
+  refusé ; créer le profil d'autrui : refusé ; créer un événement : autorisé).
+- [x] **Corrigé aussi : l'échec ne disait rien.** `_respond` n'affichait un
+  message qu'en cas de succès — un refus de permission se lisait comme un tap
+  qui n'avait pas pris. C'est ce qui a caché le défaut. Il affiche désormais
+  une erreur rouge.
+- [ ] ⚠ **Règle `users` corrigée mais NON DÉPLOYÉE** — deuxième modification
+  de la sécurité en production, à arbitrer. Après déploiement : rejouer
+  « Accepter » (demande `BC5isN2Ecet3DIrYzz0N`), vérifier `status: accepted`
+  et les `friendIds` des deux comptes, puis tester « Refuser » sur une
+  nouvelle demande.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
   aucune non-lue (le compte de test en avait une), et le dialogue de
   confirmation de « Tout supprimer » (non déclenché — action destructive sur

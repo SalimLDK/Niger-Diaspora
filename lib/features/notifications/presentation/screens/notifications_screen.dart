@@ -1726,15 +1726,23 @@ class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
     if (!mounted) return;
     setState(() => _busy = false);
 
-    if (ok) {
-      widget.onResponded();
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(accept ? l10n.requestAccepted : l10n.requestDeclined),
+    final l10n = AppLocalizations.of(context)!;
+    if (ok) widget.onResponded();
+
+    // L'échec ne disait **rien** : le bouton reprenait son état et la carte
+    // restait là, à l'identique. Un refus de permission Firestore se lisait
+    // donc comme un tap qui n'avait pas pris. C'est ce qui a caché pendant des
+    // mois le fait qu'accepter une demande d'ami était impossible.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? (accept ? l10n.requestAccepted : l10n.requestDeclined)
+              : l10n.loadingError,
         ),
-      );
-    }
+        backgroundColor: ok ? null : context.errorColor,
+      ),
+    );
   }
 
   @override
