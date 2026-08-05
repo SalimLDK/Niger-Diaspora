@@ -125,7 +125,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         DesignSquareAction(
                           icon: Icons.qr_code_2,
                           tooltip: l10n.shareMyProfile,
-                          onPressed: () => context.push('/profile/share'),
+                          // `/profile/share` n'a jamais été déclarée : c'est
+                          // `/profile/:userId` qui l'attrapait, avec « share »
+                          // pour identifiant — le bouton menait donc à
+                          // « Profil supprimé · Ce compte n'existe plus ».
+                          // Il ouvre désormais la même feuille que la ligne
+                          // « Partager mon profil », qui, elle, fonctionne.
+                          onPressed: () => _showShareProfileModal(),
                         ),
                         DesignSquareAction(
                           icon: Icons.settings_outlined,
