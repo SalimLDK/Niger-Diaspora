@@ -3069,6 +3069,39 @@ Ce que les tests ne voient pas :
 
 ---
 
+## Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)
+
+`group_pinned_items` n'a jamais été ajoutée à la publication
+`supabase_realtime` (contrairement à `messages` et `conversations`, vérifié sur
+le projet distant « Diapo Niger »). Le `.stream()` de
+`getPinnedItemsStream` ne faisait donc que son chargement initial : le
+`ref.invalidate` de `conversation_screen` masquait le trou pour l'action faite
+sur CE téléphone, mais rien d'autre n'arrivait jamais. Migration
+`supabase/migrations/20260805120000_realtime_group_pinned_items.sql`
+(publication + `replica identity full`, nécessaire pour que les DELETE passent
+le filtre serveur `group_id`/`conversation_id`).
+
+**Demande deux appareils** (ou un second compte) :
+
+- [ ] **Épinglage distant** : B épingle un message ; le bandeau doit apparaître
+  chez A **sans rouvrir la conversation**.
+- [ ] **Désépinglage distant** : B détache ; le bandeau doit disparaître chez A
+  (c'est le cas qui dépend de `replica identity full`).
+- [ ] **Suppression pour tous d'un message épinglé** par B : l'épingle tombe en
+  cascade, le bandeau de A doit se vider tout seul.
+- [ ] **Groupe et 1-à-1** : les deux chemins passent par des colonnes de filtre
+  différentes (`group_id` vs `conversation_id`).
+
+Et sur un seul appareil, après le correctif de `group_pinned_banner.dart` (la
+pastille était perdue avec la ligne quand l'épingle n'était pas résoluble) :
+
+- [ ] **Une seule épingle orpheline** (message supprimé avant la cascade) : le
+  bandeau ne s'affiche pas, mais la **pastille ÉCO doit rester** à droite.
+- [ ] **Épingle de sondage / d'événement pendant le chargement** : la pastille
+  ne doit pas clignoter hors de l'écran le temps du fetch.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

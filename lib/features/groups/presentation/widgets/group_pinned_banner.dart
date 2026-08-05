@@ -19,6 +19,18 @@ final _kCiphertextPattern = RegExp(
   r'^[A-Za-z0-9+/]{16,}={0,2}:[A-Za-z0-9+/]{16,}={0,2}$',
 );
 
+/// Ligne sans bandeau : rien n'est épinglé, ou l'épingle n'est pas (encore)
+/// résoluble. La pastille (bascule ÉCO, fiche 6b) reste alignée à droite —
+/// elle ne doit JAMAIS disparaître de l'écran, sinon la bascule s'évapore dès
+/// qu'une épingle est orpheline ou en cours de chargement.
+Widget _trailingOnlyRow(Widget? trailing) {
+  if (trailing == null) return const SizedBox.shrink();
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    child: Row(children: [const Spacer(), trailing]),
+  );
+}
+
 /// Bandeau des éléments épinglés en tête d'un groupe OU d'une conversation
 /// 1-à-1, façon Telegram : une seule ligne fine fixée sous l'en-tête,
 /// toujours visible. Quand plusieurs éléments sont épinglés, un compteur
@@ -79,15 +91,7 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
     if (itemsAsync.hasValue) _lastItems = itemsAsync.value!;
     final items = itemsAsync.valueOrNull ?? _lastItems;
 
-    if (items.isEmpty) {
-      final trailing = widget.trailing;
-      if (trailing == null) return const SizedBox.shrink();
-      // Rien d'épinglé : la ligne ne porte que la pastille, à droite.
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(children: [const Spacer(), trailing]),
-      );
-    }
+    if (items.isEmpty) return _trailingOnlyRow(widget.trailing);
     final index = _index % items.length;
     return _PinnedRow(
       item: items[index],
@@ -144,7 +148,7 @@ class _PinnedRow extends ConsumerWidget {
                               extra: event,
                             ),
                       ),
-          orElse: () => const SizedBox.shrink(),
+          orElse: () => _trailingOnlyRow(trailing),
         );
       case GroupPinnedItemType.poll:
         final pollAsync = ref.watch(pollStreamProvider(item.itemId));
@@ -160,10 +164,10 @@ class _PinnedRow extends ConsumerWidget {
                         title: poll.question,
                         onOpen: () => context.push('/polls/${poll.id}/results'),
                       ),
-          orElse: () => const SizedBox.shrink(),
+          orElse: () => _trailingOnlyRow(trailing),
         );
       case GroupPinnedItemType.message:
-        if (messageConversationId == null) return const SizedBox.shrink();
+        if (messageConversationId == null) return _trailingOnlyRow(trailing);
         // Résolution : d'abord la fenêtre de messages chargée, sinon fetch
         // ciblé (déchiffré) — un message épinglé ancien hors fenêtre doit
         // quand même s'afficher (sinon le bandeau disparaissait dès qu'une
@@ -217,7 +221,7 @@ class _PinnedRow extends ConsumerWidget {
   /// et — s'il y avait d'autres épingles valides — impossible à faire
   /// défiler puisque aucun contenu tapable n'était rendu pour cet index.
   Widget _unresolvedRow(BuildContext context) {
-    if (total <= 1) return const SizedBox.shrink();
+    if (total <= 1) return _trailingOnlyRow(trailing);
     return _row(
       context,
       accent: context.textTertiaryColor,
