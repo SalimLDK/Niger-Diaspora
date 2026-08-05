@@ -927,9 +927,9 @@ class _MessageInputState extends State<MessageInput>
         // vocal/envoi **hors de la barre** (cercle séparé à droite).
         Padding(
           padding: EdgeInsets.fromLTRB(
-            10,
             6,
-            10,
+            6,
+            6,
             MediaQuery.of(context).padding.bottom + 8,
           ),
           child: Row(
@@ -942,7 +942,7 @@ class _MessageInputState extends State<MessageInput>
               // bas. Dehors, le texte part du bord de la pilule.
               if (!_isRecording) ...[
                 _buildPlusButton(context),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
               ],
               Expanded(
                 child: Container(
@@ -978,16 +978,14 @@ class _MessageInputState extends State<MessageInput>
                           : _buildPillField(context),
                 ),
               ),
-              // Emoji en pastille propre, entre la barre et le bouton d'action
-              // (fiche 26b). Escamotée pendant l'enregistrement : le bouton
-              // d'action y porte toute la gestuelle et a besoin de la place.
-              if (!_isRecording) ...[
-                const SizedBox(width: 8),
-                _buildEmojiButton(context),
-              ],
+              // L'emoji garde sa pastille (fiche 26b) mais **dans** la pilule,
+              // à droite du texte : en pastille autonome il lui prenait 52 dp,
+              // et la pilule tombait à 55 % de la largeur de l'écran. Elle
+              // remonte à ~73 %, sans que l'emoji revienne empiéter sur le
+              // champ. Voir `_buildPillField`.
               // Bouton vocal / envoi HORS de la barre flottante.
               if (!_isLocked) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildPersistentActionButton(context),
               ],
             ],
@@ -1073,8 +1071,10 @@ class _MessageInputState extends State<MessageInput>
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
-      width: 44,
-      height: 44,
+      // 40 plutôt que 44 : la pastille vit maintenant dans la pilule, elle doit
+      // tenir dans sa hauteur de ligne sans la faire grossir.
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
       child: IconButton(
         onPressed: () => _togglePicker(),
@@ -1102,9 +1102,9 @@ class _MessageInputState extends State<MessageInput>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        // 44 comme le bouton d'envoi : les deux cercles flanquent la pilule.
-        width: 44,
-        height: 44,
+        // 40 : le « + » est secondaire, seul le bouton d'envoi garde 44.
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: accent.withValues(alpha: active ? 0.20 : 0.12),
           shape: BoxShape.circle,
@@ -1182,17 +1182,22 @@ class _MessageInputState extends State<MessageInput>
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     filled: false,
-                    // Le « + » et l'emoji sont tous deux sortis de la pilule :
-                    // 10 + les 8 du Container = 18 réels de chaque côté.
+                    // Seul le « + » est hors de la pilule : 10 + les 8 du
+                    // Container = 18 réels à gauche. À droite, la pastille
+                    // emoji fait office de marge, d'où le 4.
                     contentPadding: const EdgeInsets.only(
                       left: 10,
-                      right: 10,
+                      right: 4,
                       top: 12,
                       bottom: 12,
                     ),
                   ),
                 ),
               ),
+              // Pastille emoji dans la pilule, collée en bas à droite : elle
+              // reste entièrement à droite du champ (elle n'empiète pas
+              // dessus), mais ne coûte plus 52 dp de largeur au texte.
+              _buildEmojiButton(context),
             ],
           ),
         ),
