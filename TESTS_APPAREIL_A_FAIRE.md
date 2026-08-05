@@ -32,11 +32,19 @@ le voit pas :
 - [ ] **Ligne « De 22:00 à 07:00 »** : elle est devenue une `DesignSettingsTile`
   (pictogramme + chevron). Vérifier que le tap enchaîne bien les deux
   sélecteurs d'heure et que l'annulation du second n'enregistre rien.
-- [ ] **`/notifications` : le menu ⋯ de l'en-tête.** « Tout supprimer » était
-  écrit mais **injoignable** (`buildOverflowMenu` n'était appelé nulle part) —
-  il est monté derrière le ⋯, avec « Réglages » qui remplace l'ancienne
-  pastille `tune`. Vérifier que les deux entrées s'ouvrent et que la
-  suppression demande bien confirmation.
+- [x] **🔴 Trouvé sur appareil (2026-08-05, 06:20, SM A515F, APK `2fe9240`) —
+  le titre « Notifications » se coupait au milieu du mot.** L'en-tête affichait
+  « Notific / ations » sur deux lignes : la pastille « Tout marquer comme lu »
+  mangeait ~410 px, et le titre en Playfair 30 tombait sous les ~230 px
+  restants dans son `Expanded`. Vu au premier coup d'œil, jamais relevé
+  jusqu'ici. **Corrigé** en repliant les deux actions secondaires dans le ⋯
+  (forme 13c) — le titre reprend toute la largeur.
+- [ ] **Re-vérifier l'en-tête après build** : « Notifications » sur **une
+  seule ligne**, et le sous-titre « 1 non lue » juste dessous.
+- [ ] **`/notifications` : les trois entrées du menu ⋯.** « Tout supprimer »
+  était écrit mais **injoignable** (`buildOverflowMenu` n'était appelé nulle
+  part). Vérifier les trois entrées, que « Tout marquer comme lu » est **grisé**
+  quand il n'y a aucune non-lue, et que la suppression demande confirmation.
 - [ ] **`/notifications/:id` : le sur-titre est en français.** Il affichait le
   nom Dart de l'énumération (« GROUPJOINREQUEST »). Ouvrir un détail de chaque
   famille (message, groupe, événement, ami, commande) et lire l'étiquette.
