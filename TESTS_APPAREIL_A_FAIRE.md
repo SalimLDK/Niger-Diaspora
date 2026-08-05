@@ -217,6 +217,50 @@ notifications d'un groupe une par une.
 
 ---
 
+## Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)
+
+Relevées en fin de session. Aucune des deux n'a d'effet visible, mais elles
+polluent logcat, et **c'est ce qui rend un vrai refus invisible** — il a fallu
+vider logcat et retaper pour voir celui qui bloquait « Accepter ».
+
+### `PERMISSION_DENIED` sur `conversations/883c9d96-…` — écoute fantôme
+
+Ce n'est **pas** un défaut de droits. Enchaînement établi :
+
+- l'id est un **UUID Supabase**, et la conversation existe bien côté Supabase
+  (créée le 2026-07-17, vérifiée par `supabase db query --linked`) ;
+- elle **n'a jamais existé dans Firestore** : la collection `conversations`
+  n'y contient qu'un seul document, un id auto-généré appartenant à Salim L. ;
+- la messagerie est câblée sur `MessageSupabaseDataSource`
+  (`message_provider.dart`), donc plus rien ne devrait interroger Firestore ;
+- le seul écouteur Firestore sur un document de conversation est
+  `MessageRemoteDataSourceImpl.getConversationStream`
+  (`message_remote_datasource.dart:518`), et il est **injoignable** : cette
+  classe n'est instanciée que par la recherche, qui n'appelle d'elle que
+  `searchConversations`.
+
+Conclusion : c'est une **cible d'écoute rémanente**, enregistrée par un build
+d'avant la migration et rejouée par la persistance locale de Firestore à
+chaque démarrage. La règle refuse au lieu de renvoyer « vide » parce que
+`resource` est nul sur un document absent — même faiblesse que celle corrigée
+sur `users`, mais bénigne en lecture.
+
+- [ ] Non prouvé faute de moyen non destructif : confirmer en vidant le cache
+  Firestore de l'app. **Ça efface les données de l'app**, donc les clés E2EE —
+  à ne faire que si la trace devient gênante.
+
+### `FAILED_PRECONDITION` — index manquant sur les événements
+
+`events where status == completed order by -startDate` échoue à chaque
+démarrage : l'index composite n'existe pas.
+
+- [ ] La liste des événements passés revient donc **vide en silence**.
+  Ajouter l'index à `firestore.indexes.json` puis
+  `firebase deploy --only firestore:indexes`. Firebase donne le lien de
+  création tout fait dans le message d'erreur.
+
+---
+
 ## Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`
 
 Programme de test exécuté au pilotage `adb` (taps + `dumpsys` + logcat), thème
@@ -2923,8 +2967,50 @@ désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
   d'intensité de fond quand le panneau est ouvert ; en nocturne le fond pastel
   est remplacé par l'accent teinté (`#F4A574` à 18/28 %) — vérifier qu'il ne
   fait pas un pavé lumineux.
-- [ ] **Le champ est symétrique** : plus rien dans la pilule à part le texte,
-  retrait de 18 px réels de chaque côté.
+- [x] ⚠ **« Plus rien dans la pilule à part le texte » n'est plus vrai** — la
+  pastille emoji y est retournée le 2026-08-05, sur demande de Salim (« la
+  pilule est trop étroite »). Voir la section suivante : les quatre commandes en
+  ligne coûtaient 176 dp de chrome sur 393. La contrainte technique du lot C
+  tient toujours (la pastille reste entièrement à droite du champ, elle
+  n'empiète pas dessus) et son test passe, **mais l'intention « pastille
+  autonome » de la fiche 26b est entamée**. À arbitrer avec Salim si la fiche
+  l'exige explicitement.
+
+---
+
+## Composeur — largeur de la pilule et « + » en clair (2026-08-05)
+
+Deux retours de Salim sur le rendu, traités et vérifiés sur appareil (SM A515F,
+APK `48ede47` puis le suivant, conversation « Salim L. » avec toute sa chrome,
+champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
+
+- [x] **La pilule était trop étroite.** Trois pastilles autonomes de 44 plus
+  quatre écarts = 176 dp de chrome : il ne restait que 217 dp de pilule (55 % de
+  l'écran) et 51 % pour le texte. Un message qui tenait en 4 lignes en prenait 6.
+  Corrigé en rendant la pastille emoji à la pilule et en resserrant la géométrie
+  (marges 10 → 6, écarts 8 → 6, « + » et emoji 44 → 40 ; le bouton d'envoi garde
+  44, c'est l'action principale). **Pilule 55 % → 73 %, champ 51 % → 58 %.**
+- [x] **Le « + » était invisible en thème clair.** Relevé au pixel sur la
+  capture : l'aplat du bouton et le fond de page donnaient **la même valeur**,
+  `#F2E5D9` — l'accent à 12 % posé sur le crème, ce sont deux teintes
+  identiques. Il n'y avait pas de bouton à l'écran, juste un glyphe orange.
+  Il reprend désormais la surface de la pilule (blanc `#FFFFFF`, même liseré,
+  même ombre) : relevé après correctif, disque `#FFFFFF` contre page `#F2EEE8`.
+  Effet de bord utile : l'état « ouvert » passe au pêche `#EBD5C5` et devient
+  franc, alors qu'il glissait avant de 12 % à 20 % d'un aplat déjà invisible.
+  **Le thème sombre n'est pas touché** — le disque brun y ressortait déjà.
+- [x] **Les deux thèmes vérifiés à l'écran**, barre recadrée et agrandie ×2 : la
+  pastille emoji pêche sur la pilule blanche se détache bien (ma crainte qu'elle
+  s'y noie était infondée), le badge cadenas n'est pas rogné par le bord, la
+  pastille ne touche pas l'angle arrondi. Zéro `RenderFlex … overflowed` dans le
+  tampon. ⚠ Le mode nuit du téléphone a été basculé en `no` pour le test puis
+  **remis sur `yes` / `ui_night_mode=2`**, son état d'origine.
+- [ ] **Gestes vocaux, encore et toujours** : la géométrie de la ligne a encore
+  changé (tailles et écarts). Le push-to-talk n'a toujours pas été testé au
+  doigt depuis le passage au multi-ligne.
+- [ ] **font_scale 1.1 avec un texte réel** : les mesures ci-dessus sont à
+  l'échelle 1.0 du banc. Vérifier qu'un vrai message long garde une largeur
+  confortable sur l'appareil.
 
 ---
 
