@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,26 +68,6 @@ void main() async {
   // Initialize encryption service for message encryption/decryption
   await EncryptionService.instance.initialize();
 
-  // Initialize Stripe for payments (skip on web as flutter_stripe is not web-compatible)
-  //
-  // Isolé dans un try/catch : StripeService.initialize() relance ses erreurs, et
-  // cet await n'était pas gardé. Un échec du SDK natif (constaté sur appareil :
-  // « PlatformException(flutter_stripe initialization failed) ») interrompait
-  // donc TOUT le reste de main() — App Check, les handlers Crashlytics, Google
-  // Maps — pour une fonctionnalité optionnelle. Le paiement ne dépend pas de
-  // cette initialisation précoce : processPayment() réinitialise le SDK à la
-  // demande via validateConfiguration().
-  if (!kIsWeb) {
-    try {
-      await StripeService.instance.initialize();
-    } catch (e) {
-      debugPrint('main: initialisation Stripe échouée, paiements différés: $e');
-    }
-  }
-
-  // Initialize Google Maps renderer FIRST (fixes visual glitches)
-  await GoogleMapsService.instance.initialize();
-
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
@@ -95,9 +76,6 @@ void main() async {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
-
-  // Initialize Performance Monitoring
-  await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
 
   // Activate Firebase App Check
   // Android: Debug mode uses DebugProvider, Release uses PlayIntegrity
@@ -115,7 +93,71 @@ void main() async {
     appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
   );
 
-  // In debug mode on mobile platforms, get and print the debug token for easy registration
+  // Set up background message handler (skip on web)
+  //
+  // Reste ici : c'est un enregistrement synchrone, et il doit être en place
+  // avant qu'un message puisse arriver.
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  }
+
+  // Initialize Hive for local storage
+  await Hive.initFlutter();
+
+  // Initialize cache service for offline mode
+  //
+  // Reste bloquant : `FeedNotifier` lit le cache avant même d'interroger le
+  // réseau (repli hors ligne), donc la boîte doit être ouverte.
+  await CacheService.instance.initialize();
+
+  runApp(const ProviderScope(child: NigerDiasporaApp()));
+
+  // Tout ce qui suit n'est nécessaire à aucun premier rendu : le faire après
+  // `runApp` rend la main au routeur ~3 s plus tôt sur un démarrage à froid.
+  // Mesuré le 2026-08-04 sur SM A515F (build debug) : ~11 s entre l'intent et
+  // la création de GoRouter, dont ~7,5 s AVANT la première ligne de `main()`
+  // (process Android, SDK Firebase natifs, enregistrement des plugins).
+  // Seule la dernière tranche était de notre ressort.
+  unawaited(_initServicesSecondaires());
+}
+
+/// Services dont aucun écran de démarrage ne dépend.
+///
+/// Chacun est isolé : l'échec de l'un ne doit pas empêcher les autres. Le
+/// précédent enchaînement d'`await` dans `main()` avait déjà causé ça une fois
+/// — un échec du SDK Stripe natif interrompait tout le reste, App Check et
+/// Crashlytics compris.
+Future<void> _initServicesSecondaires() async {
+  Future<void> tenter(String nom, Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (e) {
+      debugPrint('main: initialisation « $nom » échouée: $e');
+    }
+  }
+
+  // En premier du lot : le rendu de la carte a besoin de ce réglage avant
+  // qu'un écran carte s'affiche, ce qui demande au moins une navigation.
+  await tenter('Google Maps', GoogleMapsService.instance.initialize);
+
+  if (!kIsWeb) {
+    // `processPayment()` réinitialise le SDK à la demande via
+    // `validateConfiguration()` : le paiement ne dépend pas de cet appel.
+    await tenter('Stripe', StripeService.instance.initialize);
+    await tenter('notifications', NotificationService().initialize);
+    await tenter(
+      'localisation en arrière-plan',
+      BackgroundLocationService().initialize,
+    );
+  }
+
+  await tenter('statut en ligne', OnlineStatusService.instance.initialize);
+  await tenter(
+    'Performance Monitoring',
+    () => FirebasePerformance.instance.setPerformanceCollectionEnabled(true),
+  );
+
+  // Jeton de debug App Check : appel réseau, et purement informatif.
   if (!kIsWeb && kDebugMode) {
     try {
       final token = await FirebaseAppCheck.instance.getToken();
@@ -138,25 +180,4 @@ void main() async {
     }
   }
 
-  // Set up background message handler (skip on web)
-  if (!kIsWeb) {
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-    // Initialize notification service
-    await NotificationService().initialize();
-
-    // Initialize Background Location Service
-    await BackgroundLocationService().initialize();
-  }
-
-  // Initialize Online Status Service
-  await OnlineStatusService.instance.initialize();
-
-  // Initialize Hive for local storage
-  await Hive.initFlutter();
-
-  // Initialize cache service for offline mode
-  await CacheService.instance.initialize();
-
-  runApp(const ProviderScope(child: NigerDiasporaApp()));
 }
