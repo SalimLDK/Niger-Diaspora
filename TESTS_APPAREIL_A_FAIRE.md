@@ -4655,6 +4655,21 @@ sans pouvoir vérifier son appartenance ouvrirait n'importe quelle conversation
 de groupe hérité à n'importe qui. À traiter avec la migration des groupes
 hérités.
 
+Le garde `_isUuid` n'existe qu'à cet endroit, vérifié sur tout `lib/` — pas
+d'autre occurrence du même piège à corriger.
+
+**Verrou base proposé, non appliqué** :
+`supabase/migrations/20260805233000_conversations_une_par_groupe.sql` (index
+unique partiel sur `group_id` pour `type='group'`). Le correctif applicatif
+supprime la cause, mais trois chemins peuvent encore dupliquer : les **APK déjà
+installés** tournent avec l'ancien code, deux appareils du même compte peuvent
+ouvrir la discussion simultanément, et un futur chemin d'insertion pourrait
+oublier la recherche. ⚠ Changement de comportement à peser : une insertion en
+trop échouera au lieu de réussir en silence — donc « Erreur à l'ouverture de la
+discussion » plutôt qu'un historique fragmenté. Cas limite documenté dans la
+migration : un membre d'un groupe hérité absent de `participant_ids` passera
+d'un doublon vide à une erreur franche.
+
 - [ ] Ouvrir deux fois de suite la discussion d'un groupe **hérité** (id de 20
   caractères, ex. `yflqsRLMMhTPpiW0NFHx`) et compter les lignes
   `conversations` pour ce `group_id` : il ne doit s'en créer aucune de plus.
