@@ -2895,6 +2895,24 @@ compte et enregistre son profil, elle peut la réécrire depuis son état local
 — revérifier la colonne après coup (même piège que l'interrupteur push, voir
 `CLAUDE.md`, « Réglages : une seule source »).
 
+✅ **Préconditions serveur du temps réel vérifiées au distant** (2026-08-05,
+`supabase db query --linked` — pas le fichier de migration, la base réelle) :
+
+| Contrôle | Résultat |
+|---|---|
+| `users` dans la publication `supabase_realtime` | ✅ présente |
+| `pg_class.relreplident` sur `users` | ✅ `f` (FULL) |
+| Politique RLS SELECT | `((NOT is_private) OR is_admin() OR (firebase_uid() = id))` |
+
+La politique laisse lire **toute ligne non privée**, donc le canal livrera
+bien les `UPDATE` des *autres* membres — et pas seulement les siens, ce qui
+aurait tué la fonctionnalité en silence. Confirmé de fait : la carte a
+affiché « Salim L. », donc sa ligne passe cette politique, et le realtime
+applique exactement la même.
+
+Il ne reste donc à prouver que le **bout client** : que le pin bouge sans
+attendre le sondage.
+
 - [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
   pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
   `users_location_updates` (`profile_supabase_datasource.dart`).
