@@ -932,6 +932,15 @@ class _MessageInputState extends State<MessageInput>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              // « + » **hors** de la pilule, en miroir du bouton d'envoi à
+              // droite. À l'intérieur, il réservait sa largeur sur toute la
+              // hauteur du champ : à 6 lignes, ça laissait une colonne vide de
+              // ~68 px le long du texte, alors qu'il n'occupe que la ligne du
+              // bas. Dehors, le texte part du bord de la pilule.
+              if (!_isRecording) ...[
+                _buildPlusButton(context),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -960,22 +969,10 @@ class _MessageInputState extends State<MessageInput>
                     horizontal: 8,
                     vertical: 6,
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // « + » (repli : appui long = panneau complet).
-                      if (!_isRecording) ...[
-                        _buildPlusButton(context),
-                        const SizedBox(width: 8),
-                      ],
-                      Expanded(
-                        child:
-                            _isRecording
-                                ? _buildRecordingBanner(context)
-                                : _buildPillField(context),
-                      ),
-                    ],
-                  ),
+                  child:
+                      _isRecording
+                          ? _buildRecordingBanner(context)
+                          : _buildPillField(context),
                 ),
               ),
               // Bouton vocal / envoi HORS de la barre flottante.
@@ -1058,8 +1055,9 @@ class _MessageInputState extends State<MessageInput>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        width: 42,
-        height: 42,
+        // 44 comme le bouton d'envoi : les deux cercles flanquent la pilule.
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: accent.withValues(alpha: active ? 0.20 : 0.12),
           shape: BoxShape.circle,
@@ -1137,8 +1135,11 @@ class _MessageInputState extends State<MessageInput>
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     filled: false,
+                    // Le « + » est sorti de la pilule : sans lui, un retrait de
+                    // 18 collait le texte trop loin du bord. 10 + les 8 du
+                    // Container = 18 réels, symétriques de l'emoji à droite.
                     contentPadding: const EdgeInsets.only(
-                      left: 18,
+                      left: 10,
                       right: 6,
                       top: 12,
                       bottom: 12,
