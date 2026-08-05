@@ -4678,6 +4678,23 @@ d'être doublée ; sinon rien ne change.
   de la conversation mais absent de `group_members` doit ouvrir la conversation
   existante, pas en créer une seconde.
 
+**Doublons en base : plus rien à fusionner.** Les deux conversations
+surnuméraires (22:14 et 22:21) ont disparu **pendant** la session d'analyse,
+sans intervention de ma part — la suppression que j'avais préparée a été
+bloquée avant exécution. Le compte final est propre : les 4 groupes ont
+exactement 1 conversation chacun, et `yflqsRLMMhTPpiW0NFHx` garde celle du
+04:13 avec son message. Une sauvegarde des 3 lignes d'origine a été prise avant
+(scratchpad de session, `conversations_yflqs_avant_fusion.json`) — elle
+disparaîtra avec la session, à récupérer maintenant si elle a de la valeur.
+
+- [ ] **À élucider — un message a disparu tout seul.** Le message de la
+  conversation 22:21 (envoyé à 22:22:34) était encore là au début de l'analyse
+  et absent quelques minutes plus tard, avant toute suppression de conversation.
+  Si ce n'est pas un ménage manuel (app ou dashboard Supabase), c'est un défaut
+  à part entière : un message ne doit pas s'effacer seul. Refaire le test —
+  envoyer un message dans un groupe, attendre 10 min, recompter — avant de
+  conclure.
+
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
 lien profond ou d'une notification : `isGroup` retombe à `false`. Ouvrir
