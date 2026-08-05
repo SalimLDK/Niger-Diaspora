@@ -79,6 +79,15 @@ notifications d'un groupe une par une.
   (hors commentaire) et les `Colors.purple` / `teal` / `indigo` / `amber` ont
   laissé place à quatre teintes du thème (`notification_style.dart`, partagé
   avec l'écran de détail qui peignait sa propre copie).
+- [x] **Valeurs exactes de la fiche appliquées et vues à l'écran** : puce
+  active en encre `#1C1815` (et non en accent), badge compteur en rouge
+  `#C23E2D`, bouton ⚙ **rond** de 42 qui va droit aux réglages, carte
+  **uniforme** (c'est le pictogramme 38 qui porte la teinte de famille, pas la
+  carte), pastille de non-lu 9 px, horodatage en `#A79C8E`.
+- [x] **« Tout supprimer » a déménagé au bas des réglages**, section
+  « HISTORIQUE » en rouge sur carte `isDanger` — la fiche ne laisse qu'un
+  contrôle dans l'en-tête de la liste. Vérifié affiché ; **le dialogue de
+  confirmation n'a pas été déclenché** (destructif sur les vraies données).
 - [ ] **Registre « lue » = ligne nue non vérifié** : le compte de test n'a
   qu'une notification et elle est non lue. Balayer une notification vers la
   droite pour la marquer lue, et vérifier qu'elle passe bien de la carte à la

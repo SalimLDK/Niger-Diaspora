@@ -159,9 +159,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       // coupait au milieu du mot (« Notific / ations ») sur SM A515F à
       // `font_scale` 1.1. La maquette 12c répond par un libellé court, pas en
       // cachant l'action — c'est le geste courant de l'écran, il reste visible.
-      // Le menu ⋯ garde les deux actions rares (réglages, tout supprimer) : la
-      // maquette n'en montre pas, mais sans lui « Tout supprimer » redevient
-      // injoignable.
+      // Le second contrôle est le **bouton rond ⚙ de la fiche**, qui va droit
+      // aux réglages (20d) — pas un menu ⋯. « Tout supprimer » n'a donc plus
+      // sa place ici : il a déménagé au bas de l'écran de réglages, seul
+      // endroit de la fiche où une action destructive sur les notifications
+      // ait un sens. Il était injoignable avant ce lot ; il ne l'est pas
+      // redevenu.
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -199,9 +202,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       ),
                     ),
                   ),
-                _HeaderOverflowMenu(
-                  onSettings: () => context.push('/notifications/settings'),
-                  onDeleteAll: () => _confirmDeleteAll(context, ref),
+                _SettingsAction(
+                  onPressed: () => context.push('/notifications/settings'),
                 ),
               ],
             ),
@@ -506,10 +508,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       onTap: () => setState(() => _currentFilter = filter),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // Puce active en **encre** (#1C1815), pas en accent (fiche 12c) :
+        // l'accent est déjà celui des pastilles et du compteur, l'empiler
+        // ferait trois terracotta différents sur la même bande.
         decoration: BoxDecoration(
-          color: active
-              ? context.adaptivePrimaryColor
-              : context.surfaceVariantColor,
+          color: active ? context.textPrimaryColor : context.surfaceVariantColor,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
@@ -520,10 +523,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                // L'accent s'éclaircit en thème sombre : le texte posé
-                // dessus doit s'assombrir, pas rester blanc.
                 color: active
-                    ? context.onPrimaryColor
+                    ? context.backgroundColor
                     : context.textSecondaryColor,
               ),
             ),
@@ -533,20 +534,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 constraints: const BoxConstraints(minWidth: 18),
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 alignment: Alignment.center,
+                // Compteur en rouge d'alerte (#C23E2D) dans les deux états —
+                // c'est un décompte de retard, pas une décoration de puce.
                 decoration: BoxDecoration(
-                  color: active
-                      ? context.onPrimaryColor
-                      : context.adaptivePrimaryColor,
+                  color: context.errorColor,
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Text(
                   badge > 99 ? '99+' : '$badge',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: active
-                        ? context.adaptivePrimaryColor
-                        : context.onPrimaryColor,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -622,106 +621,41 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
   }
 
-  void _confirmDeleteAll(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(l10n.deleteAllNotifications),
-            content: Text(l10n.deleteAllNotificationsConfirm),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.cancel),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  ref
-                      .read(notificationsNotifierProvider.notifier)
-                      .deleteAllNotifications();
-                  Navigator.pop(ctx);
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: Text(l10n.delete),
-              ),
-            ],
-          ),
-    );
-  }
 }
 
-/// Menu ⋯ de l'en-tête : réglages et tout supprimer — les deux actions rares.
+/// Bouton ⚙ de l'en-tête (fiche 12c) : rond de 42, il va droit aux réglages
+/// de notifications (20d).
 ///
-/// « Tout marquer comme lu » n'y est pas : c'est le geste courant, il a sa
-/// pastille « Tout lire » à côté (§12c).
-///
-/// « Tout supprimer » existait déjà — dans un `buildOverflowMenu` que personne
-/// n'appelait : l'action était écrite, testable à la lecture, et injoignable à
-/// l'écran. Elle est montée ici, dans la même pastille 44 que
-/// [DesignSquareAction], plutôt qu'à portée du pouce : c'est destructif.
-class _HeaderOverflowMenu extends StatelessWidget {
-  final VoidCallback onSettings;
-  final VoidCallback onDeleteAll;
+/// Il remplace le menu ⋯ que j'avais posé pour loger « Tout supprimer » : la
+/// fiche ne prévoit qu'un contrôle ici, et une action destructive n'a pas à
+/// partager une pastille avec un raccourci de navigation. « Tout supprimer »
+/// vit désormais au bas de l'écran de réglages.
+class _SettingsAction extends StatelessWidget {
+  final VoidCallback onPressed;
 
-  const _HeaderOverflowMenu({
-    required this.onSettings,
-    required this.onDeleteAll,
-  });
+  const _SettingsAction({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: context.borderColor),
-      ),
-      child: PopupMenuButton<String>(
-        icon: Icon(
-          Icons.more_horiz,
-          size: 20,
-          color: context.textPrimaryColor,
+    return Material(
+      color: context.surfaceColor,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: Tooltip(
+          message: l10n.settings,
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: context.borderColor),
+            ),
+            child: Icon(Icons.tune, size: 19, color: context.textPrimaryColor),
+          ),
         ),
-        padding: EdgeInsets.zero,
-        tooltip: l10n.settings,
-        onSelected: (value) {
-          if (value == 'settings') onSettings();
-          if (value == 'delete_all') onDeleteAll();
-        },
-        itemBuilder:
-            (ctx) => [
-              PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    const Icon(Icons.tune, size: 20),
-                    const SizedBox(width: 12),
-                    Text(l10n.settings),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete_all',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.delete_sweep,
-                      size: 20,
-                      color: context.errorColor,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      l10n.deleteAll,
-                      style: TextStyle(color: context.errorColor),
-                    ),
-                  ],
-                ),
-              ),
-            ],
       ),
     );
   }
@@ -815,20 +749,26 @@ class _UnreadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tint = notificationTint(context, notification.type);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(kDesignRadius),
+        borderRadius: BorderRadius.circular(kNotificationCardRadius),
         child: Container(
           padding: const EdgeInsets.all(14),
+          // La carte est **uniforme** (§12c, fiche : fond #FBF1E9, bordure
+          // #F0DCCB, rayon 16) : c'est le pictogramme qui porte la teinte de
+          // famille, pas la carte. Teinter les deux donnait six fonds
+          // différents dans une même section.
           decoration: BoxDecoration(
-            color: tint.withValues(alpha: context.isDarkMode ? 0.10 : 0.06),
-            borderRadius: BorderRadius.circular(kDesignRadius),
-            border: Border.all(color: tint.withValues(alpha: 0.18)),
+            color: context.adaptivePrimaryColor.withValues(
+              alpha: context.isDarkMode ? 0.09 : 0.05,
+            ),
+            borderRadius: BorderRadius.circular(kNotificationCardRadius),
+            border: Border.all(
+              color: context.adaptivePrimaryColor.withValues(alpha: 0.16),
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -859,11 +799,11 @@ class _UnreadCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Le point de non-lu de la maquette.
+                        // Le point de non-lu de la maquette (9 px).
                         Container(
                           margin: const EdgeInsets.only(top: 6),
-                          width: 8,
-                          height: 8,
+                          width: 9,
+                          height: 9,
                           decoration: BoxDecoration(
                             color: context.adaptivePrimaryColor,
                             shape: BoxShape.circle,
@@ -955,8 +895,10 @@ class _ReadRow extends StatelessWidget {
   }
 }
 
-/// Pastille de famille. Pleine et carrée pour une non-lue (44, rayon 12),
-/// ronde et éteinte pour une lue (40) — c'est la marque des deux registres.
+/// Pastille de famille, 38 px dans les deux registres (fiche 12c) : pleine et
+/// teintée par type quand la notification n'est pas lue, fond neutre #F5F0E8
+/// (`surfaceVariant`) quand elle l'est. Seule la teinte distingue les deux —
+/// la taille reste constante pour que la colonne de texte ne bouge pas.
 class _TypeBadge extends StatelessWidget {
   final NotificationType type;
   final bool filled;
@@ -965,33 +907,19 @@ class _TypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tint = notificationTint(context, type);
-    if (filled) {
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: tint,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          notificationIcon(type),
-          size: 21,
-          color: context.onPrimaryColor,
-        ),
-      );
-    }
     return Container(
-      width: 40,
-      height: 40,
+      width: 38,
+      height: 38,
       decoration: BoxDecoration(
-        color: context.surfaceVariantColor,
-        shape: BoxShape.circle,
+        color: filled
+            ? notificationTint(context, type)
+            : context.surfaceVariantColor,
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Icon(
         notificationIcon(type),
         size: 18,
-        color: context.textTertiaryColor,
+        color: filled ? context.onPrimaryColor : context.textTertiaryColor,
       ),
     );
   }
@@ -1013,7 +941,9 @@ class _Stamp extends StatelessWidget {
         fontSize: 10,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.9,
-        color: context.textTertiaryColor,
+        // #A79C8E — un cran plus clair que le texte tertiaire : l'horodatage
+        // se lit en dernier.
+        color: context.textDisabledColor,
       ),
     );
   }
@@ -1412,7 +1342,6 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
     final groupTitle = widget.group.getGroupTitle(l10n);
     final groupSubtitle = widget.group.getGroupSubtitle(l10n);
     final latestNotification = widget.group.notifications.first;
-    final tint = notificationTint(context, widget.group.type);
     final hasUnread = unreadCount > 0;
 
     // Même partition que pour une notification isolée (§12c) : carte tramée
@@ -1423,9 +1352,13 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
       padding: hasUnread ? const EdgeInsets.all(14) : EdgeInsets.zero,
       decoration: hasUnread
           ? BoxDecoration(
-              color: tint.withValues(alpha: context.isDarkMode ? 0.10 : 0.06),
-              borderRadius: BorderRadius.circular(kDesignRadius),
-              border: Border.all(color: tint.withValues(alpha: 0.18)),
+              color: context.adaptivePrimaryColor.withValues(
+                alpha: context.isDarkMode ? 0.09 : 0.05,
+              ),
+              borderRadius: BorderRadius.circular(kNotificationCardRadius),
+              border: Border.all(
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.16),
+              ),
             )
           : null,
       child: Column(

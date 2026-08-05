@@ -11,6 +11,10 @@ import '../../domain/entities/notification_entity.dart';
 /// famille de la meme facon : c'est en le laissant dupliquer que l'un
 /// s'est retrouve en vert WhatsApp et l'autre en `Colors.indigo`.
 
+/// Rayon des cartes de notification — 16 dans la fiche 12c, un cran au-dessus
+/// du `kDesignRadius` (14) des cartes de réglages.
+const double kNotificationCardRadius = 16;
+
 /// Teinte d'une famille de notifications (§12c).
 ///
 /// La maquette tient sur **quatre teintes** prises au thème, là où l'écran en

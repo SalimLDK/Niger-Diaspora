@@ -6,6 +6,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
+import '../providers/notification_provider.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 
 /// Réglages de notifications (fiche 20d).
@@ -184,6 +185,25 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ],
           ),
 
+          // « Tout supprimer » vient de l'en-tête de la liste (§12c), qui n'a
+          // plus qu'un bouton ⚙. C'est sa place : une action destructive sur
+          // l'historique, rangée avec les réglages, pas à portée du pouce sur
+          // la liste elle-même.
+          DesignSectionLabel('Historique', color: context.errorColor),
+          DesignSettingsCard(
+            isDanger: true,
+            children: [
+              DesignSettingsTile(
+                icon: const Icon(Icons.delete_sweep_outlined),
+                iconColor: context.errorColor,
+                titleColor: context.errorColor,
+                title: l10n.deleteAll,
+                subtitle: 'Efface toutes vos notifications',
+                onTap: () => _confirmDeleteAll(context, ref),
+              ),
+            ],
+          ),
+
           const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,6 +234,36 @@ class NotificationSettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Confirmation avant d'effacer tout l'historique de notifications.
+Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
+  final l10n = AppLocalizations.of(context)!;
+  final confirme = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(l10n.deleteAllNotifications),
+      content: Text(l10n.deleteAllNotificationsConfirm),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(
+            l10n.delete,
+            style: TextStyle(color: context.errorColor),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  if (confirme != true) return;
+  await ref
+      .read(notificationsNotifierProvider.notifier)
+      .deleteAllNotifications();
 }
 
 /// Ligne « De 22:00 à 07:00 » : ouvre le sélecteur du début puis celui de la
