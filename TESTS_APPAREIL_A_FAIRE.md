@@ -165,11 +165,22 @@ notifications d'un groupe une par une.
   message qu'en cas de succès — un refus de permission se lisait comme un tap
   qui n'avait pas pris. C'est ce qui a caché le défaut. Il affiche désormais
   une erreur rouge.
-- [ ] ⚠ **Règle `users` corrigée mais NON DÉPLOYÉE** — deuxième modification
-  de la sécurité en production, à arbitrer. Après déploiement : rejouer
-  « Accepter » (demande `BC5isN2Ecet3DIrYzz0N`), vérifier `status: accepted`
-  et les `friendIds` des deux comptes, puis tester « Refuser » sur une
-  nouvelle demande.
+- [x] **Règle `users` déployée le 2026-08-05**, production relue et identique
+  au fichier versionné.
+- [x] **« Accepter » fonctionne** — « Demande acceptée », et en base :
+  `status: accepted`, `friendIds` renseignés **des deux côtés**,
+  sous-collections `friends` créées. Surtout, **le document `users` du compte
+  de test a été créé** — il n'avait jamais pu l'être. C'est la preuve directe
+  que le chemin de création était bien ce qui bloquait.
+- [x] **« Refuser » fonctionne** — `status: declined`, notification marquée
+  lue, carte passée en registre « lue ».
+- [ ] **Relevé au passage — le pilotage `adb` dérive sur cet écran.** Quand
+  une notification change de registre, la carte perd sa hauteur et **tout ce
+  qui est en dessous remonte** : un tap calculé sur une capture prise 3 s plus
+  tôt tombe à côté (deux fois sur trois ici, dont une navigation involontaire
+  dans une conversation, et une demande acceptée au lieu d'être refusée).
+  Recapturer **juste avant chaque tap**, ou tester au doigt. Ce n'est pas un
+  défaut de l'app — c'est une limite de la méthode.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
   aucune non-lue (le compte de test en avait une), et le dialogue de
   confirmation de « Tout supprimer » (non déclenché — action destructive sur
