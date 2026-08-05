@@ -275,11 +275,22 @@ des personnes ayant une entrée miroir ; on les supprime avant d'effacer la
 liste. Pas de requête de groupe de collections, donc **aucun index
 supplémentaire** à créer.
 
-- [ ] ⚠ **NON DÉPLOYÉ.** `node --check` passe, mais le déploiement des
-  Cloud Functions a son propre blocage connu (secrets de prod à corriger).
-  À arbitrer séparément.
-- [ ] À vérifier après déploiement, avec deux comptes jetables : A et B amis,
-  supprimer A, contrôler que B ne voit plus A dans ses amis.
+- [x] **Déployé le 2026-08-05** — `cleanupUserData(us-central1)`, mise à jour
+  réussie. Déployé **seul** : `firebase deploy --only functions` s'arrête de
+  lui-même parce que `sendMessagePush(europe-west1)` et
+  `sendChatNotification(us-central1)` existent en production **sans source
+  dans le dépôt**, et le CLI refuse de les supprimer en non-interactif. Les
+  deux sont toujours en ligne après le déploiement ciblé.
+- [ ] À vérifier avec deux comptes jetables : A et B amis, supprimer A,
+  contrôler que B ne voit plus A dans ses amis. Non fait — ça demande de
+  supprimer un vrai compte Firebase Auth.
+- [ ] 🔴 **Relevé au passage : deux fonctions tournent en production sans
+  source dans le dépôt** — `sendMessagePush(europe-west1)` et
+  `sendChatNotification(us-central1)`. Personne ne peut donc les relire, les
+  corriger ni les redéployer. `sendMessagePush` est **encore appelée par les
+  APK déjà installés** : ne jamais accepter sa suppression, ni utiliser
+  `--force`. Retrouver leurs sources (piste : les stashes, comme pour
+  `partners/` en juillet) ou les réécrire.
 
 ### `FAILED_PRECONDITION` — index manquant sur les événements
 
@@ -2994,18 +3005,28 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 
 ---
 
-## Composeur — l'emoji sort du champ (fiche 26b, 2026-08-05)
+## Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)
+
+**Décision arrêtée : l'emoji reste DANS la pilule.** L'argument de largeur est
+retenu — en pastille autonome il coûtait 52 dp et faisait tomber la pilule à
+55 % de la largeur de l'écran, contre ~73 % à l'intérieur. Layout retenu :
+`[ + ]  [ champ … 🙂 ]  [ micro / envoi ]`. Le test et l'en-tête de
+`message_input_composer_test.dart` disent maintenant la même chose que le code.
+
+Ce qui suit décrit la tentative « pastille autonome » (fiche 26b), conservée
+pour mémoire :
 
 Le smiley était un `suffixIcon` dans la pilule ; la fiche 26b le pose en
-pastille ronde à part, fond `#F7E9DE`, glyphe `#B85E24`. Le composeur compte
+pastille ronde à part, fond `#F7E9DE`, glyphe `#B85E24`. Le composeur comptait
 désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
 
 - [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Une commande de plus
   dans la ligne : revérifier appui long → enregistrement, glisser à gauche →
   annulation, glisser vers le haut → verrouillage. La pastille emoji
   **disparaît** pendant l'enregistrement, vérifier que ça ne décale rien.
-- [ ] **Largeur à font_scale 1.1** : quatre commandes sur une ligne, le champ
-  doit garder assez de place pour un texte lisible sur le A51.
+- [x] **Largeur du champ** (2026-08-05) : c'est ce point qui a fait revenir
+  l'emoji dans la pilule. Verrouillé par un test — la pilule garde plus des
+  deux tiers de la largeur du composer. Reste à confirmer à font_scale 1.1.
 - [x] **Bascule emoji ↔ clavier** (vu 2026-08-05, SM A515F, nocturne) : la pastille passe bien au glyphe
   clavier a l ouverture du panneau. Detail :
   d'intensité de fond quand le panneau est ouvert ; en nocturne le fond pastel
