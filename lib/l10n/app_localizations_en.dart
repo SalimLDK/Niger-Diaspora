@@ -801,6 +801,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messageNotSent => 'Not sent';
 
   @override
+  String get receiptSent => 'Sent';
+
+  @override
+  String get receiptDelivered => 'Delivered';
+
+  @override
+  String get receiptRead => 'Read';
+
+  @override
+  String get receiptSending => 'Sending…';
+
+  @override
+  String seenByCount(int count) {
+    return 'Seen by $count';
+  }
+
+  @override
   String get noMessages => 'No messages';
 
   @override

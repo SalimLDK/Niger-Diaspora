@@ -1598,6 +1598,36 @@ abstract class AppLocalizations {
   /// **'Non envoyé'**
   String get messageNotSent;
 
+  /// No description provided for @receiptSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé'**
+  String get receiptSent;
+
+  /// No description provided for @receiptDelivered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu'**
+  String get receiptDelivered;
+
+  /// No description provided for @receiptRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lu'**
+  String get receiptRead;
+
+  /// No description provided for @receiptSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi…'**
+  String get receiptSending;
+
+  /// No description provided for @seenByCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu par {count}'**
+  String seenByCount(int count);
+
   /// No description provided for @noMessages.
   ///
   /// In fr, this message translates to:
@@ -8519,7 +8549,7 @@ abstract class AppLocalizations {
   /// No description provided for @groupCallJoin.
   ///
   /// In fr, this message translates to:
-  /// **'Join'**
+  /// **'Rejoindre'**
   String get groupCallJoin;
 
   /// No description provided for @groupCallLeave.

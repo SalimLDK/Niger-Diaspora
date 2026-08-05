@@ -324,6 +324,18 @@
   "loadingError": "Erreur de chargement",
   "retry": "Réessayer",
   "messageNotSent": "Non envoyé",
+  "receiptSent": "Envoyé",
+  "receiptDelivered": "Reçu",
+  "receiptRead": "Lu",
+  "receiptSending": "Envoi…",
+  "seenByCount": "Vu par {count}",
+  "@seenByCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noMessages": "Aucun message",
   "sendFirstMessage": "Envoyez le premier message !",
   "group": "Groupe",
@@ -2096,7 +2108,7 @@
   "callQualityPoor": "Mauvaise qualité",
   "groupCallTitle": "Group Call",
   "groupCallCreate": "Démarrer appel de groupe",
-  "groupCallJoin": "Join",
+  "groupCallJoin": "Rejoindre",
   "groupCallLeave": "Quitter l'appel",
   "groupCallEnd": "Terminer l'appel",
   "groupCallInvite": "Inviter des participants",

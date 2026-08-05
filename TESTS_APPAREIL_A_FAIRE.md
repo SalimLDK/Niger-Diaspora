@@ -2858,8 +2858,16 @@ voir :
 - [ ] **Chaque famille de bulle** : texte, note vocale (elle en a une pour la
   première fois), photo, photo floutée en mode ÉCO, vidéo, document, sticker,
   position, message transféré, message cité.
-- [ ] **Coche et pastille d'accusé de lecture** : envoyé / reçu / lu, et le
-  « Vu par N » des groupes — tous relus sur le fond de conversation.
+- [ ] **Accusé de réception en toutes lettres** : « 09:24 · Envoyé », puis
+  « · Reçu », puis « · Lu » (bleu) — et « · Vu par N » en groupe. Les trois
+  coches cerclées et la pastille bleue ont disparu. Vérifier surtout que la
+  ligne ne devient pas trop longue sur un message court à font_scale 1.1 : le
+  libellé est nettement plus large qu'une coche de 18 px.
+- [ ] **Le tap sur l'accusé** ouvre toujours le détail par destinataire.
+- [ ] **États transitoires** : « · Envoi… » pendant l'envoi, « · En attente »
+  en orange quand le message est dans la file hors-ligne, et
+  « · Non envoyé · Réessayer » en cas d'échec (seul état à garder une icône,
+  parce qu'il appelle une action).
 - [ ] **« Non envoyé · Réessayer »** : le libellé d'échec est passé sous la
   bulle avec le reste ; vérifier qu'il reste lisible et cliquable.
 - [ ] **Le cadenas de chiffrement par message a disparu.** Il n'était posé que

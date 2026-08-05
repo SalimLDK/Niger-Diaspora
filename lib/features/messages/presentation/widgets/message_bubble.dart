@@ -455,32 +455,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     return _buildMainContent(context, isDeleted);
   }
 
-  Widget _buildReadReceiptDot() {
-    if (!widget.isMe) return const SizedBox.shrink();
-    if (widget.isPendingRequest) return const SizedBox.shrink();
-    if (widget.message.status == MessageStatus.sending) {
-      return const SizedBox.shrink();
-    }
-    if (widget.message.deletedForEveryone) return const SizedBox.shrink();
-
-    final otherReadersCount =
-        widget.message.readBy
-            .where((id) => id != widget.message.senderId)
-            .length;
-    final isRead = otherReadersCount > 0;
-
-    if (!isRead) return const SizedBox.shrink();
-
-    return Container(
-      width: 8,
-      height: 8,
-      margin: const EdgeInsets.only(left: 4),
-      decoration: const BoxDecoration(
-        color: AppColors.readReceiptBlue,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
+  // La pastille bleue « lu » a disparu avec les coches : elle doublait
+  // l'information que le libellé « Lu » porte désormais en clair.
 
   Widget _buildMainContent(BuildContext context, bool isDeleted) {
     return AnimatedBuilder(
@@ -2363,17 +2339,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     final l10n = AppLocalizations.of(context)!;
     final metaColor = context.textTertiaryColor;
 
-    // « Vu par N » : sur MES messages de groupe lus par au moins un autre
-    // membre (info spécifique aux groupes, en plus de la double coche).
+    // Nombre de lecteurs autres que l'expéditeur : en groupe, il remplace le
+    // « Lu » générique par un « Vu par N » qui dit vraiment quelque chose.
     final groupReadCount =
         widget.message.readBy
             .where((id) => id != widget.message.senderId)
             .length;
-    final showGroupReadCount =
-        widget.isMe &&
-        widget.groupId != null &&
-        !widget.message.deletedForEveryone &&
-        groupReadCount > 0;
 
     return Padding(
       padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
@@ -2387,17 +2358,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (showGroupReadCount) ...[
-                  Text(
-                    'Vu par $groupReadCount',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.readReceiptBlue,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
                 if (isStarred) ...[
                   AppIcon(AppIcon.star, size: 12, color: metaColor),
                   const SizedBox(width: 2),
@@ -2423,11 +2383,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   _formatTime(widget.message.createdAt),
                   style: TextStyle(fontSize: 11, color: metaColor),
                 ),
-                if (widget.isMe && !widget.message.deletedForEveryone) ...[
-                  const SizedBox(width: 3),
-                  _buildStatusIcon(context),
-                  _buildReadReceiptDot(),
-                ],
+                // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
+                // lit, il ne se déchiffre plus. Une coche simple, une double
+                // et une double bleue demandaient d'avoir appris le code.
+                if (widget.isMe && !widget.message.deletedForEveryone)
+                  _buildReceiptLabel(context, groupReadCount),
               ],
             ),
           if (hasReactions)
@@ -2474,73 +2434,45 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   // unique. Le rappel de chiffrement vit dans l'en-tête, à côté du statut
   // (`_buildStatusWithLock` de conversation_screen), comme le veut la fiche 4a.
 
-  /// Coche (simple ou double) entourée d'un cercle — accusé de réception.
-  /// Gris pour envoyé/reçu, bleu pour lu. Rendu en gras (cercle épais + coche
-  /// large) pour être très visible.
-  Widget _circledReceipt(String icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(2.5),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: color, width: 2),
-      ),
-      child: AppIcon(icon, size: 13, color: color),
-    );
-  }
-
-  Widget _buildStatusIcon(BuildContext context) {
-    // La ligne de méta est hors de la bulle : plus de branche « sur fond
-    // vert », les couleurs sont celles du fond de conversation.
-    final color = context.textTertiaryColor;
-
-    // Gris franc (bien visible) pour les accusés « envoyé » / « reçu ».
-    final receiptGrey = context.textSecondaryColor;
-
-    late final Widget iconWidget;
+  /// Accusé de réception **en toutes lettres**, à la suite de l'heure :
+  /// « 09:24 · Envoyé » (fiche 26b).
+  ///
+  /// Il y avait trois coches à distinguer — simple, double, double bleue —
+  /// dans un cercle de 18 px. Il fallait avoir appris le code pour le lire.
+  ///
+  /// En groupe, « Vu par N » remplace « Lu » : il dit combien de personnes ont
+  /// lu, ce que « Lu » laissait deviner.
+  Widget _buildReceiptLabel(BuildContext context, int groupReadCount) {
+    final l10n = AppLocalizations.of(context)!;
+    final metaColor = context.textTertiaryColor;
 
     switch (widget.message.status) {
       case MessageStatus.sending:
-        // Message en attente dans la queue offline
+        // En attente dans la queue hors-ligne : c'est une information d'un
+        // autre ordre (rien n'est parti), elle garde sa teinte d'alerte.
         if (_isPendingOffline()) {
-          final l10n = AppLocalizations.of(context)!;
-          iconWidget = Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.schedule, size: 12, color: Colors.orange),
-              const SizedBox(width: 2),
-              Text(
-                l10n.pending,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.orange[700],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          );
-        } else {
-          // Message en cours d'envoi normal
-          iconWidget = SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 1.5,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
+          return _receiptText(
+            l10n.pending,
+            Colors.orange[700]!,
+            italic: true,
           );
         }
+        return _receiptText(l10n.receiptSending, metaColor);
 
       case MessageStatus.failed:
-        // Libellé explicite « Non envoyé · Réessayer » (rouge adouci) plutôt
-        // qu'un simple triangle — maquette 2d.
-        final l10n = AppLocalizations.of(context)!;
+        // Seul état encore porteur d'une icône : l'échec appelle une action,
+        // et le libellé est cliquable.
         const softRed = Color(0xFFF87171);
-        iconWidget = GestureDetector(
+        return GestureDetector(
           onTap: widget.onRetry,
           behavior: HitTestBehavior.opaque,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text(
+                ' · ',
+                style: TextStyle(fontSize: 11, color: metaColor),
+              ),
               const Icon(Icons.error_outline, size: 12, color: softRed),
               const SizedBox(width: 3),
               Text(
@@ -2556,49 +2488,55 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         );
 
       case MessageStatus.sent:
-        // For pending requests, only show "sent" (single check) - no read/delivered
+        // Demande de message en attente : l'expéditeur ne voit que « Envoyé »,
+        // jamais l'accusé de lecture de quelqu'un qui ne l'a pas accepté.
         if (widget.isPendingRequest) {
-          iconWidget = _circledReceipt(AppIcon.check, receiptGrey);
-          break;
+          return _receiptText(l10n.receiptSent, metaColor);
         }
 
-        // Check delivery and read status
-        // readBy contains sender, so > 1 means at least one other person read it
-        final otherReadersCount =
-            widget.message.readBy
-                .where((id) => id != widget.message.senderId)
-                .length;
-        final isRead = otherReadersCount > 0;
-
-        final otherDeliveredCount =
+        final isRead = groupReadCount > 0;
+        final isDelivered =
             widget.message.deliveredTo
                 .where((id) => id != widget.message.senderId)
-                .length;
-        final isDelivered = otherDeliveredCount > 0;
+                .isNotEmpty;
 
+        late final String libelle;
+        late final Color couleur;
         if (isRead) {
-          // Lu : double coche dans un cercle bleu
-          iconWidget = _circledReceipt(AppIcon.doneAll, AppColors.readReceiptBlue);
+          libelle =
+              widget.groupId != null
+                  ? l10n.seenByCount(groupReadCount)
+                  : l10n.receiptRead;
+          couleur = AppColors.readReceiptBlue;
         } else if (isDelivered) {
-          // Reçu : double coche dans un cercle gris
-          iconWidget = _circledReceipt(AppIcon.doneAll, receiptGrey);
+          libelle = l10n.receiptDelivered;
+          couleur = metaColor;
         } else {
-          // Envoyé : simple coche dans un cercle gris
-          iconWidget = _circledReceipt(AppIcon.check, receiptGrey);
+          libelle = l10n.receiptSent;
+          couleur = metaColor;
         }
-    }
 
-    // Tap to open message info for sent messages from the current user
-    if (widget.isMe &&
-        widget.message.status == MessageStatus.sent &&
-        widget.conversationId != null) {
-      return GestureDetector(
-        onTap: () => _showMessageInfoSheet(context),
-        child: iconWidget,
-      );
+        final label = _receiptText(libelle, couleur);
+        // Le détail par destinataire reste accessible d'un tap, comme avant.
+        if (widget.conversationId == null) return label;
+        return GestureDetector(
+          onTap: () => _showMessageInfoSheet(context),
+          child: label,
+        );
     }
+  }
 
-    return iconWidget;
+  /// « · Envoyé » — le séparateur appartient au libellé pour qu'il disparaisse
+  /// avec lui.
+  Widget _receiptText(String texte, Color couleur, {bool italic = false}) {
+    return Text(
+      ' · $texte',
+      style: TextStyle(
+        fontSize: 11,
+        color: couleur,
+        fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+      ),
+    );
   }
 
   Widget _buildSystemMessageContent(BuildContext context) {

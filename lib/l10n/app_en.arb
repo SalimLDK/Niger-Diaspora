@@ -324,6 +324,18 @@
   "loadingError": "Loading error",
   "retry": "Retry",
   "messageNotSent": "Not sent",
+  "receiptSent": "Sent",
+  "receiptDelivered": "Delivered",
+  "receiptRead": "Read",
+  "receiptSending": "Sending…",
+  "seenByCount": "Seen by {count}",
+  "@seenByCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noMessages": "No messages",
   "sendFirstMessage": "Send the first message!",
   "group": "Group",

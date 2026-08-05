@@ -27,6 +27,8 @@ MessageEntity _message({
   required MessageType type,
   String content = 'Salut ! Tu as reçu les papiers du consulat ?',
   List<String> reactions = const [],
+  List<String> readBy = const [],
+  List<String> deliveredTo = const [],
 }) {
   return MessageEntity(
     id: 'msg-1',
@@ -36,11 +38,18 @@ MessageEntity _message({
     type: type,
     createdAt: _sentAt,
     reactions: reactions,
+    readBy: readBy,
+    deliveredTo: deliveredTo,
     audioDuration: type == MessageType.voiceNote ? 34 : null,
   );
 }
 
-Future<void> _pump(WidgetTester tester, MessageEntity message) async {
+Future<void> _pump(
+  WidgetTester tester,
+  MessageEntity message, {
+  bool isMe = false,
+  String? groupId,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       child: MaterialApp(
@@ -56,7 +65,8 @@ Future<void> _pump(WidgetTester tester, MessageEntity message) async {
         home: Scaffold(
           body: MessageBubble(
             message: message,
-            isMe: false,
+            isMe: isMe,
+            groupId: groupId,
             currentUserId: 'salim',
             skipAnimation: true,
           ),
@@ -132,5 +142,62 @@ void main() {
     await _pump(tester, _message(type: MessageType.voiceNote, content: ''));
 
     expect(find.text(_hhmm), findsOneWidget);
+  });
+
+  // ── L'accusé de réception se lit (fiche 26b : « 09:24 · Envoyé ») ──────────
+  //
+  // Il y avait trois coches à distinguer — simple, double, double bleue —
+  // dans un cercle de 18 px. Si quelqu'un les remet, ces trois cas cassent.
+
+  testWidgets('« Envoyé » : ni remis, ni lu', (tester) async {
+    await _pump(tester, _message(type: MessageType.text), isMe: true);
+
+    expect(find.text(' · Envoyé'), findsOneWidget);
+    expect(find.text(' · Reçu'), findsNothing);
+    expect(find.text(' · Lu'), findsNothing);
+  });
+
+  testWidgets('« Reçu » dès qu\'un destinataire l\'a reçu', (tester) async {
+    await _pump(
+      tester,
+      _message(type: MessageType.text, deliveredTo: const ['salim']),
+      isMe: true,
+    );
+
+    expect(find.text(' · Reçu'), findsOneWidget);
+    expect(find.text(' · Envoyé'), findsNothing);
+  });
+
+  testWidgets('« Lu » en tête-à-tête, « Vu par N » en groupe', (tester) async {
+    await _pump(
+      tester,
+      _message(
+        type: MessageType.text,
+        readBy: const ['salim'],
+        deliveredTo: const ['salim'],
+      ),
+      isMe: true,
+    );
+    expect(find.text(' · Lu'), findsOneWidget);
+
+    await _pump(
+      tester,
+      _message(
+        type: MessageType.text,
+        readBy: const ['salim', 'fatou'],
+        deliveredTo: const ['salim', 'fatou'],
+      ),
+      isMe: true,
+      groupId: 'groupe-1',
+    );
+    expect(find.text(' · Vu par 2'), findsOneWidget);
+    expect(find.text(' · Lu'), findsNothing);
+  });
+
+  testWidgets('aucun accusé sur un message reçu', (tester) async {
+    await _pump(tester, _message(type: MessageType.text));
+
+    expect(find.textContaining('Envoyé'), findsNothing);
+    expect(find.textContaining('Lu'), findsNothing);
   });
 }

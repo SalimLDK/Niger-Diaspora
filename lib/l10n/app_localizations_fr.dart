@@ -813,6 +813,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get messageNotSent => 'Non envoyé';
 
   @override
+  String get receiptSent => 'Envoyé';
+
+  @override
+  String get receiptDelivered => 'Reçu';
+
+  @override
+  String get receiptRead => 'Lu';
+
+  @override
+  String get receiptSending => 'Envoi…';
+
+  @override
+  String seenByCount(int count) {
+    return 'Vu par $count';
+  }
+
+  @override
   String get noMessages => 'Aucun message';
 
   @override
@@ -4595,7 +4612,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get groupCallCreate => 'Démarrer appel de groupe';
 
   @override
-  String get groupCallJoin => 'Join';
+  String get groupCallJoin => 'Rejoindre';
 
   @override
   String get groupCallLeave => 'Quitter l\'appel';
