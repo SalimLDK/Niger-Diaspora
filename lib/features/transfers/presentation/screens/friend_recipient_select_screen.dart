@@ -11,6 +11,7 @@ import '../../../friends/domain/entities/friend_entity.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Screen to add a friend as a recipient for money transfers
 class FriendRecipientSelectScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,8 @@ class FriendRecipientSelectScreen extends ConsumerStatefulWidget {
 
 class _FriendRecipientSelectScreenState
     extends ConsumerState<FriendRecipientSelectScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -37,7 +40,7 @@ class _FriendRecipientSelectScreenState
     final friendsAsync = ref.watch(friendsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter un bénéficiaire')),
+      appBar: AppBar(title: Text(l10n.transferAddRecipient)),
       body: Column(
         children: [
           _buildSearchBar(),
@@ -53,7 +56,7 @@ class _FriendRecipientSelectScreenState
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transfers/recipient/add'),
         icon: const Icon(Icons.person_add),
-        label: const Text('Nouveau'),
+        label: Text(l10n.transferNewAction),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -69,7 +72,7 @@ class _FriendRecipientSelectScreenState
       ),
       child: StandardSearchBar(
         controller: _searchController,
-        hintText: 'Rechercher un ami...',
+        hintText: l10n.searchFriend,
         onChanged:
             (value) => setState(() => _searchQuery = value.toLowerCase()),
       ),
@@ -107,14 +110,14 @@ class _FriendRecipientSelectScreenState
             Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: AppSpacing.spacing16),
             Text(
-              _searchQuery.isEmpty ? 'Aucun ami' : 'Aucun résultat',
+              _searchQuery.isEmpty ? l10n.noFriends : l10n.noSearchResults,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.spacing8),
             Text(
               _searchQuery.isEmpty
                   ? 'Ajoutez des amis pour les sélectionner comme bénéficiaires'
-                  : 'Aucun ami ne correspond à votre recherche',
+                  : l10n.noFriendMatchesSearch,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
@@ -125,7 +128,7 @@ class _FriendRecipientSelectScreenState
               ElevatedButton.icon(
                 onPressed: () => context.push('/transfers/recipient/add'),
                 icon: const Icon(Icons.person_add),
-                label: const Text('Ajouter manuellement'),
+                label: Text(l10n.transferAddManually),
               ),
             ],
           ],

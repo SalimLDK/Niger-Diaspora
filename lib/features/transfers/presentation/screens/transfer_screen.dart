@@ -7,12 +7,14 @@ import '../../../../core/services/currency_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class TransferScreen extends ConsumerWidget {
   const TransferScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
 
@@ -32,9 +34,9 @@ class TransferScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/home'),
-          tooltip: 'Retour',
+          tooltip: l10n.transferBack,
         ),
-        title: const DesignTitle('Transferts', size: 22),
+        title: DesignTitle(l10n.transfers, size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline),
@@ -44,7 +46,7 @@ class TransferScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () => context.push('/transfers/history'),
-            tooltip: 'Historique',
+            tooltip: l10n.transferHistoryTooltip,
           ),
         ],
       ),
@@ -92,8 +94,8 @@ class TransferScreen extends ConsumerWidget {
                       foregroundColor: theme.colorScheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text(
-                      'Commencer',
+                    child: Text(
+                      l10n.start,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -116,7 +118,7 @@ class TransferScreen extends ConsumerWidget {
                 ),
                 TextButton(
                   onPressed: () => context.push('/transfers/history'),
-                  child: const Text('Voir tout'),
+                  child: Text(l10n.seeAll),
                 ),
               ],
             ),
@@ -139,7 +141,7 @@ class TransferScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Aucune transaction',
+                          l10n.transferNoTransactions,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.outline,
                           ),
@@ -191,7 +193,7 @@ class TransferScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transfers/send'),
         icon: const Icon(Icons.send),
-        label: const Text('Envoyer'),
+        label: Text(l10n.transferSend),
       ),
     );
   }

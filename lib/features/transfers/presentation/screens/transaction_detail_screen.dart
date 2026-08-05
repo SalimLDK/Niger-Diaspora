@@ -144,6 +144,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildAmountCard(BuildContext context, TransactionEntity transaction) {
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(
       locale: 'fr_FR',
       symbol: transaction.currency,
@@ -161,7 +162,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Montant',
+              l10n.transferAmount,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -181,7 +182,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Frais'),
+                Text(l10n.transferFeesLine),
                 Text(
                   currencyFormat.format(transaction.fee),
                   style: const TextStyle(fontWeight: FontWeight.w600),
@@ -213,7 +214,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Taux de change'),
+                Text(l10n.transferExchangeRateLine),
                 Text(
                   '1 ${transaction.currency} = ${transaction.exchangeRate.toStringAsFixed(2)} ${Currency.xof.code}',
                   style: const TextStyle(fontWeight: FontWeight.w500),
@@ -257,6 +258,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     BuildContext context,
     TransactionEntity transaction,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -289,7 +291,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        transaction.recipientName ?? 'Inconnu',
+                        transaction.recipientName ?? l10n.unknown,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -315,6 +317,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     BuildContext context,
     TransactionEntity transaction,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('dd MMMM yyyy a HH:mm', 'fr_FR');
 
     return Card(
@@ -340,14 +343,14 @@ class TransactionDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               context,
-              'Mode de paiement',
+              l10n.transferPaymentMethod,
               transaction.provider.label,
             ),
             if (transaction.paymentIntentId != null) ...[
               const SizedBox(height: 12),
               _buildDetailRow(
                 context,
-                'ID Stripe',
+                l10n.stripeId,
                 '${transaction.paymentIntentId!.substring(0, 12)}...',
                 canCopy: true,
                 fullValue: transaction.paymentIntentId,
@@ -365,7 +368,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               context,
-              'Date',
+              l10n.date,
               transaction.createdAt != null
                   ? dateFormat.format(transaction.createdAt!)
                   : 'Non disponible',
@@ -441,6 +444,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildNotesCard(BuildContext context, TransactionEntity transaction) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -448,7 +452,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notes',
+              l10n.notes,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -504,7 +508,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           child: OutlinedButton.icon(
             onPressed: () => _contactSupport(context, transaction, ref),
             icon: const Icon(Icons.support_agent),
-            label: const Text('Contacter le support'),
+            label: Text(l10n.transferContactSupport),
           ),
         ),
       ],
@@ -582,6 +586,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     BuildContext context,
     TransactionEntity transaction,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (transaction.status == TransactionStatus.failed) {
       return _failureInfo(context, transaction.failureReason);
     }
@@ -590,15 +595,15 @@ class TransactionDetailScreen extends ConsumerWidget {
         return _StatusInfo(
           icon: Icons.schedule,
           color: context.warningColor,
-          label: 'En attente',
-          description: 'Votre transfert est en attente de traitement.',
+          label: l10n.transferStatusPending,
+          description: l10n.transferStatusPendingDesc,
         );
       case TransactionStatus.processing:
         return _StatusInfo(
           icon: Icons.sync,
           color: context.infoColor,
-          label: 'En cours',
-          description: 'Votre transfert est en cours de traitement.',
+          label: l10n.transferStatusProcessing,
+          description: l10n.transferStatusProcessingDesc,
         );
       case TransactionStatus.completed:
         return _StatusInfo(
@@ -658,6 +663,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     TransactionEntity transaction,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     // Reset state
     ref.read(transferStateNotifierProvider.notifier).reset();
 
@@ -665,7 +671,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     final recipient = RecipientEntity(
       id: transaction.recipientId,
       userId: transaction.senderId,
-      fullName: transaction.recipientName ?? 'Inconnu',
+      fullName: transaction.recipientName ?? l10n.unknown,
       phone: transaction.recipientPhone ?? '',
       type:
           RecipientType
@@ -705,6 +711,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   void _contactSupport(BuildContext context, TransactionEntity transaction, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final supportService = ref.read(supportServiceProvider);
     showModalBottomSheet(
       context: context,
@@ -713,10 +720,10 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    'Contacter le support',
+                    l10n.transferContactSupport,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -740,7 +747,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
-                  title: const Text('Email'),
+                  title: Text(l10n.transferEmailOption),
                   subtitle: Text(supportService.supportEmail),
                   onTap: () {
                     Navigator.pop(context);
@@ -759,7 +766,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 if (supportService.hasSupportPhone)
                   ListTile(
                     leading: const Icon(Icons.phone_outlined),
-                    title: const Text('Téléphone'),
+                    title: Text(l10n.transferPhoneOption),
                     subtitle: Text(supportService.supportPhone),
                     onTap: () {
                       Navigator.pop(context);

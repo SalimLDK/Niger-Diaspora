@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AddRecipientScreen extends ConsumerStatefulWidget {
   final RecipientEntity? existingRecipient;
@@ -16,6 +17,8 @@ class AddRecipientScreen extends ConsumerStatefulWidget {
 }
 
 class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -102,7 +105,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Modifier le bénéficiaire' : 'Nouveau bénéficiaire',
+          _isEditing ? l10n.recipientEditTitle : l10n.recipientNewTitle,
         ),
         actions: [
           if (_isEditing)
@@ -139,7 +142,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Informations personnelles',
+          l10n.personalInfo,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -147,18 +150,18 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _fullNameController,
-          decoration: const InputDecoration(
-            labelText: 'Nom complet *',
-            hintText: 'Ex: Amadou Boubacar',
+          decoration: InputDecoration(
+            labelText: l10n.transferFullNameLabel,
+            hintText: l10n.transferFullNameHint,
             prefixIcon: Icon(Icons.person_outline),
           ),
           textCapitalization: TextCapitalization.words,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Le nom est requis';
+              return l10n.nameRequired;
             }
             if (value.trim().length < 3) {
-              return 'Le nom doit contenir au moins 3 caractères';
+              return l10n.nameMinLength;
             }
             return null;
           },
@@ -166,8 +169,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _phoneController,
-          decoration: const InputDecoration(
-            labelText: 'Numéro de téléphone *',
+          decoration: InputDecoration(
+            labelText: l10n.transferPhoneLabel,
             hintText: '+227 XX XX XX XX',
             prefixIcon: Icon(Icons.phone_outlined),
           ),
@@ -178,7 +181,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
             }
             final cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
             if (cleaned.length < 8) {
-              return 'Numéro de téléphone invalide';
+              return l10n.phoneVerifInvalidNumber;
             }
             return null;
           },
@@ -186,16 +189,16 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _emailController,
-          decoration: const InputDecoration(
-            labelText: 'Email (optionnel)',
-            hintText: 'exemple@email.com',
+          decoration: InputDecoration(
+            labelText: l10n.transferEmailOptional,
+            hintText: l10n.transferEmailHint,
             prefixIcon: Icon(Icons.email_outlined),
           ),
           keyboardType: TextInputType.emailAddress,
           validator: (value) {
             if (value != null && value.isNotEmpty) {
               if (!value.contains('@') || !value.contains('.')) {
-                return 'Email invalide';
+                return l10n.invalidEmail;
               }
             }
             return null;
@@ -210,7 +213,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mode de réception',
+          l10n.recipientTypeTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -296,7 +299,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Détails de paiement',
+          l10n.paymentDetailsTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -357,8 +360,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
                   ? null
                   : _bankNameController.text,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Nom de la banque *',
+          decoration: InputDecoration(
+            labelText: l10n.transferBankName,
             prefixIcon: Icon(Icons.account_balance_outlined),
           ),
           items:
@@ -380,7 +383,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           validator: (value) {
             if (_selectedType == RecipientType.bankAccount &&
                 (value == null || value.isEmpty)) {
-              return 'Sélectionnez une banque';
+              return l10n.recipientSelectBank;
             }
             return null;
           },
@@ -388,19 +391,19 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _bankAccountController,
-          decoration: const InputDecoration(
-            labelText: 'Numéro de compte *',
-            hintText: 'XXXX XXXX XXXX XXXX',
+          decoration: InputDecoration(
+            labelText: l10n.recipientAccountNumber,
+            hintText: l10n.transferAccountHint,
             prefixIcon: Icon(Icons.credit_card_outlined),
           ),
           keyboardType: TextInputType.number,
           validator: (value) {
             if (_selectedType == RecipientType.bankAccount) {
               if (value == null || value.trim().isEmpty) {
-                return 'Le numéro de compte est requis';
+                return l10n.transferAccountNumberRequired;
               }
               if (value.replaceAll(' ', '').length < 10) {
-                return 'Numéro de compte invalide';
+                return l10n.recipientAccountNumberInvalid;
               }
             }
             return null;
@@ -438,7 +441,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Localisation',
+          l10n.locationTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -447,8 +450,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         DropdownButtonFormField<String>(
           initialValue: _cityController.text.isEmpty ? null : _cityController.text,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Ville',
+          decoration: InputDecoration(
+            labelText: l10n.transferCityLabel,
             prefixIcon: Icon(Icons.location_city_outlined),
           ),
           items:
@@ -471,9 +474,9 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _addressController,
-          decoration: const InputDecoration(
-            labelText: 'Adresse (optionnel)',
-            hintText: 'Quartier, rue...',
+          decoration: InputDecoration(
+            labelText: l10n.transferAddressOptional,
+            hintText: l10n.transferAddressHint,
             prefixIcon: Icon(Icons.location_on_outlined),
           ),
           maxLines: 2,
@@ -484,8 +487,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
 
   Widget _buildFavoriteToggle() {
     return SwitchListTile(
-      title: const Text('Ajouter aux favoris'),
-      subtitle: const Text('Accès rapide lors des prochains transferts'),
+      title: Text(l10n.transferAddToFavorites),
+      subtitle: Text(l10n.transferFavoritesSubtitle),
       value: _isFavorite,
       onChanged: (value) {
         setState(() {
@@ -514,8 +517,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
               )
               : Text(
                 _isEditing
-                    ? 'Enregistrer les modifications'
-                    : 'Ajouter le bénéficiaire',
+                    ? l10n.saveChanges
+                    : l10n.addRecipientButton,
               ),
     );
   }
@@ -544,7 +547,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
     try {
       final user = ref.read(currentUserAsyncProvider).value;
       if (user == null) {
-        throw Exception('Utilisateur non connecté');
+        throw Exception(l10n.transferUserNotConnected);
       }
 
       // debugPrint('👤 User: ${user.id}');
@@ -602,8 +605,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           SnackBar(
             content: Text(
               _isEditing
-                  ? 'Bénéficiaire modifié avec succès'
-                  : 'Bénéficiaire ajouté avec succès',
+                  ? l10n.recipientModified
+                  : l10n.recipientAdded,
             ),
             backgroundColor: AppColors.success,
           ),
@@ -649,19 +652,19 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer le bénéficiaire ?'),
+            title: Text(l10n.transferDeleteRecipient),
             content: Text(
               'Voulez-vous vraiment supprimer ${widget.existingRecipient?.fullName} de vos bénéficiaires ?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Supprimer'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -671,7 +674,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       setState(() => _isLoading = true);
       try {
         final user = ref.read(currentUserAsyncProvider).value;
-        if (user == null) throw Exception('Utilisateur non connecté');
+        if (user == null) throw Exception(l10n.transferUserNotConnected);
 
         await ref
             .read(recipientNotifierProvider.notifier)
@@ -679,8 +682,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Bénéficiaire supprimé'),
+            SnackBar(
+              content: Text(l10n.transferRecipientDeleted),
               backgroundColor: AppColors.success,
             ),
           );

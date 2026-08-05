@@ -12,6 +12,7 @@ import '../../../../core/services/security_gate_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class SendMoneyScreen extends ConsumerStatefulWidget {
   const SendMoneyScreen({super.key});
@@ -21,6 +22,8 @@ class SendMoneyScreen extends ConsumerStatefulWidget {
 }
 
 class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
@@ -56,7 +59,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 ref.read(transferStateNotifierProvider.notifier).reset();
                 setState(() => _currentStep = 0);
               },
-              child: const Text('Réinitialiser'),
+              child: Text(l10n.transferReset),
             ),
         ],
       ),
@@ -106,7 +109,12 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   /// Indicateur d'étapes sur une ligne : rond 22 px + libellé, barre 2 px
   /// entre les étapes (accent = faite/en cours, bordure du thème = à venir).
   Widget _buildStepIndicator(ThemeData theme) {
-    const labels = ['Bénéficiaire', 'Montant', 'Confirmer'];
+    // Pas `const` : `l10n.…` est un getter résolu à l'exécution.
+    final labels = [
+      l10n.transferRecipient,
+      l10n.transferAmount,
+      l10n.transferConfirmButton,
+    ];
 
     Widget node(int idx) {
       final done = _currentStep > idx;
@@ -204,7 +212,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           if (_currentStep > 0) ...[
             OutlinedButton(
               onPressed: _isLoading ? null : _onStepCancel,
-              child: const Text('Retour'),
+              child: Text(l10n.transferBack),
             ),
             const SizedBox(width: 12),
           ],
@@ -269,7 +277,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         OutlinedButton.icon(
           onPressed: () => context.push('/transfers/recipient/add'),
           icon: const Icon(Icons.person_add),
-          label: const Text('Ajouter un bénéficiaire'),
+          label: Text(l10n.transferAddRecipient),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
           ),
@@ -278,7 +286,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         const Divider(),
         const SizedBox(height: 8),
         Text(
-          'Ou sélectionnez un bénéficiaire existant',
+          l10n.transferSelectExistingRecipient,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -301,7 +309,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Aucun bénéficiaire enregistré',
+                        l10n.transferNoRecipients,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.outline,
                         ),
@@ -337,7 +345,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                           Icon(Icons.star, size: 16, color: Colors.amber),
                           const SizedBox(width: 4),
                           Text(
-                            'Favoris',
+                            l10n.transferFavorites,
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: theme.colorScheme.primary,
@@ -366,7 +374,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Récemment utilisés',
+                            l10n.transferRecentlyUsed,
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -391,7 +399,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 8, bottom: 8),
                       child: Text(
-                        'Autres bénéficiaires',
+                        l10n.transferOtherRecipients,
                         style: theme.textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -500,9 +508,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                 ],
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Entrez un montant';
+                  if (value == null || value.isEmpty) return l10n.transferEnterAmount;
                   final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0) return 'Montant invalide';
+                  if (amount == null || amount <= 0) return l10n.transferInvalidAmount;
                   if (amount < 5) return 'Minimum 5 $selectedCurrency';
                   return null;
                 },
@@ -550,9 +558,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         // Notes (optional)
         TextFormField(
           controller: _notesController,
-          decoration: const InputDecoration(
-            labelText: 'Message (optionnel)',
-            hintText: 'Ex: Pour les courses',
+          decoration: InputDecoration(
+            labelText: l10n.transferMessageOptional,
+            hintText: l10n.transferMessageHint,
             border: OutlineInputBorder(),
           ),
           maxLines: 2,
@@ -659,14 +667,14 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Récapitulatif',
+              l10n.transferSummary,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             _buildFeeRow(
-              'Montant envoyé',
+              l10n.transferAmountSentLine,
               '${transferState.amount.toStringAsFixed(2)} $selectedCurrency',
             ),
             if (transferState.fee != null)
@@ -676,7 +684,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               ),
             const Divider(),
             _buildFeeRow(
-              'Total débité',
+              l10n.transferTotalDebited,
               '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
               isBold: true,
             ),
@@ -727,7 +735,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'Le bénéficiaire recevra',
+                          l10n.transferRecipientWillReceive,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w500,
                             color: amountColor,
@@ -820,7 +828,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             child: Column(
               children: [
                 Text(
-                  'Montant à recevoir',
+                  l10n.transferAmountToReceive,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -861,7 +869,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.note),
-              title: const Text('Message'),
+              title: Text(l10n.transferMessageTitle),
               subtitle: Text(transferState.notes!),
             ),
           ),
@@ -888,7 +896,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       case 0:
         if (transferState.selectedRecipient == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sélectionnez un bénéficiaire')),
+            SnackBar(content: Text(l10n.transferSelectRecipient)),
           );
           return;
         }
@@ -902,7 +910,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         if (ref.read(transferStateNotifierProvider).exchangeRate == null ||
             ref.read(transferStateNotifierProvider).fee == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erreur lors du calcul des frais')),
+            SnackBar(content: Text(l10n.transferFeeCalculationError)),
           );
           return;
         }
@@ -935,11 +943,11 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
                 Icon(Icons.info_outline),
                 SizedBox(width: 8),
-                Flexible(child: Text('Confirmer le transfert')),
+                Flexible(child: Text(l10n.transferConfirmTitle)),
               ],
             ),
             content: ConstrainedBox(
@@ -993,7 +1001,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Total:'),
+                              Text(l10n.transferTotalLabel),
                               Text(
                                 '${transferState.totalCharged.toStringAsFixed(2)} $selectedCurrency',
                                 style: const TextStyle(
@@ -1027,11 +1035,11 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Confirmer'),
+                child: Text(l10n.transferConfirmButton),
               ),
             ],
           ),
@@ -1084,7 +1092,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       final canProceed = await securityGate.checkAndShowDialog(
         context,
         level: SecurityLevel.playStoreRequired,
-        customTitle: 'Transfert sécurisé',
+        customTitle: l10n.transferSecureTitle,
         customMessage:
             'Les transferts d\'argent nécessitent l\'installation '
             'de l\'application depuis Google Play Store pour garantir '
@@ -1097,7 +1105,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       }
 
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
-      if (currentUser == null) throw Exception('Utilisateur non connecté');
+      if (currentUser == null) throw Exception(l10n.transferUserNotConnected);
 
       final transferState = ref.read(transferStateNotifierProvider);
       final selectedCurrency = ref.read(selectedCurrencyProvider);
@@ -1119,8 +1127,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       if (transaction != null && mounted) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transfert initié avec succès'),
+          SnackBar(
+            content: Text(l10n.transferInitiated),
             backgroundColor: Colors.green,
           ),
         );

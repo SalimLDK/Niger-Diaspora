@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -20,6 +21,8 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget {
 
 class _TransactionHistoryScreenState
     extends ConsumerState<TransactionHistoryScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   TransactionStatus? _statusFilter;
@@ -40,7 +43,7 @@ class _TransactionHistoryScreenState
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const DesignTitle('Historique des transferts', size: 22),
+        title: DesignTitle(l10n.transferHistory, size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -56,7 +59,7 @@ class _TransactionHistoryScreenState
                   // Search bar
                   StandardSearchBar(
                     controller: _searchController,
-                    hintText: 'Rechercher par bénéficiaire...',
+                    hintText: l10n.searchByRecipient,
                     onChanged: (value) {
                       setState(() => _searchQuery = value);
                     },
@@ -69,7 +72,7 @@ class _TransactionHistoryScreenState
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transfers/send'),
         icon: const Icon(Icons.send),
-        label: const Text('Envoyer'),
+        label: Text(l10n.transferSend),
       ),
     );
   }
@@ -80,7 +83,7 @@ class _TransactionHistoryScreenState
       color: context.surfaceVariantColor,
       child: Row(
         children: [
-          const Text('Filtres actifs: '),
+          Text(l10n.transferActiveFilters),
           if (_statusFilter != null)
             Chip(
               label: Text(_statusFilter!.label),
@@ -107,7 +110,7 @@ class _TransactionHistoryScreenState
                 _dateFilter = null;
               });
             },
-            child: const Text('Effacer tout'),
+            child: Text(l10n.transferClearAll),
           ),
         ],
       ),
@@ -202,7 +205,7 @@ class _TransactionHistoryScreenState
       final dateKey =
           transaction.createdAt != null
               ? dateFormat.format(transaction.createdAt!)
-              : 'Date inconnue';
+              : l10n.adminUnknownDate;
 
       if (!grouped.containsKey(dateKey)) {
         grouped[dateKey] = [];
@@ -384,7 +387,7 @@ class _TransactionHistoryScreenState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Filtrer les transferts',
+                              l10n.filterTransfers,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -396,7 +399,7 @@ class _TransactionHistoryScreenState
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Statut',
+                          l10n.status,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 12),
@@ -404,7 +407,7 @@ class _TransactionHistoryScreenState
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _buildStatusFilterChip(null, 'Tous'),
+                            _buildStatusFilterChip(null, l10n.all),
                             ...TransactionStatus.values.map(
                               (status) =>
                                   _buildStatusFilterChip(status, status.label),
@@ -421,7 +424,7 @@ class _TransactionHistoryScreenState
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _buildPeriodChip(null, 'Toutes'),
+                            _buildPeriodChip(null, l10n.toutes),
                             _buildPeriodChip(
                               DateTimeRange(
                                 start: DateTime.now().subtract(
@@ -429,7 +432,7 @@ class _TransactionHistoryScreenState
                                 ),
                                 end: DateTime.now(),
                               ),
-                              '7 derniers jours',
+                              l10n.last7Days,
                             ),
                             _buildPeriodChip(
                               DateTimeRange(
@@ -438,7 +441,7 @@ class _TransactionHistoryScreenState
                                 ),
                                 end: DateTime.now(),
                               ),
-                              '30 derniers jours',
+                              l10n.last30Days,
                             ),
                             _buildPeriodChip(
                               DateTimeRange(
@@ -447,7 +450,7 @@ class _TransactionHistoryScreenState
                                 ),
                                 end: DateTime.now(),
                               ),
-                              '3 derniers mois',
+                              l10n.last3Months,
                             ),
                           ],
                         ),
@@ -474,7 +477,7 @@ class _TransactionHistoryScreenState
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Appliquer les filtres'),
+                            child: Text(l10n.transferApplyFilters),
                           ),
                         ),
                       ],
@@ -525,9 +528,9 @@ class _TransactionHistoryScreenState
   _StatusInfo _getStatusInfo(TransactionStatus status) {
     switch (status) {
       case TransactionStatus.pending:
-        return _StatusInfo(Icons.schedule, AppColors.warning, 'En attente');
+        return _StatusInfo(Icons.schedule, AppColors.warning, l10n.transferStatusPending);
       case TransactionStatus.processing:
-        return _StatusInfo(Icons.sync, AppColors.info, 'En cours');
+        return _StatusInfo(Icons.sync, AppColors.info, l10n.transferStatusProcessing);
       case TransactionStatus.completed:
         return _StatusInfo(Icons.check_circle, AppColors.success, 'Termine');
       case TransactionStatus.failed:
@@ -561,9 +564,11 @@ class _TransferProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Jalon atteint : 0 = débité, 1 = en route, 2 = disponible.
     final atteint = status == TransactionStatus.processing ? 1 : 0;
-    const jalons = ['Débité', 'En route', 'Disponible'];
+    // Pas `const` : `l10n.…` est un getter résolu à l'exécution.
+    final jalons = ['Débité', 'En route', l10n.adminAvailable];
     final accent = context.adaptiveSecondaryColor;
 
     return Column(

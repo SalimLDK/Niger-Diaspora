@@ -7,6 +7,7 @@ import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class RecipientSelectScreen extends ConsumerStatefulWidget {
   const RecipientSelectScreen({super.key});
@@ -17,6 +18,8 @@ class RecipientSelectScreen extends ConsumerStatefulWidget {
 }
 
 class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   String _searchQuery = '';
   RecipientType? _filterType;
@@ -33,12 +36,12 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choisir un bénéficiaire'),
+        title: Text(l10n.transferChooseRecipient),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_outlined),
             onPressed: () => _navigateToAddRecipient(context),
-            tooltip: 'Ajouter un bénéficiaire',
+            tooltip: l10n.transferAddRecipient,
           ),
         ],
       ),
@@ -55,7 +58,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToAddRecipient(context),
         icon: const Icon(Icons.person_add),
-        label: const Text('Nouveau'),
+        label: Text(l10n.transferNewAction),
       ),
     );
   }
@@ -63,7 +66,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
   Widget _buildSearchBar() {
     return StandardSearchBar(
       controller: _searchController,
-      hintText: 'Rechercher un bénéficiaire...',
+      hintText: l10n.searchRecipient,
       onChanged: (value) {
         setState(() => _searchQuery = value.toLowerCase());
       },
@@ -76,13 +79,13 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _buildFilterChip(null, 'Tous'),
+          _buildFilterChip(null, l10n.all),
           const SizedBox(width: 8),
           _buildFilterChip(RecipientType.mobileWallet, 'Mobile'),
           const SizedBox(width: 8),
           _buildFilterChip(RecipientType.bankAccount, 'Banque'),
           const SizedBox(width: 8),
-          _buildFilterChip(RecipientType.cashPickup, 'Espèces'),
+          _buildFilterChip(RecipientType.cashPickup, l10n.cashLabel),
         ],
       ),
     );
@@ -120,7 +123,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 ElevatedButton(
                   onPressed:
                       () => ref.invalidate(userRecipientsProvider(userId)),
-                  child: const Text('Réessayer'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -183,8 +186,8 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           const SizedBox(height: 16),
           Text(
             hasFilters
-                ? 'Aucun bénéficiaire trouvé'
-                : 'Aucun bénéficiaire enregistré',
+                ? l10n.noRecipientFound
+                : l10n.transferNoRecipients,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: context.textSecondaryColor),
@@ -193,7 +196,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           Text(
             hasFilters
                 ? 'Essayez de modifier vos filtres'
-                : 'Ajoutez votre premier bénéficiaire',
+                : l10n.addFirstRecipient,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: context.textTertiaryColor),
@@ -203,7 +206,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
             ElevatedButton.icon(
               onPressed: () => _navigateToAddRecipient(context),
               icon: const Icon(Icons.person_add),
-              label: const Text('Ajouter un bénéficiaire'),
+              label: Text(l10n.transferAddRecipient),
             ),
           ],
         ],
@@ -226,19 +229,19 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('Supprimer le bénéficiaire ?'),
+                title: Text(l10n.transferDeleteRecipient),
                 content: Text('Voulez-vous supprimer ${recipient.fullName} ?'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Annuler'),
+                    child: Text(l10n.undo),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.error,
                     ),
-                    child: const Text('Supprimer'),
+                    child: Text(l10n.delete),
                   ),
                 ],
               ),
@@ -342,7 +345,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
-                  title: const Text('Modifier'),
+                  title: Text(l10n.transferEditAction),
                   onTap: () async {
                     Navigator.pop(context);
                     final result = await context.push<RecipientEntity>(
@@ -361,8 +364,8 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                   ),
                   title: Text(
                     recipient.isFavorite
-                        ? 'Retirer des favoris'
-                        : 'Ajouter aux favoris',
+                        ? l10n.unstarMessage
+                        : l10n.transferAddToFavorites,
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -378,7 +381,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 ListTile(
                   leading: Icon(Icons.delete_outline, color: AppColors.error),
                   title: Text(
-                    'Supprimer',
+                    l10n.delete,
                     style: TextStyle(color: AppColors.error),
                   ),
                   onTap: () async {
@@ -387,19 +390,19 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                       context: context,
                       builder:
                           (context) => AlertDialog(
-                            title: const Text('Supprimer ?'),
+                            title: Text(l10n.transferDeleteTitle),
                             content: Text('Supprimer ${recipient.fullName} ?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Annuler'),
+                                child: Text(l10n.undo),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.error,
                                 ),
-                                child: const Text('Supprimer'),
+                                child: Text(l10n.delete),
                               ),
                             ],
                           ),
