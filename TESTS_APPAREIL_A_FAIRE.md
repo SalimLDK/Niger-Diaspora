@@ -302,6 +302,40 @@ supplémentaire** à créer.
   partie. Réinjecté depuis le stash, mais **jamais exercé** — à tester si le
   callable redevient utilisé.
 
+### 🔴 Le backend en production a dix-sept jours de retard
+
+Relevé le 2026-08-05 en vérifiant si le garde-fou du webhook Stripe était
+réellement en ligne. Dates de mise à jour lues par l'API Cloud Functions :
+
+| fonction | déployée le |
+|---|---|
+| `stripeWebhook` | 2026-07-19 |
+| `sendMessagePush` | 2026-07-19 |
+| `sendChatNotification` | **2026-03-11** |
+| `cleanupUserData` | 2026-08-05 (par ce lot) |
+
+**Huit commits touchant `functions/` n'ont jamais atteint la production**, dont
+plusieurs correctifs de fond :
+
+- `ec07de4` — refus du secret Stripe laissé au placeholder. Le garde-fou est
+  écrit et correct (500 explicite au lieu d'un 400 indistinguable d'une requête
+  falsifiée), **mais il n'est pas en ligne** : la prod répond toujours 400 sur
+  chaque webhook Stripe, donc aucun paiement n'est confirmé côté serveur ;
+- `a82c6b5` — `dotenv` et `livekit-server-sdk` déclarés, ce qui réparait
+  `onCallCreated` (la cause racine du « ça ne sonne pas ») ;
+- `e94913f` — modules `partners/` restaurés ;
+- `23fb3e4` — suppression d'un trigger Firestore mort ;
+- `e9d5928` et `a7db115` — les deux correctifs de ce lot.
+
+`sendChatNotification` déployée en **mars** explique aussi son hash de source
+différent des autres : la version en ligne est antérieure à sa désactivation,
+donc potentiellement encore active.
+
+- [ ] Décider d'un déploiement global. Il est désormais possible (plus
+  d'orpheline, `--dry-run` passe), mais il republierait `.env` tel quel —
+  placeholder Stripe et secret coturn compromis compris. Corriger `.env`
+  d'abord, cf. `docs/ops/secrets_production.md`.
+
 ### `FAILED_PRECONDITION` — index manquant sur les événements
 
 `events where status == completed order by -startDate` échoue à chaque
@@ -2913,17 +2947,28 @@ applique exactement la même.
 Il ne reste donc à prouver que le **bout client** : que le pin bouge sans
 attendre le sondage.
 
-- [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
-  pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
-  `users_location_updates` (`profile_supabase_datasource.dart`).
-  ⏸️ *Tentative du 2026-08-05 non concluante* : la position de « Salim L. » a
-  bien été déplacée en SQL (45.5980 → 45.5900 / −73.6459 → −73.6850) à
-  `23:00:10 UTC`, mais la capture de contrôle est tombée sur l'écran Réglages
-  — le téléphone avait été repris entre-temps. **Le test reste à refaire**, et
-  c'est le seul moyen de prouver le canal temps réel. Méthode : carte ouverte
-  et immobile, `update users set latitude = …, longitude = … where id = …`,
-  puis capture **dans les 5 secondes**. Au-delà de ~40 s le sondage de secours
-  produirait le même résultat et ne prouverait rien.
+- [x] **Déplacement visible sans attendre le sondage** ✅ **PROUVÉ le
+  2026-08-05** sur SM A515F (captures `12_avant` / `13_apres`).
+
+  Protocole : carte ouverte et immobile, `update users set latitude=45.6200,
+  longitude=-73.6459` sur « Salim L. », validé à `23:10:12.650 UTC`, capture
+  à `23:10:18.325 UTC` — **5,7 s après**.
+
+  | | Avant | Après |
+  |---|---|---|
+  | Pin « SL » | ouest-sud-ouest | remonté au nord |
+  | Ligne de liste | « 3,2 km » | « **4,4 km** » |
+  | Fraîcheur de l'en-tête | « Il y a 24 s » | « **À l'instant** » |
+
+  La distance affichée correspond au calcul pour la nouvelle position
+  (4,41 km). **Le sondage est exclu par l'arithmétique** : il datait de 24 s
+  avant la capture « avant », donc le suivant tombait vers `23:10:34` — le
+  changement était à l'écran 16 s plus tôt. Et « À l'instant » prouve que
+  `_lastMembersUpdate` a été réécrit, ce que fait `_onMemberLocationUpdate`.
+
+  Le canal `users_location_updates` fonctionne donc de bout en bout :
+  publication Postgres → RLS → websocket → `_onMemberLocationUpdate` →
+  marqueurs et liste.
 - [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
   disparaît immédiatement de la carte de A (et non au sondage suivant).
 - [x] **Position publiée hors de l'écran carte** ✅ **vérifié le 2026-08-05**
