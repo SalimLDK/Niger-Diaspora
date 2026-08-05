@@ -1190,6 +1190,11 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
           // Header style WhatsApp
           InkWell(
             onTap: _toggleExpanded,
+            // `onLongPress` était déclaré, passé par la liste, et **jamais
+            // branché ici** : l'appui long dépliait le groupe comme un tap
+            // ordinaire. Comme le compte de test n'a que des notifications
+            // groupées, l'écran de détail était injoignable en pratique.
+            onLongPress: widget.onLongPress,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(

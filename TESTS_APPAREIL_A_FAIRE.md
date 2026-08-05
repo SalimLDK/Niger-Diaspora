@@ -41,8 +41,11 @@ données préservées. Thème système en NOCTURNE.**
   catégories actives.)
 - [x] **Ligne « De 22:00 à 08:00 »** : rendue en `DesignSettingsTile`,
   pictogramme horloge + chevron, alignée sur les autres lignes de la carte.
-- [ ] Reste à vérifier au doigt : le **tap** sur cette ligne enchaîne les deux
-  sélecteurs d'heure, et l'annulation du second n'enregistre rien.
+- [x] **Tap sur la plage horaire vérifié** : « Début du silence » (22:00) →
+  OK → « Fin du silence » (08:00) → **Annuler** → la ligne affiche toujours
+  « De 22:00 à 08:00 ». L'enchaînement marche et l'abandon du second sélecteur
+  n'écrit rien. Les deux boîtes sont bien teintées (accent terracotta, surface
+  sombre).
 - [x] **🔴 Trouvé sur appareil (2026-08-05, 06:20, SM A515F, APK `2fe9240`) —
   le titre « Notifications » se coupait au milieu du mot.** L'en-tête affichait
   « Notific / ations » sur deux lignes : la pastille « Tout marquer comme lu »
@@ -67,9 +70,26 @@ données préservées. Thème système en NOCTURNE.**
   aucune non-lue (le compte de test en avait une), et le dialogue de
   confirmation de « Tout supprimer » (non déclenché — action destructive sur
   les vraies données du compte).
-- [ ] **`/notifications/:id` : le sur-titre est en français.** Il affichait le
-  nom Dart de l'énumération (« GROUPJOINREQUEST »). Ouvrir un détail de chaque
-  famille (message, groupe, événement, ami, commande) et lire l'étiquette.
+- [x] **🔴 Trouvé sur appareil — l'écran de détail était injoignable.**
+  L'appui long sur une notification **groupée** dépliait le groupe au lieu
+  d'ouvrir le détail : `_NotificationGroupItem` déclarait `onLongPress`, la
+  liste le lui passait, et son `InkWell` ne le branchait **jamais** — seul
+  `_NotificationItem` (notification isolée) l'utilisait. Le compte de test
+  n'ayant que des notifications groupées, l'écran n'était atteignable par
+  aucun geste. **Corrigé et revérifié** : l'appui long ouvre bien le détail.
+  Troisième câble mort de la même famille que `buildOverflowMenu`.
+- [x] **`/notifications/:id` : le sur-titre est en français** — « Message » et
+  non « MESSAGE » (`type.name.toUpperCase()`). Vérifié pour le type message.
+- [ ] Reste à lire l'étiquette des autres familles (groupe, événement, ami,
+  commande) : le compte de test n'a que des notifications de message.
+- [x] **🔴 Trouvé au passage — la date du détail était en anglais.**
+  « 03 August 2026, 20:19 » : `DateFormat('dd MMMM yyyy, HH:mm')` sans locale
+  retombe sur en_US. Passe désormais par `LocaleHelper.getDateFormatLocale`.
+- [x] **🔴 Trouvé au passage — le titre de la barre était tronqué.** « Détail
+  de la notificati… », l'action ⏰ mangeant la largeur. Remplacé par
+  « Notifications ».
+- [ ] Revérifier ces deux derniers après le prochain build (correctifs écrits,
+  pas encore vus à l'écran).
 - [ ] **`/notifications/:id` sur un id absent de la page chargée** (lien
   profond, charge utile push, ou après avoir scrollé loin) : doit afficher
   « Cette notification n'est plus disponible », **pas l'écran rouge** — le

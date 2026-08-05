@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/locale_helper.dart';
 import '../../domain/entities/notification_entity.dart';
 
 import '../providers/notification_provider.dart';
@@ -24,7 +25,10 @@ class NotificationDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.notificationDetail),
+        // `notificationDetail` (« Détail de la notification ») était tronqué en
+        // « Détail de la notificati… » : l'action ⏰ mange la largeur. Le mot
+        // seul suffit — on est déjà dans le détail, la barre le rappelle.
+        title: Text(l10n.notificationsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -117,8 +121,12 @@ class NotificationDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 4),
                           if (notification.createdAt != null)
                             Text(
+                              // Sans locale, `DateFormat` retombe sur en_US :
+                              // la date s'affichait « 03 August 2026, 20:19 »
+                              // au milieu d'un écran en français.
                               DateFormat(
                                 'dd MMMM yyyy, HH:mm',
+                                LocaleHelper.getDateFormatLocale(context),
                               ).format(notification.createdAt!),
                               style: TextStyle(
                                 fontSize: 13,
