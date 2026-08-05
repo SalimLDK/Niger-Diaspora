@@ -42,7 +42,7 @@ Trois niveaux, à ne pas confondre :
 | 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
-| 9c | Groupes — mes groupes, découverte | ✅ | ✅ | — | `groups/…/groups_screen.dart` |
+| 9c | Groupes — mes groupes, découverte | ✅ | ✅ | ✅ | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ✅ | — | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
@@ -945,6 +945,40 @@ silence`), et une de ses opérations git a ramené `group_detail_screen.dart` à
 l'état du dépôt, emportant une heure de modifications **non committées**. Les
 commits, eux, ont tous survécu. Sur cette branche partagée : **committer dès
 que ça compile**, ne jamais laisser un fichier ouvert longtemps.
+
+---
+
+## « Ouvrir la discussion » — mort pour tout groupe d'avant la migration
+
+Le bouton echouait sans dire pourquoi. Une fois la cause rendue visible :
+
+```
+findGroupConversationByGroupId error: PostgrestException(
+  message: invalid input syntax for type uuid: "yfIqsRLMMhTPpiW0NFHx", code: 22P02)
+```
+
+La RPC `join_group_conversation` compare `group_members.group_id` (typé
+`uuid`) à son paramètre `text` par un cast **inconditionnel**
+`p_group_id::uuid`. Or `conversations.group_id` est en `text` précisément pour
+accepter les deux générations d'identifiants — et un groupe hérité de Firestore
+porte un id de 20 caractères. Le cast levait `22P02`, l'exception remontait
+jusqu'en haut : **aucun de ces groupes ne pouvait ouvrir sa discussion**, donc
+aucune conversation ne pouvait naître.
+
+Deux correctifs :
+- l'écran affiche la cause réelle au lieu d'un « erreur à l'ouverture »
+  générique — le dépôt la remontait déjà, le notifier la rangeait, l'écran la
+  jetait ;
+- la RPC est court-circuitée quand l'id n'est pas un UUID. Ces groupes n'ont de
+  toute façon aucune ligne dans `group_members`, la RPC aurait rendu `NULL` :
+  même résultat, sans l'exception.
+
+Correctif **côté application**, sans toucher à la base de production. La RPC
+gagnerait à garder son cast, mais c'est une migration à décider à part.
+
+Vérifié à l'écran : la discussion s'ouvre, la conversation est créée, et le
+premier message débloque en cascade le bouton de coupure des notifications de
+9d et le badge **ACTIF** de 9c — deux éléments jamais rendus jusque-là.
 
 ---
 
