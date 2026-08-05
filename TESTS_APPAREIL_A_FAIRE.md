@@ -249,6 +249,38 @@ sur `users`, mais bénigne en lecture.
   Firestore de l'app. **Ça efface les données de l'app**, donc les clés E2EE —
   à ne faire que si la trace devient gênante.
 
+### 🔴 Supprimer un compte laisse un ami fantôme chez tous ses amis
+
+Trouvé en remontant l'incohérence relevée chez Salim L. (`friendIds` vide,
+deux amis dans `friends/`).
+
+L'amitié est écrite **des deux côtés** (`users/A/friends/B` et
+`users/B/friends/A`), et c'est **cette sous-collection que l'app lit** —
+`getFriends` et `areFriends` n'utilisent qu'elle. Le tableau `friendIds`, lui,
+n'est lu par **aucun** écran : son seul lecteur est la fonction de suppression
+de compte.
+
+Or `deleteAccount` (`functions/index.js`) :
+- efface les sous-collections **du compte supprimé** (`friends`,
+  `blocked_users`, `cart`, `sessions`) ;
+- retire l'utilisateur des `friendIds` des autres — un champ que personne ne
+  lit ;
+- et **ne touche jamais** aux entrées miroir `users/{autre}/friends/{supprimé}`.
+
+Conséquence : le compte supprimé **reste indéfiniment dans la liste d'amis des
+autres**, avec son nom et sa photo, et `areFriends` répond toujours « oui ».
+
+**Correctif écrit** : la liste d'amis du compte donne exactement l'ensemble
+des personnes ayant une entrée miroir ; on les supprime avant d'effacer la
+liste. Pas de requête de groupe de collections, donc **aucun index
+supplémentaire** à créer.
+
+- [ ] ⚠ **NON DÉPLOYÉ.** `node --check` passe, mais le déploiement des
+  Cloud Functions a son propre blocage connu (secrets de prod à corriger).
+  À arbitrer séparément.
+- [ ] À vérifier après déploiement, avec deux comptes jetables : A et B amis,
+  supprimer A, contrôler que B ne voit plus A dans ses amis.
+
 ### `FAILED_PRECONDITION` — index manquant sur les événements
 
 `events where status == completed order by -startDate` échoue à chaque

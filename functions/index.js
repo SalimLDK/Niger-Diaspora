@@ -2479,6 +2479,32 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
             const subcollections = ["friends", "blocked_users", "cart", "sessions"];
             for (const subcol of subcollections) {
                 const subcolDocs = await userDocRef.collection(subcol).get();
+
+                // Une amitie est symetrique : `acceptFriendRequest` ecrit
+                // `users/A/friends/B` ET `users/B/friends/A`. Ne supprimer que
+                // la liste du compte efface laisse donc une entree miroir chez
+                // chacun de ses anciens amis — et c'est CETTE sous-collection
+                // que l'app lit (`getFriends`, `areFriends`), pas le tableau
+                // `friendIds` nettoye plus bas. Sans ca, le compte supprime
+                // reste indefiniment dans la liste d'amis des autres, avec son
+                // nom et sa photo, et `areFriends` repond toujours « oui ».
+                //
+                // On passe par la liste du compte lui-meme plutot que par une
+                // requete de groupe de collections : c'est exactement
+                // l'ensemble des personnes ayant une entree miroir, et ca
+                // n'exige aucun index supplementaire.
+                if (subcol === "friends" && !subcolDocs.empty) {
+                    const miroir = db.batch();
+                    subcolDocs.docs.forEach((doc) => {
+                        miroir.delete(
+                            db.collection("users").doc(doc.id)
+                                .collection("friends").doc(userId),
+                        );
+                    });
+                    await miroir.commit();
+                    results.firestore.deleted += subcolDocs.size;
+                }
+
                 const batch = db.batch();
                 subcolDocs.docs.forEach((doc) => batch.delete(doc.ref));
                 if (!subcolDocs.empty) {
