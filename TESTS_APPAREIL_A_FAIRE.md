@@ -129,10 +129,14 @@ notifications d'un groupe une par une.
   une **régression de sécurité majeure doublée d'une panne** (36 collections
   retombant en deny-by-default). Le fichier a été resynchronisé depuis la
   prod ; il n'en diffère plus que par `inscriptionPourSoi()`.
-- [ ] **Reste à déployer** : `firebase deploy --only firestore:rules` est
-  maintenant sûr (diff = le seul correctif `events`). Après déploiement,
-  rejouer « J'y vais » sur l'événement `LGSEDGAgQhdV66jtSwVj` — il doit passer
-  et `attendeeIds` contenir `vQZE49…`.
+- [x] **Règles déployées le 2026-08-05** (`firebase deploy --only
+  firestore:rules`, compilation OK). Production relue par l'API REST juste
+  après : **identique au fichier versionné**, `inscriptionPourSoi()` présent.
+- [x] **« J'y vais » rejoué sur l'événement d'autrui — il passe.**
+  « Vous y participez », la notification bascule en registre « lue », et en
+  base `attendeeIds = ["vQZE49…"]` sur l'événement dont l'organisateur est
+  quelqu'un d'autre. Titre et date inchangés : le garde-fou de la règle tient,
+  seul `attendeeIds` a bougé.
 - [ ] **« Accepter / Refuser » sur une demande d'ami** : jamais rejoué depuis
   la refonte.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
