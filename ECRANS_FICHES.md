@@ -35,7 +35,7 @@ Trois niveaux, à ne pas confondre :
 | 8c | Carte — sans localisation | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
 | 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
 | 6a | Fil — Nocturne | ✅ | ✅ | ✅ | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
-| 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
+| 11d | Mon profil — Nocturne | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
@@ -876,6 +876,34 @@ Fausse alerte de ma part au passage : j'avais signalé que le rail de stories
 débordait toujours de 2 px. **C'était déjà corrigé** — le libellé impose son
 interligne et `_railHeight` arrondit au pixel supérieur. Signalé de mémoire
 sans revérifier la capture.
+
+---
+
+## 11d — Mon profil en Nocturne
+
+Conforme : fond `#0F0D0A`, cartes `#1A1714` bordées, sur-titre `COMPTE` en
+monospace cuivré, pastille de profession verte, nom serif au point d'accent,
+chevrons en pastille.
+
+Un seul défaut corrigé : « **1 enregistrés** ». La clé `savedPostsCountLabel`
+était un mot figé concaténé à un nombre. Remplacée par un vrai pluriel ICU
+(`savedPostsCount`), qui traite aussi le zéro — appliqué aux deux écrans de
+profil (production et `design_v2`).
+
+Deux écarts à la fiche, **assumés** :
+
+- **La rangée de stats alterne terracotta et vert.** La fiche 11d ne montre
+  que deux statistiques, toutes deux en `#F5F2EE` : elle n'a jamais eu à
+  résoudre une rangée de quatre. L'alternance est un choix délibéré et
+  documenté dans le code (elle a remplacé un bleu Material figé, insensible au
+  thème). Uniformiser aplatirait la rangée et retirerait l'indice qu'elle est
+  cliquable.
+- **« Modifier le profil » reste une ligne de la carte Compte**, là où la fiche
+  demande un bouton plein `#F4A574` sous l'identité. Sur un profil incomplet,
+  la carte « Compléter mon profil » occupe déjà la place de l'action
+  principale ; un second bouton plein juste au-dessus lui ferait concurrence.
+  **À reprendre quand le profil est complet** — la carte disparaît alors, et le
+  bouton de la fiche retrouve sa place.
 
 ---
 

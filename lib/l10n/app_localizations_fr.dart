@@ -14982,6 +14982,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get savedPostsEmpty => 'Vous n\'avez pas encore sauvegardé de post';
 
   @override
+  String savedPostsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrés',
+      one: '1 enregistré',
+      zero: 'aucun enregistré',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get savedPostsCountLabel => 'enregistrés';
 
   @override

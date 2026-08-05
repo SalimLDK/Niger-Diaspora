@@ -239,7 +239,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     icon: const Icon(Icons.bookmark_outline),
                     title: l10n.savedPostsTitle,
                     subtitle:
-                        '${ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0} ${l10n.savedPostsCountLabel}',
+                        l10n.savedPostsCount(
+                          ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0,
+                        ),
                     onTap: () => context.push('/profile/saved-posts'),
                   ),
                   const _SettingsDivider(),
