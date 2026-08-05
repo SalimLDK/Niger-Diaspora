@@ -145,15 +145,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      // En-tête plat (§12c) : grand titre serif, compte de non-lues, et un
-      // seul contrôle. L'AppBar Material et sa flèche retour disparaissent —
-      // l'écran est un onglet, pas une page empilée.
+      // En-tête plat (§12c) : grand titre serif, compte de non-lues, la
+      // pastille « Tout lire » et un contrôle. L'AppBar Material et sa flèche
+      // retour disparaissent — l'écran est un onglet, pas une page empilée.
       //
-      // La pastille « Tout marquer comme lu » tenait ici : 410 px de libellé
-      // qui ne laissaient que ~230 px au titre, et « Notifications » en
-      // Playfair 30 se coupait **au milieu du mot** (« Notific / ations »),
-      // vu sur SM A515F à `font_scale` 1.1. Les deux actions secondaires sont
-      // passées dans le ⋯, comme la fiche 13c le fait pour les appels.
+      // Le libellé est **« Tout lire »**, pas `l10n.markAllAsRead` (« Tout
+      // marquer comme lu »). Ces 21 caractères prenaient ~410 px et ne
+      // laissaient que ~230 px au titre : « Notifications » en Playfair 30 se
+      // coupait au milieu du mot (« Notific / ations ») sur SM A515F à
+      // `font_scale` 1.1. La maquette 12c répond par un libellé court, pas en
+      // cachant l'action — c'est le geste courant de l'écran, il reste visible.
+      // Le menu ⋯ garde les deux actions rares (réglages, tout supprimer) : la
+      // maquette n'en montre pas, mais sans lui « Tout supprimer » redevient
+      // injoignable.
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -164,12 +168,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   ? l10n.notificationsUnreadCount(unreadCount)
                   : '',
               actions: [
-                _HeaderOverflowMenu(
-                  onMarkAllAsRead: unreadCount > 0
-                      ? () => ref
+                if (unreadCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: TextButton(
+                      onPressed: () => ref
                           .read(notificationsNotifierProvider.notifier)
-                          .markAllAsRead()
-                      : null,
+                          .markAllAsRead(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: context.surfaceVariantColor,
+                        foregroundColor: context.textPrimaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(kDesignPillRadius),
+                        ),
+                      ),
+                      child: const Text(
+                        'Tout lire',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                _HeaderOverflowMenu(
                   onSettings: () => context.push('/notifications/settings'),
                   onDeleteAll: () => _confirmDeleteAll(context, ref),
                 ),
@@ -569,23 +595,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 }
 
-/// Menu ⋯ de l'en-tête : tout marquer lu, réglages, tout supprimer.
+/// Menu ⋯ de l'en-tête : réglages et tout supprimer — les deux actions rares.
+///
+/// « Tout marquer comme lu » n'y est pas : c'est le geste courant, il a sa
+/// pastille « Tout lire » à côté (§12c).
 ///
 /// « Tout supprimer » existait déjà — dans un `buildOverflowMenu` que personne
 /// n'appelait : l'action était écrite, testable à la lecture, et injoignable à
 /// l'écran. Elle est montée ici, dans la même pastille 44 que
-/// [DesignSquareAction].
-///
-/// `onMarkAllAsRead` nul (aucune non-lue) grise l'entrée au lieu de la retirer :
-/// un menu dont les entrées changent de place selon l'état se réapprend à
-/// chaque ouverture.
+/// [DesignSquareAction], plutôt qu'à portée du pouce : c'est destructif.
 class _HeaderOverflowMenu extends StatelessWidget {
-  final VoidCallback? onMarkAllAsRead;
   final VoidCallback onSettings;
   final VoidCallback onDeleteAll;
 
   const _HeaderOverflowMenu({
-    required this.onMarkAllAsRead,
     required this.onSettings,
     required this.onDeleteAll,
   });
@@ -610,23 +633,11 @@ class _HeaderOverflowMenu extends StatelessWidget {
         padding: EdgeInsets.zero,
         tooltip: l10n.settings,
         onSelected: (value) {
-          if (value == 'mark_all') onMarkAllAsRead?.call();
           if (value == 'settings') onSettings();
           if (value == 'delete_all') onDeleteAll();
         },
         itemBuilder:
             (ctx) => [
-              PopupMenuItem(
-                value: 'mark_all',
-                enabled: onMarkAllAsRead != null,
-                child: Row(
-                  children: [
-                    const Icon(Icons.done_all, size: 20),
-                    const SizedBox(width: 12),
-                    Text(l10n.markAllAsRead),
-                  ],
-                ),
-              ),
               PopupMenuItem(
                 value: 'settings',
                 child: Row(
