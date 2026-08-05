@@ -901,6 +901,26 @@ class _MessageInputState extends State<MessageInput>
   Widget build(BuildContext context) {
     // Structure simple : Row avec l'input/overlay à gauche et le bouton à droite
     // Le bouton reste TOUJOURS dans l'arbre pour maintenir la continuité des gestes
+    //
+    // Le LayoutBuilder ne sert pas à mesurer, mais à SAVOIR si quelqu'un nous a
+    // donné une hauteur. La conversation le fait (voir conversation_screen) ;
+    // un test qui monte le composer seul, non. Quand la hauteur est bornée, les
+    // panneaux deviennent `Flexible` et se rétrécissent au lieu de déborder —
+    // `Flexible` dans une colonne de hauteur infinie lèverait une assertion,
+    // d'où la condition plutôt qu'un `Flexible` inconditionnel.
+    return LayoutBuilder(
+      builder: (context, contraintes) {
+        return _buildColumn(context, contraintes.maxHeight);
+      },
+    );
+  }
+
+  Widget _buildColumn(BuildContext context, double borne) {
+    final bornee = borne.isFinite;
+    // Un panneau ne peut se rétrécir que si la colonne a une hauteur connue.
+    Widget panneau(Widget enfant) =>
+        bornee ? Flexible(fit: FlexFit.loose, child: enfant) : enfant;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -916,7 +936,7 @@ class _MessageInputState extends State<MessageInput>
 
         // Panneau ancré de pièces jointes (grille 3×2), au-dessus du composer.
         if (_showAttachPanel && !_isRecording)
-          _revealInKeyboardSlot(context, _buildAttachPanel(context)),
+          panneau(_revealInKeyboardSlot(context, _buildAttachPanel(context))),
 
         // Zone principale : barre flottante (« + » + champ) et le bouton
         // vocal/envoi **hors de la barre** (cercle séparé à droite).
@@ -942,8 +962,7 @@ class _MessageInputState extends State<MessageInput>
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color:
-                        context.isDarkMode ? _kBarFillDark : _kBarFillLight,
+                    color: context.isDarkMode ? _kBarFillDark : _kBarFillLight,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
                       color:
@@ -970,7 +989,7 @@ class _MessageInputState extends State<MessageInput>
                   child:
                       _isRecording
                           ? _buildRecordingBanner(context)
-                          : _buildPillField(context),
+                          : _buildPillField(context, borne),
                 ),
               ),
               // L'emoji garde sa pastille (fiche 26b) mais **dans** la pilule,
@@ -989,23 +1008,28 @@ class _MessageInputState extends State<MessageInput>
 
         // Combined emoji/sticker picker (uniquement si pas en enregistrement)
         if (_showPicker && !_isRecording)
-          _revealInKeyboardSlot(
-            context,
-            EmojiStickerPicker(
-              // Hauteur bornée à l'espace réellement libre (voir
-              // computeMessagePickerHeight) : évite l'overflow paysage.
-              height: computeMessagePickerHeight(
-                screenHeight: MediaQuery.of(context).size.height,
-                systemInset: MediaQuery.of(context).viewPadding.vertical,
-                isLandscape:
-                    MediaQuery.of(context).orientation == Orientation.landscape,
+          panneau(
+            _revealInKeyboardSlot(
+              context,
+              EmojiStickerPicker(
+                // Hauteur SOUHAITEE. Quand la conversation borne la colonne,
+                // le `panneau` la rabote a ce qui reste vraiment : cette
+                // formule ne connait que la taille de l'ecran, pas les
+                // bandeaux ni un champ de six lignes.
+                height: computeMessagePickerHeight(
+                  screenHeight: MediaQuery.of(context).size.height,
+                  systemInset: MediaQuery.of(context).viewPadding.vertical,
+                  isLandscape:
+                      MediaQuery.of(context).orientation ==
+                      Orientation.landscape,
+                ),
+                initialTab: _pickerTab,
+                onEmojiSelected: _onEmojiSelected,
+                onBackspacePressed: _onBackspacePressed,
+                onStickerSelected:
+                    widget.onSendSticker != null ? _onStickerSelected : null,
+                onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
               ),
-              initialTab: _pickerTab,
-              onEmojiSelected: _onEmojiSelected,
-              onBackspacePressed: _onBackspacePressed,
-              onStickerSelected:
-                  widget.onSendSticker != null ? _onStickerSelected : null,
-              onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
             ),
           ),
       ],
@@ -1058,9 +1082,7 @@ class _MessageInputState extends State<MessageInput>
     final fill =
         isDark
             ? glyph.withValues(alpha: _showPicker ? 0.28 : 0.18)
-            : (_showPicker
-                ? const Color(0xFFF0DAC8)
-                : const Color(0xFFF7E9DE));
+            : (_showPicker ? const Color(0xFFF0DAC8) : const Color(0xFFF7E9DE));
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -1073,9 +1095,7 @@ class _MessageInputState extends State<MessageInput>
       child: IconButton(
         onPressed: () => _togglePicker(),
         icon: Icon(
-          _showPicker
-              ? Icons.keyboard_rounded
-              : Icons.emoji_emotions_outlined,
+          _showPicker ? Icons.keyboard_rounded : Icons.emoji_emotions_outlined,
           size: 23,
         ),
         tooltip: AppLocalizations.of(context)!.emojis,
@@ -1150,7 +1170,14 @@ class _MessageInputState extends State<MessageInput>
 
   /// Champ pilule. L'emoji n'y est plus : il a rejoint sa propre pastille,
   /// hors de la barre (fiche 26b).
-  Widget _buildPillField(BuildContext context) {
+  /// [borne] : hauteur disponible pour tout le composer, `infinity` si
+  /// personne ne nous en a donné une.
+  Widget _buildPillField(BuildContext context, double borne) {
+    // Six lignes, c'est bon en portrait (873 dp). En paysage il ne reste que
+    // ~190 dp sous les bandeaux : un champ de six lignes y mangerait tout et
+    // ferait déborder la colonne avant même que le panneau s'ouvre. On lui
+    // laisse au plus la moitié de la place, ~22 dp par ligne.
+    final maxLignes = borne.isFinite ? (borne / 2 / 22).floor().clamp(1, 6) : 6;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1170,7 +1197,7 @@ class _MessageInputState extends State<MessageInput>
                   // contrainte de hauteur sur le Container : avec `null`, le
                   // champ déborde au lieu de défiler.
                   minLines: 1,
-                  maxLines: 6,
+                  maxLines: maxLignes,
                   keyboardType: TextInputType.multiline,
                   // Entrée insère un retour à la ligne ; l'envoi passe par le
                   // bouton rond, toujours présent à droite.
@@ -1418,29 +1445,35 @@ class _MessageInputState extends State<MessageInput>
         // Indicateur flottant "Relâchez pour verrouiller" (état 4)
         if (showLockIndicator) _buildFloatingLockIndicator(context),
 
-        // Ligne principale
+        // Minuterie + waveform sur la première ligne.
         Row(
           children: [
-            // Cancel hint (seulement "Annuler", pas de "Verrouiller")
-            Expanded(
-              flex: 2,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                child:
-                    showCancelHint
-                        ? _buildCancelHint(context, cancelProgress)
-                        : _buildDefaultRecordingHint(context),
-              ),
-            ),
-
-            // Recording indicator and duration
             _buildRecordingIndicator(context),
-
             const SizedBox(width: 12),
-
-            // Waveform visualization
-            Expanded(flex: 3, child: _buildSimpleWaveform(context)),
+            Expanded(child: _buildSimpleWaveform(context)),
           ],
+        ),
+
+        const SizedBox(height: 4),
+
+        // Le libellé a désormais **sa propre ligne**, sur toute la largeur.
+        //
+        // Il partageait la ligne avec la minuterie et le waveform, et n'en
+        // recevait que 2/5 : sur l'appareil (A51, font_scale 1.1) « Relâcher
+        // pour annuler » devenait « Relâc… » et « L'enregistrement sera
+        // supprimé » devenait « L'enregi… ». Autrement dit, au moment précis
+        // où l'utilisateur renonce, il ne pouvait pas lire ce qui allait
+        // arriver à son enregistrement. Le waveform, lui, ne dit rien d'utile :
+        // il pouvait céder la place.
+        SizedBox(
+          width: double.infinity,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 150),
+            child:
+                showCancelHint
+                    ? _buildCancelHint(context, cancelProgress)
+                    : _buildDefaultRecordingHint(context),
+          ),
         ),
       ],
     );
@@ -1538,6 +1571,9 @@ class _MessageInputState extends State<MessageInput>
                   fontSize: 11.5,
                   fontWeight: FontWeight.w500,
                 ),
+                // Deux lignes plutôt qu'une coupure : à forte échelle de
+                // police, la conséquence de l'annulation doit rester lisible.
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -1568,6 +1604,10 @@ class _MessageInputState extends State<MessageInput>
               fontWeight: FontWeight.w600,
               letterSpacing: 0.2,
             ),
+            // « Glisser ‹ pour annuler · ↑ pour verrouiller » fait 43
+            // caractères : à font_scale 1.1 il ne tient pas sur une ligne,
+            // et il devenait « Glisser ‹… », ce qui n'apprend rien.
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2059,9 +2099,10 @@ class _MessageInputState extends State<MessageInput>
       return context.adaptivePrimaryColor.withValues(alpha: 0.4);
     }
     if (_hasText || widget.onSendAudio != null) {
-      final base = _hasText
-          ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
-          : (context.isDarkMode ? _kVoiceGreenLight : _kVoiceGreen);
+      final base =
+          _hasText
+              ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
+              : (context.isDarkMode ? _kVoiceGreenLight : _kVoiceGreen);
       return base.withValues(alpha: 0.35);
     }
     return Colors.black.withValues(alpha: 0.1);
