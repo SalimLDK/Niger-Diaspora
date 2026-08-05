@@ -28,11 +28,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   /// Écrans qui n'ont pas encore rejoint le kit, avec la raison. Cette liste
   /// ne peut que rétrécir : n'y ajoutez rien sans une raison écrite.
-  const exceptions = <String, String>{
-    'notification_settings_screen.dart':
-        'variante visuelle distincte (rayon 18, ombre, sans pictogramme), '
-        'validée telle quelle — rejoindra le kit dans un lot dédié',
-  };
+  ///
+  /// Elle est vide depuis le lot « réglages de notifications » :
+  /// `notification_settings_screen.dart` était la dernière exception (variante
+  /// à rayon 18, ombre et sans pictogramme) et a rejoint le kit.
+  const exceptions = <String, String>{};
 
   test('aucun écran ne redéclare une brique de réglages', () {
     // Les quatre noms exacts qui ont été dupliqués, pas un motif large :

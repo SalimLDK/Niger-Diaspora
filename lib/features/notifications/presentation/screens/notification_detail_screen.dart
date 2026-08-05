@@ -34,18 +34,13 @@ class NotificationDetailScreen extends ConsumerWidget {
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
             data: (notifications) {
-              try {
-                final notification = notifications.firstWhere(
-                  (n) => n.id == notificationId,
-                );
-                return IconButton(
-                  icon: const Icon(Icons.alarm),
-                  tooltip: 'Me rappeler plus tard',
-                  onPressed: () => _showReminderDialog(context, notification),
-                );
-              } catch (_) {
-                return const SizedBox.shrink();
-              }
+              final notification = _find(notifications);
+              if (notification == null) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.alarm),
+                tooltip: 'Me rappeler plus tard',
+                onPressed: () => _showReminderDialog(context, notification),
+              );
             },
           ),
         ],
@@ -54,10 +49,34 @@ class NotificationDetailScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text(l10n.loadingError)),
         data: (notifications) {
-          final notification = notifications.firstWhere(
-            (n) => n.id == notificationId,
-            orElse: () => throw Exception('Notification not found'),
-          );
+          final notification = _find(notifications);
+          // La liste est paginée : une notification ouverte par lien profond
+          // ou par une charge utile push peut ne pas être dans la page
+          // chargée. Le `firstWhere` levait alors une exception **pendant le
+          // build** — écran rouge, pas message.
+          if (notification == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.notifications_off_outlined,
+                      size: 48,
+                      color: context.textTertiaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Cette notification n\'est plus disponible.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: context.textSecondaryColor),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -253,6 +272,17 @@ class NotificationDetailScreen extends ConsumerWidget {
     );
   }
 
+  /// La notification demandée, ou `null` si elle n'est pas dans la page
+  /// chargée. Les deux appelants (l'action ⏰ de la barre et le corps) partaient
+  /// du même `firstWhere` avec deux traitements d'absence différents : un
+  /// `try/catch` d'un côté, une exception non rattrapée de l'autre.
+  NotificationEntity? _find(List<NotificationEntity> notifications) {
+    for (final n in notifications) {
+      if (n.id == notificationId) return n;
+    }
+    return null;
+  }
+
   void _handleNavigation(
     BuildContext context,
     NotificationEntity notification,
@@ -410,10 +440,59 @@ class NotificationDetailScreen extends ConsumerWidget {
     }
   }
 
+  /// Sur-titre de la notification. Il affichait `type.name.toUpperCase()` :
+  /// le nom Dart de l'énumération, en anglais et collé
+  /// (« GROUPJOINREQUEST », « ORDERSHIPPED »). Les libellés sont écrits en dur
+  /// comme partout ailleurs dans les écrans de notifications.
   String _getTypeLabel(NotificationType type, AppLocalizations l10n) {
-    // Ideally this should use l10n keys, for now mapping to simple strings or existing keys if available
-    // Adding fallbacks or reusing title logic
-    return type.name.toUpperCase();
+    switch (type) {
+      case NotificationType.message:
+        return 'Message';
+      case NotificationType.groupInvite:
+        return 'Invitation à un groupe';
+      case NotificationType.groupJoinRequest:
+        return 'Demande d\'adhésion';
+      case NotificationType.groupRequestApproved:
+        return 'Adhésion acceptée';
+      case NotificationType.groupRequestRejected:
+        return 'Adhésion refusée';
+      case NotificationType.newMember:
+        return 'Nouveau membre';
+      case NotificationType.eventReminder:
+        return 'Rappel d\'événement';
+      case NotificationType.eventUpdate:
+        return 'Événement modifié';
+      case NotificationType.eventAttendance:
+        return 'Participation';
+      case NotificationType.friendRequest:
+        return 'Demande d\'ami';
+      case NotificationType.friendRequestAccepted:
+      case NotificationType.friendAccepted:
+        return 'Demande acceptée';
+      case NotificationType.newFollower:
+        return 'Nouvel abonné';
+      case NotificationType.localEvent:
+        return 'Événement local';
+      case NotificationType.nearbyMember:
+        return 'Membre à proximité';
+      case NotificationType.proximityAlert:
+        return 'Alerte de proximité';
+      case NotificationType.order:
+      case NotificationType.newOrder:
+        return 'Commande';
+      case NotificationType.orderPaid:
+        return 'Commande payée';
+      case NotificationType.orderShipped:
+        return 'Commande expédiée';
+      case NotificationType.orderDelivered:
+        return 'Commande livrée';
+      case NotificationType.orderCancelled:
+        return 'Commande annulée';
+      case NotificationType.orderCompleted:
+        return 'Commande terminée';
+      case NotificationType.general:
+        return l10n.notificationsTitle;
+    }
   }
 
   void _showReminderDialog(

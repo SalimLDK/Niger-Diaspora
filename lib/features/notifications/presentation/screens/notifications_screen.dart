@@ -185,10 +185,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       ),
                     ),
                   ),
-                DesignSquareAction(
-                  icon: Icons.tune,
-                  tooltip: l10n.settings,
-                  onPressed: () => context.push('/notifications/settings'),
+                _HeaderOverflowMenu(
+                  onSettings: () => context.push('/notifications/settings'),
+                  onDeleteAll: () => _confirmDeleteAll(context, ref),
                 ),
               ],
             ),
@@ -204,57 +203,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  /// Menu « tout supprimer », conservé hors de l'en-tête plat : c'est une
-  /// action destructive, elle n'a pas sa place à côté de « Tout lire ».
-  Widget buildOverflowMenu(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    return PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              switch (value) {
-                case 'mark_all':
-                  ref
-                      .read(notificationsNotifierProvider.notifier)
-                      .markAllAsRead();
-                  break;
-                case 'delete_all':
-                  _confirmDeleteAll(context, ref);
-                  break;
-              }
-            },
-            itemBuilder:
-                (ctx) => [
-                  PopupMenuItem(
-                    value: 'mark_all',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.done_all, size: 20),
-                        const SizedBox(width: 12),
-                        Text(l10n.markAllAsRead),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete_all',
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.delete_sweep,
-                          size: 20,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          l10n.deleteAll,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
     );
   }
 
@@ -633,6 +581,80 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ),
             ],
           ),
+    );
+  }
+}
+
+/// Menu ⋯ de l'en-tête : réglages et « tout supprimer ».
+///
+/// « Tout supprimer » existait déjà — dans un `buildOverflowMenu` que personne
+/// n'appelait : l'action était écrite, testable à la lecture, et injoignable à
+/// l'écran. Elle est montée ici, dans la même pastille 44 que
+/// [DesignSquareAction], derrière un ⋯ plutôt qu'à côté de « Tout lire » :
+/// c'est destructif, ça ne se met pas à portée du pouce.
+class _HeaderOverflowMenu extends StatelessWidget {
+  final VoidCallback onSettings;
+  final VoidCallback onDeleteAll;
+
+  const _HeaderOverflowMenu({
+    required this.onSettings,
+    required this.onDeleteAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: PopupMenuButton<String>(
+        icon: Icon(
+          Icons.more_horiz,
+          size: 20,
+          color: context.textPrimaryColor,
+        ),
+        padding: EdgeInsets.zero,
+        tooltip: l10n.settings,
+        onSelected: (value) {
+          if (value == 'settings') onSettings();
+          if (value == 'delete_all') onDeleteAll();
+        },
+        itemBuilder:
+            (ctx) => [
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    const Icon(Icons.tune, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l10n.settings),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete_all',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_sweep,
+                      size: 20,
+                      color: context.errorColor,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      l10n.deleteAll,
+                      style: TextStyle(color: context.errorColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+      ),
     );
   }
 }

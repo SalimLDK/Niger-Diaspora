@@ -14,6 +14,40 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Écrans de notifications — lot « une seule source » (2026-08-05)
+
+`notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
+dernière exception de `reglages_sans_doublon_test.dart`) et l'en-tête de
+`notifications_screen.dart` a gagné un menu ⋯. Le rendu change, `analyze` ne
+le voit pas :
+
+- [ ] **`/notifications/settings` : le pictogramme 42 en dégradé apparaît**
+  sur chaque ligne (l'écran n'en avait aucun) et la carte perd son ombre pour
+  le rayon commun. Vérifier que les 11 lignes tiennent sans débordement à
+  `font_scale` 1.1, en clair **et en nocturne**.
+- [ ] **Interrupteur maître coupé** : les catégories doivent devenir inertes
+  *et* estompées à 50 % — c'est désormais le kit qui le fait (`onChanged:
+  null`), plus l'`IgnorePointer` + `AnimatedOpacity` de l'écran. Vérifier
+  qu'un tap sur une bascule éteinte ne change rien.
+- [ ] **Ligne « De 22:00 à 07:00 »** : elle est devenue une `DesignSettingsTile`
+  (pictogramme + chevron). Vérifier que le tap enchaîne bien les deux
+  sélecteurs d'heure et que l'annulation du second n'enregistre rien.
+- [ ] **`/notifications` : le menu ⋯ de l'en-tête.** « Tout supprimer » était
+  écrit mais **injoignable** (`buildOverflowMenu` n'était appelé nulle part) —
+  il est monté derrière le ⋯, avec « Réglages » qui remplace l'ancienne
+  pastille `tune`. Vérifier que les deux entrées s'ouvrent et que la
+  suppression demande bien confirmation.
+- [ ] **`/notifications/:id` : le sur-titre est en français.** Il affichait le
+  nom Dart de l'énumération (« GROUPJOINREQUEST »). Ouvrir un détail de chaque
+  famille (message, groupe, événement, ami, commande) et lire l'étiquette.
+- [ ] **`/notifications/:id` sur un id absent de la page chargée** (lien
+  profond, charge utile push, ou après avoir scrollé loin) : doit afficher
+  « Cette notification n'est plus disponible », **pas l'écran rouge** — le
+  `firstWhere` levait pendant le build. Reproductible par
+  `am start -a VIEW -d …/notifications/<id-inconnu>`.
+
+---
+
 ## Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`
 
 Programme de test exécuté au pilotage `adb` (taps + `dumpsys` + logcat), thème

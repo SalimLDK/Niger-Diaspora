@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -15,6 +15,12 @@ import '../../../settings/presentation/providers/notification_preferences_provid
 ///
 /// La fiche verrouille « Messages système » ; on ne l'a pas suivie sur ce
 /// point (choix de Salim) : la catégorie reste désactivable comme les autres.
+///
+/// Cet écran était la dernière exception de
+/// `test/core/theme/reglages_sans_doublon_test.dart` : il redéclarait ses
+/// propres `_SettingsCard` / `_SettingsSwitchTile` / `_SettingsDivider`. Il
+/// passe au kit — ce qui lui donne les pictogrammes 42 en dégradé et le rayon
+/// commun, et lui retire son ombre et son rayon 18 propres.
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -26,6 +32,17 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final notifier = ref.read(
       notificationPreferencesNotifierProvider.notifier,
     );
+
+    /// Les catégories suivent l'interrupteur maître. On passe `null` plutôt
+    /// que d'envelopper la liste dans un `IgnorePointer` : c'est au kit de
+    /// rendre la bascule inerte et de l'estomper, pas à l'écran de l'imiter.
+    ValueChanged<bool>? gated(ValueChanged<bool> onChanged) {
+      if (!preferences.masterEnabled) return null;
+      return (value) {
+        HapticFeedback.lightImpact();
+        onChanged(value);
+      };
+    }
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -45,137 +62,126 @@ class NotificationSettingsScreen extends ConsumerWidget {
         children: [
           // Interrupteur maître — carte isolée, sous-titre invariable : il
           // décrit ce que fait le geste, pas l'état courant.
-          _SettingsCard(
+          DesignSettingsCard(
             children: [
-              _SettingsSwitchTile(
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.notifications_active_outlined),
                 title: 'Notifications push',
                 subtitle: "Coupe tout d'un seul geste",
                 value: preferences.masterEnabled,
-                onChanged: notifier.setMasterEnabled,
+                onChanged: (value) {
+                  HapticFeedback.lightImpact();
+                  notifier.setMasterEnabled(value);
+                },
               ),
             ],
           ),
-          const SizedBox(height: 24),
 
-          // Les catégories sont désactivées quand le maître est coupé.
-          IgnorePointer(
-            ignoring: !preferences.masterEnabled,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: preferences.masterEnabled ? 1.0 : 0.4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _SectionLabel('Ce qui vous alerte'),
-                  _SettingsCard(
-                    children: [
-                      _SettingsSwitchTile(
-                        title: l10n.notifyMessages,
-                        subtitle: 'Conversations et groupes',
-                        value: preferences.messagesEnabled,
-                        onChanged: notifier.setMessagesEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: l10n.notifyFriendRequests,
-                        // `receivedRequestsHint` décrit un écran (« …
-                        // apparaîtront ici »), pas ce qui vous alerte.
-                        subtitle: 'Quand quelqu\'un veut se connecter',
-                        value: preferences.friendRequestsEnabled,
-                        onChanged: notifier.setFriendRequestsEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: l10n.notifyGroups,
-                        subtitle: l10n.groupActivity,
-                        value: preferences.groupsEnabled,
-                        onChanged: notifier.setGroupsEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: l10n.notifyEvents,
-                        subtitle: 'Invitations et changements d\'horaire',
-                        value: preferences.eventsEnabled,
-                        onChanged: notifier.setEventsEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: l10n.notifyEventReminders,
-                        // `eventReminders` répétait le titre mot pour mot.
-                        subtitle: 'La veille et une heure avant',
-                        value: preferences.eventRemindersEnabled,
-                        onChanged: notifier.setEventRemindersEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: 'Événements locaux',
-                        subtitle: 'Nouveaux événements dans votre ville',
-                        value: preferences.localEventsEnabled,
-                        onChanged: notifier.setLocalEventsEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: 'Messages système',
-                        subtitle: 'Sécurité, mises à jour importantes',
-                        value: preferences.systemMessagesEnabled,
-                        onChanged: notifier.setSystemMessagesEnabled,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-                  _SectionLabel('Sons et vibrations'),
-                  _SettingsCard(
-                    children: [
-                      _SettingsSwitchTile(
-                        title: l10n.notificationSound,
-                        // Les deux portaient « Recevoir des notifications » :
-                        // le même sous-titre pour deux réglages différents.
-                        subtitle: 'Sonnerie à chaque alerte',
-                        value: preferences.soundEnabled,
-                        onChanged: notifier.setSoundEnabled,
-                      ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
-                        title: l10n.notificationVibration,
-                        subtitle: 'Vibrer même en silencieux',
-                        value: preferences.vibrationEnabled,
-                        onChanged: notifier.setVibrationEnabled,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-                  _SectionLabel('Heures calmes'),
-                  _SettingsCard(
-                    children: [
-                      _SettingsSwitchTile(
-                        title: 'Silence la nuit',
-                        subtitle: 'Utile avec le décalage Niamey – Paris',
-                        value: preferences.quietHoursEnabled,
-                        onChanged: notifier.setQuietHoursEnabled,
-                      ),
-                      if (preferences.quietHoursEnabled) ...[
-                        const _SettingsDivider(),
-                        // Une seule ligne « De 22:00 à 07:00 » au lieu de deux
-                        // sélecteurs : la plage se lit d'un coup d'œil, et le
-                        // tap enchaîne les deux heures.
-                        _QuietHoursRange(
-                          startHour: preferences.quietHoursStartHour,
-                          startMinute: preferences.quietHoursStartMinute,
-                          endHour: preferences.quietHoursEndHour,
-                          endMinute: preferences.quietHoursEndMinute,
-                          onChanged: (sh, sm, eh, em) async {
-                            await notifier.setQuietHoursStartTime(sh, sm);
-                            await notifier.setQuietHoursEndTime(eh, em);
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+          DesignSectionLabel('Ce qui vous alerte'),
+          DesignSettingsCard(
+            children: [
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.chat_bubble_outline),
+                title: l10n.notifyMessages,
+                subtitle: 'Conversations et groupes',
+                value: preferences.messagesEnabled,
+                onChanged: gated(notifier.setMessagesEnabled),
               ),
-            ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.person_add_alt),
+                title: l10n.notifyFriendRequests,
+                // `receivedRequestsHint` décrit un écran (« … apparaîtront
+                // ici »), pas ce qui vous alerte.
+                subtitle: 'Quand quelqu\'un veut se connecter',
+                value: preferences.friendRequestsEnabled,
+                onChanged: gated(notifier.setFriendRequestsEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.groups_outlined),
+                title: l10n.notifyGroups,
+                subtitle: l10n.groupActivity,
+                value: preferences.groupsEnabled,
+                onChanged: gated(notifier.setGroupsEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.event_outlined),
+                title: l10n.notifyEvents,
+                subtitle: 'Invitations et changements d\'horaire',
+                value: preferences.eventsEnabled,
+                onChanged: gated(notifier.setEventsEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.alarm),
+                title: l10n.notifyEventReminders,
+                // `eventReminders` répétait le titre mot pour mot.
+                subtitle: 'La veille et une heure avant',
+                value: preferences.eventRemindersEnabled,
+                onChanged: gated(notifier.setEventRemindersEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.location_on_outlined),
+                title: 'Événements locaux',
+                subtitle: 'Nouveaux événements dans votre ville',
+                value: preferences.localEventsEnabled,
+                onChanged: gated(notifier.setLocalEventsEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.shield_outlined),
+                title: 'Messages système',
+                subtitle: 'Sécurité, mises à jour importantes',
+                value: preferences.systemMessagesEnabled,
+                onChanged: gated(notifier.setSystemMessagesEnabled),
+              ),
+            ],
+          ),
+
+          DesignSectionLabel('Sons et vibrations'),
+          DesignSettingsCard(
+            children: [
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.volume_up_outlined),
+                title: l10n.notificationSound,
+                // Les deux portaient « Recevoir des notifications » : le même
+                // sous-titre pour deux réglages différents.
+                subtitle: 'Sonnerie à chaque alerte',
+                value: preferences.soundEnabled,
+                onChanged: gated(notifier.setSoundEnabled),
+              ),
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.vibration),
+                title: l10n.notificationVibration,
+                subtitle: 'Vibrer même en silencieux',
+                value: preferences.vibrationEnabled,
+                onChanged: gated(notifier.setVibrationEnabled),
+              ),
+            ],
+          ),
+
+          DesignSectionLabel('Heures calmes'),
+          DesignSettingsCard(
+            children: [
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.bedtime_outlined),
+                title: 'Silence la nuit',
+                subtitle: 'Utile avec le décalage Niamey – Paris',
+                value: preferences.quietHoursEnabled,
+                onChanged: gated(notifier.setQuietHoursEnabled),
+              ),
+              // Une seule ligne « De 22:00 à 07:00 » au lieu de deux
+              // sélecteurs : la plage se lit d'un coup d'œil, et le tap
+              // enchaîne les deux heures.
+              if (preferences.masterEnabled && preferences.quietHoursEnabled)
+                _QuietHoursRange(
+                  startHour: preferences.quietHoursStartHour,
+                  startMinute: preferences.quietHoursStartMinute,
+                  endHour: preferences.quietHoursEndHour,
+                  endMinute: preferences.quietHoursEndMinute,
+                  onChanged: (sh, sm, eh, em) async {
+                    await notifier.setQuietHoursStartTime(sh, sm);
+                    await notifier.setQuietHoursEndTime(eh, em);
+                  },
+                ),
+            ],
           ),
 
           const SizedBox(height: 14),
@@ -210,32 +216,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Étiquette de section en chasse fixe (§20d) : elle se lit et s'oublie, là
-/// où la pastille teintée attirait l'œil autant que les réglages eux-mêmes.
-class _SectionLabel extends StatelessWidget {
-  final String text;
-
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10, top: 4),
-      child: Text(
-        text.toUpperCase(),
-        style: GoogleFonts.robotoMono(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.3,
-          color: context.adaptivePrimaryColor,
-        ),
-      ),
-    );
-  }
-}
-
 /// Ligne « De 22:00 à 07:00 » : ouvre le sélecteur du début puis celui de la
 /// fin, et n'enregistre que si les deux ont été confirmés.
+///
+/// C'est une [DesignSettingsTile] et non une rangée à la main : sans le
+/// pictogramme de 42, le texte ne tomberait pas sur le filet que la carte pose
+/// à 72.
 class _QuietHoursRange extends StatelessWidget {
   final int startHour;
   final int startMinute;
@@ -256,29 +242,11 @@ class _QuietHoursRange extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return DesignSettingsTile(
+      icon: const Icon(Icons.schedule),
+      title: 'De ${_fmt(startHour, startMinute)} à ${_fmt(endHour, endMinute)}',
+      subtitle: 'Plage de silence',
       onTap: () => _pick(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'De ${_fmt(startHour, startMinute)} à ${_fmt(endHour, endMinute)}',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  color: context.textSecondaryColor,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 19,
-              color: context.textSecondaryColor,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -322,107 +290,6 @@ class _QuietHoursRange extends StatelessWidget {
             ),
             child: child!,
           ),
-    );
-  }
-}
-
-// Settings Card Widget
-class _SettingsCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _SettingsCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: context.borderColor.withValues(alpha: 0.6)),
-        boxShadow:
-            context.isDarkMode
-                ? null
-                : [
-                  BoxShadow(
-                    color: context.shadowColor,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-      ),
-      child: Column(children: children),
-    );
-  }
-}
-
-/// Ligne à interrupteur de la liste des catégories.
-class _SettingsSwitchTile extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _SettingsSwitchTile({
-    required this.title,
-    this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle!,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: context.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: context.adaptivePrimaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Divider Widget
-class _SettingsDivider extends StatelessWidget {
-  const _SettingsDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      indent: 14,
-      endIndent: 14,
-      color: context.borderColor.withValues(alpha: 0.5),
     );
   }
 }
