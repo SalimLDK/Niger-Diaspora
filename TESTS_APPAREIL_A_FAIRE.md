@@ -2862,14 +2862,21 @@ proximité **et** le filtre de présence, à **1,97 km** du compte principal.
 La première porte (`location_updated_at` < 5 min) est trop courte pour un
 test manuel.
 
-⚠️ **Il reste UN verrou, et il demande un geste sur le téléphone** :
-« Membres à proximité » est **désactivé** sur le compte principal. C'est une
-préférence **locale** (`PreferencesService.nearbyMembersEnabled`), pas une
-colonne serveur — aucun SQL ne peut la lever. Tant qu'elle est à `false`,
-`_initializeLocation` sort immédiatement sur l'état « accès restreint » :
-ni la dernière position connue, ni le canal temps réel, ni les pins.
-À activer depuis l'accueil (« Activer la carte des membres ») ou les
-réglages du profil, puis ouvrir l'onglet Carte.
+✅ **La carte a été ouverte et elle fonctionne** (2026-08-05, SM A515F,
+capture `09_carte_t7`). Sept secondes après le tap sur l'onglet Carte :
+tuiles en style nocturne, marqueur rouge « vous êtes ici », **pin « SL » à
+initiales avec pastille verte**, panneau « **1 membre autour · 50 km** »
+(« À l'instant / À l'instant »), et la ligne « Salim L. — 2,0 km · en ligne ».
+Toute la chaîne passe : requête → filtre de présence → génération des pins →
+liste. La distance affichée (2,0 km) correspond au calcul serveur (1,97 km).
+
+⚠️ **Correction** : une note antérieure affirmait que « Membres à proximité »
+était désactivé sur le compte principal, déduit de la ligne « Activer la
+carte des membres » de l'accueil. **C'est faux** — cette ligne est un élément
+de la liste d'amorçage « Pour commencer », pas l'état du réglage. La preuve
+que la préférence est à `true` : `LocationPublisherService.start()` et
+`_publish()` sortent tous deux immédiatement quand elle est fausse, or la
+position du compte principal est réécrite toutes les deux minutes.
 
 **Pour tout remettre en état après le test** :
 
@@ -2891,6 +2898,14 @@ compte et enregistre son profil, elle peut la réécrire depuis son état local
 - [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
   pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
   `users_location_updates` (`profile_supabase_datasource.dart`).
+  ⏸️ *Tentative du 2026-08-05 non concluante* : la position de « Salim L. » a
+  bien été déplacée en SQL (45.5980 → 45.5900 / −73.6459 → −73.6850) à
+  `23:00:10 UTC`, mais la capture de contrôle est tombée sur l'écran Réglages
+  — le téléphone avait été repris entre-temps. **Le test reste à refaire**, et
+  c'est le seul moyen de prouver le canal temps réel. Méthode : carte ouverte
+  et immobile, `update users set latitude = …, longitude = … where id = …`,
+  puis capture **dans les 5 secondes**. Au-delà de ~40 s le sondage de secours
+  produirait le même résultat et ne prouverait rien.
 - [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
   disparaît immédiatement de la carte de A (et non au sondage suivant).
 - [x] **Position publiée hors de l'écran carte** ✅ **vérifié le 2026-08-05**
