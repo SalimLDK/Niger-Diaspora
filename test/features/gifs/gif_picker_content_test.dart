@@ -7,7 +7,10 @@ import 'package:diaspo_niger/features/gifs/data/datasources/gif_remote_datasourc
 import 'package:diaspo_niger/features/gifs/data/repositories/gif_repository.dart';
 import 'package:diaspo_niger/features/gifs/domain/entities/gif_entity.dart';
 import 'package:diaspo_niger/features/gifs/presentation/providers/gif_provider.dart';
+import 'package:diaspo_niger/features/messages/presentation/widgets/emoji_sticker_picker.dart';
 import 'package:diaspo_niger/features/messages/presentation/widgets/gif_picker_content.dart';
+import 'package:diaspo_niger/features/stickers/domain/entities/sticker_pack_entity.dart';
+import 'package:diaspo_niger/features/stickers/presentation/providers/sticker_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Repository de test : sans réseau, enregistre la dernière requête reçue.
@@ -80,6 +83,39 @@ Future<void> _pump(
   );
 }
 
+/// Monte la coque complète du picker sur l'onglet GIF : c'est elle qui porte la
+/// loupe et le champ de recherche. Les packs de stickers sont neutralisés pour
+/// ne pas partir en réseau (l'onglet Stickers reste alors masqué).
+Future<void> _pumpShell(WidgetTester tester, _FakeGifRepository repo) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        gifRepositoryProvider.overrideWithValue(repo),
+        allUserPacksProvider.overrideWithValue(
+          const AsyncValue<List<StickerPackEntity>>.data([]),
+        ),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: Scaffold(
+          body: EmojiStickerPicker(
+            onEmojiSelected: (_, __) {},
+            onGifSelected: (_) {},
+            initialTab: MessagePickerTab.gif,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   group('GifPickerContent', () {
     testWidgets('affiche la grille des résultats', (tester) async {
@@ -132,19 +168,6 @@ void main() {
       expect(repo.lastType, GifContentType.sticker);
     });
 
-    testWidgets('taper une recherche la transmet au repository',
-        (tester) async {
-      final repo = _FakeGifRepository(results: [_gif('a')]);
-      await _pump(tester, repo);
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'bonjour');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(repo.lastQuery, 'bonjour');
-    });
-
     testWidgets('taper un GIF le renvoie via onGifSelected', (tester) async {
       final repo = _FakeGifRepository(results: [_gif('a')]);
       GifEntity? selected;
@@ -162,6 +185,48 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(selected?.id, 'a');
+    });
+  });
+
+  // La recherche n'est plus dans `GifPickerContent` : la fiche 26b l'a déplacée
+  // dans la loupe de la coque (`EmojiStickerPicker`), qui publie la requête dans
+  // `gifSearchQueryProvider`. On monte donc la coque pour couvrir le chemin
+  // complet loupe -> champ -> provider -> repository.
+  group('Recherche de GIFs depuis la coque', () {
+    testWidgets('taper une recherche la transmet au repository',
+        (tester) async {
+      final repo = _FakeGifRepository(results: [_gif('a')]);
+      await _pumpShell(tester, repo);
+      await tester.pumpAndSettle();
+
+      // Avant ouverture, la seule loupe de l'écran est celle de l'en-tête.
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'bonjour');
+      // Le provider laisse la frappe se poser 350 ms avant de partir au réseau.
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(repo.lastQuery, 'bonjour');
+    });
+
+    testWidgets('fermer la recherche revient aux tendances', (tester) async {
+      final repo = _FakeGifRepository(results: [_gif('a')]);
+      await _pumpShell(tester, repo);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'bonjour');
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsNothing);
+      expect(repo.lastQuery, '');
     });
   });
 }
