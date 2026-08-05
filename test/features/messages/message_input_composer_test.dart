@@ -225,8 +225,12 @@ void main() {
     expect(tester.getSize(find.byType(MessageInput)).height, sansPanneau);
 
     // Clavier parti : le panneau prend sa place, toujours sans déborder.
+    // ⚠ On ne reconstruit PAS l'arbre ici : seul le changement de métriques
+    // doit suffire à révéler le panneau. Sans l'observateur `didChangeMetrics`,
+    // la lecture de `View.of(context).viewInsets` ne crée aucune dépendance et
+    // le panneau reste invisible — c'est le défaut vu sur l'appareil.
     tester.view.viewInsets = FakeViewPadding.zero;
-    await tester.pumpWidget(app());
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.takeException(), isNull);
     expect(

@@ -104,7 +104,7 @@ class MessageInput extends StatefulWidget {
 }
 
 class _MessageInputState extends State<MessageInput>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final AudioRecordingService _recordingService = AudioRecordingService();
@@ -152,6 +152,13 @@ class _MessageInputState extends State<MessageInput>
   @override
   void initState() {
     super.initState();
+
+    // Indispensable au créneau clavier de `_revealInKeyboardSlot` : on y lit
+    // `View.of(context).viewInsets`, qui **ne crée aucune dépendance**. Sans cet
+    // observateur, plus rien ne redemande de build quand le clavier finit de se
+    // replier — la fraction visible reste à 0 et le panneau ne s'affiche jamais
+    // (il n'apparaissait que si un autre `setState` passait par là).
+    WidgetsBinding.instance.addObserver(this);
 
     _morphController = AnimationController(
       duration: const Duration(milliseconds: 250),
@@ -266,8 +273,17 @@ class _MessageInputState extends State<MessageInput>
     PreferencesService.instance.clearMessageDraft(widget.conversationId);
   }
 
+  /// Le clavier bouge : redessiner pour que le panneau suive son retrait.
+  @override
+  void didChangeMetrics() {
+    if (mounted && (_showAttachPanel || _showPicker)) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Une sauvegarde encore en attente serait perdue : on la force avant de
     // disposer le contrôleur (quitter l'écran moins de 500 ms après la
     // dernière frappe effaçait la fin du brouillon).
