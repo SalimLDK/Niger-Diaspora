@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminFeatureFlagsScreen extends ConsumerStatefulWidget {
   const AdminFeatureFlagsScreen({super.key});
@@ -15,6 +16,8 @@ class AdminFeatureFlagsScreen extends ConsumerStatefulWidget {
 
 class _AdminFeatureFlagsScreenState
     extends ConsumerState<AdminFeatureFlagsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -129,7 +132,7 @@ class _AdminFeatureFlagsScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Feature Flags',
+          l10n.adminFeatureFlags,
           style: TextStyle(
             color: _textPrimary,
             fontWeight: FontWeight.bold,
@@ -169,14 +172,14 @@ class _AdminFeatureFlagsScreenState
                         child: InkWell(
                           onTap: _save,
                           borderRadius: BorderRadius.circular(10),
-                          child: const Padding(
+                          child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Row(
                               children: [
                                 Icon(Icons.save_rounded, color: Colors.white, size: 18),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Sauvegarder',
+                                  l10n.e2eeBackupNudgeAction,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w600,
@@ -242,7 +245,7 @@ class _AdminFeatureFlagsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Erreur de chargement',
+                    l10n.adminLoadingError,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -305,7 +308,7 @@ class _AdminFeatureFlagsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mode Maintenance',
+                      l10n.adminMaintenanceMode,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -314,7 +317,7 @@ class _AdminFeatureFlagsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isMaintenanceOn ? 'Application en maintenance' : 'Application active',
+                      isMaintenanceOn ? l10n.adminMaintenanceActive : l10n.adminMaintenanceInactive,
                       style: TextStyle(
                         fontSize: 13,
                         color: isMaintenanceOn ? AdminColors.statusRed : _textSecondary,
@@ -349,7 +352,7 @@ class _AdminFeatureFlagsScreenState
             TextField(
               controller: _maintenanceMessageController,
               decoration: InputDecoration(
-                hintText: 'Ex: Application en maintenance...',
+                hintText: l10n.adminMaintenanceHint,
                 hintStyle: TextStyle(color: AdminColors.text3),
                 filled: true,
                 fillColor: Colors.white,
@@ -451,15 +454,15 @@ class _AdminFeatureFlagsScreenState
           onChanged: (v) => _updateFlag(_flags.copyWith(moneyTransfer: v)),
         ),
         _buildFeatureToggle(
-          title: 'Marketplace',
-          subtitle: 'Achat et vente de produits',
+          title: l10n.adminMarketplace,
+          subtitle: l10n.featureMarketplaceDesc,
           icon: Icons.storefront_rounded,
           color: AdminColors.statusAmber,
           value: _flags.marketplace,
           onChanged: (v) => _updateFlag(_flags.copyWith(marketplace: v)),
         ),
         _buildFeatureToggle(
-          title: 'Annuaire Entreprises',
+          title: l10n.featureBusinessDirectory,
           subtitle: 'Repertoire des entreprises nigeriennes',
           icon: Icons.business_rounded,
           color: AdminColors.actionBlueLight,
@@ -475,7 +478,7 @@ class _AdminFeatureFlagsScreenState
           onChanged: (v) => _updateFlag(_flags.copyWith(events: v)),
         ),
         _buildFeatureToggle(
-          title: 'Groupes',
+          title: l10n.adminGroupsLabel,
           subtitle: 'Creation et gestion des groupes',
           icon: Icons.groups_rounded,
           color: AdminColors.statusPurple,
@@ -483,8 +486,8 @@ class _AdminFeatureFlagsScreenState
           onChanged: (v) => _updateFlag(_flags.copyWith(groups: v)),
         ),
         _buildFeatureToggle(
-          title: 'Ambassades',
-          subtitle: 'Services consulaires et ambassades',
+          title: l10n.adminEmbassies,
+          subtitle: l10n.featureEmbassiesDesc,
           icon: Icons.account_balance_rounded,
           color: AdminColors.statusGreen,
           value: _flags.embassies,
@@ -502,7 +505,7 @@ class _AdminFeatureFlagsScreenState
           onChanged: (v) => _updateFlag(_flags.copyWith(audioRooms: v)),
         ),
         _buildFeatureToggle(
-          title: 'Podcasts',
+          title: l10n.podcasts,
           subtitle: 'Emissions, episodes et enregistrement',
           icon: Icons.mic_rounded,
           color: AdminColors.actionBlueLight,

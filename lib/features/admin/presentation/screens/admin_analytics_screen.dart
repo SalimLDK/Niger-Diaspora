@@ -3,6 +3,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminAnalyticsScreen extends ConsumerStatefulWidget {
   const AdminAnalyticsScreen({super.key});
@@ -13,6 +14,8 @@ class AdminAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -141,7 +144,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Erreur de chargement',
+                  l10n.adminLoadingError,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -179,7 +182,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Croissance Utilisateurs',
+              l10n.adminUserGrowth,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -200,13 +203,13 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               AdminColors.actionBlueLight,
             ),
             _buildStatCard(
-              'Cette semaine',
+              l10n.adminThisWeek,
               data.newUsersThisWeek.toString(),
               const Icon(Icons.date_range_rounded, color: AdminColors.statusGreen, size: 24),
               AdminColors.statusGreen,
             ),
             _buildStatCard(
-              'Ce mois',
+              l10n.adminThisMonth,
               data.newUsersThisMonth.toString(),
               const Icon(Icons.calendar_month_rounded, color: AdminColors.statusAmber, size: 24),
               AdminColors.statusAmber,
@@ -620,10 +623,10 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildExportButton('Utilisateurs', const AppIcon(AppIcon.people, color: Colors.white, size: 20), AdminColors.actionBlueLight, 'users'),
+              _buildExportButton(l10n.adminUsers, const AppIcon(AppIcon.people, color: Colors.white, size: 20), AdminColors.actionBlueLight, 'users'),
               _buildExportButton('Evenements', const Icon(Icons.event_rounded, color: Colors.white, size: 20), AdminColors.statusGreen, 'events'),
-              _buildExportButton('Commerces', const AppIcon(AppIcon.store, color: Colors.white, size: 20), AdminColors.statusAmber, 'businesses'),
-              _buildExportButton('Transactions', const Icon(Icons.payments_rounded, color: Colors.white, size: 20), AdminColors.statusPurple, 'transactions'),
+              _buildExportButton(l10n.adminBusinesses, const AppIcon(AppIcon.store, color: Colors.white, size: 20), AdminColors.statusAmber, 'businesses'),
+              _buildExportButton(l10n.adminTransactions, const Icon(Icons.payments_rounded, color: Colors.white, size: 20), AdminColors.statusPurple, 'transactions'),
             ],
           ),
         ),

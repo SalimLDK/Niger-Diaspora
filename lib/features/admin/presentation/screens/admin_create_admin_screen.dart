@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/role_management_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminCreateAdminScreen extends ConsumerStatefulWidget {
   const AdminCreateAdminScreen({super.key});
@@ -17,6 +18,8 @@ class AdminCreateAdminScreen extends ConsumerStatefulWidget {
 
 class _AdminCreateAdminScreenState
     extends ConsumerState<AdminCreateAdminScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 
@@ -171,8 +174,8 @@ class _AdminCreateAdminScreenState
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Adresse email',
-                  hintText: 'utilisateur@exemple.com',
+                  labelText: l10n.adminEmailAddress,
+                  hintText: l10n.adminEmailHint,
                   prefixIcon: const Icon(Icons.email_outlined),
                   suffixIcon: _isSearching
                       ? const Padding(
@@ -306,7 +309,7 @@ class _AdminCreateAdminScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _foundUser!.displayName ?? 'Sans nom',
+                        _foundUser!.displayName ?? l10n.adminNoName,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -566,7 +569,7 @@ class _AdminCreateAdminScreenState
           child: OutlinedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const AppIcon(AppIcon.close),
-            label: const Text('Annuler'),
+            label: Text(l10n.adminCancelAction),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(

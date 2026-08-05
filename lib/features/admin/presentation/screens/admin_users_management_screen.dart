@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminUsersManagementScreen extends ConsumerStatefulWidget {
   const AdminUsersManagementScreen({super.key});
@@ -15,6 +16,8 @@ class AdminUsersManagementScreen extends ConsumerStatefulWidget {
 class _AdminUsersManagementScreenState
     extends ConsumerState<AdminUsersManagementScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -104,11 +107,11 @@ class _AdminUsersManagementScreenState
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Gestion des Utilisateurs',
+              l10n.adminUsersTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -117,7 +120,7 @@ class _AdminUsersManagementScreenState
             ),
             SizedBox(height: 4),
             Text(
-              'Gérez les comptes, permissions et bannissements',
+              l10n.adminUsersManagementSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -171,7 +174,7 @@ class _AdminUsersManagementScreenState
         controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
         decoration: InputDecoration(
-          hintText: 'Rechercher un utilisateur...',
+          hintText: l10n.adminSearchUser,
           prefixIcon: const Icon(Icons.search_rounded, color: _textSecondary),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
@@ -291,7 +294,7 @@ class _AdminUsersManagementScreenState
                     children: [
                       Expanded(
                         child: Text(
-                          user.displayName ?? 'Sans nom',
+                          user.displayName ?? l10n.adminNoName,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
@@ -299,8 +302,8 @@ class _AdminUsersManagementScreenState
                           ),
                         ),
                       ),
-                      if (user.isAdmin) _buildBadge('ADMIN', AdminColors.statusPurple),
-                      if (user.isBanned) _buildBadge('BANNI', AdminColors.statusRed),
+                      if (user.isAdmin) _buildBadge(l10n.adminAdminBadge, AdminColors.statusPurple),
+                      if (user.isBanned) _buildBadge(l10n.adminBannedBadge, AdminColors.statusRed),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -426,7 +429,7 @@ class _AdminUsersManagementScreenState
             ),
           ),
           const SizedBox(height: 24),
-          const Text('Chargement...', style: TextStyle(color: _textSecondary, fontSize: 14)),
+          Text(l10n.adminLoading, style: TextStyle(color: _textSecondary, fontSize: 14)),
         ],
       ),
     );
@@ -454,8 +457,8 @@ class _AdminUsersManagementScreenState
               child: const Icon(Icons.error_outline_rounded, size: 48, color: AdminColors.statusRed),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Erreur de chargement',
+            Text(
+              l10n.adminLoadingError,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary),
             ),
             const SizedBox(height: 8),
@@ -473,7 +476,7 @@ class _AdminUsersManagementScreenState
         children: [
           Icon(Icons.people_outline_rounded, size: 64, color: _textSecondary.withAlpha(100)),
           const SizedBox(height: 16),
-          const Text('Aucun utilisateur trouvé', style: TextStyle(color: _textSecondary, fontSize: 16)),
+          Text(l10n.adminNoUserFound, style: TextStyle(color: _textSecondary, fontSize: 16)),
         ],
       ),
     );
@@ -485,37 +488,37 @@ class _AdminUsersManagementScreenState
     final currentAdmin = ref.read(currentAdminProvider);
 
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
     switch (action) {
       case 'ban':
-        final reason = await _showTextDialog('Bannir l\'utilisateur', 'Raison du bannissement:');
+        final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
           await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Utilisateur banni');
+          _showSnackBar(l10n.adminUserBanned);
         }
         break;
       case 'unban':
-        final confirm = await _showConfirmation('Débannir l\'utilisateur', 'Êtes-vous sûr de vouloir débannir cet utilisateur ?');
+        final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
           await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Utilisateur débanni');
+          _showSnackBar(l10n.adminUserUnbanned);
         }
         break;
       case 'promote':
-        final confirm = await _showConfirmation('Promouvoir en admin', 'Êtes-vous sûr de vouloir promouvoir cet utilisateur en administrateur ?');
+        final confirm = await _showConfirmation(l10n.adminPromoteToAdminTitle, l10n.adminPromoteConfirm);
         if (confirm == true) {
           await notifier.promoteToAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Utilisateur promu admin');
+          _showSnackBar(l10n.adminUserPromoted);
         }
         break;
       case 'demote':
-        final confirm = await _showConfirmation('Retirer les droits admin', 'Êtes-vous sûr de vouloir retirer les droits administrateur ?');
+        final confirm = await _showConfirmation(l10n.adminRevokeAdminTitle, l10n.adminRevokeAdminConfirm);
         if (confirm == true) {
           await notifier.demoteFromAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Droits admin retirés');
+          _showSnackBar(l10n.adminAdminRightsRevoked);
         }
         break;
       case 'verify_profile':
@@ -526,7 +529,7 @@ class _AdminUsersManagementScreenState
         final confirm = await _showConfirmation('Forcer la déconnexion', 'Cela déconnectera l\'utilisateur de tous ses appareils.');
         if (confirm == true) {
           await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Utilisateur déconnecté');
+          _showSnackBar(l10n.adminUserDisconnected);
         }
         break;
       case 'activity':
@@ -549,7 +552,7 @@ class _AdminUsersManagementScreenState
           width: 400,
           height: 300,
           child: activity.isEmpty
-              ? const Center(child: Text('Aucune activité enregistrée'))
+              ? Center(child: Text(l10n.adminNoActivity))
               : ListView.builder(
                   itemCount: activity.length,
                   itemBuilder: (context, index) {
@@ -563,7 +566,7 @@ class _AdminUsersManagementScreenState
                 ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close)),
         ],
       ),
     );
@@ -577,14 +580,14 @@ class _AdminUsersManagementScreenState
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.adminCancelAction)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),
@@ -607,14 +610,14 @@ class _AdminUsersManagementScreenState
           maxLines: 3,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.adminCancelAction)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../embassies/data/models/embassy_model.dart';
 import '../../../embassies/data/datasources/embassy_remote_datasource.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminCreateEmbassyScreen extends ConsumerStatefulWidget {
   const AdminCreateEmbassyScreen({super.key});
@@ -16,6 +17,8 @@ class AdminCreateEmbassyScreen extends ConsumerStatefulWidget {
 
 class _AdminCreateEmbassyScreenState
     extends ConsumerState<AdminCreateEmbassyScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -87,13 +90,13 @@ class _AdminCreateEmbassyScreenState
   String _getTypeLabel(String type) {
     switch (type) {
       case 'embassy':
-        return 'Ambassade';
+        return l10n.audioRoomEmbassy;
       case 'consulate':
-        return 'Consulat';
+        return l10n.audioRoomConsulate;
       case 'mission':
-        return 'Mission diplomatique';
+        return l10n.embassyTypeMission;
       case 'delegation':
-        return 'Délégation';
+        return l10n.embassyTypeDelegation;
       default:
         return type;
     }
@@ -174,7 +177,7 @@ class _AdminCreateEmbassyScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Créer une ambassade'),
+        title: Text(l10n.adminCreateEmbassy),
         backgroundColor: theme.colorScheme.surface,
       ),
       body: Form(
@@ -210,7 +213,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Informations de base
-              _buildSectionHeader('Informations de base', Icon(Icons.business, color: Theme.of(context).primaryColor, size: 24)),
+              _buildSectionHeader(l10n.basicInfo, Icon(Icons.business, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               // Type
@@ -258,12 +261,12 @@ class _AdminCreateEmbassyScreenState
               TextFormField(
                 controller: _nameController,
                 decoration: _inputDecoration(
-                  'Nom *',
+                  l10n.embassyNameField,
                   'Ex: Ambassade du Niger en France',
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Le nom est obligatoire';
+                    return l10n.embassyNameRequired;
                   }
                   return null;
                 },
@@ -279,7 +282,7 @@ class _AdminCreateEmbassyScreenState
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Le pays est obligatoire';
+                    return l10n.embassyCountryRequired;
                   }
                   return null;
                 },
@@ -289,10 +292,10 @@ class _AdminCreateEmbassyScreenState
               // City
               TextFormField(
                 controller: _cityController,
-                decoration: _inputDecoration('Ville *', 'Ex: Paris'),
+                decoration: _inputDecoration(l10n.embassyCityField, 'Ex: Paris'),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'La ville est obligatoire';
+                    return l10n.embassyCityRequired;
                   }
                   return null;
                 },
@@ -303,7 +306,7 @@ class _AdminCreateEmbassyScreenState
               TextFormField(
                 controller: _addressController,
                 decoration: _inputDecoration(
-                  'Adresse complète *',
+                  l10n.embassyAddressField,
                   'Ex: 154 rue de Longchamp, 75116 Paris',
                 ),
                 maxLines: 2,
@@ -317,13 +320,13 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Contact
-              _buildSectionHeader('Contact', AppIcon(AppIcon.call, color: Theme.of(context).primaryColor, size: 24)),
+              _buildSectionHeader(l10n.contact, AppIcon(AppIcon.call, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _phoneController,
                 decoration: _inputDecoration(
-                  'Téléphone',
+                  l10n.phone,
                   'Ex: +33 1 45 04 80 60',
                 ),
                 keyboardType: TextInputType.phone,
@@ -333,7 +336,7 @@ class _AdminCreateEmbassyScreenState
               TextFormField(
                 controller: _emailController,
                 decoration: _inputDecoration(
-                  'Email',
+                  l10n.adminEmailField,
                   'Ex: contact@ambassade-niger.fr',
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -342,7 +345,7 @@ class _AdminCreateEmbassyScreenState
                     if (!RegExp(
                       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                     ).hasMatch(value)) {
-                      return 'Email invalide';
+                      return l10n.invalidEmail;
                     }
                   }
                   return null;
@@ -353,7 +356,7 @@ class _AdminCreateEmbassyScreenState
               TextFormField(
                 controller: _websiteController,
                 decoration: _inputDecoration(
-                  'Site web',
+                  l10n.website,
                   'Ex: https://www.ambassade-niger.fr',
                 ),
                 keyboardType: TextInputType.url,
@@ -361,7 +364,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Localisation
-              _buildSectionHeader('Localisation GPS (optionnel)', Icon(Icons.map, color: Theme.of(context).primaryColor, size: 24)),
+              _buildSectionHeader(l10n.embassyLocationSection, Icon(Icons.map, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               Row(
@@ -390,7 +393,7 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Services
-              _buildSectionHeader('Services proposés', Icon(Icons.room_service, color: Theme.of(context).primaryColor, size: 24)),
+              _buildSectionHeader(l10n.offeredServices, Icon(Icons.room_service, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 16),
 
               Wrap(
@@ -417,10 +420,10 @@ class _AdminCreateEmbassyScreenState
               const SizedBox(height: 32),
 
               // Section: Jurisdiction
-              _buildSectionHeader('Pays sous juridiction', AppIcon(AppIcon.public, color: Theme.of(context).primaryColor, size: 24)),
+              _buildSectionHeader(l10n.embassyJurisdictionSection, AppIcon(AppIcon.public, color: Theme.of(context).primaryColor, size: 24)),
               const SizedBox(height: 8),
               Text(
-                'Indiquez les pays dont les ressortissants peuvent contacter cette ambassade.',
+                l10n.embassyJurisdictionDesc,
                 style: TextStyle(color: AdminColors.text2, fontSize: 13),
               ),
               const SizedBox(height: 16),
@@ -431,7 +434,7 @@ class _AdminCreateEmbassyScreenState
                     child: TextFormField(
                       controller: _jurisdictionController,
                       decoration: _inputDecoration(
-                        'Ajouter un pays',
+                        l10n.embassyAddCountry,
                         'Ex: Niger',
                       ),
                       onFieldSubmitted: (_) => _addJurisdiction(),
@@ -485,7 +488,7 @@ class _AdminCreateEmbassyScreenState
                         child: TextFormField(
                           decoration: _inputDecoration(
                             '',
-                            'Ex: 09:00 - 17:00 ou Fermé',
+                            l10n.embassyHoursHint,
                           ),
                           onChanged: (value) {
                             if (value.isNotEmpty) {

@@ -20,6 +20,7 @@ import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
 import 'admin_role_management_screen.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Définition d'une destination de navigation avec sa permission requise
 class _NavDestination {
@@ -53,6 +54,8 @@ class AdminDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   int _selectedIndex = 0;
 
   // Palette back-office (design system — cf. AdminColors).
@@ -81,7 +84,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     _allDestinations = [
       _NavDestination(
         id: 'overview',
-        label: 'Aperçu',
+        label: l10n.adminOverview,
         icon: const Icon(Icons.dashboard_outlined),
         selectedIcon: const Icon(Icons.dashboard),
         requiredPermission: AdminPermission.viewDashboard,
@@ -89,7 +92,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'users',
-        label: 'Utilisateurs',
+        label: l10n.adminUsers,
         icon: const AppIcon(AppIcon.people),
         selectedIcon: const AppIcon(AppIcon.people),
         requiredPermission: AdminPermission.viewUsers,
@@ -98,7 +101,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'businesses',
-        label: 'Commerces',
+        label: l10n.adminBusinesses,
         icon: const AppIcon(AppIcon.store),
         selectedIcon: const AppIcon(AppIcon.store),
         requiredPermission: AdminPermission.viewBusinesses,
@@ -106,7 +109,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'content',
-        label: 'Contenu',
+        label: l10n.adminContent,
         icon: const Icon(Icons.event_outlined),
         selectedIcon: const AppIcon(AppIcon.event),
         requiredPermission: AdminPermission.viewContent,
@@ -114,7 +117,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'reports',
-        label: 'Signalements',
+        label: l10n.adminReports,
         icon: const Icon(Icons.report_outlined),
         selectedIcon: const Icon(Icons.report),
         requiredPermission: AdminPermission.viewReports,
@@ -122,7 +125,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'marketplace',
-        label: 'Marketplace',
+        label: l10n.adminMarketplace,
         icon: const Icon(Icons.shopping_bag_outlined),
         selectedIcon: const Icon(Icons.shopping_bag),
         requiredPermission: AdminPermission.viewMarketplace,
@@ -130,7 +133,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'transactions',
-        label: 'Transferts',
+        label: l10n.adminTransfers,
         icon: const Icon(Icons.payments_outlined),
         selectedIcon: const Icon(Icons.payments),
         requiredPermission: AdminPermission.viewTransactions,
@@ -138,7 +141,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'embassies',
-        label: 'Ambassades',
+        label: l10n.adminEmbassies,
         icon: const AppIcon(AppIcon.bank),
         selectedIcon: const AppIcon(AppIcon.bank),
         superAdminOnly: true,
@@ -146,7 +149,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'analytics',
-        label: 'Analytics',
+        label: l10n.adminAnalytics,
         icon: const Icon(Icons.analytics_outlined),
         selectedIcon: const Icon(Icons.analytics),
         requiredPermission: AdminPermission.viewAnalytics,
@@ -154,7 +157,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'notifications',
-        label: 'Notifications',
+        label: l10n.adminNotifications,
         icon: const Icon(Icons.notifications_outlined),
         selectedIcon: const Icon(Icons.notifications),
         requiredPermission: AdminPermission.sendNotifications,
@@ -162,7 +165,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'settings',
-        label: 'Configuration',
+        label: l10n.adminConfiguration,
         icon: const Icon(Icons.settings_outlined),
         selectedIcon: const Icon(Icons.settings),
         requiredPermission: AdminPermission.viewSettings,
@@ -170,7 +173,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'features',
-        label: 'Features',
+        label: l10n.adminFeatures,
         icon: const Icon(Icons.toggle_on_outlined),
         selectedIcon: const Icon(Icons.toggle_on),
         requiredPermission: AdminPermission.viewFeatureFlags,
@@ -178,7 +181,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'audit',
-        label: 'Audit',
+        label: l10n.adminAudit,
         icon: const Icon(Icons.history_outlined),
         selectedIcon: const Icon(Icons.history),
         requiredPermission: AdminPermission.viewAuditLogs,
@@ -186,7 +189,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'roles',
-        label: 'Rôles Admin',
+        label: l10n.adminRoles,
         icon: const Icon(Icons.admin_panel_settings_outlined),
         selectedIcon: const Icon(Icons.admin_panel_settings),
         superAdminOnly: true,
@@ -279,8 +282,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               ),
               Row(
                 children: [
-                  const Text(
-                    'Administration',
+                  Text(
+                    l10n.embassyDepartmentAdministration,
                     style: TextStyle(
                       color: _textSecondary,
                       fontSize: 12,
@@ -311,7 +314,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       actions: [
         _buildAppBarButton(
           icon: const AppIcon(AppIcon.refresh, color: _textSecondary, size: 20),
-          tooltip: 'Actualiser',
+          tooltip: l10n.adminRefresh,
           onPressed: () {
             ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
           },
@@ -319,7 +322,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         const SizedBox(width: 8),
         _buildAppBarButton(
           icon: const Icon(Icons.logout_rounded, color: AdminColors.statusRed, size: 20),
-          tooltip: 'Déconnexion',
+          tooltip: l10n.adminLogout,
           onPressed: () {
             Navigator.of(context).pushReplacementNamed('/login');
           },
@@ -441,10 +444,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPageHeader(
-          title: 'Gestion des Ambassades',
-          subtitle: 'Créez et gérez les comptes ambassades',
+          title: l10n.adminEmbassyManagement,
+          subtitle: l10n.adminManageEmbassiesDesc,
           action: _buildGradientButton(
-            label: 'Créer une ambassade',
+            label: l10n.adminCreateEmbassy,
             icon: const AppIcon(AppIcon.add, color: Colors.white, size: 20),
             onPressed: () {
               Navigator.of(context).push(
@@ -475,35 +478,35 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPageHeader(
-            title: 'Tableau de Bord',
+            title: l10n.adminDashboardTitle,
             subtitle: 'Bienvenue dans le panneau d\'administration DiaspoNiger',
           ),
           const SizedBox(height: 32),
 
           // Main Stats
-          _buildSectionTitle('Statistiques Générales'),
+          _buildSectionTitle(l10n.adminGeneralStats),
           const SizedBox(height: 16),
           _buildStatsGrid([
             _StatItem(
-              title: 'Utilisateurs',
+              title: l10n.adminUsers,
               value: state.totalUsers.toString(),
               icon: const AppIcon(AppIcon.people, color: Colors.white, size: 24),
               gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
-              title: 'Sessions Actives',
+              title: l10n.adminActiveSessions,
               value: state.activeSessions.toString(),
               icon: const Icon(Icons.wifi_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
-              title: 'Événements',
+              title: l10n.adminEventsLabel,
               value: state.totalEvents.toString(),
               icon: const AppIcon(AppIcon.event, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
-              title: 'Groupes',
+              title: l10n.adminGroupsLabel,
               value: state.totalGroups.toString(),
               icon: const AppIcon(AppIcon.groups, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusPurple, AdminColors.statusPurple],
@@ -512,29 +515,29 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           const SizedBox(height: 32),
 
           // Business & Marketplace
-          _buildSectionTitle('Commerce & Marketplace'),
+          _buildSectionTitle(l10n.adminCommerceTitle),
           const SizedBox(height: 16),
           _buildStatsGrid([
             _StatItem(
-              title: 'Commerces',
+              title: l10n.adminBusinesses,
               value: state.totalBusinesses.toString(),
               icon: const AppIcon(AppIcon.store, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
-              title: 'Produits',
+              title: l10n.adminProducts,
               value: state.totalProducts.toString(),
               icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
-              title: 'Transactions',
+              title: l10n.adminTransactions,
               value: state.totalTransactions.toString(),
               icon: const Icon(Icons.payments_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
-              title: 'Signalements',
+              title: l10n.adminReports,
               value: state.pendingReports.toString(),
               icon: Icon(Icons.report_rounded, color: Colors.white, size: 24),
               gradient: state.pendingReports > 0
@@ -545,50 +548,50 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           const SizedBox(height: 32),
 
           // Quick Actions
-          _buildSectionTitle('Actions Rapides'),
+          _buildSectionTitle(l10n.adminQuickActions),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
               _buildQuickAction(
-                label: 'Voir Signalements',
+                label: l10n.adminViewReports,
                 icon: const Icon(Icons.report_rounded, color: AdminColors.statusRed, size: 20),
                 color: AdminColors.statusRed,
                 onTap: () => setState(() => _selectedIndex = 4),
               ),
               _buildQuickAction(
-                label: 'Gérer Utilisateurs',
+                label: l10n.adminManageUsers,
                 icon: const AppIcon(AppIcon.people, color: AdminColors.actionBlue, size: 20),
                 color: AdminColors.actionBlue,
                 onTap: () => setState(() => _selectedIndex = 1),
               ),
               _buildQuickAction(
-                label: 'Envoyer Notification',
+                label: l10n.adminSendNotification,
                 icon: const Icon(Icons.notifications_rounded, color: AdminColors.statusAmber, size: 20),
                 color: AdminColors.statusAmber,
                 onTap: () => setState(() => _selectedIndex = 9),
               ),
               _buildQuickAction(
-                label: 'Voir Analytics',
+                label: l10n.adminViewAnalytics,
                 icon: const Icon(Icons.analytics_rounded, color: AdminColors.statusGreen, size: 20),
                 color: AdminColors.statusGreen,
                 onTap: () => setState(() => _selectedIndex = 8),
               ),
               _buildQuickAction(
-                label: 'Configuration',
+                label: l10n.adminConfiguration,
                 icon: const Icon(Icons.settings_rounded, color: AdminColors.statusGray, size: 20),
                 color: AdminColors.statusGray,
                 onTap: () => setState(() => _selectedIndex = 10),
               ),
               _buildQuickAction(
-                label: 'Feature Flags',
+                label: l10n.adminFeatureFlags,
                 icon: const Icon(Icons.toggle_on_rounded, color: AdminColors.statusPurple, size: 20),
                 color: AdminColors.statusPurple,
                 onTap: () => setState(() => _selectedIndex = 11),
               ),
               _buildQuickAction(
-                label: 'Historique Audit',
+                label: l10n.adminAuditHistory,
                 icon: const Icon(Icons.history_rounded, color: AdminColors.statusGray, size: 20),
                 color: AdminColors.statusGray,
                 onTap: () => setState(() => _selectedIndex = 12),
@@ -706,7 +709,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     Icon(Icons.trending_up_rounded, size: 14, color: item.gradient.first),
                     const SizedBox(width: 4),
                     Text(
-                      'actif',
+                      l10n.adminActive,
                       style: TextStyle(
                         color: item.gradient.first,
                         fontSize: 11,
@@ -845,8 +848,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement des données...',
+          Text(
+            l10n.adminLoadingData,
             style: TextStyle(
               color: _textSecondary,
               fontSize: 14,
@@ -888,8 +891,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Une erreur est survenue',
+            Text(
+              l10n.adminErrorOccurred,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -907,7 +910,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             ),
             const SizedBox(height: 24),
             _buildGradientButton(
-              label: 'Réessayer',
+              label: l10n.retry,
               icon: const AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
               onPressed: () {
                 ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();

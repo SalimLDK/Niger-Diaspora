@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminTransactionsScreen extends ConsumerStatefulWidget {
   const AdminTransactionsScreen({super.key});
@@ -15,6 +16,8 @@ class AdminTransactionsScreen extends ConsumerStatefulWidget {
 class _AdminTransactionsScreenState
     extends ConsumerState<AdminTransactionsScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
@@ -52,13 +55,13 @@ class _AdminTransactionsScreenState
                 _buildPageHeader(),
                 const SizedBox(height: 24),
                 // Stats cards
-                _buildSectionTitle('Volume des Transferts'),
+                _buildSectionTitle(l10n.adminTransferVolume),
                 const SizedBox(height: 16),
                 _buildStatsCards(state),
                 const SizedBox(height: 24),
                 // Currency breakdown
                 if (state.volumeByCurrency.isNotEmpty) ...[
-                  _buildSectionTitle('Détails par Devise'),
+                  _buildSectionTitle(l10n.adminByCurrency),
                   const SizedBox(height: 12),
                   _buildCurrencyBreakdown(state),
                   const SizedBox(height: 24),
@@ -134,8 +137,8 @@ class _AdminTransactionsScreenState
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Monitoring Transferts',
+            Text(
+              l10n.adminTransferMonitoringTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -144,7 +147,7 @@ class _AdminTransactionsScreenState
             ),
             const SizedBox(height: 4),
             Text(
-              'Suivi des transactions et volumes en temps réel',
+              l10n.adminTransferMonitoringSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -198,19 +201,19 @@ class _AdminTransactionsScreenState
       runSpacing: 16,
       children: [
         _buildStatCard(
-          title: 'Volume Total (USD)',
+          title: l10n.adminTotalVolumeUSD,
           value: '\$${state.totalVolumeUSD.toStringAsFixed(2)}',
           icon: Icons.account_balance_wallet_rounded,
           gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
         ),
         _buildStatCard(
-          title: 'Frais Collectés (USD)',
+          title: l10n.adminFeesCollectedUSD,
           value: '\$${state.totalFeesUSD.toStringAsFixed(2)}',
           icon: Icons.payments_rounded,
           gradient: const [AdminColors.actionBlueLight, AdminColors.actionBlue],
         ),
         _buildStatCard(
-          title: 'En attente',
+          title: l10n.adminPending,
           value: state.pendingTransactions.length.toString(),
           icon: Icons.pending_rounded,
           gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
@@ -493,23 +496,23 @@ class _AdminTransactionsScreenState
         ),
         const Divider(height: 24),
         _buildDetailRow(
-          'Montant',
+          l10n.adminAmountHeader,
           '${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
         ),
         _buildDetailRow(
-          'Montant en XOF',
+          l10n.adminAmountXofHeader,
           '${transaction.amountInXof.toStringAsFixed(0)} XOF',
         ),
         _buildDetailRow(
-          'Taux de change',
+          l10n.exchangeRate,
           transaction.exchangeRate.toStringAsFixed(4),
         ),
         _buildDetailRow(
-          'Frais',
+          l10n.adminFees,
           '${transaction.fee.toStringAsFixed(2)} ${transaction.currency}',
         ),
         _buildDetailRow(
-          'Total débité',
+          l10n.totalDebited,
           '${transaction.totalCharged.toStringAsFixed(2)} ${transaction.currency}',
         ),
         const Divider(height: 24),
@@ -529,7 +532,7 @@ class _AdminTransactionsScreenState
           ),
         if (transaction.failureReason != null)
           _buildDetailRow(
-            'Raison échec',
+            l10n.adminFailReasonHeader,
             transaction.failureReason!,
             isError: true,
           ),
@@ -589,63 +592,63 @@ class _AdminTransactionsScreenState
       children: [
         if (transaction.status == TransactionStatus.pending) ...[
           _buildActionButton(
-            label: 'Échouer',
+            label: l10n.adminMarkFailedAction,
             icon: Icons.error_rounded,
             color: AdminColors.statusRed,
             isOutlined: true,
             onPressed: () async {
               if (currentAdmin == null) {
-                _showSnackBar('Erreur: Admin non connecté');
+                _showSnackBar(l10n.adminNotConnected);
                 return;
               }
               final reason = await _showTextDialog(
-                'Marquer comme échouée',
+                l10n.adminMarkAsFailedTitle,
                 'Raison de l\'échec:',
               );
               if (reason != null && reason.isNotEmpty) {
                 await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar('Transaction marquée comme échouée');
+                _showSnackBar(l10n.adminTransactionFailed);
               }
             },
           ),
           const SizedBox(width: 8),
           _buildActionButton(
-            label: 'Compléter',
+            label: l10n.adminComplete,
             icon: Icons.check_rounded,
             color: AdminColors.statusGreen,
             onPressed: () async {
               if (currentAdmin == null) {
-                _showSnackBar('Erreur: Admin non connecté');
+                _showSnackBar(l10n.adminNotConnected);
                 return;
               }
               final confirm = await _showConfirmation(
-                'Marquer comme complétée',
-                'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?',
+                l10n.adminMarkCompleteTitle,
+                l10n.adminMarkCompleteConfirm,
               );
               if (confirm == true) {
                 await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar('Transaction complétée');
+                _showSnackBar(l10n.adminTransactionCompleted);
               }
             },
           ),
         ],
         if (transaction.status == TransactionStatus.completed)
           _buildActionButton(
-            label: 'Rembourser',
+            label: l10n.adminRefund,
             icon: Icons.undo_rounded,
             color: AdminColors.statusAmber,
             onPressed: () async {
               if (currentAdmin == null) {
-                _showSnackBar('Erreur: Admin non connecté');
+                _showSnackBar(l10n.adminNotConnected);
                 return;
               }
               final reason = await _showTextDialog(
                 'Rembourser la transaction',
-                'Raison du remboursement:',
+                l10n.adminRefundReasonLabel,
               );
               if (reason != null && reason.isNotEmpty) {
                 await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar('Transaction remboursée');
+                _showSnackBar(l10n.adminTransactionRefunded);
               }
             },
           ),
@@ -728,13 +731,13 @@ class _AdminTransactionsScreenState
     String label;
     switch (status) {
       case TransactionStatus.pending:
-        label = 'En attente';
+        label = l10n.adminPending;
         break;
       case TransactionStatus.processing:
-        label = 'En cours';
+        label = l10n.adminTransactionInProgress;
         break;
       case TransactionStatus.completed:
-        label = 'Complétée';
+        label = l10n.adminTransactionCompletedLabel;
         break;
       case TransactionStatus.failed:
         label = 'Échouée';
@@ -831,8 +834,8 @@ class _AdminTransactionsScreenState
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Une erreur est survenue',
+            Text(
+              l10n.adminErrorOccurred,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -850,7 +853,7 @@ class _AdminTransactionsScreenState
             ),
             const SizedBox(height: 24),
             _buildActionButton(
-              label: 'Réessayer',
+              label: l10n.retry,
               icon: Icons.refresh_rounded,
               color: _primaryColor,
               onPressed: () {
@@ -877,7 +880,7 @@ class _AdminTransactionsScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -885,7 +888,7 @@ class _AdminTransactionsScreenState
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),
@@ -912,7 +915,7 @@ class _AdminTransactionsScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
@@ -920,7 +923,7 @@ class _AdminTransactionsScreenState
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),

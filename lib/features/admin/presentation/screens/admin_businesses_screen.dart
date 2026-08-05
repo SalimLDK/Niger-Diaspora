@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminBusinessesScreen extends ConsumerStatefulWidget {
   const AdminBusinessesScreen({super.key});
@@ -14,6 +15,8 @@ class AdminBusinessesScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   int _selectedFilter = 0;
 
   // Couleurs cohérentes avec le dashboard
@@ -285,7 +288,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               itemBuilder:
                   (context) => [
                     if (!business.isVerified)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'verify',
                         child: Row(
                           children: [
@@ -295,23 +298,23 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                               size: 20,
                             ),
                             SizedBox(width: 12),
-                            Text('Vérifier'),
+                            Text(l10n.adminVerify),
                           ],
                         ),
                       )
                     else
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'unverify',
                         child: Row(
                           children: [
                             AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 20),
                             SizedBox(width: 12),
-                            Text('Retirer vérification'),
+                            Text(l10n.adminRemoveVerification),
                           ],
                         ),
                       ),
                     if (!business.isBoosted)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'boost',
                         child: Row(
                           children: [
@@ -321,30 +324,30 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                               size: 20,
                             ),
                             SizedBox(width: 12),
-                            Text('Booster (30 jours)'),
+                            Text(l10n.adminBoost30Days),
                           ],
                         ),
                       )
                     else
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'unboost',
                         child: Row(
                           children: [
                             AppIcon(AppIcon.cancel, color: AdminColors.statusGray, size: 20),
                             SizedBox(width: 12),
-                            Text('Retirer boost'),
+                            Text(l10n.adminRemoveBoost),
                           ],
                         ),
                       ),
                     const PopupMenuDivider(),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
                           AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 20),
                           SizedBox(width: 12),
                           Text(
-                            'Supprimer',
+                            l10n.adminDelete,
                             style: TextStyle(color: AdminColors.statusRed),
                           ),
                         ],
@@ -363,7 +366,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     final currentAdmin = ref.read(currentAdminProvider);
 
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
@@ -374,7 +377,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar('Commerce vérifié');
+        _showSnackBar(l10n.adminBusinessVerified);
         break;
       case 'unverify':
         await notifier.unverifyBusiness(
@@ -382,7 +385,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar('Vérification retirée');
+        _showSnackBar(l10n.adminVerificationRemoved);
         break;
       case 'boost':
         await notifier.toggleBoost(
@@ -391,7 +394,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar('Commerce boosté pour 30 jours');
+        _showSnackBar(l10n.adminBusinessBoosted);
         break;
       case 'unboost':
         await notifier.toggleBoost(
@@ -400,7 +403,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar('Boost retiré');
+        _showSnackBar(l10n.adminBoostRemoved);
         break;
       case 'delete':
         final confirm = await _showDeleteConfirmation();
@@ -410,7 +413,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             adminId: currentAdmin.id,
             adminName: currentAdmin.name,
           );
-          _showSnackBar('Commerce supprimé');
+          _showSnackBar(l10n.adminBusinessDeleted);
         }
         break;
     }
@@ -424,14 +427,14 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text('Confirmer la suppression'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir supprimer ce commerce ? Cette action est irréversible.',
+            title: Text(l10n.adminConfirmDelete),
+            content: Text(
+              l10n.adminDeleteBusinessConfirm,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.adminCancelAction),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
@@ -441,8 +444,8 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Supprimer',
+                child: Text(
+                  l10n.adminDelete,
                   style: TextStyle(color: Colors.white),
                 ),
               ),

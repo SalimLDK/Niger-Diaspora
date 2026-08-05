@@ -4,6 +4,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminModerationScreen extends ConsumerStatefulWidget {
   const AdminModerationScreen({super.key});
@@ -15,6 +16,8 @@ class AdminModerationScreen extends ConsumerStatefulWidget {
 
 class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
@@ -114,11 +117,11 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Modération de Contenu',
+              l10n.adminContentModeration,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -127,7 +130,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
             SizedBox(height: 4),
             Text(
-              'Gérez les événements et groupes de la communauté',
+              l10n.adminContentSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -166,7 +169,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Widget _buildEventsList(List<EventEntity> events) {
     if (events.isEmpty) {
-      return _buildEmptyState(Icons.event_rounded, 'Aucun événement trouvé');
+      return _buildEmptyState(Icons.event_rounded, l10n.adminNoEventsFound);
     }
 
     return ListView.builder(
@@ -271,7 +274,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                           child: const Icon(Icons.cancel_rounded, color: AdminColors.statusAmber, size: 16),
                         ),
                         const SizedBox(width: 12),
-                        const Text('Annuler'),
+                        Text(l10n.adminCancelAction),
                       ],
                     ),
                   ),
@@ -288,7 +291,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                         child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
-                      const Text('Supprimer'),
+                      Text(l10n.adminDelete),
                     ],
                   ),
                 ),
@@ -302,7 +305,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Widget _buildGroupsList(List<GroupEntity> groups) {
     if (groups.isEmpty) {
-      return _buildEmptyState(Icons.group_rounded, 'Aucun groupe trouvé');
+      return _buildEmptyState(Icons.group_rounded, l10n.adminNoGroupsFound);
     }
 
     return ListView.builder(
@@ -426,7 +429,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(group.isPrivate ? 'Rendre public' : 'Rendre privé'),
+                      Text(group.isPrivate ? l10n.adminMakePublicAction : l10n.adminMakePrivateAction),
                     ],
                   ),
                 ),
@@ -443,7 +446,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                         child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
-                      const Text('Supprimer'),
+                      Text(l10n.adminDelete),
                     ],
                   ),
                 ),
@@ -528,8 +531,8 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement du contenu...',
+          Text(
+            l10n.adminLoadingContent,
             style: TextStyle(
               color: _textSecondary,
               fontSize: 14,
@@ -571,8 +574,8 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Une erreur est survenue',
+            Text(
+              l10n.adminErrorOccurred,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -622,7 +625,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     final currentAdmin = ref.read(currentAdminProvider);
 
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
@@ -630,21 +633,21 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
       case 'cancel':
         final confirm = await _showConfirmation(
           'Annuler l\'événement',
-          'Êtes-vous sûr de vouloir annuler cet événement ?',
+          l10n.adminCancelEventMsg,
         );
         if (confirm == true) {
           await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Événement annulé');
+          _showSnackBar(l10n.adminEventCancelled);
         }
         break;
       case 'delete':
         final confirm = await _showConfirmation(
           'Supprimer l\'événement',
-          'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.',
+          l10n.adminDeleteEventMsg,
         );
         if (confirm == true) {
           await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Événement supprimé');
+          _showSnackBar(l10n.adminEventDeleted);
         }
         break;
     }
@@ -655,27 +658,27 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     final currentAdmin = ref.read(currentAdminProvider);
 
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
     switch (action) {
       case 'make_public':
         await notifier.toggleGroupPrivacy(group.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Groupe rendu public');
+        _showSnackBar(l10n.adminGroupPublic);
         break;
       case 'make_private':
         await notifier.toggleGroupPrivacy(group.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Groupe rendu privé');
+        _showSnackBar(l10n.adminGroupPrivate);
         break;
       case 'delete':
         final confirm = await _showConfirmation(
-          'Supprimer le groupe',
-          'Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.',
+          l10n.adminDeleteGroupTitle,
+          l10n.adminDeleteGroupConfirm,
         );
         if (confirm == true) {
           await notifier.deleteGroup(group.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Groupe supprimé');
+          _showSnackBar(l10n.adminGroupDeleted);
         }
         break;
     }
@@ -691,7 +694,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -699,7 +702,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
               backgroundColor: AdminColors.statusRed,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),

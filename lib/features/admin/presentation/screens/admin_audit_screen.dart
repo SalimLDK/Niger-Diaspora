@@ -14,6 +14,8 @@ class AdminAuditScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String _selectedFilter = 'all';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -96,7 +98,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildRefreshButton() {
-    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -140,7 +141,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildFiltersAndSearch() {
-    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -189,7 +189,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildFilterDropdown() {
-    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -202,12 +201,12 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           icon: const Icon(Icons.keyboard_arrow_down, color: _textSecondary),
           items: [
             DropdownMenuItem(value: 'all', child: Text(l10n.adminAllActions)),
-            DropdownMenuItem(value: 'user', child: Text(l10n.adminActionUsers)),
-            DropdownMenuItem(value: 'business', child: Text(l10n.adminActionBusinesses)),
-            DropdownMenuItem(value: 'content', child: Text(l10n.adminActionContent)),
-            DropdownMenuItem(value: 'report', child: Text(l10n.adminActionReports)),
-            DropdownMenuItem(value: 'transaction', child: Text(l10n.adminActionTransactions)),
-            DropdownMenuItem(value: 'settings', child: Text(l10n.adminActionSettings)),
+            DropdownMenuItem(value: 'user', child: Text(l10n.adminUsers)),
+            DropdownMenuItem(value: 'business', child: Text(l10n.adminBusinesses)),
+            DropdownMenuItem(value: 'content', child: Text(l10n.adminContent)),
+            DropdownMenuItem(value: 'report', child: Text(l10n.adminReports)),
+            DropdownMenuItem(value: 'transaction', child: Text(l10n.adminTransactions)),
+            DropdownMenuItem(value: 'settings', child: Text(l10n.adminConfiguration)),
             DropdownMenuItem(value: 'notification', child: Text(l10n.adminNotifications)),
           ],
           onChanged: (value) {
@@ -255,7 +254,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildAuditLogCard(AuditLogEntry log) {
-    final l10n = AppLocalizations.of(context)!;
     final actionInfo = _getActionInfo(log.action);
     final dateFormatter = DateFormat('dd MMM yyyy, HH:mm', 'fr_FR');
 
@@ -397,7 +395,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildDetailsSection(Map<String, dynamic> details) {
-    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -448,7 +445,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   _ActionInfo _getActionInfo(String action) {
-    final l10n = AppLocalizations.of(context)!;
     switch (action) {
       case 'ban_user':
         return _ActionInfo(l10n.adminUserBanned, const Icon(Icons.block, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
@@ -508,16 +504,15 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   _TargetTypeInfo _getTargetTypeInfo(String targetType) {
-    final l10n = AppLocalizations.of(context)!;
     switch (targetType) {
       case 'user':
         return _TargetTypeInfo(l10n.user, const AppIcon(AppIcon.person, size: 14, color: AdminColors.actionBlueLight), AdminColors.actionBlueLight);
       case 'business':
         return _TargetTypeInfo(l10n.reportTypeBusiness, const AppIcon(AppIcon.store, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
       case 'event':
-        return _TargetTypeInfo(l10n.reportTypeEvent, const AppIcon(AppIcon.event, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
+        return _TargetTypeInfo(l10n.eventLabel, const AppIcon(AppIcon.event, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
       case 'group':
-        return _TargetTypeInfo(l10n.reportTypeGroup, const AppIcon(AppIcon.groups, size: 14, color: AdminColors.statusPurple), AdminColors.statusPurple);
+        return _TargetTypeInfo(l10n.group, const AppIcon(AppIcon.groups, size: 14, color: AdminColors.statusPurple), AdminColors.statusPurple);
       case 'report':
         return _TargetTypeInfo('Signalement', const Icon(Icons.report, size: 14, color: AdminColors.statusRed), AdminColors.statusRed);
       case 'product':
@@ -544,7 +539,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildErrorState(String error) {
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(32),
@@ -608,7 +602,6 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(32),

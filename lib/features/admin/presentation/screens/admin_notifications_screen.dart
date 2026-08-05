@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminNotificationsScreen extends ConsumerStatefulWidget {
   const AdminNotificationsScreen({super.key});
@@ -15,6 +16,8 @@ class AdminNotificationsScreen extends ConsumerStatefulWidget {
 class _AdminNotificationsScreenState
     extends ConsumerState<AdminNotificationsScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
@@ -87,14 +90,14 @@ class _AdminNotificationsScreenState
             indicatorColor: _primaryColor,
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            tabs: const [
+            tabs: [
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.send_rounded, size: 18),
                     SizedBox(width: 8),
-                    Text('Envoyer'),
+                    Text(l10n.adminSend),
                   ],
                 ),
               ),
@@ -104,7 +107,7 @@ class _AdminNotificationsScreenState
                   children: [
                     Icon(Icons.history_rounded, size: 18),
                     SizedBox(width: 8),
-                    Text('Historique'),
+                    Text(l10n.adminHistory),
                   ],
                 ),
               ),
@@ -130,11 +133,11 @@ class _AdminNotificationsScreenState
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notifications Globales',
+              l10n.adminGlobalNotifications,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -143,7 +146,7 @@ class _AdminNotificationsScreenState
             ),
             SizedBox(height: 4),
             Text(
-              'Envoyez des notifications à tous les utilisateurs',
+              l10n.adminGlobalNotificationsDesc,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -199,8 +202,8 @@ class _AdminNotificationsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Nouvelle Notification',
+            Text(
+              l10n.adminNewNotification,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -210,21 +213,21 @@ class _AdminNotificationsScreenState
             const SizedBox(height: 24),
             _buildTextField(
               controller: _titleController,
-              label: 'Titre',
-              hint: 'Ex: Mise à jour importante',
+              label: l10n.adminTitle,
+              hint: l10n.adminNotifTitleHint,
               icon: Icons.title_rounded,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _bodyController,
-              label: 'Message',
-              hint: 'Contenu de la notification...',
+              label: l10n.adminMessage,
+              hint: l10n.adminNotifMessageHint,
               icon: Icons.message_rounded,
               maxLines: 4,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Destinataires',
+            Text(
+              l10n.adminRecipients,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -236,10 +239,10 @@ class _AdminNotificationsScreenState
               spacing: 12,
               runSpacing: 8,
               children: [
-                _buildTargetChip('all', 'Tous les utilisateurs', Icons.people_rounded),
-                _buildTargetChip('admins', 'Administrateurs', Icons.admin_panel_settings_rounded),
-                _buildTargetChip('verified', 'Profils vérifiés', Icons.verified_rounded),
-                _buildTargetChip('business_owners', 'Propriétaires de commerces', Icons.store_rounded),
+                _buildTargetChip('all', l10n.adminAllUsers, Icons.people_rounded),
+                _buildTargetChip('admins', l10n.adminAdministrators, Icons.admin_panel_settings_rounded),
+                _buildTargetChip('verified', l10n.adminVerifiedProfiles, Icons.verified_rounded),
+                _buildTargetChip('business_owners', l10n.adminBusinessOwners, Icons.store_rounded),
               ],
             ),
             const SizedBox(height: 32),
@@ -249,7 +252,7 @@ class _AdminNotificationsScreenState
                   child: OutlinedButton.icon(
                     onPressed: _clearForm,
                     icon: const Icon(Icons.clear_rounded, size: 18),
-                    label: const Text('Effacer'),
+                    label: Text(l10n.adminClear),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _textSecondary,
                       side: const BorderSide(color: AdminColors.border),
@@ -270,7 +273,7 @@ class _AdminNotificationsScreenState
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.send_rounded, size: 18),
-                    label: Text(state.isSending ? 'Envoi en cours...' : 'Envoyer'),
+                    label: Text(state.isSending ? l10n.adminSending : l10n.adminSend),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryColor,
                       foregroundColor: Colors.white,
@@ -428,7 +431,7 @@ class _AdminNotificationsScreenState
                     children: [
                       Expanded(
                         child: Text(
-                          notification['title'] ?? 'Sans titre',
+                          notification['title'] ?? l10n.adminNoTitle,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
@@ -527,11 +530,11 @@ class _AdminNotificationsScreenState
   String _getStatusLabel(String status) {
     switch (status) {
       case 'sent':
-        return 'Envoyé';
+        return l10n.adminStatusSent;
       case 'pending':
-        return 'En attente';
+        return l10n.adminPending;
       case 'failed':
-        return 'Échoué';
+        return l10n.adminStatusFailed;
       default:
         return status;
     }
@@ -540,13 +543,13 @@ class _AdminNotificationsScreenState
   String _getTargetLabel(String target) {
     switch (target) {
       case 'all':
-        return 'Tous';
+        return l10n.adminAll;
       case 'admins':
-        return 'Admins';
+        return l10n.admins;
       case 'verified':
-        return 'Vérifiés';
+        return l10n.adminTargetVerified;
       case 'business_owners':
-        return 'Commerces';
+        return l10n.adminBusinesses;
       default:
         return target;
     }
@@ -576,8 +579,8 @@ class _AdminNotificationsScreenState
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement...',
+          Text(
+            l10n.adminLoading,
             style: TextStyle(color: _textSecondary, fontSize: 14),
           ),
         ],
@@ -592,8 +595,8 @@ class _AdminNotificationsScreenState
         children: [
           Icon(Icons.notifications_off_rounded, size: 64, color: _textSecondary.withAlpha(100)),
           const SizedBox(height: 16),
-          const Text(
-            'Aucune notification envoyée',
+          Text(
+            l10n.adminNoNotificationsSent,
             style: TextStyle(color: _textSecondary, fontSize: 16),
           ),
         ],
@@ -609,7 +612,7 @@ class _AdminNotificationsScreenState
 
   Future<void> _sendNotification() async {
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
-      _showSnackBar('Veuillez remplir le titre et le message', isError: true);
+      _showSnackBar(l10n.adminFillTitleAndMessage, isError: true);
       return;
     }
 
@@ -617,7 +620,7 @@ class _AdminNotificationsScreenState
     if (confirm == true) {
       final currentAdmin = ref.read(currentAdminProvider);
       if (currentAdmin == null) {
-        _showSnackBar('Erreur: Admin non connecté', isError: true);
+        _showSnackBar(l10n.adminNotConnected, isError: true);
         return;
       }
       await ref.read(adminNotificationNotifierProvider.notifier).sendGlobalNotification(
@@ -669,7 +672,7 @@ class _AdminNotificationsScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -677,7 +680,7 @@ class _AdminNotificationsScreenState
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Envoyer'),
+            child: Text(l10n.adminSend),
           ),
         ],
       ),

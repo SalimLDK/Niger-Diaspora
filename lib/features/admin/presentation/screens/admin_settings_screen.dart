@@ -5,6 +5,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -16,6 +17,8 @@ class AdminSettingsScreen extends ConsumerStatefulWidget {
 
 class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -57,7 +60,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Configuration App',
+          l10n.adminConfigurationAppTitle,
           style: TextStyle(
             color: _textPrimary,
             fontWeight: FontWeight.bold,
@@ -93,7 +96,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
               labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               padding: const EdgeInsets.all(4),
-              tabs: const [
+              tabs: [
                 Tab(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
@@ -102,7 +105,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                       children: [
                         Icon(Icons.attach_money_rounded, size: 18),
                         SizedBox(width: 6),
-                        Text('Frais'),
+                        Text(l10n.adminFees),
                       ],
                     ),
                   ),
@@ -115,7 +118,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                       children: [
                         Icon(Icons.rocket_launch_rounded, size: 18),
                         SizedBox(width: 6),
-                        Text('Boosts'),
+                        Text(l10n.adminBoosts),
                       ],
                     ),
                   ),
@@ -128,7 +131,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                       children: [
                         Icon(Icons.receipt_long_rounded, size: 18),
                         SizedBox(width: 6),
-                        Text('Taxes'),
+                        Text(l10n.adminTaxes),
                       ],
                     ),
                   ),
@@ -141,7 +144,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                       children: [
                         Icon(Icons.image_rounded, size: 18),
                         SizedBox(width: 6),
-                        Text('Medias'),
+                        Text(l10n.adminMedias),
                       ],
                     ),
                   ),
@@ -210,7 +213,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Erreur de chargement',
+                    l10n.adminLoadingError,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -246,6 +249,8 @@ class _FeesTab extends ConsumerStatefulWidget {
 }
 
 class _FeesTabState extends ConsumerState<_FeesTab> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -337,15 +342,15 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionCard(
-              title: 'Frais de Transfert',
+              title: l10n.adminTransferFeesTitle,
               subtitle: 'Configuration des frais sur les envois d\'argent',
               icon: Icons.send_rounded,
               color: AdminColors.statusGreen,
               children: [
                 _buildPercentField(
                   controller: _transferFeePercentController,
-                  label: 'Pourcentage des frais',
-                  hint: 'Ex: 2.5 pour 2.5%',
+                  label: l10n.adminFeePercentage,
+                  hint: l10n.adminPercentageHint,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -353,14 +358,14 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
                     Expanded(
                       child: _buildAmountField(
                         controller: _transferFeeMinController,
-                        label: 'Frais minimum (XOF)',
+                        label: l10n.adminMinFee,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildAmountField(
                         controller: _transferFeeMaxController,
-                        label: 'Frais maximum (XOF)',
+                        label: l10n.adminMaxFee,
                       ),
                     ),
                   ],
@@ -369,14 +374,14 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
             ),
             const SizedBox(height: 24),
             _buildSectionCard(
-              title: 'Frais Marketplace',
-              subtitle: 'Commission sur les ventes de produits',
+              title: l10n.adminMarketplaceFeesTitle,
+              subtitle: l10n.adminMarketplaceFeesDesc,
               icon: Icons.storefront_rounded,
               color: AdminColors.statusAmber,
               children: [
                 _buildPercentField(
                   controller: _marketplaceFeePercentController,
-                  label: 'Commission plateforme',
+                  label: l10n.adminPlatformCommission,
                   hint: 'Ex: 5 pour 5%',
                 ),
                 const SizedBox(height: 16),
@@ -385,14 +390,14 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
                     Expanded(
                       child: _buildAmountField(
                         controller: _marketplaceFeeMinController,
-                        label: 'Commission min (XOF)',
+                        label: l10n.adminCommissionMin,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildAmountField(
                         controller: _marketplaceFeeMaxController,
-                        label: 'Commission max (XOF)',
+                        label: l10n.adminCommissionMax,
                       ),
                     ),
                   ],
@@ -510,10 +515,10 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
       ],
       validator: (value) {
-        if (value == null || value.isEmpty) return 'Requis';
+        if (value == null || value.isEmpty) return l10n.adminFieldRequired;
         final num = double.tryParse(value);
         if (num == null || num < 0 || num > 100) {
-          return 'Valeur entre 0 et 100';
+          return l10n.adminValueBetweenError;
         }
         return null;
       },
@@ -550,8 +555,8 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (value) {
-        if (value == null || value.isEmpty) return 'Requis';
-        if (int.tryParse(value) == null) return 'Nombre invalide';
+        if (value == null || value.isEmpty) return l10n.adminFieldRequired;
+        if (int.tryParse(value) == null) return l10n.adminInvalidNumberError;
         return null;
       },
     );
@@ -578,7 +583,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
         child: InkWell(
           onTap: _save,
           borderRadius: BorderRadius.circular(14),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -586,7 +591,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
                 Icon(Icons.save_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text(
-                  'Enregistrer les modifications',
+                  l10n.adminSaveChanges,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -616,6 +621,8 @@ class _BoostPricingTab extends ConsumerStatefulWidget {
 }
 
 class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -704,24 +711,24 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('Prix de base (7 jours)', Icons.rocket_launch_rounded, AdminColors.statusPurple),
+            _buildSectionHeader(l10n.adminBasePricesTitle, Icons.rocket_launch_rounded, AdminColors.statusPurple),
             const SizedBox(height: 20),
             _buildPriceCard(
-              title: 'Standard',
+              title: l10n.adminStandardTier,
               description: 'Visibilite amelioree',
               controller: _standardBaseController,
               color: AdminColors.actionBlueLight,
             ),
             const SizedBox(height: 12),
             _buildPriceCard(
-              title: 'Featured',
-              description: 'Badge + meilleure position',
+              title: l10n.adminFeaturedTier,
+              description: l10n.adminFeaturedTierDesc,
               controller: _featuredBaseController,
               color: AdminColors.statusAmber,
             ),
             const SizedBox(height: 12),
             _buildPriceCard(
-              title: 'Premium',
+              title: l10n.adminPremiumTier,
               description: 'Top position + section dediee',
               controller: _premiumBaseController,
               color: AdminColors.statusPurple,
@@ -747,21 +754,21 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
                   Expanded(
                     child: _buildMultiplierField(
                       controller: _multiplier7Controller,
-                      label: '7 jours',
+                      label: l10n.adminDays7Label,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildMultiplierField(
                       controller: _multiplier30Controller,
-                      label: '30 jours',
+                      label: l10n.adminDays30Label,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildMultiplierField(
                       controller: _multiplier90Controller,
-                      label: '90 jours',
+                      label: l10n.adminDays90Label,
                     ),
                   ),
                 ],
@@ -882,7 +889,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+              validator: (v) => v == null || v.isEmpty ? l10n.adminFieldRequired : null,
             ),
           ),
         ],
@@ -912,9 +919,9 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Requis';
+        if (v == null || v.isEmpty) return l10n.adminFieldRequired;
         final num = double.tryParse(v);
-        if (num == null || num <= 0) return 'Invalide';
+        if (num == null || num <= 0) return l10n.quantityInvalidError;
         return null;
       },
     );
@@ -957,13 +964,13 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
           Row(
             children: [
               Expanded(
-                child: _buildPreviewItem('7 jours', '${standardBase.toInt()} XOF'),
+                child: _buildPreviewItem(l10n.adminDays7Label, '${standardBase.toInt()} XOF'),
               ),
               Expanded(
-                child: _buildPreviewItem('30 jours', '${(standardBase * mult30).toInt()} XOF'),
+                child: _buildPreviewItem(l10n.adminDays30Label, '${(standardBase * mult30).toInt()} XOF'),
               ),
               Expanded(
-                child: _buildPreviewItem('90 jours', '${(standardBase * mult90).toInt()} XOF'),
+                child: _buildPreviewItem(l10n.adminDays90Label, '${(standardBase * mult90).toInt()} XOF'),
               ),
             ],
           ),
@@ -1016,7 +1023,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
         child: InkWell(
           onTap: _save,
           borderRadius: BorderRadius.circular(14),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1024,7 +1031,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
                 Icon(Icons.save_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text(
-                  'Enregistrer',
+                  l10n.save,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -1054,6 +1061,8 @@ class _TaxRatesTab extends ConsumerStatefulWidget {
 }
 
 class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -1262,9 +1271,9 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
             ],
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Requis';
+              if (v == null || v.isEmpty) return l10n.adminFieldRequired;
               final num = double.tryParse(v);
-              if (num == null || num < 0 || num > 100) return 'Invalide';
+              if (num == null || num < 0 || num > 100) return l10n.quantityInvalidError;
               return null;
             },
           ),
@@ -1294,7 +1303,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
         child: InkWell(
           onTap: _save,
           borderRadius: BorderRadius.circular(14),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1302,7 +1311,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
                 Icon(Icons.save_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text(
-                  'Enregistrer',
+                  l10n.save,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -1332,6 +1341,8 @@ class _MediaLimitsTab extends ConsumerStatefulWidget {
 }
 
 class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -1427,15 +1438,15 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionCard(
-              title: 'Images',
+              title: l10n.adminImagesTitle,
               subtitle: 'Configuration des images uploadees',
               icon: Icons.image_rounded,
               color: AdminColors.actionBlueLight,
               children: [
                 _buildIntField(
                   controller: _imageMaxWidthController,
-                  label: 'Dimension max (px)',
-                  hint: 'Largeur et hauteur max',
+                  label: l10n.adminMaxDimension,
+                  hint: l10n.adminImagesDimensionHint,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1452,7 +1463,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
                     Expanded(
                       child: _buildIntField(
                         controller: _maxImagesController,
-                        label: 'Max images/upload',
+                        label: l10n.adminMaxImagesUpload,
                       ),
                     ),
                   ],
@@ -1460,7 +1471,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
                 const SizedBox(height: 16),
                 _buildIntField(
                   controller: _maxImageSizeController,
-                  label: 'Taille max image (MB)',
+                  label: l10n.adminMaxImageSize,
                 ),
               ],
             ),
@@ -1479,8 +1490,8 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
             ),
             const SizedBox(height: 24),
             _buildSectionCard(
-              title: 'Messages',
-              subtitle: 'Configuration des messages',
+              title: l10n.adminMessagesTitle,
+              subtitle: l10n.adminMessagesDesc,
               icon: Icons.message_rounded,
               color: AdminColors.statusGreen,
               children: [
@@ -1599,9 +1610,9 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Requis';
+        if (v == null || v.isEmpty) return l10n.adminFieldRequired;
         final num = int.tryParse(v);
-        if (num == null || num <= 0) return 'Invalide';
+        if (num == null || num <= 0) return l10n.quantityInvalidError;
         if (max != null && num > max) return 'Max: $max';
         return null;
       },
@@ -1629,7 +1640,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
         child: InkWell(
           onTap: _save,
           borderRadius: BorderRadius.circular(14),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1637,7 +1648,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
                 Icon(Icons.save_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text(
-                  'Enregistrer',
+                  l10n.save,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -1667,6 +1678,8 @@ class _SystemSettingsTab extends ConsumerStatefulWidget {
 }
 
 class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _primaryColor = AdminColors.actionBlue;
   static const _cardColor = AdminColors.surface;
   static const _textPrimary = AdminColors.text;
@@ -1802,21 +1815,21 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionCard(
-              title: 'URLs & Contact',
-              subtitle: 'Configuration des liens et emails',
+              title: l10n.adminUrlsAndContactTitle,
+              subtitle: l10n.adminUrlsAndContactDesc,
               icon: Icons.link_rounded,
               color: AdminColors.actionBlueLight,
               saveAction: _saveUrls,
               children: [
                 _buildTextField(
                   controller: _shareBaseUrlController,
-                  label: 'URL de base pour partage',
+                  label: l10n.adminBaseShareUrl,
                   icon: Icons.share_rounded,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _supportEmailController,
-                  label: 'Email support',
+                  label: l10n.adminSupportEmail,
                   icon: Icons.support_agent_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -1828,13 +1841,13 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _bugsEmailController,
-                  label: 'Email rapport de bugs',
+                  label: l10n.adminBugReportEmail,
                   icon: Icons.bug_report_rounded,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _feedbackEmailController,
-                  label: 'Email feedback',
+                  label: l10n.adminFeedbackEmail,
                   icon: Icons.feedback_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -1861,7 +1874,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 const SizedBox(height: 16),
                 _buildIntervalField(
                   controller: _heartbeatIntervalController,
-                  label: 'Heartbeat statut en ligne (min)',
+                  label: l10n.adminOnlineHeartbeat,
                   icon: Icons.favorite_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -1963,7 +1976,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
               child: InkWell(
                 onTap: saveAction,
                 borderRadius: BorderRadius.circular(12),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1971,7 +1984,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                       Icon(Icons.save_rounded, color: Colors.white, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'Sauvegarder',
+                        l10n.e2eeBackupNudgeAction,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -2048,9 +2061,9 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Requis';
+        if (v == null || v.isEmpty) return l10n.adminFieldRequired;
         final num = int.tryParse(v);
-        if (num == null || num <= 0) return 'Invalide';
+        if (num == null || num <= 0) return l10n.quantityInvalidError;
         return null;
       },
     );

@@ -6,6 +6,7 @@ import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/role_management_provider.dart';
 import 'admin_create_admin_screen.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminRoleManagementScreen extends ConsumerStatefulWidget {
   const AdminRoleManagementScreen({super.key});
@@ -17,6 +18,8 @@ class AdminRoleManagementScreen extends ConsumerStatefulWidget {
 
 class _AdminRoleManagementScreenState
     extends ConsumerState<AdminRoleManagementScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -55,12 +58,12 @@ class _AdminRoleManagementScreenState
           child: const Icon(Icons.admin_panel_settings, color: Colors.white),
         ),
         const SizedBox(width: 16),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Gestion des Rôles Admin',
+                l10n.adminRoleManagementTitle,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -68,7 +71,7 @@ class _AdminRoleManagementScreenState
                 ),
               ),
               Text(
-                'Attribuez et gérez les rôles des administrateurs',
+                l10n.adminRoleManagementSubtitle,
                 style: TextStyle(
                   color: AdminColors.text2,
                   fontSize: 14,
@@ -91,7 +94,7 @@ class _AdminRoleManagementScreenState
             }
           },
           icon: const Icon(Icons.person_add),
-          label: const Text('Nouvel Admin'),
+          label: Text(l10n.adminNewAdmin),
           style: ElevatedButton.styleFrom(
             backgroundColor: AdminColors.actionBlue,
             foregroundColor: Colors.white,
@@ -104,7 +107,7 @@ class _AdminRoleManagementScreenState
         const SizedBox(width: 8),
         IconButton(
           icon: const Icon(Icons.refresh),
-          tooltip: 'Actualiser',
+          tooltip: l10n.adminRefresh,
           onPressed: () {
             ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
           },
@@ -131,7 +134,7 @@ class _AdminRoleManagementScreenState
               onPressed: () {
                 ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
               },
-              child: const Text('Réessayer'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -139,7 +142,7 @@ class _AdminRoleManagementScreenState
     }
 
     if (state.admins.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -147,7 +150,7 @@ class _AdminRoleManagementScreenState
                 size: 64, color: AdminColors.text3),
             SizedBox(height: 16),
             Text(
-              'Aucun administrateur configuré',
+              l10n.adminNoAdminsConfigured,
               style: TextStyle(
                 fontSize: 18,
                 color: AdminColors.text2,
@@ -247,7 +250,7 @@ class _AdminRoleManagementScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    admin.displayName ?? 'Sans nom',
+                    admin.displayName ?? l10n.adminNoName,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -315,7 +318,7 @@ class _AdminRoleManagementScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Changer le rôle'),
+        title: Text(l10n.adminChangeRoleTitle),
         content: Text(
           'Voulez-vous changer le rôle de ${admin.displayName ?? admin.email} '
           'de ${admin.adminRole.shortName} à ${newRole.shortName}?',
@@ -323,7 +326,7 @@ class _AdminRoleManagementScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -332,7 +335,7 @@ class _AdminRoleManagementScreenState
                   .read(roleManagementNotifierProvider.notifier)
                   .assignRole(admin.id, newRole);
             },
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),
@@ -352,7 +355,7 @@ class _AdminRoleManagementScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -365,7 +368,7 @@ class _AdminRoleManagementScreenState
               backgroundColor: AdminColors.statusRed,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Révoquer'),
+            child: Text(l10n.adminRevoke),
           ),
         ],
       ),

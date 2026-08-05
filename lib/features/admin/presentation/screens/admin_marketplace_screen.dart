@@ -4,6 +4,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminMarketplaceScreen extends ConsumerStatefulWidget {
   const AdminMarketplaceScreen({super.key});
@@ -14,6 +15,8 @@ class AdminMarketplaceScreen extends ConsumerStatefulWidget {
 
 class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   // Modern color palette (matching dashboard)
@@ -211,7 +214,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   Widget _buildProductsList(List<ProductEntity> products) {
     if (products.isEmpty) {
-      return _buildEmptyState(Icons.shopping_bag_rounded, 'Aucun produit trouvé');
+      return _buildEmptyState(Icons.shopping_bag_rounded, l10n.noProductFound);
     }
 
     return ListView.builder(
@@ -330,7 +333,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(product.isAvailable ? 'Désactiver' : 'Activer'),
+                      Text(product.isAvailable ? l10n.disable : l10n.enable),
                     ],
                   ),
                 ),
@@ -347,7 +350,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                         child: const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 16),
                       ),
                       const SizedBox(width: 12),
-                      const Text('Supprimer'),
+                      Text(l10n.adminDelete),
                     ],
                   ),
                 ),
@@ -369,7 +372,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         border: Border.all(color: color.withAlpha(50)),
       ),
       child: Text(
-        isAvailable ? 'Disponible' : 'Indisponible',
+        isAvailable ? l10n.adminAvailable : l10n.adminUnavailable,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
@@ -381,7 +384,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   Widget _buildOrdersList(List<Map<String, dynamic>> orders) {
     if (orders.isEmpty) {
-      return _buildEmptyState(Icons.receipt_rounded, 'Aucune commande trouvée');
+      return _buildEmptyState(Icons.receipt_rounded, l10n.adminNoOrders);
     }
 
     return ListView.builder(
@@ -515,8 +518,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Aucun litige en cours',
+            Text(
+              l10n.adminNoDisputes,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -591,8 +594,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildDetailRow('Acheteur', dispute['buyerId'] ?? 'N/A'),
-        _buildDetailRow('Vendeur', dispute['sellerId'] ?? 'N/A'),
+        _buildDetailRow(l10n.adminBuyer, dispute['buyerId'] ?? 'N/A'),
+        _buildDetailRow(l10n.adminSeller, dispute['sellerId'] ?? 'N/A'),
         if (dispute['disputeDescription'] != null) ...[
           const SizedBox(height: 8),
           Container(
@@ -613,7 +616,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             _buildActionButton(
-              label: 'Acheteur',
+              label: l10n.adminBuyer,
               icon: Icons.person_rounded,
               color: AdminColors.actionBlueLight,
               isOutlined: true,
@@ -621,7 +624,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             const SizedBox(width: 8),
             _buildActionButton(
-              label: 'Vendeur',
+              label: l10n.adminSeller,
               icon: Icons.store_rounded,
               color: AdminColors.statusPurple,
               isOutlined: true,
@@ -629,7 +632,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             const SizedBox(width: 8),
             _buildActionButton(
-              label: 'Rembourser',
+              label: l10n.adminRefund,
               icon: Icons.money_off_rounded,
               color: AdminColors.statusAmber,
               onPressed: () => _resolveDispute(dispute, 'refund'),
@@ -728,8 +731,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement...',
+          Text(
+            l10n.adminLoading,
             style: TextStyle(color: _textSecondary, fontSize: 14),
           ),
         ],
@@ -761,8 +764,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
               child: const AppIcon(AppIcon.error, size: 48, color: AdminColors.statusRed),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Erreur de chargement',
+            Text(
+              l10n.adminLoadingError,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary),
             ),
             const SizedBox(height: 8),
@@ -791,27 +794,27 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     final currentAdmin = ref.read(currentAdminProvider);
 
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
     switch (action) {
       case 'enable':
         await notifier.toggleProductAvailability(product.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Produit activé');
+        _showSnackBar(l10n.adminProductActivated);
         break;
       case 'disable':
         await notifier.toggleProductAvailability(product.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Produit désactivé');
+        _showSnackBar(l10n.adminProductDeactivated);
         break;
       case 'delete':
         final confirm = await _showConfirmation(
-          'Supprimer le produit',
-          'Êtes-vous sûr de vouloir supprimer ce produit ?',
+          l10n.adminDeleteProductTitle,
+          l10n.adminDeleteProductConfirm,
         );
         if (confirm == true) {
           await notifier.deleteProduct(product.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar('Produit supprimé');
+          _showSnackBar(l10n.adminProductDeleted);
         }
         break;
     }
@@ -820,11 +823,11 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   Future<void> _resolveDispute(Map<String, dynamic> dispute, String resolution) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté');
+      _showSnackBar(l10n.adminNotConnected);
       return;
     }
 
-    final note = await _showTextDialog('Résoudre le litige', 'Note de résolution:');
+    final note = await _showTextDialog(l10n.adminResolveDisputeTitle, l10n.adminProcessReportPrompt);
     if (note != null) {
       await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
         dispute['id'],
@@ -833,7 +836,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
       );
-      _showSnackBar('Litige résolu');
+      _showSnackBar(l10n.adminDisputeResolved);
     }
   }
 
@@ -845,14 +848,14 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.adminCancelAction)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AdminColors.statusRed,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),
@@ -875,14 +878,14 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           maxLines: 3,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.adminCancelAction)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),

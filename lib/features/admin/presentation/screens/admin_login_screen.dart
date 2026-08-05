@@ -3,6 +3,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
@@ -12,6 +13,8 @@ class AdminLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -137,14 +140,14 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Admin Panel',
+                l10n.adminPanelTitle,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'DiaspoNiger Monitoring',
+                l10n.adminDiaspoNigerMonitoring,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AdminColors.text3),
@@ -174,7 +177,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'OR',
+                      l10n.adminOrText,
                       style: Theme.of(
                         context,
                       ).textTheme.bodyMedium?.copyWith(color: AdminColors.text3),
@@ -186,8 +189,8 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: l10n.adminEmailField,
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
@@ -207,8 +210,8 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
+                decoration: InputDecoration(
+                  labelText: l10n.adminPasswordField,
                   border: OutlineInputBorder(),
                   prefixIcon: AppIcon(AppIcon.lock),
                 ),
@@ -233,7 +236,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                          : const Text('Login'),
+                          : Text(l10n.adminLoginButton),
                 ),
               ),
             ],

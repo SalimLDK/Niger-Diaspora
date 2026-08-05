@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminEmbassyVerificationScreen extends ConsumerStatefulWidget {
   const AdminEmbassyVerificationScreen({super.key});
@@ -16,6 +17,8 @@ class AdminEmbassyVerificationScreen extends ConsumerStatefulWidget {
 class _AdminEmbassyVerificationScreenState
     extends ConsumerState<AdminEmbassyVerificationScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   // Modern color palette
@@ -106,19 +109,19 @@ class _AdminEmbassyVerificationScreenState
       runSpacing: 16,
       children: [
         _buildStatCard(
-          title: 'En attente',
+          title: l10n.adminPending,
           value: pending.toString(),
           icon: Icons.hourglass_empty_rounded,
           gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
-          title: 'Actives',
+          title: l10n.adminActiveLabel,
           value: active.toString(),
           icon: Icons.verified_rounded,
           gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
         ),
         _buildStatCard(
-          title: 'Suspendues',
+          title: l10n.adminSuspendedLabel,
           value: suspended.toString(),
           icon: Icons.block_rounded,
           gradient: const [AdminColors.statusRed, AdminColors.statusRedStrong],
@@ -198,8 +201,8 @@ class _AdminEmbassyVerificationScreenState
   Widget _buildEmptyState(String type) {
     final messages = {
       'pending': 'Aucune ambassade en attente de verification',
-      'active': 'Aucune ambassade active',
-      'suspended': 'Aucune ambassade suspendue',
+      'active': l10n.adminNoEmbassyActive,
+      'suspended': l10n.adminNoEmbassySuspended,
     };
 
     return Center(
@@ -230,7 +233,7 @@ class _AdminEmbassyVerificationScreenState
             ),
             const SizedBox(height: 24),
             Text(
-              messages[type] ?? 'Aucune ambassade',
+              messages[type] ?? l10n.adminNoEmbassy,
               style: const TextStyle(fontSize: 16, color: _textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -260,8 +263,8 @@ class _AdminEmbassyVerificationScreenState
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement des ambassades...',
+          Text(
+            l10n.adminLoadingEmbassies,
             style: TextStyle(color: _textSecondary, fontSize: 14),
           ),
         ],
@@ -297,8 +300,8 @@ class _AdminEmbassyVerificationScreenState
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Erreur de chargement',
+            Text(
+              l10n.adminLoadingError,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

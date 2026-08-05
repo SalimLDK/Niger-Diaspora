@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key});
@@ -13,6 +14,8 @@ class AdminReportsScreen extends ConsumerStatefulWidget {
 
 class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -174,7 +177,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       child: Row(
         children: [
           _buildStatCard(
-            'En attente',
+            l10n.adminPending,
             stats['pending'] ?? 0,
             Icons.hourglass_empty_rounded,
             AdminColors.statusAmber,
@@ -195,7 +198,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ),
           const SizedBox(width: 12),
           _buildStatCard(
-            'Total',
+            l10n.adminTotalLabel,
             stats['total'] ?? 0,
             Icons.flag_outlined,
             _primaryColor,
@@ -278,7 +281,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Rechercher par nom, raison, ID...',
+              hintText: l10n.adminSearchReports,
               hintStyle: const TextStyle(color: _textSecondary),
               prefixIcon: const Icon(Icons.search, color: _textSecondary),
               suffixIcon: _searchQuery.isNotEmpty
@@ -306,8 +309,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           // Type filters
           Row(
             children: [
-              const Text(
-                'Type:',
+              Text(
+                l10n.adminTypeFilterLabel,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -320,7 +323,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip(null, 'Tous'),
+                      _buildFilterChip(null, l10n.adminAll),
                       const SizedBox(width: 8),
                       ..._targetTypes.map((type) => Padding(
                             padding: const EdgeInsets.only(right: 8),
@@ -374,8 +377,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Gestion des Signalements',
+            Text(
+              l10n.adminReportsManagement,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -383,8 +386,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Traitez les signalements de contenu inapproprié',
+            Text(
+              l10n.adminReportsSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -560,7 +563,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         _buildViewContentButton(report),
         const SizedBox(height: 16),
         if (report.description != null) ...[
-          _buildSectionLabel('Description'),
+          _buildSectionLabel(l10n.adminDescriptionLabel),
           const SizedBox(height: 4),
           Container(
             width: double.infinity,
@@ -579,15 +582,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ),
           const SizedBox(height: 16),
         ],
-        _buildDetailRow('ID cible', report.targetId),
+        _buildDetailRow(l10n.adminTargetIdLabel, report.targetId),
         if (report.targetName != null)
-          _buildDetailRow('Nom', report.targetName!),
-        _buildDetailRow('Signalé par', report.reporterName ?? report.reporterId),
+          _buildDetailRow(l10n.adminTargetNameLabel, report.targetName!),
+        _buildDetailRow(l10n.adminReportedByLabel, report.reporterName ?? report.reporterId),
         if (report.reportedUserId != null)
-          _buildDetailRow('Utilisateur signalé', report.reportedUserId!),
+          _buildDetailRow(l10n.adminReportedUserLabel, report.reportedUserId!),
         if (report.adminNote != null) ...[
           const SizedBox(height: 16),
-          _buildSectionLabel('Note admin'),
+          _buildSectionLabel(l10n.adminAdminNoteLabel),
           const SizedBox(height: 4),
           Container(
             width: double.infinity,
@@ -634,8 +637,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 color: AdminColors.statusAmber,
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Contenu capturé (préservé)',
+              Text(
+                l10n.adminCapturedContentLabel,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -842,20 +845,20 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       alignment: WrapAlignment.end,
       children: [
         _buildActionButton(
-          label: 'Rejeter',
+          label: l10n.adminReject,
           icon: Icons.close_rounded,
           color: AdminColors.statusGray,
           isOutlined: true,
           onPressed: () => _dismissReport(report),
         ),
         _buildActionButton(
-          label: 'Traiter',
+          label: l10n.adminProcess,
           icon: Icons.check_rounded,
           color: AdminColors.statusGreen,
           onPressed: () => _resolveReport(report),
         ),
         _buildActionButton(
-          label: 'Supprimer contenu',
+          label: l10n.adminDeleteContent,
           icon: Icons.delete_rounded,
           color: AdminColors.statusRed,
           onPressed: () => _deleteContent(report),
@@ -939,11 +942,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   String _getStatusLabel(String status) {
     switch (status) {
       case 'pending':
-        return 'En attente';
+        return l10n.adminPending;
       case 'resolved':
-        return 'Résolu';
+        return l10n.adminResolvedLabel;
       case 'dismissed':
-        return 'Rejeté';
+        return l10n.adminDismissedLabel;
       default:
         return status;
     }
@@ -973,19 +976,19 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   String _getTypeLabel(String type) {
     switch (type) {
       case 'user':
-        return 'Utilisateur';
+        return l10n.user;
       case 'message':
-        return 'Message';
+        return l10n.adminMessage;
       case 'conversation':
-        return 'Conversation';
+        return l10n.conversation;
       case 'event':
-        return 'Événement';
+        return l10n.eventLabel;
       case 'group':
-        return 'Groupe';
+        return l10n.group;
       case 'business':
-        return 'Commerce';
+        return l10n.reportTypeBusiness;
       case 'product':
-        return 'Produit';
+        return l10n.reportTypeProduct;
       default:
         return type;
     }
@@ -1014,8 +1017,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Chargement des signalements...',
+          Text(
+            l10n.adminLoadingReports,
             style: TextStyle(
               color: _textSecondary,
               fontSize: 14,
@@ -1057,8 +1060,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Une erreur est survenue',
+            Text(
+              l10n.adminErrorOccurred,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1080,7 +1083,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 ref.read(adminReportsNotifierProvider.notifier).fetchAllReports();
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,
                 foregroundColor: Colors.white,
@@ -1106,7 +1109,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            hasFilters ? 'Aucun résultat pour cette recherche' : 'Aucun signalement',
+            hasFilters ? l10n.adminNoResultsSearch : l10n.adminNoReportsAvailable,
             style: const TextStyle(
               color: _textSecondary,
               fontSize: 16,
@@ -1123,7 +1126,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 });
               },
               icon: const Icon(Icons.clear),
-              label: const Text('Effacer les filtres'),
+              label: Text(l10n.adminClearFilters),
             ),
           ],
         ],
@@ -1138,14 +1141,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   Future<void> _dismissReport(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté', isError: true);
+      _showSnackBar(l10n.adminNotConnected, isError: true);
       return;
     }
 
     final reason = await _showTextDialog(
-      'Rejeter le signalement',
-      'Raison du rejet:',
-      hintText: 'Ex: Signalement non fondé, contenu conforme aux règles...',
+      l10n.adminRejectReport,
+      l10n.adminDismissReportPrompt,
+      hintText: l10n.adminRejectHint,
     );
     if (reason != null && reason.isNotEmpty) {
       await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
@@ -1154,21 +1157,21 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
       );
-      _showSnackBar('Signalement rejeté');
+      _showSnackBar(l10n.adminReportDismissed);
     }
   }
 
   Future<void> _resolveReport(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté', isError: true);
+      _showSnackBar(l10n.adminNotConnected, isError: true);
       return;
     }
 
     final note = await _showTextDialog(
-      'Traiter le signalement',
-      'Note de résolution:',
-      hintText: 'Ex: Avertissement envoyé, contenu modifié...',
+      l10n.adminProcessReport,
+      l10n.adminProcessReportPrompt,
+      hintText: l10n.adminProcessHint,
     );
     if (note != null) {
       await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
@@ -1186,7 +1189,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   Future<void> _deleteContent(ReportEntity report) async {
     final currentAdmin = ref.read(currentAdminProvider);
     if (currentAdmin == null) {
-      _showSnackBar('Erreur: Admin non connecté', isError: true);
+      _showSnackBar(l10n.adminNotConnected, isError: true);
       return;
     }
 
@@ -1208,15 +1211,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               ),
             ),
             const SizedBox(width: 12),
-            const Text('Supprimer le contenu'),
+            Text(l10n.adminDeleteContentTitle),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Êtes-vous sûr de vouloir supprimer ce contenu ?',
+            Text(
+              l10n.adminDeleteContentMsg,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -1260,12 +1263,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
             icon: const Icon(Icons.delete_rounded, size: 18),
-            label: const Text('Supprimer'),
+            label: Text(l10n.adminDelete),
             style: ElevatedButton.styleFrom(
               backgroundColor: AdminColors.statusRed,
               foregroundColor: Colors.white,
@@ -1287,7 +1290,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       );
       await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
         report.id,
-        'Contenu supprimé',
+        l10n.adminContentDeleted,
         'content_deleted',
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
@@ -1325,7 +1328,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.adminCancelAction),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
@@ -1334,7 +1337,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirmer'),
+            child: Text(l10n.adminConfirmAction),
           ),
         ],
       ),
