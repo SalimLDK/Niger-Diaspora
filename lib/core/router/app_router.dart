@@ -880,6 +880,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/messages/:conversationId',
         builder: (context, state) {
           final conversationId = state.pathParameters['conversationId']!;
+          // `state.extra` n'est posé que par la tuile de la liste des
+          // messages : il est NUL par lien profond et par notification. Tout
+          // ce qui en vient est donc un simple raccourci d'affichage, jamais
+          // une source de vérité — ConversationScreen réconcilie isGroup et
+          // groupId avec la conversation chargée (_syncGroupIdentity).
           final extra = state.extra as Map<String, dynamic>?;
           return ConversationScreen(
             conversationId: conversationId,

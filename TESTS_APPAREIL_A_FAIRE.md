@@ -4312,8 +4312,9 @@ corrigé — c'est ce qui aurait fait perdre le plus de temps au prochain lecteu
 
 ## Groupes — deux défauts trouvés en vérifiant les épingles (2026-08-05)
 
-Constatés sur SM A515F en cherchant à épingler dans un groupe. Aucun des deux
-n'est corrigé, ils dépassent le lot « épingles ».
+Constatés sur SM A515F en cherchant à épingler dans un groupe ; tous deux
+dépassaient le lot « épingles ». Le **n°2 est corrigé** (2026-08-05, à vérifier
+sur appareil) ; le **n°1 reste ouvert**.
 
 **1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
 conversation.** « Groupe de test prive » (`yflqsRLMMhTPpiW0NFHx`) a trois
@@ -4335,11 +4336,48 @@ interroge `conversationPinnedItemsProvider` — qui ne renvoie jamais rien pour
 un groupe. `ConversationScreen` ne reconcilie jamais ce drapeau avec
 `conversation.groupId`, pourtant disponible.
 
-- [ ] Après correctif : ouvrir une conversation de groupe par lien profond et
-  par notification, vérifier l'en-tête (nom du groupe, pas d'appel 1-à-1) et le
-  bandeau épinglé.
+**CORRIGÉ (2026-08-05), non vérifié sur appareil.** `ConversationScreen` ne se
+fie plus au seul paramètre de construction : `_syncGroupIdentity()`, appelé
+depuis `build()`, aligne l'état local sur la conversation chargée
+(`conversation.isGroup || conversation.groupId != null`), et les ~80 sites qui
+lisaient `widget.isGroup` / `widget.groupId` passent par les accesseurs
+`_isGroup` / `_effectiveGroupId`. `widget.isGroup` reste prioritaire, la
+réconciliation ne fait que passer `false → true`. Comme ce basculement
+survient APRÈS `initState`, le travail d'ouverture réservé aux groupes
+(effacement des mentions non lues, filtre des groupes privés) est rejoué par
+`_runGroupOpenWork()`, idempotent via deux drapeaux. Le repli sur
+`conversation?.groupId` qui existait déjà en trois endroits est absorbé par
+`_effectiveGroupId`.
+
+Le second défaut (écran noir au retour) est corrigé dans la foulée :
+`_leaveConversation()` (flèche de l'en-tête + refus de requête) et un
+`PopScope` (geste/bouton retour système) retombent sur `/messages` quand
+`context.canPop()` est faux.
+
+- [ ] Ouvrir une conversation de GROUPE par lien profond, en-tête attendu : nom
+  du groupe + avatar vert, PAS de boutons d'appel 1-à-1. Commande utilisée pour
+  reproduire :
+  ```
+  adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/messages/0ce4c63f-ef7a-4616-8d52-88f22444a4ca" -p com.diasponiger.diasponiger
+  ```
+- [ ] Même conversation, ouverte par NOTIFICATION (`state.extra` également nul) :
+  même en-tête.
+- [ ] Bandeau épinglé visible sur ces deux chemins quand le groupe a une
+  épingle (il interrogeait `conversationPinnedItemsProvider`, toujours vide
+  pour un groupe).
+- [ ] Nom de l'expéditeur + mini-avatar affichés sur les messages reçus (le
+  rendu 1-à-1 les masquait), et badge « Admin » le cas échéant.
+- [ ] Menu ⋮ et menu « + » du composer : options de groupe (sondage, événement
+  selon permissions), pas les options 1-à-1.
+- [ ] Épingler puis détacher un message depuis ce chemin : doit réussir
+  (`group_pinned_items.group_id` renseigné, pas de violation de clé étrangère).
 - [ ] **Retour depuis un lien profond** : le bouton retour donnait un **écran
-  noir** (la route du lien est seule dans la pile).
+  noir** (la route du lien est seule dans la pile). Vérifier les trois chemins —
+  flèche de l'en-tête, geste retour, bouton retour système — tous doivent
+  aboutir sur la liste des messages.
+- [ ] Non-régression 1-à-1 : ouvrir un DM par lien profond ne doit RIEN changer
+  (en-tête personne, boutons d'appel présents), et depuis la liste des messages
+  le retour doit toujours dépiler normalement (pas de saut vers `/messages`).
 
 ---
 
