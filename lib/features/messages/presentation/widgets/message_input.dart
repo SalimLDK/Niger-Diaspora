@@ -1097,6 +1097,20 @@ class _MessageInputState extends State<MessageInput>
   Widget _buildPlusButton(BuildContext context) {
     final active = _showAttachPanel;
     final accent = context.adaptivePrimaryColor;
+    final isDark = context.isDarkMode;
+
+    // En clair, l'accent à 12 % posé sur le fond crème de la page donnait deux
+    // teintes quasi identiques (relevé à l'écran : #F2E5D9 des deux côtés) —
+    // le disque disparaissait, seul le glyphe orange se voyait. Il reprend donc
+    // la surface de la pilule, blanc + liseré, et devient un frère de la barre
+    // au lieu d'une tache. En nocturne l'aplat teinté ressort déjà sur le fond
+    // sombre : on n'y touche pas.
+    final poseSurLaPage = !isDark && !active;
+    final fill =
+        active
+            ? accent.withValues(alpha: isDark ? 0.20 : 0.22)
+            : (isDark ? accent.withValues(alpha: 0.12) : _kBarFillLight);
+
     return GestureDetector(
       onLongPress: _showAttachmentOptions,
       child: AnimatedContainer(
@@ -1106,8 +1120,22 @@ class _MessageInputState extends State<MessageInput>
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: accent.withValues(alpha: active ? 0.20 : 0.12),
+          color: fill,
           shape: BoxShape.circle,
+          border:
+              poseSurLaPage
+                  ? Border.all(color: _kBarBorderLight, width: 1)
+                  : null,
+          boxShadow:
+              poseSurLaPage
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : null,
         ),
         child: IconButton(
           onPressed: _toggleAttachPanel,
