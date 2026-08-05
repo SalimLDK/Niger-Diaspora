@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/admin_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdminAuditScreen extends ConsumerStatefulWidget {
   const AdminAuditScreen({super.key});
@@ -95,6 +96,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildRefreshButton() {
+    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -117,13 +119,13 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
               SizedBox(width: 8),
               Text(
-                'Actualiser',
+                l10n.adminRefresh,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -138,6 +140,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildFiltersAndSearch() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -161,7 +164,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                   controller: _searchController,
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
-                    hintText: 'Rechercher par admin ou action...',
+                    hintText: l10n.adminSearchByAdminOrAction,
                     prefixIcon: const AppIcon(AppIcon.search, color: _textSecondary),
                     filled: true,
                     fillColor: AdminColors.surfaceAlt,
@@ -186,6 +189,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildFilterDropdown() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -196,15 +200,15 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
         child: DropdownButton<String>(
           value: _selectedFilter,
           icon: const Icon(Icons.keyboard_arrow_down, color: _textSecondary),
-          items: const [
-            DropdownMenuItem(value: 'all', child: Text('Toutes les actions')),
-            DropdownMenuItem(value: 'user', child: Text('Utilisateurs')),
-            DropdownMenuItem(value: 'business', child: Text('Commerces')),
-            DropdownMenuItem(value: 'content', child: Text('Contenu')),
-            DropdownMenuItem(value: 'report', child: Text('Signalements')),
-            DropdownMenuItem(value: 'transaction', child: Text('Transactions')),
-            DropdownMenuItem(value: 'settings', child: Text('Configuration')),
-            DropdownMenuItem(value: 'notification', child: Text('Notifications')),
+          items: [
+            DropdownMenuItem(value: 'all', child: Text(l10n.adminAllActions)),
+            DropdownMenuItem(value: 'user', child: Text(l10n.adminActionUsers)),
+            DropdownMenuItem(value: 'business', child: Text(l10n.adminActionBusinesses)),
+            DropdownMenuItem(value: 'content', child: Text(l10n.adminActionContent)),
+            DropdownMenuItem(value: 'report', child: Text(l10n.adminActionReports)),
+            DropdownMenuItem(value: 'transaction', child: Text(l10n.adminActionTransactions)),
+            DropdownMenuItem(value: 'settings', child: Text(l10n.adminActionSettings)),
+            DropdownMenuItem(value: 'notification', child: Text(l10n.adminNotifications)),
           ],
           onChanged: (value) {
             setState(() => _selectedFilter = value ?? 'all');
@@ -251,6 +255,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildAuditLogCard(AuditLogEntry log) {
+    final l10n = AppLocalizations.of(context)!;
     final actionInfo = _getActionInfo(log.action);
     final dateFormatter = DateFormat('dd MMM yyyy, HH:mm', 'fr_FR');
 
@@ -308,7 +313,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                     const AppIcon(AppIcon.person, size: 16, color: _textSecondary),
                     const SizedBox(width: 4),
                     Text(
-                      log.adminName ?? 'Admin inconnu',
+                      log.adminName ?? l10n.adminUnknownAdmin,
                       style: const TextStyle(
                         color: _textSecondary,
                         fontSize: 13,
@@ -320,7 +325,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                     Text(
                       log.timestamp != null
                           ? dateFormatter.format(log.timestamp!)
-                          : 'Date inconnue',
+                          : l10n.adminUnknownDate,
                       style: const TextStyle(
                         color: _textSecondary,
                         fontSize: 13,
@@ -392,6 +397,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildDetailsSection(Map<String, dynamic> details) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -402,8 +408,8 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Détails:',
+          Text(
+            l10n.adminDetailsLabel,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 12,
@@ -442,82 +448,84 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   _ActionInfo _getActionInfo(String action) {
+    final l10n = AppLocalizations.of(context)!;
     switch (action) {
       case 'ban_user':
-        return _ActionInfo('Utilisateur banni', const Icon(Icons.block, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminUserBanned, const Icon(Icons.block, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'unban_user':
-        return _ActionInfo('Utilisateur débanni', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminUserUnbanned, const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'promote_admin':
         return _ActionInfo('Promu administrateur', const Icon(Icons.admin_panel_settings, color: AdminColors.statusPurple, size: 24), AdminColors.statusPurple);
       case 'demote_admin':
-        return _ActionInfo('Rétrogradé', const Icon(Icons.remove_moderator, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminDemoted, const Icon(Icons.remove_moderator, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'verify_profile':
         return _ActionInfo('Profil vérifié', const Icon(Icons.verified, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'verify_business':
-        return _ActionInfo('Commerce vérifié', const Icon(Icons.verified_user, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminBusinessVerified, const Icon(Icons.verified_user, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'unverify_business':
-        return _ActionInfo('Vérification retirée', const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminVerificationRemoved, const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_business':
-        return _ActionInfo('Commerce supprimé', const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminBusinessDeleted, const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_boost':
         return _ActionInfo('Boost modifié', const Icon(Icons.trending_up, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_event':
-        return _ActionInfo('Événement supprimé', const Icon(Icons.event_busy, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminEventDeleted, const Icon(Icons.event_busy, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'cancel_event':
-        return _ActionInfo('Événement annulé', const Icon(Icons.event_busy, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminEventCancelled, const Icon(Icons.event_busy, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_group':
-        return _ActionInfo('Groupe supprimé', const Icon(Icons.group_off, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminGroupDeleted, const Icon(Icons.group_off, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_privacy':
-        return _ActionInfo('Confidentialité modifiée', const AppIcon(AppIcon.lock, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
+        return _ActionInfo(l10n.adminPrivacyChanged, const AppIcon(AppIcon.lock, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'resolve_report':
-        return _ActionInfo('Signalement résolu', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminReportResolved, const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'dismiss_report':
-        return _ActionInfo('Signalement rejeté', const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminReportDismissed, const AppIcon(AppIcon.cancel, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_content':
-        return _ActionInfo('Contenu supprimé', const Icon(Icons.delete_forever, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminContentDeleted, const Icon(Icons.delete_forever, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'refund_transaction':
-        return _ActionInfo('Transaction remboursée', const Icon(Icons.money_off, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminTransactionRefunded, const Icon(Icons.money_off, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'complete_transaction':
-        return _ActionInfo('Transaction complétée', const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminTransactionCompleted, const AppIcon(AppIcon.checkCircle, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'fail_transaction':
         return _ActionInfo('Transaction échouée', const AppIcon(AppIcon.error, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'delete_product':
-        return _ActionInfo('Produit supprimé', const Icon(Icons.shopping_bag, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
+        return _ActionInfo(l10n.adminProductDeleted, const Icon(Icons.shopping_bag, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_product':
-        return _ActionInfo('Disponibilité modifiée', const Icon(Icons.inventory, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
+        return _ActionInfo(l10n.adminAvailabilityChanged, const Icon(Icons.inventory, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'resolve_dispute':
-        return _ActionInfo('Litige résolu', const Icon(Icons.gavel, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
+        return _ActionInfo(l10n.adminDisputeResolved, const Icon(Icons.gavel, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'update_settings':
-        return _ActionInfo('Configuration mise à jour', const Icon(Icons.settings, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
+        return _ActionInfo(l10n.adminConfigUpdated, const Icon(Icons.settings, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'toggle_feature':
-        return _ActionInfo('Feature modifiée', const Icon(Icons.toggle_on, color: AdminColors.statusPurple, size: 24), AdminColors.statusPurple);
+        return _ActionInfo(l10n.adminFeatureChanged, const Icon(Icons.toggle_on, color: AdminColors.statusPurple, size: 24), AdminColors.statusPurple);
       case 'send_notification':
-        return _ActionInfo('Notification envoyée', const Icon(Icons.notifications, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminNotificationSent, const Icon(Icons.notifications, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'force_logout':
-        return _ActionInfo('Déconnexion forcée', const Icon(Icons.logout, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminForceLogoutAction, const Icon(Icons.logout, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       default:
         return _ActionInfo(action, AppIcon(AppIcon.info, color: _textSecondary, size: 24), _textSecondary);
     }
   }
 
   _TargetTypeInfo _getTargetTypeInfo(String targetType) {
+    final l10n = AppLocalizations.of(context)!;
     switch (targetType) {
       case 'user':
-        return _TargetTypeInfo('Utilisateur', const AppIcon(AppIcon.person, size: 14, color: AdminColors.actionBlueLight), AdminColors.actionBlueLight);
+        return _TargetTypeInfo(l10n.user, const AppIcon(AppIcon.person, size: 14, color: AdminColors.actionBlueLight), AdminColors.actionBlueLight);
       case 'business':
-        return _TargetTypeInfo('Commerce', const AppIcon(AppIcon.store, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
+        return _TargetTypeInfo(l10n.reportTypeBusiness, const AppIcon(AppIcon.store, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
       case 'event':
-        return _TargetTypeInfo('Événement', const AppIcon(AppIcon.event, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
+        return _TargetTypeInfo(l10n.reportTypeEvent, const AppIcon(AppIcon.event, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
       case 'group':
-        return _TargetTypeInfo('Groupe', const AppIcon(AppIcon.groups, size: 14, color: AdminColors.statusPurple), AdminColors.statusPurple);
+        return _TargetTypeInfo(l10n.reportTypeGroup, const AppIcon(AppIcon.groups, size: 14, color: AdminColors.statusPurple), AdminColors.statusPurple);
       case 'report':
         return _TargetTypeInfo('Signalement', const Icon(Icons.report, size: 14, color: AdminColors.statusRed), AdminColors.statusRed);
       case 'product':
-        return _TargetTypeInfo('Produit', const Icon(Icons.shopping_bag, size: 14, color: AdminColors.actionBlue), AdminColors.actionBlue);
+        return _TargetTypeInfo(l10n.reportTypeProduct, const Icon(Icons.shopping_bag, size: 14, color: AdminColors.actionBlue), AdminColors.actionBlue);
       case 'transaction':
-        return _TargetTypeInfo('Transaction', const Icon(Icons.payments, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
+        return _TargetTypeInfo(l10n.ticketCategoryTransaction, const Icon(Icons.payments, size: 14, color: AdminColors.statusGreen), AdminColors.statusGreen);
       case 'settings':
-        return _TargetTypeInfo('Configuration', const Icon(Icons.settings, size: 14, color: AdminColors.statusGray), AdminColors.statusGray);
+        return _TargetTypeInfo(l10n.adminConfiguration, const Icon(Icons.settings, size: 14, color: AdminColors.statusGray), AdminColors.statusGray);
       case 'notification':
         return _TargetTypeInfo('Notification', const Icon(Icons.notifications, size: 14, color: AdminColors.statusAmber), AdminColors.statusAmber);
       case 'order':
@@ -536,6 +544,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildErrorState(String error) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(32),
@@ -566,8 +575,8 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Erreur de chargement',
+            Text(
+              l10n.adminLoadingError,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -586,7 +595,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                 ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs();
               },
               icon: const AppIcon(AppIcon.refresh),
-              label: const Text('Réessayer'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,
                 foregroundColor: Colors.white,
@@ -599,6 +608,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(32),
@@ -638,8 +648,8 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Les actions des administrateurs apparaîtront ici',
+            Text(
+              l10n.adminAuditEmptyState,
               textAlign: TextAlign.center,
               style: TextStyle(color: _textSecondary),
             ),
