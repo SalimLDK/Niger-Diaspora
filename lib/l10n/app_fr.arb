@@ -530,7 +530,7 @@
     }
   },
   "audioRoomSeeAllListeners": "Voir tout",
-  "audioRoomHandsRaisedCount": "+ {count} mains levées ✋",
+  "audioRoomHandsRaisedCount": "{count} mains levées",
   "@audioRoomHandsRaisedCount": {
     "placeholders": {
       "count": {
@@ -5056,7 +5056,7 @@
   "call": "Appel",
   "pending": "En attente",
   "sharedLocation": "Localisation partagée",
-  "embassyTemporarilyClosed": "Temporairement Fermé",
+  "embassyTemporarilyClosed": "Temporairement fermé",
   "embassyOfficialVerified": "Compte Officiel Vérifié",
   "embassyComingSoon": "Bientôt disponible",
   "embassyConsularServices": "Services Consulaires",
@@ -6341,14 +6341,6 @@
       }
     }
   },
-  "audioRoomHandsRaisedCount": "{count} mains levées",
-  "@audioRoomHandsRaisedCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "audioRoomHandsRaisedSection": "Mains levées · {count}",
   "@audioRoomHandsRaisedSection": {
     "placeholders": {
@@ -7056,7 +7048,6 @@
   "locationGuarantee3": "Invisible pour les comptes que vous bloquez",
   "exploreOtherwise": "Explorer autrement",
   "embassyOpen": "Ouvert",
-  "embassyTemporarilyClosed": "Temporairement fermé",
   "reopenExpected": "Réouverture prévue",
   "posts": "posts",
   "postSingle": "post",
