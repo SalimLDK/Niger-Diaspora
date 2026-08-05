@@ -2906,7 +2906,10 @@ voir :
 - [ ] **Chaque famille de bulle** : texte, note vocale (elle en a une pour la
   première fois), photo, photo floutée en mode ÉCO, vidéo, document, sticker,
   position, message transféré, message cité.
-- [ ] **Accusé de réception en toutes lettres** : « 09:24 · Envoyé », puis
+- [x] **Accusé de réception en toutes lettres** (vu 2026-08-05, SM A515F, nocturne) : « 22:15 · Envoyé » et
+  « 12:06 · Envoyé » lus a l ecran, coches et pastille bleue disparues.
+  Restent a voir « Reçu », « Lu » et « Vu par N » — il faut un second
+  appareil. Ancien libelle :
   « · Reçu », puis « · Lu » (bleu) — et « · Vu par N » en groupe. Les trois
   coches cerclées et la pastille bleue ont disparu. Vérifier surtout que la
   ligne ne devient pas trop longue sur un message court à font_scale 1.1 : le
@@ -2931,7 +2934,9 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 « Médias » n'est pas perdu, il est passé dans le menu ⋮ sous le libellé
 « Médias partagés » (`sharedMedia`, clé déjà existante).
 
-- [ ] **Avec une épingle** : le bandeau et la pastille ÉCO tiennent sur une
+- [x] **Avec une épingle** (vu 2026-08-05, SM A515F, nocturne) : le bandeau « Message épinglé 1 · 1/3 » et la
+  pastille « ⊕ ÉCO » tiennent bien sur une seule ligne, sans sous-barre.
+  Reste a verifier avec un titre long :
   seule ligne, le bandeau prenant la place qui reste. Vérifier qu'un titre long
   s'ellipse au lieu de pousser la pastille hors de l'écran.
 - [ ] **Sans épingle** : la ligne se réduit à la seule pastille ÉCO, alignée à
@@ -2963,7 +2968,8 @@ désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
   **disparaît** pendant l'enregistrement, vérifier que ça ne décale rien.
 - [ ] **Largeur à font_scale 1.1** : quatre commandes sur une ligne, le champ
   doit garder assez de place pour un texte lisible sur le A51.
-- [ ] **Bascule emoji ↔ clavier** : la pastille change de glyphe et
+- [x] **Bascule emoji ↔ clavier** (vu 2026-08-05, SM A515F, nocturne) : la pastille passe bien au glyphe
+  clavier a l ouverture du panneau. Detail :
   d'intensité de fond quand le panneau est ouvert ; en nocturne le fond pastel
   est remplacé par l'accent teinté (`#F4A574` à 18/28 %) — vérifier qu'il ne
   fait pas un pavé lumineux.
@@ -3027,11 +3033,16 @@ pilules, sections, 4 colonnes à 390 dp, pied présent/absent, filtre, nocturne)
 et `emoji_sticker_picker_landscape_test.dart` (pas d'overflow à 160/200/260).
 Ce que les tests ne voient pas :
 
-- [ ] ⚠ **Le smiley du composeur ouvre bien les ÉMOJIS.** L'onglet 0 est
+- [x] ⚠ **Le smiley du composeur ouvre bien les ÉMOJIS** (vu 2026-08-05, SM A515F, nocturne) — le piege de
+  l index est evite. Detail :
   devenu « Stickers » : le code est passé d'un index à une énumération
   (`MessagePickerTab`) exprès pour ça, mais c'est le premier geste à refaire.
 - [ ] **Défilement continu** sections + grille, clavier réellement ouvert, sur
   le A51 — c'est un seul `CustomScrollView` désormais.
+- [x] **Ligne d'info en pied** (vu 2026-08-05) : « ⓘ Téléchargés une fois,
+  envoyés sans données » est bien SOUS la grille, avec son filet, sur
+  l'onglet GIF ; absente de l'onglet Émojis. L'en-tête « TENDANCES » en
+  terracotta porte la bascule GIFs/Stickers.
 - [ ] **Padding bas de la ligne d'info** face à la barre de navigation
   gestuelle (la fiche prévoit 26 px pour l'indicateur iOS, on en met 8).
 - [ ] **La loupe sur l'onglet Émojis** ouvre la vue de recherche interne du
@@ -3049,6 +3060,10 @@ Ce que les tests ne voient pas :
 - [ ] **Les favoris n'ont plus d'onglet cœur** : ils sont une section, affichée
   seulement si non vide. L'appui long sur un sticker propose toujours
   « Ajouter aux favoris ».
+- [ ] ⚠ **« No Recents » est en anglais** dans l'onglet Émojis : c'est la
+  chaîne interne de `emoji_picker_flutter`, pas une des nôtres. Elle n'est
+  pas localisée par le paquet — à traiter à part (option de config, ou vue
+  personnalisée), ce n'est pas un oubli de nos ARB.
 - [ ] **L'onglet Stickers reste absent sans pack Supabase** (les packs sont
   vides en base) : dans ce cas le panneau s'ouvre sur GIF ou Émojis.
 

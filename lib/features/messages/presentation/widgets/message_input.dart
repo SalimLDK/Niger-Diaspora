@@ -413,11 +413,6 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  void _hidePicker() {
-    setState(() => _showPicker = false);
-    _focusNode.requestFocus();
-  }
-
   void _onStickerSelected(StickerEntity sticker) {
     // Hide picker
     setState(() => _showPicker = false);
@@ -1011,7 +1006,6 @@ class _MessageInputState extends State<MessageInput>
               onStickerSelected:
                   widget.onSendSticker != null ? _onStickerSelected : null,
               onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
-              onClose: _hidePicker,
             ),
           ),
       ],

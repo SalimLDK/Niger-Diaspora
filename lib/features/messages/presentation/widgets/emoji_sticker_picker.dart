@@ -45,9 +45,6 @@ class EmojiStickerPicker extends ConsumerStatefulWidget {
   /// Callback when a GIF (or Tenor/Giphy sticker) is selected
   final void Function(GifEntity gif)? onGifSelected;
 
-  /// Callback when the picker should be closed
-  final VoidCallback? onClose;
-
   /// Height of the picker
   final double height;
 
@@ -60,7 +57,6 @@ class EmojiStickerPicker extends ConsumerStatefulWidget {
     this.onBackspacePressed,
     this.onStickerSelected,
     this.onGifSelected,
-    this.onClose,
     this.height = 300,
     this.initialTab = MessagePickerTab.emojis,
   });
@@ -176,6 +172,10 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
             const SizedBox(width: 8),
           ],
           const Spacer(),
+          // Une seule commande à droite, comme la fiche : la loupe. Le retour
+          // au clavier est déjà porté par la pastille du composeur, qui passe
+          // en glyphe clavier quand le panneau est ouvert — deux boutons
+          // clavier côte à côte ne disaient pas deux choses différentes.
           _roundButton(
             context,
             icon: Icons.search,
@@ -183,16 +183,6 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
             size: compact ? 30 : 34,
             onTap: () => _openSearch(actif),
           ),
-          if (widget.onClose != null) ...[
-            const SizedBox(width: 8),
-            _roundButton(
-              context,
-              icon: Icons.keyboard_rounded,
-              tooltip: l10n.showKeyboard,
-              size: compact ? 30 : 34,
-              onTap: widget.onClose!,
-            ),
-          ],
         ],
       ),
     );
