@@ -10,6 +10,7 @@ import '../providers/review_provider.dart';
 import '../widgets/review_card.dart';
 import '../widgets/review_form_modal.dart';
 import '../widgets/star_rating_input.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BusinessReviewsScreen extends ConsumerWidget {
   final String businessId;
@@ -22,6 +23,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
   });
 
   void _showReviewForm(BuildContext context, WidgetRef ref, {ReviewEntity? existingReview}) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.read(currentUserProvider).valueOrNull;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -34,13 +36,14 @@ class BusinessReviewsScreen extends ConsumerWidget {
       context,
       businessId: businessId,
       userId: currentUser.id,
-      userDisplayName: currentUser.displayName ?? 'Utilisateur',
+      userDisplayName: currentUser.displayName ?? l10n.user,
       userPhotoUrl: currentUser.photoUrl,
       existingReview: existingReview,
     );
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, ReviewEntity review) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -49,7 +52,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           FilledButton(
             onPressed: () async {
@@ -64,7 +67,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
               }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -73,6 +76,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
 
   /// Réponse du gérant à un avis (§18c) — réutilise updateReview.
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
     showDialog(
       context: context,
@@ -91,7 +95,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           FilledButton(
             onPressed: () async {
@@ -114,7 +118,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Publier'),
+            child: Text(l10n.publish),
           ),
         ],
       ),
@@ -122,29 +126,30 @@ class BusinessReviewsScreen extends ConsumerWidget {
   }
 
   void _showReportDialog(BuildContext context, WidgetRef ref, String reviewId) {
+    final l10n = AppLocalizations.of(context)!;
     final reasonController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Signaler cet avis'),
+        title: Text(l10n.reportReview),
         content: TextField(
           controller: reasonController,
-          decoration: const InputDecoration(
-            labelText: 'Raison du signalement',
-            hintText: 'Pourquoi signalez-vous cet avis ?',
+          decoration: InputDecoration(
+            labelText: l10n.reportReasonField,
+            hintText: l10n.reviewReportHint,
           ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           FilledButton(
             onPressed: () async {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Veuillez indiquer une raison')),
+                  SnackBar(content: Text(l10n.pleaseIndicateReason)),
                 );
                 return;
               }
@@ -155,12 +160,12 @@ class BusinessReviewsScreen extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(success ? 'Avis signale' : 'Erreur lors du signalement'),
+                    content: Text(success ? 'Avis signale' : l10n.reportErrorOccurred),
                   ),
                 );
               }
             },
-            child: const Text('Signaler'),
+            child: Text(l10n.report),
           ),
         ],
       ),
@@ -169,6 +174,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final reviewsAsync = ref.watch(businessReviewsNotifierProvider(businessId));
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
@@ -179,7 +185,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: DesignTitle(business?.name ?? 'Avis', size: 22),
+        title: DesignTitle(business?.name ?? l10n.reviews, size: 22),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref
@@ -232,7 +238,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
                               ref,
                               existingReview: userReviewAsync.valueOrNull,
                             ),
-                            child: const Text('Modifier'),
+                            child: Text(l10n.edit),
                           ),
                         ],
                       ),
@@ -310,6 +316,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Center(
@@ -325,7 +332,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Aucun avis pour le moment',
+              l10n.noReviewsYetMessage,
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -358,6 +365,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Center(
@@ -373,7 +381,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Erreur de chargement',
+              l10n.adminLoadingError,
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),

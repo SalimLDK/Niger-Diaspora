@@ -10,6 +10,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class CreateBusinessScreen extends ConsumerStatefulWidget {
   const CreateBusinessScreen({super.key});
@@ -19,6 +20,8 @@ class CreateBusinessScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -137,7 +140,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const DesignTitle('Nouvelle entreprise', size: 22),
+        title: DesignTitle(l10n.newBusiness, size: 22),
       ),
       body: Form(
         key: _formKey,
@@ -145,7 +148,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // Images
-            Text('Photos', style: theme.textTheme.titleMedium),
+            Text(l10n.photos, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             SizedBox(
               height: 100,
@@ -248,7 +251,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le nom est requis';
+                  return l10n.nameRequired;
                 }
                 return null;
               },
@@ -258,14 +261,14 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description *',
+              decoration: InputDecoration(
+                labelText: l10n.businessDescriptionLabel,
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'La description est requise';
+                  return l10n.descriptionRequired;
                 }
                 return null;
               },
@@ -273,7 +276,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 24),
 
             // Contact
-            Text('Contact', style: theme.textTheme.titleMedium),
+            Text(l10n.contact, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             TextFormField(
               controller: _phoneController,
@@ -288,8 +291,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
+              decoration: InputDecoration(
+                labelText: l10n.email,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.email),
               ),
@@ -298,8 +301,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _websiteController,
-              decoration: const InputDecoration(
-                labelText: 'Site web',
+              decoration: InputDecoration(
+                labelText: l10n.website,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.language),
               ),
@@ -308,7 +311,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 24),
 
             // Location
-            Text('Localisation', style: theme.textTheme.titleMedium),
+            Text(l10n.locationTitle, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
 
             // Country picker
@@ -324,8 +327,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                     bottomSheetHeight: MediaQuery.of(context).size.height * 0.7,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     inputDecoration: InputDecoration(
-                      labelText: 'Rechercher un pays',
-                      hintText: 'Tapez le nom du pays',
+                      labelText: l10n.searchCountry,
+                      hintText: l10n.typeCountryName,
                       prefixIcon: const AppIcon(AppIcon.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -342,7 +345,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
               },
               child: InputDecorator(
                 decoration: InputDecoration(
-                  labelText: 'Pays',
+                  labelText: l10n.country,
                   border: const OutlineInputBorder(),
                   prefixIcon: _selectedCountry != null
                       ? Padding(
@@ -369,8 +372,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
 
             TextFormField(
               controller: _cityController,
-              decoration: const InputDecoration(
-                labelText: 'Ville',
+              decoration: InputDecoration(
+                labelText: l10n.city,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_city),
               ),
@@ -379,8 +382,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
 
             TextFormField(
               controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Adresse',
+              decoration: InputDecoration(
+                labelText: l10n.address,
                 border: OutlineInputBorder(),
                 prefixIcon: AppIcon(AppIcon.location),
               ),
@@ -395,8 +398,8 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                 Expanded(
                   child: TextField(
                     controller: _serviceController,
-                    decoration: const InputDecoration(
-                      hintText: 'Ajouter un service',
+                    decoration: InputDecoration(
+                      hintText: l10n.addService,
                       border: OutlineInputBorder(),
                     ),
                     onSubmitted: (_) => _addService(),

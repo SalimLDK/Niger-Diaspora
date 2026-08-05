@@ -7,6 +7,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/review_entity.dart';
 import '../providers/review_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'star_rating_input.dart';
 
 class ReviewFormModal extends ConsumerStatefulWidget {
@@ -52,6 +53,8 @@ class ReviewFormModal extends ConsumerStatefulWidget {
 }
 
 class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late int _rating;
   late TextEditingController _titleController;
   late TextEditingController _contentController;
@@ -111,7 +114,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
   Future<void> _submit() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez donner une note')),
+        SnackBar(content: Text(l10n.pleaseGiveRating)),
       );
       return;
     }
@@ -177,7 +180,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
         } else {
           setState(() => _isSubmitting = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erreur lors de la soumission')),
+            SnackBar(content: Text(l10n.submissionError)),
           );
         }
       }
@@ -220,7 +223,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
 
               // Title
               Text(
-                isEditing ? 'Modifier votre avis' : 'Ecrire un avis',
+                isEditing ? l10n.reviewModifyTitle : 'Ecrire un avis',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -233,7 +236,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
                 child: Column(
                   children: [
                     Text(
-                      'Votre note',
+                      l10n.reviewYourRating,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.outline,
                       ),
@@ -252,8 +255,8 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
               TextField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  labelText: 'Titre (optionnel)',
-                  hintText: 'Ex: Excellent service',
+                  labelText: l10n.titleOptional,
+                  hintText: l10n.reviewTitleHint,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -266,7 +269,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
               TextField(
                 controller: _contentController,
                 decoration: InputDecoration(
-                  labelText: 'Votre avis',
+                  labelText: l10n.yourReview,
                   hintText: 'Partagez votre experience...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -292,7 +295,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
                     TextButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.add_photo_alternate_outlined),
-                      label: const Text('Ajouter'),
+                      label: Text(l10n.add),
                     ),
                 ],
               ),
@@ -344,7 +347,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(isEditing ? 'Modifier' : 'Publier'),
+                    : Text(isEditing ? l10n.edit : l10n.publish),
               ),
               const SizedBox(height: 16),
             ],

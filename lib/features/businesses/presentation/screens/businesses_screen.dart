@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
 import '../widgets/business_card.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BusinessesScreen extends ConsumerStatefulWidget {
   const BusinessesScreen({super.key});
@@ -17,6 +18,8 @@ class BusinessesScreen extends ConsumerStatefulWidget {
 }
 
 class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   bool _showLocationFilter = false;
 
@@ -49,7 +52,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         child: Column(
         children: [
           DesignScreenHeader(
-            title: 'Annuaire Business',
+            title: l10n.businessDirectory,
             actions: [
               DesignSquareAction(
                 icon: Icons.storefront_outlined,
@@ -88,7 +91,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: DesignFilterChip(
-                    label: 'Tous',
+                    label: l10n.all,
                     selected: selectedCategory == null,
                     onTap: () => ref
                         .read(selectedBusinessCategoryProvider.notifier)
@@ -209,7 +212,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
           context.push('/businesses/create');
         },
         icon: const AppIcon(AppIcon.add),
-        label: const Text('Ajouter'),
+        label: Text(l10n.add),
       ),
     );
   }
@@ -240,7 +243,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Filtrer par localisation',
+                l10n.filterByLocation,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -252,7 +255,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                     ref.read(selectedBusinessLocationProvider.notifier).clear();
                   },
                   icon: const Icon(Icons.clear, size: 16),
-                  label: const Text('Réinitialiser'),
+                  label: Text(l10n.reset),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: Size.zero,
@@ -279,7 +282,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                           topRight: Radius.circular(20),
                         ),
                         inputDecoration: InputDecoration(
-                          labelText: 'Rechercher un pays',
+                          labelText: l10n.searchCountry,
                           prefixIcon: const AppIcon(AppIcon.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -295,7 +298,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                   },
                   icon: const AppIcon(AppIcon.public, size: 18),
                   label: Text(
-                    locationFilter.country ?? 'Pays',
+                    locationFilter.country ?? l10n.country,
                     overflow: TextOverflow.ellipsis,
                   ),
                   style: OutlinedButton.styleFrom(
@@ -311,7 +314,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                   onPressed: () => _showCityDialog(theme, locationFilter.city),
                   icon: const Icon(Icons.location_city, size: 18),
                   label: Text(
-                    locationFilter.city ?? 'Ville',
+                    locationFilter.city ?? l10n.city,
                     overflow: TextOverflow.ellipsis,
                   ),
                   style: OutlinedButton.styleFrom(
@@ -336,7 +339,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                     : Icons.my_location_outlined,
                 size: 18,
               ),
-              label: const Text('Utiliser ma localisation'),
+              label: Text(l10n.useMyLocation),
               style: FilledButton.styleFrom(
                 backgroundColor: locationFilter.useMyLocation
                     ? theme.colorScheme.primaryContainer
@@ -355,12 +358,12 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Entrer la ville'),
+        title: Text(l10n.enterCity),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Ex: Paris, Niamey, New York...',
+          decoration: InputDecoration(
+            hintText: l10n.cityHintExample,
             prefixIcon: Icon(Icons.location_city),
           ),
           textCapitalization: TextCapitalization.words,
@@ -368,7 +371,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           FilledButton(
             onPressed: () {
@@ -378,7 +381,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Appliquer'),
+            child: Text(l10n.apply),
           ),
         ],
       ),

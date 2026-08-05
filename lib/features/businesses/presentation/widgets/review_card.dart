@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/review_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'star_rating_input.dart';
 
 class ReviewCard extends StatelessWidget {
@@ -36,6 +37,7 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final dateFormat = DateFormat('dd/MM/yyyy');
 
@@ -93,13 +95,13 @@ class ReviewCard extends StatelessWidget {
                       if (value == 'delete') onDelete?.call();
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
                             Icon(Icons.edit_outlined, size: 20),
                             SizedBox(width: 8),
-                            Text('Modifier'),
+                            Text(l10n.edit),
                           ],
                         ),
                       ),
@@ -109,7 +111,7 @@ class ReviewCard extends StatelessWidget {
                           children: [
                             AppIcon(AppIcon.delete, size: 20, color: Colors.red),
                             const SizedBox(width: 8),
-                            const Text('Supprimer', style: TextStyle(color: Colors.red)),
+                            Text(l10n.delete, style: TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),
@@ -119,7 +121,7 @@ class ReviewCard extends StatelessWidget {
                   IconButton(
                     icon: const AppIcon(AppIcon.flag, size: 20),
                     onPressed: onReport,
-                    tooltip: 'Signaler',
+                    tooltip: l10n.report,
                   ),
               ],
             ),
@@ -264,7 +266,7 @@ class ReviewCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onReply,
                   icon: const Icon(Icons.reply, size: 18),
-                  label: const Text('Répondre'),
+                  label: Text(l10n.reply),
                 ),
               ),
             ],
@@ -284,7 +286,7 @@ class ReviewCard extends StatelessWidget {
                   label: Text(
                     review.helpfulCount > 0
                         ? 'Utile (${review.helpfulCount})'
-                        : 'Utile',
+                        : l10n.reviewHelpful,
                     style: TextStyle(
                       color: hasMarkedHelpful ? theme.colorScheme.primary : null,
                     ),

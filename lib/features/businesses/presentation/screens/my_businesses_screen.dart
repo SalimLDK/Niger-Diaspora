@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// §19c « Mes entreprises » — écran propriétaire.
 ///
@@ -15,6 +16,7 @@ class MyBusinessesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final businessesAsync = ref.watch(myBusinessesNotifierProvider);
 
     return Scaffold(
@@ -23,7 +25,7 @@ class MyBusinessesScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/businesses/create'),
         icon: const AppIcon(AppIcon.add),
-        label: const Text('Ajouter'),
+        label: Text(l10n.add),
       ),
       body: RefreshIndicator(
         onRefresh: () =>
@@ -77,6 +79,7 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final totalViews =
         businesses.fold<int>(0, (sum, b) => sum + b.viewCount);
@@ -113,9 +116,9 @@ class _StatsRow extends StatelessWidget {
         children: [
           cell('${businesses.length}', 'Entreprises'),
           _divider(theme),
-          cell('$totalViews', 'Vues'),
+          cell('$totalViews', l10n.businessViews),
           _divider(theme),
-          cell('$totalReviews', 'Avis'),
+          cell('$totalReviews', l10n.reviews),
         ],
       ),
     );
@@ -135,6 +138,7 @@ class _OwnerBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final boostRemaining = _boostRemaining();
 
@@ -221,13 +225,13 @@ class _OwnerBusinessCard extends StatelessWidget {
             // Actions
             Row(
               children: [
-                _action(context, Icons.edit_outlined, 'Modifier',
+                _action(context, Icons.edit_outlined, l10n.edit,
                     () => context.push('/businesses/${business.id}',
                         extra: business)),
                 _action(context, Icons.local_offer_outlined, 'Offres',
                     () => context.push('/businesses/${business.id}',
                         extra: business)),
-                _action(context, Icons.reviews_outlined, 'Avis',
+                _action(context, Icons.reviews_outlined, l10n.reviews,
                     () => context.push('/businesses/${business.id}/reviews',
                         extra: business)),
               ],
@@ -292,12 +296,13 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final color = isVerified ? const Color(0xFF1B5E32) : const Color(0xFFB85E24);
     final bg = isVerified
         ? const Color(0xFFE8F0EA)
         : const Color(0xFFF7ECD9);
-    final label = isVerified ? 'Vérifiée' : 'En attente';
+    final label = isVerified ? l10n.adminVerifiedStatus : l10n.pending;
     final icon = isVerified ? Icons.verified : Icons.hourglass_empty;
 
     return Container(
@@ -462,6 +467,7 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return ListView(
       padding: const EdgeInsets.all(24),
@@ -478,7 +484,7 @@ class _ErrorView extends StatelessWidget {
         Center(
           child: ElevatedButton(
             onPressed: onRetry,
-            child: const Text('Réessayer'),
+            child: Text(l10n.retry),
           ),
         ),
       ],

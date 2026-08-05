@@ -7,6 +7,7 @@ import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_boost_entity.dart';
 import '../providers/business_provider.dart';
 import '../../../../core/services/currency_service.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BoostBusinessScreen extends ConsumerStatefulWidget {
   final String businessId;
@@ -24,6 +25,8 @@ class BoostBusinessScreen extends ConsumerStatefulWidget {
 }
 
 class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   BoostType _selectedType = BoostType.standard;
   BoostDuration _selectedDuration = BoostDuration.days7;
   bool _isLoading = false;
@@ -72,7 +75,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const DesignTitle('Booster votre entreprise', size: 22),
+        title: DesignTitle(l10n.boostYourBusiness, size: 22),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -115,7 +118,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
 
           // Boost type selection
           Text(
-            'Type de boost',
+            l10n.businessBoostTypeLabel,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -279,7 +282,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Type:'),
+                    Text(l10n.typeLabel),
                     Text(
                       _selectedType.label,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -301,7 +304,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Total:', style: theme.textTheme.titleMedium),
+                    Text(l10n.businessTotalLabel, style: theme.textTheme.titleMedium),
                     Text(
                       _formatPrice(_totalPrice),
                       style: theme.textTheme.titleLarge?.copyWith(

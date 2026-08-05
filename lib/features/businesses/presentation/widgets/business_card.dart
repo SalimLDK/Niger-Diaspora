@@ -5,6 +5,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_post_entity.dart';
 import '../providers/business_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BusinessCard extends ConsumerWidget {
   final BusinessEntity business;
@@ -56,6 +57,7 @@ class BusinessCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final hasImage = business.photoUrls.isNotEmpty || business.logoUrl != null;
     final imageUrl = business.logoUrl ?? (business.photoUrls.isNotEmpty ? business.photoUrls.first : null);
@@ -112,7 +114,7 @@ class BusinessCard extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Premium',
+                                l10n.premiumBadge,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,

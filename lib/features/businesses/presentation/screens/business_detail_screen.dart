@@ -15,6 +15,7 @@ import '../providers/review_provider.dart';
 import '../widgets/review_card.dart';
 import '../widgets/review_form_modal.dart';
 import '../widgets/star_rating_input.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BusinessDetailScreen extends ConsumerStatefulWidget {
   final String businessId;
@@ -32,6 +33,8 @@ class BusinessDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -191,13 +194,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 },
                 itemBuilder:
                     (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
-                        child: Text('Modifier'),
+                        child: Text(l10n.edit),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'boost',
-                        child: Text('Booster'),
+                        child: Text(l10n.boost),
                       ),
                     ],
               ),
@@ -275,7 +278,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Premium',
+                              l10n.premiumBadge,
                               style: TextStyle(
                                 color: theme.colorScheme.onPrimary,
                               ),
@@ -316,7 +319,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 const SizedBox(height: 24),
                 // Contact section
                 Text(
-                  'Contact',
+                  l10n.contact,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -351,7 +354,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 // Services
                 if (business.services.isNotEmpty) ...[
                   Text(
-                    'Services',
+                    l10n.services,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -378,7 +381,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         color: theme.colorScheme.primary,
                       ),
                       value: business.viewCount.toString(),
-                      label: 'Vues',
+                      label: l10n.businessViews,
                     ),
                     _StatItem(
                       icon: AppIcon(
@@ -387,7 +390,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         color: theme.colorScheme.primary,
                       ),
                       value: business.reviewCount.toString(),
-                      label: 'Avis',
+                      label: l10n.reviews,
                     ),
                   ],
                 ),
@@ -426,7 +429,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                         );
                       },
                       icon: const Icon(Icons.message),
-                      label: const Text('Contacter'),
+                      label: Text(l10n.contactAction),
                     ),
                   ),
               ],
@@ -445,6 +448,7 @@ class _OpeningHoursSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     const allDays = [
       'lundi',
@@ -456,13 +460,13 @@ class _OpeningHoursSection extends StatelessWidget {
       'dimanche',
     ];
     final dayLabels = {
-      'lundi': 'Lundi',
-      'mardi': 'Mardi',
-      'mercredi': 'Mercredi',
-      'jeudi': 'Jeudi',
-      'vendredi': 'Vendredi',
-      'samedi': 'Samedi',
-      'dimanche': 'Dimanche',
+      'lundi': l10n.dayMondayLabel,
+      'mardi': l10n.dayTuesdayLabel,
+      'mercredi': l10n.dayWednesdayLabel,
+      'jeudi': l10n.dayThursdayLabel,
+      'vendredi': l10n.dayFridayLabel,
+      'samedi': l10n.daySaturdayLabel,
+      'dimanche': l10n.daySundayLabel,
     };
 
     // Jour courant en tête (§17d), le reste dans l'ordre de la semaine.
@@ -524,7 +528,7 @@ class _OpeningHoursSection extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  hours.isClosed ? 'Fermé' : '${hours.open} - ${hours.close}',
+                  hours.isClosed ? l10n.closedStatus : '${hours.open} - ${hours.close}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: hours.isClosed ? theme.colorScheme.error : null,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
@@ -546,6 +550,7 @@ class _OffersSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final offersAsync = ref.watch(businessOffersNotifierProvider(businessId));
 
@@ -557,7 +562,7 @@ class _OffersSection extends ConsumerWidget {
             Icon(Icons.local_offer, color: Colors.orange, size: 24),
             const SizedBox(width: 8),
             Text(
-              'Offres en cours',
+              l10n.currentOffersTitle,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -581,7 +586,7 @@ class _OffersSection extends ConsumerWidget {
                     AppIcon(AppIcon.info, color: theme.colorScheme.outline),
                     const SizedBox(width: 12),
                     Text(
-                      'Aucune offre en cours',
+                      l10n.noCurrentOffersMessage,
                       style: TextStyle(color: theme.colorScheme.outline),
                     ),
                   ],
@@ -709,6 +714,7 @@ class _PostsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final postsAsync = ref.watch(businessPostsNotifierProvider(businessId));
 
@@ -733,7 +739,7 @@ class _PostsSection extends ConsumerWidget {
                   _showCreatePostDialog(context, ref);
                 },
                 icon: const AppIcon(AppIcon.add, size: 18),
-                label: const Text('Ajouter'),
+                label: Text(l10n.add),
               ),
           ],
         ),
@@ -785,6 +791,7 @@ class _PostsSection extends ConsumerWidget {
   }
 
   void _showCreatePostDialog(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final titleController = TextEditingController();
     final contentController = TextEditingController();
     BusinessPostType selectedType = BusinessPostType.announcement;
@@ -795,7 +802,7 @@ class _PostsSection extends ConsumerWidget {
           (context) => StatefulBuilder(
             builder:
                 (context, setState) => AlertDialog(
-                  title: const Text('Nouvelle publication'),
+                  title: Text(l10n.newPost),
                   content: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -806,7 +813,7 @@ class _PostsSection extends ConsumerWidget {
                           // étroit que dans une page : `isExpanded` borne la
                           // pile interne et l'Expanded borne la Row de l'item.
                           isExpanded: true,
-                          decoration: const InputDecoration(labelText: 'Type'),
+                          decoration: InputDecoration(labelText: l10n.callType),
                           items:
                               BusinessPostType.values.map((type) {
                                 return DropdownMenuItem(
@@ -839,16 +846,16 @@ class _PostsSection extends ConsumerWidget {
                         const SizedBox(height: 16),
                         TextField(
                           controller: titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Titre',
-                            hintText: 'Ex: Nouvelle collection disponible',
+                          decoration: InputDecoration(
+                            labelText: l10n.adminTitle,
+                            hintText: l10n.titleHintPost,
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: contentController,
-                          decoration: const InputDecoration(
-                            labelText: 'Contenu',
+                          decoration: InputDecoration(
+                            labelText: l10n.adminContent,
                             hintText: 'Decrivez votre actualite...',
                           ),
                           maxLines: 4,
@@ -859,7 +866,7 @@ class _PostsSection extends ConsumerWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Annuler'),
+                      child: Text(l10n.undo),
                     ),
                     FilledButton(
                       onPressed: () async {
@@ -879,7 +886,7 @@ class _PostsSection extends ConsumerWidget {
                             .createPost(post);
                         if (context.mounted) Navigator.pop(context);
                       },
-                      child: const Text('Publier'),
+                      child: Text(l10n.publish),
                     ),
                   ],
                 ),
@@ -892,18 +899,19 @@ class _PostsSection extends ConsumerWidget {
     WidgetRef ref,
     BusinessPostEntity post,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer'),
-            content: const Text(
-              'Voulez-vous vraiment supprimer cette publication ?',
+            title: Text(l10n.delete),
+            content: Text(
+              l10n.confirmDeletePost,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               FilledButton(
                 onPressed: () async {
@@ -913,7 +921,7 @@ class _PostsSection extends ConsumerWidget {
                   if (context.mounted) Navigator.pop(context);
                 },
                 style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Supprimer'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -1087,6 +1095,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
   });
 
   void _showReviewForm(BuildContext context, WidgetRef ref, {ReviewEntity? existingReview}) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.read(currentUserProvider).valueOrNull;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1099,7 +1108,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
       context,
       businessId: businessId,
       userId: currentUser.id,
-      userDisplayName: currentUser.displayName ?? 'Utilisateur',
+      userDisplayName: currentUser.displayName ?? l10n.user,
       userPhotoUrl: currentUser.photoUrl,
       existingReview: existingReview,
     );
@@ -1108,6 +1117,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
   /// Réponse du gérant à un avis (§18c). Réutilise le chemin d'écriture
   /// existant `updateReview` en posant `ownerReply`/`ownerReplyAt` sur l'avis.
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
     showDialog(
       context: context,
@@ -1126,7 +1136,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           FilledButton(
             onPressed: () async {
@@ -1149,7 +1159,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Publier'),
+            child: Text(l10n.publish),
           ),
         ],
       ),
@@ -1158,6 +1168,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final reviewsAsync = ref.watch(businessReviewsNotifierProvider(businessId));
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
@@ -1172,7 +1183,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Avis clients',
+                l10n.customerReviewsTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -1182,7 +1193,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
               onPressed: () {
                 context.push('/businesses/$businessId/reviews', extra: business);
               },
-              child: const Text('Voir tout'),
+              child: Text(l10n.seeAll),
             ),
           ],
         ),
@@ -1245,7 +1256,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Aucun avis pour le moment',
+                      l10n.noReviewsYetMessage,
                       style: TextStyle(color: theme.colorScheme.outline),
                     ),
                     if (!isOwner && userReviewAsync.valueOrNull == null) ...[
