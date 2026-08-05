@@ -2483,29 +2483,77 @@ compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
 passait de `maxLines: 1` à `minLines: 1 / maxLines: 6`, plus trois correctifs
 d'état et un alignement de couleurs. Le composer sert les **trois** cas depuis
 le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre eux.
-`flutter analyze` et les 7 tests de `message_input_composer_test.dart` passent,
-mais rien de tout cela n'a été vu sur un écran.
+`flutter analyze` et les 7 tests de `message_input_composer_test.dart` passent.
 
-- [ ] **Croissance de la barre** : taper un message sur 1, puis 3, puis 8+
-  lignes. La barre doit grandir vers le haut jusqu'à 6 lignes, puis se figer et
-  laisser le texte défiler à l'intérieur. Le « + » et l'emoji restent collés en
-  bas de la pilule ; le bouton rond ne doit pas se décaler.
-- [ ] **Retour à la ligne** : la touche Entrée du clavier virtuel insère
-  désormais un saut de ligne au lieu d'envoyer (`TextInputAction.newline`).
-  Vérifier aussi avec un **clavier physique** si tu en branches un — c'est le
-  seul cas où l'ancien comportement pouvait manquer.
-- [ ] **Rendu en nocturne** à 3 et 6 lignes : la pilule garde son rayon 28,
-  contrôler qu'elle ne devient pas un rectangle disgracieux une fois haute.
-- [ ] **Le panneau pièces jointes se ferme au clavier** : ouvrir le « + »
-  (grille 3×2), puis toucher le champ texte. Le panneau doit disparaître en même
-  temps que le clavier monte — avant, il restait affiché sous le clavier.
+**Passe appareil du 2026-08-04 (23:29 → 23:37), SM A515F, APK debug `6498773`,
+thème sombre, font_scale 1.1, conversation « Mes notes ».** ⚠ Une session
+concurrente a réinstallé l'app à **23:38:08** (`Killing … due to
+installPackageLI`) : tout constat postérieur à cette heure a été jeté.
+
+- [x] **Croissance de la barre** — vérifié. 1 ligne → 6 lignes, la barre monte
+  ligne après ligne ; à 12 lignes elle a **exactement la même hauteur** qu'à 6 et
+  affiche L7–L12, donc le champ défile en interne en suivant le curseur. Le
+  « + » et l'emoji restent collés en bas, le bouton rond ne bouge pas.
+  Mesures au banc de test (échelle 1.0) : 23 px par ligne, plafond 162 px pour
+  le champ / 190 px pour le composer.
+- [x] **Retour à la ligne** — vérifié au `keyevent 66`. Entrée insère bien un
+  saut de ligne et **n'envoie pas** (aucun message n'est parti dans la
+  conversation). Reste à confirmer avec un **clavier physique**.
+- [x] **Rendu en nocturne** à 6 lignes : la pilule reste une carte aux coins
+  arrondis lisible, pas un rectangle mou. Rien à redire.
+- [x] **Le panneau pièces jointes se ferme au clavier** — vérifié. « + » →
+  grille ouverte, `mInputShown=false`, glyphe en « × » ; tap sur le champ →
+  grille disparue, `mInputShown=true`, retour au « + ». Le bug est corrigé.
+- [x] ⚠ **Débordement au « + » — trouvé par Salim, que mes captures avaient
+  manqué, corrigé.** Symptôme : champ sur plusieurs lignes, appui sur « + », et
+  l'overflow apparaît **au moment où le clavier disparaît**. Mes cinq captures
+  ne le montraient pas parce qu'elles étaient prises dans « Mes notes », qui n'a
+  presque pas de chrome fixe — le bug demande une conversation chargée.
+  Mécanisme : `_toggleAttachPanel` baisse le clavier **puis insère le panneau
+  aussitôt** ; pendant les ~250 ms de repli, l'inset du clavier vaut encore sa
+  pleine valeur *et* le panneau est déjà dans la colonne. Avec la chrome de la
+  conversation 1-à-1 (bandeau épinglé + chips Médias/ÉCO + bandeau de clés
+  ≈ 240 dp) et le champ à 6 lignes : `RenderFlex overflowed by 85 pixels`,
+  reproduit au banc. Le passage au multi-ligne n'a pas créé le défaut, il a
+  rendu le composer assez haut pour qu'une mise en page déjà juste bascule.
+  Correctif : les panneaux (pièces jointes **et** emoji) prennent désormais *la
+  place* du clavier — leur fraction visible suit son retrait, donc la hauteur
+  totale ne varie jamais. Piège au passage : `MediaQuery.viewInsets.bottom` vaut
+  déjà 0 dans le `body` d'un `Scaffold` (il l'a consommé pour rétrécir) ; il
+  faut lire `View.of(context).viewInsets`. Couvert par le 8ᵉ test du fichier.
+  **À revoir à l'œil** : le panneau se révèle-t-il proprement, ou voit-on un
+  ressaut au moment où le clavier finit de partir ?
+- [x] **Aucun autre débordement** à font_scale 1.1 : aucune bannière rayée
+  jaune/noir sur les cinq captures (1 ligne, 6, 12, panneau ouvert, panneau
+  fermé), et zéro `RenderFlex … overflowed by` dans le tampon logcat. ⚠ Le
+  logcat seul ne suffit pas à conclure (Crashlytics remplace
+  `FlutterError.onError`, cf. fiche « erreurs Flutter silencieuses ») — et le
+  cas ci-dessus prouve qu'une capture sur le mauvais écran ne prouve rien non
+  plus.
+- [x] **Brouillon restauré** : à l'ouverture de « Mes notes », le brouillon
+  laissé s'affiche déjà sur 2 lignes **et** le bouton est en mode envoi (bleu +
+  cadenas) sans toucher au champ.
 - [ ] **Brouillon tapé puis sortie immédiate** : taper quelques caractères et
   quitter l'écran **en moins d'une demi-seconde**. Au retour, le texte complet
-  doit être là (la fin était perdue jusqu'ici). ⚠ Ne pas réinstaller entre les
-  deux : `adb install -r` vide les `SharedPreferences`.
-- [ ] **Compteur de caractères** : il apparaît à 200 caractères, vire à l'orange
-  du thème sous 100 restants, au rouge à 2000. Il ne doit plus faire clignoter
-  la barre à chaque frappe (le reste du composer ne se reconstruit plus).
+  doit être là (la fin était perdue jusqu'ici). Non testé sur appareil — couvert
+  seulement par un test unitaire. Deux tentatives abandonnées (voir plus bas).
+- [x] **Compteur de caractères** — vérifié sur la seconde passe (2026-08-05,
+  00:55 → 00:59, APK debug installé à 23:55:57). Pastille « 204 / 2000 » puis
+  « 224 / 2000 » en bas à droite **dans** la pilule, sur le fond neutre
+  `surfaceVariant`, la barre étant à son plafond de 6 lignes. Reste à voir
+  l'orange (sous 100 restants) et le rouge (à 2000), non atteints.
+- [x] **La barre redescend** : en effaçant, elle repasse de 6 lignes à 1 sans
+  saut ni scintillement.
+
+⚠ **Deux passes perdues, même cause : l'appareil n'était pas à moi seul.**
+Une session concurrente a réinstallé l'app à 23:38:08 en plein test, puis
+quelqu'un a utilisé le téléphone au doigt vers 00:19 (message « test pour
+verifier 9c et 9d » envoyé dans Mes notes). S'ajoute un redémarrage du process
+à 23:59:49 **sans crash** — pas de `FATAL EXCEPTION`, pas d'ANR, mais une
+cascade de reclaim mémoire dans la même minute (Facebook, Samsung Pass, Play
+Store, keychain tués aussi). C'est la pression mémoire du A51 déjà documentée.
+Réflexe confirmé : relever `lastUpdateTime` **et** l'heure des captures avant
+de conclure quoi que ce soit.
 - [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Le bouton d'action doit
   rester dans l'arbre en permanence pour que le push-to-talk fonctionne :
   appui long → enregistrement, glisser à gauche → annulation, glisser vers le

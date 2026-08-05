@@ -136,6 +136,15 @@ class _MessageInputState extends State<MessageInput>
   String? _activeMentionQuery;
   int? _mentionTriggerOffset;
 
+  /// Dernière hauteur connue du clavier logiciel.
+  ///
+  /// Les panneaux (pièces jointes, emoji) prennent **la place du clavier** au
+  /// lieu de s'ajouter à la colonne : sans ça, pendant les ~250 ms de repli du
+  /// clavier les `viewInsets` valent encore leur pleine valeur *et* le panneau
+  /// est déjà inséré — la colonne dépassait de 85 px sur une conversation
+  /// chargée (bandeau épinglé + chips + bandeau de clés).
+  double _lastKeyboardHeight = 0;
+
   // Morphing animation
   late AnimationController _morphController;
   late Animation<double> _morphAnimation;
@@ -892,7 +901,8 @@ class _MessageInputState extends State<MessageInput>
           _buildReplyPreview(context),
 
         // Panneau ancré de pièces jointes (grille 3×2), au-dessus du composer.
-        if (_showAttachPanel && !_isRecording) _buildAttachPanel(context),
+        if (_showAttachPanel && !_isRecording)
+          _revealInKeyboardSlot(context, _buildAttachPanel(context)),
 
         // Zone principale : barre flottante (« + » + champ) et le bouton
         // vocal/envoi **hors de la barre** (cercle séparé à droite).
@@ -963,24 +973,61 @@ class _MessageInputState extends State<MessageInput>
 
         // Combined emoji/sticker picker (uniquement si pas en enregistrement)
         if (_showPicker && !_isRecording)
-          EmojiStickerPicker(
-            // Hauteur bornée à l'espace réellement libre (voir
-            // computeMessagePickerHeight) : évite l'overflow paysage.
-            height: computeMessagePickerHeight(
-              screenHeight: MediaQuery.of(context).size.height,
-              systemInset: MediaQuery.of(context).viewPadding.vertical,
-              isLandscape:
-                  MediaQuery.of(context).orientation == Orientation.landscape,
+          _revealInKeyboardSlot(
+            context,
+            EmojiStickerPicker(
+              // Hauteur bornée à l'espace réellement libre (voir
+              // computeMessagePickerHeight) : évite l'overflow paysage.
+              height: computeMessagePickerHeight(
+                screenHeight: MediaQuery.of(context).size.height,
+                systemInset: MediaQuery.of(context).viewPadding.vertical,
+                isLandscape:
+                    MediaQuery.of(context).orientation == Orientation.landscape,
+              ),
+              initialTabIndex: _pickerTabIndex,
+              onEmojiSelected: _onEmojiSelected,
+              onBackspacePressed: _onBackspacePressed,
+              onStickerSelected:
+                  widget.onSendSticker != null ? _onStickerSelected : null,
+              onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
+              onClose: _hidePicker,
             ),
-            initialTabIndex: _pickerTabIndex,
-            onEmojiSelected: _onEmojiSelected,
-            onBackspacePressed: _onBackspacePressed,
-            onStickerSelected:
-                widget.onSendSticker != null ? _onStickerSelected : null,
-            onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
-            onClose: _hidePicker,
           ),
       ],
+    );
+  }
+
+  /// Révèle un panneau **à la place du clavier**, jamais en plus de lui.
+  ///
+  /// La fraction visible suit le retrait du clavier : pleine hauteur d'inset =
+  /// rien d'affiché, inset nul = panneau entier. La hauteur totale de la
+  /// colonne reste donc constante pendant toute l'animation, ce qui supprime
+  /// l'overflow au lieu de le rendre seulement moins probable.
+  ///
+  /// Le panneau est aussi borné à la hauteur du clavier : au-delà, il défile.
+  Widget _revealInKeyboardSlot(BuildContext context, Widget child) {
+    // ⚠ Pas `MediaQuery.of(context).viewInsets` : le `Scaffold` consomme
+    // l'inset du clavier pour rétrécir son `body`, donc il vaut déjà 0 ici.
+    // Seule la vue porte encore la vraie hauteur du clavier.
+    final view = View.of(context);
+    final insets = view.viewInsets.bottom / view.devicePixelRatio;
+    if (insets > _lastKeyboardHeight) {
+      _lastKeyboardHeight = insets;
+    }
+    // Repli tant qu'aucun clavier n'a encore été vu (premier ouverture au « + »
+    // sans avoir tapé) : hauteur usuelle d'un clavier Android.
+    final slot = _lastKeyboardHeight > 0 ? _lastKeyboardHeight : 280.0;
+    final factor = ((slot - insets) / slot).clamp(0.0, 1.0);
+
+    return ClipRect(
+      child: Align(
+        alignment: Alignment.topCenter,
+        heightFactor: factor,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: slot),
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -1201,7 +1248,10 @@ class _MessageInputState extends State<MessageInput>
       child: GridView.count(
         crossAxisCount: 3,
         shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+        // Défilable : le panneau est borné au créneau du clavier, et sur un
+        // petit écran (ou en paysage) la grille doit pouvoir glisser au lieu
+        // de déborder.
+        physics: const ClampingScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 0.95,

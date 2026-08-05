@@ -170,4 +170,69 @@ void main() {
       'Brouillon in extremis',
     );
   });
+
+  testWidgets('ouvrir le panneau clavier levé ne fait pas déborder la colonne', (
+    tester,
+  ) async {
+    // Reproduit l'appareil : A51 (393×873 dp), police à 1.1, conversation
+    // chargée (bandeau épinglé + chips + bandeau de clés ≈ 240 dp de chrome).
+    // Le « + » baisse le clavier et insère le panneau dans la foulée : pendant
+    // les ~250 ms de repli, l'inset du clavier est encore là. Sans le créneau
+    // clavier, la colonne débordait de 85 px.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300 * 2.75);
+    addTearDown(tester.view.reset);
+
+    Widget app() => MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Salim L.')),
+        body: Column(
+          children: [
+            const SizedBox(height: 240), // chrome fixe de la conversation
+            const Expanded(child: SizedBox.expand()),
+            MessageInput(
+              conversationId: 'conv-overflow',
+              onSendText: (_, __) {},
+              onSendFile: (File file, bool isImage, {String? caption}) {},
+              onSendAudio: (_, __, ___) {},
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(app());
+    await tester.enterText(
+      find.byType(TextField),
+      List.generate(6, (i) => 'ligne $i').join('\n'),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    final sansPanneau = tester.getSize(find.byType(MessageInput)).height;
+
+    // Clavier encore levé : le panneau ne doit rien ajouter à la colonne.
+    await tester.tap(find.byIcon(Icons.add_rounded));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.byType(MessageInput)).height, sansPanneau);
+
+    // Clavier parti : le panneau prend sa place, toujours sans déborder.
+    tester.view.viewInsets = FakeViewPadding.zero;
+    await tester.pumpWidget(app());
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byType(MessageInput)).height,
+      greaterThan(sansPanneau),
+    );
+    expect(find.text('Caméra'), findsOneWidget);
+  });
 }
