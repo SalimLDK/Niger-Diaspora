@@ -567,12 +567,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ProfileScreen y renvoient.
       GoRoute(
         path: '/settings',
-        // ?section=privacy|appearance|help : les trois entrees « Reglages »
-        // du profil arrivent chacune sur sa section (§10a → §10b).
-        builder:
-            (context, state) => SettingsScreen(
-              initialSection: state.uri.queryParameters['section'],
-            ),
+        builder: (context, state) => const SettingsScreen(),
       ),
       // Documents légaux (§26c) : 3 routes distinctes pour les liens
       // profonds existants (consentement, inscription...), mais un seul

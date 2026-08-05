@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/responsive/responsive.dart';
-import '../../../../core/l10n/locale_provider.dart';
-import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
@@ -17,11 +17,9 @@ import '../../../feed/presentation/screens/my_posts_screen.dart'
     show userPostsCountProvider;
 import '../../../feed/presentation/screens/saved_posts_screen.dart'
     show bookmarkedPostsCountProvider;
-import '../providers/profile_preferences_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
-import '../../../../core/services/app_version_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -270,59 +268,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         const SizedBox(height: 20),
 
-        // Réglages condensés en 3 entrées avec leur état en sous-titre
-        // (refonte 10a : 7 sections → 3), renvoyant vers l'écran dédié §10b.
+        // Actions du compte (§10a) : elles vivaient au bas de l'écran
+        // Réglages, alors qu'elles ne règlent rien — elles disposent du
+        // compte. Elles prennent la place des trois raccourcis « Réglages »
+        // qui n'étaient que des ancres vers un écran déjà atteignable par le
+        // bouton d'engrenage de l'en-tête.
         _buildAnimatedSection(
           delay: 1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DesignSectionLabel(l10n.settings),
+              DesignSectionLabel(l10n.dangerZone, color: context.errorColor),
               DesignSettingsCard(
+                isDanger: true,
                 children: [
+                  // Jetons adaptatifs et non `AppColors.warning`/`.error`
+                  // bruts : ces deux-là sont les valeurs du thème clair, donc
+                  // peu lisibles sur le fond du nocturne.
                   DesignSettingsTile(
-                    icon: const Icon(Icons.shield_outlined),
-                    title: l10n.settingsPrivacySecurity,
-                    // Lit les providers : ces deux valeurs etaient recopiees
-                    // une seule fois au premier frame, sans ecoute — le
-                    // sous-titre restait fige sur l'etat d'ouverture, et sur
-                    // « true/true » si le profil n'etait pas encore charge.
-                    subtitle: () {
-                      final on = <String>[
-                        if (ref.watch(
-                              profilePreferenceProvider(
-                                ProfilePreference.isVisible,
-                              ),
-                            ) ??
-                            false)
-                          l10n.visibleProfile,
-                        if (ref.watch(
-                              profilePreferenceProvider(
-                                ProfilePreference.shareLocation,
-                              ),
-                            ) ??
-                            false)
-                          l10n.myLocation,
-                      ];
-                      return on.isEmpty ? l10n.privacy : on.join(' · ');
-                    }(),
-                    onTap: () => context.push('/settings?section=privacy'),
+                    icon: const Icon(Icons.logout_outlined),
+                    title: l10n.logout,
+                    iconColor: context.warningColor,
+                    titleColor: context.warningColor,
+                    onTap: () => _confirmLogout(l10n),
                   ),
                   DesignSettingsTile(
-                    icon: const Icon(Icons.tune_outlined),
-                    title: l10n.settingsAppearanceLanguage,
-                    subtitle:
-                        '${themeModeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
-                    onTap: () => context.push('/settings?section=appearance'),
-                  ),
-                  DesignSettingsTile(
-                    icon: const Icon(Icons.help_outline),
-                    title: l10n.settingsHelpAbout,
-                    subtitle: appVersionLabel(
-                      l10n,
-                      ref.watch(appVersionProvider).valueOrNull ?? '',
-                    ),
-                    onTap: () => context.push('/settings?section=help'),
+                    icon: const Icon(Icons.delete_outline),
+                    title: l10n.deleteAccount,
+                    iconColor: context.errorColor,
+                    titleColor: context.errorColor,
+                    onTap: () => _confirmDeleteAccount(l10n),
                   ),
                 ],
               ),
@@ -836,6 +811,451 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   /// Libellé de section (§10a) : petites capitales en chasse fixe. L'icône
   /// en pastille a disparu — les appels la passent encore, elle est ignorée.
+
+  void _confirmLogout(AppLocalizations l10n) {
+    HapticFeedback.mediumImpact();
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.warningColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  // Le fond de la pastille est déjà adaptatif juste au-dessus :
+                  // le glyphe restait sur le jeton clair, donc sombre sur
+                  // sombre en nocturne.
+                  child: Icon(Icons.logout, color: context.warningColor),
+                ),
+                const SizedBox(width: 12),
+                Text(l10n.logout),
+              ],
+            ),
+            content: Text(l10n.confirmLogout),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final router = GoRouter.of(context);
+                  navigator.pop();
+                  final currentUser =
+                      ref.read(currentUserAsyncProvider).valueOrNull;
+                  if (currentUser != null) {
+                    await NotificationService().removeTokenForUser(
+                      currentUser.id,
+                    );
+                  }
+                  await ref.read(authNotifierProvider.notifier).signOut();
+                  router.go('/auth/login');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.warning,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(l10n.logout),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _confirmDeleteAccount(AppLocalizations l10n) {
+    HapticFeedback.heavyImpact();
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.errorColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.delete_forever, color: context.errorColor),
+                ),
+                const SizedBox(width: 12),
+                Text(l10n.deleteAccountTitle),
+              ],
+            ),
+            content: Text(l10n.deleteAccountWarning),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showFinalDeleteConfirmation(l10n);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(l10n.continueAction),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showFinalDeleteConfirmation(AppLocalizations l10n) {
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Text(l10n.finalConfirmation),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.typeDeleteToConfirm),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: confirmController,
+                      decoration: InputDecoration(
+                        hintText: l10n.deleteKeyword,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (_) => setDialogState(() {}),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      confirmController.dispose();
+                      Navigator.pop(context);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                  ElevatedButton(
+                    onPressed:
+                        confirmController.text == l10n.deleteKeyword
+                            ? () async {
+                              Navigator.pop(context);
+                              await _deleteAccount(l10n);
+                            }
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      disabledBackgroundColor: Colors.grey,
+                    ),
+                    child: Text(l10n.deletePermanently),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  Future<void> _deleteAccount(AppLocalizations l10n) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(width: 20),
+                Expanded(child: Text(l10n.deletingAccount)),
+              ],
+            ),
+          ),
+    );
+
+    try {
+      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+      if (currentUser != null) {
+        await NotificationService().removeTokenForUser(currentUser.id);
+      }
+
+      final success =
+          await ref.read(authNotifierProvider.notifier).deleteAccount();
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      final authState = ref.read(authNotifierProvider);
+      final errorMessage = authState.maybeWhen(
+        error: (msg) => msg,
+        orElse: () => null,
+      );
+
+      if (errorMessage != null && errorMessage.startsWith('REAUTH_REQUIRED:')) {
+        final actualMessage = errorMessage.substring('REAUTH_REQUIRED:'.length);
+        await _showPasswordPromptForDeletion(l10n, actualMessage);
+        return;
+      }
+
+      if (success) {
+        GoRouter.of(context).go('/auth/login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.white),
+                const SizedBox(width: 12),
+                Text(l10n.accountDeletedSuccess),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: AppColors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(errorMessage ?? l10n.errorDeletingAccount),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.error}: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _showPasswordPromptForDeletion(
+    AppLocalizations l10n,
+    String message,
+  ) async {
+    final passwordController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: context.warningColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.lock_reset,
+                        color: context.warningColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.confirmPassword,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(message),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        hintText: l10n.confirmPasswordRequired,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: context.adaptivePrimaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        prefixIcon: const Icon(Icons.lock),
+                      ),
+                      onChanged: (_) => setDialogState(() {}),
+                      onSubmitted: (_) {
+                        if (passwordController.text.isNotEmpty) {
+                          _handlePasswordSubmit(passwordController.text, l10n);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      passwordController.dispose();
+                      Navigator.pop(context);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                  ElevatedButton(
+                    onPressed:
+                        passwordController.text.isEmpty
+                            ? null
+                            : () {
+                              _handlePasswordSubmit(
+                                passwordController.text,
+                                l10n,
+                              );
+                              passwordController.dispose();
+                            },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(l10n.confirm),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  Future<void> _handlePasswordSubmit(
+    String password,
+    AppLocalizations l10n,
+  ) async {
+    Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(width: 20),
+                Expanded(child: Text(l10n.deletingAccount)),
+              ],
+            ),
+          ),
+    );
+
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .reauthenticateAndDelete(password);
+
+    if (!mounted) return;
+
+    Navigator.pop(context);
+
+    if (success) {
+      GoRouter.of(context).go('/auth/login');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.white),
+              const SizedBox(width: 12),
+              Text(l10n.accountDeletedSuccess),
+            ],
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } else {
+      final authState = ref.read(authNotifierProvider);
+      final errorMessage = authState.maybeWhen(
+        error: (msg) => msg,
+        orElse: () => l10n.errorDeletingAccount,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: AppColors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(errorMessage)),
+            ],
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
 
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
