@@ -116,11 +116,23 @@ notifications d'un groupe une par une.
   Ça ne vient pas de la refonte : `events_screen.dart` et
   `event_detail_screen.dart` appellent le même `attendEvent`, donc **le RSVP
   n'a jamais fonctionné pour un participant**, sur aucun écran.
-- [ ] ⚠ **Règle corrigée dans `firestore.rules` mais NON DÉPLOYÉE.** Un
-  `firebase deploy --only firestore:rules` pousserait aussi la dérive connue
-  entre le fichier versionné et les règles en production (voir la note sur la
-  dérive des règles). À arbitrer avec Salim, puis rejouer « J'y vais » sur
-  l'événement `LGSEDGAgQhdV66jtSwVj`.
+- [x] **Dérive des règles élucidée — le fichier versionné était la copie
+  périmée, pas la production.** Les règles déployées (mises en prod le
+  2025-12-24) font 1501 lignes, le fichier du repo en faisait 666. **36
+  collections** étaient protégées en prod et absentes du fichier — dont
+  `user_keys`, `oneTimePreKeys`, `group_sender_keys` (clés E2EE), `calls`,
+  `payouts`, `payment_history`, `posts`, `podcasts` — et **aucune dans l'autre
+  sens**. La prod interdisait aussi à un utilisateur de modifier son propre
+  `isAdmin`/`adminRole`, restreignait la lecture des demandes d'ami aux deux
+  parties, et n'autorisait la création d'une notification que pour soi : trois
+  protections absentes du fichier. Déployer l'ancien fichier aurait donc été
+  une **régression de sécurité majeure doublée d'une panne** (36 collections
+  retombant en deny-by-default). Le fichier a été resynchronisé depuis la
+  prod ; il n'en diffère plus que par `inscriptionPourSoi()`.
+- [ ] **Reste à déployer** : `firebase deploy --only firestore:rules` est
+  maintenant sûr (diff = le seul correctif `events`). Après déploiement,
+  rejouer « J'y vais » sur l'événement `LGSEDGAgQhdV66jtSwVj` — il doit passer
+  et `attendeeIds` contenir `vQZE49…`.
 - [ ] **« Accepter / Refuser » sur une demande d'ami** : jamais rejoué depuis
   la refonte.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
