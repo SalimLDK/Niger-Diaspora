@@ -1373,6 +1373,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  /// Vrai si [value] est un UUID. Les groupes créés avant la migration vers
+  /// Supabase portent un identifiant Firestore de 20 caractères, que les
+  /// colonnes et fonctions typées `uuid` refusent.
+  static final RegExp _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  static bool _isUuid(String value) => _uuidPattern.hasMatch(value);
+
   @override
   Future<ConversationModel?> findGroupConversationByGroupId({
     required String groupId,
@@ -1384,6 +1393,16 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           'Session Supabase non établie – reconnectez-vous',
         );
       }
+      // `join_group_conversation` compare `group_members.group_id` (UUID) à
+      // son paramètre TEXT via un cast inconditionnel `p_group_id::uuid`. Un
+      // groupe hérité de Firestore porte un id de 20 caractères qui n'est pas
+      // un UUID : le cast lève `22P02` et l'exception remontait jusqu'en haut,
+      // rendant la discussion de ces groupes impossible à ouvrir. Ces groupes
+      // n'ont de toute façon aucune ligne dans `group_members`, donc la RPC
+      // aurait rendu NULL — on la court-circuite au lieu de la faire échouer,
+      // et l'appelant crée la conversation.
+      if (!_isUuid(groupId)) return null;
+
       // RPC SECURITY DEFINER : localise la conversation du groupe SANS filtrer
       // par participant_ids (sinon un membre ayant rejoint le groupe après sa
       // création — le cas courant — ne la retrouvait jamais, et
