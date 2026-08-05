@@ -11,6 +11,7 @@ import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -23,6 +24,8 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   int _currentImageIndex = 0;
   int _quantity = 1;
 
@@ -205,7 +208,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
                         // Description
                         Text(
-                          'Description',
+                          l10n.marketplaceDescriptionLabel,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -219,7 +222,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
                         // Seller info
                         Text(
-                          'Vendeur',
+                          l10n.seller,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -238,7 +241,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   sellerName:
                                       sellerProfile?.displayName ??
                                       product.sellerName ??
-                                      'Vendeur',
+                                      l10n.seller,
                                   sellerPhotoUrl: sellerProfile?.photoUrl,
                                   sellerProfile: sellerProfile,
                                   isOwner: isOwner,
@@ -252,14 +255,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                       child: Icon(Icons.person),
                                     ),
                                     title: Text(
-                                      product.sellerName ?? 'Vendeur',
+                                      product.sellerName ?? l10n.seller,
                                     ),
-                                    subtitle: const Text('Chargement...'),
+                                    subtitle: Text(l10n.marketplaceLoadingLabel),
                                   ),
                               error:
                                   (_, __) => _SellerCard(
                                     sellerId: product.sellerId,
-                                    sellerName: product.sellerName ?? 'Vendeur',
+                                    sellerName: product.sellerName ?? l10n.seller,
                                     sellerPhotoUrl: product.sellerPhotoUrl,
                                     sellerProfile: null,
                                     isOwner: isOwner,
@@ -276,7 +279,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             _StatItem(
                               icon: Icons.visibility_outlined,
                               value: '${product.viewCount}',
-                              label: 'vues',
+                              label: l10n.marketplaceViewsLabel,
                             ),
                             const SizedBox(width: 24),
                             _StatItem(
@@ -334,7 +337,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () => _deleteProduct(product.id),
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text('Supprimer'),
+                          label: Text(l10n.delete),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -346,7 +349,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 extra: product,
                               ),
                           icon: const Icon(Icons.edit),
-                          label: const Text('Modifier'),
+                          label: Text(l10n.edit),
                         ),
                       ),
                     ],
@@ -413,7 +416,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     SnackBar(
                                       content: const Text('Ajoute au panier'),
                                       action: SnackBarAction(
-                                        label: 'Voir',
+                                        label: l10n.marketplaceViewCart,
                                         onPressed:
                                             () => context.push(
                                               '/marketplace/cart',
@@ -424,7 +427,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 }
                                 : null,
                         icon: const Icon(Icons.add_shopping_cart),
-                        label: const Text('Ajouter au panier'),
+                        label: Text(l10n.marketplaceAddToCart),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -445,18 +448,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer le produit'),
+            title: Text(l10n.marketplaceDeleteProduct),
             content: const Text(
               'Etes-vous sur de vouloir supprimer ce produit?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Supprimer'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -480,7 +483,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     if (diff.inDays == 0) {
       return "Aujourd'hui";
     } else if (diff.inDays == 1) {
-      return 'Hier';
+      return l10n.marketplaceYesterdayLabel;
     } else if (diff.inDays < 7) {
       return 'Il y a ${diff.inDays} jours';
     } else if (diff.inDays < 30) {
@@ -569,6 +572,8 @@ class _SellerCard extends ConsumerStatefulWidget {
 }
 
 class _SellerCardState extends ConsumerState<_SellerCard> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isContactingLoading = false;
 
   Future<void> _contactSeller() async {
@@ -686,7 +691,7 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
                           ),
                         ),
                         Text(
-                          'Voir le profil',
+                          l10n.viewProfile,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                           ),
@@ -716,8 +721,8 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
                         : const Icon(Icons.message_outlined),
                 label: Text(
                   _isContactingLoading
-                      ? 'Connexion...'
-                      : 'Contacter le vendeur',
+                      ? l10n.callConnecting
+                      : l10n.contactSellerAction,
                 ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),

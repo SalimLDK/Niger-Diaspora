@@ -7,6 +7,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
@@ -32,6 +33,8 @@ class PollCard extends ConsumerStatefulWidget {
 }
 
 class _PollCardState extends ConsumerState<PollCard> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final Set<String> _selected = {};
   bool _isVoting = false;
 
@@ -206,7 +209,7 @@ class _PollCardState extends ConsumerState<PollCard> {
               if (poll.isExpired) ...[
                 const Text(' · '),
                 Text(
-                  'Terminé',
+                  l10n.completed,
                   style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
                 ),
               ],

@@ -10,12 +10,14 @@ import '../../../../core/services/security_gate_provider.dart';
 import '../../../../core/services/security_gate_service.dart';
 import '../../../../shared/widgets/price_text.dart';
 import '../providers/marketplace_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final cartItems = ref.watch(cartNotifierProvider);
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
@@ -28,7 +30,7 @@ class CartScreen extends ConsumerWidget {
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const DesignTitle('Panier', size: 22),
+        title: DesignTitle(l10n.cart, size: 22),
       ),
         body: Center(
           child: Column(
@@ -41,7 +43,7 @@ class CartScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Votre panier est vide',
+                l10n.emptyCartMessage,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
@@ -68,7 +70,7 @@ class CartScreen extends ConsumerWidget {
             onPressed: () {
               cartNotifier.clearCart();
             },
-            child: const Text('Vider'),
+            child: Text(l10n.emptyCart),
           ),
         ],
       ),
@@ -104,7 +106,7 @@ class CartScreen extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 entry.value.first.product.sellerName ??
-                                    'Vendeur',
+                                    l10n.seller,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -146,10 +148,10 @@ class CartScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Total', style: theme.textTheme.titleMedium),
+                          Text(l10n.total, style: theme.textTheme.titleMedium),
                           if (cartNotifier.hasMultipleCurrencies)
                             Text(
-                              '(converti)',
+                              l10n.convertedNote,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.outline,
                               ),
@@ -214,6 +216,8 @@ class _CheckoutButton extends ConsumerStatefulWidget {
 }
 
 class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isProcessing = false;
 
   Future<void> _processCheckout() async {
@@ -229,7 +233,7 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
       final canProceed = await securityGate.checkAndShowDialog(
         context,
         level: SecurityLevel.playStoreRequired,
-        customTitle: 'Achat sécurisé',
+        customTitle: l10n.securePurchaseDialogTitle,
         customMessage:
             'Les achats sur le marketplace nécessitent l\'installation '
             'de l\'application depuis Google Play Store.',
@@ -244,7 +248,7 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
       final currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser == null) {
-        throw Exception('Utilisateur non connecté');
+        throw Exception(l10n.marketplaceUserNotConnected);
       }
 
       // Generate a unique session ID for this checkout
@@ -272,8 +276,8 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Commande(s) créée(s) avec succès !'),
+        SnackBar(
+          content: Text(l10n.ordersCreatedSuccess),
           backgroundColor: Colors.green,
         ),
       );

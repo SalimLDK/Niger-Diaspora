@@ -6,6 +6,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
@@ -59,6 +60,8 @@ class CreatePollSheet extends ConsumerStatefulWidget {
 }
 
 class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _questionController = TextEditingController();
   final List<TextEditingController> _optionControllers = [
     TextEditingController(),
@@ -241,7 +244,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                 children: [
                   _durationChip('24h', const Duration(hours: 24)),
                   _durationChip('3 jours', const Duration(days: 3)),
-                  _durationChip('7 jours', const Duration(days: 7)),
+                  _durationChip(l10n.days7, const Duration(days: 7)),
                   _durationChip('Illimité', null),
                 ],
               ),

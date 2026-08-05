@@ -11,6 +11,7 @@ import '../../../../shared/widgets/loading_indicator.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
@@ -133,6 +134,7 @@ class _OptionResultCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final percentage = poll.percentageFor(option);
     final votersAsync = ref.watch(
       _optionVotersProvider((pollId: poll.id, optionId: option.id)),
@@ -237,7 +239,7 @@ class _OptionResultCard extends ConsumerWidget {
                           ? const AppIcon(AppIcon.person, color: _pollAccent, size: 14)
                           : null,
                     ),
-                    label: Text(voter.name ?? 'Utilisateur'),
+                    label: Text(voter.name ?? l10n.user),
                   );
                 }).toList(),
               );

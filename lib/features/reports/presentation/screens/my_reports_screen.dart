@@ -5,17 +5,19 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/report_entity.dart';
 import '../providers/report_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class MyReportsScreen extends ConsumerWidget {
   const MyReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final reportsAsync = ref.watch(myReportsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes signalements'),
+        title: Text(l10n.reportMyReports),
         centerTitle: true,
       ),
       body: reportsAsync.when(
@@ -33,7 +35,7 @@ class MyReportsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Erreur de chargement',
+                  l10n.adminLoadingError,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -65,7 +67,7 @@ class MyReportsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Aucun signalement',
+                      l10n.noReports,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

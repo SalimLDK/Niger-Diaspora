@@ -6,6 +6,7 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../domain/entities/report_entity.dart';
 import '../providers/report_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Modal réutilisable pour signaler du contenu
 class ReportContentModal extends ConsumerStatefulWidget {
@@ -156,6 +157,8 @@ class ReportContentModal extends ConsumerStatefulWidget {
 }
 
 class _ReportContentModalState extends ConsumerState<ReportContentModal> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   ReportReason? _selectedReason;
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
@@ -232,7 +235,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
           .read(blockUserNotifierProvider.notifier)
           .blockUser(
             targetUserId: widget.reportedUserId!,
-            targetDisplayName: widget.targetName ?? 'Utilisateur',
+            targetDisplayName: widget.targetName ?? l10n.user,
           );
     }
 
@@ -244,7 +247,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
         SnackBar(
           content: Text(
             success
-                ? 'Signalement envoyé. Merci pour votre aide.'
+                ? l10n.reportSentThanks
                 : 'Erreur lors de l\'envoi du signalement',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
@@ -334,7 +337,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Vous avez déjà signalé ce contenu. Notre équipe examine votre signalement.',
+                        l10n.reportAlreadyReportedInfo,
                         style: TextStyle(
                           fontSize: 14,
                           color: context.textSecondaryColor,
@@ -359,7 +362,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
             else if (!_hasAlreadyReported) ...[
               // Reason selection
               Text(
-                'Pourquoi signalez-vous ce contenu ?',
+                l10n.reportWhyQuestion,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -397,7 +400,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
 
               // Description field
               Text(
-                'Détails supplémentaires (optionnel)',
+                l10n.reportExtraDetails,
                 style: TextStyle(
                   fontSize: 14,
                   color: context.textSecondaryColor,
@@ -409,7 +412,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
                 maxLines: 3,
                 maxLength: 500,
                 decoration: InputDecoration(
-                  hintText: 'Décrivez le problème...',
+                  hintText: l10n.reportDescribeIssue,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -462,7 +465,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
                 child: ElevatedButton.icon(
                   onPressed: _selectedReason != null ? _submitReport : null,
                   icon: const Icon(Icons.send),
-                  label: const Text('Envoyer le signalement'),
+                  label: Text(l10n.reportSendAction),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -494,7 +497,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Fermer'),
+                  child: Text(l10n.close),
                 ),
               ),
 
@@ -527,7 +530,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Contenu signalé',
+                l10n.reportedContentLabel,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -616,21 +619,21 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
   String _getReasonLabel(ReportReason reason) {
     switch (reason) {
       case ReportReason.spam:
-        return 'Spam';
+        return l10n.reportReasonSpam;
       case ReportReason.harassment:
-        return 'Harcèlement';
+        return l10n.reportReasonHarassment;
       case ReportReason.inappropriate:
-        return 'Contenu inapproprié';
+        return l10n.reportReasonInappropriate;
       case ReportReason.violence:
-        return 'Violence';
+        return l10n.reportReasonViolence;
       case ReportReason.hateSpeech:
-        return 'Discours haineux';
+        return l10n.reportReasonHateSpeech;
       case ReportReason.scam:
-        return 'Arnaque';
+        return l10n.reportReasonScam;
       case ReportReason.impersonation:
         return 'Usurpation d\'identité';
       case ReportReason.other:
-        return 'Autre';
+        return l10n.reportReasonOther;
     }
   }
 }
