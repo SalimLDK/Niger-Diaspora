@@ -463,32 +463,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       return;
     }
 
-    // widget.groupId peut être absent (notification/deep link sans extra
-    // complet) : widget.conversationId N'EST PAS un groupId valide, l'utiliser
-    // en repli garantissait l'échec de l'insertion (violation de clé
-    // étrangère group_pinned_items.group_id → groups.id). On retombe plutôt
-    // sur le group_id connu de la conversation elle-même.
-    final effectiveGroupId =
-        widget.groupId ??
-        ref
-            .read(conversationStreamProvider(widget.conversationId))
-            .valueOrNull
-            ?.groupId;
-
-    if (widget.isGroup && effectiveGroupId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible d\'épingler ce message')),
-        );
-      }
-      return;
-    }
-
+    // L'épingle est TOUJOURS portée par la conversation, groupe compris.
+    //
+    // `group_pinned_items.group_id` a une clé étrangère vers `groups(id)`, or
+    // les groupes de l'app vivent encore dans Firestore : leur identifiant
+    // (ex. `yflqsRLMMhTPpiW0NFHx`) n'existe pas dans `public.groups`, donc
+    // l'insertion violait la contrainte et l'utilisateur voyait « Impossible
+    // d'épingler ce message » — reproduit sur appareil le 2026-08-05. La
+    // colonne `conversation_id` pointe, elle, sur une table réellement peuplée
+    // dans les deux cas.
+    //
+    // ⚠ Contrepartie : ce sont alors les policies RLS « Conversation
+    // participants » qui s'appliquent. La permission de groupe « qui peut
+    // épingler » n'est plus vérifiée par la base — seul `canPin`, côté écran,
+    // filtre encore. À revoir quand les groupes seront dans Supabase.
     final success = await ref
         .read(groupPinActionsNotifierProvider.notifier)
         .pinItem(
-          groupId: widget.isGroup ? effectiveGroupId : null,
-          conversationId: widget.isGroup ? null : widget.conversationId,
+          conversationId: widget.conversationId,
           itemType: GroupPinnedItemType.message,
           itemId: message.id,
           pinnedBy: currentUserId,
@@ -498,7 +490,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // toujours l'insert en temps réel (réplication realtime pas garantie sur
     // `group_pinned_items`), donc sans ça le bandeau ne s'affichait qu'au
     // prochain ouverture de la conversation.
-    if (success) _refreshPinnedBanner(effectiveGroupId);
+    if (success) _refreshPinnedBanner();
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -513,29 +505,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Force le re-fetch de la liste des épingles (auto-dispose StreamProvider),
   /// pour un affichage immédiat après épinglage/désépinglage local.
-  void _refreshPinnedBanner(String? effectiveGroupId) {
-    if (widget.isGroup && effectiveGroupId != null) {
-      ref.invalidate(groupPinnedItemsProvider(effectiveGroupId));
-    } else {
-      ref.invalidate(conversationPinnedItemsProvider(widget.conversationId));
-    }
+  void _refreshPinnedBanner() {
+    ref.invalidate(conversationPinnedItemsProvider(widget.conversationId));
   }
 
   /// Détache un message épinglé depuis son menu contextuel : le bandeau ne
   /// porte plus de croix, c'est le seul chemin de désépinglage (comme Telegram).
   Future<void> _unpinMessage(MessageEntity message) async {
-    final effectiveGroupId =
-        widget.groupId ??
-        ref
-            .read(conversationStreamProvider(widget.conversationId))
-            .valueOrNull
-            ?.groupId;
     final items =
-        (widget.isGroup && effectiveGroupId != null
-                ? ref.read(groupPinnedItemsProvider(effectiveGroupId))
-                : ref.read(
-                  conversationPinnedItemsProvider(widget.conversationId),
-                ))
+        ref
+            .read(conversationPinnedItemsProvider(widget.conversationId))
             .valueOrNull;
     final pin =
         items
@@ -563,7 +542,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Idem épinglage : rafraîchit le bandeau immédiatement (le retrait n'est
     // pas garanti en temps réel via le stream Supabase).
-    if (success) _refreshPinnedBanner(effectiveGroupId);
+    if (success) _refreshPinnedBanner();
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1290,29 +1269,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // Telegram : ligne fine fixée sous l'en-tête, toujours visible.
                 // Le widget porte sa propre marge : il ne laisse aucun espace
                 // quand rien n'est épinglé.
-                // Repli sur conversation?.groupId : widget.groupId peut être
-                // absent (notification/deep link sans extra complet) alors que
-                // la conversation elle-même connaît son group_id — sans ce
-                // repli, le bandeau (et donc les messages épinglés) restait
-                // invisible en permanence pour cette conversation.
+                // Toujours indexé par la conversation, groupe compris : voir
+                // `_pinMessage`. Ça supprime au passage la dépendance à
+                // `widget.isGroup` et à `groupId`, tous deux absents quand
+                // l'écran est atteint par notification ou par lien profond —
+                // le bandeau restait alors invisible en permanence.
                 // La bascule ÉCO vit à droite de cette ligne (fiche 6b), au
                 // lieu d'occuper une sous-barre à elle. Le raccourci Médias a
                 // rejoint le menu ⋮.
-                if (widget.isGroup &&
-                    (widget.groupId ?? conversation?.groupId) != null)
-                  GroupPinnedBanner(
-                    groupId: (widget.groupId ?? conversation?.groupId)!,
-                    messageConversationId: widget.conversationId,
-                    onOpenMessage: _scrollToMessage,
-                    trailing: _ecoChip(context, conversation),
-                  )
-                else if (!widget.isGroup)
-                  GroupPinnedBanner(
-                    conversationId: widget.conversationId,
-                    messageConversationId: widget.conversationId,
-                    onOpenMessage: _scrollToMessage,
-                    trailing: _ecoChip(context, conversation),
-                  ),
+                GroupPinnedBanner(
+                  conversationId: widget.conversationId,
+                  messageConversationId: widget.conversationId,
+                  onOpenMessage: _scrollToMessage,
+                  trailing: _ecoChip(context, conversation),
+                ),
                 // Invitation a restaurer les cles, quand des messages de ce
                 // fil ne sont pas dechiffrables sur cet appareil.
                 _buildE2eeRestoreBanner(context, paginationState.messages),
@@ -1930,11 +1900,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 .watch(conversationStreamProvider(widget.conversationId))
                 .valueOrNull;
         // widget.groupId peut être absent (notification/deep link sans extra
-        // complet) alors que la conversation connaît son group_id : sans ce
-        // repli, canPin/pinnedMessageIds retombaient sur
-        // conversationPinnedItemsProvider — qui ne renvoie jamais rien pour un
-        // groupe (les épingles de groupe sont indexées par group_id, pas
-        // conversation_id) — et les messages épinglés semblaient absents.
+        // complet) alors que la conversation connaît son group_id : ce repli
+        // sert encore au contrôle des rôles (canPin ci-dessous). Les épingles,
+        // elles, ne dépendent plus du groupe — elles sont indexées par
+        // conversation, voir `_pinMessage`.
         final effectiveGroupId = widget.groupId ?? conversation?.groupId;
         // Le rôle admin/modérateur (group_members.role) est la source de
         // vérité côté RLS ; conversation.adminIds n'est qu'un instantané figé
@@ -1976,15 +1945,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         // Ids des messages déjà épinglés : le menu contextuel bascule alors
         // « Épingler » en « Détacher » (le bandeau n'a plus de croix).
         final pinnedMessageIds =
-            ((widget.isGroup && effectiveGroupId != null
-                            ? ref.watch(
-                              groupPinnedItemsProvider(effectiveGroupId),
-                            )
-                            : ref.watch(
-                              conversationPinnedItemsProvider(
-                                widget.conversationId,
-                              ),
-                            ))
+            (ref
+                        .watch(
+                          conversationPinnedItemsProvider(widget.conversationId),
+                        )
                         .valueOrNull ??
                     const [])
                 .where((i) => i.itemType == GroupPinnedItemType.message)

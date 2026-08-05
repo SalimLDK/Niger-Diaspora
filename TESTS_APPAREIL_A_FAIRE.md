@@ -3326,6 +3326,25 @@ Restent à voir (demandent un second appareil, ou un build à jour installé) :
   les groupes vivent dans Firestore et les épingles dans Supabase, **aucun
   message de groupe ne peut être épinglé**. Le filtre `group_id` du bandeau
   reste donc non prouvé — il n'y a rien à afficher.
+- [ ] **Contournement posé le 2026-08-05** : les épingles passent désormais
+  **toutes** par `conversation_id`, groupe compris (`_pinMessage`,
+  `_unpinMessage`, le bandeau et `pinnedMessageIds`). La colonne
+  `conversation_id` pointe sur une table réellement peuplée dans les deux cas,
+  donc l'épinglage de groupe doit marcher sans migrer les groupes.
+  ⚠ **Ce que ça change côté droits** : les policies RLS appliquées sont
+  « Conversation participants… », qui n'exigent que d'être dans
+  `participant_ids`. La permission de groupe « qui peut épingler »
+  (`who_can_pin`, rôles owner/admin/moderator) **n'est plus vérifiée par la
+  base** — seul le filtre `canPin` de l'écran subsiste. À reprendre quand les
+  groupes vivront dans Supabase.
+  - [ ] Épingler dans un groupe : ne doit plus dire « Impossible d'épingler ».
+  - [ ] Le bandeau doit apparaître dans le groupe, et le menu basculer sur
+    « Détacher ».
+  - [ ] **Non-régression 1-à-1** : rien ne doit changer, c'est le chemin qui
+    servait déjà.
+  - [ ] **Visibilité entre membres** : un second membre du groupe doit voir
+    l'épingle — ça dépend de `conversations.participant_ids`, qui doit donc
+    contenir tous les membres du groupe (à vérifier, ce n'est pas garanti).
 - [ ] ⚠ **Contenu déchiffré dans le bandeau** : toujours pas vu. Les clés E2EE
   sont perdues sur ce build (bandeau « Restaurez vos clés » présent, bulles
   « 🔐 Message chiffré ») et les 3 épingles de test pointent toutes sur du
