@@ -4719,17 +4719,15 @@ applicatif à incriminer.
   purgés. Zéro orphelin aujourd'hui (les messages du groupe de test avaient été
   retirés avant), mais la prochaine suppression réelle en créera.
 
-  Correctif proposé (migration **non appliquée**, à valider) :
-  ```sql
-  alter table public.messages
-    add constraint messages_conversation_id_fkey
-    foreign key (conversation_id) references public.conversations(id)
-    on delete cascade;
+  Migration écrite, **non appliquée** :
+  `supabase/migrations/20260805230000_messages_conversation_fk_cascade.sql`
+  (clé étrangère `on delete cascade`, dans le sens de ce que le code croyait
+  déjà). Prérequis vérifié : 0 message orphelin, types compatibles (`text` des
+  deux côtés), index `messages_conversation_idx` déjà en tête sur
+  `conversation_id`. À appliquer avec :
   ```
-  Prérequis rempli : `select count(*) from public.messages m where not exists
-  (select 1 from public.conversations c where c.id=m.conversation_id)` = 0.
-  Alternative si on préfère garder les messages : retirer le commentaire
-  mensonger et supprimer explicitement les messages avant la conversation.
+  supabase db push --linked
+  ```
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
