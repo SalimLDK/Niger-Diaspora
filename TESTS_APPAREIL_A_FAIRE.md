@@ -2602,8 +2602,25 @@ installPackageLI`) : tout constat postérieur à cette heure a été jeté.
   totale ne varie jamais. Piège au passage : `MediaQuery.viewInsets.bottom` vaut
   déjà 0 dans le `body` d'un `Scaffold` (il l'a consommé pour rétrécir) ; il
   faut lire `View.of(context).viewInsets`. Couvert par le 8ᵉ test du fichier.
-  **À revoir à l'œil** : le panneau se révèle-t-il proprement, ou voit-on un
-  ressaut au moment où le clavier finit de partir ?
+  **Vérifié sur appareil le 2026-08-05 (06:07 → 06:12), thème clair, APK
+  `2fe9240` bâti depuis un worktree isolé.** Conversation « Salim L. » (celle
+  qui a toute la chrome), champ à 6 lignes, appui sur « + » : la frame
+  transitoire montre le clavier qui descend, le panneau pas encore révélé et le
+  composer stable — **aucune bannière rayée**, et zéro `RenderFlex … overflowed`
+  dans le tampon. Trois cycles ouverture/fermeture d'affilée : le panneau
+  s'affiche les trois fois.
+- [x] ⚠ **Régression intermédiaire — le panneau ne s'affichait plus DU TOUT.**
+  Signalée par Salim (« le modal du + ne s'affiche pas ») sur le premier
+  correctif. Cause : le créneau clavier lit `View.of(context).viewInsets` pour
+  contourner le `Scaffold`, mais **cette lecture ne crée aucune dépendance** —
+  rien ne redemandait de build quand le clavier finissait de se replier, donc la
+  fraction visible restait à 0. Le panneau n'apparaissait que si un autre
+  `setState` (flux de messages) passait par là au bon moment : d'où
+  l'intermittence, et d'où ma capture faussement rassurante. Corrigé par un
+  `WidgetsBindingObserver` (`didChangeMetrics` → redessin tant qu'un panneau est
+  ouvert). **Leçon** : une capture unique ne distingue pas « ça marche » de
+  « ça a marché cette fois-ci » — pour tout ce qui dépend d'une animation, faire
+  au moins trois cycles.
 - [x] **Aucun autre débordement** à font_scale 1.1 : aucune bannière rayée
   jaune/noir sur les cinq captures (1 ligne, 6, 12, panneau ouvert, panneau
   fermé), et zéro `RenderFlex … overflowed by` dans le tampon logcat. ⚠ Le
