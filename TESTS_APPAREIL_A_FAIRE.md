@@ -88,10 +88,20 @@ notifications d'un groupe une par une.
   « HISTORIQUE » en rouge sur carte `isDanger` — la fiche ne laisse qu'un
   contrôle dans l'en-tête de la liste. Vérifié affiché ; **le dialogue de
   confirmation n'a pas été déclenché** (destructif sur les vraies données).
-- [ ] **Registre « lue » = ligne nue non vérifié** : le compte de test n'a
-  qu'une notification et elle est non lue. Balayer une notification vers la
-  droite pour la marquer lue, et vérifier qu'elle passe bien de la carte à la
-  ligne discrète (pastille ronde éteinte, plus de fond).
+- [x] **🔴 Trouvé en testant — le balayage « marquer lu » n'existait pas sur
+  une notification groupée.** L'en-tête d'un groupe n'avait **aucun**
+  `Dismissible`, et les lignes du dépliant n'acceptaient que la suppression
+  (`endToStart`). Le geste ne vivait que sur une notification **isolée** — or
+  le regroupement fait justement qu'un compte actif n'en a presque aucune.
+  **Corrigé** : l'en-tête marque tout le groupe lu au balayage droit (seul
+  l'en-tête est enveloppé, sinon le dépliant avalerait les gestes de ses
+  propres lignes), et les lignes du dépliant acceptent les deux sens.
+- [x] **Registre « lue » vérifié, dans les deux thèmes.** Après balayage : la
+  carte disparaît, la pastille passe en neutre `surfaceVariant`, le titre
+  perd son gras, le point de non-lu et le compteur s'en vont, et l'en-tête
+  perd son sous-titre « 1 non lue », son badge et « Tout lire ». ⚠ Les 13
+  notifications du compte de test sont **désormais lues** — état non
+  réversible depuis l'écran.
 - [ ] **Actions en ligne « J'y vais » / « Voir » non vérifiées** : il faut une
   notification d'événement. « J'y vais » appelle réellement `attendEvent` ;
   vérifier le message de confirmation et que la participation est enregistrée.

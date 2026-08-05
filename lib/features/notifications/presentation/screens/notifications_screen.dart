@@ -1363,17 +1363,43 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
           : null,
       child: Column(
         children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _toggleExpanded,
-              // `onLongPress` était déclaré, passé par la liste, et **jamais
-              // branché ici** : l'appui long dépliait le groupe comme un tap
-              // ordinaire. Comme le compte de test n'a que des notifications
-              // groupées, l'écran de détail était injoignable en pratique.
-              onLongPress: widget.onLongPress,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
+          // Balayage vers la droite = marquer le groupe lu.
+          //
+          // L'en-tête n'avait **aucun** `Dismissible` : le geste n'existait
+          // que sur une notification isolée. Un compte dont toutes les
+          // notifications sont groupées — le cas courant, c'est le but du
+          // regroupement — n'avait donc aucun moyen de marquer lu au doigt.
+          // Seul l'en-tête est enveloppé, pas la carte entière : sinon le
+          // dépliant déplié avalerait les gestes de ses propres lignes.
+          Dismissible(
+            key: ValueKey('group_dismiss_${widget.group.key}'),
+            direction: hasUnread
+                ? DismissDirection.startToEnd
+                : DismissDirection.none,
+            background: _SwipeBackground(
+              color: context.successColor,
+              icon: Icons.mark_email_read_outlined,
+              label: l10n.markAsRead,
+              alignment: Alignment.centerLeft,
+            ),
+            confirmDismiss: (_) async {
+              for (final n in widget.group.notifications) {
+                if (!n.isRead) widget.onMarkAsRead(n);
+              }
+              // La ligne reste : elle change de registre, elle ne part pas.
+              return false;
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _toggleExpanded,
+                // `onLongPress` était déclaré, passé par la liste, et **jamais
+                // branché ici** : l'appui long dépliait le groupe comme un tap
+                // ordinaire. Comme le compte de test n'a que des notifications
+                // groupées, l'écran de détail était injoignable en pratique.
+                onLongPress: widget.onLongPress,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: hasUnread ? 0 : 4,
                   vertical: hasUnread ? 0 : 10,
@@ -1480,6 +1506,7 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
                       ),
                     ),
                   ],
+                  ),
                 ),
               ),
             ),
@@ -1529,15 +1556,31 @@ class _CompactNotificationItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Dismissible(
       key: ValueKey('compact_${notification.id}'),
-      direction: DismissDirection.endToStart,
+      // La ligne du dépliant n'acceptait que la suppression : le geste
+      // « marquer lu » manquait ici comme sur l'en-tête du groupe.
+      direction: DismissDirection.horizontal,
       background: _SwipeBackground(
+        color: context.successColor,
+        icon: Icons.mark_email_read_outlined,
+        label: l10n.markAsRead,
+        alignment: Alignment.centerLeft,
+      ),
+      secondaryBackground: _SwipeBackground(
         color: context.errorColor,
         icon: Icons.delete_outline,
-        label: AppLocalizations.of(context)!.delete,
+        label: l10n.delete,
         alignment: Alignment.centerRight,
       ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          if (!notification.isRead) onMarkAsRead();
+          return false;
+        }
+        return true;
+      },
       onDismissed: (_) => onDelete(),
       child: Material(
         color: Colors.transparent,
