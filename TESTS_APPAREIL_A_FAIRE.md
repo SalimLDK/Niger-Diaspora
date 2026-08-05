@@ -530,8 +530,11 @@ aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
       le morphing est volontairement court-circuité à la restauration.
 - [ ] Non-régression : une conversation **sans** brouillon doit toujours
       afficher le micro.
-- [ ] Brouillon de **plus de 2000 caractères** : l'état « dépassement » doit
-      être restauré lui aussi (bouton d'envoi inactif), pas seulement `_hasText`.
+- [x] ~~Brouillon de **plus de 2000 caractères** : l'état « dépassement »~~ —
+      **caduc depuis le 2026-08-04.** L'état `_isOverLimit` a été supprimé : le
+      `maxLength: 2000` du `TextField` tronque la saisie *et* le collé, donc le
+      dépassement était inatteignable. Il reste à vérifier au doigt qu'un
+      brouillon exactement à 2000 caractères se restaure sans casse.
 - [ ] ⚠ **Ne pas réinstaller entre les deux étapes** : `adb install -r` vide les
       données, donc les `SharedPreferences` — le brouillon disparaît et le test
       ne prouve rien. Relancer l'app déjà installée (`am start` / icône).
@@ -2437,6 +2440,52 @@ compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
   vérifier que la session du premier plan tient toujours (aucun 401 dans
   logcat, les messages arrivent encore). L'isolate utilise une clé de session
   distincte (`supabase.background.session`) précisément pour ça.
+
+---
+
+## Zone de saisie des messages — barre multi-ligne (2026-08-04)
+
+`lib/features/messages/presentation/widgets/message_input.dart`. Le champ
+passait de `maxLines: 1` à `minLines: 1 / maxLines: 6`, plus trois correctifs
+d'état et un alignement de couleurs. Le composer sert les **trois** cas depuis
+le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre eux.
+`flutter analyze` et les 7 tests de `message_input_composer_test.dart` passent,
+mais rien de tout cela n'a été vu sur un écran.
+
+- [ ] **Croissance de la barre** : taper un message sur 1, puis 3, puis 8+
+  lignes. La barre doit grandir vers le haut jusqu'à 6 lignes, puis se figer et
+  laisser le texte défiler à l'intérieur. Le « + » et l'emoji restent collés en
+  bas de la pilule ; le bouton rond ne doit pas se décaler.
+- [ ] **Retour à la ligne** : la touche Entrée du clavier virtuel insère
+  désormais un saut de ligne au lieu d'envoyer (`TextInputAction.newline`).
+  Vérifier aussi avec un **clavier physique** si tu en branches un — c'est le
+  seul cas où l'ancien comportement pouvait manquer.
+- [ ] **Rendu en nocturne** à 3 et 6 lignes : la pilule garde son rayon 28,
+  contrôler qu'elle ne devient pas un rectangle disgracieux une fois haute.
+- [ ] **Le panneau pièces jointes se ferme au clavier** : ouvrir le « + »
+  (grille 3×2), puis toucher le champ texte. Le panneau doit disparaître en même
+  temps que le clavier monte — avant, il restait affiché sous le clavier.
+- [ ] **Brouillon tapé puis sortie immédiate** : taper quelques caractères et
+  quitter l'écran **en moins d'une demi-seconde**. Au retour, le texte complet
+  doit être là (la fin était perdue jusqu'ici). ⚠ Ne pas réinstaller entre les
+  deux : `adb install -r` vide les `SharedPreferences`.
+- [ ] **Compteur de caractères** : il apparaît à 200 caractères, vire à l'orange
+  du thème sous 100 restants, au rouge à 2000. Il ne doit plus faire clignoter
+  la barre à chaque frappe (le reste du composer ne se reconstruit plus).
+- [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Le bouton d'action doit
+  rester dans l'arbre en permanence pour que le push-to-talk fonctionne :
+  appui long → enregistrement, glisser à gauche → annulation, glisser vers le
+  haut → verrouillage. Rien dans ce lot ne le démonte, mais c'est le premier
+  point à retester.
+- [ ] **Sheet de repli (appui long sur « + »)** : la section « Caméra » en
+  doublon a été supprimée (Photo/Vidéo dédiées, redondantes avec la tuile
+  Caméra unifiée). Vérifier qu'il ne manque rien d'utile, et que les tuiles
+  suivent maintenant le code couleur du panneau ancré — médias en accent
+  primaire, Position/Sondage/Événement en secondaire (fini le violet, l'orange
+  et le bleu Material bruts).
+- [ ] **Bandeau d'enregistrement en nocturne** : le rouge d'annulation passe par
+  `errorColor` au lieu de `Colors.red`. Armer l'annulation (glisser à gauche
+  sans relâcher) en mode nuit et vérifier que le bandeau reste lisible.
 
 ---
 

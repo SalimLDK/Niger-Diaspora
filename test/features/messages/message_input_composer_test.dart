@@ -114,4 +114,60 @@ void main() {
     // sinon l'utilisateur croit ne pas pouvoir envoyer son brouillon.
     expect(_lockBadge(), findsOneWidget);
   });
+
+  testWidgets('la barre grandit avec le texte puis se stabilise à 6 lignes', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    final uneLigne = tester.getSize(find.byType(TextField)).height;
+
+    await tester.enterText(find.byType(TextField), 'a\nb\nc');
+    await tester.pump(const Duration(milliseconds: 600));
+    final troisLignes = tester.getSize(find.byType(TextField)).height;
+
+    // Le champ suit le texte au lieu de le faire défiler horizontalement.
+    expect(troisLignes, greaterThan(uneLigne));
+
+    await tester.enterText(
+      find.byType(TextField),
+      List.generate(12, (i) => 'ligne $i').join('\n'),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    final douzeLignes = tester.getSize(find.byType(TextField)).height;
+
+    // Passé 6 lignes, c'est le champ qui défile : la barre ne mange plus
+    // l'écran.
+    expect(douzeLignes, lessThan(troisLignes * 2.5));
+  });
+
+  testWidgets('le compteur apparaît au seuil de 200 caractères', (tester) async {
+    await _pump(tester);
+
+    await tester.enterText(find.byType(TextField), 'a' * 199);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.textContaining('/ 2000'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'a' * 201);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('201 / 2000'), findsOneWidget);
+  });
+
+  testWidgets('quitter avant la fin du debounce ne perd pas le brouillon', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    await tester.enterText(find.byType(TextField), 'Brouillon in extremis');
+    // On démonte AVANT les 500 ms de debounce : sans le flush du dispose, la
+    // sauvegarde programmée serait simplement annulée.
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(
+      PreferencesService.instance.getMessageDraft('conv-test'),
+      'Brouillon in extremis',
+    );
+  });
 }

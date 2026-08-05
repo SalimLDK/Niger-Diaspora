@@ -110,11 +110,14 @@ class _MessageInputState extends State<MessageInput>
   final AudioRecordingService _recordingService = AudioRecordingService();
 
   bool _hasText = false;
-  bool _isOverLimit = false;
   bool _isRecording = false;
   bool _showPicker = false;
   bool _showAttachPanel = false; // panneau grille 3×2 ancré (pièces jointes)
-  int _pickerTabIndex = 0; // 0 = emojis, 1 = stickers
+  /// Compteur de caractères affiché : bascule au franchissement du seuil, pas
+  /// à chaque frappe (le contenu du compteur, lui, se met à jour tout seul via
+  /// le `ValueListenableBuilder` de `_buildPillField`).
+  bool _showCounter = false;
+  int _pickerTabIndex = 0; // 0 = emojis, 1 = GIFs, 2 = stickers
   double _dragOffset = 0;
   bool _isCancelling = false;
   bool _isLocked = false;
@@ -154,32 +157,31 @@ class _MessageInputState extends State<MessageInput>
     // Load saved draft
     _loadDraft();
 
-    // Listen to focus changes for input field styling and emoji/sticker picker
+    // Le retour du clavier referme les panneaux qui occupent la même place :
+    // le picker emoji ET la grille de pièces jointes (sinon elle reste
+    // affichée sous le clavier).
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus && _showPicker) {
+      if (_focusNode.hasFocus && (_showPicker || _showAttachPanel)) {
         setState(() {
           _showPicker = false;
+          _showAttachPanel = false;
         });
-      } else {
-        setState(() {});
       }
     });
 
     _controller.addListener(() {
       _detectMentionTrigger();
       final hasText = _controller.text.trim().isNotEmpty;
-      final isOverLimit = _controller.text.length > _maxCharCount;
 
-      if (hasText != _hasText || isOverLimit != _isOverLimit) {
+      if (hasText != _hasText) {
         setState(() {
           _hasText = hasText;
-          _isOverLimit = isOverLimit;
         });
 
         // Animate morphing
-        if (hasText && !isOverLimit) {
+        if (hasText) {
           _morphController.forward();
-        } else if (!hasText) {
+        } else {
           _morphController.reverse();
         }
       }
@@ -187,11 +189,11 @@ class _MessageInputState extends State<MessageInput>
       if (hasText) {
         widget.onTyping?.call();
       }
-      // Trigger rebuild for character counter
-      if (_controller.text.length >= _charCountThreshold ||
-          (_controller.text.length < _charCountThreshold &&
-              _controller.text.isNotEmpty)) {
-        setState(() {});
+      // Apparition/disparition du compteur : un seul `setState` au passage du
+      // seuil, au lieu d'un par caractère saisi.
+      final showCounter = _controller.text.length >= _charCountThreshold;
+      if (showCounter != _showCounter) {
+        setState(() => _showCounter = showCounter);
       }
 
       // Save draft with debounce
@@ -215,16 +217,16 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  /// Recalcule l'état dérivé du texte (`_hasText`, `_isOverLimit`, morphing)
+  /// Recalcule l'état dérivé du texte (`_hasText`, `_showCounter`, morphing)
   /// à partir du contrôleur, au lieu d'attendre une frappe.
   ///
   /// Appelé depuis `initState` (brouillon restauré) : on assigne les champs
   /// directement, le premier build n'a pas encore eu lieu.
   void _syncTextState({required bool animateMorph}) {
     _hasText = _controller.text.trim().isNotEmpty;
-    _isOverLimit = _controller.text.length > _maxCharCount;
+    _showCounter = _controller.text.length >= _charCountThreshold;
 
-    if (_hasText && !_isOverLimit) {
+    if (_hasText) {
       // Pas d'animation à l'ouverture : le bouton d'envoi doit être là d'emblée.
       if (animateMorph) {
         _morphController.forward();
@@ -257,6 +259,15 @@ class _MessageInputState extends State<MessageInput>
 
   @override
   void dispose() {
+    // Une sauvegarde encore en attente serait perdue : on la force avant de
+    // disposer le contrôleur (quitter l'écran moins de 500 ms après la
+    // dernière frappe effaçait la fin du brouillon).
+    if (_draftSaveTimer?.isActive ?? false) {
+      PreferencesService.instance.saveMessageDraft(
+        widget.conversationId,
+        _controller.text,
+      );
+    }
     _draftSaveTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
@@ -424,98 +435,6 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  Future<void> _takePhoto() async {
-    // Request camera permission first
-    final permissionResult =
-        await PermissionService().requestCameraPermission();
-
-    if (permissionResult != PermissionResult.granted) {
-      if (mounted) {
-        _showCameraPermissionError(permissionResult);
-      }
-      return;
-    }
-
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
-
-      if (image != null && mounted) {
-        // Navigate to preview screen
-        final result = await Navigator.push<MediaPreviewResult>(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => MediaPreviewScreen(
-                  file: File(image.path),
-                  type: MediaType.image,
-                  conversationId: '',
-                ),
-          ),
-        );
-
-        if (result != null && mounted) {
-          widget.onSendFile(
-            result.file,
-            result.isImage,
-            caption: result.caption,
-          );
-        }
-      }
-    } on PlatformException catch (e) {
-      if (e.code == 'camera_access_denied' && mounted) {
-        _showCameraPermissionError(PermissionResult.permanentlyDenied);
-      }
-    }
-  }
-
-  Future<void> _takeVideo() async {
-    // Request camera permission first
-    final permissionResult =
-        await PermissionService().requestCameraPermission();
-
-    if (permissionResult != PermissionResult.granted) {
-      if (mounted) {
-        _showCameraPermissionError(permissionResult);
-      }
-      return;
-    }
-
-    try {
-      final picker = ImagePicker();
-      final video = await picker.pickVideo(
-        source: ImageSource.camera,
-        maxDuration: const Duration(minutes: 5), // Limite de 5 minutes
-      );
-
-      if (video != null && mounted) {
-        // Navigate to preview screen
-        final result = await Navigator.push<MediaPreviewResult>(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => MediaPreviewScreen(
-                  file: File(video.path),
-                  type: MediaType.video,
-                  conversationId: '',
-                ),
-          ),
-        );
-
-        if (result != null && mounted) {
-          widget.onSendFile(result.file, false, caption: result.caption);
-        }
-      }
-    } on PlatformException catch (e) {
-      if (e.code == 'camera_access_denied' && mounted) {
-        _showCameraPermissionError(PermissionResult.permanentlyDenied);
-      }
-    }
-  }
-
   void _showCameraPermissionError(PermissionResult result) {
     final l10n = AppLocalizations.of(context)!;
     final isPermanent = result == PermissionResult.permanentlyDenied;
@@ -532,7 +451,7 @@ class _MessageInputState extends State<MessageInput>
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: context.errorColor),
       );
     }
   }
@@ -584,7 +503,7 @@ class _MessageInputState extends State<MessageInput>
               (_) => MediaPreviewScreen(
                 file: File(video.path),
                 type: MediaType.video,
-                conversationId: '',
+                conversationId: widget.conversationId,
               ),
         ),
       );
@@ -652,7 +571,7 @@ class _MessageInputState extends State<MessageInput>
               (_) => MediaPreviewScreen(
                 file: p.file,
                 type: p.isVideo ? MediaType.video : MediaType.image,
-                conversationId: '',
+                conversationId: widget.conversationId,
               ),
         ),
       );
@@ -728,7 +647,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.video_library,
                       label: l10n.videosLabel,
-                      color: Colors.purple,
+                      color: context.adaptivePrimaryColor,
                       onTap: () {
                         Navigator.pop(context);
                         _pickVideo();
@@ -737,14 +656,14 @@ class _MessageInputState extends State<MessageInput>
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Second row - Gallery options (Audio, Documents)
+                // Second row - Audio, Documents
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _AttachmentOption(
                       icon: Icons.audiotrack,
                       label: l10n.audioLabel,
-                      color: Colors.orange,
+                      color: context.adaptivePrimaryColor,
                       onTap: () {
                         Navigator.pop(context);
                         _pickAudio();
@@ -753,7 +672,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.insert_drive_file,
                       label: l10n.documentsLabel,
-                      color: Colors.blue,
+                      color: context.adaptivePrimaryColor,
                       onTap: () {
                         Navigator.pop(context);
                         _pickFile();
@@ -772,7 +691,7 @@ class _MessageInputState extends State<MessageInput>
                         _AttachmentOption(
                           icon: Icons.event,
                           label: 'Événement',
-                          color: Colors.teal,
+                          color: context.adaptiveSecondaryColor,
                           onTap: () {
                             Navigator.pop(context);
                             widget.onCreateEvent!();
@@ -782,7 +701,7 @@ class _MessageInputState extends State<MessageInput>
                         _AttachmentOption(
                           icon: Icons.poll,
                           label: 'Sondage',
-                          color: const Color(0xFF6B5CE0),
+                          color: context.adaptiveSecondaryColor,
                           onTap: () {
                             Navigator.pop(context);
                             widget.onCreatePoll!();
@@ -791,57 +710,9 @@ class _MessageInputState extends State<MessageInput>
                     ],
                   ),
                 ],
-                const SizedBox(height: 20),
-                // Divider with label
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: context.outlineColor.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        l10n.cameraSection,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: context.outlineColor.withValues(alpha: 0.2),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Second row - Camera options
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _AttachmentOption(
-                      icon: Icons.camera_alt,
-                      label: l10n.photoLabel,
-                      color: context.adaptiveSecondaryColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _takePhoto();
-                      },
-                    ),
-                    _AttachmentOption(
-                      icon: Icons.videocam,
-                      label: l10n.videoLabel,
-                      color: Colors.red,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _takeVideo();
-                      },
-                    ),
-                  ],
-                ),
+                // La section « Caméra » qui suivait (Photo + Vidéo dédiées)
+                // faisait doublon avec la tuile Caméra unifiée de la première
+                // rangée, sous un séparateur qui reprenait le même libellé.
                 // Location option
                 if (widget.onSendLocation != null) ...[
                   const SizedBox(height: 20),
@@ -877,7 +748,7 @@ class _MessageInputState extends State<MessageInput>
                       _AttachmentOption(
                         icon: Icons.location_on,
                         label: l10n.positionLabel,
-                        color: Colors.green,
+                        color: context.adaptiveSecondaryColor,
                         onTap: () {
                           Navigator.pop(context);
                           _showLocationPicker();
@@ -918,7 +789,7 @@ class _MessageInputState extends State<MessageInput>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.microphonePermissionRequired),
-            backgroundColor: Colors.red,
+            backgroundColor: context.errorColor,
           ),
         );
       }
@@ -1039,15 +910,13 @@ class _MessageInputState extends State<MessageInput>
                 child: Container(
                   decoration: BoxDecoration(
                     color:
-                        context.isDarkMode
-                            ? const Color(0xFF1A1714)
-                            : const Color(0xFFFFFFFF),
+                        context.isDarkMode ? _kBarFillDark : _kBarFillLight,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
                       color:
                           context.isDarkMode
-                              ? const Color(0xFF2A241E)
-                              : const Color(0xFFEFE7DB),
+                              ? _kBarBorderDark
+                              : _kBarBorderLight,
                       width: 1,
                     ),
                     boxShadow:
@@ -1157,7 +1026,7 @@ class _MessageInputState extends State<MessageInput>
       children: [
         Container(
           // Aucun cadre ni fond : la saisie se fond dans la barre flottante.
-          constraints: const BoxConstraints(maxHeight: 120, minHeight: 44),
+          constraints: const BoxConstraints(minHeight: 44),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -1166,8 +1035,16 @@ class _MessageInputState extends State<MessageInput>
                   controller: _controller,
                   focusNode: _focusNode,
                   enabled: !widget.isLoading,
-                  // Champ sur une seule ligne (le texte défile horizontalement).
-                  maxLines: 1,
+                  // La barre grandit avec le texte jusqu'à 6 lignes, puis le
+                  // champ défile verticalement. `maxLines: 6` plutôt qu'une
+                  // contrainte de hauteur sur le Container : avec `null`, le
+                  // champ déborde au lieu de défiler.
+                  minLines: 1,
+                  maxLines: 6,
+                  keyboardType: TextInputType.multiline,
+                  // Entrée insère un retour à la ligne ; l'envoi passe par le
+                  // bouton rond, toujours présent à droite.
+                  textInputAction: TextInputAction.newline,
                   maxLength: _maxCharCount,
                   style: TextStyle(
                     fontSize: 15.5,
@@ -1204,7 +1081,6 @@ class _MessageInputState extends State<MessageInput>
                       bottom: 12,
                     ),
                   ),
-                  onSubmitted: (_) => _sendMessage(),
                 ),
               ),
               // Emoji à l'intérieur du champ, centré verticalement.
@@ -1228,8 +1104,13 @@ class _MessageInputState extends State<MessageInput>
             ],
           ),
         ),
-        if (_controller.text.length >= _charCountThreshold)
-          _buildCharacterCounter(context),
+        // Le compteur ne reconstruit que lui-même à la frappe : la colonne du
+        // composer, elle, ne bouge qu'au franchissement du seuil.
+        if (_showCounter)
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _controller,
+            builder: (context, value, _) => _buildCharacterCounter(context),
+          ),
       ],
     );
   }
@@ -1371,19 +1252,19 @@ class _MessageInputState extends State<MessageInput>
     final bg =
         _isCancelling
             ? (context.isDarkMode
-                ? Colors.red.withValues(alpha: 0.15)
-                : const Color(0xFFFBE9E5))
+                ? context.errorColor.withValues(alpha: 0.15)
+                : _kBannerCancelBg)
             : (context.isDarkMode
                 ? context.surfaceVariantColor
-                : const Color(0xFFFDF3EF));
+                : _kBannerRecordingBg);
     final borderColor =
         _isCancelling
             ? (context.isDarkMode
-                ? Colors.red.withValues(alpha: 0.4)
-                : const Color(0xFFF0C7BC))
+                ? context.errorColor.withValues(alpha: 0.4)
+                : _kBannerCancelBorder)
             : (context.isDarkMode
                 ? AppColors.borderDark
-                : const Color(0xFFF0D9CE));
+                : _kBannerRecordingBorder);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
@@ -1594,7 +1475,7 @@ class _MessageInputState extends State<MessageInput>
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: value),
+                    color: context.errorColor.withValues(alpha: value),
                     shape: BoxShape.circle,
                   ),
                 );
@@ -1638,7 +1519,9 @@ class _MessageInputState extends State<MessageInput>
                 height: height.clamp(4.0, 24.0),
                 decoration: BoxDecoration(
                   color:
-                      _isCancelling ? Colors.red : context.adaptivePrimaryColor,
+                      _isCancelling
+                          ? context.errorColor
+                          : context.adaptivePrimaryColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               );
@@ -1714,9 +1597,9 @@ class _MessageInputState extends State<MessageInput>
                   color: context.errorColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(22),
                 ),
-                child: const AppIcon(
+                child: AppIcon(
                   AppIcon.delete,
-                  color: Colors.red,
+                  color: context.errorColor,
                   size: 22,
                 ),
               ),
@@ -1876,9 +1759,9 @@ class _MessageInputState extends State<MessageInput>
             decoration: BoxDecoration(
               color:
                   isAtLimit
-                      ? Colors.red.withValues(alpha: 0.1)
+                      ? context.errorColor.withValues(alpha: 0.1)
                       : isNearLimit
-                      ? Colors.orange.withValues(alpha: 0.1)
+                      ? context.warningColor.withValues(alpha: 0.1)
                       : context.surfaceVariantColor,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -1889,9 +1772,9 @@ class _MessageInputState extends State<MessageInput>
                 fontWeight: FontWeight.w500,
                 color:
                     isAtLimit
-                        ? Colors.red
+                        ? context.errorColor
                         : isNearLimit
-                        ? Colors.orange
+                        ? context.warningColor
                         : context.textTertiaryColor,
               ),
             ),
@@ -1926,7 +1809,7 @@ class _MessageInputState extends State<MessageInput>
       builder: (context, child) {
         return GestureDetector(
           // Tap pour envoyer du texte
-          onTap: (_hasText && !_isOverLimit) ? _sendMessage : null,
+          onTap: _hasText ? _sendMessage : null,
 
           // LongPress pour démarrer l'enregistrement
           onLongPressStart:
@@ -2000,18 +1883,34 @@ class _MessageInputState extends State<MessageInput>
   static const Color _kVoiceGreen = Color(0xFF1B5E32);
   static const Color _kVoiceGreenLight = Color(0xFF2D7D46);
 
+  /// Chrome de la barre flottante et du bandeau d'enregistrement.
+  ///
+  /// Ces teintes viennent du Guide de style et ne se déduisent d'aucun jeton
+  /// de `AdaptiveColors` : elles restent codées ici, mais nommées plutôt que
+  /// semées en littéraux au milieu du `build`.
+  static const Color _kBarFillDark = Color(0xFF1A1714);
+  static const Color _kBarFillLight = Color(0xFFFFFFFF);
+  static const Color _kBarBorderDark = Color(0xFF2A241E);
+  static const Color _kBarBorderLight = Color(0xFFEFE7DB);
+
+  /// Bandeau d'enregistrement, thème clair uniquement (en sombre on retombe
+  /// sur les jetons de surface et `errorColor`).
+  static const Color _kBannerRecordingBg = Color(0xFFFDF3EF);
+  static const Color _kBannerRecordingBorder = Color(0xFFF0D9CE);
+  static const Color _kBannerCancelBg = Color(0xFFFBE9E5);
+  static const Color _kBannerCancelBorder = Color(0xFFF0C7BC);
+
   /// Remplissage du bouton selon l'état, en aplat.
   ///
   /// Les quatre dégradés d'origine ont sauté : le système ne s'en sert plus.
   /// Les couleurs *signifiantes* sont conservées telles quelles, parce
-  /// qu'elles disent chacune quelque chose — rouge pour l'annulation et le
-  /// dépassement de limite, terracotta pendant l'enregistrement, bleu E2EE
-  /// pour l'envoi chiffré, vert pour le vocal.
+  /// qu'elles disent chacune quelque chose — rouge pour l'annulation,
+  /// terracotta pendant l'enregistrement, bleu E2EE pour l'envoi chiffré,
+  /// vert pour le vocal.
   Color? _getButtonFill(BuildContext context) {
     if (_isCancelling) return context.errorColor;
     if (_isRecording) return context.adaptivePrimaryColor;
     if (_hasText || widget.onSendAudio != null) {
-      if (_isOverLimit) return context.errorColor;
       // Les teintes foncées passent mal sur un fond nuit (§6c) : chaque
       // couleur signifiante a sa variante claire pour le thème sombre.
       final sombre = context.isDarkMode;
@@ -2032,13 +1931,12 @@ class _MessageInputState extends State<MessageInput>
   /// Couleur de l'ombre du bouton
   Color _getButtonShadowColor(BuildContext context) {
     if (_isCancelling) {
-      return Colors.red.withValues(alpha: 0.4);
+      return context.errorColor.withValues(alpha: 0.4);
     }
     if (_isRecording) {
       return context.adaptivePrimaryColor.withValues(alpha: 0.4);
     }
     if (_hasText || widget.onSendAudio != null) {
-      if (_isOverLimit) return Colors.red.withValues(alpha: 0.35);
       final base = _hasText
           ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
           : (context.isDarkMode ? _kVoiceGreenLight : _kVoiceGreen);
@@ -2123,9 +2021,8 @@ class _MessageInputState extends State<MessageInput>
           ),
         ),
         // Badge cadenas : le message part chiffré de bout en bout.
-        // Masqué hors mode envoi et au-delà de la limite de caractères
-        // (le bouton passe alors en rouge : l'envoi est bloqué, pas chiffré).
-        if (_hasText && !_isOverLimit)
+        // Masqué hors mode envoi (le bouton est alors un micro).
+        if (_hasText)
           Positioned(
             right: -3,
             bottom: -3,
