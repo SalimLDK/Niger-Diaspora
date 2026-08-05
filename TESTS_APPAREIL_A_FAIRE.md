@@ -2824,16 +2824,40 @@ position, et un seul est exploitable.
 | Compte | `share_location` | Position |
 |---|---|---|
 | Sim A (`vQZE49dT…`) | `true` | 45.58028 / −73.64590 |
-| Salim L. (`U64HKfrj…`) | **`false`** | 45.58028 / −73.64599 |
+| Salim L. (`U64HKfrj…`) | `true` *(mis à `true` en SQL le 2026-08-05 ; était `false`)* | 45.58028 / −73.64599 |
 
-Les deux comptes sont à ~10 m l'un de l'autre, mais `getNearbyProfiles`
-filtre sur `.eq('share_location', true)` : « Salim L. » est donc écarté à la
-source, et « Sim A » est retiré par l'auto-exclusion. Il ne reste personne.
-**Avant de tester quoi que ce soit de visuel, passer `share_location` à
-`true` sur le second compte** (réglage « Partager ma position » dans son
-profil, ou en SQL). Ajouter aussi que « Membres à proximité » est désactivé
-sur le compte principal — la carte sort alors immédiatement sur l'état
-« accès restreint » sans rien charger.
+Les deux comptes sont à ~10 m l'un de l'autre. `getNearbyProfiles` filtre sur
+`.eq('share_location', true)` : « Salim L. » était écarté à la source, et
+« Sim A » est retiré par l'auto-exclusion — il ne restait personne.
+
+**Il reste deux verrous après ce changement** :
+
+1. **Le filtre de présence**, qui est une seconde barrière indépendante :
+   `location_updated_at` de moins de 5 minutes, **ou** `is_online` avec un
+   `last_seen_at` de moins d'une heure. Au 2026-08-05 la position de
+   « Salim L. » a 28 h et `is_online` est `false` — il reste donc invisible.
+   Le lever proprement : **ouvrir l'app sur le second compte**, sa position
+   sera publiée en quelques secondes. Le lever artificiellement, avec un
+   seul téléphone (écrit une présence qui n'existe pas, et déplace la
+   position enregistrée de ~2 km pour que le pin soit distinct) :
+
+   ```sql
+   update users
+      set latitude  = 45.5980,
+          longitude = -73.6459,
+          location_updated_at = now()
+    where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';
+   ```
+
+2. **« Membres à proximité » est désactivé sur le compte principal.** La
+   carte sort alors immédiatement sur l'état « accès restreint » sans rien
+   charger. À activer depuis l'accueil (« Activer la carte des membres ») ou
+   les réglages du profil.
+
+⚠️ `share_location` est la colonne **serveur**. Si l'app tourne sur le second
+compte et enregistre son profil, elle peut la réécrire depuis son état local
+— revérifier la colonne après coup (même piège que l'interrupteur push, voir
+`CLAUDE.md`, « Réglages : une seule source »).
 
 - [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
   pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
