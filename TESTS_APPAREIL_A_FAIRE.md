@@ -26,10 +26,12 @@ le voit pas.
 données préservées. Thème système en NOCTURNE.**
 
 - [x] **`/notifications/settings` : le pictogramme 42 en dégradé apparaît** sur
-  les onze lignes, un seul filet entre chaque, aucun débordement. Vérifié **en
-  nocturne** : pictogrammes, libellés, sous-titres et étiquettes de section
-  tous lisibles. ⚠ Reste à repasser **en thème clair** — la passe est tombée
-  pendant que le téléphone était en sombre.
+  les onze lignes, un seul filet entre chaque, aucun débordement. Vérifié
+  **dans les deux thèmes** — nocturne d'abord, puis clair en forçant
+  `adb shell cmd uimode night no` (réglage relevé avant, `ui_night_mode=2`, et
+  remis à l'identique après). Pictogrammes, libellés, sous-titres et étiquettes
+  de section lisibles des deux côtés ; le dégradé terracotta des pastilles
+  fonctionne sur crème comme sur noir.
 - [x] **Interrupteur maître coupé** : les sept catégories s'estompent bien à
   50 % (pictogrammes gris, bascules éteintes). **Un tap sur la bascule
   « Messages » éteinte n'a rien changé** — elle était encore active après
@@ -48,12 +50,19 @@ données préservées. Thème système en NOCTURNE.**
   restants dans son `Expanded`. Vu au premier coup d'œil, jamais relevé
   jusqu'ici. **Corrigé** en repliant les deux actions secondaires dans le ⋯
   (forme 13c) — le titre reprend toute la largeur.
-- [x] **Correctif confirmé sur appareil** : « Notifications » tient sur **une
-  seule ligne**, sous-titre « 1 non lue » juste dessous, pastille ⋯ à droite.
+- [x] **Correctif confirmé sur appareil, dans les deux thèmes** :
+  « Notifications » tient sur **une seule ligne**, sous-titre « 1 non lue »
+  juste dessous, pastille ⋯ à droite.
 - [x] **`/notifications` : les trois entrées du menu ⋯ s'affichent** — « Tout
   marquer comme lu », « Réglages », « Tout supprimer » en rouge. « Tout
   supprimer » était écrit mais **injoignable** (`buildOverflowMenu` n'était
-  appelé nulle part) ; il s'ouvre désormais.
+  appelé nulle part) ; il s'ouvre désormais. Vérifié en clair et en nocturne.
+- [ ] **Relevé au passage, hors lot** : en thème clair, la tuile de groupe de
+  la liste sort de la palette — pastille et compteur en **vert WhatsApp
+  `#25D366` codé en dur** (quatre occurrences dans `_NotificationGroupItem`),
+  plus une vingtaine de `Colors.purple` / `teal` / `indigo` pour les icônes par
+  type. Ça se voit sur fond crème à côté du terracotta. Repeinturage à décider,
+  pas un défaut — voir la note sur les jetons codés en dur.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
   aucune non-lue (le compte de test en avait une), et le dialogue de
   confirmation de « Tout supprimer » (non déclenché — action destructive sur
