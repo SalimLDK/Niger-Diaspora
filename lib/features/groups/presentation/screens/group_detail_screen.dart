@@ -8,7 +8,6 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/providers/conversation_actions_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart';
-import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
@@ -16,12 +15,14 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
+import '../providers/group_pinned_providers.dart';
+import '../../domain/entities/group_pinned_item_entity.dart';
 import '../../../events/presentation/providers/group_next_event_provider.dart';
+import '../../../events/domain/entities/event_entity.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
-import '../../../../core/theme/design_kit.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -162,81 +163,25 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 ),
                 onPressed: () => context.pop(),
               ),
+              // Fiche 9d : l'en-tete ne porte que le partage et un menu ⋮.
+              // Elle alignait jusqu'a quatre pastilles muettes (demandes,
+              // modifier, partage, signaler) ; tout ce qui n'est pas le
+              // partage passe dans le menu, ou chaque entree est nommee.
               actions: [
-                if (isAdmin) ...[
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final requestsAsync = ref.watch(
-                        groupPendingRequestsProvider(group.id),
-                      );
-                      final count = requestsAsync.valueOrNull?.length ?? 0;
-
-                      if (count == 0 && !isCreator) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return IconButton(
-                        icon: Badge(
-                          label: Text('$count'),
-                          isLabelVisible: count > 0,
-                          child: Icon(
-                            Icons.notifications_active,
-                            color: context.textPrimaryColor,
-                          ),
-                        ),
-                        onPressed: () {
-                          context.push('/groups/${group.id}/requests');
-                        },
-                      );
-                    },
-                  ),
-                ],
-                if (isCreator || isAdmin)
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.edit, color: context.textPrimaryColor),
-                    ),
-                    onPressed: () {
-                      context.push('/groups/${group.id}/edit', extra: group);
-                    },
-                  ),
                 IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: context.surfaceColor.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: AppIcon(AppIcon.share, color: context.textPrimaryColor),
+                  icon: AppIcon(
+                    AppIcon.share,
+                    color: context.textPrimaryColor,
                   ),
+                  tooltip: l10n.share,
                   onPressed: () => _shareGroup(group),
                 ),
-                // Report button (only for non-admin/non-creator members)
-                if (!isCreator && !isAdmin)
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: AppIcon(
-                        AppIcon.flag,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    onPressed: () => ReportContentModal.show(
-                      context,
-                      targetType: ReportTargetType.group,
-                      targetId: group.id,
-                      targetName: group.name,
-                    ),
-                  ),
+                _GroupOverflowMenu(
+                  group: group,
+                  isCreator: isCreator,
+                  isAdmin: isAdmin,
+                  onLeave: () => _leaveGroup(group.id),
+                ),
                 const SizedBox(width: 8),
               ],
             ),
@@ -292,7 +237,19 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              DesignTitle(group.name, size: 20),
+                              // Nom nu : la fiche 9d ecrit « Diaspora
+                              // Montreal » sans le point d'accent de
+                              // `DesignTitle`. Ce point signe les titres
+                              // d'ecran, pas un nom saisi par l'utilisateur.
+                              Text(
+                                group.name,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                  color: context.textPrimaryColor,
+                                ),
+                              ),
                               const SizedBox(height: 3),
                               Row(
                                 children: [
@@ -392,10 +349,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     const SizedBox(height: 24),
 
                     // Prochaine rencontre (§9d)
-                    _buildNextEventSection(context, group),
-
-                    // Médias partagés (avant les membres)
-                    if (isMember) _buildMediaSection(group),
+                    // Carte info groupee de la fiche 9d : Epingles, Medias et
+                    // fichiers, Prochaine rencontre sous une seule bordure.
+                    _GroupInfoCard(group: group, isMember: isMember),
 
                     if (isMember) const SizedBox(height: 24),
 
@@ -459,49 +415,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     ),
                   )
                   : isMember
-                  // « Ouvrir la discussion » est remontée dans le contenu
-                  // (fiche 9d) : la barre du bas ne garde que la sortie.
-                  ? Row(
-                    children: [
-                      Expanded(
-                        child: Builder(
-                          builder: (context) {
-                            // Le créateur peut quitter s'il y a d'autres admins
-                            final otherAdmins = group.adminIds
-                                .where((id) => id != currentUser?.id)
-                                .toList();
-                            final canCreatorLeave = isCreator && otherAdmins.isNotEmpty;
-                            final canLeave = !isCreator || canCreatorLeave;
-
-                            return OutlinedButton.icon(
-                              onPressed: canLeave ? () => _leaveGroup(group.id) : null,
-                              icon: canLeave
-                                  ? Icon(
-                                      Icons.exit_to_app,
-                                      color: Colors.red,
-                                    )
-                                  : AppIcon(
-                                      AppIcon.star,
-                                      color: context.adaptivePrimaryColor,
-                                    ),
-                              label: Text(
-                                canLeave ? l10n.leaveGroup : l10n.creator,
-                                style: TextStyle(
-                                  color: canLeave ? Colors.red : context.adaptivePrimaryColor,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                side: BorderSide(
-                                  color: canLeave ? Colors.red : context.adaptivePrimaryColor,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  )
+                  // Fiche 9d : aucune barre de bas de page pour un membre.
+                  // « Ouvrir la discussion » vit dans le contenu et la sortie
+                  // du groupe est passee dans le menu ⋮, ou elle est nommee.
+                  ? const SizedBox.shrink()
                   : Consumer(
                     builder: (context, ref, child) {
                       if (!group.isPrivate) {
@@ -735,116 +652,6 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     );
   }
 
-  /// Prochaine rencontre (§9d) : carte du prochain événement lié au groupe.
-  /// Masquée s'il n'y en a pas (pas de bloc vide).
-  Widget _buildNextEventSection(BuildContext context, GroupEntity group) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final eventAsync = ref.watch(groupNextEventProvider(group.id));
-        final event = eventAsync.valueOrNull;
-        if (event == null) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: InkWell(
-            onTap: () =>
-                context.push('/events/${event.id}', extra: event),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: context.surfaceColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: context.adaptivePrimaryColor.withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Pastille de date
-                  Container(
-                    width: 48,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          DateFormat('dd').format(event.startDate),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          DateFormat('MMM', 'fr_FR')
-                              .format(event.startDate)
-                              .toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: context.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Prochaine rencontre',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.3,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          event.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: context.textPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${event.isOnline ? 'En ligne' : event.location} · ${DateFormat('HH:mm').format(event.startDate)}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: context.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: context.textTertiaryColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildMembersSection(
     BuildContext context,
     GroupEntity group,
@@ -860,15 +667,30 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              l10n.membersLabel,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                '${l10n.membersLabel} · ${group.memberIds.length}',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimaryColor,
+                ),
+              ),
             ),
-            Text(
-              '${group.memberIds.length}',
-              style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.push('/groups/${group.id}/members'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'Tout voir',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -947,32 +769,6 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     );
   }
 
-  Widget _buildMediaSection(GroupEntity group) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final conversationIdAsync = ref.watch(
-          groupConversationIdProvider(group.id),
-        );
-
-        return conversationIdAsync.when(
-          data: (conversationId) {
-            if (conversationId == null) {
-              return const SizedBox.shrink();
-            }
-
-            return MediaGalleryCompact(
-              conversationId: conversationId,
-              onViewAll: () {
-                context.push('/messages/$conversationId/media');
-              },
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
-        );
-      },
-    );
-  }
 }
 
 class _MemberListItem extends ConsumerWidget {
@@ -1245,3 +1041,362 @@ class _GroupActionRow extends ConsumerWidget {
   }
 }
 
+
+/// Menu ⋮ de la fiche 9d. Rassemble ce que l'en-tête alignait en pastilles
+/// muettes — demandes d'adhésion, édition, signalement — plus la sortie du
+/// groupe, que la fiche ne met pas en barre de bas de page.
+///
+/// Chaque entrée est nommée : une icône seule ne dit pas si elle édite,
+/// signale ou fait sortir.
+class _GroupOverflowMenu extends ConsumerWidget {
+  final GroupEntity group;
+  final bool isCreator;
+  final bool isAdmin;
+  final VoidCallback onLeave;
+
+  const _GroupOverflowMenu({
+    required this.group,
+    required this.isCreator,
+    required this.isAdmin,
+    required this.onLeave,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final pendingCount = isAdmin
+        ? (ref.watch(groupPendingRequestsProvider(group.id)).valueOrNull?.length ??
+            0)
+        : 0;
+
+    // Le créateur ne peut partir que s'il reste un autre administrateur :
+    // sinon le groupe se retrouverait sans personne pour l'administrer.
+    final me = ref.watch(currentUserProvider).valueOrNull?.id;
+    final otherAdmins = group.adminIds.where((id) => id != me).toList();
+    final canLeave = !isCreator || otherAdmins.isNotEmpty;
+
+    return PopupMenuButton<String>(
+      icon: Badge(
+        label: Text('$pendingCount'),
+        isLabelVisible: pendingCount > 0,
+        child: Icon(Icons.more_vert, color: context.textPrimaryColor),
+      ),
+      onSelected: (value) {
+        switch (value) {
+          case 'requests':
+            context.push('/groups/${group.id}/requests');
+          case 'edit':
+            context.push('/groups/${group.id}/edit', extra: group);
+          case 'report':
+            ReportContentModal.show(
+              context,
+              targetType: ReportTargetType.group,
+              targetId: group.id,
+              targetName: group.name,
+            );
+          case 'leave':
+            onLeave();
+        }
+      },
+      itemBuilder: (_) => [
+        if (isAdmin)
+          PopupMenuItem(
+            value: 'requests',
+            child: Row(
+              children: [
+                const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                const SizedBox(width: 10),
+                Text(
+                  pendingCount > 0
+                      ? "Demandes d'adhésion · $pendingCount"
+                      : "Demandes d'adhésion",
+                ),
+              ],
+            ),
+          ),
+        if (isCreator || isAdmin)
+          PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                const Icon(Icons.edit_outlined, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.edit),
+              ],
+            ),
+          ),
+        if (!isCreator && !isAdmin)
+          PopupMenuItem(
+            value: 'report',
+            child: Row(
+              children: [
+                const AppIcon(AppIcon.flag, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.report),
+              ],
+            ),
+          ),
+        PopupMenuItem(
+          value: 'leave',
+          enabled: canLeave,
+          child: Row(
+            children: [
+              Icon(
+                Icons.exit_to_app,
+                size: 18,
+                color: canLeave ? Colors.red : context.textTertiaryColor,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  // Désactivée, l'entrée dit ce qui manque pour partir —
+                  // pas le rôle qu'on occupe.
+                  canLeave
+                      ? l10n.leaveGroup
+                      : 'Nommez un autre administrateur pour partir',
+                  style: TextStyle(
+                    color: canLeave ? Colors.red : context.textTertiaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Carte info groupée de la fiche 9d : Épinglés, Médias et fichiers,
+/// Prochaine rencontre sous une seule bordure.
+///
+/// Chaque ligne s'efface si elle n'a rien à dire, et la carte entière
+/// disparaît si les trois sont vides — un groupe neuf n'a ni épinglé, ni
+/// média, ni rencontre, et trois lignes à zéro ne valent pas mieux que rien.
+class _GroupInfoCard extends ConsumerWidget {
+  final GroupEntity group;
+  final bool isMember;
+
+  const _GroupInfoCard({required this.group, required this.isMember});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pinned =
+        ref.watch(groupPinnedItemsProvider(group.id)).valueOrNull ??
+        const <GroupPinnedItemEntity>[];
+    final event = ref.watch(groupNextEventProvider(group.id)).valueOrNull;
+
+    // Les médias vivent sur la conversation du groupe, qui n'existe qu'à
+    // partir du premier message.
+    final conversationId =
+        isMember
+            ? ref.watch(groupConversationIdProvider(group.id)).valueOrNull
+            : null;
+    final media =
+        conversationId == null
+            ? null
+            : ref.watch(conversationMediaProvider(conversationId));
+
+    final rows = <Widget>[
+      if (pinned.isNotEmpty)
+        _InfoRow(
+          icon: AppIcon(
+            AppIcon.pinnedMessage,
+            size: 18,
+            color: context.adaptivePrimaryColor,
+          ),
+          title: 'Épinglés',
+          subtitle: _pinnedSummary(pinned),
+          trailing: Text(
+            '${pinned.length}',
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          onTap: null,
+        ),
+      if (media != null && !media.isEmpty)
+        _InfoRow(
+          icon: Icon(
+            Icons.image_outlined,
+            size: 18,
+            color: context.textSecondaryColor,
+          ),
+          title: 'Médias et fichiers',
+          subtitle: _mediaSummary(media),
+          trailing: Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: context.textTertiaryColor,
+          ),
+          onTap:
+              () => context.push(
+                '/messages/$conversationId/media',
+                extra: {'name': group.name},
+              ),
+        ),
+      if (event != null)
+        _InfoRow(
+          icon: Icon(
+            Icons.event_outlined,
+            size: 18,
+            color: context.successColor,
+          ),
+          title: 'Prochaine rencontre',
+          subtitle: _eventSummary(event),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+            decoration: BoxDecoration(
+              color: context.surfaceVariantColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              "J'y vais",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+          onTap: () => context.push('/events/${event.id}', extra: event),
+        ),
+    ];
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: context.borderColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) Divider(height: 1, color: context.borderColor),
+              rows[i],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// « 1 sondage · 2 messages » — décrit les épinglés par type. Leur libellé
+  /// réel demanderait une requête par élément (l'entité ne porte qu'un id).
+  static String _pinnedSummary(List<GroupPinnedItemEntity> items) {
+    final counts = <GroupPinnedItemType, int>{};
+    for (final item in items) {
+      counts[item.itemType] = (counts[item.itemType] ?? 0) + 1;
+    }
+    const labels = {
+      GroupPinnedItemType.event: ['événement', 'événements'],
+      GroupPinnedItemType.poll: ['sondage', 'sondages'],
+      GroupPinnedItemType.message: ['message', 'messages'],
+    };
+    final parts = <String>[];
+    for (final type in GroupPinnedItemType.values) {
+      final n = counts[type];
+      if (n == null || n == 0) continue;
+      parts.add('$n ${labels[type]![n > 1 ? 1 : 0]}');
+    }
+    return parts.join(' · ');
+  }
+
+  static String _mediaSummary(MediaGalleryState media) {
+    final parts = <String>[];
+    if (media.images.isNotEmpty) {
+      parts.add(
+        '${media.images.length} photo${media.images.length > 1 ? 's' : ''}',
+      );
+    }
+    if (media.videos.isNotEmpty) {
+      parts.add(
+        '${media.videos.length} vidéo${media.videos.length > 1 ? 's' : ''}',
+      );
+    }
+    if (media.files.isNotEmpty) {
+      parts.add(
+        '${media.files.length} document${media.files.length > 1 ? 's' : ''}',
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  static String _eventSummary(EventEntity event) {
+    final start = event.startDate.toLocal();
+    final day = DateFormat('EEEE d MMMM', 'fr_FR').format(start);
+    final time = DateFormat('HH', 'fr_FR').format(start);
+    final place = event.location.trim();
+    final when = '${day[0].toUpperCase()}${day.substring(1)} · $time h';
+    return place.isNotEmpty ? '$when · $place' : when;
+  }
+}
+
+/// Ligne de la carte info (fiche 9d) : icône 18, titre 13.5/600, sous-ligne
+/// 12/400, et un élément de droite qui varie (compteur, chevron, bouton).
+class _InfoRow extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+  final VoidCallback? onTap;
+
+  const _InfoRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            icon,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            trailing,
+          ],
+        ),
+      ),
+    );
+  }
+}
