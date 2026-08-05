@@ -982,6 +982,45 @@ premier message débloque en cascade le bouton de coupure des notifications de
 
 ---
 
+## 6a — Fil, Nocturne
+
+Deux defauts leves par Salim a la validation, tous deux hors fiche :
+
+- **On entrait dans le fil sans pouvoir en sortir.** Le fil n'est pas un
+  onglet de la barre principale : on y arrive par un `push` depuis Accueil,
+  donc sans barre de navigation, et son en-tete n'avait aucune fleche de
+  retour — la maquette n'en dessine pas parce qu'elle le suppose onglet. Une
+  fleche apparait desormais quand la route peut etre depilee.
+- **« Abonnements » se tronquait** en « Abonnem… ». Sur 360 dp, icone (16) +
+  ecart (6) + marges ne laissaient que 62 dp au texte qui en demande ~75. A
+  trois segments l'icone est sacrifiee au libelle : il reste 84 dp et le mot
+  tient entier. Ni 6a ni 4g ne traitent ce cas, elles dessinent trois onglets
+  courts.
+
+Le debordement de 2 px du rail de stories, signale a tort pendant cette
+passe, **etait deja corrige** : le libelle force son interligne et
+`_railHeight` arrondit au pixel superieur.
+
+## Barre de navigation : le contenu passe dessous, et c'est voulu
+
+Souleve en validant 11d — « Compléter mon profil » et « Déconnexion » se
+retrouvaient partiellement sous la barre. Verification faite sur les cinq
+ecrans du shell : **rien a corriger.**
+
+La barre est un verre depoli assume (`BackdropFilter` σ56, 55 % d'opacite) et
+`extendBody: true` est delibere : le contenu doit glisser dessous. Le shell
+gonfle deja `MediaQuery.padding.bottom` de 110 px, et Accueil, Carte, Groupes,
+Messages et Profil lisent tous cette valeur en fin de liste — aucun dernier
+element n'est inatteignable.
+
+Ce qu'on voit est donc un CTA qui tombe au pli a l'arrivee parce que la carte
+« Complétez votre profil » est longue, pas une reserve manquante. Ca depend de
+la hauteur d'ecran et de la longueur de la carte. Ne pas « corriger » en
+retirant `extendBody` : ce serait echanger un desagrement de cadrage contre la
+perte d'un effet choisi.
+
+---
+
 ---
 
 ## Ce que la reprise a fait tomber au passage
