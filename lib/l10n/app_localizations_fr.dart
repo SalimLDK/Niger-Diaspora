@@ -12174,7 +12174,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get emojis => 'Emojis';
+  String get emojis => 'Émojis';
 
   @override
   String get gifs => 'GIFs';
@@ -12194,6 +12194,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gifDataSaverNote => 'Téléchargés une fois, envoyés sans données';
+
+  @override
+  String get stickerRecentlyUsed => 'Récemment utilisés';
+
+  @override
+  String get stickerDataSaverNote =>
+      'Les stickers sont téléchargés une fois, puis envoyés sans données.';
+
+  @override
+  String get searchStickers => 'Rechercher un sticker';
+
+  @override
+  String get searchResults => 'Résultats';
 
   @override
   String get showKeyboard => 'Afficher le clavier';

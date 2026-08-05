@@ -117,7 +117,10 @@ class _MessageInputState extends State<MessageInput>
   /// à chaque frappe (le contenu du compteur, lui, se met à jour tout seul via
   /// le `ValueListenableBuilder` de `_buildPillField`).
   bool _showCounter = false;
-  int _pickerTabIndex = 0; // 0 = emojis, 1 = GIFs, 2 = stickers
+  // Onglet demandé au panneau. Une énumération, pas un index : l'onglet
+  // Stickers n'apparaît qu'une fois les packs chargés, et un index se
+  // décalerait silencieusement à ce moment-là.
+  MessagePickerTab _pickerTab = MessagePickerTab.emojis;
   double _dragOffset = 0;
   bool _isCancelling = false;
   bool _isLocked = false;
@@ -380,8 +383,8 @@ class _MessageInputState extends State<MessageInput>
     _focusNode.requestFocus();
   }
 
-  void _togglePicker({int tabIndex = 0}) {
-    if (_showPicker && _pickerTabIndex == tabIndex) {
+  void _togglePicker({MessagePickerTab tab = MessagePickerTab.emojis}) {
+    if (_showPicker && _pickerTab == tab) {
       // Hide picker and show keyboard
       setState(() => _showPicker = false);
       _focusNode.requestFocus();
@@ -391,7 +394,7 @@ class _MessageInputState extends State<MessageInput>
       setState(() {
         _showPicker = true;
         _showAttachPanel = false;
-        _pickerTabIndex = tabIndex;
+        _pickerTab = tab;
       });
     }
   }
@@ -1004,7 +1007,7 @@ class _MessageInputState extends State<MessageInput>
                 isLandscape:
                     MediaQuery.of(context).orientation == Orientation.landscape,
               ),
-              initialTabIndex: _pickerTabIndex,
+              initialTab: _pickerTab,
               onEmojiSelected: _onEmojiSelected,
               onBackspacePressed: _onBackspacePressed,
               onStickerSelected:

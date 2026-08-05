@@ -2807,11 +2807,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     if (conversation?.isPendingRequest ?? false) return null;
 
     final eco = PreferencesService.instance.dataSaverMode;
+    // #F5F0E8 clair / #252119 sombre : c'est `surfaceVariant` en clair mais
+    // `surfaceElevated` en nocturne — la pastille se pose sur le fond de la
+    // conversation, pas sur une carte, et `surfaceVariantDark` (#2D2820) la
+    // ferait ressortir davantage que la fiche ne le demande.
     final tileBg =
-        context.isDarkMode ? const Color(0xFF252119) : const Color(0xFFF5F0E8);
-    // Repère (épinglé/éco) : #B85E24 clair / #F4A574 sombre.
-    final repere =
-        context.isDarkMode ? const Color(0xFFF4A574) : const Color(0xFFB85E24);
+        context.isDarkMode
+            ? AppColors.surfaceElevatedDark
+            : AppColors.surfaceVariant;
+    final repere = context.repereColor;
 
     return _SubBarTile(
       bg: eco ? repere.withValues(alpha: 0.15) : tileBg,

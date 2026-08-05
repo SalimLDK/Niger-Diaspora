@@ -12072,6 +12072,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gifDataSaverNote => 'Downloaded once, sent without using data';
 
   @override
+  String get stickerRecentlyUsed => 'Recently used';
+
+  @override
+  String get stickerDataSaverNote =>
+      'Stickers are downloaded once, then sent without using data.';
+
+  @override
+  String get searchStickers => 'Search stickers';
+
+  @override
+  String get searchResults => 'Results';
+
+  @override
   String get showKeyboard => 'Show keyboard';
 
   @override

@@ -73,9 +73,29 @@ void main() {
 
       expect(tester.takeException(), isNull, reason: 'overflow onglet Emojis');
 
-      await tester.tap(find.byIcon(Icons.gif_box_outlined));
+      // Les onglets sont des pilules textuelles depuis la fiche 26b.
+      await tester.tap(find.text('GIF'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(tester.takeException(), isNull, reason: 'overflow onglet GIFs');
+
+      // Retour aux emojis : avec l'ordre de la fiche, ce n'est plus l'onglet
+      // le plus à gauche, il faut le couvrir explicitement.
+      await tester.tap(find.text('Émojis'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'overflow retour onglet Emojis',
+      );
     });
   }
+
+  test('le chrome se resserre sous 190 dp', () {
+    // En paysage le panneau tombe à ~160 dp : barre d'onglets pleine hauteur
+    // + ligne d'info ne laisseraient que 62 dp de contenu.
+    expect(pickerUsesCompactChrome(160), isTrue);
+    expect(pickerUsesCompactChrome(189), isTrue);
+    expect(pickerUsesCompactChrome(190), isFalse);
+    expect(pickerUsesCompactChrome(300), isFalse);
+  });
 }

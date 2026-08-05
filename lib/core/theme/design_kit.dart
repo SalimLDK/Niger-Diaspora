@@ -1226,12 +1226,18 @@ class DesignFilterChip extends StatelessWidget {
   /// Compte affiché en pastille à droite du libellé (0 = masqué).
   final int count;
 
+  /// Densité réduite pour les barres serrées — le panneau de stickers vit dans
+  /// le créneau du clavier, où la version pleine page mange trop de hauteur
+  /// (fiche 26b : padding 13×7, libellé 12,5).
+  final bool compact;
+
   const DesignFilterChip({
     super.key,
     required this.label,
     required this.selected,
     required this.onTap,
     this.count = 0,
+    this.compact = false,
   });
 
   @override
@@ -1245,10 +1251,20 @@ class DesignFilterChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(kDesignPillRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          padding:
+              compact
+                  ? const EdgeInsets.symmetric(horizontal: 13, vertical: 7)
+                  : const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(kDesignPillRadius),
-            border: Border.all(color: selected ? fill : context.borderColor),
+            border: Border.all(
+              color:
+                  selected
+                      ? fill
+                      : (compact
+                          ? context.borderStrongColor
+                          : context.borderColor),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1256,9 +1272,17 @@ class DesignFilterChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? onFill : context.textPrimaryColor,
+                  fontSize: compact ? 12.5 : 13.5,
+                  fontWeight:
+                      (compact && !selected)
+                          ? FontWeight.w500
+                          : FontWeight.w600,
+                  color:
+                      selected
+                          ? onFill
+                          : (compact
+                              ? context.textSecondaryColor
+                              : context.textPrimaryColor),
                 ),
               ),
               if (count > 0) ...[
@@ -1303,12 +1327,22 @@ class DesignSectionLabel extends StatelessWidget {
   /// passe `context.errorColor`.
   final Color? color;
 
-  const DesignSectionLabel(this.text, {super.key, this.trailing, this.color});
+  /// Marges du libellé. Par défaut celles d'une liste pleine page ; le panneau
+  /// de stickers (fiche 26b) les resserre à `(12, 8, 12, 6)`.
+  final EdgeInsets? padding;
+
+  const DesignSectionLabel(
+    this.text, {
+    super.key,
+    this.trailing,
+    this.color,
+    this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 18, 0, 10),
+      padding: padding ?? const EdgeInsets.fromLTRB(0, 18, 0, 10),
       child: Row(
         children: [
           Text(

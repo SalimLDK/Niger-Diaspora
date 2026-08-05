@@ -5725,13 +5725,17 @@
       }
     }
   },
-  "emojis": "Emojis",
+  "emojis": "Émojis",
   "gifs": "GIFs",
   "searchGifs": "Rechercher des GIFs",
   "gifNoResults": "Aucun résultat.",
   "gifLoadError": "Impossible de charger les GIFs.",
   "gifProviderNotConfigured": "Les GIFs ne sont pas encore configurés.",
   "gifDataSaverNote": "Téléchargés une fois, envoyés sans données",
+  "stickerRecentlyUsed": "Récemment utilisés",
+  "stickerDataSaverNote": "Les stickers sont téléchargés une fois, puis envoyés sans données.",
+  "searchStickers": "Rechercher un sticker",
+  "searchResults": "Résultats",
   "showKeyboard": "Afficher le clavier",
   "stickers": "Stickers",
   "stickerPacks": "Packs de stickers",

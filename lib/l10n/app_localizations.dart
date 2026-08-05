@@ -22499,7 +22499,7 @@ abstract class AppLocalizations {
   /// No description provided for @emojis.
   ///
   /// In fr, this message translates to:
-  /// **'Emojis'**
+  /// **'Émojis'**
   String get emojis;
 
   /// No description provided for @gifs.
@@ -22537,6 +22537,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Téléchargés une fois, envoyés sans données'**
   String get gifDataSaverNote;
+
+  /// No description provided for @stickerRecentlyUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récemment utilisés'**
+  String get stickerRecentlyUsed;
+
+  /// No description provided for @stickerDataSaverNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les stickers sont téléchargés une fois, puis envoyés sans données.'**
+  String get stickerDataSaverNote;
+
+  /// No description provided for @searchStickers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un sticker'**
+  String get searchStickers;
+
+  /// No description provided for @searchResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats'**
+  String get searchResults;
 
   /// No description provided for @showKeyboard.
   ///

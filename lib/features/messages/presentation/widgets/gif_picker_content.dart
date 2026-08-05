@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../gifs/data/datasources/gif_remote_datasource.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
@@ -20,14 +21,6 @@ class GifPickerContent extends ConsumerStatefulWidget {
 }
 
 class _GifPickerContentState extends ConsumerState<GifPickerContent> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -47,8 +40,16 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
 
     return Column(
       children: [
-        _buildToolbar(context, l10n, type),
-        _buildDataSaverNote(context, l10n),
+        // En-tête de section (fiche 26b : « des en-têtes, pas des sous-onglets »)
+        // portant la bascule GIFs / stickers transparents — même fournisseur,
+        // deux médias différents. La recherche, elle, vit dans la loupe de la
+        // coque, et la note « données réduites » dans son pied.
+        DesignSectionLabel(
+          query.isEmpty ? l10n.trending : l10n.searchResults,
+          color: context.repereColor,
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+          trailing: _buildTypeToggle(context, l10n, type),
+        ),
         Expanded(
           child: resultsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -71,91 +72,30 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
     );
   }
 
-  Widget _buildToolbar(
+  /// Bascule GIFs / stickers transparents (même fournisseur).
+  Widget _buildTypeToggle(
     BuildContext context,
     AppLocalizations l10n,
     GifContentType type,
   ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 38,
-              child: TextField(
-                controller: _searchController,
-                textInputAction: TextInputAction.search,
-                style: const TextStyle(fontSize: 14),
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: l10n.searchGifs,
-                  prefixIcon: const Icon(Icons.search, size: 18),
-                  filled: true,
-                  fillColor: context.surfaceVariantColor,
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(19),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                onChanged: (value) =>
-                    ref.read(gifSearchQueryProvider.notifier).state = value,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Bascule GIFs / stickers transparents (même fournisseur).
-          SegmentedButton<GifContentType>(
-            segments: [
-              ButtonSegment(
-                value: GifContentType.gif,
-                label: Text(l10n.gifs),
-              ),
-              ButtonSegment(
-                value: GifContentType.sticker,
-                label: Text(l10n.stickers),
-              ),
-            ],
-            selected: {type},
-            showSelectedIcon: false,
-            style: const ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 12)),
-            ),
-            onSelectionChanged: (selection) =>
-                ref.read(gifContentTypeProvider.notifier).state =
-                    selection.first,
-          ),
-        ],
+    return SegmentedButton<GifContentType>(
+      segments: [
+        ButtonSegment(value: GifContentType.gif, label: Text(l10n.gifs)),
+        ButtonSegment(
+          value: GifContentType.sticker,
+          label: Text(l10n.stickers),
+        ),
+      ],
+      selected: {type},
+      showSelectedIcon: false,
+      style: const ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 11)),
       ),
-    );
-  }
-
-  /// Rappel mode données réduites (§26b) : les GIFs/stickers ne sont
-  /// téléchargés qu'une fois puis renvoyés sans re-consommer de données.
-  Widget _buildDataSaverNote(BuildContext context, AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-      child: Row(
-        children: [
-          Icon(
-            Icons.data_saver_on,
-            size: 12,
-            color: context.textSecondaryColor,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              l10n.gifDataSaverNote,
-              style: TextStyle(
-                fontSize: 11,
-                color: context.textSecondaryColor,
-              ),
-            ),
-          ),
-        ],
-      ),
+      onSelectionChanged:
+          (selection) =>
+              ref.read(gifContentTypeProvider.notifier).state = selection.first,
     );
   }
 

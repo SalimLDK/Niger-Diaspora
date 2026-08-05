@@ -2751,6 +2751,46 @@ désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
 
 ---
 
+## Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)
+
+Refonte complète : onglets en **pilules Stickers · GIF · Émojis** (l'ordre est
+inversé par rapport à avant) suivis d'une loupe, **sections à en-tête**
+(RÉCEMMENT UTILISÉS · FAVORIS · un par pack) au lieu des sous-onglets iconiques
+horloge/cœur/vignette, grille à tuiles carrées à fond visible, et la note
+« téléchargés une fois » descendue **en pied**.
+
+Couvert statiquement par `emoji_sticker_picker_layout_test.dart` (ordre des
+pilules, sections, 4 colonnes à 390 dp, pied présent/absent, filtre, nocturne)
+et `emoji_sticker_picker_landscape_test.dart` (pas d'overflow à 160/200/260).
+Ce que les tests ne voient pas :
+
+- [ ] ⚠ **Le smiley du composeur ouvre bien les ÉMOJIS.** L'onglet 0 est
+  devenu « Stickers » : le code est passé d'un index à une énumération
+  (`MessagePickerTab`) exprès pour ça, mais c'est le premier geste à refaire.
+- [ ] **Défilement continu** sections + grille, clavier réellement ouvert, sur
+  le A51 — c'est un seul `CustomScrollView` désormais.
+- [ ] **Padding bas de la ligne d'info** face à la barre de navigation
+  gestuelle (la fiche prévoit 26 px pour l'indicateur iOS, on en met 8).
+- [ ] **La loupe sur l'onglet Émojis** ouvre la vue de recherche interne du
+  paquet `emoji_picker_flutter` (elle est plein cadre, avec son propre retour).
+- [ ] **La loupe sur Stickers** filtre sur place. ⚠ Elle cherche dans
+  `sticker.emoji` et le nom du pack ; si `emoji` est vide en base pour la
+  plupart des stickers, seul le nom du pack remontera. À confirmer sur les
+  vraies données.
+- [ ] **Grille en paysage** : 4 colonnes à 390 dp, davantage au-delà (sinon les
+  tuiles feraient 180 dp).
+- [ ] **Chrome resserré sous 190 dp** : en paysage la ligne d'info disparaît et
+  la barre d'onglets se tasse. Vérifier que ça reste lisible.
+- [ ] **Nocturne** : pilule sélectionnée sur `textPrimary`, contours sur
+  `borderStrong`, en-têtes de section sur le repère `#F4A574`.
+- [ ] **Les favoris n'ont plus d'onglet cœur** : ils sont une section, affichée
+  seulement si non vide. L'appui long sur un sticker propose toujours
+  « Ajouter aux favoris ».
+- [ ] **L'onglet Stickers reste absent sans pack Supabase** (les packs sont
+  vides en base) : dans ce cas le panneau s'ouvre sur GIF ou Émojis.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

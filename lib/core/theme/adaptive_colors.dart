@@ -132,6 +132,16 @@ extension AdaptiveColors on BuildContext {
   Color get goldBackgroundColor =>
       isDarkMode ? AppColors.surfaceElevatedDark : AppColors.goldBackground;
 
+  /// Repère terracotta : ce qui signale sans agir — bascule ÉCO de la
+  /// discussion, libellés de section du panneau de stickers, marques
+  /// d'épinglage. `#B85E24` (l'orange d'action du guide) en clair, `#F4A574`
+  /// en nocturne où le foncé serait illisible.
+  ///
+  /// La paire était recopiée en dur à chaque usage ; elle a un nom depuis
+  /// qu'un troisième écran en a eu besoin.
+  Color get repereColor =>
+      isDarkMode ? AppColors.primaryLight : AppColors.primaryDark;
+
   // ============================================
   // PRIMARY COLORS (adapté pour dark mode)
   // ============================================
