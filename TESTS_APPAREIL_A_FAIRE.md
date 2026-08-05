@@ -284,13 +284,23 @@ supplémentaire** à créer.
 - [ ] À vérifier avec deux comptes jetables : A et B amis, supprimer A,
   contrôler que B ne voit plus A dans ses amis. Non fait — ça demande de
   supprimer un vrai compte Firebase Auth.
-- [ ] 🔴 **Relevé au passage : deux fonctions tournent en production sans
-  source dans le dépôt** — `sendMessagePush(europe-west1)` et
-  `sendChatNotification(us-central1)`. Personne ne peut donc les relire, les
-  corriger ni les redéployer. `sendMessagePush` est **encore appelée par les
-  APK déjà installés** : ne jamais accepter sa suppression, ni utiliser
-  `--force`. Retrouver leurs sources (piste : les stashes, comme pour
-  `partners/` en juillet) ou les réécrire.
+- [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
+  sources retrouvées et réintégrées** (`a7db115`).
+  `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais
+  commitée nulle part ; `sendChatNotification(us-central1)` dans `1bb0cca^`,
+  retirée du dépôt sans être supprimée côté Firebase — et désactivée
+  (`return null` en tête) depuis avant son retrait.
+  `firebase deploy --only functions --dry-run` ne signale plus d'orpheline :
+  un déploiement global redevient possible.
+- [ ] ⚠ **Réintégré ne veut pas dire vérifié.** Le code déployé n'est pas
+  lisible : il peut différer de ces sources. Rien n'a été redéployé, et
+  `sendMessagePush` reste **appelée par les APK déjà installés** — ne jamais
+  accepter sa suppression ni utiliser `--force`.
+- [ ] Le repliage de `handleNewMessagePush` dans `onMessageCreated` avait perdu
+  le **contrôle de participation** (`callerUid`) : sans lui, le callable
+  laisserait pousser une notification vers une conversation dont on ne fait pas
+  partie. Réinjecté depuis le stash, mais **jamais exercé** — à tester si le
+  callable redevient utilisé.
 
 ### `FAILED_PRECONDITION` — index manquant sur les événements
 
