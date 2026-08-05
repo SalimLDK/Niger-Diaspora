@@ -7,6 +7,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../domain/entities/notification_entity.dart';
+import '../widgets/notification_style.dart';
 
 import '../providers/notification_provider.dart';
 import '../../../../core/services/notification_service.dart';
@@ -90,19 +91,20 @@ class NotificationDetailScreen extends ConsumerWidget {
                 // Header with icon and priority
                 Row(
                   children: [
+                    // Même pastille pleine que la liste (§12c) : l'écran
+                    // peignait sa propre copie du dégradé par type, avec sa
+                    // propre vingtaine de `Colors.*`.
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: _getIconColor(
-                          context,
-                          notification.type,
-                        ).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: notificationTint(context, notification.type),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
-                        _getIcon(notification.type),
-                        color: _getIconColor(context, notification.type),
-                        size: 32,
+                        notificationIcon(notification.type),
+                        color: context.onPrimaryColor,
+                        size: 24,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -144,18 +146,18 @@ class NotificationDetailScreen extends ConsumerWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                              notification.priority ==
+                          color: (notification.priority ==
                                       NotificationPriority.urgent
-                                  ? Colors.red.withValues(alpha: 0.1)
-                                  : Colors.orange.withValues(alpha: 0.1),
+                                  ? context.errorColor
+                                  : context.warningColor)
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color:
-                                notification.priority ==
+                            color: (notification.priority ==
                                         NotificationPriority.urgent
-                                    ? Colors.red.withValues(alpha: 0.5)
-                                    : Colors.orange.withValues(alpha: 0.5),
+                                    ? context.errorColor
+                                    : context.warningColor)
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                         child: Row(
@@ -166,8 +168,8 @@ class NotificationDetailScreen extends ConsumerWidget {
                               color:
                                   notification.priority ==
                                           NotificationPriority.urgent
-                                      ? Colors.red
-                                      : Colors.orange,
+                                      ? context.errorColor
+                                      : context.warningColor,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -343,108 +345,6 @@ class NotificationDetailScreen extends ConsumerWidget {
         break;
       case NotificationType.general:
         break;
-    }
-  }
-
-  IconData _getIcon(NotificationType type) {
-    switch (type) {
-      case NotificationType.message:
-        return Icons.chat_bubble_outline;
-      case NotificationType.groupInvite:
-        return Icons.group_add;
-      case NotificationType.eventReminder:
-        return Icons.event;
-      case NotificationType.newFollower:
-        return Icons.person_add;
-      case NotificationType.newMember:
-        return Icons.person;
-      case NotificationType.eventUpdate:
-        return Icons.update;
-      case NotificationType.eventAttendance:
-        return Icons.event_available;
-      case NotificationType.friendRequest:
-        return Icons.person_add_alt;
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-        return Icons.how_to_reg;
-      case NotificationType.groupJoinRequest:
-        return Icons.group_add;
-      case NotificationType.groupRequestApproved:
-        return Icons.check_circle_outline;
-      case NotificationType.groupRequestRejected:
-        return Icons.cancel_outlined;
-      case NotificationType.general:
-        return Icons.notifications_none;
-      case NotificationType.localEvent:
-        return Icons.location_on;
-      case NotificationType.nearbyMember:
-        return Icons.person_pin_circle;
-      case NotificationType.proximityAlert:
-        return Icons.radar;
-      case NotificationType.order:
-      case NotificationType.newOrder:
-        return Icons.shopping_bag;
-      case NotificationType.orderPaid:
-        return Icons.payment;
-      case NotificationType.orderShipped:
-        return Icons.local_shipping;
-      case NotificationType.orderDelivered:
-        return Icons.check_circle;
-      case NotificationType.orderCancelled:
-        return Icons.cancel;
-      case NotificationType.orderCompleted:
-        return Icons.check_circle;
-    }
-  }
-
-  Color _getIconColor(BuildContext context, NotificationType type) {
-    switch (type) {
-      case NotificationType.message:
-        return context.adaptivePrimaryColor;
-      case NotificationType.groupInvite:
-        return Colors.purple;
-      case NotificationType.eventReminder:
-        return context.adaptiveSecondaryColor;
-      case NotificationType.newFollower:
-        return Colors.blue;
-      case NotificationType.newMember:
-        return Colors.teal;
-      case NotificationType.eventUpdate:
-        return Colors.amber;
-      case NotificationType.eventAttendance:
-        return Colors.teal;
-      case NotificationType.friendRequest:
-        return Colors.indigo;
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-        return Colors.green;
-      case NotificationType.groupJoinRequest:
-        return Colors.deepPurple;
-      case NotificationType.groupRequestApproved:
-        return Colors.green;
-      case NotificationType.groupRequestRejected:
-        return Colors.red;
-      case NotificationType.general:
-        return context.textSecondaryColor;
-      case NotificationType.localEvent:
-        return Colors.red;
-      case NotificationType.nearbyMember:
-        return Colors.orange;
-      case NotificationType.proximityAlert:
-        return Colors.deepOrange;
-      case NotificationType.order:
-      case NotificationType.newOrder:
-        return Colors.green;
-      case NotificationType.orderPaid:
-        return Colors.blue;
-      case NotificationType.orderShipped:
-        return Colors.purple;
-      case NotificationType.orderDelivered:
-        return Colors.green;
-      case NotificationType.orderCancelled:
-        return Colors.red;
-      case NotificationType.orderCompleted:
-        return Colors.green;
     }
   }
 

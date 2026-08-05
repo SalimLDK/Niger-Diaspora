@@ -60,12 +60,34 @@ données préservées. Thème système en NOCTURNE.**
   marquer comme lu », « Réglages », « Tout supprimer » en rouge. « Tout
   supprimer » était écrit mais **injoignable** (`buildOverflowMenu` n'était
   appelé nulle part) ; il s'ouvre désormais. Vérifié en clair et en nocturne.
-- [ ] **Relevé au passage, hors lot** : en thème clair, la tuile de groupe de
-  la liste sort de la palette — pastille et compteur en **vert WhatsApp
-  `#25D366` codé en dur** (quatre occurrences dans `_NotificationGroupItem`),
-  plus une vingtaine de `Colors.purple` / `teal` / `indigo` pour les icônes par
-  type. Ça se voit sur fond crème à côté du terracotta. Repeinturage à décider,
-  pas un défaut — voir la note sur les jetons codés en dur.
+
+### Refonte de la liste sur la maquette 12c (2026-08-05)
+
+Deux registres, sections par jour, palette du thème. L'accordéon des groupes
+est **conservé** (choix de Salim) : c'est le seul endroit d'où l'on voit les
+notifications d'un groupe une par une.
+
+- [x] **Sections par jour** (« CETTE SEMAINE » en chasse fixe terracotta) :
+  vérifiées en clair et en nocturne.
+- [x] **Registre « non lue » = carte** : fond teinté par famille, pastille
+  carrée pleine 44 au rayon 12, compteur en accent, horodatage en chasse fixe.
+  Vérifié dans les deux thèmes — la teinte s'assombrit correctement en nuit.
+- [x] **L'accordéon tient dans le nouveau registre** : les treize lignes se
+  déplient dans la carte, filet aligné, heures en chasse fixe, point de non-lu
+  en accent.
+- [x] **Le vert WhatsApp a disparu.** `#25D366` n'est plus dans le fichier
+  (hors commentaire) et les `Colors.purple` / `teal` / `indigo` / `amber` ont
+  laissé place à quatre teintes du thème (`notification_style.dart`, partagé
+  avec l'écran de détail qui peignait sa propre copie).
+- [ ] **Registre « lue » = ligne nue non vérifié** : le compte de test n'a
+  qu'une notification et elle est non lue. Balayer une notification vers la
+  droite pour la marquer lue, et vérifier qu'elle passe bien de la carte à la
+  ligne discrète (pastille ronde éteinte, plus de fond).
+- [ ] **Actions en ligne « J'y vais » / « Voir » non vérifiées** : il faut une
+  notification d'événement. « J'y vais » appelle réellement `attendEvent` ;
+  vérifier le message de confirmation et que la participation est enregistrée.
+- [ ] **« Accepter / Refuser » sur une demande d'ami** : jamais rejoué depuis
+  la refonte.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
   aucune non-lue (le compte de test en avait une), et le dialogue de
   confirmation de « Tout supprimer » (non déclenché — action destructive sur
