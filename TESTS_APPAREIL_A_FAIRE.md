@@ -2703,6 +2703,33 @@ voir :
 
 ---
 
+## Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)
+
+La sous-barre « Médias · ÉCO » sous le bandeau épinglé a disparu : la fiche 6b
+pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
+« Médias » n'est pas perdu, il est passé dans le menu ⋮ sous le libellé
+« Médias partagés » (`sharedMedia`, clé déjà existante).
+
+- [ ] **Avec une épingle** : le bandeau et la pastille ÉCO tiennent sur une
+  seule ligne, le bandeau prenant la place qui reste. Vérifier qu'un titre long
+  s'ellipse au lieu de pousser la pastille hors de l'écran.
+- [ ] **Sans épingle** : la ligne se réduit à la seule pastille ÉCO, alignée à
+  droite — elle ne doit pas disparaître.
+- [ ] **Avec le compteur `i/n`** (plusieurs épingles) : le compteur et la
+  pastille cohabitent sans se marcher dessus, à font_scale 1.1.
+- [ ] **« Mes notes » et demande de message en attente** : pas de pastille ÉCO
+  (rien à réduire), et le bandeau seul doit rester correct.
+- [ ] **La bascule fonctionne toujours** : appuyer sur ÉCO, revenir, vérifier
+  que l'aperçu flouté des médias s'active bien.
+- [ ] **« Médias partagés » dans le menu ⋮** ouvre bien la galerie de la
+  conversation.
+- [ ] ⚠ **Gain de hauteur** : ~40 dp libérés sous l'en-tête. La réserve de
+  chrome de `computeMessagePickerHeight` n'a **pas** été rebaissée (le fichier
+  était en cours de modification par ailleurs) — le panneau émoji a donc un peu
+  moins de place qu'il ne pourrait. À reprendre si l'écran paraît serré.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

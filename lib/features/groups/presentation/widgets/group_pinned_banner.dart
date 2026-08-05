@@ -35,12 +35,20 @@ class GroupPinnedBanner extends ConsumerStatefulWidget {
   /// Tap sur un message épinglé : navigue vers le message (scroll + highlight).
   final void Function(String messageId)? onOpenMessage;
 
+  /// Pastille posée à droite de la ligne (fiche 6b : la bascule ÉCO y vit).
+  ///
+  /// Elle reste affichée **même quand rien n'est épinglé** : sinon la bascule
+  /// disparaîtrait de l'écran dès qu'il n'y a pas d'épingle, ce qui est le cas
+  /// courant. La ligne se réduit alors à la seule pastille, alignée à droite.
+  final Widget? trailing;
+
   const GroupPinnedBanner({
     super.key,
     this.groupId,
     this.conversationId,
     this.messageConversationId,
     this.onOpenMessage,
+    this.trailing,
   }) : assert(groupId != null || conversationId != null);
 
   @override
@@ -71,7 +79,15 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
     if (itemsAsync.hasValue) _lastItems = itemsAsync.value!;
     final items = itemsAsync.valueOrNull ?? _lastItems;
 
-    if (items.isEmpty) return const SizedBox.shrink();
+    if (items.isEmpty) {
+      final trailing = widget.trailing;
+      if (trailing == null) return const SizedBox.shrink();
+      // Rien d'épinglé : la ligne ne porte que la pastille, à droite.
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(children: [const Spacer(), trailing]),
+      );
+    }
     final index = _index % items.length;
     return _PinnedRow(
       item: items[index],
@@ -79,6 +95,7 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
       total: items.length,
       messageConversationId: widget.messageConversationId,
       onOpenMessage: widget.onOpenMessage,
+      trailing: widget.trailing,
       onCycle:
           items.length > 1
               ? () => setState(() => _index = (index + 1) % items.length)
@@ -94,6 +111,7 @@ class _PinnedRow extends ConsumerWidget {
   final String? messageConversationId;
   final void Function(String messageId)? onOpenMessage;
   final VoidCallback? onCycle;
+  final Widget? trailing;
 
   const _PinnedRow({
     required this.item,
@@ -102,6 +120,7 @@ class _PinnedRow extends ConsumerWidget {
     this.messageConversationId,
     this.onOpenMessage,
     this.onCycle,
+    this.trailing,
   });
 
   @override
@@ -263,70 +282,95 @@ class _PinnedRow extends ConsumerWidget {
       if (onOpen == null) onCycle?.call();
     }
 
+    // Fiche 6b : le bandeau et la pastille (ÉCO) se partagent la ligne, en
+    // deux blocs distincts — le bandeau prend la place qui reste.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: (onOpen != null || onCycle != null) ? handleTap : null,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _banner(
+              context,
+              accent: accent,
+              label: label,
+              title: title,
+              onTap: (onOpen != null || onCycle != null) ? handleTap : null,
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 3,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+        ],
+      ),
+    );
+  }
+
+  Widget _banner(
+    BuildContext context, {
+    required Color accent,
+    required String label,
+    required String title,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 3,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: accent,
-                        ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
                       ),
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: context.textPrimaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (total > 1) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '${index + 1}/$total',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: context.textTertiaryColor,
                     ),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (total > 1) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '${index + 1}/$total',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.textTertiaryColor,
                   ),
-                ],
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),

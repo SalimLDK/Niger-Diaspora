@@ -558,6 +558,20 @@ class _ConversationOptionsModalState
                   widget.onSearch?.call();
                 },
               ),
+            // La sous-barre « Médias · ÉCO » a disparu de la conversation
+            // (fiche 6b : ÉCO tient sur la ligne épinglée). Le raccourci vers
+            // la galerie n'est pas perdu pour autant, il vit ici.
+            _buildOption(
+              iconWidget: AppIcon(
+                AppIcon.image,
+                color: context.adaptivePrimaryColor,
+              ),
+              title: l10n.sharedMedia,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/messages/${widget.conversationId}/media');
+              },
+            ),
             _buildOption(
               icon:
                   widget.isMuted

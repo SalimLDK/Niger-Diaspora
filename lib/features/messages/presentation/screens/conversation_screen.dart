@@ -1279,23 +1279,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // la conversation elle-même connaît son group_id — sans ce
                 // repli, le bandeau (et donc les messages épinglés) restait
                 // invisible en permanence pour cette conversation.
+                // La bascule ÉCO vit à droite de cette ligne (fiche 6b), au
+                // lieu d'occuper une sous-barre à elle. Le raccourci Médias a
+                // rejoint le menu ⋮.
                 if (widget.isGroup &&
                     (widget.groupId ?? conversation?.groupId) != null)
                   GroupPinnedBanner(
                     groupId: (widget.groupId ?? conversation?.groupId)!,
                     messageConversationId: widget.conversationId,
                     onOpenMessage: _scrollToMessage,
+                    trailing: _ecoChip(context, conversation),
                   )
                 else if (!widget.isGroup)
                   GroupPinnedBanner(
                     conversationId: widget.conversationId,
                     messageConversationId: widget.conversationId,
                     onOpenMessage: _scrollToMessage,
+                    trailing: _ecoChip(context, conversation),
                   ),
-                // Sous-barre : raccourci Médias + bascule ÉCO (données réduites).
-                if (!widget.isSelfNotes &&
-                    !(conversation?.isPendingRequest ?? false))
-                  _buildQuickSubBar(context),
                 // Invitation a restaurer les cles, quand des messages de ce
                 // fil ne sont pas dechiffrables sur cet appareil.
                 _buildE2eeRestoreBanner(context, paginationState.messages),
@@ -2798,7 +2799,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
-  Widget _buildQuickSubBar(BuildContext context) {
+  /// Bascule « données réduites », posée à droite de la ligne épinglée
+  /// (fiche 6b). Escamotée pour « Mes notes » et pour une demande de message
+  /// en attente, où elle n'aurait rien à réduire.
+  Widget? _ecoChip(BuildContext context, dynamic conversation) {
+    if (widget.isSelfNotes) return null;
+    if (conversation?.isPendingRequest ?? false) return null;
+
     final eco = PreferencesService.instance.dataSaverMode;
     final tileBg =
         context.isDarkMode ? const Color(0xFF252119) : const Color(0xFFF5F0E8);
@@ -2806,40 +2813,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final repere =
         context.isDarkMode ? const Color(0xFFF4A574) : const Color(0xFFB85E24);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-      child: Row(
-        children: [
-          _SubBarTile(
-            bg: tileBg,
-            icon: AppIcon(
-              AppIcon.image,
-              size: 15,
-              color: context.textSecondaryColor,
-            ),
-            label: 'Médias',
-            labelColor: context.textSecondaryColor,
-            onTap:
-                () => context.push('/messages/${widget.conversationId}/media'),
-          ),
-          const SizedBox(width: 8),
-          _SubBarTile(
-            bg: eco ? repere.withValues(alpha: 0.15) : tileBg,
-            icon: Icon(
-              Icons.data_saver_on,
-              size: 15,
-              color: eco ? repere : context.textSecondaryColor,
-            ),
-            label: 'ÉCO',
-            labelColor: eco ? repere : context.textSecondaryColor,
-            onTap: () async {
-              await PreferencesService.instance.setDataSaverMode(!eco);
-              if (mounted) setState(() {});
-            },
-          ),
-          const Spacer(),
-        ],
+    return _SubBarTile(
+      bg: eco ? repere.withValues(alpha: 0.15) : tileBg,
+      icon: Icon(
+        Icons.data_saver_on,
+        size: 15,
+        color: eco ? repere : context.textSecondaryColor,
       ),
+      label: 'ÉCO',
+      labelColor: eco ? repere : context.textSecondaryColor,
+      onTap: () async {
+        await PreferencesService.instance.setDataSaverMode(!eco);
+        if (mounted) setState(() {});
+      },
     );
   }
 
@@ -3396,7 +3382,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 }
 
-/// Tuile de la sous-barre de conversation (rayon 12, fond #F5F0E8 / #252119).
+/// Pastille de la ligne épinglée (rayon 12, fond #F5F0E8 / #252119).
+/// Seule la bascule ÉCO l'utilise depuis que la sous-barre a disparu.
 class _SubBarTile extends StatelessWidget {
   final Color bg;
   final Widget icon;
