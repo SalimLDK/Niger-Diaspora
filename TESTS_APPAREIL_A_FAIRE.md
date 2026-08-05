@@ -3163,8 +3163,16 @@ Restent à voir (demandent un second appareil, ou un build à jour installé) :
 
 - [ ] **Suppression pour tous d'un message épinglé** par B : l'épingle tombe en
   cascade, le bandeau de A doit se vider tout seul.
-- [ ] **Chemin groupe** : filtre sur `group_id` au lieu de `conversation_id` —
-  seul le 1-à-1 a été prouvé.
+- [x] **Chemin groupe — testé le 2026-08-05, il ne marche pas**, et pas à cause
+  du temps réel : dans « Groupe de test prive », appui long → Autres actions →
+  **Épingler** répond **« Impossible d'épingler ce message »**. Cause établie en
+  base : `group_pinned_items.group_id` porte une clé étrangère vers
+  `groups(id)`, or ce groupe a pour id `yflqsRLMMhTPpiW0NFHx` — un **id de
+  document Firestore**, absent de `public.groups` (0 ligne). L'insertion viole
+  donc la contrainte, `pinItem` lève, et le message d'échec s'affiche. Tant que
+  les groupes vivent dans Firestore et les épingles dans Supabase, **aucun
+  message de groupe ne peut être épinglé**. Le filtre `group_id` du bandeau
+  reste donc non prouvé — il n'y a rien à afficher.
 - [ ] ⚠ **Contenu déchiffré dans le bandeau** : toujours pas vu. L'appareil
   affiche le repli « Message épinglé » parce que les clés E2EE sont perdues sur
   ce build (bandeau « Restaurez vos clés » présent, bulles « 🔐 Message
@@ -3232,6 +3240,39 @@ Pistes, par coût croissant :
 3. Remplacer la réserve en dur par une mesure réelle (`LayoutBuilder` autour du
    corps de la conversation), seule solution qui suive tous les bandeaux
    conditionnels.
+
+---
+
+## Groupes — deux défauts trouvés en vérifiant les épingles (2026-08-05)
+
+Constatés sur SM A515F en cherchant à épingler dans un groupe. Aucun des deux
+n'est corrigé, ils dépassent le lot « épingles ».
+
+**1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
+conversation.** « Groupe de test prive » (`yflqsRLMMhTPpiW0NFHx`) a trois
+lignes dans `conversations` : une du 05/08 à 04:13 (1 message), puis une à
+22:14 et une à 22:21 — les deux créées en ouvrant simplement la discussion
+pendant la session. Conséquence visible : l'écran affiche « Aucun message »
+alors qu'un message existe bel et bien, dans une conversation précédente.
+L'historique du groupe se fragmente à chaque entrée.
+
+- [ ] Ouvrir deux fois de suite la discussion d'un groupe et compter les lignes
+  `conversations` pour ce `group_id` : il ne doit s'en créer qu'une.
+
+**2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
+`app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
+lien profond ou d'une notification : `isGroup` retombe à `false`. Ouvrir
+`https://diasponiger.web.app/messages/<id d'une conversation de groupe>` donne
+un en-tête « Utilisateur » avec boutons d'appel, et le bandeau épinglé
+interroge `conversationPinnedItemsProvider` — qui ne renvoie jamais rien pour
+un groupe. `ConversationScreen` ne reconcilie jamais ce drapeau avec
+`conversation.groupId`, pourtant disponible.
+
+- [ ] Après correctif : ouvrir une conversation de groupe par lien profond et
+  par notification, vérifier l'en-tête (nom du groupe, pas d'appel 1-à-1) et le
+  bandeau épinglé.
+- [ ] **Retour depuis un lien profond** : le bouton retour donnait un **écran
+  noir** (la route du lien est seule dans la pile).
 
 ---
 
