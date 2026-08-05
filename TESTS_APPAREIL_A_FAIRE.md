@@ -409,7 +409,50 @@ les conditions exactes d'origine (VPN actif comme réseau par défaut).
       avec sa propre tâche. À refaire au doigt depuis Chrome pour être complet.
 - [ ] Même chemin **déconnecté** : la route doit être mise de côté puis rejouée
       après connexion (étapes 0 et 10 du `redirect`) — non exercé.
-- [ ] **Brouillon de plus de 2000 caractères** (état « dépassement » restauré).
+- [x] **Brouillon long — vérifié le 2026-08-04 à 23:03.** Le champ est **plafonné
+      à 2000** : impossible de dépasser en tapant, le compteur passe simplement
+      en rouge « 2000 / 2000 » et le bouton d'envoi reste actif (correct à la
+      limite exacte). Après bouton accueil + `am force-stop` + relance, le
+      brouillon est restauré **avec son compteur rouge dès l'ouverture** : l'état
+      dérivé est donc bien recalculé, pas seulement `_hasText`.
+
+      ⚠ Le cas strict « **plus** de 2000 caractères → bouton d'envoi inactif »
+      n'est **pas atteignable en tapant**. Il ne peut survenir que par un
+      brouillon injecté (`controller.text = …` contourne `maxLength`), donc un
+      brouillon enregistré quand la limite était plus haute. Pour le prouver il
+      faudrait semer un brouillon > 2000 dans les préférences.
+- [ ] 🧹 **Reste un brouillon de test de 2000 caractères dans « Mes notes »** :
+      ma tentative de nettoyage par `input keycombination` n'a pas pris. À
+      effacer à la main.
+
+### ⚠ Partage entrant : non présenté par `am start` — à confirmer au doigt
+
+`am start -a android.intent.action.SEND -t text/plain --es
+android.intent.extra.TEXT … com.diasponiger.diasponiger` : l'app démarre bien
+(l'intent est accepté, `pkg=com.diasponiger.diasponiger`) mais **atterrit sur
+`/home`** — la feuille « Envoyer à… » ne s'ouvre pas.
+
+Le tri côté Dart n'est pourtant pas en cause : un texte arrive en
+`SharedMediaType.text` et n'est donc pas écarté par `_withoutDeepLinks`, et
+l'empreinte persistée ne peut pas bloquer un contenu inédit.
+
+**Je ne conclus pas à un bug.** Comme pour le lien profond, `am start` depuis le
+shell n'est pas le chemin réel : un vrai partage vient d'une autre app, via le
+sélecteur système, avec sa propre tâche. Trancher demanderait une troisième
+passe d'instrumentation, et la réserve subsisterait.
+
+- [ ] **À faire au doigt** : partager un texte depuis Chrome ou Messages, et
+      vérifier que la feuille s'ouvre. Puis `am force-stop` + relance : elle ne
+      doit PAS revenir (c'est le test de l'empreinte persistée).
+
+### Deux pièges de pilotage `adb` à connaître
+
+- `adb shell input text` **perd des morceaux** au-delà de quelques centaines de
+  caractères : 2400 caractères envoyés en 8 fois n'en ont produit que 1561.
+  Vérifier le compteur à l'écran plutôt que de supposer.
+- Les arguments contenant des **espaces** sont découpés par le shell : un
+  `--es … "Partage de test" com.diasponiger…` a donné `pkg=de`. Utiliser un
+  texte sans espace, ou quoter côté appareil.
 - [ ] **Sauvegarde E2EE en écriture** — à faire par Salim, avec la passphrase
       notée (cf. plus haut).
 
