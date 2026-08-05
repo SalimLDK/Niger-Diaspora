@@ -102,9 +102,25 @@ notifications d'un groupe une par une.
   perd son sous-titre « 1 non lue », son badge et « Tout lire ». ⚠ Les 13
   notifications du compte de test sont **désormais lues** — état non
   réversible depuis l'écran.
-- [ ] **Actions en ligne « J'y vais » / « Voir » non vérifiées** : il faut une
-  notification d'événement. « J'y vais » appelle réellement `attendEvent` ;
-  vérifier le message de confirmation et que la participation est enregistrée.
+- [x] **« J'y vais » / « Voir » vérifiés** — carte d'événement conforme à la
+  maquette (pastille verte, CTA plein + contour, « À L'INSTANT »), section
+  « AUJOURD'HUI » créée d'elle-même. Notification de test fabriquée à la main
+  dans Firestore, le compte n'ayant aucun événement.
+- [x] **🔴 Trouvé — personne ne peut s'inscrire à un événement qu'il n'a pas
+  créé.** « J'y vais » a répondu « Erreur de chargement ». Cause isolée par un
+  témoin : `firestore.rules` n'autorisait l'`update` d'un événement qu'à son
+  organisateur, or `attendEvent` fait un `arrayUnion` sur `attendeeIds` **du
+  document événement**. Preuve — deux événements identiques, seul
+  l'`organizerId` diffère : celui d'autrui reste à `attendeeIds: []`, celui
+  dont le compte de test est organisateur passe à `["vQZE49…"]`.
+  Ça ne vient pas de la refonte : `events_screen.dart` et
+  `event_detail_screen.dart` appellent le même `attendEvent`, donc **le RSVP
+  n'a jamais fonctionné pour un participant**, sur aucun écran.
+- [ ] ⚠ **Règle corrigée dans `firestore.rules` mais NON DÉPLOYÉE.** Un
+  `firebase deploy --only firestore:rules` pousserait aussi la dérive connue
+  entre le fichier versionné et les règles en production (voir la note sur la
+  dérive des règles). À arbitrer avec Salim, puis rejouer « J'y vais » sur
+  l'événement `LGSEDGAgQhdV66jtSwVj`.
 - [ ] **« Accepter / Refuser » sur une demande d'ami** : jamais rejoué depuis
   la refonte.
 - [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a

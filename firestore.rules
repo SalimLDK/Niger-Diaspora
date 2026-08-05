@@ -215,9 +215,37 @@ service cloud.firestore {
 
     // Events
     match /events/{eventId} {
+      // Un participant s'inscrit ou se desinscrit lui-meme.
+      //
+      // La regle d'update ne laissait ecrire que l'organisateur, or
+      // `attendEvent` fait un `arrayUnion` sur `attendeeIds` du document
+      // evenement : **personne ne pouvait s'inscrire a un evenement qu'il
+      // n'avait pas cree**. Verifie sur appareil le 2026-08-05 — refus sur un
+      // evenement d'autrui, succes sur un evenement dont le compte de test
+      // etait organisateur, tout le reste identique.
+      //
+      // Le garde-fou reste serre : seul `attendeeIds` peut changer, et la
+      // seule difference avec l'etat precedent doit etre l'uid de l'appelant,
+      // dans un sens ou dans l'autre. On ne peut donc ni inscrire quelqu'un
+      // d'autre, ni vider la liste, ni toucher au titre ou a la date.
+      function inscriptionPourSoi() {
+        let avant = resource.data.get('attendeeIds', []).toSet();
+        let apres = request.resource.data.get('attendeeIds', []).toSet();
+        let moi = [request.auth.uid].toSet();
+        return request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['attendeeIds'])
+            && ((apres.difference(avant) == moi
+                 && avant.difference(apres).size() == 0)
+             || (avant.difference(apres) == moi
+                 && apres.difference(avant).size() == 0));
+      }
+
       allow read: if isAuthenticated() || isAdmin(); // Public reading of events + admin access
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.organizerId == request.auth.uid
+        || inscriptionPourSoi()
+      );
       allow delete: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
     }
     
