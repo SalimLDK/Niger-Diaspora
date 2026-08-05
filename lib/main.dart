@@ -18,6 +18,7 @@ import 'core/services/google_maps_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
+import 'core/services/location_publisher_service.dart';
 import 'core/services/online_status_service.dart';
 import 'core/services/encryption_service.dart';
 
@@ -151,6 +152,13 @@ void main() async {
 
   // Initialize Online Status Service
   await OnlineStatusService.instance.initialize();
+
+  // Publication de la position au premier plan, tous écrans confondus : sans
+  // elle, un membre n'émettait sa position que depuis l'écran carte et
+  // disparaissait de celle des autres au bout de cinq minutes.
+  if (!kIsWeb) {
+    await LocationPublisherService.instance.initialize();
+  }
 
   // Initialize Hive for local storage
   await Hive.initFlutter();

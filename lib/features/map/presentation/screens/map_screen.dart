@@ -142,10 +142,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   // Stream et timer pour mise à jour automatique
   StreamSubscription<Position>? _positionStreamSubscription;
+
+  /// Flux temps réel des positions des autres membres. Le sondage périodique
+  /// ci-dessous n'est plus qu'un filet de sécurité (reconnexion, membre entré
+  /// dans le rayon sans avoir bougé lui-même, canal tombé sans bruit).
+  StreamSubscription<ProfileModel>? _memberUpdatesSubscription;
+
   Timer? _membersRefreshTimer;
   Timer? _uiRefreshTimer;
   static const int _membersRefreshIntervalSeconds =
-      45; // Rafraîchir les membres toutes les 45s
+      45; // Filet de sécurité derrière le temps réel
   static const int _distanceFilterMeters =
       50; // Mise à jour position tous les 50m
   static const int _uiRefreshIntervalSeconds =
@@ -185,6 +191,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // debugPrint('🗺️ MapScreen: dispose');
     WidgetsBinding.instance.removeObserver(this);
     _positionStreamSubscription?.cancel();
+    _memberUpdatesSubscription?.cancel();
     _membersRefreshTimer?.cancel();
     _uiRefreshTimer?.cancel();
     _updateMarkersDebounce?.cancel();
@@ -250,11 +257,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
         _uiRefreshTimer?.cancel();
         _uiRefreshTimer = null;
         _positionStreamSubscription?.pause();
+        // Le canal temps réel est fermé plutôt que mis en pause : une socket
+        // laissée ouverte en arrière-plan est coupée par le système sans
+        // prévenir, et le flux ne redémarre jamais.
+        _memberUpdatesSubscription?.cancel();
+        _memberUpdatesSubscription = null;
         break;
       case AppLifecycleState.resumed:
         // Reprendre les timers quand l'app revient au premier plan
         _positionStreamSubscription?.resume();
         if (_currentPosition != null) {
+          _startMemberUpdatesStream();
           _startMembersRefreshTimer();
           // Refresh immédiat des membres après reprise
           _loadNearbyMembers(
@@ -470,6 +483,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
       // Démarrer le stream de position et le timer de rafraîchissement
       _startPositionStream();
+      _startMemberUpdatesStream();
       _startMembersRefreshTimer();
     } catch (e) {
       // debugPrint('Erreur de localisation: $e');
@@ -487,6 +501,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         _updateMarkers();
       } else {
         _startPositionStream();
+        _startMemberUpdatesStream();
         _startMembersRefreshTimer();
       }
 
@@ -506,7 +521,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
-  /// Démarre l'écoute du stream de position pour suivre les déplacements de l'utilisateur
+  /// Démarre l'écoute du stream de position pour suivre les déplacements de
+  /// l'utilisateur.
+  ///
+  /// Ce flux ne sert plus qu'à l'affichage local (marqueur « vous êtes ici »,
+  /// recentrage, distances). La publication vers Supabase est passée à
+  /// `LocationPublisherService`, qui tourne pour toute l'app : la garder ici
+  /// aussi ferait deux écritures pour un seul déplacement.
   void _startPositionStream() {
     // Annuler l'ancien stream s'il existe
     _positionStreamSubscription?.cancel();
@@ -531,20 +552,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           _lastPositionUpdate = DateTime.now();
         });
 
-        // Mettre à jour la localisation dans Firebase
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser != null) {
-          try {
-            final dataSource = ProfileSupabaseDataSource();
-            await dataSource.updateLocation(
-              currentUser.uid,
-              position.latitude,
-              position.longitude,
-            );
-          } catch (e) {
-            // Ignorer les erreurs de mise à jour silencieusement
-          }
-        }
+        // La publication vers Supabase est faite par
+        // `LocationPublisherService`, qui tourne pour toute l'app : l'écrire
+        // ici aussi ferait deux requêtes pour un seul déplacement.
 
         // Mettre à jour les marqueurs pour refléter la nouvelle position
         _updateMarkers();
@@ -554,6 +564,128 @@ class _MapScreenState extends ConsumerState<MapScreen>
         debugPrint('Position stream error: $error');
       },
     );
+  }
+
+  /// Abonne la carte au flux temps réel des positions des autres membres.
+  ///
+  /// C'est ce qui rend le déplacement d'un membre visible en moins d'une
+  /// seconde ; le sondage de [_membersRefreshIntervalSeconds] reste derrière
+  /// comme filet (canal tombé, membre entré dans le rayon parce que c'est
+  /// *nous* qui avons bougé, changement de rayon).
+  void _startMemberUpdatesStream() {
+    _memberUpdatesSubscription?.cancel();
+    _memberUpdatesSubscription = null;
+
+    if (!ref.read(nearbyMembersEnabledProvider)) return;
+
+    _memberUpdatesSubscription = ProfileSupabaseDataSource()
+        .watchProfileLocationUpdates()
+        .listen(
+          _onMemberLocationUpdate,
+          onError: (Object e, StackTrace stackTrace) {
+            // Le sondage périodique prend le relais : on trace sans casser
+            // l'écran.
+            LoggerService.w(
+              'MapScreen: flux temps réel des positions interrompu',
+              e,
+              stackTrace,
+            );
+          },
+        );
+  }
+
+  /// Applique une position reçue en temps réel à la liste et aux marqueurs.
+  void _onMemberLocationUpdate(ProfileModel member) {
+    if (!mounted) return;
+    if (!ref.read(nearbyMembersEnabledProvider)) return;
+
+    final index = _nearbyMembers.indexWhere((m) => m.id == member.id);
+    final keep =
+        member.isVisible &&
+        member.shareLocation &&
+        _isWithinSelectedRadius(member) &&
+        _isMemberDisplayable(member);
+
+    if (!keep) {
+      // Sorti du rayon, redevenu invisible ou trop ancien : on le retire tout
+      // de suite plutôt que d'attendre le prochain sondage.
+      if (index == -1) return;
+      setState(() {
+        _nearbyMembers = [..._nearbyMembers]..removeAt(index);
+        _lastMembersUpdate = DateTime.now();
+      });
+      _updateMarkers();
+      return;
+    }
+
+    setState(() {
+      final updated = [..._nearbyMembers];
+      if (index == -1) {
+        updated.add(member);
+      } else {
+        updated[index] = member;
+      }
+      _nearbyMembers = updated;
+      _lastMembersUpdate = DateTime.now();
+    });
+    _updateMarkers();
+  }
+
+  /// Le membre tombe-t-il dans le périmètre actuellement sélectionné ?
+  ///
+  /// Reprend la même boîte englobante que `getNearbyProfiles`, pour que le
+  /// temps réel n'affiche pas quelqu'un que le prochain sondage retirerait.
+  bool _isWithinSelectedRadius(ProfileModel member) {
+    final centre = _currentPosition;
+    if (centre == null) return false;
+    if (member.latitude == null || member.longitude == null) return false;
+
+    if (_selectedRadius == -1) return true; // monde entier
+    if (_selectedRadius == 0) {
+      // « Pays entier » : c'est le pays qui borne, pas la distance.
+      return _userCountry == null || member.currentCountry == _userCountry;
+    }
+
+    final delta = _selectedRadius / 111.0;
+    return (member.latitude! - centre.latitude).abs() <= delta &&
+        (member.longitude! - centre.longitude).abs() <= delta;
+  }
+
+  /// Un membre est-il affichable sur la carte ? (blocages, présence récente)
+  ///
+  /// Partagé par le sondage périodique et le flux temps réel : dupliquer ces
+  /// règles les ferait fatalement diverger, et un membre filtré d'un côté
+  /// réapparaîtrait de l'autre.
+  bool _isMemberDisplayable(ProfileModel p) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Se retirer de ses propres « membres autour » : la requête de proximité
+    // renvoie aussi l'utilisateur courant, qui se retrouvait listé à
+    // « 0 m · en ligne » et dessiné une seconde fois sur la carte, par-dessus
+    // son propre marqueur de position.
+    if (currentUserId != null && p.id == currentUserId) return false;
+
+    // Utilisateurs bloqués, dans les deux sens.
+    final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
+    if (blockedUsers.any((u) => u.id == p.id)) return false;
+    if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) {
+      return false;
+    }
+
+    // Présence — STRICT : seulement les membres réellement actifs.
+    // 1. En ligne depuis moins d'une heure
+    // 2. OU position mise à jour depuis moins de 5 minutes
+    final now = DateTime.now();
+    if (p.isOnline &&
+        p.lastSeen != null &&
+        now.difference(p.lastSeen!).inHours < 1) {
+      return true;
+    }
+    if (p.locationUpdatedAt != null &&
+        now.difference(p.locationUpdatedAt!).inMinutes < 5) {
+      return true;
+    }
+    return false;
   }
 
   /// Démarre un timer pour rafraîchir périodiquement la liste des membres à proximité
@@ -632,68 +764,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
       if (!mounted) return;
 
-      // Get blocked users (users I blocked + users who blocked me)
-      final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
-      final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-      // Filter by presence - STRICT: only show truly active users
-      // 1. Online within last 1 hour
-      // 2. OR Location updated within last 5 minutes
-      // Also filter out blocked users (both ways)
-      final now = DateTime.now();
-      final filteredMembers =
-          members.where((p) {
-            // Se retirer de ses propres « membres autour » : la requête de
-            // proximité renvoie aussi l'utilisateur courant, qui se retrouvait
-            // listé à « 0 m · en ligne » et dessiné une seconde fois sur la
-            // carte, par-dessus son propre marqueur de position.
-            if (currentUserId != null && p.id == currentUserId) return false;
-            // Skip blocked users (I blocked them)
-            if (blockedUserIds.contains(p.id)) return false;
-            // Skip users who blocked me
-            if (currentUserId != null &&
-                p.blockedByUserIds.contains(currentUserId)) {
-              return false;
-            }
-            // debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
-            // debugPrint('      - isOnline: ${p.isOnline}');
-            // debugPrint('      - lastSeen: ${p.lastSeen}');
-            // debugPrint('      - locationUpdatedAt: ${p.locationUpdatedAt}');
-
-            if (p.isOnline) {
-              // Check if "Online" status is recent (within 1 hour)
-              if (p.lastSeen != null) {
-                final diffOnline = now.difference(p.lastSeen!);
-                // debugPrint(
-                //   '      - diffOnline: ${diffOnline.inMinutes} minutes',
-                // );
-                if (diffOnline.inHours < 1) {
-                  // debugPrint('      ✅ PASS: Online within 1 hour');
-                  return true;
-                }
-              }
-            }
-
-            if (p.locationUpdatedAt != null) {
-              final diffLocation = now.difference(p.locationUpdatedAt!);
-              // debugPrint(
-              //   '      - diffLocation: ${diffLocation.inSeconds} seconds',
-              // );
-              // Show members with location updated in last 5 minutes
-              if (diffLocation.inMinutes < 5) {
-                // debugPrint('      ✅ PASS: Location updated within 5 minutes');
-                return true;
-              }
-            }
-
-            // debugPrint('      ❌ FAIL: Not recently active');
-            return false;
-          }).toList();
-
-      // debugPrint(
-      //   '  ✅ After presence filter: ${filteredMembers.length} members',
-      // );
+      // Filtre de présence et blocages : partagé avec le flux temps réel
+      // (`_isMemberDisplayable`), pour que les deux chemins ne divergent pas.
+      final filteredMembers = members.where(_isMemberDisplayable).toList();
 
       setState(() {
         _nearbyMembers = filteredMembers;

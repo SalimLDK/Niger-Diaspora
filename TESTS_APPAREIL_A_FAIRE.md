@@ -2291,6 +2291,42 @@ un vrai cache d'images, `flutter analyze` n'en dit rien.
   cache d'avatars vidé (réinstallation), tous les pins doivent apparaître
   d'un coup après ~3 s max, pas un par un.
 
+### Temps réel des positions (nécessite **deux** comptes)
+
+Ces points ne se vérifient qu'avec deux téléphones (ou un téléphone + un
+compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
+`location_updated_at` de la ligne `users`).
+
+- [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
+  pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
+  `users_location_updates` (`profile_supabase_datasource.dart`).
+- [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
+  disparaît immédiatement de la carte de A (et non au sondage suivant).
+- [ ] **Position publiée hors de l'écran carte** : A ouvre la carte, B reste
+  sur l'accueil ou les messages et se déplace — B doit quand même bouger sur
+  la carte de A (`LocationPublisherService`, démarré depuis `main.dart`).
+- [ ] **Membre immobile toujours visible** : B ne bouge plus du tout pendant
+  10 minutes, app ouverte. Il doit rester sur la carte de A (battement de
+  cœur de 2 min qui réécrit `location_updated_at`), alors qu'avant il
+  disparaissait au bout de 5 minutes.
+- [ ] **Retour d'arrière-plan** : A met l'app en arrière-plan puis revient —
+  le canal temps réel doit se reprendre (vérifier qu'un déplacement de B est
+  de nouveau vu tout de suite, et pas seulement au sondage).
+- [ ] **Coupure du réglage** : A désactive « Membres à proximité » →
+  l'app cesse d'écrire sa position (vérifier que `location_updated_at` de A
+  ne bouge plus dans Supabase).
+- [ ] ⛔ **Suivi en arrière-plan → Supabase** : le service de fond écrivait
+  dans Firestore, la carte lit Supabase — ses mises à jour n'arrivaient donc
+  jamais. Activer le suivi en arrière-plan, fermer l'app, se déplacer, et
+  vérifier dans Supabase que `users.latitude` / `location_updated_at` de A
+  bougent bien. Surveiller aussi logcat : `Background Location: Supabase
+  indisponible` signale que l'isolate n'a pas pu initialiser son client (le
+  `.env` n'est peut-être pas lisible depuis l'isolate d'arrière-plan).
+- [ ] **Pas de double session Supabase** : après un tour de suivi en fond,
+  vérifier que la session du premier plan tient toujours (aucun 401 dans
+  logcat, les messages arrivent encore). L'isolate utilise une clé de session
+  distincte (`supabase.background.session`) précisément pour ça.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
