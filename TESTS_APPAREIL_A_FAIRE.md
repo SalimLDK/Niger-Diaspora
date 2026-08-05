@@ -1467,6 +1467,19 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
 
 ## Doublons Profil / Réglages (2026-08-05)
 
+- [ ] **« Actions du compte » a changé d'écran** (`profile_screen.dart`,
+  `settings_screen.dart`) — Déconnexion et Supprimer mon compte sont passées du
+  bas de Réglages au bas du Profil, à la place du bloc « Réglages ». À
+  vérifier : la carte d'alerte s'affiche bien en bas du Profil (ambre / rouge,
+  bordure), **Réglages se termine maintenant sur « Exporter mes données »**, et
+  surtout que **la suppression de compte va au bout** — toute sa chaîne
+  (confirmation finale, invite de mot de passe, réauthentification) a été
+  déplacée avec elle. Ne pas tester la suppression sur le compte réel :
+  s'arrêter à l'invite de mot de passe.
+- [ ] **L'engrenage de l'en-tête du Profil reste le seul chemin vers Réglages**
+  — les trois raccourcis (Confidentialité, Apparence, Aide) ont disparu.
+  Vérifier qu'on atteint toujours chaque section en faisant défiler.
+
 - [x] **Profil : un seul filet entre les lignes** (`profile_screen.dart`) —
   chaque séparation en affichait **trois** superposés : `DesignListCard` insère
   déjà un filet entre ses enfants (retrait 16) et l'écran lui passait en plus
