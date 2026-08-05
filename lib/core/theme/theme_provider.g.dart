@@ -24,7 +24,7 @@ final themeModeNotifierProvider =
 
 typedef _$ThemeModeNotifier = AutoDisposeNotifier<AppThemeMode>;
 String _$themeColorNotifierHash() =>
-    r'e38e4a85dd7ec9ff2fe8094367a30adc05e7f2b5';
+    r'f848ea244d7725fcc5c2bdd4402b86372464e34a';
 
 /// See also [ThemeColorNotifier].
 @ProviderFor(ThemeColorNotifier)

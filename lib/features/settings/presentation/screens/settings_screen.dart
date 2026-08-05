@@ -12,6 +12,9 @@ import '../../../../core/services/currency_provider.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/data_export_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../profile/presentation/providers/profile_preferences_provider.dart';
+import '../../../profile/presentation/providers/online_status_provider.dart';
+import '../providers/notification_preferences_provider.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -19,7 +22,6 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/widgets/chat_background_picker_modal.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../features/settings/data/models/chat_background_model.dart';
 import '../../domain/entities/chat_background_entity.dart';
 import '../widgets/blocked_users_modal.dart';
@@ -43,10 +45,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _profileVisible = true;
-  bool _locationEnabled = true;
-  bool _showOnlineStatus = true;
-  bool _notificationsEnabled = true;
   bool _noiseSuppressionEnabled = true;
   bool _dataSaverMode = false;
   ChatBackgroundEntity? _globalBackground;
@@ -134,23 +132,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
-
-    if (currentUser != null) {
-      ref.listen(profileNotifierProvider(currentUser.id), (previous, next) {
-        next.whenData((profile) {
-          if (profile != null && mounted) {
-            setState(() {
-              _profileVisible = profile.isVisible;
-              _locationEnabled = profile.shareLocation;
-              _showOnlineStatus = profile.showOnlineStatus;
-              _notificationsEnabled = profile.notificationsEnabled;
-            });
-          }
-        });
-      });
-    }
-
     return Scaffold(
       backgroundColor: context.backgroundColor,
       // En-tête plat (§10b, §11e) : le même `DesignScreenHeader` que Profil,
@@ -192,33 +173,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: const Icon(Icons.visibility_outlined),
                         title: l10n.visibleProfile,
                         subtitle: l10n.appearInSearchesDesc,
-                        value: _profileVisible,
+                        value:
+                            ref.watch(
+                              profilePreferenceProvider(
+                                ProfilePreference.isVisible,
+                              ),
+                            ) ??
+                            true,
                         onChanged: (value) {
                           HapticFeedback.lightImpact();
-                          setState(() => _profileVisible = value);
-                          _saveSettingsToProfile();
+                          ref
+                              .read(profilePreferencesProvider)
+                              .set(ProfilePreference.isVisible, value);
                         },
                       ),
                       DesignSettingsSwitchTile(
                         icon: const Icon(Icons.location_on_outlined),
                         title: l10n.myLocation,
                         subtitle: l10n.appearOnMapDesc,
-                        value: _locationEnabled,
+                        value:
+                            ref.watch(
+                              profilePreferenceProvider(
+                                ProfilePreference.shareLocation,
+                              ),
+                            ) ??
+                            true,
                         onChanged: (value) {
                           HapticFeedback.lightImpact();
-                          setState(() => _locationEnabled = value);
-                          _saveSettingsToProfile();
+                          ref
+                              .read(profilePreferencesProvider)
+                              .set(ProfilePreference.shareLocation, value);
                         },
                       ),
                       DesignSettingsSwitchTile(
                         icon: const Icon(Icons.circle_outlined),
                         title: l10n.profileShowOnlineStatus,
                         subtitle: l10n.profileShowOnlineStatusSubtitle,
-                        value: _showOnlineStatus,
+                        // Ce reglage a deja son provider dedie depuis
+                        // longtemps ; cet ecran l'ignorait et passait par une
+                        // seconde voie d'ecriture.
+                        value:
+                            ref
+                                .watch(
+                                  currentUserOnlineStatusVisibilityProvider,
+                                )
+                                .valueOrNull ??
+                            true,
                         onChanged: (value) {
                           HapticFeedback.lightImpact();
-                          setState(() => _showOnlineStatus = value);
-                          _saveSettingsToProfile();
+                          ref
+                              .read(
+                                currentUserOnlineStatusVisibilityProvider
+                                    .notifier,
+                              )
+                              .setValue(value);
                         },
                       ),
                     ],
@@ -269,11 +277,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: const Icon(Icons.notifications_active_outlined),
                         title: l10n.pushNotifications,
                         subtitle: l10n.receiveNotificationsDesc,
-                        value: _notificationsEnabled,
+                        // Un seul proprietaire : le notifier ecrit la
+                        // preference locale, la colonne serveur et le topic.
+                        value:
+                            ref
+                                .watch(notificationPreferencesNotifierProvider)
+                                .masterEnabled,
                         onChanged: (value) {
                           HapticFeedback.lightImpact();
-                          setState(() => _notificationsEnabled = value);
-                          _updateNotificationSettings(value);
+                          ref
+                              .read(
+                                notificationPreferencesNotifierProvider
+                                    .notifier,
+                              )
+                              .setMasterEnabled(value);
                         },
                       ),
                       DesignSettingsTile(
@@ -432,49 +449,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// Libellé de section (§10b) : petites capitales en chasse fixe. La
   /// pastille d'icône disparaît ; `isWarning` teinte encore « ZONE SENSIBLE ».
-
-  Future<void> _saveSettingsToProfile() async {
-    final user = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (user == null) return;
-
-    final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
-    if (profile == null) return;
-
-    final updatedProfile = profile.copyWith(
-      isVisible: _profileVisible,
-      shareLocation: _locationEnabled,
-      showOnlineStatus: _showOnlineStatus,
-      notificationsEnabled: _notificationsEnabled,
-    );
-
-    await ref
-        .read(profileNotifierProvider(user.id).notifier)
-        .updateProfile(updatedProfile);
-
-    // Les bascules de cet écran s'enregistrent en arrière-plan : sans cette
-    // relecture, un refus du serveur les laissait basculées à l'écran alors
-    // que rien n'était sauvegardé.
-    final saved = ref.read(profileNotifierProvider(user.id));
-    if (saved.hasError && mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.profileUpdateError(saved.error?.toString() ?? '')),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  void _updateNotificationSettings(bool enabled) async {
-    if (enabled) {
-      await NotificationService().subscribeToTopic('general');
-    } else {
-      await NotificationService().unsubscribeFromTopic('general');
-    }
-    _saveSettingsToProfile();
-  }
 
   void _showBlockedUsers() {
     HapticFeedback.lightImpact();

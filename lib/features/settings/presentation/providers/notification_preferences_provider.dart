@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -108,9 +109,38 @@ class NotificationPreferencesNotifier
     );
   }
 
+  /// Interrupteur maître des notifications — **seul propriétaire** de ce
+  /// réglage, et il écrit ses trois étages.
+  ///
+  /// Il n'en écrivait qu'un. Or le commutateur vit à trois endroits qui
+  /// décident chacun d'autre chose : la préférence locale décide de
+  /// l'**affichage** (`notification_service.dart` la lit avant de montrer une
+  /// notification), la colonne Supabase `notifications_enabled` décide de
+  /// l'**envoi** (`functions/supabase.js` la sélectionne pour filtrer les
+  /// destinataires), et le topic FCM `general` décide de la réception des
+  /// diffusions. Couper depuis les réglages n'éteignait donc que l'affichage :
+  /// le serveur continuait d'envoyer, et l'appareil de recevoir.
   Future<void> setMasterEnabled(bool enabled) async {
     await _prefs.setNotificationsEnabled(enabled);
     state = state.copyWith(masterEnabled: enabled);
+
+    // Étage serveur : sans lui, le back-end continue de pousser.
+    final userId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    if (userId != null) {
+      final profile = ref.read(profileNotifierProvider(userId)).valueOrNull;
+      if (profile != null) {
+        await ref
+            .read(profileNotifierProvider(userId).notifier)
+            .updateProfile(profile.copyWith(notificationsEnabled: enabled));
+      }
+    }
+
+    // Étage diffusion.
+    if (enabled) {
+      await NotificationService().subscribeToTopic('general');
+    } else {
+      await NotificationService().unsubscribeFromTopic('general');
+    }
   }
 
   Future<void> setMessagesEnabled(bool enabled) async {

@@ -643,8 +643,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                     onPressed: () {
                       final authState = ref.read(authNotifierProvider);
                       authState.maybeWhen(
-                        authenticated: (user) =>
-                            context.push('/profile/${user.id}'),
+                        authenticated:
+                            (user) => context.push('/profile/${user.id}'),
                         orElse: () {},
                       );
                     },
@@ -745,21 +745,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             counterText: '',
                             labelTrailing:
                                 ValueListenableBuilder<TextEditingValue>(
-                              valueListenable: _bioController,
-                              builder: (context, value, _) {
-                                final n = value.text.characters.length;
-                                return Text(
-                                  '$n/$_kBioMaxLength',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: n >= _kBioMaxLength
-                                        ? context.errorColor
-                                        : context.textTertiaryColor,
-                                  ),
-                                );
-                              },
-                            ),
+                                  valueListenable: _bioController,
+                                  builder: (context, value, _) {
+                                    final n = value.text.characters.length;
+                                    return Text(
+                                      '$n/$_kBioMaxLength',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            n >= _kBioMaxLength
+                                                ? context.errorColor
+                                                : context.textTertiaryColor,
+                                      ),
+                                    );
+                                  },
+                                ),
                           ),
                           const SizedBox(height: 16),
                           _buildDropdownField(
@@ -895,9 +896,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                           const SizedBox(height: 24),
 
                           _PrivacyToggle(
-                            icon: _isVisible
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
+                            icon:
+                                _isVisible
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
                             title: l10n.visibleProfile,
                             subtitle: l10n.otherMembersCanSee,
                             value: _isVisible,
@@ -946,24 +948,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   decoration: BoxDecoration(
                     color: context.adaptivePrimaryColor,
                     borderRadius: BorderRadius.circular(22),
-                    image: _photoUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(_photoUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                    image:
+                        _photoUrl != null
+                            ? DecorationImage(
+                              image: NetworkImage(_photoUrl!),
+                              fit: BoxFit.cover,
+                            )
+                            : null,
                   ),
                   alignment: Alignment.center,
-                  child: _photoUrl == null
-                      ? Text(
-                          _getInitials(_displayNameController.text),
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700,
-                            color: context.onPrimaryColor,
-                          ),
-                        )
-                      : null,
+                  child:
+                      _photoUrl == null
+                          ? Text(
+                            _getInitials(_displayNameController.text),
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: context.onPrimaryColor,
+                            ),
+                          )
+                          : null,
                 ),
                 // §20a : pastille neutre cerclée du fond de page, pas un
                 // second aplat d'accent collé à l'avatar — la maquette veut
@@ -1041,7 +1045,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _FieldLabel(label),
-        _buildDropdownBox(icon: icon, value: value, items: items, onChanged: onChanged),
+        _buildDropdownBox(
+          icon: icon,
+          value: value,
+          items: items,
+          onChanged: onChanged,
+        ),
       ],
     );
   }
@@ -1197,7 +1206,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 SnackBar(
                   content: Row(
                     children: [
-                      const AppIcon(AppIcon.checkCircle, color: AppColors.white),
+                      const AppIcon(
+                        AppIcon.checkCircle,
+                        color: AppColors.white,
+                      ),
                       const SizedBox(width: 12),
                       Text(l10n.profilePhoneVerified),
                     ],
@@ -1269,9 +1281,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13.5,
-                    color: rempli
-                        ? context.textSecondaryColor
-                        : context.textTertiaryColor,
+                    color:
+                        rempli
+                            ? context.textSecondaryColor
+                            : context.textTertiaryColor,
                   ),
                 ),
               ),
@@ -1347,8 +1360,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   initialCountryCode:
                       _completePhoneNumber.trim().startsWith('+') ? null : 'NE',
                   initialValue: _completePhoneNumber,
-                  onChanged: (phone) =>
-                      _onPhoneNumberChanged(phone.completeNumber),
+                  onChanged:
+                      (phone) => _onPhoneNumberChanged(phone.completeNumber),
                   invalidNumberMessage: l10n.adminInvalidNumberError,
                   // Téléphone optionnel : un champ vide ne doit jamais
                   // empêcher l'enregistrement.
@@ -1463,8 +1476,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     final l10n = AppLocalizations.of(context)!;
     final libelle =
         ProfileOptions.phoneVisibilityOptions[_phoneVisibility] ??
-        ProfileOptions.phoneVisibilityOptions[
-            ProfileOptions.phoneVisibilityEveryone]!;
+        ProfileOptions.phoneVisibilityOptions[ProfileOptions
+            .phoneVisibilityEveryone]!;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(14),
@@ -1570,107 +1583,113 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, majFeuille) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              const SheetHandle(),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        titre,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: ctx.textPrimaryColor,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      l10n.selectedCount(brouillon.length),
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: ctx.textTertiaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: options.entries.map((e) {
-                    final choisie = brouillon.contains(e.key);
-                    return CheckboxListTile(
-                      value: choisie,
-                      onChanged: (_) {
-                        HapticFeedback.selectionClick();
-                        majFeuille(() {
-                          if (choisie) {
-                            brouillon.remove(e.key);
-                          } else {
-                            brouillon.add(e.key);
-                          }
-                        });
-                      },
-                      activeColor: ctx.adaptivePrimaryColor,
-                      controlAffinity: ListTileControlAffinity.trailing,
-                      title: Text(
-                        e.key,
-                        style: TextStyle(color: ctx.textPrimaryColor),
-                      ),
-                      secondary:
-                          e.value == null
-                              ? null
-                              : Text(
-                                e.value!,
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (ctx, majFeuille) => SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 12),
+                      const SheetHandle(),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                titre,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                  color: ctx.textTertiaryColor,
+                                  color: ctx.textPrimaryColor,
                                 ),
                               ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ctx.adaptivePrimaryColor,
-                      foregroundColor: ctx.onPrimaryColor,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                            ),
+                            Text(
+                              l10n.selectedCount(brouillon.length),
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: ctx.textTertiaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      l10n.finish,
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 8),
+                      Flexible(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children:
+                              options.entries.map((e) {
+                                final choisie = brouillon.contains(e.key);
+                                return CheckboxListTile(
+                                  value: choisie,
+                                  onChanged: (_) {
+                                    HapticFeedback.selectionClick();
+                                    majFeuille(() {
+                                      if (choisie) {
+                                        brouillon.remove(e.key);
+                                      } else {
+                                        brouillon.add(e.key);
+                                      }
+                                    });
+                                  },
+                                  activeColor: ctx.adaptivePrimaryColor,
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  title: Text(
+                                    e.key,
+                                    style: TextStyle(
+                                      color: ctx.textPrimaryColor,
+                                    ),
+                                  ),
+                                  secondary:
+                                      e.value == null
+                                          ? null
+                                          : Text(
+                                            e.value!,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.5,
+                                              color: ctx.textTertiaryColor,
+                                            ),
+                                          ),
+                                );
+                              }).toList(),
+                        ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ctx.adaptivePrimaryColor,
+                              foregroundColor: ctx.onPrimaryColor,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: Text(
+                              l10n.finish,
+                              style: const TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
           ),
-        ),
-      ),
     );
 
     if (valide == true && mounted) {
@@ -1689,26 +1708,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            const SheetHandle(),
-            const SizedBox(height: 12),
-            ...ProfileOptions.phoneVisibilityOptions.entries.map(
-              (e) => ListTile(
-                title: Text(e.value),
-                trailing: e.key == _phoneVisibility
-                    ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
-                    : null,
-                onTap: () => Navigator.pop(ctx, e.key),
-              ),
+      builder:
+          (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                const SheetHandle(),
+                const SizedBox(height: 12),
+                ...ProfileOptions.phoneVisibilityOptions.entries.map(
+                  (e) => ListTile(
+                    title: Text(e.value),
+                    trailing:
+                        e.key == _phoneVisibility
+                            ? Icon(Icons.check, color: ctx.adaptivePrimaryColor)
+                            : null,
+                    onTap: () => Navigator.pop(ctx, e.key),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+          ),
     );
     if (choix != null && mounted) {
       setState(() => _phoneVisibility = choix);
@@ -1834,7 +1855,6 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-
 /// Rangée de puces d'un champ multi-choix (langues, centres d'intérêt).
 ///
 /// Ne montre que ce qui est **retenu**, plus une puce d'ouverture. Rien de
@@ -1934,9 +1954,10 @@ class _ProfileChip extends StatelessWidget {
             color: fond,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: isSelected
-                  ? context.textPrimaryColor
-                  : context.borderStrongColor,
+              color:
+                  isSelected
+                      ? context.textPrimaryColor
+                      : context.borderStrongColor,
             ),
           ),
           child: Row(
@@ -2070,34 +2091,34 @@ class _ImagePickerOption extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
           ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: isDestructive ? AppColors.error : context.textPrimaryColor,
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isDestructive ? AppColors.error : context.textPrimaryColor,
+            ),
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: color.withValues(alpha: 0.5),
-        ),
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: color.withValues(alpha: 0.5),
+          ),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
         ),
       ),
     );
@@ -2179,7 +2200,9 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(AppLocalizations.of(context)!.codeSentTo(widget.phoneNumber)),
+                content: Text(
+                  AppLocalizations.of(context)!.codeSentTo(widget.phoneNumber),
+                ),
                 backgroundColor: AppColors.primary,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -2243,7 +2266,8 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
       if (currentUser == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = AppLocalizations.of(context)!.phoneVerifUserNotLoggedIn;
+          _errorMessage =
+              AppLocalizations.of(context)!.phoneVerifUserNotLoggedIn;
         });
         return;
       }
@@ -2358,7 +2382,8 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                   ),
                   child: Row(
                     children: [
-                      const AppIcon(AppIcon.error,
+                      const AppIcon(
+                        AppIcon.error,
                         color: AppColors.error,
                         size: 20,
                       ),
@@ -2535,4 +2560,3 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
     );
   }
 }
-

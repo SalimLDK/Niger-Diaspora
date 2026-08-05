@@ -126,7 +126,8 @@ class BlockedUsersModal extends ConsumerWidget {
       child: ListView.separated(
         shrinkWrap: true,
         itemCount: users.length,
-        separatorBuilder: (_, __) => Divider(height: 1, color: context.borderColor),
+        separatorBuilder:
+            (_, __) => Divider(height: 1, color: context.borderColor),
         itemBuilder: (context, index) {
           final user = users[index];
           return _BlockedUserTile(user: user);

@@ -17,6 +17,7 @@ import '../../../feed/presentation/screens/my_posts_screen.dart'
     show userPostsCountProvider;
 import '../../../feed/presentation/screens/saved_posts_screen.dart'
     show bookmarkedPostsCountProvider;
+import '../providers/profile_preferences_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
@@ -31,8 +32,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  bool _locationEnabled = true;
-  bool _profileVisible = true;
   bool _completionDismissed = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -69,20 +68,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     if (currentUser != null) {
       // Auto-load handled by provider
-      _loadSettings();
-    }
-  }
-
-  void _loadSettings() {
-    final user = ref.read(currentUserAsyncProvider).valueOrNull;
-    if (user != null) {
-      final profile = ref.read(profileNotifierProvider(user.id)).valueOrNull;
-      if (profile != null) {
-        setState(() {
-          _locationEnabled = profile.shareLocation;
-          _profileVisible = profile.isVisible;
-        });
-      }
     }
   }
 
@@ -298,10 +283,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   DesignSettingsTile(
                     icon: const Icon(Icons.shield_outlined),
                     title: l10n.settingsPrivacySecurity,
+                    // Lit les providers : ces deux valeurs etaient recopiees
+                    // une seule fois au premier frame, sans ecoute — le
+                    // sous-titre restait fige sur l'etat d'ouverture, et sur
+                    // « true/true » si le profil n'etait pas encore charge.
                     subtitle: () {
                       final on = <String>[
-                        if (_profileVisible) l10n.visibleProfile,
-                        if (_locationEnabled) l10n.myLocation,
+                        if (ref.watch(
+                              profilePreferenceProvider(
+                                ProfilePreference.isVisible,
+                              ),
+                            ) ??
+                            false)
+                          l10n.visibleProfile,
+                        if (ref.watch(
+                              profilePreferenceProvider(
+                                ProfilePreference.shareLocation,
+                              ),
+                            ) ??
+                            false)
+                          l10n.myLocation,
                       ];
                       return on.isEmpty ? l10n.privacy : on.join(' · ');
                     }(),

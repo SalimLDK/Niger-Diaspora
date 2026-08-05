@@ -356,7 +356,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                       label: isLastStep ? l10n.finish : l10n.next,
                       isLoading: _isLoading,
                       onPressed:
-                          currentUser == null ? null : () => _goNext(currentUser),
+                          currentUser == null
+                              ? null
+                              : () => _goNext(currentUser),
                     ),
                   ),
                 ],
@@ -543,7 +545,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   decoration: BoxDecoration(
                     color: context.adaptivePrimaryColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: context.backgroundColor, width: 3),
+                    border: Border.all(
+                      color: context.backgroundColor,
+                      width: 3,
+                    ),
                   ),
                   child: Icon(
                     Icons.photo_camera_outlined,
@@ -638,7 +643,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
             l10n.originAtNiger,
             trailing: Text(
               l10n.optional,
-              style: TextStyle(fontSize: 12.5, color: context.textTertiaryColor),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: context.textTertiaryColor,
+              ),
             ),
           ),
           Row(
@@ -650,7 +658,10 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   hintText: l10n.profileRegion,
                   items:
                       ProfileOptions.regions.map((region) {
-                        return DropdownMenuItem(value: region, child: Text(region));
+                        return DropdownMenuItem(
+                          value: region,
+                          child: Text(region),
+                        );
                       }).toList(),
                   onChanged: (value) {
                     setState(() {
@@ -925,19 +936,22 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
       _selectedInterests.isNotEmpty,
       _photoUrl != null,
     ];
-    final percent = (filled.where((f) => f).length * 100 / filled.length).round();
+    final percent =
+        (filled.where((f) => f).length * 100 / filled.length).round();
 
     final name = _displayNameController.text.trim();
     final firstName = name.isEmpty ? null : name.split(' ').first;
     final city = _selectedCityController.text.trim();
 
     return DesignSummaryCard(
-      title: firstName == null
-          ? l10n.setupAllSet
-          : l10n.setupAllSetNamed(firstName),
-      body: city.isEmpty
-          ? l10n.setupCompletionSummary(percent)
-          : l10n.setupCompletionSummaryCity(percent, city),
+      title:
+          firstName == null
+              ? l10n.setupAllSet
+              : l10n.setupAllSetNamed(firstName),
+      body:
+          city.isEmpty
+              ? l10n.setupCompletionSummary(percent)
+              : l10n.setupCompletionSummaryCity(percent, city),
     );
   }
 
@@ -1191,10 +1205,7 @@ class _ThemeModePreview extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             _panel(dark: false),
-            ClipPath(
-              clipper: _DiagonalClipper(),
-              child: _panel(dark: true),
-            ),
+            ClipPath(clipper: _DiagonalClipper(), child: _panel(dark: true)),
           ],
         );
     }
@@ -1226,11 +1237,7 @@ class _ThemeModePreview extends StatelessWidget {
     );
   }
 
-  Widget _bar(
-    Color color, {
-    required double widthFactor,
-    double height = 5,
-  }) {
+  Widget _bar(Color color, {required double widthFactor, double height = 5}) {
     return FractionallySizedBox(
       alignment: Alignment.centerLeft,
       widthFactor: widthFactor,

@@ -53,7 +53,8 @@ class OnlineStatusIndicator extends ConsumerWidget {
     }
 
     // If they blocked me, hide their status
-    if (targetProfile != null && targetProfile.blockedByUserIds.contains(currentUser.id)) {
+    if (targetProfile != null &&
+        targetProfile.blockedByUserIds.contains(currentUser.id)) {
       return const SizedBox.shrink();
     }
 
@@ -173,7 +174,8 @@ class _OnlineStatusContent extends ConsumerWidget {
     final text = Text(
       lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
       style:
-          textStyle ?? TextStyle(fontSize: 12, color: context.textSecondaryColor),
+          textStyle ??
+          TextStyle(fontSize: 12, color: context.textSecondaryColor),
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
     );

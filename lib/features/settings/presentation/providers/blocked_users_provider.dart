@@ -28,9 +28,9 @@ Stream<List<BlockedUserEntity>> blockedUsers(Ref ref) {
   }
 
   final repository = ref.watch(blockedUsersRepositoryProvider);
-  return repository.getBlockedUsers(currentUser.id).map(
-        (either) => either.fold((_) => [], (users) => users),
-      );
+  return repository
+      .getBlockedUsers(currentUser.id)
+      .map((either) => either.fold((_) => [], (users) => users));
 }
 
 @riverpod

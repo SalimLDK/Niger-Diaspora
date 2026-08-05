@@ -655,11 +655,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final normalized = handle.trim().toLowerCase();
     if (normalized.isEmpty) return false;
     try {
-      final snapshot = await _firestore
-          .collection(FirebaseCollections.users)
-          .where('handle', isEqualTo: normalized)
-          .limit(1)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection(FirebaseCollections.users)
+              .where('handle', isEqualTo: normalized)
+              .limit(1)
+              .get();
       if (snapshot.docs.isEmpty) return true;
       // Disponible si la seule correspondance est l'utilisateur lui-même.
       return snapshot.docs.first.id == excludeUserId;

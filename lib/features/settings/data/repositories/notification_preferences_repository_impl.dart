@@ -6,13 +6,16 @@ import '../../domain/repositories/notification_preferences_repository.dart';
 import '../datasources/notification_preferences_datasource.dart';
 import '../models/notification_preferences_model.dart';
 
-class NotificationPreferencesRepositoryImpl implements NotificationPreferencesRepository {
+class NotificationPreferencesRepositoryImpl
+    implements NotificationPreferencesRepository {
   final NotificationPreferencesDataSource dataSource;
 
   NotificationPreferencesRepositoryImpl({required this.dataSource});
 
   @override
-  Future<Either<Failure, NotificationPreferencesEntity>> getPreferences(String userId) async {
+  Future<Either<Failure, NotificationPreferencesEntity>> getPreferences(
+    String userId,
+  ) async {
     try {
       final model = await dataSource.getPreferences(userId);
       return Right(model.toEntity());

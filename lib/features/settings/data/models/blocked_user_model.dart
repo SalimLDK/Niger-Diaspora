@@ -20,11 +20,11 @@ class BlockedUserModel with _$BlockedUserModel {
       _$BlockedUserModelFromJson(json);
 
   BlockedUserEntity toEntity() => BlockedUserEntity(
-        id: id,
-        displayName: displayName,
-        photoUrl: photoUrl,
-        blockedAt: blockedAt,
-      );
+    id: id,
+    displayName: displayName,
+    photoUrl: photoUrl,
+    blockedAt: blockedAt,
+  );
 
   static BlockedUserModel fromEntity(BlockedUserEntity entity) =>
       BlockedUserModel(

@@ -5,7 +5,12 @@ import '../models/blocked_user_model.dart';
 
 abstract class BlockedUsersDataSource {
   Stream<List<BlockedUserModel>> getBlockedUsers(String userId);
-  Future<void> blockUser(String currentUserId, String targetUserId, String targetDisplayName, String? targetPhotoUrl);
+  Future<void> blockUser(
+    String currentUserId,
+    String targetUserId,
+    String targetDisplayName,
+    String? targetPhotoUrl,
+  );
   Future<void> unblockUser(String currentUserId, String targetUserId);
   Future<bool> checkBlockStatus(String currentUserId, String targetUserId);
 }
@@ -13,9 +18,8 @@ abstract class BlockedUsersDataSource {
 class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
   final FirebaseFirestore _firestore;
 
-  BlockedUsersDataSourceImpl({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  BlockedUsersDataSourceImpl({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
   Stream<List<BlockedUserModel>> getBlockedUsers(String userId) {
@@ -26,15 +30,19 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
         .orderBy('blockedAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        if (data['blockedAt'] is Timestamp) {
-          data['blockedAt'] = (data['blockedAt'] as Timestamp).toDate().toUtc().toIso8601String();
-        }
-        return BlockedUserModel.fromJson(data);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            if (data['blockedAt'] is Timestamp) {
+              data['blockedAt'] =
+                  (data['blockedAt'] as Timestamp)
+                      .toDate()
+                      .toUtc()
+                      .toIso8601String();
+            }
+            return BlockedUserModel.fromJson(data);
+          }).toList();
+        });
   }
 
   @override
@@ -62,13 +70,17 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
       });
 
       // Add to blockedUserIds array for quick lookup
-      final userRef = _firestore.collection(FirebaseCollections.users).doc(currentUserId);
+      final userRef = _firestore
+          .collection(FirebaseCollections.users)
+          .doc(currentUserId);
       batch.update(userRef, {
         'blockedUserIds': FieldValue.arrayUnion([targetUserId]),
       });
 
       // Add currentUserId to target's blockedByUserIds for reverse lookup
-      final targetRef = _firestore.collection(FirebaseCollections.users).doc(targetUserId);
+      final targetRef = _firestore
+          .collection(FirebaseCollections.users)
+          .doc(targetUserId);
       batch.set(targetRef, {
         'blockedByUserIds': FieldValue.arrayUnion([currentUserId]),
       }, SetOptions(merge: true));
@@ -94,13 +106,17 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
       batch.delete(blockedUserRef);
 
       // Remove from blockedUserIds array
-      final userRef = _firestore.collection(FirebaseCollections.users).doc(currentUserId);
+      final userRef = _firestore
+          .collection(FirebaseCollections.users)
+          .doc(currentUserId);
       batch.update(userRef, {
         'blockedUserIds': FieldValue.arrayRemove([targetUserId]),
       });
 
       // Remove currentUserId from target's blockedByUserIds
-      final targetRef = _firestore.collection(FirebaseCollections.users).doc(targetUserId);
+      final targetRef = _firestore
+          .collection(FirebaseCollections.users)
+          .doc(targetUserId);
       batch.set(targetRef, {
         'blockedByUserIds': FieldValue.arrayRemove([currentUserId]),
       }, SetOptions(merge: true));
@@ -112,17 +128,23 @@ class BlockedUsersDataSourceImpl implements BlockedUsersDataSource {
   }
 
   @override
-  Future<bool> checkBlockStatus(String currentUserId, String targetUserId) async {
+  Future<bool> checkBlockStatus(
+    String currentUserId,
+    String targetUserId,
+  ) async {
     try {
-      final doc = await _firestore
-          .collection(FirebaseCollections.users)
-          .doc(currentUserId)
-          .collection('blocked_users')
-          .doc(targetUserId)
-          .get();
+      final doc =
+          await _firestore
+              .collection(FirebaseCollections.users)
+              .doc(currentUserId)
+              .collection('blocked_users')
+              .doc(targetUserId)
+              .get();
       return doc.exists;
     } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors de la vérification du blocage');
+      throw ServerException(
+        e.message ?? 'Erreur lors de la vérification du blocage',
+      );
     }
   }
 }

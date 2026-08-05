@@ -5,23 +5,27 @@ import '../models/notification_preferences_model.dart';
 
 abstract class NotificationPreferencesDataSource {
   Future<NotificationPreferencesModel> getPreferences(String userId);
-  Future<void> updatePreferences(String userId, NotificationPreferencesModel preferences);
+  Future<void> updatePreferences(
+    String userId,
+    NotificationPreferencesModel preferences,
+  );
 }
 
-class NotificationPreferencesDataSourceImpl implements NotificationPreferencesDataSource {
+class NotificationPreferencesDataSourceImpl
+    implements NotificationPreferencesDataSource {
   final FirebaseFirestore _firestore;
 
-  NotificationPreferencesDataSourceImpl({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  NotificationPreferencesDataSourceImpl({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
   Future<NotificationPreferencesModel> getPreferences(String userId) async {
     try {
-      final doc = await _firestore
-          .collection(FirebaseCollections.users)
-          .doc(userId)
-          .get();
+      final doc =
+          await _firestore
+              .collection(FirebaseCollections.users)
+              .doc(userId)
+              .get();
 
       if (!doc.exists) {
         return const NotificationPreferencesModel();
@@ -36,21 +40,25 @@ class NotificationPreferencesDataSourceImpl implements NotificationPreferencesDa
         Map<String, dynamic>.from(data['notificationPreferences']),
       );
     } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors de la récupération des préférences');
+      throw ServerException(
+        e.message ?? 'Erreur lors de la récupération des préférences',
+      );
     }
   }
 
   @override
-  Future<void> updatePreferences(String userId, NotificationPreferencesModel preferences) async {
+  Future<void> updatePreferences(
+    String userId,
+    NotificationPreferencesModel preferences,
+  ) async {
     try {
-      await _firestore
-          .collection(FirebaseCollections.users)
-          .doc(userId)
-          .set({
+      await _firestore.collection(FirebaseCollections.users).doc(userId).set({
         'notificationPreferences': preferences.toJson(),
       }, SetOptions(merge: true));
     } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors de la mise à jour des préférences');
+      throw ServerException(
+        e.message ?? 'Erreur lors de la mise à jour des préférences',
+      );
     }
   }
 }

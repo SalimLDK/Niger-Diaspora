@@ -63,7 +63,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
       try {
         oldProfile = await remoteDataSource.getProfile(profile.id);
       } catch (e, stackTrace) {
-        LoggerService.d('ProfileRepository: Old profile fetch failed (new location setup)', e, stackTrace);
+        LoggerService.d(
+          'ProfileRepository: Old profile fetch failed (new location setup)',
+          e,
+          stackTrace,
+        );
       }
 
       // 2. Update profile
@@ -184,7 +188,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
           }
         }
       } catch (e, stackTrace) {
-        LoggerService.w('ProfileRepository: Proximity check failed', e, stackTrace);
+        LoggerService.w(
+          'ProfileRepository: Proximity check failed',
+          e,
+          stackTrace,
+        );
       }
 
       return const Right(null);

@@ -181,7 +181,7 @@ final currentUserAsyncProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserAsyncRef = AutoDisposeStreamProviderRef<UserEntity?>;
-String _$authNotifierHash() => r'c66bbf5c58b68c7236e8fcda67f07afdd44b2a8c';
+String _$authNotifierHash() => r'122d876dab3e8c3b68ea7044f88d6b4bc7dd5418';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

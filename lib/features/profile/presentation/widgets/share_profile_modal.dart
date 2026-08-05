@@ -317,13 +317,14 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           if (widget.userId != null)
             Builder(
               builder: (context) {
-                final profile = ref
-                    .watch(profileNotifierProvider(widget.userId!))
-                    .valueOrNull;
-                final parts = [
-                  profile?.profession,
-                  profile?.currentCity,
-                ].where((e) => e != null && e.trim().isNotEmpty).cast<String>();
+                final profile =
+                    ref
+                        .watch(profileNotifierProvider(widget.userId!))
+                        .valueOrNull;
+                final parts =
+                    [profile?.profession, profile?.currentCity]
+                        .where((e) => e != null && e.trim().isNotEmpty)
+                        .cast<String>();
                 if (parts.isEmpty) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(top: 2),

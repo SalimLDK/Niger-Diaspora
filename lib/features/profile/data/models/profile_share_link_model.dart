@@ -22,13 +22,13 @@ class ProfileShareLinkModel with _$ProfileShareLinkModel {
       _$ProfileShareLinkModelFromJson(json);
 
   ProfileShareLinkEntity toEntity() => ProfileShareLinkEntity(
-        id: id,
-        userId: userId,
-        shortCode: shortCode,
-        createdAt: createdAt,
-        expiresAt: expiresAt,
-        clickCount: clickCount,
-      );
+    id: id,
+    userId: userId,
+    shortCode: shortCode,
+    createdAt: createdAt,
+    expiresAt: expiresAt,
+    clickCount: clickCount,
+  );
 
   static ProfileShareLinkModel fromEntity(ProfileShareLinkEntity entity) =>
       ProfileShareLinkModel(

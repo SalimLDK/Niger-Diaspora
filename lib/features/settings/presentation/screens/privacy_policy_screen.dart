@@ -51,12 +51,13 @@ class PrivacyPolicyScreen extends ConsumerWidget {
               color: context.adaptivePrimaryColor,
             ),
           ),
-      error: (error, _) => _buildFallbackContent(
-        context,
-        l10n,
-        locale,
-        ref.watch(supportServiceProvider),
-      ),
+      error:
+          (error, _) => _buildFallbackContent(
+            context,
+            l10n,
+            locale,
+            ref.watch(supportServiceProvider),
+          ),
     );
   }
 

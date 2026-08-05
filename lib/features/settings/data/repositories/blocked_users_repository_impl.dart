@@ -11,16 +11,21 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
   BlockedUsersRepositoryImpl({required this.dataSource});
 
   @override
-  Stream<Either<Failure, List<BlockedUserEntity>>> getBlockedUsers(String userId) {
-    return dataSource.getBlockedUsers(userId).map((models) {
-      return Right<Failure, List<BlockedUserEntity>>(
-        models.map((m) => m.toEntity()).toList(),
-      );
-    }).handleError((error) {
-      return Left<Failure, List<BlockedUserEntity>>(
-        ServerFailure(error.toString()),
-      );
-    });
+  Stream<Either<Failure, List<BlockedUserEntity>>> getBlockedUsers(
+    String userId,
+  ) {
+    return dataSource
+        .getBlockedUsers(userId)
+        .map((models) {
+          return Right<Failure, List<BlockedUserEntity>>(
+            models.map((m) => m.toEntity()).toList(),
+          );
+        })
+        .handleError((error) {
+          return Left<Failure, List<BlockedUserEntity>>(
+            ServerFailure(error.toString()),
+          );
+        });
   }
 
   @override
@@ -31,7 +36,12 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
     String? targetPhotoUrl,
   ) async {
     try {
-      await dataSource.blockUser(currentUserId, targetUserId, targetDisplayName, targetPhotoUrl);
+      await dataSource.blockUser(
+        currentUserId,
+        targetUserId,
+        targetDisplayName,
+        targetPhotoUrl,
+      );
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -41,7 +51,10 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
   }
 
   @override
-  Future<Either<Failure, void>> unblockUser(String currentUserId, String targetUserId) async {
+  Future<Either<Failure, void>> unblockUser(
+    String currentUserId,
+    String targetUserId,
+  ) async {
     try {
       await dataSource.unblockUser(currentUserId, targetUserId);
       return const Right(null);
@@ -53,9 +66,15 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> checkBlockStatus(String currentUserId, String targetUserId) async {
+  Future<Either<Failure, bool>> checkBlockStatus(
+    String currentUserId,
+    String targetUserId,
+  ) async {
     try {
-      final blocked = await dataSource.checkBlockStatus(currentUserId, targetUserId);
+      final blocked = await dataSource.checkBlockStatus(
+        currentUserId,
+        targetUserId,
+      );
       return Right(blocked);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

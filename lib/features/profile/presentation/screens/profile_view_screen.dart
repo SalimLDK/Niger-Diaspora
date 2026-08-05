@@ -201,7 +201,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? l10n.profileFriendRequestSent : l10n.profileFriendRequestFailed,
+            success
+                ? l10n.profileFriendRequestSent
+                : l10n.profileFriendRequestFailed,
           ),
           backgroundColor: success ? AppColors.success : AppColors.error,
         ),
@@ -213,23 +215,24 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bloquer l\'utilisateur'),
-        content: Text(
-          l10n.profileBlockConfirm(profile.displayName ?? l10n.user),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Bloquer l\'utilisateur'),
+            content: Text(
+              l10n.profileBlockConfirm(profile.displayName ?? l10n.user),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Bloquer'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Bloquer'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -245,9 +248,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            success ? l10n.userBlocked : l10n.blockError,
-          ),
+          content: Text(success ? l10n.userBlocked : l10n.blockError),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
       );
@@ -260,10 +261,6 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
       }
     }
   }
-
-
-
-
 
   String _getInitials(String? name) {
     if (name == null || name.trim().isEmpty) return '?';
@@ -501,7 +498,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     final isBlockedByMe = blockedUserIds.contains(profile.id);
-    final isBlockedByThem = currentUserId != null && profile.blockedByUserIds.contains(currentUserId);
+    final isBlockedByThem =
+        currentUserId != null &&
+        profile.blockedByUserIds.contains(currentUserId);
     final isBlocked = isBlockedByMe || isBlockedByThem;
 
     // Hide location if blocked
@@ -509,13 +508,14 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     // Puce « origine → ville actuelle » (§10c), à partir des villes brutes.
     final originCity = profile.originCity?.trim();
     final currentCity = isBlocked ? null : profile.currentCity?.trim();
-    final journeyTag = (originCity != null && originCity.isNotEmpty)
-        ? ((currentCity != null && currentCity.isNotEmpty)
-            ? '$originCity → $currentCity'
-            : originCity)
-        : ((currentCity != null && currentCity.isNotEmpty)
-            ? currentCity
-            : null);
+    final journeyTag =
+        (originCity != null && originCity.isNotEmpty)
+            ? ((currentCity != null && currentCity.isNotEmpty)
+                ? '$originCity → $currentCity'
+                : originCity)
+            : ((currentCity != null && currentCity.isNotEmpty)
+                ? currentCity
+                : null);
 
     return PopScope(
       canPop: false,
@@ -543,9 +543,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
               elevation: 0,
               leading: IconButton(
                 icon: AppIcon(
-                    AppIcon.arrowBack,
-                    color: context.textPrimaryColor,
-                  ),
+                  AppIcon.arrowBack,
+                  color: context.textPrimaryColor,
+                ),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -558,9 +558,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 if (profile.displayName != l10n.deletedUser)
                   IconButton(
                     icon: AppIcon(
-                        AppIcon.share,
-                        color: context.textPrimaryColor,
-                      ),
+                      AppIcon.share,
+                      color: context.textPrimaryColor,
+                    ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       ShareProfileDialog.show(
@@ -596,34 +596,35 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         );
                       }
                     },
-                    itemBuilder: (context) => [
-                      PopupMenuItem<String>(
-                        value: 'report',
-                        child: Row(
-                          children: [
-                            AppIcon(AppIcon.flag, color: Colors.orange),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Signaler',
-                              style: TextStyle(color: Colors.orange),
+                    itemBuilder:
+                        (context) => [
+                          PopupMenuItem<String>(
+                            value: 'report',
+                            child: Row(
+                              children: [
+                                AppIcon(AppIcon.flag, color: Colors.orange),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Signaler',
+                                  style: TextStyle(color: Colors.orange),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'block',
-                        child: Row(
-                          children: [
-                            Icon(Icons.block, color: Colors.red),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Bloquer l\'utilisateur',
-                              style: TextStyle(color: Colors.red),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'block',
+                            child: Row(
+                              children: [
+                                Icon(Icons.block, color: Colors.red),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Bloquer l\'utilisateur',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        ],
                   ),
                 const SizedBox(width: 8),
               ],
@@ -726,7 +727,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               // Puces du §10c : trajet migratoire et métier
                               // remplacent les lignes à pictogramme centrées.
                               if (journeyTag != null ||
-                                  (profile.profession?.isNotEmpty ?? false)) ...[
+                                  (profile.profession?.isNotEmpty ??
+                                      false)) ...[
                                 const SizedBox(height: 10),
                                 Wrap(
                                   spacing: 8,
@@ -979,7 +981,8 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                         style: TextStyle(fontSize: 12),
                                       ),
                                       value: showStatus,
-                                      activeThumbColor: context.adaptivePrimaryColor,
+                                      activeThumbColor:
+                                          context.adaptivePrimaryColor,
                                       onChanged: (value) async {
                                         try {
                                           await ref
@@ -995,7 +998,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  l10n.profileUpdateError(e.toString()),
+                                                  l10n.profileUpdateError(
+                                                    e.toString(),
+                                                  ),
                                                 ),
                                                 backgroundColor:
                                                     AppColors.error,
@@ -1045,307 +1050,352 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             ),
           ],
         ),
-        bottomNavigationBar: _isCurrentUser
-            ? null
-            : Consumer(
-          builder: (context, ref, child) {
-            final status = ref.watch(friendshipStatusProvider(widget.userId));
+        bottomNavigationBar:
+            _isCurrentUser
+                ? null
+                : Consumer(
+                  builder: (context, ref, child) {
+                    final status = ref.watch(
+                      friendshipStatusProvider(widget.userId),
+                    );
 
-            // Determine button configuration based on friendship status
-            String buttonText = '';
-            Widget buttonIcon = const Icon(Icons.help_outline);
-            VoidCallback? onPressed;
-            Color backgroundColor = context.adaptivePrimaryColor;
+                    // Determine button configuration based on friendship status
+                    String buttonText = '';
+                    Widget buttonIcon = const Icon(Icons.help_outline);
+                    VoidCallback? onPressed;
+                    Color backgroundColor = context.adaptivePrimaryColor;
 
-            switch (status) {
-              case FriendshipStatus.friends:
-                buttonText = l10n.sendMessage;
-                buttonIcon = const AppIcon(AppIcon.chatBubble);
-                onPressed = _startConversation;
-                backgroundColor = context.adaptivePrimaryColor;
-                break;
+                    switch (status) {
+                      case FriendshipStatus.friends:
+                        buttonText = l10n.sendMessage;
+                        buttonIcon = const AppIcon(AppIcon.chatBubble);
+                        onPressed = _startConversation;
+                        backgroundColor = context.adaptivePrimaryColor;
+                        break;
 
-              case FriendshipStatus.pendingSent:
-                // Return a button to cancel the sent request
-                return Container(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor,
-                    boxShadow:
-                        context.isDarkMode
-                            ? null
-                            : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
-                  ),
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      try {
-                        // Find the sent request and cancel it
-                        final requests = await ref.read(
-                          sentFriendRequestsProvider.future,
+                      case FriendshipStatus.pendingSent:
+                        // Return a button to cancel the sent request
+                        return Container(
+                          padding: EdgeInsets.only(
+                            left: 20,
+                            right: 20,
+                            top: 16,
+                            bottom: MediaQuery.of(context).padding.bottom + 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor,
+                            boxShadow:
+                                context.isDarkMode
+                                    ? null
+                                    : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, -4),
+                                      ),
+                                    ],
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              try {
+                                // Find the sent request and cancel it
+                                final requests = await ref.read(
+                                  sentFriendRequestsProvider.future,
+                                );
+
+                                final request = requests.firstWhere(
+                                  (r) => r.receiverId == widget.userId,
+                                );
+
+                                // Cancel the request
+                                final success = await ref
+                                    .read(
+                                      friendRequestNotifierProvider.notifier,
+                                    )
+                                    .cancelRequest(
+                                      request.id,
+                                      receiverId: widget.userId,
+                                    );
+
+                                if (context.mounted && success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.profileRequestCancelled,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } on StateError {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.profileRequestNotExist,
+                                      ),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Erreur: $e'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            icon: const AppIcon(AppIcon.close),
+                            label: Text(l10n.cancelRequest),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                          ),
                         );
 
-                        final request = requests.firstWhere(
-                          (r) => r.receiverId == widget.userId,
-                        );
+                      case FriendshipStatus.pendingReceived:
+                        // Return two buttons side-by-side for pendingReceived
+                        return Container(
+                          padding: EdgeInsets.only(
+                            left: 20,
+                            right: 20,
+                            top: 16,
+                            bottom: MediaQuery.of(context).padding.bottom + 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor,
+                            boxShadow:
+                                context.isDarkMode
+                                    ? null
+                                    : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, -4),
+                                      ),
+                                    ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    try {
+                                      // Find the request and decline it
+                                      final requests = await ref.read(
+                                        receivedFriendRequestsProvider.future,
+                                      );
 
-                        // Cancel the request
-                        final success = await ref
-                            .read(friendRequestNotifierProvider.notifier)
-                            .cancelRequest(
-                              request.id,
-                              receiverId: widget.userId,
-                            );
+                                      final request = requests.firstWhere(
+                                        (r) => r.senderId == widget.userId,
+                                      );
 
-                        if (context.mounted && success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.profileRequestCancelled),
-                            ),
-                          );
-                        }
-                      } on StateError {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.profileRequestNotExist),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erreur: $e'),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    icon: const AppIcon(AppIcon.close),
-                    label: Text(l10n.cancelRequest),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: const BorderSide(color: AppColors.error),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                  ),
-                );
+                                      // Decline the request
+                                      final success = await ref
+                                          .read(
+                                            friendRequestNotifierProvider
+                                                .notifier,
+                                          )
+                                          .declineRequest(
+                                            request.id,
+                                            senderId: widget.userId,
+                                          );
 
-              case FriendshipStatus.pendingReceived:
-                // Return two buttons side-by-side for pendingReceived
-                return Container(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.surfaceColor,
-                    boxShadow:
-                        context.isDarkMode
-                            ? null
-                            : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, -4),
+                                      if (context.mounted && success) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.profileRequestDeclined,
+                                            ),
+                                            backgroundColor: AppColors.error,
+                                          ),
+                                        );
+                                      }
+                                    } on StateError {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.profileRequestNotExist,
+                                            ),
+                                            backgroundColor: AppColors.error,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Erreur: $e'),
+                                            backgroundColor: AppColors.error,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  icon: const AppIcon(AppIcon.close),
+                                  label: const Text('Refuser'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.error,
+                                    side: BorderSide(color: AppColors.error),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    try {
+                                      // Find the request and accept it
+                                      final requests = await ref.read(
+                                        receivedFriendRequestsProvider.future,
+                                      );
+
+                                      final request = requests.firstWhere(
+                                        (r) => r.senderId == widget.userId,
+                                      );
+
+                                      // Accept the request
+                                      final success = await ref
+                                          .read(
+                                            friendRequestNotifierProvider
+                                                .notifier,
+                                          )
+                                          .acceptRequest(
+                                            request.id,
+                                            senderId: widget.userId,
+                                          );
+
+                                      if (context.mounted && success) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.profileRequestAccepted,
+                                            ),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      }
+                                    } on StateError {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.profileRequestGoneDetail,
+                                            ),
+                                            backgroundColor: AppColors.error,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.profileAcceptError(
+                                                e.toString(),
+                                              ),
+                                            ),
+                                            backgroundColor: AppColors.error,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  icon: const AppIcon(AppIcon.check),
+                                  label: const Text('Accepter'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: context.successColor,
+                                    foregroundColor: AppColors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            try {
-                              // Find the request and decline it
-                              final requests = await ref.read(
-                                receivedFriendRequestsProvider.future,
-                              );
-
-                              final request = requests.firstWhere(
-                                (r) => r.senderId == widget.userId,
-                              );
-
-                              // Decline the request
-                              final success = await ref
-                                  .read(friendRequestNotifierProvider.notifier)
-                                  .declineRequest(
-                                    request.id,
-                                    senderId: widget.userId,
-                                  );
-
-                              if (context.mounted && success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.profileRequestDeclined),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            } on StateError {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.profileRequestNotExist,
-                                    ),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Erreur: $e'),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          icon: const AppIcon(AppIcon.close),
-                          label: const Text('Refuser'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.error,
-                            side: BorderSide(color: AppColors.error),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
+                        );
+
+                      case FriendshipStatus.none:
+                        buttonText = l10n.profileSendFriendRequest;
+                        buttonIcon = const AppIcon(AppIcon.personAdd);
+                        onPressed =
+                            _isSendingRequest ? null : _sendFriendRequest;
+                        backgroundColor = context.adaptivePrimaryColor;
+                        break;
+                    }
+
+                    return Container(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.surfaceColor,
+                        boxShadow:
+                            context.isDarkMode
+                                ? null
+                                : [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, -4),
+                                  ),
+                                ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: onPressed,
+                        icon:
+                            _isSendingRequest
+                                ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.white,
+                                  ),
+                                )
+                                : buttonIcon,
+                        label: Text(
+                          _isSendingRequest ? l10n.adminSending : buttonText,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: backgroundColor,
+                          foregroundColor: AppColors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              // Find the request and accept it
-                              final requests = await ref.read(
-                                receivedFriendRequestsProvider.future,
-                              );
-
-                              final request = requests.firstWhere(
-                                (r) => r.senderId == widget.userId,
-                              );
-
-                              // Accept the request
-                              final success = await ref
-                                  .read(friendRequestNotifierProvider.notifier)
-                                  .acceptRequest(
-                                    request.id,
-                                    senderId: widget.userId,
-                                  );
-
-                              if (context.mounted && success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.profileRequestAccepted),
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                );
-                              }
-                            } on StateError {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.profileRequestGoneDetail,
-                                    ),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.profileAcceptError(e.toString()),
-                                    ),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          icon: const AppIcon(AppIcon.check),
-                          label: const Text('Accepter'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.successColor,
-                            foregroundColor: AppColors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-
-              case FriendshipStatus.none:
-                buttonText = l10n.profileSendFriendRequest;
-                buttonIcon = const AppIcon(AppIcon.personAdd);
-                onPressed = _isSendingRequest ? null : _sendFriendRequest;
-                backgroundColor = context.adaptivePrimaryColor;
-                break;
-            }
-
-            return Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 16,
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-              ),
-              decoration: BoxDecoration(
-                color: context.surfaceColor,
-                boxShadow:
-                    context.isDarkMode
-                        ? null
-                        : [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, -4),
-                          ),
-                        ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: onPressed,
-                icon: _isSendingRequest
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.white,
-                        ),
-                      )
-                    : buttonIcon,
-                label: Text(_isSendingRequest ? l10n.adminSending : buttonText),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: backgroundColor,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                    );
+                  },
                 ),
-              ),
-            );
-          },
-        ),
       ), // Close PopScope child (Scaffold)
     ); // Close PopScope
   }

@@ -14,12 +14,12 @@ abstract class ProfileShareDataSource {
 class ProfileShareDataSourceImpl implements ProfileShareDataSource {
   final FirebaseFirestore _firestore;
 
-  ProfileShareDataSourceImpl({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  ProfileShareDataSourceImpl({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   String _generateShortCode() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random.secure();
     return List.generate(8, (_) => chars[random.nextInt(chars.length)]).join();
   }
@@ -39,10 +39,11 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
 
       do {
         shortCode = _generateShortCode();
-        final check = await _firestore
-            .collection(FirebaseCollections.profileShareLinks)
-            .where('shortCode', isEqualTo: shortCode)
-            .get();
+        final check =
+            await _firestore
+                .collection(FirebaseCollections.profileShareLinks)
+                .where('shortCode', isEqualTo: shortCode)
+                .get();
         isUnique = check.docs.isEmpty;
       } while (!isUnique);
 
@@ -50,11 +51,11 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
       final docRef = await _firestore
           .collection(FirebaseCollections.profileShareLinks)
           .add({
-        'userId': userId,
-        'shortCode': shortCode,
-        'createdAt': FieldValue.serverTimestamp(),
-        'clickCount': 0,
-      });
+            'userId': userId,
+            'shortCode': shortCode,
+            'createdAt': FieldValue.serverTimestamp(),
+            'clickCount': 0,
+          });
 
       final doc = await docRef.get();
       final data = doc.data()!;
@@ -66,18 +67,21 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
 
       return ProfileShareLinkModel.fromJson(data);
     } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors de la génération du lien');
+      throw ServerException(
+        e.message ?? 'Erreur lors de la génération du lien',
+      );
     }
   }
 
   @override
   Future<String?> getUserIdByShareCode(String shortCode) async {
     try {
-      final snapshot = await _firestore
-          .collection(FirebaseCollections.profileShareLinks)
-          .where('shortCode', isEqualTo: shortCode)
-          .limit(1)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection(FirebaseCollections.profileShareLinks)
+              .where('shortCode', isEqualTo: shortCode)
+              .limit(1)
+              .get();
 
       if (snapshot.docs.isEmpty) {
         return null;
@@ -100,9 +104,7 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
       await _firestore
           .collection(FirebaseCollections.profileShareLinks)
           .doc(linkId)
-          .update({
-        'clickCount': FieldValue.increment(1),
-      });
+          .update({'clickCount': FieldValue.increment(1)});
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise à jour');
     }
@@ -111,11 +113,12 @@ class ProfileShareDataSourceImpl implements ProfileShareDataSource {
   @override
   Future<ProfileShareLinkModel?> getShareLinkByUserId(String userId) async {
     try {
-      final snapshot = await _firestore
-          .collection(FirebaseCollections.profileShareLinks)
-          .where('userId', isEqualTo: userId)
-          .limit(1)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection(FirebaseCollections.profileShareLinks)
+              .where('userId', isEqualTo: userId)
+              .limit(1)
+              .get();
 
       if (snapshot.docs.isEmpty) {
         return null;

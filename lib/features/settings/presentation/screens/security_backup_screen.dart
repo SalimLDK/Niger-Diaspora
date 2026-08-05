@@ -16,7 +16,8 @@ class SecurityBackupScreen extends ConsumerStatefulWidget {
   const SecurityBackupScreen({super.key});
 
   @override
-  ConsumerState<SecurityBackupScreen> createState() => _SecurityBackupScreenState();
+  ConsumerState<SecurityBackupScreen> createState() =>
+      _SecurityBackupScreenState();
 }
 
 class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
@@ -72,7 +73,9 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   void _updatePassphraseStrength(String passphrase) {
     final backupService = ref.read(keyBackupServiceProvider);
     setState(() {
-      _passphraseStrength = backupService.evaluatePassphraseStrength(passphrase);
+      _passphraseStrength = backupService.evaluatePassphraseStrength(
+        passphrase,
+      );
     });
   }
 
@@ -168,21 +171,24 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.securityDeleteBackupTitle),
-        content: Text(l10n.securityDeleteBackupContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
+      builder:
+          (context) => AlertDialog(
+            title: Text(l10n.securityDeleteBackupTitle),
+            content: Text(l10n.securityDeleteBackupContent),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.errorColor,
+                ),
+                child: Text(l10n.delete),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: context.errorColor),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true) return;
@@ -215,20 +221,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.errorColor,
-      ),
+      SnackBar(content: Text(message), backgroundColor: context.errorColor),
     );
   }
 
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.successColor,
-      ),
+      SnackBar(content: Text(message), backgroundColor: context.successColor),
     );
   }
 
@@ -245,59 +245,16 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
         titleSpacing: 0,
         title: DesignTitle(l10n.securityBackupTitle, size: 22),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Info card
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              AppIcon(AppIcon.lock,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  l10n.endToEndEncryption,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            l10n.e2eeDescription,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Existing backup info
-                  if (_hasBackup) ...[
-                    Text(
-                      l10n.existingBackup,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Info card
                     Card(
-                      color: context.successBackgroundColor,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -305,256 +262,336 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(
-                                  Icons.cloud_done,
-                                  color: context.successColor,
+                                AppIcon(
+                                  AppIcon.lock,
+                                  color: theme.colorScheme.primary,
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  l10n.backupActive,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: context.successColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (_backupMetadata != null) ...[
-                              const SizedBox(height: 12),
-                              if (_backupMetadata!.createdAt != null)
-                                Text(
-                                  l10n.backupCreatedOn(_formatDate(_backupMetadata!.createdAt!)),
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              if (_backupMetadata!.deviceInfo != null)
-                                Text(
-                                  'Appareil: ${_backupMetadata!.deviceInfo}',
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                            ],
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
                                 Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: _deleteBackup,
-                                    icon: AppIcon(AppIcon.delete, color: theme.colorScheme.primary),
-                                    label: Text(AppLocalizations.of(context)!.delete),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: context.errorColor,
-                                    ),
+                                  child: Text(
+                                    l10n.endToEndEncryption,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Restore section
-                    Text(
-                      AppLocalizations.of(context)!.restoreOnThisDevice,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                            const SizedBox(height: 12),
                             Text(
-                              AppLocalizations.of(context)!.enterPassphraseToRestore,
+                              l10n.e2eeDescription,
                               style: theme.textTheme.bodyMedium,
                             ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: _restorePassphraseController,
-                              obscureText: !_showPassphrase,
-                              decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.passphrase,
-                                border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _showPassphrase
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _showPassphrase = !_showPassphrase;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _restoreBackup,
-                                icon: const Icon(Icons.restore),
-                                label: Text(AppLocalizations.of(context)!.restoreKeys),
-                              ),
-                            ),
                           ],
                         ),
                       ),
                     ),
-                  ] else ...[
-                    // Create backup section
-                    Text(
-                      l10n.createBackupButton,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+
+                    const SizedBox(height: 24),
+
+                    // Existing backup info
+                    if (_hasBackup) ...[
+                      Text(
+                        l10n.existingBackup,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Warning
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: context.warningBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
+                      const SizedBox(height: 8),
+                      Card(
+                        color: context.successBackgroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  AppIcon(
-                                    AppIcon.warning,
-                                    color: context.warningColor,
+                                  Icon(
+                                    Icons.cloud_done,
+                                    color: context.successColor,
                                   ),
                                   const SizedBox(width: 12),
+                                  Text(
+                                    l10n.backupActive,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: context.successColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_backupMetadata != null) ...[
+                                const SizedBox(height: 12),
+                                if (_backupMetadata!.createdAt != null)
+                                  Text(
+                                    l10n.backupCreatedOn(
+                                      _formatDate(_backupMetadata!.createdAt!),
+                                    ),
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                if (_backupMetadata!.deviceInfo != null)
+                                  Text(
+                                    'Appareil: ${_backupMetadata!.deviceInfo}',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                              ],
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
                                   Expanded(
-                                    child: Text(
-                                      'N\'oubliez pas votre passphrase ! '
-                                      '${l10n.passphraseRequiredNote}',
-                                      style: TextStyle(
-                                        color: context.warningColor,
-                                        fontSize: 13,
+                                    child: OutlinedButton.icon(
+                                      onPressed: _deleteBackup,
+                                      icon: AppIcon(
+                                        AppIcon.delete,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      label: Text(
+                                        AppLocalizations.of(context)!.delete,
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: context.errorColor,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                            // Generate passphrase button
-                            OutlinedButton.icon(
-                              onPressed: _generatePassphrase,
-                              icon: const Icon(Icons.auto_awesome),
-                              label: Text(AppLocalizations.of(context)!.generatePassphrase),
-                            ),
-
-                            if (_generatedPassphrase != null) ...[
-                              const SizedBox(height: 12),
+                      // Restore section
+                      Text(
+                        AppLocalizations.of(context)!.restoreOnThisDevice,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.enterPassphraseToRestore,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _restorePassphraseController,
+                                obscureText: !_showPassphrase,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      AppLocalizations.of(context)!.passphrase,
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _showPassphrase
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _showPassphrase = !_showPassphrase;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: _restoreBackup,
+                                  icon: const Icon(Icons.restore),
+                                  label: Text(
+                                    AppLocalizations.of(context)!.restoreKeys,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      // Create backup section
+                      Text(
+                        l10n.createBackupButton,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Warning
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainerHighest,
+                                  color: context.warningBackgroundColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
                                   children: [
+                                    AppIcon(
+                                      AppIcon.warning,
+                                      color: context.warningColor,
+                                    ),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        _generatedPassphrase!,
-                                        style: const TextStyle(
-                                          fontFamily: 'monospace',
-                                          fontWeight: FontWeight.bold,
+                                        'N\'oubliez pas votre passphrase ! '
+                                        '${l10n.passphraseRequiredNote}',
+                                        style: TextStyle(
+                                          color: context.warningColor,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.copy),
-                                      onPressed: () {
-                                        Clipboard.setData(
-                                          ClipboardData(text: _generatedPassphrase!),
-                                        );
-                                        _showSuccessSnackBar(l10n.passphraseCopied);
-                                      },
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
+                              const SizedBox(height: 16),
 
-                            const SizedBox(height: 16),
-                            const Divider(),
-                            const SizedBox(height: 16),
-
-                            // Passphrase input
-                            TextField(
-                              controller: _passphraseController,
-                              obscureText: !_showPassphrase,
-                              onChanged: _updatePassphraseStrength,
-                              decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.passphrase,
-                                hintText: AppLocalizations.of(context)!.passphraseHint,
-                                border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _showPassphrase
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _showPassphrase = !_showPassphrase;
-                                    });
-                                  },
+                              // Generate passphrase button
+                              OutlinedButton.icon(
+                                onPressed: _generatePassphrase,
+                                icon: const Icon(Icons.auto_awesome),
+                                label: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.generatePassphrase,
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(height: 8),
+                              if (_generatedPassphrase != null) ...[
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        theme
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _generatedPassphrase!,
+                                          style: const TextStyle(
+                                            fontFamily: 'monospace',
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy),
+                                        onPressed: () {
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                              text: _generatedPassphrase!,
+                                            ),
+                                          );
+                                          _showSuccessSnackBar(
+                                            l10n.passphraseCopied,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
 
-                            // Strength indicator
-                            _buildStrengthIndicator(),
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 16),
 
-                            const SizedBox(height: 16),
-
-                            // Confirm passphrase
-                            TextField(
-                              controller: _confirmPassphraseController,
-                              obscureText: !_showPassphrase,
-                              decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.confirmPassphraseLabel,
-                                border: const OutlineInputBorder(),
+                              // Passphrase input
+                              TextField(
+                                controller: _passphraseController,
+                                obscureText: !_showPassphrase,
+                                onChanged: _updatePassphraseStrength,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      AppLocalizations.of(context)!.passphrase,
+                                  hintText:
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.passphraseHint,
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _showPassphrase
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _showPassphrase = !_showPassphrase;
+                                      });
+                                    },
+                                  ),
+                                ),
                               ),
-                            ),
 
-                            const SizedBox(height: 16),
+                              const SizedBox(height: 8),
 
-                            // Create button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _passphraseStrength != PassphraseStrength.weak
-                                    ? _createBackup
-                                    : null,
-                                icon: const Icon(Icons.cloud_upload),
-                                label: Text(AppLocalizations.of(context)!.createBackupButton),
+                              // Strength indicator
+                              _buildStrengthIndicator(),
+
+                              const SizedBox(height: 16),
+
+                              // Confirm passphrase
+                              TextField(
+                                controller: _confirmPassphraseController,
+                                obscureText: !_showPassphrase,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.confirmPassphraseLabel,
+                                  border: const OutlineInputBorder(),
+                                ),
                               ),
-                            ),
-                          ],
+
+                              const SizedBox(height: 16),
+
+                              // Create button
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      _passphraseStrength !=
+                                              PassphraseStrength.weak
+                                          ? _createBackup
+                                          : null,
+                                  icon: const Icon(Icons.cloud_upload),
+                                  label: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.createBackupButton,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
     );
   }
 
@@ -593,10 +630,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
         const SizedBox(height: 4),
         Text(
           '${l10n.passphraseStrength}: $text',
-          style: TextStyle(
-            color: color,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: color, fontSize: 12),
         ),
       ],
     );

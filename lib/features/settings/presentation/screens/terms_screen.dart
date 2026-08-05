@@ -49,11 +49,12 @@ class TermsScreen extends ConsumerWidget {
               color: context.adaptivePrimaryColor,
             ),
           ),
-      error: (error, _) => _buildFallbackContent(
-        context,
-        l10n,
-        ref.watch(supportServiceProvider),
-      ),
+      error:
+          (error, _) => _buildFallbackContent(
+            context,
+            l10n,
+            ref.watch(supportServiceProvider),
+          ),
     );
   }
 

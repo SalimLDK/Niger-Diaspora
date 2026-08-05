@@ -81,11 +81,8 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<ProfileModel> getProfile(String userId) async {
-    final data = await _supabase
-        .from('users')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
+    final data =
+        await _supabase.from('users').select().eq('id', userId).maybeSingle();
     if (data == null) throw ServerException('Profile not found: $userId');
     final profile = ProfileModel.fromJson(_mapProfile(data));
     _cache[userId] = profile;
@@ -94,19 +91,17 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Stream<ProfileModel> getUserStream(String userId) {
-    return _supabase
-        .from('users')
-        .stream(primaryKey: ['id'])
-        .eq('id', userId)
-        .map((rows) {
-          // Ligne absente = ressource introuvable (compte supprimé / invisible).
-          // NotFoundException est distinct des autres erreurs pour que la couche
-          // présentation ne confonde pas « supprimé » avec « échec de chargement ».
-          if (rows.isEmpty) throw NotFoundException('User $userId not found');
-          final profile = ProfileModel.fromJson(_mapProfile(rows.first));
-          _cache[userId] = profile;
-          return profile;
-        });
+    return _supabase.from('users').stream(primaryKey: ['id']).eq('id', userId).map((
+      rows,
+    ) {
+      // Ligne absente = ressource introuvable (compte supprimé / invisible).
+      // NotFoundException est distinct des autres erreurs pour que la couche
+      // présentation ne confonde pas « supprimé » avec « échec de chargement ».
+      if (rows.isEmpty) throw NotFoundException('User $userId not found');
+      final profile = ProfileModel.fromJson(_mapProfile(rows.first));
+      _cache[userId] = profile;
+      return profile;
+    });
   }
 
   @override
@@ -117,7 +112,9 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .eq('is_visible', true)
         .ilike('display_name', '%$query%')
         .limit(30);
-    return (data as List).map((r) => ProfileModel.fromJson(_mapProfile(r))).toList();
+    return (data as List)
+        .map((r) => ProfileModel.fromJson(_mapProfile(r)))
+        .toList();
   }
 
   @override
@@ -137,7 +134,9 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .gte('longitude', longitude - delta)
         .lte('longitude', longitude + delta)
         .limit(50);
-    return (data as List).map((r) => ProfileModel.fromJson(_mapProfile(r))).toList();
+    return (data as List)
+        .map((r) => ProfileModel.fromJson(_mapProfile(r)))
+        .toList();
   }
 
   @override
@@ -148,7 +147,9 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .eq('country_code', country)
         .eq('is_visible', true)
         .limit(50);
-    return (data as List).map((r) => ProfileModel.fromJson(_mapProfile(r))).toList();
+    return (data as List)
+        .map((r) => ProfileModel.fromJson(_mapProfile(r)))
+        .toList();
   }
 
   /// Flux temps réel des profils dont la position vient de changer.
@@ -213,33 +214,34 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     await _requireAuth();
     // upsert instead of update: the Supabase users row may not exist yet
     // (user authenticated via Firebase, row created lazily on first profile save).
-    final data = await _supabase
-        .from('users')
-        .upsert({
-          'id': profile.id,
-          'display_name': profile.displayName,
-          if (profile.handle != null) 'handle': profile.handle,
-          'avatar_url': profile.photoUrl,
-          'phone_number': profile.phoneNumber,
-          'bio': profile.bio,
-          'profession': profile.profession,
-          'city': profile.currentCity,
-          'country_code': profile.currentCountry ?? profile.countryCode,
-          'current_region': profile.currentRegion,
-          'origin_region': profile.originRegion,
-          'origin_city': profile.originCity,
-          'is_visible': profile.isVisible,
-          'notifications_enabled': profile.notificationsEnabled,
-          'share_location': profile.shareLocation,
-          'phone_visibility': profile.phoneVisibility,
-          'interests': profile.interests,
-          'skills': profile.skills,
-          'languages': profile.languages,
-          'show_online_status': profile.showOnlineStatus,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .select()
-        .maybeSingle();
+    final data =
+        await _supabase
+            .from('users')
+            .upsert({
+              'id': profile.id,
+              'display_name': profile.displayName,
+              if (profile.handle != null) 'handle': profile.handle,
+              'avatar_url': profile.photoUrl,
+              'phone_number': profile.phoneNumber,
+              'bio': profile.bio,
+              'profession': profile.profession,
+              'city': profile.currentCity,
+              'country_code': profile.currentCountry ?? profile.countryCode,
+              'current_region': profile.currentRegion,
+              'origin_region': profile.originRegion,
+              'origin_city': profile.originCity,
+              'is_visible': profile.isVisible,
+              'notifications_enabled': profile.notificationsEnabled,
+              'share_location': profile.shareLocation,
+              'phone_visibility': profile.phoneVisibility,
+              'interests': profile.interests,
+              'skills': profile.skills,
+              'languages': profile.languages,
+              'show_online_status': profile.showOnlineStatus,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .select()
+            .maybeSingle();
     // La garde ci-dessus a déjà écarté la cause « pas de session ». Si l'upsert
     // ne renvoie toujours rien, c'est la RLS qui refuse la ligne elle-même.
     if (data == null) {
@@ -261,19 +263,23 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     double longitude,
   ) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'latitude': latitude,
-      'longitude': longitude,
-      'location_updated_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({
+          'latitude': latitude,
+          'longitude': longitude,
+          'location_updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', userId);
   }
 
   @override
   Future<void> updateLastLogin(String userId) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'last_active_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({'last_active_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('id', userId);
   }
 
   @override
@@ -283,33 +289,42 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     DateTime lastSeen,
   ) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'is_online': isOnline,
-      'last_seen_at': lastSeen.toUtc().toIso8601String(),
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({
+          'is_online': isOnline,
+          'last_seen_at': lastSeen.toUtc().toIso8601String(),
+        })
+        .eq('id', userId);
   }
 
   @override
-  Future<void> updateOnlineStatusVisibility(String userId, bool showStatus) async {
+  Future<void> updateOnlineStatusVisibility(
+    String userId,
+    bool showStatus,
+  ) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'show_online_status': showStatus,
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({'show_online_status': showStatus})
+        .eq('id', userId);
   }
 
   @override
   Future<void> updateNotifyLocalEvents(String userId, bool enabled) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'notify_local_events': enabled,
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({'notify_local_events': enabled})
+        .eq('id', userId);
   }
 
   Future<void> updateShowMessagePreview(String userId, bool show) async {
     await _requireAuth();
-    await _supabase.from('users').update({
-      'show_message_preview': show,
-    }).eq('id', userId);
+    await _supabase
+        .from('users')
+        .update({'show_message_preview': show})
+        .eq('id', userId);
   }
 
   @override

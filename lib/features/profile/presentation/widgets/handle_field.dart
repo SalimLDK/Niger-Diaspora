@@ -83,8 +83,10 @@ class _HandleFieldState extends ConsumerState<HandleField> {
           .read(profileRepositoryProvider)
           .isHandleAvailable(normalized, excludeUserId: widget.userId);
       if (!mounted || _normalized() != normalized) return;
-      setState(() => _status =
-          available ? _HandleStatus.available : _HandleStatus.taken);
+      setState(
+        () =>
+            _status = available ? _HandleStatus.available : _HandleStatus.taken,
+      );
       widget.onChanged(normalized, available);
     });
   }
@@ -113,11 +115,7 @@ class _HandleFieldState extends ConsumerState<HandleField> {
         break;
       case _HandleStatus.taken:
       case _HandleStatus.invalid:
-        suffix = Icon(
-          Icons.error_outline,
-          size: 20,
-          color: context.errorColor,
-        );
+        suffix = Icon(Icons.error_outline, size: 20, color: context.errorColor);
         break;
       case _HandleStatus.idle:
         suffix = null;

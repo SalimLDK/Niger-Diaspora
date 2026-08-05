@@ -813,7 +813,7 @@ final groupDetailNotifierProvider = AutoDisposeNotifierProvider<
 );
 
 typedef _$GroupDetailNotifier = AutoDisposeNotifier<AsyncValue<GroupEntity?>>;
-String _$myGroupsNotifierHash() => r'628ed5dc5104ac80b236e8660793596ee49f85b9';
+String _$myGroupsNotifierHash() => r'e2a824f32573bb54fa003bcc4dac511626bb19ec';
 
 /// See also [MyGroupsNotifier].
 @ProviderFor(MyGroupsNotifier)

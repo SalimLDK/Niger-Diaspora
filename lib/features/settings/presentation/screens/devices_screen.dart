@@ -451,9 +451,7 @@ class _LimitNotice extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.warningBackgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.warningColor.withValues(alpha: 0.28),
-        ),
+        border: Border.all(color: context.warningColor.withValues(alpha: 0.28)),
       ),
       child: Row(
         children: [
@@ -621,7 +619,9 @@ class _DeviceCard extends StatelessWidget {
           else
             Row(
               children: [
-                Expanded(child: _CardAction(label: 'Renommer', onTap: onRename)),
+                Expanded(
+                  child: _CardAction(label: 'Renommer', onTap: onRename),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _CardAction(
@@ -641,9 +641,8 @@ class _DeviceCard extends StatelessWidget {
   /// C'est le même préfixe de clé qu'avant, juste lisible.
   static String? _formatFingerprint(String identityKey) {
     if (identityKey.isEmpty) return null;
-    final raw = identityKey
-        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-        .toUpperCase();
+    final raw =
+        identityKey.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
     if (raw.isEmpty) return null;
     final take = raw.length < 12 ? raw.length : 12;
     final groups = <String>[];
