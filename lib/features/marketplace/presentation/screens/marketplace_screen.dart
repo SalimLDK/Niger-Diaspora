@@ -20,6 +20,8 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 }
 
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -107,7 +109,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             }
           },
         ),
-        title: const DesignTitle('Boutique', size: 24),
+        title: DesignTitle(l10n.serviceMarketplace, size: 24),
         actions: [
           Stack(
             clipBehavior: Clip.none,
@@ -261,7 +263,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _FilterChip(
-                  label: 'Tout',
+                  label: l10n.marketplaceAllCategory,
                   isSelected: selectedCategory == null,
                   onTap:
                       () => ref
@@ -380,7 +382,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/marketplace/create'),
         icon: const Icon(Icons.add),
-        label: const Text('Vendre'),
+        label: Text(l10n.sell),
       ),
     );
   }
@@ -423,6 +425,7 @@ class _CountryPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Container(
@@ -441,7 +444,7 @@ class _CountryPickerSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'Choisir un pays',
+              l10n.marketplaceChooseCountry,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -456,7 +459,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 // "All countries" option
                 ListTile(
                   leading: const Text('🌍', style: TextStyle(fontSize: 24)),
-                  title: const Text('Tous les pays'),
+                  title: Text(l10n.marketplaceAllCountries),
                   dense: true,
                   onTap: () => onCountrySelected(null),
                 ),

@@ -12,12 +12,13 @@ class MyProductsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Mes produits')),
+        appBar: AppBar(title: Text(l10n.myProducts)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -26,7 +27,7 @@ class MyProductsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes produits'),
+        title: Text(l10n.myProducts),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -87,7 +88,7 @@ class MyProductsScreen extends ConsumerWidget {
                   ElevatedButton.icon(
                     onPressed: () => context.push('/marketplace/create'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Mettre en vente'),
+                    label: Text(l10n.listForSale),
                   ),
                 ],
               ),

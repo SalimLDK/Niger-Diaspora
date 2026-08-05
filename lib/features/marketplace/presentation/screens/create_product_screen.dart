@@ -14,6 +14,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class CreateProductScreen extends ConsumerStatefulWidget {
   final ProductEntity? product; // For editing
@@ -30,6 +31,8 @@ class CreateProductScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -222,7 +225,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_existingImageUrls.isEmpty && _newImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ajoutez au moins une image')),
+        SnackBar(content: Text(l10n.marketplaceAddImageMin)),
       );
       return;
     }
@@ -242,7 +245,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
       final userId = extendedUser?.id ?? firebaseUser.uid;
       final displayName =
-          extendedUser?.displayName ?? firebaseUser.displayName ?? 'Vendeur';
+          extendedUser?.displayName ?? firebaseUser.displayName ?? l10n.seller;
       final photoUrl = extendedUser?.photoUrl ?? firebaseUser.photoURL;
 
       // Upload new images
@@ -405,9 +408,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                     _customTaxRate != null
                         ? (_customTaxRate! * 100).toStringAsFixed(0)
                         : '',
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Taux personnalise (%)',
-                  hintText: 'Ex: 15',
+                  hintText: l10n.marketplaceCustomTaxHint,
                   border: OutlineInputBorder(),
                   suffixText: '%',
                 ),
@@ -427,7 +430,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
             // Tax included in price switch
             SwitchListTile(
-              title: const Text('Prix TTC'),
+              title: Text(l10n.marketplacePriceTTC),
               subtitle: Text(
                 _taxIncludedInPrice
                     ? 'Le prix affiche inclut deja la taxe'
@@ -496,7 +499,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [const Text('Sous-total'), Text(_formatPrice(subtotal))],
+          children: [Text(l10n.marketplaceSubtotal), Text(_formatPrice(subtotal))],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -510,7 +513,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Total',
+              l10n.total,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -534,7 +537,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Modifier le produit' : 'Vendre un produit'),
+        title: Text(_isEditing ? l10n.editProductScreenTitle : l10n.sellProductScreenTitle),
       ),
       body: Form(
         key: _formKey,
@@ -543,7 +546,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
           children: [
             // Images
             Text(
-              'Photos',
+              l10n.marketplacePhotos,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -578,7 +581,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Ajouter',
+                            l10n.marketplaceAddPhoto,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.outline,
                             ),
@@ -609,14 +612,14 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Title
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Titre',
-                hintText: 'Ex: iPhone 13 Pro Max',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceTitleLabel,
+                hintText: l10n.marketplaceTitleHint,
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Entrez un titre';
+                  return l10n.marketplaceTitleRequired;
                 }
                 return null;
               },
@@ -626,15 +629,15 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceDescriptionLabel,
                 hintText: 'Decrivez votre produit...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Entrez une description';
+                  return l10n.marketplaceDescriptionRequired;
                 }
                 return null;
               },
@@ -649,7 +652,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   child: TextFormField(
                     controller: _priceController,
                     decoration: InputDecoration(
-                      labelText: 'Prix',
+                      labelText: l10n.marketplacePriceLabel,
                       hintText: '50000',
                       border: const OutlineInputBorder(),
                       suffixText: _selectedCurrency.code,
@@ -657,10 +660,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Entrez un prix';
+                        return l10n.priceRequiredError;
                       }
                       if (double.tryParse(value) == null) {
-                        return 'Prix invalide';
+                        return l10n.priceInvalidError;
                       }
                       return null;
                     },
@@ -677,11 +680,11 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Requis';
+                        return l10n.adminFieldRequired;
                       }
                       final qty = int.tryParse(value);
                       if (qty == null || qty < 1) {
-                        return 'Invalide';
+                        return l10n.quantityInvalidError;
                       }
                       return null;
                     },
@@ -694,8 +697,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Currency selector
             DropdownButtonFormField<Currency>(
               initialValue: _selectedCurrency,
-              decoration: const InputDecoration(
-                labelText: 'Devise',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceCurrencyLabel,
                 border: OutlineInputBorder(),
               ),
               isExpanded: true,
@@ -776,8 +779,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Country
             DropdownButtonFormField<Country>(
               initialValue: _selectedCountry,
-              decoration: const InputDecoration(
-                labelText: 'Pays',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceCountryLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.public),
               ),
@@ -855,9 +858,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             // Location
             TextFormField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Ville/Adresse (optionnel)',
-                hintText: 'Ex: Niamey',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceCityLabel,
+                hintText: l10n.marketplaceCityHint,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_on_outlined),
               ),
@@ -888,7 +891,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                           ),
                         )
                         : Text(
-                          _isEditing ? 'Enregistrer' : 'Publier',
+                          _isEditing ? l10n.save : l10n.publish,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

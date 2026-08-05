@@ -21,6 +21,8 @@ class MyOrdersScreen extends ConsumerStatefulWidget {
 
 class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   @override
@@ -41,19 +43,19 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Mes commandes')),
+        appBar: AppBar(title: Text(l10n.marketplaceMyOrders)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes commandes'),
+        title: Text(l10n.marketplaceMyOrders),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Mes achats'),
-            Tab(text: 'Mes ventes'),
+          tabs: [
+            Tab(text: l10n.myPurchasesTabLabel),
+            Tab(text: l10n.mySalesTabLabel),
           ],
         ),
       ),
@@ -526,6 +528,8 @@ class _OrderActions extends ConsumerStatefulWidget {
 }
 
 class _OrderActionsState extends ConsumerState<_OrderActions> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
 
   Future<void> _processPayment() async {
@@ -652,11 +656,11 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Confirmer'),
+            child: Text(l10n.confirm),
           ),
         ],
       ),
