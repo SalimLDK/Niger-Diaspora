@@ -19,19 +19,28 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
 dernière exception de `reglages_sans_doublon_test.dart`) et l'en-tête de
 `notifications_screen.dart` a gagné un menu ⋯. Le rendu change, `analyze` ne
-le voit pas :
+le voit pas.
 
-- [ ] **`/notifications/settings` : le pictogramme 42 en dégradé apparaît**
-  sur chaque ligne (l'écran n'en avait aucun) et la carte perd son ombre pour
-  le rayon commun. Vérifier que les 11 lignes tiennent sans débordement à
-  `font_scale` 1.1, en clair **et en nocturne**.
-- [ ] **Interrupteur maître coupé** : les catégories doivent devenir inertes
-  *et* estompées à 50 % — c'est désormais le kit qui le fait (`onChanged:
-  null`), plus l'`IgnorePointer` + `AnimatedOpacity` de l'écran. Vérifier
-  qu'un tap sur une bascule éteinte ne change rien.
-- [ ] **Ligne « De 22:00 à 07:00 »** : elle est devenue une `DesignSettingsTile`
-  (pictogramme + chevron). Vérifier que le tap enchaîne bien les deux
-  sélecteurs d'heure et que l'annulation du second n'enregistre rien.
+**Passe appareil du 2026-08-05 (14:36 → 14:41 PC), SM A515F, APK debug
+`14b0343` installé par `adb install -r` — mise à jour en place, session et
+données préservées. Thème système en NOCTURNE.**
+
+- [x] **`/notifications/settings` : le pictogramme 42 en dégradé apparaît** sur
+  les onze lignes, un seul filet entre chaque, aucun débordement. Vérifié **en
+  nocturne** : pictogrammes, libellés, sous-titres et étiquettes de section
+  tous lisibles. ⚠ Reste à repasser **en thème clair** — la passe est tombée
+  pendant que le téléphone était en sombre.
+- [x] **Interrupteur maître coupé** : les sept catégories s'estompent bien à
+  50 % (pictogrammes gris, bascules éteintes). **Un tap sur la bascule
+  « Messages » éteinte n'a rien changé** — elle était encore active après
+  restauration du maître, et les six autres avec elle. C'est le kit qui le
+  fait via `onChanged: null` ; l'`IgnorePointer` + `AnimatedOpacity` de l'écran
+  a disparu sans régression. (État remis tel qu'il était : maître actif, sept
+  catégories actives.)
+- [x] **Ligne « De 22:00 à 08:00 »** : rendue en `DesignSettingsTile`,
+  pictogramme horloge + chevron, alignée sur les autres lignes de la carte.
+- [ ] Reste à vérifier au doigt : le **tap** sur cette ligne enchaîne les deux
+  sélecteurs d'heure, et l'annulation du second n'enregistre rien.
 - [x] **🔴 Trouvé sur appareil (2026-08-05, 06:20, SM A515F, APK `2fe9240`) —
   le titre « Notifications » se coupait au milieu du mot.** L'en-tête affichait
   « Notific / ations » sur deux lignes : la pastille « Tout marquer comme lu »
@@ -39,12 +48,16 @@ le voit pas :
   restants dans son `Expanded`. Vu au premier coup d'œil, jamais relevé
   jusqu'ici. **Corrigé** en repliant les deux actions secondaires dans le ⋯
   (forme 13c) — le titre reprend toute la largeur.
-- [ ] **Re-vérifier l'en-tête après build** : « Notifications » sur **une
-  seule ligne**, et le sous-titre « 1 non lue » juste dessous.
-- [ ] **`/notifications` : les trois entrées du menu ⋯.** « Tout supprimer »
-  était écrit mais **injoignable** (`buildOverflowMenu` n'était appelé nulle
-  part). Vérifier les trois entrées, que « Tout marquer comme lu » est **grisé**
-  quand il n'y a aucune non-lue, et que la suppression demande confirmation.
+- [x] **Correctif confirmé sur appareil** : « Notifications » tient sur **une
+  seule ligne**, sous-titre « 1 non lue » juste dessous, pastille ⋯ à droite.
+- [x] **`/notifications` : les trois entrées du menu ⋯ s'affichent** — « Tout
+  marquer comme lu », « Réglages », « Tout supprimer » en rouge. « Tout
+  supprimer » était écrit mais **injoignable** (`buildOverflowMenu` n'était
+  appelé nulle part) ; il s'ouvre désormais.
+- [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
+  aucune non-lue (le compte de test en avait une), et le dialogue de
+  confirmation de « Tout supprimer » (non déclenché — action destructive sur
+  les vraies données du compte).
 - [ ] **`/notifications/:id` : le sur-titre est en français.** Il affichait le
   nom Dart de l'énumération (« GROUPJOINREQUEST »). Ouvrir un détail de chaque
   famille (message, groupe, événement, ami, commande) et lire l'étiquette.
