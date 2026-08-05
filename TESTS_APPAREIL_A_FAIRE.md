@@ -377,10 +377,38 @@ les conditions exactes d'origine (VPN actif comme réseau par défaut).
       conditionne `/admin/embassies/create` à `user.isAdmin`
       (`app_router.dart:193`), et aucune entrée « Administration » n'existe dans
       les Réglages. À reprendre avec un compte administrateur.
-- [ ] **Lien profond reçu app déjà lancée** (`onNewIntent` + `singleTask`) — sans
-      objet pour l'instant : le passage à `launchMode="singleTask"` est toujours
-      **non committé**, donc absent de l'APK installé. Rien à prouver tant qu'un
-      build ne l'embarque pas.
+- [x] **Lien profond reçu app déjà lancée — RÉSOLU et vérifié le 2026-08-04 à
+      22:45.** `singleTask` ne corrigeait que la moitié du problème.
+
+      Instrumentation ajoutée pour trancher (et **conservée** : sans elle on ne
+      peut pas distinguer « `onNewIntent` n'a pas été appelé » de « la route n'a
+      pas été poussée », et le diagnostic repart de zéro — déjà perdu une fois).
+      Elle a montré que `onNewIntent` **était bien appelé** avec la bonne URL,
+      mais qu'aucune navigation GoRouter ne suivait : le
+      `getNavigationChannel().pushRouteInformation(...)` de l'embedding
+      n'aboutit pas dans ce montage, à cause du moteur mis en cache qu'impose
+      `audio_service`.
+
+      Correctif : la route passe désormais par un **canal explicite**
+      (`diaspo_niger/deep_link`), reçu côté Dart au moment où le routeur est
+      créé (`_bindNativeDeepLinks`), qui appelle `router.go()`. Journal complet
+      vérifié sur appareil :
+
+      ```
+      DiaspoDeepLink: onNewIntent action=…VIEW data=…/feed/0d9abb43-…
+      DiaspoDeepLink: route poussee vers Dart : /feed/0d9abb43-…
+      flutter  : DeepLink: route reçue à chaud → /feed/0d9abb43-…
+      GoRouter : going to /feed/0d9abb43-…
+      ```
+
+      Capture à l'appui : la bonne publication s'affiche, **sans repasser par le
+      splash**.
+- [ ] ⚠ **`am start` ne prouve pas le clic réel.** Android répond « Activity not
+      started, its current task has been brought to the front » — le cas a bien
+      été exercé, mais un vrai clic vient d'une autre app (Chrome, Messages)
+      avec sa propre tâche. À refaire au doigt depuis Chrome pour être complet.
+- [ ] Même chemin **déconnecté** : la route doit être mise de côté puis rejouée
+      après connexion (étapes 0 et 10 du `redirect`) — non exercé.
 - [ ] **Brouillon de plus de 2000 caractères** (état « dépassement » restauré).
 - [ ] **Sauvegarde E2EE en écriture** — à faire par Salim, avec la passphrase
       notée (cf. plus haut).

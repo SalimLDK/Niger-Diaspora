@@ -27,6 +27,15 @@ public class MainActivity extends AudioServiceFragmentActivity {
     /** Canal appelé par SharedMediaService une fois le partage présenté. */
     private static final String SHARE_INTENT_CHANNEL = "diaspo_niger/share_intent";
 
+    /** Étiquette logcat du routage des liens profonds. */
+    private static final String DEEP_LINK_TAG = "DiaspoDeepLink";
+
+    /** Canal par lequel une route reçue à chaud est remise au routeur Dart. */
+    private static final String DEEP_LINK_CHANNEL = "diaspo_niger/deep_link";
+
+    /** Retenu pour pouvoir émettre depuis `onNewIntent`. */
+    private MethodChannel deepLinkChannel;
+
     /**
      * Moteur courant, retenu pour `onNewIntent`. Réaffecté à chaque
      * rattachement — le moteur étant mis en cache par audio_service, il survit
@@ -59,6 +68,10 @@ public class MainActivity extends AudioServiceFragmentActivity {
                                 result.notImplemented();
                             }
                         });
+
+        deepLinkChannel =
+                new MethodChannel(
+                        flutterEngine.getDartExecutor().getBinaryMessenger(), DEEP_LINK_CHANNEL);
     }
 
     /**
@@ -120,6 +133,11 @@ public class MainActivity extends AudioServiceFragmentActivity {
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
+        // Trace conservée volontairement : sans elle, on ne peut pas distinguer
+        // « onNewIntent n'a pas été appelé » de « la route n'a pas été poussée »,
+        // et le diagnostic repart de zéro à chaque fois (déjà perdu une fois).
+        android.util.Log.i(
+                DEEP_LINK_TAG, "onNewIntent action=" + intent.getAction() + " data=" + intent.getDataString());
         pushRouteFromIntent(intent);
     }
 
@@ -137,7 +155,19 @@ public class MainActivity extends AudioServiceFragmentActivity {
         if (data.getQuery() != null) route.append('?').append(data.getQuery());
         if (data.getFragment() != null) route.append('#').append(data.getFragment());
 
-        if (flutterEngine == null) return;
-        flutterEngine.getNavigationChannel().pushRouteInformation(route.toString());
+        // On remet la route au routeur Dart par un canal explicite, et NON par
+        // `getNavigationChannel().pushRouteInformation(...)`.
+        //
+        // Vérifié sur appareil le 2026-08-04 : avec `singleTask`, `onNewIntent`
+        // est bien appelé et `pushRouteInformation` bien exécuté — mais GoRouter
+        // ne journalise aucune navigation. Le canal de navigation de l'embedding
+        // n'aboutit pas dans ce montage (moteur mis en cache par audio_service).
+        // Le canal explicite, lui, atterrit dans du code qu'on contrôle.
+        if (deepLinkChannel == null) {
+            android.util.Log.w(DEEP_LINK_TAG, "canal absent, route perdue : " + route);
+            return;
+        }
+        android.util.Log.i(DEEP_LINK_TAG, "route poussee vers Dart : " + route);
+        deepLinkChannel.invokeMethod("onDeepLink", route.toString());
     }
 }

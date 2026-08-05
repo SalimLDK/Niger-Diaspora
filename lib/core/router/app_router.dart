@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../design_v2/design_v2_gallery.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -1048,8 +1049,45 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 
+  _bindNativeDeepLinks(_cachedRouter!);
+
   return _cachedRouter!;
 });
+
+/// Canal par lequel `MainActivity.onNewIntent` remet une route reçue alors que
+/// l'app tournait déjà.
+const MethodChannel _deepLinkChannel = MethodChannel('diaspo_niger/deep_link');
+
+bool _deepLinkChannelBound = false;
+
+/// Branche la réception des liens profonds arrivant **à chaud**.
+///
+/// Le chemin normal de Flutter (`pushRouteInformation` sur le canal de
+/// navigation de l'embedding) ne fonctionne pas ici : vérifié sur appareil le
+/// 2026-08-04, `onNewIntent` est bien appelé mais GoRouter ne journalise
+/// aucune navigation — le moteur mis en cache qu'impose `audio_service` casse
+/// ce relais. Le natif nous passe donc la route par un canal explicite, et on
+/// navigue nous-mêmes.
+///
+/// Le démarrage à froid n'emprunte PAS ce chemin : l'URI y arrive comme route
+/// initiale, déjà géré par le `redirect` (mise de côté étapes 0 et 10).
+void _bindNativeDeepLinks(GoRouter router) {
+  if (_deepLinkChannelBound) return;
+  _deepLinkChannelBound = true;
+
+  _deepLinkChannel.setMethodCallHandler((call) async {
+    if (call.method != 'onDeepLink') return null;
+    final route = call.arguments as String?;
+    if (route == null || route.isEmpty) return null;
+
+    debugPrint('DeepLink: route reçue à chaud → $route');
+    // `go` et non `push` : on remplace la destination courante, comme le ferait
+    // l'ouverture du lien depuis zéro. Si l'utilisateur n'est pas encore
+    // authentifié, le `redirect` la met de côté et la rejouera (étape 10).
+    router.go(route);
+    return null;
+  });
+}
 
 class _SimpleNotifier extends ChangeNotifier {
   bool _pending = false;
