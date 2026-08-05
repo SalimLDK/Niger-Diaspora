@@ -360,10 +360,10 @@ class _EmbassyAdminCard extends ConsumerWidget {
     return Icons.hourglass_empty_rounded;
   }
 
-  String _getStatusLabel() {
-    if (embassy.isSuspended) return 'Suspendue';
-    if (embassy.isVerified) return 'Verifiee';
-    return 'En attente';
+  String _getStatusLabel(AppLocalizations l10n) {
+    if (embassy.isSuspended) return l10n.adminSuspendedStatus;
+    if (embassy.isVerified) return l10n.adminVerifiedStatus;
+    return l10n.adminStatusPending;
   }
 
   Future<void> _approve(WidgetRef ref, BuildContext context) async {
@@ -418,6 +418,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
   }
 
   Future<void> _reject(WidgetRef ref, BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final reasonController = TextEditingController();
     await showDialog(
       context: context,
@@ -426,11 +427,11 @@ class _EmbassyAdminCard extends ConsumerWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text('Rejeter la demande'),
+            title: Text(l10n.adminRejectRequest),
             content: TextField(
               controller: reasonController,
               decoration: InputDecoration(
-                labelText: 'Raison du rejet',
+                labelText: l10n.adminRejectReason,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -440,7 +441,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler'),
+                child: Text(l10n.adminCancelAction),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -485,9 +486,9 @@ class _EmbassyAdminCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Rejeter',
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  l10n.adminReject,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ],
@@ -573,6 +574,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _getStatusColor();
 
     return Container(
@@ -623,7 +625,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 border: Border.all(color: statusColor.withAlpha(50)),
               ),
               child: Text(
-                _getStatusLabel(),
+                _getStatusLabel(l10n),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -680,11 +682,12 @@ class _EmbassyAdminCard extends ConsumerWidget {
           const Divider(),
           const SizedBox(height: 8),
           // Details
-          _buildDetailRow('Type', embassy.type),
+          _buildDetailRow(l10n.typeFieldLabel, embassy.type),
           if (embassy.phone != null)
-            _buildDetailRow('Telephone', embassy.phone!),
-          if (embassy.email != null) _buildDetailRow('Email', embassy.email!),
-          _buildDetailRow('Adresse', embassy.address),
+            _buildDetailRow(l10n.phone, embassy.phone!),
+          if (embassy.email != null)
+            _buildDetailRow(l10n.adminEmailLabel, embassy.email!),
+          _buildDetailRow(l10n.address, embassy.address),
           const SizedBox(height: 16),
           // Actions
           Row(
@@ -692,14 +695,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
             children: [
               if (embassy.isSuspended) ...[
                 _buildActionButton(
-                  label: 'Reactiver',
+                  label: l10n.adminReactivate,
                   icon: const Icon(Icons.replay_rounded, size: 18),
                   color: AdminColors.statusGreen,
                   onPressed: () => _reactivate(ref, context),
                 ),
               ] else if (!embassy.isVerified) ...[
                 _buildActionButton(
-                  label: 'Rejeter',
+                  label: l10n.adminReject,
                   icon: const AppIcon(AppIcon.close, size: 18),
                   color: AdminColors.statusRed,
                   isOutlined: true,
@@ -707,14 +710,14 @@ class _EmbassyAdminCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 _buildActionButton(
-                  label: 'Approuver',
+                  label: l10n.adminApprove,
                   icon: const AppIcon(AppIcon.check, size: 18),
                   color: AdminColors.statusGreen,
                   onPressed: () => _approve(ref, context),
                 ),
               ] else ...[
                 _buildActionButton(
-                  label: 'Suspendre',
+                  label: l10n.adminSuspend,
                   icon: const Icon(Icons.block_rounded, size: 18),
                   color: AdminColors.statusAmber,
                   isOutlined: true,
