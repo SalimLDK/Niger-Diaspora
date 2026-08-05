@@ -43,7 +43,7 @@ Trois niveaux, à ne pas confondre :
 | 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | ✅ | `groups/…/groups_screen.dart` |
-| 9d | Groupe — fiche | ✅ | ✅ | — | `groups/…/group_detail_screen.dart` |
+| 9d | Groupe — fiche | ✅ | ✅ | ✅ | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
 
 ---
