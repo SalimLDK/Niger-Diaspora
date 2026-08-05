@@ -90,11 +90,16 @@ la règle Storage manquante qui le déclenche à tort.
       (générateur de passphrase, jauge de force, bouton inactif tant que la
       passphrase est faible) — donc la **lecture** du chemin `key_backups/`
       aboutit désormais.
-- [ ] ⚠ **La branche écriture n'est pas testée** : `uploadBackup` n'a pas été
-      exercé. Créer une sauvegarde génère une passphrase que **Salim seul** doit
-      consigner — sans elle, un futur appareil neuf verrait `needsRestore`, ne
-      générerait aucune clé, et resterait bloqué. À faire par lui, en notant la
-      passphrase. C'est le dernier point qui valide la règle en écriture.
+- [x] **Branche écriture validée le 2026-08-04 à 18:21** — sauvegarde créée par
+      Salim (la passphrase doit être consignée par un humain : une passphrase
+      perdue laisse un futur appareil en `needsRestore` sans pouvoir restaurer,
+      donc pire que pas de sauvegarde). L'écran affiche **« Sauvegarde active »**,
+      « Créée le : 4/8/2026 à 18:21 », « Appareil : android Device », plus la
+      section « Restaurer sur cet appareil ». `uploadBackup` **et** la lecture
+      des métadonnées fonctionnent : la règle `key_backups/` est donc prouvée en
+      **lecture et en écriture**, de bout en bout.
+- [ ] Cosmétique relevé au passage : le libellé d'appareil est « android
+      Device », peu lisible pour un utilisateur.
 - [ ] Sur un **second appareil** : vérifier que la restauration fonctionne
       (`needsRestore` + saisie de la passphrase).
 - [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
@@ -262,16 +267,30 @@ Le test du repository a été **vérifié rouge sans le correctif** (l'exception
 traverse le repository), il n'est donc pas vide de sens. `flutter analyze`
 propre, 17/17 sur `test/features/feed/`.
 
-- [ ] ⚠ **Pas encore vu sur appareil** : le correctif est dans le code, pas dans
-      l'APK installé. Il faut réinstaller pour le vérifier — **et une
-      réinstallation vide les données**, donc elle détruirait l'identité Signal
-      générée aujourd'hui, dont **aucune sauvegarde n'existe encore**. Créer la
-      sauvegarde E2EE **avant** de réinstaller.
-- [ ] Après réinstallation : rejouer
-      `am start -a VIEW -d https://diasponiger.web.app/feed/00000000-…-000000000999`
-      et vérifier l'écran « Publication introuvable ».
-- [ ] Rejouer aussi avec une publication **réellement supprimée** (pas seulement
-      un id inventé) : c'est le cas que rencontrera un vrai utilisateur.
+**✅ Vérifié sur appareil le 2026-08-04 à 17:50**, APK debug réinstallé
+(`lastUpdateTime=17:48:20`) :
+
+- [x] `am start -a VIEW -d …/feed/00000000-…-000000000999` sur app tuée →
+      l'écran affiche **« Publication introuvable »**, « Elle a peut-être été
+      supprimée par son auteur, ou le lien est incorrect. » et le bouton
+      « Retour au fil ». **Plus aucun squelette, et plus de champ de
+      commentaire.** Rendu correct en thème nocturne.
+- [x] **Non-régression, une vraie publication** : le même chemin avec
+      `d8888ee4-…` (« In kwana », id relevé via `supabase db query --linked`)
+      charge la publication en entier — carte, barre d'engagement, commentaire
+      « Cool », et le champ de commentaire bien présent. Aucune
+      `PostgrestException`.
+- [x] Le bouton fonctionne. ⚠ Il menait à `/home` alors qu'il dit « Retour au
+      fil » : corrigé vers `/feed` **après** la vérification appareil, donc
+      cette ligne-là n'est couverte que par `analyze` + les tests. Pas de
+      seconde réinstallation pour si peu (chacune vide les données).
+- [ ] Rejouer avec une publication **réellement supprimée** (pas seulement un id
+      inventé) : c'est le cas que rencontrera un vrai utilisateur.
+
+⚠️ **La réinstallation n'a PAS vidé les données cette fois** : session
+conservée, ni `/consent` ni assistant de profil. Le piège documenté n'est donc
+pas systématique — mais l'identité Signal générée dans la journée n'a toujours
+**aucune sauvegarde**, et la passphrase reste à créer par Salim.
 
 ### ⚠ Empreinte mémoire à surveiller
 
@@ -951,12 +970,54 @@ validées une par une avec Salim avant branchement.
   qu'un échec affiche bien une erreur (l'écran affichait « Appareil renommé »
   quoi qu'il arrive). ⚠ La migration `20260720120200` doit être appliquée au
   distant, sinon le repli garde la liste mais ignore le nom.
-- [ ] **20b — « CET APPAREIL » absent** : sur le SM A515F, aucun des deux
-  appareils listés n'est reconnu comme l'appareil courant (`getCurrentDevice`
-  renvoie null ou un id absent de la liste). Probablement les `adb install -r`
-  qui vident les données sans rejouer l'enregistrement E2EE — à confirmer sur
-  une installation qui n'a pas été écrasée. Un bandeau d'avertissement le
-  signale en attendant.
+- [x] **20b — « CET APPAREIL » : RÉSOLU, vérifié le 2026-08-04 à 18:22.** La
+  liste affiche maintenant **3 appareils sur 5**, et le courant porte bien la
+  pastille verte « CET APPAREIL » avec son empreinte et le bouton « Renommer ».
+  Le bandeau d'avertissement a disparu.
+
+  ⚠ **La cause n'était pas celle qu'on croyait.** Ce n'étaient pas les
+  `adb install -r` : c'était la règle Storage `key_backups/` manquante, qui
+  faisait sauter la génération des clés (voir plus haut). Sans génération,
+  aucun enregistrement E2EE n'avait lieu, donc aucun appareil courant. La
+  règle déployée ce matin a débloqué la chaîne, et l'entrée de cet appareil a
+  été créée dans la foulée — d'où le passage de 2 à 3 appareils.
+**✅ Accumulation d'appareils corrigée le 2026-08-04.** L'identifiant était un
+`Uuid().v4()` rangé dans le stockage sécurisé : perdu au moindre vidage de
+données, donc chaque régénération de clés créait une **nouvelle** ligne dans
+`e2ee_devices`. Il dérive désormais du **SSAID Android**, propre au triplet
+(clé de signature, utilisateur, appareil) depuis Android 8 — il survit au
+vidage de données et à une réinstallation signée de la même clé. Lu par une
+méthode ajoutée au canal natif déjà existant, donc **sans nouvelle
+dépendance**. Le SSAID n'est jamais transmis : on publie un condensé SHA-256
+salé par l'identifiant de compte, de sorte que deux comptes sur le même
+téléphone restent incomparables côté serveur. Couvert par
+`test/core/services/stable_device_id_test.dart` (4 cas).
+
+- [ ] **Pas vérifiable sur cet appareil sans repartir de zéro** : les clés
+  locales existent, donc `initializeKeys` sort tôt et l'identifiant en place
+  (aléatoire) est conservé — c'est voulu, aucune session n'est cassée. Pour
+  prouver le correctif il faut un compte ou un appareil neuf : générer des
+  clés, vider les données, régénérer, et vérifier qu'**aucune 4ᵉ ligne**
+  n'apparaît.
+- [ ] Les 3 entrées actuelles restent : à nettoyer à la main via « Révoquer ».
+
+### 🔴 Le plafond de 5 appareils n'est appliqué nulle part
+
+Vérifié sur la base distante (`pg_get_functiondef`) : `e2ee_add_active_device`
+se contente d'un `ARRAY(SELECT DISTINCT unnest(active_devices || ARRAY[...]))`,
+**sans aucun contrôle de nombre**. Et le seul test de plafond côté client vit
+dans `DeviceSyncService.registerCurrentDevice`, qui **n'est pas sur le chemin
+vivant** — la publication réelle passe par
+`KeyManagerService._publishKeysToSupabase`, qui fait l'upsert et appelle la RPC
+directement.
+
+Donc « 3 appareils sur 5 » et « au-delà de 5, il faudra en révoquer un » sont
+des promesses que le backend ne tient pas : la liste peut croître sans limite,
+et chaque message destiné au compte doit être chiffré pour **chaque** entrée.
+
+- [ ] **Décision en attente de Salim** : faire appliquer le plafond par la RPC
+  (modifie une fonction déployée, donc production) et brancher le parcours
+  « révoquer un appareil », ou retirer la promesse de l'interface.
 - [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
   `notification_settings_screen.dart`) : la ligne « Notifications » de
   Réglages → Application ouvrait une feuille modale doublant l'écran ; elle
@@ -2240,6 +2301,71 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 - [ ] **Étape 3/4 « Choisissez-en au moins deux »** : le bouton « Suivant »
   reste actif et laisse passer avec « Aucun sélectionné ». Soit la contrainte
   est réelle et il faut la faire respecter, soit la copie est fausse.
+
+---
+
+## Carte — délai d'affichage des membres autour (2026-08-04)
+
+`map_screen.dart` : trois changements qui ne se voient que sur un vrai GPS et
+un vrai cache d'images, `flutter analyze` n'en dit rien.
+
+- [ ] **Ouverture à froid de la carte** : la dernière position connue doit
+  peupler la carte **tout de suite** (marqueur rouge + liste des membres),
+  sans attendre le point GPS frais. Mesurer le délai entre le tap sur
+  l'onglet Carte et le premier pin visible — avant, le spinner tenait 3 à
+  15 s. Refaire l'essai après `adb shell am force-stop` pour être sûr que
+  le cache de position est bien froid.
+- [ ] **Première ouverture après installation** (aucune position connue) :
+  vérifier que le spinner reste puis cède la place à la carte normale, et
+  **pas** au bandeau « accès restreint par réciprocité ».
+- [ ] **GPS coupé pendant que la carte est ouverte** : le bandeau de
+  restriction ne doit apparaître que si aucune position n'a jamais été
+  obtenue ; sinon la carte garde la dernière position et continue le suivi.
+- [ ] **Pins générés en parallèle** : avec plusieurs membres autour et le
+  cache d'avatars vidé (réinstallation), tous les pins doivent apparaître
+  d'un coup après ~3 s max, pas un par un.
+
+- [ ] **Accueil, section « membres autour »** (même correctif que la carte,
+  `home_screen.dart`) : au lancement à froid, la section doit se remplir dès
+  la dernière position connue, sans attendre le point GPS. Et si le GPS
+  n'aboutit pas alors qu'une position connue existait, **aucun** message
+  d'erreur de localisation ne doit s'afficher.
+
+### Temps réel des positions (nécessite **deux** comptes)
+
+Ces points ne se vérifient qu'avec deux téléphones (ou un téléphone + un
+compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
+`location_updated_at` de la ligne `users`).
+
+- [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
+  pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
+  `users_location_updates` (`profile_supabase_datasource.dart`).
+- [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
+  disparaît immédiatement de la carte de A (et non au sondage suivant).
+- [ ] **Position publiée hors de l'écran carte** : A ouvre la carte, B reste
+  sur l'accueil ou les messages et se déplace — B doit quand même bouger sur
+  la carte de A (`LocationPublisherService`, démarré depuis `main.dart`).
+- [ ] **Membre immobile toujours visible** : B ne bouge plus du tout pendant
+  10 minutes, app ouverte. Il doit rester sur la carte de A (battement de
+  cœur de 2 min qui réécrit `location_updated_at`), alors qu'avant il
+  disparaissait au bout de 5 minutes.
+- [ ] **Retour d'arrière-plan** : A met l'app en arrière-plan puis revient —
+  le canal temps réel doit se reprendre (vérifier qu'un déplacement de B est
+  de nouveau vu tout de suite, et pas seulement au sondage).
+- [ ] **Coupure du réglage** : A désactive « Membres à proximité » →
+  l'app cesse d'écrire sa position (vérifier que `location_updated_at` de A
+  ne bouge plus dans Supabase).
+- [ ] ⛔ **Suivi en arrière-plan → Supabase** : le service de fond écrivait
+  dans Firestore, la carte lit Supabase — ses mises à jour n'arrivaient donc
+  jamais. Activer le suivi en arrière-plan, fermer l'app, se déplacer, et
+  vérifier dans Supabase que `users.latitude` / `location_updated_at` de A
+  bougent bien. Surveiller aussi logcat : `Background Location: Supabase
+  indisponible` signale que l'isolate n'a pas pu initialiser son client (le
+  `.env` n'est peut-être pas lisible depuis l'isolate d'arrière-plan).
+- [ ] **Pas de double session Supabase** : après un tour de suivi en fond,
+  vérifier que la session du premier plan tient toujours (aucun 401 dans
+  logcat, les messages arrivent encore). L'isolate utilise une clé de session
+  distincte (`supabase.background.session`) précisément pour ça.
 
 ---
 

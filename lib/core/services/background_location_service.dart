@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../firebase_options.dart';
+import '../../features/profile/data/datasources/profile_supabase_datasource.dart';
+import '../constants/app_config.dart';
 
 /// Service de localisation en arrière-plan.
 ///
@@ -133,6 +136,50 @@ class BackgroundLocationService {
     return true;
   }
 
+  /// Prépare un client Supabase **propre à l'isolate d'arrière-plan**.
+  ///
+  /// Le service écrivait la position dans Firestore (`users/{uid}`) alors que
+  /// la carte lit la table Supabase `users` : ces mises à jour n'atteignaient
+  /// donc jamais l'écran, et un membre disparaissait de la carte des autres
+  /// cinq minutes après avoir quitté l'app. Écrire au bon endroit suppose un
+  /// client Supabase ici, car `Supabase.instance` est un singleton *par
+  /// isolate* — celui de l'app principale n'existe pas dans celui-ci.
+  ///
+  /// La session est rangée sous une clé distincte de celle de l'app : les deux
+  /// isolates écriraient sinon dans le même emplacement `SharedPreferences`, et
+  /// l'échange de jeton (magic link à usage unique) se saboterait lui-même.
+  static Future<void> _initializeSupabaseForIsolate() async {
+    if (_supabaseReady) return;
+    try {
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (_) {
+        // Build de production : la configuration vient de --dart-define.
+      }
+      if (!AppConfig.isSupabaseConfigured) {
+        debugPrint(
+          'BackgroundLocationService: Supabase non configuré dans cet isolate, '
+          'la position ne sera pas publiée.',
+        );
+        return;
+      }
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        publishableKey: AppConfig.supabaseAnonKey,
+        authOptions: FlutterAuthClientOptions(
+          localStorage: SharedPreferencesLocalStorage(
+            persistSessionKey: 'supabase.background.session',
+          ),
+        ),
+      );
+      _supabaseReady = true;
+    } catch (e) {
+      debugPrint('BackgroundLocationService: init Supabase échouée ($e)');
+    }
+  }
+
+  static bool _supabaseReady = false;
+
   @pragma('vm:entry-point')
   static void onStart(ServiceInstance service) async {
     // Only available for flutter 3.0.0 and later
@@ -145,6 +192,8 @@ class BackgroundLocationService {
     } catch (e) {
       // Firebase might be already initialized
     }
+
+    await _initializeSupabaseForIsolate();
 
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
@@ -239,16 +288,28 @@ class BackgroundLocationService {
             // 2. Get current user ID
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .update({
-                    'location': GeoPoint(position.latitude, position.longitude),
-                    'latitude': position.latitude,
-                    'longitude': position.longitude,
-                    'lastSeen': FieldValue.serverTimestamp(),
-                    'locationUpdatedAt': FieldValue.serverTimestamp(),
-                  });
+              // Écriture vers Supabase, la base que lit la carte. Passait
+              // auparavant par Firestore : le suivi tournait, consommait de la
+              // batterie, et personne ne voyait jamais le résultat.
+              // Nouvelle tentative à chaque tour : un échec au démarrage de
+              // l'isolate (réseau absent, .env pas encore lu) ne doit pas
+              // condamner le service pour toute sa durée de vie.
+              if (!_supabaseReady) await _initializeSupabaseForIsolate();
+              if (!_supabaseReady) {
+                debugPrint(
+                  'Background Location: Supabase indisponible, position non publiée.',
+                );
+                _scheduleNextLocationUpdate(
+                  service,
+                  flutterLocalNotificationsPlugin,
+                );
+                return;
+              }
+              await ProfileSupabaseDataSource().updateLocation(
+                user.uid,
+                position.latitude,
+                position.longitude,
+              );
 
               debugPrint(
                 'Background Location Updated: ${position.latitude}, ${position.longitude}',

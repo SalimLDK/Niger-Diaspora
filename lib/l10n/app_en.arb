@@ -6688,6 +6688,14 @@
   "myPostsEmpty": "You haven't published anything yet",
   "savedPostsTitle": "Saved posts",
   "savedPostsEmpty": "You haven't saved any posts yet",
+  "savedPostsCount": "{count, plural, =0{none saved} =1{1 saved} other{{count} saved}}",
+  "@savedPostsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "savedPostsCountLabel": "saved",
   "exploreFeed": "Explore the feed",
   "videos": "Videos",

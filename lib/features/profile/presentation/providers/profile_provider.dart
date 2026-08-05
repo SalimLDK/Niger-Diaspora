@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/location_publisher_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
 import '../../data/datasources/profile_supabase_datasource.dart';
@@ -235,6 +236,11 @@ class NearbyMembersEnabledNotifier extends StateNotifier<bool> {
     if (!value) {
       // Vider imm\u00e9diatement les profils \u00e0 proximit\u00e9 d\u00e9j\u00e0 charg\u00e9s
       _ref.read(nearbyProfilesNotifierProvider.notifier).clear();
+      // ... et cesser d'\u00e9mettre la sienne : le service tourne d\u00e9sormais
+      // pour toute l'app, il ne s'arr\u00eate plus en quittant l'\u00e9cran carte.
+      LocationPublisherService.instance.stop();
+    } else {
+      await LocationPublisherService.instance.start();
     }
   }
 

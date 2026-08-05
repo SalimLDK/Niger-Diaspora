@@ -19,6 +19,7 @@ import 'core/services/google_maps_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
+import 'core/services/location_publisher_service.dart';
 import 'core/services/online_status_service.dart';
 import 'core/services/encryption_service.dart';
 
@@ -148,6 +149,16 @@ Future<void> _initServicesSecondaires() async {
     await tenter(
       'localisation en arrière-plan',
       BackgroundLocationService().initialize,
+    );
+    // Publication de la position au premier plan, tous écrans confondus : sans
+    // elle, un membre n'émettait sa position que depuis l'écran carte et
+    // disparaissait de celle des autres au bout de cinq minutes.
+    // (Ajouté par Jules avant `runApp` ; différé ici comme les autres — rien
+    // au premier rendu n'en dépend, et quelques secondes de décalage sont sans
+    // effet sur une fenêtre de cinq minutes.)
+    await tenter(
+      'publication de position',
+      LocationPublisherService.instance.initialize,
     );
   }
 

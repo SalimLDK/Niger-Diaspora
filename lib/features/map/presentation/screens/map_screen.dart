@@ -65,6 +65,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Ordre de la liste des membres (§7e) : il était fixe et muet.
   _MemberSort _sort = _MemberSort.nearest;
 
+  /// Positions de la feuille des membres (fiche 7d).
+  static const List<double> _kSheetSnaps = [0.18, 0.45, 0.92];
+
+  /// Pilote la feuille depuis sa poignée. `DraggableScrollableSheet` ne
+  /// réagit qu'aux glissements passant par le `scrollController` de sa liste ;
+  /// la poignée et l'en-tête sont fixes, donc les attraper — le geste naturel —
+  /// ne faisait rien du tout. Ce contrôleur leur rend la main.
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+
   /// Mode « liste seule » (§7e) : consulter les membres proches sans
   /// charger la carte, utile en données réduites.
   bool _listOnly = false;
@@ -132,10 +142,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   // Stream et timer pour mise à jour automatique
   StreamSubscription<Position>? _positionStreamSubscription;
+
+  /// Flux temps réel des positions des autres membres. Le sondage périodique
+  /// ci-dessous n'est plus qu'un filet de sécurité (reconnexion, membre entré
+  /// dans le rayon sans avoir bougé lui-même, canal tombé sans bruit).
+  StreamSubscription<ProfileModel>? _memberUpdatesSubscription;
+
   Timer? _membersRefreshTimer;
   Timer? _uiRefreshTimer;
   static const int _membersRefreshIntervalSeconds =
-      45; // Rafraîchir les membres toutes les 45s
+      45; // Filet de sécurité derrière le temps réel
   static const int _distanceFilterMeters =
       50; // Mise à jour position tous les 50m
   static const int _uiRefreshIntervalSeconds =
@@ -175,11 +191,56 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // debugPrint('🗺️ MapScreen: dispose');
     WidgetsBinding.instance.removeObserver(this);
     _positionStreamSubscription?.cancel();
+    _memberUpdatesSubscription?.cancel();
     _membersRefreshTimer?.cancel();
     _uiRefreshTimer?.cancel();
     _updateMarkersDebounce?.cancel();
+    _sheetController.dispose();
     _controller.future.then((c) => c.dispose());
     super.dispose();
+  }
+
+  /// Glissement sur la poignée / l'en-tête de la feuille des membres.
+  void _onSheetDrag(DragUpdateDetails details) {
+    if (!_sheetController.isAttached) return;
+    final height = MediaQuery.of(context).size.height;
+    if (height == 0) return;
+    final next = (_sheetController.size - details.delta.dy / height).clamp(
+      _kSheetSnaps.first,
+      _kSheetSnaps.last,
+    );
+    _sheetController.jumpTo(next);
+  }
+
+  /// Accroche la feuille au cran le plus proche une fois le doigt relâché.
+  void _snapSheet() {
+    if (!_sheetController.isAttached) return;
+    final current = _sheetController.size;
+    var best = _kSheetSnaps.first;
+    for (final snap in _kSheetSnaps) {
+      if ((snap - current).abs() < (best - current).abs()) best = snap;
+    }
+    _sheetController.animateTo(
+      best,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  /// Tap sur la poignée : passe au cran suivant, et revient au plus bas une
+  /// fois en haut. Donne une porte de sortie à qui ne devine pas le geste.
+  void _cycleSheet() {
+    if (!_sheetController.isAttached) return;
+    final current = _sheetController.size;
+    final next = _kSheetSnaps.firstWhere(
+      (s) => s > current + 0.02,
+      orElse: () => _kSheetSnaps.first,
+    );
+    _sheetController.animateTo(
+      next,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -196,11 +257,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
         _uiRefreshTimer?.cancel();
         _uiRefreshTimer = null;
         _positionStreamSubscription?.pause();
+        // Le canal temps réel est fermé plutôt que mis en pause : une socket
+        // laissée ouverte en arrière-plan est coupée par le système sans
+        // prévenir, et le flux ne redémarre jamais.
+        _memberUpdatesSubscription?.cancel();
+        _memberUpdatesSubscription = null;
         break;
       case AppLifecycleState.resumed:
         // Reprendre les timers quand l'app revient au premier plan
         _positionStreamSubscription?.resume();
         if (_currentPosition != null) {
+          _startMemberUpdatesStream();
           _startMembersRefreshTimer();
           // Refresh immédiat des membres après reprise
           _loadNearbyMembers(
@@ -342,6 +409,31 @@ class _MapScreenState extends ConsumerState<MapScreen>
       _isReciprocityRestricted = false; // Reset restriction flag when retrying
     });
 
+    // Premier rendu immédiat : `getLastKnownPosition` répond tout de suite,
+    // là où un point GPS frais demande 3 à 15 s. Pendant ces secondes la carte
+    // restait voilée par le spinner, sans marqueur ni liste — c'était la
+    // principale raison pour laquelle « les membres autour » n'arrivaient pas
+    // instantanément. On affiche donc la dernière position connue, puis on
+    // laisse le point frais raffiner l'affichage en arrière-plan.
+    Position? lastKnown;
+    try {
+      lastKnown = await LocationService.instance.getLastKnownPosition();
+    } catch (_) {
+      lastKnown = null; // permission pas encore accordée : on continue
+    }
+    if (!mounted) return;
+    final known = lastKnown;
+    if (known != null) {
+      setState(() {
+        _currentPosition = LatLng(known.latitude, known.longitude);
+        _lastPositionUpdate = DateTime.now();
+        _isLoading = false;
+      });
+      // Sans `await` : le point GPS frais est demandé en parallèle.
+      unawaited(_loadNearbyMembers(known.latitude, known.longitude));
+      unawaited(_loadNearbyBusinesses(known.latitude, known.longitude));
+    }
+
     try {
       final position = await LocationService.instance.getCurrentPosition();
 
@@ -391,16 +483,27 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
       // Démarrer le stream de position et le timer de rafraîchissement
       _startPositionStream();
+      _startMemberUpdatesStream();
       _startMembersRefreshTimer();
     } catch (e) {
       // debugPrint('Erreur de localisation: $e');
       if (!mounted) return;
 
-      setState(() {
-        _isReciprocityRestricted = true;
-        _nearbyMembers = []; // Clear members due to reciprocity
-      });
-      _updateMarkers();
+      // Un GPS qui dépasse son `timeLimit` tombait ici et affichait « accès
+      // restreint par réciprocité » — un message faux. Si la dernière position
+      // connue a déjà servi à peupler la carte, on la garde et on continue le
+      // suivi ; la restriction n'est annoncée que faute de toute position.
+      if (_currentPosition == null) {
+        setState(() {
+          _isReciprocityRestricted = true;
+          _nearbyMembers = []; // Clear members due to reciprocity
+        });
+        _updateMarkers();
+      } else {
+        _startPositionStream();
+        _startMemberUpdatesStream();
+        _startMembersRefreshTimer();
+      }
 
       // if (e.toString().contains('Location services are disabled')) {
       //   _showLocationError(enableLocationMsg, settingsLabel);
@@ -418,7 +521,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
-  /// Démarre l'écoute du stream de position pour suivre les déplacements de l'utilisateur
+  /// Démarre l'écoute du stream de position pour suivre les déplacements de
+  /// l'utilisateur.
+  ///
+  /// Ce flux ne sert plus qu'à l'affichage local (marqueur « vous êtes ici »,
+  /// recentrage, distances). La publication vers Supabase est passée à
+  /// `LocationPublisherService`, qui tourne pour toute l'app : la garder ici
+  /// aussi ferait deux écritures pour un seul déplacement.
   void _startPositionStream() {
     // Annuler l'ancien stream s'il existe
     _positionStreamSubscription?.cancel();
@@ -443,20 +552,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           _lastPositionUpdate = DateTime.now();
         });
 
-        // Mettre à jour la localisation dans Firebase
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser != null) {
-          try {
-            final dataSource = ProfileSupabaseDataSource();
-            await dataSource.updateLocation(
-              currentUser.uid,
-              position.latitude,
-              position.longitude,
-            );
-          } catch (e) {
-            // Ignorer les erreurs de mise à jour silencieusement
-          }
-        }
+        // La publication vers Supabase est faite par
+        // `LocationPublisherService`, qui tourne pour toute l'app : l'écrire
+        // ici aussi ferait deux requêtes pour un seul déplacement.
 
         // Mettre à jour les marqueurs pour refléter la nouvelle position
         _updateMarkers();
@@ -466,6 +564,128 @@ class _MapScreenState extends ConsumerState<MapScreen>
         debugPrint('Position stream error: $error');
       },
     );
+  }
+
+  /// Abonne la carte au flux temps réel des positions des autres membres.
+  ///
+  /// C'est ce qui rend le déplacement d'un membre visible en moins d'une
+  /// seconde ; le sondage de [_membersRefreshIntervalSeconds] reste derrière
+  /// comme filet (canal tombé, membre entré dans le rayon parce que c'est
+  /// *nous* qui avons bougé, changement de rayon).
+  void _startMemberUpdatesStream() {
+    _memberUpdatesSubscription?.cancel();
+    _memberUpdatesSubscription = null;
+
+    if (!ref.read(nearbyMembersEnabledProvider)) return;
+
+    _memberUpdatesSubscription = ProfileSupabaseDataSource()
+        .watchProfileLocationUpdates()
+        .listen(
+          _onMemberLocationUpdate,
+          onError: (Object e, StackTrace stackTrace) {
+            // Le sondage périodique prend le relais : on trace sans casser
+            // l'écran.
+            LoggerService.w(
+              'MapScreen: flux temps réel des positions interrompu',
+              e,
+              stackTrace,
+            );
+          },
+        );
+  }
+
+  /// Applique une position reçue en temps réel à la liste et aux marqueurs.
+  void _onMemberLocationUpdate(ProfileModel member) {
+    if (!mounted) return;
+    if (!ref.read(nearbyMembersEnabledProvider)) return;
+
+    final index = _nearbyMembers.indexWhere((m) => m.id == member.id);
+    final keep =
+        member.isVisible &&
+        member.shareLocation &&
+        _isWithinSelectedRadius(member) &&
+        _isMemberDisplayable(member);
+
+    if (!keep) {
+      // Sorti du rayon, redevenu invisible ou trop ancien : on le retire tout
+      // de suite plutôt que d'attendre le prochain sondage.
+      if (index == -1) return;
+      setState(() {
+        _nearbyMembers = [..._nearbyMembers]..removeAt(index);
+        _lastMembersUpdate = DateTime.now();
+      });
+      _updateMarkers();
+      return;
+    }
+
+    setState(() {
+      final updated = [..._nearbyMembers];
+      if (index == -1) {
+        updated.add(member);
+      } else {
+        updated[index] = member;
+      }
+      _nearbyMembers = updated;
+      _lastMembersUpdate = DateTime.now();
+    });
+    _updateMarkers();
+  }
+
+  /// Le membre tombe-t-il dans le périmètre actuellement sélectionné ?
+  ///
+  /// Reprend la même boîte englobante que `getNearbyProfiles`, pour que le
+  /// temps réel n'affiche pas quelqu'un que le prochain sondage retirerait.
+  bool _isWithinSelectedRadius(ProfileModel member) {
+    final centre = _currentPosition;
+    if (centre == null) return false;
+    if (member.latitude == null || member.longitude == null) return false;
+
+    if (_selectedRadius == -1) return true; // monde entier
+    if (_selectedRadius == 0) {
+      // « Pays entier » : c'est le pays qui borne, pas la distance.
+      return _userCountry == null || member.currentCountry == _userCountry;
+    }
+
+    final delta = _selectedRadius / 111.0;
+    return (member.latitude! - centre.latitude).abs() <= delta &&
+        (member.longitude! - centre.longitude).abs() <= delta;
+  }
+
+  /// Un membre est-il affichable sur la carte ? (blocages, présence récente)
+  ///
+  /// Partagé par le sondage périodique et le flux temps réel : dupliquer ces
+  /// règles les ferait fatalement diverger, et un membre filtré d'un côté
+  /// réapparaîtrait de l'autre.
+  bool _isMemberDisplayable(ProfileModel p) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Se retirer de ses propres « membres autour » : la requête de proximité
+    // renvoie aussi l'utilisateur courant, qui se retrouvait listé à
+    // « 0 m · en ligne » et dessiné une seconde fois sur la carte, par-dessus
+    // son propre marqueur de position.
+    if (currentUserId != null && p.id == currentUserId) return false;
+
+    // Utilisateurs bloqués, dans les deux sens.
+    final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
+    if (blockedUsers.any((u) => u.id == p.id)) return false;
+    if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) {
+      return false;
+    }
+
+    // Présence — STRICT : seulement les membres réellement actifs.
+    // 1. En ligne depuis moins d'une heure
+    // 2. OU position mise à jour depuis moins de 5 minutes
+    final now = DateTime.now();
+    if (p.isOnline &&
+        p.lastSeen != null &&
+        now.difference(p.lastSeen!).inHours < 1) {
+      return true;
+    }
+    if (p.locationUpdatedAt != null &&
+        now.difference(p.locationUpdatedAt!).inMinutes < 5) {
+      return true;
+    }
+    return false;
   }
 
   /// Démarre un timer pour rafraîchir périodiquement la liste des membres à proximité
@@ -544,68 +764,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
       if (!mounted) return;
 
-      // Get blocked users (users I blocked + users who blocked me)
-      final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
-      final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-      // Filter by presence - STRICT: only show truly active users
-      // 1. Online within last 1 hour
-      // 2. OR Location updated within last 5 minutes
-      // Also filter out blocked users (both ways)
-      final now = DateTime.now();
-      final filteredMembers =
-          members.where((p) {
-            // Se retirer de ses propres « membres autour » : la requête de
-            // proximité renvoie aussi l'utilisateur courant, qui se retrouvait
-            // listé à « 0 m · en ligne » et dessiné une seconde fois sur la
-            // carte, par-dessus son propre marqueur de position.
-            if (currentUserId != null && p.id == currentUserId) return false;
-            // Skip blocked users (I blocked them)
-            if (blockedUserIds.contains(p.id)) return false;
-            // Skip users who blocked me
-            if (currentUserId != null &&
-                p.blockedByUserIds.contains(currentUserId)) {
-              return false;
-            }
-            // debugPrint('    📋 Checking ${p.displayName ?? p.id}:');
-            // debugPrint('      - isOnline: ${p.isOnline}');
-            // debugPrint('      - lastSeen: ${p.lastSeen}');
-            // debugPrint('      - locationUpdatedAt: ${p.locationUpdatedAt}');
-
-            if (p.isOnline) {
-              // Check if "Online" status is recent (within 1 hour)
-              if (p.lastSeen != null) {
-                final diffOnline = now.difference(p.lastSeen!);
-                // debugPrint(
-                //   '      - diffOnline: ${diffOnline.inMinutes} minutes',
-                // );
-                if (diffOnline.inHours < 1) {
-                  // debugPrint('      ✅ PASS: Online within 1 hour');
-                  return true;
-                }
-              }
-            }
-
-            if (p.locationUpdatedAt != null) {
-              final diffLocation = now.difference(p.locationUpdatedAt!);
-              // debugPrint(
-              //   '      - diffLocation: ${diffLocation.inSeconds} seconds',
-              // );
-              // Show members with location updated in last 5 minutes
-              if (diffLocation.inMinutes < 5) {
-                // debugPrint('      ✅ PASS: Location updated within 5 minutes');
-                return true;
-              }
-            }
-
-            // debugPrint('      ❌ FAIL: Not recently active');
-            return false;
-          }).toList();
-
-      // debugPrint(
-      //   '  ✅ After presence filter: ${filteredMembers.length} members',
-      // );
+      // Filtre de présence et blocages : partagé avec le flux temps réel
+      // (`_isMemberDisplayable`), pour que les deux chemins ne divergent pas.
+      final filteredMembers = members.where(_isMemberDisplayable).toList();
 
       setState(() {
         _nearbyMembers = filteredMembers;
@@ -1908,13 +2069,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
         }
       }
 
+      // Génération en parallèle (voir la note de la branche « zoom élevé »).
+      final clusterFutures = <Future<void>>[];
+
       for (final entry in clusters.entries) {
         final clusterMembers = entry.value;
         if (clusterMembers.isEmpty) continue;
 
         if (clusterMembers.length == 1) {
           // Un seul membre : afficher le marqueur normal
-          await _addSingleMarker(markers, clusterMembers.first, ref);
+          clusterFutures.add(_addSingleMarker(markers, clusterMembers.first, ref));
         } else {
           // Cluster : afficher un marqueur de groupe
           // Position moyenne
@@ -1929,33 +2093,45 @@ class _MapScreenState extends ConsumerState<MapScreen>
             lngSum / clusterMembers.length,
           );
 
-          final icon = await _createClusterMarker(
-            clusterMembers.length,
-            members: clusterMembers,
-          );
-
-          markers.add(
-            Marker(
-              markerId: MarkerId('cluster_${entry.key.x}_${entry.key.y}'),
-              position: center,
-              icon: icon,
-              onTap: () {
-                // Zoom sur le cluster
-                _controller.future.then((c) {
-                  c.animateCamera(
-                    CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
-                  );
-                });
-              },
-            ),
+          final key = entry.key;
+          clusterFutures.add(
+            _createClusterMarker(
+              clusterMembers.length,
+              members: clusterMembers,
+            ).then((icon) {
+              markers.add(
+                Marker(
+                  markerId: MarkerId('cluster_${key.x}_${key.y}'),
+                  position: center,
+                  icon: icon,
+                  onTap: () {
+                    // Zoom sur le cluster
+                    _controller.future.then((c) {
+                      c.animateCamera(
+                        CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
+                      );
+                    });
+                  },
+                ),
+              );
+            }),
           );
         }
       }
+
+      await Future.wait(clusterFutures);
     } else {
-      // Zoom élevé : afficher tous les marqueurs individuellement
-      for (final member in filteredMembers) {
-        await _addSingleMarker(markers, member, ref);
-      }
+      // Zoom élevé : afficher tous les marqueurs individuellement.
+      //
+      // En série, chaque pin pouvait attendre jusqu'à 3 s le téléchargement de
+      // son avatar (`MarkerImageLoader`), et le `setState` final n'a lieu
+      // qu'après la boucle entière : au cache froid, la carte restait vide
+      // pendant la somme de ces attentes. En parallèle, l'attente totale
+      // retombe à celle du pin le plus lent.
+      await Future.wait([
+        for (final member in filteredMembers)
+          _addSingleMarker(markers, member, ref),
+      ]);
     }
 
     // Vérifier que cette mise à jour est toujours la plus récente
@@ -3670,11 +3846,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       // Le minimum était à 38 %, donc la « position basse »
                       // n'existait pas : le panneau mangeait toujours plus
                       // du tiers de l'écran.
+                      controller: _sheetController,
                       initialChildSize: 0.45,
-                      minChildSize: 0.18,
-                      maxChildSize: 0.92,
+                      minChildSize: _kSheetSnaps.first,
+                      maxChildSize: _kSheetSnaps.last,
                       snap: true,
-                      snapSizes: const [0.18, 0.45, 0.92],
+                      snapSizes: _kSheetSnaps,
                       builder: (context, scrollController) {
                         final members = _applySort(_getFilteredMembers());
                         return Container(
@@ -3698,187 +3875,203 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           ),
                           child: Column(
                             children: [
-                              // Poignée + en-tête (fixes).
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  10,
-                                  20,
-                                  10,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Center(
-                                      child: Container(
-                                        width: 40,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: context.borderColor,
-                                          borderRadius: BorderRadius.circular(
-                                            2,
+                              // Poignée + en-tête (fixes) — mais rendus
+                              // sensibles au glissement : sans ça, seule la
+                              // liste bougeait la feuille, et attraper la
+                              // poignée ne faisait rien.
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onVerticalDragUpdate: _onSheetDrag,
+                                onVerticalDragEnd: (_) => _snapSheet(),
+                                onVerticalDragCancel: _snapSheet,
+                                onTap: _cycleSheet,
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    10,
+                                    20,
+                                    10,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Container(
+                                          width: 40,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: context.borderColor,
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    // En-tête de la fiche 7d : le compte est
-                                    // dans le titre, le rayon le suit en
-                                    // sourdine, et une seule action à droite.
-                                    //
-                                    // Cinq contrôles se disputaient cette
-                                    // rangée (titre, fraîcheur ×2, pastille
-                                    // de compte, bascule Liste, tri) : tout
-                                    // s'y tronquait, le titre tombait à
-                                    // « Membres … » et la fraîcheur à
-                                    // « À l'i… ».
-                                    //
-                                    // Le titre et le rayon sont groupés dans
-                                    // un `Expanded` : mis à plat, le titre
-                                    // `Flexible` et le `Spacer` avaient tous
-                                    // deux flex 1 et se partageaient l'espace
-                                    // libre moitié-moitié — « 0 membre autour »
-                                    // se tronquait en « 0 membre a… » avec du
-                                    // vide à sa droite. Groupés, le titre est
-                                    // le seul flexible de sa rangée.
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.baseline,
-                                            textBaseline:
-                                                TextBaseline.alphabetic,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  // Littéral comme le reste de la
-                                                  // reprise sur fiches : la clé
-                                                  // l10n existante (« Membres à
-                                                  // proximité ») ne porte pas le
-                                                  // compte, et ajouter un pluriel
-                                                  // à l'ARB pour deux mots casse
-                                                  // gen-l10n si la métadonnée
-                                                  // manque.
-                                                  '${members.length} '
-                                                  '${members.length > 1 ? "membres" : "membre"} autour',
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700,
-                                                    color:
-                                                        context
-                                                            .textPrimaryColor,
+                                      const SizedBox(height: 12),
+                                      // En-tête de la fiche 7d : le compte est
+                                      // dans le titre, le rayon le suit en
+                                      // sourdine, et une seule action à droite.
+                                      //
+                                      // Cinq contrôles se disputaient cette
+                                      // rangée (titre, fraîcheur ×2, pastille
+                                      // de compte, bascule Liste, tri) : tout
+                                      // s'y tronquait, le titre tombait à
+                                      // « Membres … » et la fraîcheur à
+                                      // « À l'i… ».
+                                      //
+                                      // Le titre et le rayon sont groupés dans
+                                      // un `Expanded` : mis à plat, le titre
+                                      // `Flexible` et le `Spacer` avaient tous
+                                      // deux flex 1 et se partageaient l'espace
+                                      // libre moitié-moitié — « 0 membre autour »
+                                      // se tronquait en « 0 membre a… » avec du
+                                      // vide à sa droite. Groupés, le titre est
+                                      // le seul flexible de sa rangée.
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.baseline,
+                                              textBaseline:
+                                                  TextBaseline.alphabetic,
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    // Littéral comme le reste de la
+                                                    // reprise sur fiches : la clé
+                                                    // l10n existante (« Membres à
+                                                    // proximité ») ne porte pas le
+                                                    // compte, et ajouter un pluriel
+                                                    // à l'ARB pour deux mots casse
+                                                    // gen-l10n si la métadonnée
+                                                    // manque.
+                                                    '${members.length} '
+                                                    '${members.length > 1 ? "membres" : "membre"} autour',
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          context
+                                                              .textPrimaryColor,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                '· ${_radiusLabel(l10n)}',
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '· ${_radiusLabel(l10n)}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        context
+                                                            .textTertiaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // Bascule Carte / Liste (§7e) : sans
+                                          // libellé, elle ne peut plus pousser
+                                          // le titre hors de la rangée.
+                                          IconButton(
+                                            onPressed:
+                                                () => setState(
+                                                  () => _listOnly = !_listOnly,
+                                                ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            constraints: const BoxConstraints(),
+                                            padding: const EdgeInsets.all(6),
+                                            tooltip:
+                                                _listOnly ? 'Carte' : 'Liste',
+                                            icon: Icon(
+                                              _listOnly
+                                                  ? Icons.map_outlined
+                                                  : Icons.list,
+                                              size: 18,
+                                              color: context.textSecondaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () => _showSortSheet(l10n),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
+                                              child: Text(
+                                                'Trier',
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: 12.5,
+                                                  fontWeight: FontWeight.w600,
                                                   color:
-                                                      context.textTertiaryColor,
+                                                      context
+                                                          .adaptivePrimaryColor,
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        // Bascule Carte / Liste (§7e) : sans
-                                        // libellé, elle ne peut plus pousser
-                                        // le titre hors de la rangée.
-                                        IconButton(
-                                          onPressed:
-                                              () => setState(
-                                                () => _listOnly = !_listOnly,
-                                              ),
-                                          visualDensity: VisualDensity.compact,
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(6),
-                                          tooltip:
-                                              _listOnly ? 'Carte' : 'Liste',
-                                          icon: Icon(
-                                            _listOnly
-                                                ? Icons.map_outlined
-                                                : Icons.list,
-                                            size: 18,
-                                            color: context.textSecondaryColor,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () => _showSortSheet(l10n),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 4,
                                             ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      // Fraîcheur des données sur sa propre
+                                      // ligne, pleine largeur : plus rien ne
+                                      // la comprime.
+                                      Row(
+                                        children: [
+                                          AppIcon(
+                                            AppIcon.groups,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
                                             child: Text(
-                                              'Trier',
+                                              _formatRelativeTime(
+                                                _lastMembersUpdate,
+                                                l10n,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                fontSize: 12.5,
-                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
                                                 color:
-                                                    context
-                                                        .adaptivePrimaryColor,
+                                                    context.textTertiaryColor,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    // Fraîcheur des données sur sa propre
-                                    // ligne, pleine largeur : plus rien ne
-                                    // la comprime.
-                                    Row(
-                                      children: [
-                                        AppIcon(
-                                          AppIcon.groups,
-                                          size: 12,
-                                          color: context.textTertiaryColor,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            _formatRelativeTime(
-                                              _lastMembersUpdate,
-                                              l10n,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: context.textTertiaryColor,
+                                          const SizedBox(width: 12),
+                                          Icon(
+                                            Icons.my_location,
+                                            size: 12,
+                                            color: context.textTertiaryColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              _formatRelativeTime(
+                                                _lastPositionUpdate,
+                                                l10n,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color:
+                                                    context.textTertiaryColor,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Icon(
-                                          Icons.my_location,
-                                          size: 12,
-                                          color: context.textTertiaryColor,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            _formatRelativeTime(
-                                              _lastPositionUpdate,
-                                              l10n,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: context.textTertiaryColor,
-                                            ),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                      ],
-                                    ),
-                                  ],
+                                          const Spacer(),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               Divider(height: 1, color: context.borderColor),

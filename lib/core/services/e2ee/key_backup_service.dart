@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'device_label.dart';
 import 'eff_wordlist.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
@@ -86,7 +87,7 @@ class KeyBackupService {
       ivBase64: base64Encode(secretBox.nonce),
       ciphertextBase64: base64Encode(secretBox.cipherText),
       authTagBase64: base64Encode(secretBox.mac.bytes),
-      deviceInfo: deviceInfo ?? _getDefaultDeviceInfo(),
+      deviceInfo: deviceInfo ?? await _getDefaultDeviceInfo(),
       createdAt: DateTime.now(),
     );
 
@@ -391,10 +392,12 @@ class KeyBackupService {
     return bytes;
   }
 
-  /// Obtient les informations de l'appareil par défaut
-  String _getDefaultDeviceInfo() {
-    return '${defaultTargetPlatform.name} Device';
-  }
+  /// Obtient les informations de l'appareil par défaut.
+  ///
+  /// Renvoyait `'${defaultTargetPlatform.name} Device'`, soit « android
+  /// Device » affiché tel quel sur l'écran de sauvegarde. On réutilise
+  /// désormais le même libellé que la liste des appareils connectés.
+  Future<String> _getDefaultDeviceInfo() => currentDeviceLabel();
 
   // ============================================================
   // VALIDATION DE PASSPHRASE

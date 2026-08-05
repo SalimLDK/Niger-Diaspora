@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -147,6 +149,59 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .eq('is_visible', true)
         .limit(50);
     return (data as List).map((r) => ProfileModel.fromJson(_mapProfile(r))).toList();
+  }
+
+  /// Flux temps réel des profils dont la position vient de changer.
+  ///
+  /// La carte se contentait d'un sondage toutes les 45 s : un membre qui se
+  /// déplaçait mettait jusqu'à trois quarts de minute à bouger sur l'écran des
+  /// autres. `users` est déjà dans la publication `supabase_realtime`
+  /// (migration `20260716120000`) avec `REPLICA IDENTITY FULL`, et la RLS
+  /// s'applique au flux : un abonné ne reçoit que les lignes qu'il a le droit
+  /// de lire.
+  ///
+  /// Aucun filtre serveur n'est posé : les filtres `postgres_changes` de
+  /// Supabase sont mono-colonne, ils ne savent pas exprimer une boîte
+  /// englobante. Le tri géographique se fait donc côté client. C'est tenable
+  /// à l'échelle actuelle, mais **c'est la limite de ce montage** : passé
+  /// quelques milliers de comptes actifs, il faudra des canaux `broadcast`
+  /// découpés par cellule géographique plutôt qu'un flux table entière.
+  ///
+  /// Le canal est fermé quand l'abonnement au flux est annulé.
+  Stream<ProfileModel> watchProfileLocationUpdates() {
+    final channel = _supabase.channel('users_location_updates');
+    late final StreamController<ProfileModel> controller;
+
+    controller = StreamController<ProfileModel>(
+      onCancel: () async {
+        await _supabase.removeChannel(channel);
+      },
+    );
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'users',
+          callback: (payload) {
+            final row = payload.newRecord;
+            if (row.isEmpty) return;
+            // Une ligne `users` bouge pour bien d'autres raisons qu'un
+            // déplacement (statut en ligne, compteurs, édition de profil).
+            // Sans coordonnées exploitables, il n'y a rien à replacer.
+            if (row['latitude'] == null || row['longitude'] == null) return;
+            try {
+              final profile = ProfileModel.fromJson(_mapProfile(row));
+              _cache[profile.id] = profile;
+              controller.add(profile);
+            } catch (_) {
+              // Ligne inattendue : on ignore plutôt que de casser le flux.
+            }
+          },
+        )
+        .subscribe();
+
+    return controller.stream;
   }
 
   // ═══════════════════════════════════════════

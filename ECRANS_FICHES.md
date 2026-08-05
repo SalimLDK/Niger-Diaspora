@@ -31,11 +31,11 @@ Trois niveaux, à ne pas confondre :
 | 20d | Réglages de notifications | ✅ | ✅ | ✅ | `notifications/…/notification_settings_screen.dart` |
 | 13c | Appels — historique | ✅ | ✅ | ✅ | `calls/…/call_history_screen.dart` |
 | 16e | Créer un événement | ✅ | ✅ | ✅ | `events/presentation/screens/create_event_screen.dart` |
-| 8b | Carte — Nocturne | ✅ | ✅ | — | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
-| 8c | Carte — sans localisation | ✅ | ✅ | — | `map/…/map_screen.dart` |
-| 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | — | `map/…/map_screen.dart` |
-| 6a | Fil — Nocturne | ✅ | ✅ | — | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
-| 11d | Mon profil — Nocturne | ✅ | ◐ | — | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
+| 8b | Carte — Nocturne | ✅ | ✅ | ✅ | `map/…/map_screen.dart`, `assets/map_styles/dark.json` |
+| 8c | Carte — sans localisation | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
+| 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
+| 6a | Fil — Nocturne | ✅ | ✅ | ✅ | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
+| 11d | Mon profil — Nocturne | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
 | 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
@@ -822,6 +822,90 @@ pour écarter ceux qui vous ont bloqué. Une ligne manquait.
 
 Corrigé et vérifié : « 0 membre autour », « Aucun membre à proximité », et un
 seul marqueur sur la carte.
+
+## 7d — Carte : couches et panneau à trois positions
+
+Le panneau des membres déclarait bien ses trois crans (18 / 45 / 92 %, avec
+`snap`), **mais il était figé**. `DraggableScrollableSheet` ne réagit qu'aux
+glissements qui traversent le `scrollController` de sa liste ; or la poignée et
+l'en-tête sont posés au-dessus de cette liste, hors du défilement. Attraper la
+barrette — le geste que tout le monde fait — ne produisait rien, et avec
+« Aucun membre à proximité » il n'y avait même pas de liste à saisir.
+
+La poignée et l'en-tête pilotent désormais la feuille par un
+`DraggableScrollableController` : glissement suivi au doigt, puis accrochage au
+cran le plus proche au relâcher. Un **tap** sur la poignée passe au cran
+suivant et revient au plus bas depuis le haut — une porte de sortie pour qui ne
+devine pas le geste.
+
+Les trois crans vérifiés au doigt par Salim. Panneau de couches (« Calques » :
+Membres, Ambassades) vu à l'écran.
+
+## Carte — on se voyait dans ses propres « membres autour »
+
+Repéré en validant 8b : le compte courant figurait dans sa propre liste, à
+« 0 m · en ligne », et son marqueur était dessiné deux fois — une fois comme
+position, une fois comme membre. La requête de proximité renvoie l'utilisateur
+courant, et le filtre ne l'excluait pas : `currentUserId` ne servait qu'à
+écarter ceux qui l'ont bloqué. Corrigé, le compteur passe de « 1 membre
+autour » à « 0 membre autour » — ce qui est la vérité.
+
+---
+
+## 6a — Le fil en Nocturne
+
+Delta conforme : titre Inter 24/500 avec point d'accent (pas Caprasimo),
+onglet actif en contour 1.5 px et non en fond plein, cartes de post au rayon 8,
+FAB creux à contour indigo. C'est bien la palette Nocturne du fil, pas le mode
+clair assombri.
+
+Deux défauts corrigés à la validation :
+
+- **« Abonnements » se tronquait en « Abonnem… ».** À trois segments,
+  l'icône laisse désormais la place au libellé : sur 360 dp, icône (16) +
+  écart (6) + marges ne laissaient que ~62 dp au texte qui en demande ~75 ;
+  sans l'icône il en reste 84. La règle vit dans `FeedSegmentedControl`, donc
+  deux segments gardent leurs pictogrammes.
+- **On entrait dans le fil sans pouvoir en sortir.** Il s'ouvre en `push`
+  depuis Accueil, donc hors de la barre de navigation, et son en-tête n'avait
+  pas de flèche de retour — la maquette n'en met pas parce qu'elle le suppose
+  onglet. La flèche n'apparaît que si la route peut se dépiler : elle
+  s'effacera d'elle-même si le fil devient un onglet.
+
+Fausse alerte de ma part au passage : j'avais signalé que le rail de stories
+débordait toujours de 2 px. **C'était déjà corrigé** — le libellé impose son
+interligne et `_railHeight` arrondit au pixel supérieur. Signalé de mémoire
+sans revérifier la capture.
+
+---
+
+## 11d — Mon profil en Nocturne
+
+Conforme : fond `#0F0D0A`, cartes `#1A1714` bordées, sur-titre `COMPTE` en
+monospace cuivré, pastille de profession verte, nom serif au point d'accent,
+chevrons en pastille.
+
+Un seul défaut corrigé : « **1 enregistrés** ». La clé `savedPostsCountLabel`
+était un mot figé concaténé à un nombre. Remplacée par un vrai pluriel ICU
+(`savedPostsCount`), qui traite aussi le zéro — appliqué aux deux écrans de
+profil (production et `design_v2`).
+
+Deux écarts à la fiche, **assumés** :
+
+- **La rangée de stats alterne terracotta et vert.** La fiche 11d ne montre
+  que deux statistiques, toutes deux en `#F5F2EE` : elle n'a jamais eu à
+  résoudre une rangée de quatre. L'alternance est un choix délibéré et
+  documenté dans le code (elle a remplacé un bleu Material figé, insensible au
+  thème). Uniformiser aplatirait la rangée et retirerait l'indice qu'elle est
+  cliquable.
+- **« Modifier le profil » reste une ligne de la carte Compte**, là où la fiche
+  demande un bouton plein `#F4A574` sous l'identité. Sur un profil incomplet,
+  la carte « Compléter mon profil » occupe déjà la place de l'action
+  principale ; un second bouton plein juste au-dessus lui ferait concurrence.
+  **À reprendre quand le profil est complet** — la carte disparaît alors, et le
+  bouton de la fiche retrouve sa place.
+
+---
 
 ---
 

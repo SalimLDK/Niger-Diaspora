@@ -7006,6 +7006,14 @@
   "myPostsEmpty": "Vous n'avez pas encore publié",
   "savedPostsTitle": "Posts sauvegardés",
   "savedPostsEmpty": "Vous n'avez pas encore sauvegardé de post",
+  "savedPostsCount": "{count, plural, =0{aucun enregistré} =1{1 enregistré} other{{count} enregistrés}}",
+  "@savedPostsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "savedPostsCountLabel": "enregistrés",
   "exploreFeed": "Explorer le feed",
   "videos": "Vidéos",

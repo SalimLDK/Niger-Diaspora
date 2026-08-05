@@ -14840,6 +14840,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savedPostsEmpty => 'You haven\'t saved any posts yet';
 
   @override
+  String savedPostsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved',
+      one: '1 saved',
+      zero: 'none saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get savedPostsCountLabel => 'saved';
 
   @override

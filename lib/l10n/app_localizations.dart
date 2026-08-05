@@ -27614,6 +27614,12 @@ abstract class AppLocalizations {
   /// **'Vous n\'avez pas encore sauvegardé de post'**
   String get savedPostsEmpty;
 
+  /// No description provided for @savedPostsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{aucun enregistré} =1{1 enregistré} other{{count} enregistrés}}'**
+  String savedPostsCount(int count);
+
   /// No description provided for @savedPostsCountLabel.
   ///
   /// In fr, this message translates to:
