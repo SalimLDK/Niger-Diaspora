@@ -12,7 +12,9 @@ import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Provider pour la source de donnees distante du profil
-final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
+final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((
+  ref,
+) {
   return ProfileSupabaseDataSource();
 });
 
@@ -26,10 +28,10 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 /// Provider pour le profil d'un utilisateur (avec cache stale-while-revalidate)
 /// autoDispose: libere la memoire quand le provider n'est plus utilise
-final profileNotifierProvider = StateNotifierProvider.autoDispose.family<
-    ProfileNotifier, AsyncValue<ProfileEntity?>, String>((ref, userId) {
-  return ProfileNotifier(ref, userId);
-});
+final profileNotifierProvider = StateNotifierProvider.autoDispose
+    .family<ProfileNotifier, AsyncValue<ProfileEntity?>, String>((ref, userId) {
+      return ProfileNotifier(ref, userId);
+    });
 
 /// Notifier pour gerer l'etat du profil utilisateur
 class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
@@ -65,7 +67,10 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
 
     result.fold(
       (failure) =>
-          state = AsyncValue.error(Exception(failure.message), StackTrace.current),
+          state = AsyncValue.error(
+            Exception(failure.message),
+            StackTrace.current,
+          ),
       (profile) {
         state = AsyncValue.data(profile);
         _maybeJoinCountryGroup(profile);
@@ -104,15 +109,33 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
     _joinOfficialCountryGroup(profile);
   }
 
+  /// Écriture **optimiste** : l'état porte la valeur demandée dès l'appel, et
+  /// n'est corrigé qu'en cas de refus du serveur.
+  ///
+  /// Il passait auparavant par `AsyncValue.loading()`, ce qui vidait le profil
+  /// le temps de l'aller-retour. Deux conséquences, l'une visible et l'autre
+  /// pas : une bascule de réglage revenait en arrière sous le doigt pendant
+  /// l'écriture, et surtout tout appelant qui relisait `valueOrNull` juste
+  /// après — c'est le cas de la sauvegarde des réglages — tombait sur `null`
+  /// et **abandonnait la sauvegarde en silence** quand deux gestes se
+  /// suivaient de près.
+  ///
+  /// `copyWithPrevious` conserve la dernière donnée connue sous l'erreur :
+  /// `hasError` reste vrai pour les appelants qui affichent un message, mais
+  /// l'écran ne se vide pas.
   Future<void> updateProfile(ProfileEntity profile) async {
-    state = const AsyncValue.loading();
+    final previous = state;
+    state = AsyncValue.data(profile);
 
     final repository = _ref.read(profileRepositoryProvider);
     final result = await repository.updateProfile(profile);
 
     result.fold(
       (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
+          state = AsyncValue<ProfileEntity?>.error(
+            failure.message,
+            StackTrace.current,
+          ).copyWithPrevious(previous),
       (updatedProfile) {
         state = AsyncValue.data(updatedProfile);
         // Best-effort : ne doit jamais faire echouer la sauvegarde du profil.
@@ -164,7 +187,9 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
 
 /// Provider pour les profils a proximite
 final nearbyProfilesNotifierProvider = StateNotifierProvider<
-    NearbyProfilesNotifier, AsyncValue<List<ProfileEntity>>>((ref) {
+  NearbyProfilesNotifier,
+  AsyncValue<List<ProfileEntity>>
+>((ref) {
   return NearbyProfilesNotifier(ref);
 });
 
@@ -200,9 +225,10 @@ class NearbyProfilesNotifier
         // connue, sans filtre de fraîcheur de présence (le dépôt renvoie déjà
         // les profils visibles dans le rayon). Seul l'utilisateur courant est
         // écarté.
-        final filteredProfiles = profiles
-            .where((p) => currentUserId == null || p.id != currentUserId)
-            .toList();
+        final filteredProfiles =
+            profiles
+                .where((p) => currentUserId == null || p.id != currentUserId)
+                .toList();
 
         state = AsyncValue.data(filteredProfiles);
       },
@@ -220,14 +246,14 @@ class NearbyProfilesNotifier
 /// sur l'accueil/la carte ET sa propre position n'est plus envoy\u00e9e \u00e0 Firestore.
 final nearbyMembersEnabledProvider =
     StateNotifierProvider<NearbyMembersEnabledNotifier, bool>(
-  (ref) => NearbyMembersEnabledNotifier(ref),
-);
+      (ref) => NearbyMembersEnabledNotifier(ref),
+    );
 
 class NearbyMembersEnabledNotifier extends StateNotifier<bool> {
   final Ref _ref;
 
   NearbyMembersEnabledNotifier(this._ref)
-      : super(PreferencesService.instance.nearbyMembersEnabled);
+    : super(PreferencesService.instance.nearbyMembersEnabled);
 
   Future<void> setEnabled(bool value) async {
     if (state == value) return;
@@ -249,7 +275,9 @@ class NearbyMembersEnabledNotifier extends StateNotifier<bool> {
 
 /// Provider pour la recherche de profils
 final searchProfilesNotifierProvider = StateNotifierProvider<
-    SearchProfilesNotifier, AsyncValue<List<ProfileEntity>>>((ref) {
+  SearchProfilesNotifier,
+  AsyncValue<List<ProfileEntity>>
+>((ref) {
   return SearchProfilesNotifier(ref);
 });
 
@@ -291,18 +319,19 @@ class SearchProfilesNotifier
 ///                      l'UI peut afficher « Profil supprimé »
 ///   - AsyncError     → erreur transitoire (réseau, RLS, session non établie) →
 ///                      l'UI affiche un état d'erreur/réessayer, jamais « supprimé »
-final userStreamProvider =
-    StreamProvider.family<ProfileEntity?, String>((ref, userId) {
+final userStreamProvider = StreamProvider.family<ProfileEntity?, String>((
+  ref,
+  userId,
+) {
   return ref
       .watch(profileRepositoryProvider)
       .getUserStream(userId)
-      .map((either) => either.fold(
-            (failure) {
-              // Seul un profil réellement absent devient null (= supprimé).
-              if (failure is NotFoundFailure) return null;
-              // Toute autre erreur est propagée comme erreur du stream.
-              throw failure;
-            },
-            (profile) => profile,
-          ));
+      .map(
+        (either) => either.fold((failure) {
+          // Seul un profil réellement absent devient null (= supprimé).
+          if (failure is NotFoundFailure) return null;
+          // Toute autre erreur est propagée comme erreur du stream.
+          throw failure;
+        }, (profile) => profile),
+      );
 });
