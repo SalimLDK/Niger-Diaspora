@@ -389,6 +389,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       double lng = 2.1254;
       double radius = _nearbyRadiusKm;
 
+      // Premier affichage sans attendre le GPS. `getLastKnownPosition` répond
+      // tout de suite, là où un point frais peut demander une quinzaine de
+      // secondes — pendant lesquelles la section « membres autour » restait
+      // vide, exactement comme sur la carte.
+      var hasEarlyPosition = false;
+      try {
+        final lastKnown = await LocationService.instance.getLastKnownPosition();
+        if (lastKnown != null && mounted) {
+          lat = lastKnown.latitude;
+          lng = lastKnown.longitude;
+          hasEarlyPosition = true;
+
+          setState(() {
+            _locationError = null;
+            _currentLat = lat;
+            _currentLng = lng;
+            _lastNearbyUpdate = DateTime.now();
+          });
+
+          // Sans `await` : le point GPS frais est demandé juste en dessous.
+          unawaited(
+            ref
+                .read(nearbyProfilesNotifierProvider.notifier)
+                .loadNearbyProfiles(lat, lng, radiusKm: radius),
+          );
+          _startRefreshTimers();
+          _resolvePlaceName(lat, lng);
+        }
+      } catch (_) {
+        // Aucune position en cache : le point frais ci-dessous prend le relais.
+      }
+
       // Tenter d'obtenir la position actuelle pour mettre à jour
       try {
         final position = await LocationService.instance.getCurrentPosition();
@@ -429,7 +461,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       } catch (e) {
         // debugPrint('Erreur de localisation HomeScreen: $e');
 
-        if (mounted) {
+        if (mounted && !hasEarlyPosition) {
+          // Si la dernière position connue a déjà peuplé la section, un GPS
+          // lent n'est pas une absence de localisation : afficher l'erreur
+          // reviendrait à vider un écran qui marche.
           setState(() {
             _locationError = e.toString();
           });

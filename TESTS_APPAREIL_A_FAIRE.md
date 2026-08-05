@@ -2325,6 +2325,12 @@ un vrai cache d'images, `flutter analyze` n'en dit rien.
   cache d'avatars vidé (réinstallation), tous les pins doivent apparaître
   d'un coup après ~3 s max, pas un par un.
 
+- [ ] **Accueil, section « membres autour »** (même correctif que la carte,
+  `home_screen.dart`) : au lancement à froid, la section doit se remplir dès
+  la dernière position connue, sans attendre le point GPS. Et si le GPS
+  n'aboutit pas alors qu'une position connue existait, **aucun** message
+  d'erreur de localisation ne doit s'afficher.
+
 ### Temps réel des positions (nécessite **deux** comptes)
 
 Ces points ne se vérifient qu'avec deux téléphones (ou un téléphone + un
