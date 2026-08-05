@@ -470,14 +470,17 @@ exports.sendNotificationOnCreate = functions.firestore
  *
  * IMPORTANT: The database is in europe-west1, so the function must be in the same region
  */
-exports.onMessageCreated = functions
-    .region("europe-west1")
-    .database.instance("diaspo-niger-default-rtdb")
-    .ref("/messages/{conversationId}/{messageId}")
-    .onCreate(async (snapshot, context) => {
-        const message = snapshot.val();
-        const conversationId = context.params.conversationId;
-        const messageId = context.params.messageId;
+/**
+ * Coeur de l'envoi des notifications push d'un nouveau message.
+ *
+ * Extrait du declencheur RTDB `onMessageCreated`, ou il avait ete replie :
+ * le callable `sendMessagePush` doit executer exactement la meme logique, et
+ * la dupliquer aurait fait vivre 350 lignes en double.
+ *
+ * `callerUid` n'est renseigne que par le callable — c'est ce qui declenche le
+ * controle de participation.
+ */
+async function handleNewMessagePush(message, conversationId, messageId, callerUid = null) {
 
         // console.log(`New message created in conversation ${conversationId}`);
 
@@ -487,6 +490,15 @@ exports.onMessageCreated = functions
             const conv = await getConversation(conversationId);
             if (!conv) {
                 // console.log(`Conversation ${conversationId} not found in Supabase`);
+                return null;
+            }
+
+            // Appel via callable : l'appelant doit etre participant (anti-spam).
+            // Ce controle vient de la version d'origine de `handleNewMessagePush` :
+            // sans lui, `sendMessagePush` laisserait pousser vers une conversation
+            // dont on ne fait pas partie.
+            if (callerUid && !(conv.participantIds || []).includes(callerUid)) {
+                console.warn(`sendMessagePush: ${callerUid} n'est pas participant de ${conversationId}`);
                 return null;
             }
 
@@ -822,7 +834,194 @@ exports.onMessageCreated = functions
             console.error("Error sending message notification:", error);
             return null;
         }
+}
+
+exports.onMessageCreated = functions
+    .region("europe-west1")
+    .database.instance("diaspo-niger-default-rtdb")
+    .ref("/messages/{conversationId}/{messageId}")
+    .onCreate(async (snapshot, context) => {
+        const message = snapshot.val();
+        const conversationId = context.params.conversationId;
+        const messageId = context.params.messageId;
+        return handleNewMessagePush(message, conversationId, messageId);
     });
+
+exports.sendMessagePush = functions
+    .region("europe-west1")
+    .https.onCall(async (data, context) => {
+        if (!context.auth) {
+            throw new functions.https.HttpsError("unauthenticated", "Authentification requise");
+        }
+        const conversationId = data && data.conversationId;
+        const messageId = data && data.messageId;
+        const message = data && data.message;
+        if (!conversationId || !messageId || !message || typeof message !== "object") {
+            throw new functions.https.HttpsError(
+                "invalid-argument",
+                "conversationId, messageId et message sont requis",
+            );
+        }
+        // Anti-usurpation : le senderId doit être l'utilisateur authentifié.
+        if (message.senderId !== context.auth.uid) {
+            throw new functions.https.HttpsError("permission-denied", "senderId invalide");
+        }
+        return handleNewMessagePush(
+            message,
+            String(conversationId),
+            String(messageId),
+            context.auth.uid,
+        );
+    });
+
+/**
+ * Conservee UNIQUEMENT parce qu'elle tourne encore en production : elle avait
+ * ete retiree du depot par `1bb0cca` sans etre supprimee cote Firebase, et
+ * plus personne ne pouvait la relire. Elle est desactivee depuis longtemps
+ * (`return null` en tete) — `onMessageCreated` fait le travail.
+ *
+ * Recuperee telle quelle depuis `1bb0cca^:functions/index.js`.
+ */
+exports.sendChatNotification = functions.firestore
+    .document("conversations/{conversationId}")
+    .onUpdate(async (change, context) => {
+        // DISABLED - onMessageCreated handles message notifications
+        // console.log("sendChatNotification is disabled - using onMessageCreated instead");
+        return null;
+
+        /*
+        const before = change.before.data();
+        const after = change.after.data();
+
+        // Check if lastMessage changed (new message sent)
+        if (!after.lastMessage || before.lastMessage === after.lastMessage) {
+            // console.log("No new message detected");
+            return null;
+        }
+
+        const conversationId = context.params.conversationId;
+        const senderId = after.lastMessageSenderId;
+        const participantIds = after.participantIds || [];
+        const mutedBy = after.mutedBy || [];
+        const conversationType = after.type; // 'individual' or 'group'
+        const lastMessage = after.lastMessage;
+
+        if (!senderId || participantIds.length === 0) {
+            // console.log("Missing sender or participants");
+            return null;
+        }
+
+        try {
+            // Get all participants' tokens (except sender and muted users)
+            const recipients = participantIds.filter((id) => id !== senderId && !mutedBy.includes(id));
+
+            if (recipients.length === 0) {
+                // console.log("No recipients to notify");
+                return null;
+            }
+
+            // Fetch sender's name for the notification
+            const senderDoc = await admin.firestore().collection("users").doc(senderId).get();
+            const senderName = senderDoc.exists ? (senderDoc.data().displayName || "Un utilisateur") : "Un utilisateur";
+
+            // Decrypt the last message for the notification
+            const decryptedMessage = decryptText(lastMessage);
+
+            // Determine notification title and body
+            let title;
+            let body;
+
+            if (conversationType === "group") {
+                title = after.name || "Groupe";
+                body = `${senderName}: ${decryptedMessage}`;
+            } else {
+                title = senderName;
+                body = decryptedMessage;
+            }
+
+            // Collect all tokens from recipients
+            const allTokens = [];
+            for (const recipientId of recipients) {
+                const recipientDoc = await admin.firestore().collection("users").doc(recipientId).get();
+                if (recipientDoc.exists) {
+                    const tokens = recipientDoc.data().fcmTokens || [];
+                    allTokens.push(...tokens);
+                }
+            }
+
+            // Store notification in Firestore for each recipient (for notification history)
+            const notificationPromises = [];
+            const truncatedBody = body.length > 100 ? body.substring(0, 100) + "..." : body;
+
+            for (const recipientId of recipients) {
+                notificationPromises.push(
+                    admin.firestore().collection("notifications").add({
+                        userId: recipientId,
+                        title: title,
+                        body: truncatedBody,
+                        type: "message",
+                        targetId: conversationId,
+                        data: {
+                            conversationId: conversationId,
+                            senderId: senderId,
+                        },
+                        isRead: false,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    })
+                );
+            }
+            await Promise.all(notificationPromises);
+            // console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
+
+            if (allTokens.length === 0) {
+                // console.log("No tokens found for recipients, but notifications stored");
+                return { success: true, sentCount: 0, storedCount: notificationPromises.length };
+            }
+
+            // console.log(`Sending chat notification to ${allTokens.length} tokens`);
+
+            // Send multicast message with Android/iOS config (using sendEachForMulticast)
+            const response = await admin.messaging().sendEachForMulticast({
+                tokens: allTokens,
+                notification: {
+                    title: title,
+                    body: truncatedBody,
+                },
+                data: {
+                    type: "message",
+                    title: title,
+                    body: truncatedBody,
+                    conversationId: conversationId,
+                    senderId: senderId,
+                    click_action: "FLUTTER_NOTIFICATION_CLICK",
+                },
+                android: {
+                    priority: "high",
+                    notification: {
+                        channelId: "messages",
+                        sound: "default",
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            sound: "default",
+                            badge: 1,
+                        },
+                    },
+                },
+            });
+
+            // console.log(`Successfully sent ${response.successCount} push notifications`);
+
+            return { success: true, sentCount: response.successCount };
+        } catch (error) {
+            // console.error("Error sending chat notification:", error);
+            return null;
+        }
+        */
+    });
+
 
 /**
  * Index messages for full-text search.
