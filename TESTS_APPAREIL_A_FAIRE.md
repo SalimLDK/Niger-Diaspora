@@ -2830,29 +2830,48 @@ Les deux comptes sont à ~10 m l'un de l'autre. `getNearbyProfiles` filtre sur
 `.eq('share_location', true)` : « Salim L. » était écarté à la source, et
 « Sim A » est retiré par l'auto-exclusion — il ne restait personne.
 
-**Il reste deux verrous après ce changement** :
+### État préparé le 2026-08-05 — un seul geste reste à faire
 
-1. **Le filtre de présence**, qui est une seconde barrière indépendante :
-   `location_updated_at` de moins de 5 minutes, **ou** `is_online` avec un
-   `last_seen_at` de moins d'une heure. Au 2026-08-05 la position de
-   « Salim L. » a 28 h et `is_online` est `false` — il reste donc invisible.
-   Le lever proprement : **ouvrir l'app sur le second compte**, sa position
-   sera publiée en quelques secondes. Le lever artificiellement, avec un
-   seul téléphone (écrit une présence qui n'existe pas, et déplace la
-   position enregistrée de ~2 km pour que le pin soit distinct) :
+Le compte « Salim L. » a été **maquillé en membre voisin présent**, en SQL,
+pour pouvoir tester avec un seul téléphone. Vérifié : il passe la requête de
+proximité **et** le filtre de présence, à **1,97 km** du compte principal.
 
-   ```sql
-   update users
-      set latitude  = 45.5980,
-          longitude = -73.6459,
-          location_updated_at = now()
-    where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';
-   ```
+| Colonne | Valeur d'origine | Valeur posée |
+|---|---|---|
+| `share_location` | `false` | `true` |
+| `latitude` | `45.5802795` | `45.5980` |
+| `longitude` | `-73.6459928` | `-73.6459` |
+| `location_updated_at` | `2026-08-04 18:32:45.536012+00` | `2026-08-05 22:53:53+00` |
+| `is_online` | `false` | `true` |
+| `last_seen_at` | — | `2026-08-05 22:55:06+00` |
+| `show_online_status` | — | `true` |
 
-2. **« Membres à proximité » est désactivé sur le compte principal.** La
-   carte sort alors immédiatement sur l'état « accès restreint » sans rien
-   charger. À activer depuis l'accueil (« Activer la carte des membres ») ou
-   les réglages du profil.
+⏳ **La présence tient une heure**, via la seconde porte du filtre
+(`is_online` + `last_seen_at` de moins d'une heure). Passé ce délai, rejouer
+`update users set last_seen_at = now() where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';`
+La première porte (`location_updated_at` < 5 min) est trop courte pour un
+test manuel.
+
+⚠️ **Il reste UN verrou, et il demande un geste sur le téléphone** :
+« Membres à proximité » est **désactivé** sur le compte principal. C'est une
+préférence **locale** (`PreferencesService.nearbyMembersEnabled`), pas une
+colonne serveur — aucun SQL ne peut la lever. Tant qu'elle est à `false`,
+`_initializeLocation` sort immédiatement sur l'état « accès restreint » :
+ni la dernière position connue, ni le canal temps réel, ni les pins.
+À activer depuis l'accueil (« Activer la carte des membres ») ou les
+réglages du profil, puis ouvrir l'onglet Carte.
+
+**Pour tout remettre en état après le test** :
+
+```sql
+update users
+   set share_location = false,
+       latitude  = 45.5802795,
+       longitude = -73.6459928,
+       location_updated_at = '2026-08-04 18:32:45.536012+00',
+       is_online = false
+ where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';
+```
 
 ⚠️ `share_location` est la colonne **serveur**. Si l'app tourne sur le second
 compte et enregistre son profil, elle peut la réécrire depuis son état local
