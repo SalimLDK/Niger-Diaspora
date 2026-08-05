@@ -903,11 +903,25 @@ class _MessageInputState extends State<MessageInput>
     // Le bouton reste TOUJOURS dans l'arbre pour maintenir la continuité des gestes
     //
     // Le LayoutBuilder ne sert pas à mesurer, mais à SAVOIR si quelqu'un nous a
-    // donné une hauteur. La conversation le fait (voir conversation_screen) ;
-    // un test qui monte le composer seul, non. Quand la hauteur est bornée, les
-    // panneaux deviennent `Flexible` et se rétrécissent au lieu de déborder —
-    // `Flexible` dans une colonne de hauteur infinie lèverait une assertion,
-    // d'où la condition plutôt qu'un `Flexible` inconditionnel.
+    // donné une hauteur. Quand la hauteur est bornée, les panneaux deviennent
+    // `Flexible` et se rétrécissent au lieu de déborder — `Flexible` dans une
+    // colonne de hauteur infinie lèverait une assertion, d'où la condition
+    // plutôt qu'un `Flexible` inconditionnel.
+    //
+    // ⚠ AUJOURD'HUI CE GARDE-FOU NE S'ACTIVE JAMAIS EN PRODUCTION. Le
+    // commentaire disait « la conversation le fait » : c'est faux. Dans
+    // `conversation_screen.dart` (`body > Container > Stack > Column`), ce
+    // widget est un enfant **non-flexible** de la `Column` ; `RenderFlex`
+    // donne alors à ses enfants non-flexibles `maxHeight: Infinity`. Mesuré :
+    // `BoxConstraints(0.0<=w<=800.0, 0.0<=h<=Infinity)` — donc `bornee` vaut
+    // `false` et `panneau()` renvoie l'enfant tel quel.
+    // C'est la cause du `BOTTOM OVERFLOWED BY 240` en paysage (bandeau de
+    // restauration des clés + brouillon de 6 lignes + panneau ouvert).
+    // Le corriger demande de borner ce widget côté conversation — pas ici :
+    // un `Flexible` de plus dans cette `Column` se partagerait l'espace libre
+    // avec l'`Expanded` de la liste des messages et la raboterait. Voir
+    // TESTS_APPAREIL_A_FAIRE.md, section « Paysage — overflow quand le chrome
+    // dépasse la hauteur ».
     return LayoutBuilder(
       builder: (context, contraintes) {
         return _buildColumn(context, contraintes.maxHeight);

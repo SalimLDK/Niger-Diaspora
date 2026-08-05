@@ -3420,6 +3420,43 @@ Pistes, par coût croissant :
    corps de la conversation), seule solution qui suive tous les bandeaux
    conditionnels.
 
+### Cause racine du 240 trouvée le 2026-08-05 : le garde-fou est inerte
+
+La piste 3 a **déjà été écrite**, mais elle ne s'exécute jamais. `MessageInput`
+s'enveloppe dans un `LayoutBuilder` et, *si* on lui donne une hauteur finie,
+transforme ses panneaux en `Flexible` pour qu'ils se rétrécissent au lieu de
+déborder (`message_input.dart`, `_buildColumn` / `panneau`). Un commentaire
+affirmait « la conversation le fait ». **C'est faux.**
+
+Dans `conversation_screen.dart` la structure est
+`body > Container > Stack > Column[ …bandeaux…, Expanded(liste), MessageInput ]`.
+`MessageInput` y est un enfant **non-flexible** de la `Column` — et `RenderFlex`
+donne à ses enfants non-flexibles `maxHeight: Infinity`. Mesuré sur la
+géométrie exacte de l'écran (392 dp, en-tête 58 + épinglé 44 + restauration 90
++ `Expanded`) :
+
+```
+CONTRAINTE RECUE PAR MessageInput : BoxConstraints(0.0<=w<=800.0, 0.0<=h<=Infinity)
+maxHeight.isFinite = false
+```
+
+Donc `bornee == false`, `panneau()` renvoie l'enfant nu, et rien ne rétrécit.
+Le débordement de 240 est inévitable dès que bandeaux + brouillon long +
+panneau ouvert dépassent la hauteur.
+
+**Attention au correctif évident, qui est un piège** : ajouter un
+`Flexible` autour de `MessageInput` dans cette `Column` ne suffit pas — il se
+partagerait l'espace libre avec l'`Expanded` de la liste des messages et
+raboterait la liste (`RenderFlex` ne redistribue pas ce qu'un `Flexible` en
+`loose` n'a pas consommé). Il faut mesurer la hauteur disponible du corps
+(un `LayoutBuilder` autour de la `Column`) et passer une borne explicite au
+composeur.
+
+Non corrigé ici : `conversation_screen.dart` était en cours de modification
+dans le worktree principal, et y toucher en parallèle aurait écrasé du travail
+non committé. Le commentaire mensonger de `message_input.dart`, lui, a été
+corrigé — c'est ce qui aurait fait perdre le plus de temps au prochain lecteur.
+
 ---
 
 ## Groupes — deux défauts trouvés en vérifiant les épingles (2026-08-05)
