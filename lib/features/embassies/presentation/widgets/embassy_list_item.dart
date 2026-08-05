@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/embassy_entity.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class EmbassyListItem extends StatelessWidget {
   final EmbassyEntity embassy;
@@ -28,6 +29,7 @@ class EmbassyListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Card(
@@ -129,8 +131,8 @@ class EmbassyListItem extends StatelessWidget {
                                   ).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: const Text(
-                                  'Fermé',
+                                child: Text(
+                                  l10n.closedStatus,
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w700,
@@ -184,7 +186,7 @@ class EmbassyListItem extends StatelessWidget {
                         Expanded(
                           child: _QuickActionButton(
                             icon: Icons.phone_outlined,
-                            label: 'Appeler',
+                            label: l10n.callAction,
                             onPressed: () => _makePhoneCall(embassy.phone!),
                             theme: theme,
                           ),
@@ -196,7 +198,7 @@ class EmbassyListItem extends StatelessWidget {
                         Expanded(
                           child: _QuickActionButton(
                             icon: Icons.directions_outlined,
-                            label: 'Itinéraire',
+                            label: l10n.itinerary,
                             onPressed:
                                 () => _openMap(
                                   embassy.latitude,
@@ -210,7 +212,7 @@ class EmbassyListItem extends StatelessWidget {
                       Expanded(
                         child: _QuickActionButton(
                           icon: Icons.info_outline,
-                          label: 'Détails',
+                          label: l10n.embassyDetails,
                           onPressed:
                               () => context.push(
                                 '/embassies/${embassy.id}',

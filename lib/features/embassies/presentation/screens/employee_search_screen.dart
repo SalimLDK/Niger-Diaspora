@@ -6,6 +6,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../data/models/embassy_employee_model.dart';
 import '../../data/datasources/embassy_remote_datasource.dart';
 import '../../domain/entities/embassy_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class EmployeeSearchScreen extends ConsumerStatefulWidget {
   final EmbassyEntity? embassy; // Optional: pre-filter by embassy
@@ -18,6 +19,8 @@ class EmployeeSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   final _dataSource = EmbassyRemoteDataSourceImpl();
 
@@ -61,7 +64,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
         query: _searchController.text.trim(),
         embassyId: widget.embassy?.id,
         department:
-            _selectedDepartment == 'Tous les départements'
+            _selectedDepartment == l10n.embassyAllDepartments
                 ? null
                 : _selectedDepartment,
       );
@@ -101,7 +104,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
         title: Text(
           widget.embassy != null
               ? 'Personnel - ${widget.embassy!.name}'
-              : 'Rechercher un employé',
+              : l10n.embassySearchTitle,
         ),
         backgroundColor: theme.colorScheme.surface,
       ),
@@ -127,7 +130,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
                   padding: EdgeInsets.zero,
                   child: StandardSearchBar(
                     controller: _searchController,
-                    hintText: 'Rechercher par nom, titre, rôle...',
+                    hintText: l10n.searchEmployee,
                     onSubmitted: (_) => _loadEmployees(),
                     onClear: _loadEmployees,
                   ),
@@ -142,7 +145,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
                   // le reste.
                   isExpanded: true,
                   decoration: InputDecoration(
-                    labelText: 'Département',
+                    labelText: l10n.department,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -188,7 +191,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
             AppIcon(AppIcon.error, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'Erreur de chargement',
+              l10n.adminLoadingError,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -201,7 +204,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
             ElevatedButton.icon(
               onPressed: _loadEmployees,
               icon: const AppIcon(AppIcon.refresh),
-              label: const Text('Réessayer'),
+              label: Text(l10n.retry),
             ),
           ],
         ),
@@ -216,7 +219,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
             AppIcon(AppIcon.people, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'Aucun employé trouvé',
+              l10n.embassyNoEmployeeFound,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -225,7 +228,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Essayez de modifier vos critères de recherche',
+              l10n.embassyModifySearch,
               style: TextStyle(color: Colors.grey[500]),
             ),
           ],
@@ -263,6 +266,7 @@ class _EmployeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Card(
@@ -399,13 +403,13 @@ class _EmployeeCard extends StatelessWidget {
                     TextButton.icon(
                       onPressed: () => onEmail(employee.email!),
                       icon: const Icon(Icons.email_outlined, size: 20),
-                      label: const Text('Email'),
+                      label: Text(l10n.email),
                     ),
                   if (employee.phone != null)
                     TextButton.icon(
                       onPressed: () => onPhone(employee.phone!),
                       icon: const Icon(Icons.phone_outlined, size: 20),
-                      label: const Text('Appeler'),
+                      label: Text(l10n.callAction),
                     ),
                 ],
               ),

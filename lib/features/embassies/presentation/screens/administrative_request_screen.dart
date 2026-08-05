@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdministrativeRequestScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
@@ -108,6 +109,8 @@ const Map<AdministrativeRequestType, String> _indicativeDelay = {
 
 class _AdministrativeRequestScreenState
     extends ConsumerState<AdministrativeRequestScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isPreFilled = false;
@@ -175,29 +178,29 @@ class _AdministrativeRequestScreenState
   String _getTypeLabel(AdministrativeRequestType type) {
     switch (type) {
       case AdministrativeRequestType.passportRenewal:
-        return 'Renouvellement de passeport';
+        return l10n.embassyPassportRenewal;
       case AdministrativeRequestType.passportNewRequest:
-        return 'Nouvelle demande de passeport';
+        return l10n.embassyPassportNewRequest;
       case AdministrativeRequestType.visaApplication:
-        return 'Demande de visa';
+        return l10n.embassyVisaApplication;
       case AdministrativeRequestType.birthCertificate:
-        return 'Acte de naissance';
+        return l10n.embassyBirthCertificate;
       case AdministrativeRequestType.marriageCertificate:
-        return 'Acte de mariage';
+        return l10n.embassyMarriageCertificate;
       case AdministrativeRequestType.deathCertificate:
-        return 'Acte de décès';
+        return l10n.embassyDeathCertificate;
       case AdministrativeRequestType.consularId:
-        return 'Carte consulaire';
+        return l10n.embassyConsularId;
       case AdministrativeRequestType.legalDocument:
-        return 'Document légal';
+        return l10n.embassyLegalDocument;
       case AdministrativeRequestType.laissezPasser:
-        return 'Laissez-passer';
+        return l10n.embassyLaissezPasser;
       case AdministrativeRequestType.powerOfAttorney:
-        return 'Procuration';
+        return l10n.embassyPowerOfAttorney;
       case AdministrativeRequestType.inscription:
-        return 'Inscription consulaire';
+        return l10n.embassyInscription;
       case AdministrativeRequestType.other:
-        return 'Autre demande';
+        return l10n.embassyOtherRequest;
     }
   }
 
@@ -208,7 +211,7 @@ class _AdministrativeRequestScreenState
       case AdministrativeRequestType.passportNewRequest:
         return 'Première demande de passeport ou remplacement d\'un passeport perdu/volé.';
       case AdministrativeRequestType.visaApplication:
-        return 'Demande de visa pour les ressortissants étrangers.';
+        return l10n.embassyVisaApplicationDesc;
       case AdministrativeRequestType.birthCertificate:
         return 'Copie ou extrait d\'acte de naissance.';
       case AdministrativeRequestType.marriageCertificate:
@@ -218,15 +221,15 @@ class _AdministrativeRequestScreenState
       case AdministrativeRequestType.consularId:
         return 'Carte d\'immatriculation consulaire pour les ressortissants nigériens.';
       case AdministrativeRequestType.legalDocument:
-        return 'Légalisation ou certification de documents officiels.';
+        return l10n.embassyLegalDocumentDesc;
       case AdministrativeRequestType.laissezPasser:
-        return 'Document de voyage temporaire en cas de perte de passeport.';
+        return l10n.embassyLaissezPasserDesc;
       case AdministrativeRequestType.powerOfAttorney:
-        return 'Procuration pour représentation légale.';
+        return l10n.embassyPowerOfAttorneyDesc;
       case AdministrativeRequestType.inscription:
         return 'Inscription au registre des Nigériens à l\'étranger.';
       case AdministrativeRequestType.other:
-        return 'Autre type de demande administrative.';
+        return l10n.embassyOtherRequestDesc;
     }
   }
 
@@ -242,7 +245,7 @@ class _AdministrativeRequestScreenState
 
     try {
       final user = ref.read(currentUserAsyncProvider).value;
-      if (user == null) throw Exception('Utilisateur non connecté');
+      if (user == null) throw Exception(l10n.userNotLoggedIn);
 
       final profileAsync = ref.read(userStreamProvider(user.id));
       final profile = profileAsync.value;
@@ -316,7 +319,7 @@ class _AdministrativeRequestScreenState
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const DesignTitle('Nouvelle demande', size: 22),
+        title: DesignTitle(l10n.newRequest, size: 22),
       ),
       body: Form(
         key: _formKey,
@@ -396,7 +399,7 @@ class _AdministrativeRequestScreenState
               const SizedBox(height: 20),
 
               // Request type selection
-              _buildSectionTitle('Type de demande *'),
+              _buildSectionTitle(l10n.embassyRequestType),
               const SizedBox(height: 8),
               DropdownButtonFormField<AdministrativeRequestType>(
                 initialValue: _selectedType,
@@ -478,14 +481,14 @@ class _AdministrativeRequestScreenState
               const SizedBox(height: 16),
 
               // Personal information
-              _buildSectionTitle('Informations personnelles'),
+              _buildSectionTitle(l10n.personalInfo),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _fullNameController,
-                decoration: _inputDecoration('Nom complet *'),
+                decoration: _inputDecoration(l10n.embassyFullName),
                 validator:
-                    (v) => v == null || v.isEmpty ? 'Champ obligatoire' : null,
+                    (v) => v == null || v.isEmpty ? l10n.embassyFieldRequired : null,
               ),
               const SizedBox(height: 12),
 
@@ -495,18 +498,18 @@ class _AdministrativeRequestScreenState
                     child: TextFormField(
                       controller: _dateOfBirthController,
                       decoration: _inputDecoration(
-                        'Date de naissance *',
-                        'JJ/MM/AAAA',
+                        l10n.embassyDateOfBirth,
+                        l10n.embassyDateFormat,
                       ),
                       validator:
-                          (v) => v == null || v.isEmpty ? 'Obligatoire' : null,
+                          (v) => v == null || v.isEmpty ? l10n.embassyFieldRequiredShort : null,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
                       controller: _placeOfBirthController,
-                      decoration: _inputDecoration('Lieu de naissance'),
+                      decoration: _inputDecoration(l10n.embassyPlaceOfBirth),
                     ),
                   ),
                 ],
@@ -515,21 +518,21 @@ class _AdministrativeRequestScreenState
 
               TextFormField(
                 controller: _nationalityController,
-                decoration: _inputDecoration('Nationalité'),
+                decoration: _inputDecoration(l10n.embassyNationality),
               ),
               const SizedBox(height: 12),
 
               TextFormField(
                 controller: _currentAddressController,
-                decoration: _inputDecoration('Adresse actuelle *'),
+                decoration: _inputDecoration(l10n.embassyCurrentAddress),
                 maxLines: 2,
                 validator:
-                    (v) => v == null || v.isEmpty ? 'Champ obligatoire' : null,
+                    (v) => v == null || v.isEmpty ? l10n.embassyFieldRequired : null,
               ),
               const SizedBox(height: 24),
 
               // Contact
-              _buildSectionTitle('Contact'),
+              _buildSectionTitle(l10n.contact),
               const SizedBox(height: 16),
 
               Row(
@@ -537,17 +540,17 @@ class _AdministrativeRequestScreenState
                   Expanded(
                     child: TextFormField(
                       controller: _phoneController,
-                      decoration: _inputDecoration('Téléphone *'),
+                      decoration: _inputDecoration(l10n.embassyPhone),
                       keyboardType: TextInputType.phone,
                       validator:
-                          (v) => v == null || v.isEmpty ? 'Obligatoire' : null,
+                          (v) => v == null || v.isEmpty ? l10n.embassyFieldRequiredShort : null,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
                       controller: _emailController,
-                      decoration: _inputDecoration('Email'),
+                      decoration: _inputDecoration(l10n.email),
                       keyboardType: TextInputType.emailAddress,
                     ),
                   ),
@@ -557,7 +560,7 @@ class _AdministrativeRequestScreenState
 
               // Passport info (conditional)
               if (_requiresPassportInfo(_selectedType)) ...[
-                _buildSectionTitle('Informations du passeport'),
+                _buildSectionTitle(l10n.embassyPassportInfo),
                 const SizedBox(height: 16),
 
                 Row(
@@ -565,7 +568,7 @@ class _AdministrativeRequestScreenState
                     Expanded(
                       child: TextFormField(
                         controller: _passportNumberController,
-                        decoration: _inputDecoration('N° de passeport'),
+                        decoration: _inputDecoration(l10n.embassyPassportNumber),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -574,7 +577,7 @@ class _AdministrativeRequestScreenState
                         controller: _passportExpiryController,
                         decoration: _inputDecoration(
                           'Date d\'expiration',
-                          'JJ/MM/AAAA',
+                          l10n.embassyDateFormat,
                         ),
                       ),
                     ),
@@ -584,13 +587,13 @@ class _AdministrativeRequestScreenState
               ],
 
               // Notes
-              _buildSectionTitle('Remarques / Informations complémentaires'),
+              _buildSectionTitle(l10n.embassyNotesSection),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
                 decoration: _inputDecoration(
                   '',
-                  'Ajoutez des détails supplémentaires si nécessaire...',
+                  l10n.embassyNotesPlaceholder,
                 ).copyWith(
                   counterText:
                       _notesController.text.isNotEmpty
@@ -647,7 +650,7 @@ class _AdministrativeRequestScreenState
                             ),
                           )
                           : const AppIcon(AppIcon.send),
-                  label: Text(_isLoading ? 'Envoi...' : 'Soumettre la demande'),
+                  label: Text(_isLoading ? l10n.embassySending : l10n.embassySubmitRequest),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,

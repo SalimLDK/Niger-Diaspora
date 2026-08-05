@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class EmbassyMessageScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
@@ -20,6 +21,8 @@ class EmbassyMessageScreen extends ConsumerStatefulWidget {
 }
 
 class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _subjectController = TextEditingController();
   final _contentController = TextEditingController();
@@ -36,15 +39,15 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
   String _getTypeLabel(EmbassyMessageType type) {
     switch (type) {
       case EmbassyMessageType.general:
-        return 'Question générale';
+        return l10n.embassyMessageGeneral;
       case EmbassyMessageType.request:
-        return 'Demande de service';
+        return l10n.embassyMessageRequest;
       case EmbassyMessageType.complaint:
-        return 'Réclamation';
+        return l10n.embassyMessageComplaint;
       case EmbassyMessageType.inquiry:
-        return 'Renseignement';
+        return l10n.embassyMessageInquiry;
       case EmbassyMessageType.followUp:
-        return 'Suivi de dossier';
+        return l10n.embassyMessageFollowUp;
     }
   }
 
@@ -56,7 +59,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
     try {
       final user = ref.read(currentUserAsyncProvider).value;
       if (user == null) {
-        throw Exception('Utilisateur non connecté');
+        throw Exception(l10n.userNotLoggedIn);
       }
 
       final profileAsync = ref.read(userStreamProvider(user.id));
@@ -164,7 +167,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
 
               // Message type
               Text(
-                'Type de message',
+                l10n.embassyMessageType,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -201,7 +204,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
 
               // Subject
               Text(
-                'Objet *',
+                l10n.embassySubject,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -210,7 +213,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
               TextFormField(
                 controller: _subjectController,
                 decoration: InputDecoration(
-                  hintText: 'Ex: Demande de renseignements sur le passeport',
+                  hintText: l10n.embassySubjectHint,
                   helperText: 'Au moins 5 caractères',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -234,7 +237,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
 
               // Content
               Text(
-                'Message *',
+                l10n.embassyMessage,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -243,7 +246,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
               TextFormField(
                 controller: _contentController,
                 decoration: InputDecoration(
-                  hintText: 'Décrivez votre demande en détail...',
+                  hintText: l10n.describeRequest,
                   helperText: 'Au moins 20 caractères',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -259,10 +262,10 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                 onChanged: (_) => setState(() {}),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Le message est obligatoire';
+                    return l10n.embassyMessageRequired;
                   }
                   if (value.length < 20) {
-                    return 'Le message doit contenir au moins 20 caractères';
+                    return l10n.embassyMessageMinLength;
                   }
                   return null;
                 },
@@ -313,7 +316,7 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
                             ),
                           )
                           : const AppIcon(AppIcon.send),
-                  label: Text(_isLoading ? 'Envoi...' : 'Envoyer le message'),
+                  label: Text(_isLoading ? l10n.embassySending : l10n.embassySendMessage),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,

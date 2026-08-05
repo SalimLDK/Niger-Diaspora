@@ -11,6 +11,7 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../domain/entities/embassy_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Rayon (km) sous lequel une ambassade rejoint la zone « Près de vous »
 /// plutôt que sa zone continentale.
@@ -75,6 +76,8 @@ class EmbassiesScreen extends ConsumerStatefulWidget {
 }
 
 class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -104,7 +107,7 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
   ];
 
   String _zoneFor(EmbassyEntity embassy, double? myLat, double? myLng) {
-    if (embassy.latitude == null || embassy.longitude == null) return 'Autres';
+    if (embassy.latitude == null || embassy.longitude == null) return l10n.otherConversations;
     if (myLat != null && myLng != null) {
       final distance = GeoUtils.calculateDistance(
         myLat,
@@ -320,14 +323,14 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
             Text(
               _searchQuery.isEmpty
                   ? 'Aucune ambassade disponible'
-                  : 'Aucun résultat trouvé',
+                  : l10n.noResultsFound,
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               _searchQuery.isEmpty
-                  ? 'Les ambassades et consulats disponibles apparaîtront ici.'
+                  ? l10n.embassiesHelperText
                   : 'Essayez de modifier votre recherche.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -352,6 +355,7 @@ class _NearestEmbassyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final closed = embassy.isTemporarilyClosed;
     // Ouvert / fermé : jetons sémantiques plutôt que teintes figées. Les
@@ -419,7 +423,7 @@ class _NearestEmbassyCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          closed ? 'Temporairement fermé' : 'Ouvert',
+                          closed ? l10n.temporarilyClosed : l10n.ticketOpen,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: statusColor,
                             fontWeight: FontWeight.w600,
