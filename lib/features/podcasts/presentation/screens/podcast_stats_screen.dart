@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -27,8 +29,17 @@ class PodcastStatsScreen extends ConsumerWidget {
     final episodesAsync = ref.watch(podcastEpisodesProvider(podcastId));
 
     return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(title: Text(l10n.podcastStatsTitle)),
+      backgroundColor: context.dn.surface,
+      appBar: AppBar(
+        backgroundColor: context.dn.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: Text(
+          l10n.podcastStatsTitle,
+          style: DNText.serif(size: 22, color: context.dn.onSurface),
+        ),
+      ),
       body: podcastAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorBody(error: e),
@@ -71,7 +82,7 @@ class _StatsBody extends StatelessWidget {
           child: Text(
             l10n.podcastStatsNoData,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: context.textSecondaryColor),
+            style: TextStyle(fontSize: 15, color: context.dn.onSurface2),
           ),
         ),
       );
@@ -180,7 +191,7 @@ class _StatsBody extends StatelessWidget {
         // croire à un suivi dans le temps qui n'existe pas.
         Text(
           l10n.podcastStatsNoHistoryNote,
-          style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+          style: TextStyle(fontSize: 12, color: context.dn.onSurface3),
         ),
         const SizedBox(height: 32),
       ],
@@ -240,7 +251,7 @@ class _SectionTitle extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
-          color: context.textTertiaryColor,
+          color: context.dn.onSurface3,
         ),
       );
 }
@@ -260,7 +271,7 @@ class _StatTile extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: context.surfaceColor,
+          color: context.dn.surface2,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: context.borderColor),
         ),
@@ -268,19 +279,19 @@ class _StatTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: context.textTertiaryColor),
+            Icon(icon, size: 16, color: context.dn.onSurface3),
             const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: context.textPrimaryColor,
+                color: context.dn.onSurface,
               ),
             ),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: context.textSecondaryColor),
+              style: TextStyle(fontSize: 12, color: context.dn.onSurface2),
             ),
           ],
         ),
@@ -303,14 +314,14 @@ class _MetricRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: context.textTertiaryColor),
+            Icon(icon, size: 18, color: context.dn.onSurface3),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  color: context.textSecondaryColor,
+                  color: context.dn.onSurface2,
                 ),
               ),
             ),
@@ -319,7 +330,7 @@ class _MetricRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: context.textPrimaryColor,
+                color: context.dn.onSurface,
               ),
             ),
           ],
@@ -353,7 +364,7 @@ class _TopEpisodeBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
-                    color: context.textPrimaryColor,
+                    color: context.dn.onSurface,
                   ),
                 ),
               ),
@@ -362,7 +373,7 @@ class _TopEpisodeBar extends StatelessWidget {
                 l10n.podcastStatsPlaysCount(episode.playCount),
                 style: TextStyle(
                   fontSize: 12,
-                  color: context.textTertiaryColor,
+                  color: context.dn.onSurface3,
                 ),
               ),
             ],
@@ -373,7 +384,7 @@ class _TopEpisodeBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: ratio,
               minHeight: 6,
-              backgroundColor: context.surfaceVariantColor,
+              backgroundColor: context.dn.surfaceVariant,
               valueColor: AlwaysStoppedAnimation(context.adaptivePrimaryColor),
             ),
           ),
@@ -399,7 +410,7 @@ class _ErrorBody extends StatelessWidget {
                     ErrorHandler.instance.handleException(error),
                   ),
             textAlign: TextAlign.center,
-            style: TextStyle(color: context.textSecondaryColor),
+            style: TextStyle(color: context.dn.onSurface2),
           ),
         ),
       );

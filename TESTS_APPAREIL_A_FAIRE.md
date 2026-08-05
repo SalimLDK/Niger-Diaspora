@@ -2378,6 +2378,40 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 ---
 
+## Podcasts — 5 écrans passés au système DN (2026-08-04)
+
+`lib/design_v2/` a été supprimé. Avant de le retirer, cinq écrans podcasts
+y portaient une migration vers le système de couleurs DN qui n'avait jamais
+été rebasculée, et qui n'était visible nulle part (fichiers orphelins, hors
+galerie). Ils ont été repris dans `features/podcasts/presentation/screens/`.
+
+**Leur apparence change** : titres en serif `DNText.serif(22)`, barre du haut
+à plat sur `context.dn.surface`, icônes et textes sur les jetons `context.dn`
+au lieu de `Theme.of(context)` brut. Aucun changement fonctionnel — la
+migration ne touchait que des couleurs et des styles de texte.
+
+- [ ] **Accueil podcasts** (`podcasts_home_screen.dart`) : titre serif, barre
+  de recherche, listes — en clair **et** en nocturne.
+- [ ] **Mes podcasts** (`my_podcasts_screen.dart`) : titre serif, état vide
+  (icône 80 sur `onSurface4`), boutons « + ».
+- [ ] **Fiche podcast** (`podcast_detail_screen.dart`) : en-tête, bouton
+  d'abonnement — sa couleur suit **l'accent du compte**, pas le terracotta.
+- [ ] **Statistiques** (`podcast_stats_screen.dart`) : cartes de stats et
+  barre de progression (accent du compte également).
+- [ ] **Enregistrer un épisode** (`record_episode_screen.dart`) : barre du
+  haut, sélecteur audio/vidéo, bouton « Brouillon » toujours présent.
+- [ ] ⚠️ **Vérifier le nocturne en priorité** : `context.dn` gère les deux
+  thèmes, mais ces cinq écrans n'ont jamais été vus en nocturne sur appareil.
+
+**Écart volontaire par rapport à la copie `design_v2`** : elle figeait deux
+couleurs sur `DNColors.terra` (constante `0xFFC85A3A`), là où `features/`
+suivait `colorScheme.primary`. La version adaptative a été conservée — le
+terracotta en dur aurait cassé l'accent choisi par le compte. Si la maquette
+veut vraiment du terracotta fixe à ces deux endroits, c'est à rétablir
+explicitement (fiche podcast ligne 368, statistiques ligne 388).
+
+---
+
 ## Carte — délai d'affichage des membres autour (2026-08-04)
 
 `map_screen.dart` : trois changements qui ne se voient que sur un vrai GPS et

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -429,7 +431,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
               child: LinearProgressIndicator(
                 value: _isRecordingPaused ? 0 : _amplitude,
                 minHeight: 6,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                backgroundColor: context.dn.surfaceVariant,
                 valueColor: AlwaysStoppedAnimation(theme.colorScheme.error),
               ),
             ),
@@ -488,7 +490,17 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.podcastsNewEpisodeTitle)),
+      backgroundColor: context.dn.surface,
+      appBar: AppBar(
+        backgroundColor: context.dn.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: Text(
+          l10n.podcastsNewEpisodeTitle,
+          style: DNText.serif(size: 22, color: context.dn.onSurface),
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -499,7 +511,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
               child: SegmentedButton<bool>(
                 segments: [
                   ButtonSegment(value: false, label: Text(AppLocalizations.of(context)!.audioLabel), icon: const Icon(Icons.headphones)),
-                  ButtonSegment(value: true, label: Text(AppLocalizations.of(context)!.videoLabel), icon: AppIcon(AppIcon.video, color: Theme.of(context).iconTheme.color!)),
+                  ButtonSegment(value: true, label: Text(AppLocalizations.of(context)!.videoLabel), icon: AppIcon(AppIcon.video, color: context.dn.onSurface2)),
                 ],
                 selected: {_isVideoMode},
                 onSelectionChanged: (s) => setState(() => _isVideoMode = s.first),
@@ -649,7 +661,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
                         ),
                         TextButton.icon(
                           onPressed: () => _addChapter(l10n),
-                          icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
+                          icon: AppIcon(AppIcon.add, color: context.dn.onSurface2),
                           label: Text(l10n.podcastsAdd),
                         ),
                       ],

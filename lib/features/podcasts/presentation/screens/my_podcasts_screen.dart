@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,11 +20,21 @@ class MyPodcastsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      backgroundColor: context.dn.surface,
+      // Migration vers le système DN : mêmes jetons et même titrage que les
+      // salons, au lieu du thème Material brut.
       appBar: AppBar(
-        title: Text(l10n.myPodcasts),
+        backgroundColor: context.dn.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        title: Text(
+          l10n.myPodcasts,
+          style: DNText.serif(size: 22, color: context.dn.onSurface),
+        ),
         actions: [
           IconButton(
-            icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
+            icon: AppIcon(AppIcon.add, color: context.dn.onSurface2),
             tooltip: l10n.createPodcast,
             onPressed: () => context.push('/podcasts/create'),
           ),
@@ -59,7 +71,7 @@ class MyPodcastsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/podcasts/create'),
-        icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
+        icon: AppIcon(AppIcon.add, color: context.dn.onSurface2),
         label: Text(l10n.newPodcast),
       ),
     );
@@ -72,11 +84,11 @@ class MyPodcastsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AppIcon(AppIcon.podcasts, size: 80, color: Colors.grey[400]!),
+            AppIcon(AppIcon.podcasts, size: 80, color: context.dn.onSurface4),
             const SizedBox(height: 24),
             Text(
               l10n.noPodcastsYet,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: DNText.serif(size: 20, color: context.dn.onSurface),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -88,7 +100,7 @@ class MyPodcastsScreen extends ConsumerWidget {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () => context.push('/podcasts/create'),
-              icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!),
+              icon: AppIcon(AppIcon.add, color: context.dn.onSurface2),
               label: Text(l10n.createMyFirstPodcast),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -166,7 +178,7 @@ class _PodcastManagementCard extends ConsumerWidget {
                           color: Theme.of(
                             context,
                           ).primaryColor.withValues(alpha: 0.2),
-                          child: AppIcon(AppIcon.podcasts, color: Theme.of(context).iconTheme.color!, size: 40),
+                          child: AppIcon(AppIcon.podcasts, color: context.dn.onSurface2, size: 40),
                         ),
                   ),
                 ),
@@ -273,7 +285,7 @@ class _PodcastManagementCard extends ConsumerWidget {
                               episode.playCount,
                             ),
                           ),
-                          trailing: AppIcon(AppIcon.chevronRight, color: Theme.of(context).iconTheme.color!),
+                          trailing: AppIcon(AppIcon.chevronRight, color: context.dn.onSurface2),
                           onTap:
                               () => context.push(
                                 '/podcasts/episodes/${episode.id}',
@@ -313,7 +325,7 @@ class _PodcastManagementCard extends ConsumerWidget {
                   child: OutlinedButton.icon(
                     onPressed:
                         () => context.push('/podcasts/${podcast.id}/record'),
-                    icon: AppIcon(AppIcon.add, color: Theme.of(context).iconTheme.color!, size: 18),
+                    icon: AppIcon(AppIcon.add, color: context.dn.onSurface2, size: 18),
                     label: Text(
                       l10n.newEpisode,
                       maxLines: 1,

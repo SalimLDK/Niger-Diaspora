@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../design_v2/design_v2_gallery.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -336,14 +335,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       // Root route redirect to home
       GoRoute(path: '/', redirect: (context, state) => '/home'),
-      // Galerie de test de la refonte (design_v2). Sans ce point d'entrée,
-      // rien de la refonte n'est visible sur un vrai téléphone. À retirer,
-      // avec lib/design_v2/, quand la refonte est basculée en production.
-      if (kDebugMode)
-        GoRoute(
-          path: '/design-v2',
-          builder: (context, state) => const DesignV2Gallery(),
-        ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),

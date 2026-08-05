@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -67,12 +69,18 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: context.dn.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         // Sous-titre « N abonnements · M en cours d'écoute » : dit d'un coup
         // d'œil s'il y a quelque chose à reprendre.
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.podcasts),
+            Text(
+              l10n.podcasts,
+              style: DNText.serif(size: 22, color: context.dn.onSurface),
+            ),
             Builder(builder: (context) {
               final userData = ref.watch(podcastUserDataProvider).valueOrNull;
               final subs = userData?.subscribedPodcastIds.length ?? 0;
@@ -82,7 +90,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
                 l10n.podcastsHomeSubtitle(subs, inProgress),
                 style: TextStyle(
                   fontSize: 11,
-                  color: context.textSecondaryColor,
+                  color: context.dn.onSurface2,
                 ),
               );
             },),
@@ -330,9 +338,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
       children: [
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: DNText.serif(size: 19, color: context.dn.onSurface),
         ),
         if (onSeeAll != null)
           TextButton(onPressed: onSeeAll, child: Text(l10n.seeAll)),
@@ -522,7 +528,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
         Icon(
           Icons.headphones_rounded,
           size: 56,
-          color: context.textTertiaryColor,
+          color: context.dn.onSurface3,
         ),
         const SizedBox(height: 16),
         Text(
@@ -531,14 +537,14 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: context.textPrimaryColor,
+            color: context.dn.onSurface,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           l10n.subscribeToFindHere,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+          style: TextStyle(fontSize: 13, color: context.dn.onSurface2),
         ),
         const SizedBox(height: 28),
         trendingAsync.when(
@@ -555,7 +561,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
-                    color: context.textTertiaryColor,
+                    color: context.dn.onSurface3,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -671,7 +677,7 @@ class _SuggestedPodcastRow extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: context.textPrimaryColor,
+                      color: context.dn.onSurface,
                     ),
                   ),
                   Text(
@@ -680,7 +686,7 @@ class _SuggestedPodcastRow extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: context.textSecondaryColor,
+                      color: context.dn.onSurface2,
                     ),
                   ),
                 ],

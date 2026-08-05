@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -61,7 +63,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                 pinned: true,
                 actions: [
                   IconButton(
-                    icon: AppIcon(AppIcon.share, color: Theme.of(context).iconTheme.color!),
+                    icon: AppIcon(AppIcon.share, color: context.dn.onSurface2),
                     onPressed: () {
                       DeepLinkService.instance.sharePodcast(
                         podcastId: podcastId,
@@ -84,7 +86,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                         ),
                         errorWidget: (_, __, ___) => Container(
                           color: Colors.grey[300],
-                          child: AppIcon(AppIcon.podcasts, color: Theme.of(context).iconTheme.color!, size: 64),
+                          child: AppIcon(AppIcon.podcasts, color: context.dn.onSurface2, size: 64),
                         ),
                       ),
                       // Gradient overlay
@@ -175,7 +177,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                       if (podcast.description != null) ...[
                         Text(
                           l10n.podcastsAbout,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: DNText.serif(size: 17, color: context.dn.onSurface),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -204,7 +206,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.podcastsEpisodes(podcast.totalEpisodes),
-                            style: Theme.of(context).textTheme.titleLarge,
+                            style: DNText.serif(size: 20, color: context.dn.onSurface),
                           ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -234,7 +236,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                                   '/podcasts/$podcastId/record',
                                 ),
                                 icon: AppIcon(AppIcon.add,
-                                    color: Theme.of(context).iconTheme.color!,),
+                                    color: context.dn.onSurface2,),
                               ),
                             ],
                           ),
