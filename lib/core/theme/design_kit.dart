@@ -593,16 +593,16 @@ class DesignSecondaryButton extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 15.5,
-            fontWeight: FontWeight.w600,
-            color:
-                onPressed == null
-                    ? context.textDisabledColor
-                    : context.textSecondaryColor,
+            label,
+            style: TextStyle(
+              fontSize: 15.5,
+              fontWeight: FontWeight.w600,
+              color:
+                  onPressed == null
+                      ? context.textDisabledColor
+                      : context.textSecondaryColor,
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -951,11 +951,18 @@ class DesignScreenHeader extends StatelessWidget {
 
   final List<Widget> actions;
 
+  /// Contrôle placé avant le titre — une flèche de retour sur un écran
+  /// atteint par `push`. Sans lui, ces écrans devaient garder une `AppBar`
+  /// et un autre widget de titre, et deux écrans voisins n'avaient plus le
+  /// même en-tête.
+  final Widget? leading;
+
   const DesignScreenHeader({
     super.key,
     required this.title,
     this.subtitle,
     this.actions = const [],
+    this.leading,
   });
 
   @override
@@ -965,6 +972,12 @@ class DesignScreenHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (leading != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 4, right: 8),
+              child: leading,
+            ),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

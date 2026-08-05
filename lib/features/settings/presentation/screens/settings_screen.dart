@@ -129,268 +129,293 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      // En-tête plat (§10b) : flèche retour nue et titre serif sur le fond
-      // crème, au lieu de l'AppBar Material teintée.
-      appBar: AppBar(
-        backgroundColor: context.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        titleSpacing: 0,
-        title: DesignTitle(l10n.settings, size: 24),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
-          onPressed: () => context.pop(),
+      // En-tête plat (§10b, §11e) : le même `DesignScreenHeader` que Profil,
+      // Messages et Groupes. Il portait un `DesignTitle` en 24 avec point
+      // d'accent dans une `AppBar`, quand les écrans voisins affichent un
+      // titre en 30 sans point : deux écrans à un tap l'un de l'autre
+      // n'avaient pas le même en-tête.
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(0, 4, 0, 20),
+          children: [
+            DesignScreenHeader(
+              title: l10n.settings,
+              leading: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => context.pop(),
+                child: SizedBox(
+                  width: 28,
+                  height: 34,
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Qui vous voit
+                  _buildSectionHeader(
+                    l10n.whoSeesYou,
+                    Icons.visibility_outlined,
+                  ),
+                  _SettingsCard(
+                    children: [
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.visibility_outlined),
+                        title: l10n.visibleProfile,
+                        subtitle: l10n.appearInSearchesDesc,
+                        value: _profileVisible,
+                        onChanged: (value) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _profileVisible = value);
+                          _saveSettingsToProfile();
+                        },
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.location_on_outlined),
+                        title: l10n.myLocation,
+                        subtitle: l10n.appearOnMapDesc,
+                        value: _locationEnabled,
+                        onChanged: (value) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _locationEnabled = value);
+                          _saveSettingsToProfile();
+                        },
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.circle_outlined),
+                        title: l10n.profileShowOnlineStatus,
+                        subtitle: l10n.profileShowOnlineStatusSubtitle,
+                        value: _showOnlineStatus,
+                        onChanged: (value) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _showOnlineStatus = value);
+                          _saveSettingsToProfile();
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 2. Sécurité
+                  _buildSectionHeader(l10n.security, Icons.shield_outlined),
+                  _SettingsCard(
+                    children: [
+                      _SettingsTile(
+                        icon: const Icon(Icons.lock_outline),
+                        title: l10n.keyBackup,
+                        subtitle: l10n.keyBackupSubtitle,
+                        onTap: () => context.push('/settings/security/backup'),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.devices_outlined),
+                        title: l10n.connectedDevices,
+                        subtitle: l10n.connectedDevicesSubtitle,
+                        onTap: () => context.push('/settings/security/devices'),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.block_outlined),
+                        title: l10n.blockedUsers,
+                        onTap: () => _showBlockedUsers(),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.flag_outlined),
+                        title: l10n.myReports,
+                        subtitle: l10n.myReportsSubtitle,
+                        onTap: () => context.push('/settings/my-reports'),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 3. Application
+                  _buildSectionHeader(l10n.application, Icons.tune_outlined),
+                  _SettingsCard(
+                    children: [
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.notifications_active_outlined),
+                        title: l10n.pushNotifications,
+                        subtitle: l10n.receiveNotificationsDesc,
+                        value: _notificationsEnabled,
+                        onChanged: (value) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _notificationsEnabled = value);
+                          _updateNotificationSettings(value);
+                        },
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.tune),
+                        // §20d : la ligne ouvrait une feuille modale qui doublait
+                        // l'écran de réglages sur les mêmes préférences. Un seul
+                        // endroit désormais.
+                        title: 'Notifications',
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.push('/notifications/settings');
+                        },
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.palette_outlined),
+                        title: l10n.theme,
+                        subtitle: _getThemeLabel(
+                          ref.watch(themeModeNotifierProvider),
+                          l10n,
+                        ),
+                        onTap: () => _showThemeSelector(l10n),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.translate_outlined),
+                        title: l10n.language,
+                        subtitle:
+                            ref
+                                .watch(localeNotifierProvider.notifier)
+                                .currentLocaleName,
+                        onTap: () => _showLanguageSelector(l10n),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.attach_money),
+                        title: l10n.displayCurrency,
+                        subtitle: _getCurrencyLabel(
+                          ref.watch(selectedDisplayCurrencyProvider),
+                        ),
+                        onTap: () => _showCurrencySelector(),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.wallpaper_outlined),
+                        title: l10n.chatBackground,
+                        subtitle: _backgroundSubtitle(l10n),
+                        onTap: () => _showGlobalBackgroundPicker(),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.graphic_eq),
+                        title: l10n.noiseSuppression,
+                        subtitle: l10n.noiseSuppressionSubtitle,
+                        value: _noiseSuppressionEnabled,
+                        onChanged: _toggleNoiseSuppression,
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsSwitchTile(
+                        icon: const Icon(Icons.data_saver_on_outlined),
+                        title: l10n.dataSaverMode,
+                        subtitle: l10n.dataSaverModeSubtitle,
+                        value: _dataSaverMode,
+                        onChanged: _toggleDataSaverMode,
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.support_agent_outlined),
+                        title: l10n.helpFaq,
+                        onTap: () => _showHelpSupport(l10n),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.info_outline),
+                        title: l10n.about,
+                        subtitle: _versionLabel(l10n),
+                        onTap: () => _showAbout(l10n),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.article_outlined),
+                        title: l10n.termsOfService,
+                        onTap: () => context.push('/settings/terms'),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.privacy_tip_outlined),
+                        title: l10n.privacyPolicy,
+                        onTap: () => context.push('/settings/privacy'),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.gavel_outlined),
+                        title: l10n.codeOfConduct,
+                        onTap: () => context.push('/settings/code-of-conduct'),
+                      ),
+                      const _SettingsDivider(),
+                      // Droit à la portabilité (RGPD art. 20).
+                      _SettingsTile(
+                        icon:
+                            _isExportingData
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Icon(Icons.download_outlined),
+                        title: l10n.exportMyData,
+                        subtitle:
+                            _isExportingData
+                                ? l10n.exportMyDataPreparing
+                                : l10n.exportMyDataSubtitle,
+                        onTap:
+                            _isExportingData ? null : () => _exportMyData(l10n),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Zone sensible isolée
+                  _buildSectionHeader(
+                    l10n.dangerZone,
+                    Icons.warning_amber_rounded,
+                    isWarning: true,
+                  ),
+                  _SettingsCard(
+                    isDanger: true,
+                    children: [
+                      // Jetons adaptatifs et non `AppColors.warning`/`.error` bruts :
+                      // ces deux-là sont les valeurs du thème clair, donc sombres et
+                      // peu lisibles sur le fond #0F0D0A du nocturne. La fiche 11e
+                      // demande explicitement le rouge clair #F87171 (`errorDark`)
+                      // plutôt que le #C23E2D du mode clair.
+                      _SettingsTile(
+                        icon: const Icon(Icons.logout_outlined),
+                        title: l10n.logout,
+                        iconColor: context.warningColor,
+                        titleColor: context.warningColor,
+                        onTap: () => _confirmLogout(l10n),
+                      ),
+                      const _SettingsDivider(),
+                      _SettingsTile(
+                        icon: const Icon(Icons.delete_outline),
+                        title: l10n.deleteAccount,
+                        iconColor: context.errorColor,
+                        titleColor: context.errorColor,
+                        onTap: () => _confirmDeleteAccount(l10n),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ],
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-        children: [
-          // 1. Qui vous voit
-          _buildSectionHeader(l10n.whoSeesYou, Icons.visibility_outlined),
-          _SettingsCard(
-            children: [
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.visibility_outlined),
-                title: l10n.visibleProfile,
-                subtitle: l10n.appearInSearchesDesc,
-                value: _profileVisible,
-                onChanged: (value) {
-                  HapticFeedback.lightImpact();
-                  setState(() => _profileVisible = value);
-                  _saveSettingsToProfile();
-                },
-              ),
-              const _SettingsDivider(),
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.location_on_outlined),
-                title: l10n.myLocation,
-                subtitle: l10n.appearOnMapDesc,
-                value: _locationEnabled,
-                onChanged: (value) {
-                  HapticFeedback.lightImpact();
-                  setState(() => _locationEnabled = value);
-                  _saveSettingsToProfile();
-                },
-              ),
-              const _SettingsDivider(),
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.circle_outlined),
-                title: l10n.profileShowOnlineStatus,
-                subtitle: l10n.profileShowOnlineStatusSubtitle,
-                value: _showOnlineStatus,
-                onChanged: (value) {
-                  HapticFeedback.lightImpact();
-                  setState(() => _showOnlineStatus = value);
-                  _saveSettingsToProfile();
-                },
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // 2. Sécurité
-          _buildSectionHeader(l10n.security, Icons.shield_outlined),
-          _SettingsCard(
-            children: [
-              _SettingsTile(
-                icon: const Icon(Icons.lock_outline),
-                title: l10n.keyBackup,
-                subtitle: l10n.keyBackupSubtitle,
-                onTap: () => context.push('/settings/security/backup'),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.devices_outlined),
-                title: l10n.connectedDevices,
-                subtitle: l10n.connectedDevicesSubtitle,
-                onTap: () => context.push('/settings/security/devices'),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.block_outlined),
-                title: l10n.blockedUsers,
-                onTap: () => _showBlockedUsers(),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.flag_outlined),
-                title: l10n.myReports,
-                subtitle: l10n.myReportsSubtitle,
-                onTap: () => context.push('/settings/my-reports'),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // 3. Application
-          _buildSectionHeader(l10n.application, Icons.tune_outlined),
-          _SettingsCard(
-            children: [
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.notifications_active_outlined),
-                title: l10n.pushNotifications,
-                subtitle: l10n.receiveNotificationsDesc,
-                value: _notificationsEnabled,
-                onChanged: (value) {
-                  HapticFeedback.lightImpact();
-                  setState(() => _notificationsEnabled = value);
-                  _updateNotificationSettings(value);
-                },
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.tune),
-                // §20d : la ligne ouvrait une feuille modale qui doublait
-                // l'écran de réglages sur les mêmes préférences. Un seul
-                // endroit désormais.
-                title: 'Notifications',
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  context.push('/notifications/settings');
-                },
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.palette_outlined),
-                title: l10n.theme,
-                subtitle: _getThemeLabel(
-                  ref.watch(themeModeNotifierProvider),
-                  l10n,
-                ),
-                onTap: () => _showThemeSelector(l10n),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.translate_outlined),
-                title: l10n.language,
-                subtitle:
-                    ref
-                        .watch(localeNotifierProvider.notifier)
-                        .currentLocaleName,
-                onTap: () => _showLanguageSelector(l10n),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.attach_money),
-                title: l10n.displayCurrency,
-                subtitle: _getCurrencyLabel(
-                  ref.watch(selectedDisplayCurrencyProvider),
-                ),
-                onTap: () => _showCurrencySelector(),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.wallpaper_outlined),
-                title: l10n.chatBackground,
-                subtitle: _backgroundSubtitle(l10n),
-                onTap: () => _showGlobalBackgroundPicker(),
-              ),
-              const _SettingsDivider(),
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.graphic_eq),
-                title: l10n.noiseSuppression,
-                subtitle: l10n.noiseSuppressionSubtitle,
-                value: _noiseSuppressionEnabled,
-                onChanged: _toggleNoiseSuppression,
-              ),
-              const _SettingsDivider(),
-              _SettingsSwitchTile(
-                icon: const Icon(Icons.data_saver_on_outlined),
-                title: l10n.dataSaverMode,
-                subtitle: l10n.dataSaverModeSubtitle,
-                value: _dataSaverMode,
-                onChanged: _toggleDataSaverMode,
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.support_agent_outlined),
-                title: l10n.helpFaq,
-                onTap: () => _showHelpSupport(l10n),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.info_outline),
-                title: l10n.about,
-                subtitle: _versionLabel(l10n),
-                onTap: () => _showAbout(l10n),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.article_outlined),
-                title: l10n.termsOfService,
-                onTap: () => context.push('/settings/terms'),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.privacy_tip_outlined),
-                title: l10n.privacyPolicy,
-                onTap: () => context.push('/settings/privacy'),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.gavel_outlined),
-                title: l10n.codeOfConduct,
-                onTap: () => context.push('/settings/code-of-conduct'),
-              ),
-              const _SettingsDivider(),
-              // Droit à la portabilité (RGPD art. 20).
-              _SettingsTile(
-                icon:
-                    _isExportingData
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                        : const Icon(Icons.download_outlined),
-                title: l10n.exportMyData,
-                subtitle:
-                    _isExportingData
-                        ? l10n.exportMyDataPreparing
-                        : l10n.exportMyDataSubtitle,
-                onTap: _isExportingData ? null : () => _exportMyData(l10n),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Zone sensible isolée
-          _buildSectionHeader(
-            l10n.dangerZone,
-            Icons.warning_amber_rounded,
-            isWarning: true,
-          ),
-          _SettingsCard(
-            isDanger: true,
-            children: [
-              // Jetons adaptatifs et non `AppColors.warning`/`.error` bruts :
-              // ces deux-là sont les valeurs du thème clair, donc sombres et
-              // peu lisibles sur le fond #0F0D0A du nocturne. La fiche 11e
-              // demande explicitement le rouge clair #F87171 (`errorDark`)
-              // plutôt que le #C23E2D du mode clair.
-              _SettingsTile(
-                icon: const Icon(Icons.logout_outlined),
-                title: l10n.logout,
-                iconColor: context.warningColor,
-                titleColor: context.warningColor,
-                onTap: () => _confirmLogout(l10n),
-              ),
-              const _SettingsDivider(),
-              _SettingsTile(
-                icon: const Icon(Icons.delete_outline),
-                title: l10n.deleteAccount,
-                iconColor: context.errorColor,
-                titleColor: context.errorColor,
-                onTap: () => _confirmDeleteAccount(l10n),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-        ],
       ),
     );
   }
@@ -404,7 +429,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }) {
     return DesignSectionLabel(title);
   }
-
 
   Future<void> _saveSettingsToProfile() async {
     final user = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -1141,10 +1165,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: context.errorColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    Icons.delete_forever,
-                    color: context.errorColor,
-                  ),
+                  child: Icon(Icons.delete_forever, color: context.errorColor),
                 ),
                 const SizedBox(width: 12),
                 Text(l10n.deleteAccountTitle),
@@ -1858,7 +1879,6 @@ class _HelpOption extends StatelessWidget {
     );
   }
 }
-
 
 // ============================================================================
 // Sélecteur de devise avec catégories et recherche
