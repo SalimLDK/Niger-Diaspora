@@ -2734,6 +2734,22 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 ---
 
+## Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)
+
+- [ ] ⛔ **`BOTTOM OVERFLOWED BY 4.1 PIXELS`** sur l'écran de conversation en
+  **paysage**, panneau GIF/Émojis ouvert. Constaté sur une capture du
+  SM A515F pendant une session de saisie (conversation « Salim L. », message
+  multi-ligne en cours, rangée `GIF` / `Émojis` en bas). Le débordement est
+  petit mais le bandeau rayé est visible à l'écran.
+  Deux pistes, dans cet ordre : la hauteur du panneau ancré n'est pas
+  recalculée pour l'orientation paysage (voir la note « panneau ancré +
+  clavier » — le panneau doit prendre la **place** du clavier, et en paysage
+  cette place est bien plus basse) ; et le bandeau signale une **position**,
+  pas forcément le widget fautif.
+  Non lié aux correctifs de localisation de cette session.
+
+---
+
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
 `lib/design_v2/` a été supprimé. Avant de le retirer, cinq écrans podcasts
@@ -2801,18 +2817,40 @@ Ces points ne se vérifient qu'avec deux téléphones (ou un téléphone + un
 compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
 `location_updated_at` de la ligne `users`).
 
+⚠️ **Pourquoi « 0 membres autour » sur le compte de test, et ce n'est pas un
+bug de code.** Relevé le 2026-08-05 : seuls **deux** comptes partagent leur
+position, et un seul est exploitable.
+
+| Compte | `share_location` | Position |
+|---|---|---|
+| Sim A (`vQZE49dT…`) | `true` | 45.58028 / −73.64590 |
+| Salim L. (`U64HKfrj…`) | **`false`** | 45.58028 / −73.64599 |
+
+Les deux comptes sont à ~10 m l'un de l'autre, mais `getNearbyProfiles`
+filtre sur `.eq('share_location', true)` : « Salim L. » est donc écarté à la
+source, et « Sim A » est retiré par l'auto-exclusion. Il ne reste personne.
+**Avant de tester quoi que ce soit de visuel, passer `share_location` à
+`true` sur le second compte** (réglage « Partager ma position » dans son
+profil, ou en SQL). Ajouter aussi que « Membres à proximité » est désactivé
+sur le compte principal — la carte sort alors immédiatement sur l'état
+« accès restreint » sans rien charger.
+
 - [ ] **Déplacement visible en moins d'une seconde** : le compte B bouge, son
   pin bouge sur la carte de A sans attendre le sondage de 45 s. Le canal est
   `users_location_updates` (`profile_supabase_datasource.dart`).
 - [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
   disparaît immédiatement de la carte de A (et non au sondage suivant).
-- [ ] **Position publiée hors de l'écran carte** : A ouvre la carte, B reste
-  sur l'accueil ou les messages et se déplace — B doit quand même bouger sur
-  la carte de A (`LocationPublisherService`, démarré depuis `main.dart`).
-- [ ] **Membre immobile toujours visible** : B ne bouge plus du tout pendant
-  10 minutes, app ouverte. Il doit rester sur la carte de A (battement de
-  cœur de 2 min qui réécrit `location_updated_at`), alors qu'avant il
-  disparaissait au bout de 5 minutes.
+- [x] **Position publiée hors de l'écran carte** ✅ **vérifié le 2026-08-05**
+  sur SM A515F, côté données. L'app était sur un écran de **conversation**
+  (jamais sur la carte) et `users.location_updated_at` du compte « Sim A »
+  avançait quand même : `22:37:28` → `22:39:28` → `22:42:23` UTC, relevé par
+  `supabase db query --linked`. Avant le correctif, cet horodatage ne bougeait
+  que pendant que l'écran carte était ouvert.
+- [x] **Membre immobile toujours visible** ✅ **vérifié le 2026-08-05** par la
+  même mesure : le téléphone n'a pas bougé, et le battement de cœur de 2 min
+  réécrit quand même `location_updated_at`. La ligne reste donc dans la
+  fenêtre de fraîcheur de 5 minutes du filtre de présence. (Reste à confirmer
+  visuellement, sur la carte d'un second compte.)
 - [ ] **Retour d'arrière-plan** : A met l'app en arrière-plan puis revient —
   le canal temps réel doit se reprendre (vérifier qu'un déplacement de B est
   de nouveau vu tout de suite, et pas seulement au sondage).
