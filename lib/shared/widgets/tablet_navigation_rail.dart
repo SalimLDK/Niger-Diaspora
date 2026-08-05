@@ -23,41 +23,54 @@ class TabletNavigationRail extends StatelessWidget {
       width: 86,
       color: context.surfaceColor,
       child: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            _RailItem(
-              icon: Icons.home_rounded,
-              label: 'Accueil',
-              isActive: currentIndex == 0,
-              onTap: () => onTap(0),
-            ),
-            _RailItem(
-              icon: Icons.map_rounded,
-              label: 'Carte',
-              isActive: currentIndex == 1,
-              onTap: () => onTap(1),
-            ),
-            _RailItem(
-              icon: Icons.groups_rounded,
-              label: 'Groupes',
-              isActive: currentIndex == 2,
-              onTap: () => onTap(2),
-            ),
-            _RailItem(
-              icon: Icons.chat_bubble_rounded,
-              label: 'Messages',
-              isActive: currentIndex == 3,
-              onTap: () => onTap(3),
-              badgeCount: unreadMessagesCount,
-            ),
-            _RailItem(
-              icon: Icons.person_rounded,
-              label: 'Profil',
-              isActive: currentIndex == 4,
-              onTap: () => onTap(4),
-            ),
-          ],
+        // Le rail empile cinq items à hauteur intrinsèque (~68 dp chacun,
+        // ~352 dp au total) dans une `Row` qui ne lui accorde que la hauteur
+        // du corps. Un téléphone en paysage dépasse le seuil « tablette »
+        // (SM A515F : 2400 px / 2.625 = 914 dp de large) et bascule donc ici,
+        // avec seulement ~411 dp de haut. Quand le clavier monte —
+        // typiquement depuis la recherche de la messagerie —
+        // `resizeToAvoidBottomInset` réduit le corps à ~170 dp et la colonne
+        // débordait de ~190 dp : bandeau rayé sur le bord gauche, items du
+        // bas injoignables. Le rail doit défiler plutôt que forcer sa
+        // hauteur ; tant qu'il y a la place, rien ne bouge à l'écran.
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              _RailItem(
+                icon: Icons.home_rounded,
+                label: 'Accueil',
+                isActive: currentIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              _RailItem(
+                icon: Icons.map_rounded,
+                label: 'Carte',
+                isActive: currentIndex == 1,
+                onTap: () => onTap(1),
+              ),
+              _RailItem(
+                icon: Icons.groups_rounded,
+                label: 'Groupes',
+                isActive: currentIndex == 2,
+                onTap: () => onTap(2),
+              ),
+              _RailItem(
+                icon: Icons.chat_bubble_rounded,
+                label: 'Messages',
+                isActive: currentIndex == 3,
+                onTap: () => onTap(3),
+                badgeCount: unreadMessagesCount,
+              ),
+              _RailItem(
+                icon: Icons.person_rounded,
+                label: 'Profil',
+                isActive: currentIndex == 4,
+                onTap: () => onTap(4),
+              ),
+            ],
+          ),
         ),
       ),
     );

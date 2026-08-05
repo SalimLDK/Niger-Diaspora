@@ -3339,9 +3339,11 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
   composeur à 6 lignes fait ~150 dp au lieu de 64. Sur 392 dp de haut, le
   compte est dépassé de ~240.
   Le même écran **sans** ces deux conditions ne déborde pas.
-- [ ] ⚠ **Écran de recherche des messages en paysage, clavier levé :
+- [x] ⚠ **Écran de recherche des messages en paysage, clavier levé :
   `OVERFLOWED BY 190`.** Cet écran n'a été touché par aucun des lots — c'est
-  le même défaut structurel, ailleurs.
+  le même défaut structurel, ailleurs. **Corrigé le 2026-08-05, mais pas où
+  on le croyait : le coupable n'est pas la colonne de l'écran de recherche.**
+  Voir la section suivante.
 
 **Ce n'est donc pas une régression de la refonte** : c'est le motif « une
 `Column` dont les enfants fixes dépassent la hauteur de l'écran », que le
@@ -3387,6 +3389,66 @@ un groupe. `ConversationScreen` ne reconcilie jamais ce drapeau avec
   bandeau épinglé.
 - [ ] **Retour depuis un lien profond** : le bouton retour donnait un **écran
   noir** (la route du lien est seule dans la pile).
+
+---
+
+## Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)
+
+Le bandeau rayé se voit **depuis** l'écran de recherche de la messagerie, mais
+le `RenderFlex` fautif est au-dessus de cet écran dans l'arbre : c'est
+`TabletNavigationRail` (`lib/shared/widgets/tablet_navigation_rail.dart`).
+
+La chaîne :
+
+1. `MainShell` bascule sur le layout « tablette » dès **700 dp de large**
+   (`_kTabletBreakpoint`). Un SM A515F en paysage fait `2400 / 2.625 = 914 dp`
+   de large pour seulement **411 dp de haut** : le téléphone en paysage passe
+   donc par le rail latéral, pas par la barre du bas.
+2. Le rail est une `Column` de cinq items à hauteur intrinsèque (~68 dp
+   chacun, **~352 dp** au total), sans défilement, premier enfant d'une `Row` :
+   il est borné par la hauteur du corps.
+3. `resizeToAvoidBottomInset` (défaut) réduit le corps à ~170 dp quand le
+   clavier monte. `352 − 170 ≈ 190`. Le clavier ne monte sur cet écran qu'en
+   mode recherche — d'où la corrélation trompeuse avec la recherche.
+
+Pourquoi le bandeau paraît « au milieu, à gauche » : pour un débordement en
+bas, Flutter dessine l'étiquette au centre horizontal du widget fautif (le
+rail : 43 dp) et à mi-hauteur de la zone débordée. Ça tombe sur le bord gauche,
+à hauteur de la zone de résultats — d'où la fausse piste.
+
+**Correctif** : le rail défile (`SingleChildScrollView` + `mainAxisSize.min`)
+au lieu de forcer sa hauteur. Tant qu'il y a la place, rien ne change à
+l'écran (les items étaient déjà alignés en haut).
+
+**La colonne de l'écran de recherche n'a pas été touchée** : en mode recherche
+elle n'a que ~65 dp d'incompressible (l'en-tête et les puces de filtre sont
+retirés, la zone de résultats est déjà `Expanded` + `ListView`). Elle ne peut
+pas produire 190. Et ses deux gardes anti « deux taps pour lever le clavier »
+(la `ValueKey` sur le bloc du champ, le type de widget constant) interdisent de
+la restructurer sans raison.
+
+Couvert par `test/features/shell/tablet_navigation_rail_landscape_test.dart`
+(sans le correctif : `overflowed by 170 pixels` à 172 dp, `222` à 120 dp).
+
+À vérifier sur l'appareil :
+
+- [ ] **Paysage + clavier** (`adb shell settings put system user_rotation 1`),
+      messagerie → taper dans le champ de recherche : **aucun bandeau rayé**,
+      et zéro `RenderFlex … overflowed` dans logcat.
+- [ ] **Les cinq items du rail restent atteignables** clavier levé : faire
+      défiler le rail du doigt et taper « Profil » — la navigation doit partir.
+      Vérifier aussi que ce défilement ne vole pas le geste au contenu à droite.
+- [ ] **Portrait + clavier**, même écran : le rail ne doit pas apparaître du
+      tout (largeur < 700 dp), la barre du bas reste en place, rien ne déborde.
+- [ ] **font_scale 1.1** en paysage clavier levé : toujours aucun bandeau, et
+      les libellés du rail ne sont pas coupés en plein mot.
+- [ ] **Retour au portrait** après avoir fait défiler le rail : pas d'état de
+      défilement résiduel qui décalerait la barre du bas.
+
+Restent ouverts, même famille : le `BOTTOM OVERFLOWED BY 240` de la
+conversation (ci-dessus), et le `PodcastMiniPlayer` (hauteur fixe 64, hors
+`Expanded` dans la branche paysage de `MainShell`) qui déborderait si le corps
+tombait sous 64 dp — non observé, non corrigé.
 
 ---
 
