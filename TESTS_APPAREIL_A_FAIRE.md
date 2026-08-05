@@ -3088,19 +3088,37 @@ sur CE téléphone, mais rien d'autre n'arrivait jamais. Migration
 (publication + `replica identity full`, nécessaire pour que les DELETE passent
 le filtre serveur `group_id`/`conversation_id`).
 
-**Demande deux appareils** (ou un second compte) :
+**Vérifié le 2026-08-05 sur SM A515F**, conversation 1-à-1
+`883c9d96-fbab-42bd-8501-a7c49def0e91`, sans second téléphone : le rôle de
+« l'autre appareil » est tenu par une écriture SQL directe sur
+`group_pinned_items` pendant que l'écran reste ouvert et **non touché**.
 
-- [ ] **Épinglage distant** : B épingle un message ; le bandeau doit apparaître
-  chez A **sans rouvrir la conversation**.
-- [ ] **Désépinglage distant** : B détache ; le bandeau doit disparaître chez A
-  (c'est le cas qui dépend de `replica identity full`).
+- [x] **Épinglage distant** (INSERT serveur, écran ouvert) : compteur passé de
+  `1/3` à `1/4` tout seul.
+- [x] **Désépinglage distant** (DELETE serveur, écran ouvert) : `1/4` → `1/3`
+  tout seul — c'est le cas qui dépend de `replica identity full`.
+- [x] **Bandeau + pastille ÉCO sur une seule ligne** (fiche 6b) : libellé à
+  gauche, compteur `i/n` puis pastille à droite, sans chevauchement.
+- [x] **Tap = défilement Telegram + saut au message** : `1/3` → `2/3`, libellé
+  « Message épinglé 2 », et la liste a bien sauté au message ciblé.
+- [x] **Bandeau au clavier ouvert** : reste visible, aucun débordement, la
+  pastille est conservée.
+
+Restent à voir (demandent un second appareil, ou un build à jour installé) :
+
 - [ ] **Suppression pour tous d'un message épinglé** par B : l'épingle tombe en
   cascade, le bandeau de A doit se vider tout seul.
-- [ ] **Groupe et 1-à-1** : les deux chemins passent par des colonnes de filtre
-  différentes (`group_id` vs `conversation_id`).
+- [ ] **Chemin groupe** : filtre sur `group_id` au lieu de `conversation_id` —
+  seul le 1-à-1 a été prouvé.
+- [ ] ⚠ **Contenu déchiffré dans le bandeau** : toujours pas vu. L'appareil
+  affiche le repli « Message épinglé » parce que les clés E2EE sont perdues sur
+  ce build (bandeau « Restaurez vos clés » présent, bulles « 🔐 Message
+  chiffré »). Ce point ne pourra se solder qu'après restauration des clés.
 
 Et sur un seul appareil, après le correctif de `group_pinned_banner.dart` (la
-pastille était perdue avec la ligne quand l'épingle n'était pas résoluble) :
+pastille était perdue avec la ligne quand l'épingle n'était pas résoluble).
+**Non testables sur le build actuellement installé** — il date d'avant le
+correctif, et le réinstaller viderait les données de l'appareil :
 
 - [ ] **Une seule épingle orpheline** (message supprimé avant la cascade) : le
   bandeau ne s'affiche pas, mais la **pastille ÉCO doit rester** à droite.
@@ -3110,8 +3128,9 @@ pastille était perdue avec la ligne quand l'épingle n'était pas résoluble) :
 Inventaire des épingles en base (2026-08-05) : 5 au total, toutes de type
 `message`, aucune de sondage ni d'événement. Deux étaient orphelines — leur
 `item_id` était un id **optimiste** `temp_<millis>` (message épinglé avant que
-le serveur ne confirme l'envoi), donc irrésolvable à jamais. `_pinMessage`
-refuse désormais un id `temp_…` :
+le serveur ne confirme l'envoi), donc irrésolvable à jamais. Les deux ont été
+supprimées le 2026-08-05 ; il reste 3 épingles, 0 orpheline. `_pinMessage`
+refuse désormais un id `temp_…` (à vérifier sur un build à jour) :
 
 - [ ] **Épingler un message en cours d'envoi** (couper le réseau, envoyer, puis
   appui long → Épingler) : doit afficher « Attendez l'envoi du message pour
