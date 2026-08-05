@@ -981,9 +981,43 @@ validées une par une avec Salim avant branchement.
   aucun enregistrement E2EE n'avait lieu, donc aucun appareil courant. La
   règle déployée ce matin a débloqué la chaîne, et l'entrée de cet appareil a
   été créée dans la foulée — d'où le passage de 2 à 3 appareils.
-- [ ] Conséquence à surveiller : chaque perte de clés locales ajoute une entrée
-  au lieu de réutiliser l'existante. Avec un plafond à 5, vérifier ce qui se
-  passe quand il est atteint (le bandeau annonce qu'il faudra en révoquer un).
+**✅ Accumulation d'appareils corrigée le 2026-08-04.** L'identifiant était un
+`Uuid().v4()` rangé dans le stockage sécurisé : perdu au moindre vidage de
+données, donc chaque régénération de clés créait une **nouvelle** ligne dans
+`e2ee_devices`. Il dérive désormais du **SSAID Android**, propre au triplet
+(clé de signature, utilisateur, appareil) depuis Android 8 — il survit au
+vidage de données et à une réinstallation signée de la même clé. Lu par une
+méthode ajoutée au canal natif déjà existant, donc **sans nouvelle
+dépendance**. Le SSAID n'est jamais transmis : on publie un condensé SHA-256
+salé par l'identifiant de compte, de sorte que deux comptes sur le même
+téléphone restent incomparables côté serveur. Couvert par
+`test/core/services/stable_device_id_test.dart` (4 cas).
+
+- [ ] **Pas vérifiable sur cet appareil sans repartir de zéro** : les clés
+  locales existent, donc `initializeKeys` sort tôt et l'identifiant en place
+  (aléatoire) est conservé — c'est voulu, aucune session n'est cassée. Pour
+  prouver le correctif il faut un compte ou un appareil neuf : générer des
+  clés, vider les données, régénérer, et vérifier qu'**aucune 4ᵉ ligne**
+  n'apparaît.
+- [ ] Les 3 entrées actuelles restent : à nettoyer à la main via « Révoquer ».
+
+### 🔴 Le plafond de 5 appareils n'est appliqué nulle part
+
+Vérifié sur la base distante (`pg_get_functiondef`) : `e2ee_add_active_device`
+se contente d'un `ARRAY(SELECT DISTINCT unnest(active_devices || ARRAY[...]))`,
+**sans aucun contrôle de nombre**. Et le seul test de plafond côté client vit
+dans `DeviceSyncService.registerCurrentDevice`, qui **n'est pas sur le chemin
+vivant** — la publication réelle passe par
+`KeyManagerService._publishKeysToSupabase`, qui fait l'upsert et appelle la RPC
+directement.
+
+Donc « 3 appareils sur 5 » et « au-delà de 5, il faudra en révoquer un » sont
+des promesses que le backend ne tient pas : la liste peut croître sans limite,
+et chaque message destiné au compte doit être chiffré pour **chaque** entrée.
+
+- [ ] **Décision en attente de Salim** : faire appliquer le plafond par la RPC
+  (modifie une fonction déployée, donc production) et brancher le parcours
+  « révoquer un appareil », ou retirer la promesse de l'interface.
 - [ ] **20d — Réglages → Notifications** (`settings_screen.dart`,
   `notification_settings_screen.dart`) : la ligne « Notifications » de
   Réglages → Application ouvrait une feuille modale doublant l'écran ; elle
