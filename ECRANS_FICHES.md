@@ -907,6 +907,47 @@ Deux écarts à la fiche, **assumés** :
 
 ---
 
+## 9d — reprise complète sur la maquette
+
+La première passe n'était pas conforme, et mon compte rendu ne relevait qu'un
+des sept écarts. Repris ligne à ligne :
+
+- **En-tête** : ← + partage + ⋮, comme la fiche. Il alignait jusqu'à quatre
+  pastilles muettes (demandes, modifier, partage, signaler) ; tout sauf le
+  partage passe dans le menu, où chaque entrée est **nommée**. Le compte de
+  demandes en attente reste en badge sur le ⋮.
+- **Membres** : « Membres · N » d'un seul tenant et un lien « Tout voir ». Le
+  compte était un nombre nu en bout de ligne, et la section n'en montre que
+  cinq sans jamais offrir la liste complète.
+- **Carte info groupée** : Épinglés, Médias et fichiers, Prochaine rencontre
+  sous une seule bordure, là où trois blocs s'empilaient. Chaque ligne
+  s'efface si elle n'a rien à dire, et la carte disparaît si les trois sont
+  vides. Les épinglés sont décrits **par type** (« 1 sondage · 2 messages ») :
+  l'entité ne porte qu'un id, leur libellé réel demanderait une requête par
+  élément.
+- **Barre du bas supprimée** pour un membre — la fiche n'en a pas. Quitter le
+  groupe vit dans le ⋮ et y garde sa contrainte : désactivée, l'entrée dit
+  « Nommez un autre administrateur pour partir » au lieu d'« Créateur », un
+  rôle et non une raison.
+- **Nom sans point d'accent** : ce point signe les titres d'écran, pas un nom
+  saisi par l'utilisateur.
+
+Deux écarts restants, tous deux faute de conversation de groupe (elle naît au
+premier message) : le **bouton de coupure des notifications** à côté d'« Ouvrir
+la discussion » — codé au gabarit de la fiche mais conditionné à l'existence de
+la conversation, la créer pour afficher une cloche serait un effet de bord
+invisible — et la **ligne Médias** de la carte info.
+
+⚠️ **Incident** : une première version de ce travail a été perdue. Une session
+parallèle travaille dans le même dossier sur la même branche (visible au
+reflog : `cd61141 fix(groupes) : le bouton « Créer le groupe » était mort en
+silence`), et une de ses opérations git a ramené `group_detail_screen.dart` à
+l'état du dépôt, emportant une heure de modifications **non committées**. Les
+commits, eux, ont tous survécu. Sur cette branche partagée : **committer dès
+que ça compile**, ne jamais laisser un fichier ouvert longtemps.
+
+---
+
 ---
 
 ## Ce que la reprise a fait tomber au passage
