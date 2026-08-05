@@ -181,10 +181,12 @@ notifications d'un groupe une par une.
   dans une conversation, et une demande acceptée au lieu d'être refusée).
   Recapturer **juste avant chaque tap**, ou tester au doigt. Ce n'est pas un
   défaut de l'app — c'est une limite de la méthode.
-- [ ] Reste à vérifier : « Tout marquer comme lu » **grisé** quand il n'y a
-  aucune non-lue (le compte de test en avait une), et le dialogue de
-  confirmation de « Tout supprimer » (non déclenché — action destructive sur
-  les vraies données du compte).
+- [x] ~~« Tout marquer comme lu » grisé~~ — **entrée devenue fausse** : la
+  fiche 12c a remis l'action dans l'en-tête sous le libellé court « Tout
+  lire », qui **disparaît** quand il n'y a aucune non-lue au lieu d'être
+  grisé. Vérifié : la pastille n'est plus là une fois tout lu.
+- [ ] Reste à vérifier : le dialogue de confirmation de « Tout supprimer »
+  (non déclenché — action destructive sur les vraies données du compte).
 - [x] **🔴 Trouvé sur appareil — l'écran de détail était injoignable.**
   L'appui long sur une notification **groupée** dépliait le groupe au lieu
   d'ouvrir le détail : `_NotificationGroupItem` déclarait `onLongPress`, la
@@ -203,13 +205,15 @@ notifications d'un groupe une par une.
 - [x] **🔴 Trouvé au passage — le titre de la barre était tronqué.** « Détail
   de la notificati… », l'action ⏰ mangeant la largeur. Remplacé par
   « Notifications ».
-- [ ] Revérifier ces deux derniers après le prochain build (correctifs écrits,
-  pas encore vus à l'écran).
-- [ ] **`/notifications/:id` sur un id absent de la page chargée** (lien
-  profond, charge utile push, ou après avoir scrollé loin) : doit afficher
-  « Cette notification n'est plus disponible », **pas l'écran rouge** — le
-  `firstWhere` levait pendant le build. Reproductible par
-  `am start -a VIEW -d …/notifications/<id-inconnu>`.
+- [x] **Les deux revérifiés à l'écran** : le titre de barre affiche
+  « Notifications » en entier (plus de « Détail de la notificati… »), et la
+  date se lit **« 03 août 2026, 20:19 »** — en français, plus « 03 August ».
+  La pastille de type est celle de la palette partagée.
+- [x] **`/notifications/:id` sur un id absent : vérifié par lien profond, app
+  tuée** — le cas réel d'une charge utile push. `am start -a VIEW -d
+  https://diasponiger.web.app/notifications/idinexistant000000` affiche
+  « Cette notification n'est plus disponible », **pas l'écran rouge**. Le
+  `firstWhere` levait pendant le build avant ce lot.
 
 ---
 
