@@ -133,11 +133,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // On réconcilie donc les deux avec la donnée dès que la conversation est
   // chargée. Le passage de false à true survient APRÈS initState : le travail
   // d'ouverture réservé aux groupes est rejoué à ce moment (_runGroupOpenWork).
+  // `widget.isSelfNotes` vient du même `state.extra` (posé par la tuile
+  // épinglée « Mes notes ») et souffre du même défaut : par lien profond, la
+  // conversation avec soi-même se rendait comme un fil ordinaire — titre tiré
+  // du profil au lieu de « Mes notes », et menu « + » sans le brouillon de
+  // sondage. `ConversationEntity.isSelfNotesFor()` tranche à partir de la
+  // donnée (participant unique = moi).
   bool _isGroupFromConversation = false;
   String? _groupIdFromConversation;
+  bool _isSelfNotesFromConversation = false;
 
   bool get _isGroup => widget.isGroup || _isGroupFromConversation;
   String? get _effectiveGroupId => widget.groupId ?? _groupIdFromConversation;
+  bool get _isSelfNotes => widget.isSelfNotes || _isSelfNotesFromConversation;
 
   // Gardes d'idempotence : _runGroupOpenWork() est appelé à l'ouverture ET à
   // chaque réconciliation, chaque effet ne doit partir qu'une fois.
@@ -184,7 +192,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   ///
   /// Appelé depuis build() : sans effet tant que rien ne change, et diffère le
   /// setState d'une frame quand il y a du nouveau (on est en plein build).
-  void _syncGroupIdentity(ConversationEntity? conversation) {
+  void _syncConversationIdentity(
+    ConversationEntity? conversation,
+    String? currentUserId,
+  ) {
     if (conversation == null) return;
 
     // `type == group` est la donnée d'autorité ; un group_id renseigné suffit
@@ -192,9 +203,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final resolvedIsGroup =
         conversation.isGroup || conversation.groupId != null;
     final resolvedGroupId = conversation.groupId;
+    // Sans utilisateur courant (auth pas encore chargée) on ne peut pas
+    // trancher « Mes notes » : garder la valeur connue plutôt que de conclure
+    // « non » à tort, ce qui ferait clignoter le titre de l'en-tête.
+    final resolvedIsSelfNotes =
+        currentUserId == null
+            ? _isSelfNotesFromConversation
+            : conversation.isSelfNotesFor(currentUserId);
 
     if (resolvedIsGroup == _isGroupFromConversation &&
-        resolvedGroupId == _groupIdFromConversation) {
+        resolvedGroupId == _groupIdFromConversation &&
+        resolvedIsSelfNotes == _isSelfNotesFromConversation) {
       return;
     }
 
@@ -203,6 +222,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       setState(() {
         _isGroupFromConversation = resolvedIsGroup;
         _groupIdFromConversation = resolvedGroupId;
+        _isSelfNotesFromConversation = resolvedIsSelfNotes;
       });
       // La conversation vient (peut-être) de se révéler être un groupe :
       // rejouer ce qu'initState avait sauté faute de le savoir.
@@ -1063,9 +1083,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
     final conversation = conversationAsync.valueOrNull;
 
-    // Réconcilie isGroup/groupId avec la donnée : indispensable quand l'écran
-    // est atteint sans `state.extra` (lien profond, notification).
-    _syncGroupIdentity(conversation);
+    // Réconcilie isGroup/groupId/isSelfNotes avec la donnée : indispensable
+    // quand l'écran est atteint sans `state.extra` (lien profond, notification).
+    _syncConversationIdentity(conversation, currentUser?.id);
 
     // Watch blocked users
     final blockedUsersAsync = ref.watch(blockedUsersProvider);
@@ -1157,7 +1177,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 (conversation.createdBy == currentUser.id ||
                     conversation.adminIds.contains(currentUser.id)));
     final canCreateEvent =
-        widget.isSelfNotes
+        _isSelfNotes
             ? false
             : _isGroup
             ? (_effectiveGroupId != null &&
@@ -1168,7 +1188,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Sondage : dans « Mes notes », on autorise un brouillon de sondage (note
     // structurée) ; dans un groupe, un vrai sondage votable selon permissions.
     final canCreatePoll =
-        widget.isSelfNotes ||
+        _isSelfNotes ||
         (_isGroup &&
             _effectiveGroupId != null &&
             ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin)
@@ -1466,7 +1486,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     onCreatePoll:
                         !canCreatePoll
                             ? null
-                            : widget.isSelfNotes
+                            : _isSelfNotes
                             ? () => _createPollDraft()
                             : () => showCreatePollSheet(
                               context,
@@ -2924,7 +2944,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// (fiche 6b). Escamotée pour « Mes notes » et pour une demande de message
   /// en attente, où elle n'aurait rien à réduire.
   Widget? _ecoChip(BuildContext context, dynamic conversation) {
-    if (widget.isSelfNotes) return null;
+    if (_isSelfNotes) return null;
     if (conversation?.isPendingRequest ?? false) return null;
 
     final eco = PreferencesService.instance.dataSaverMode;
@@ -2959,14 +2979,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // For groups: use passed name, fallback to loaded group data, then default
     // For individual: use loaded user profile, fallback to passed name, then default
     final displayName =
-        widget.isSelfNotes
+        _isSelfNotes
             ? 'Mes notes'
             : _isGroup
             ? (widget.conversationName ?? groupData?.name ?? l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
     final displayImage =
-        widget.isSelfNotes
+        _isSelfNotes
             ? null
             : _isGroup
             ? (widget.conversationImageUrl ?? groupData?.imageUrl)
@@ -3095,7 +3115,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             )
                             : Center(
                               child:
-                                  widget.isSelfNotes
+                                  _isSelfNotes
                                       ? const Icon(
                                         Icons.bookmark_rounded,
                                         color: AppColors.white,
@@ -3152,7 +3172,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     ),
                     // Status text below name + cadenas chiffrement (§4a) —
                     // jamais affiché pour un compte supprimé, rien à protéger.
-                    if (widget.isSelfNotes)
+                    if (_isSelfNotes)
                       _buildStatusWithLock(
                         Text(
                           'Notes personnelles',
@@ -3205,7 +3225,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       ),
       actions: [
         // Call buttons for individual chats only (not for « Mes notes »)
-        if (!_isGroup && !isDeletedUser && !widget.isSelfNotes) ...[
+        if (!_isGroup && !isDeletedUser && !_isSelfNotes) ...[
           IconButton(
             onPressed: () => _startCall(isVideo: false),
             icon: AppIcon(
@@ -3226,7 +3246,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           ),
         ],
         // Appels de groupe (comme en 1-a-1, mais pour tout le groupe)
-        if (_isGroup && !widget.isSelfNotes) ...[
+        if (_isGroup && !_isSelfNotes) ...[
           IconButton(
             onPressed: () => _startGroupCall(isVideo: false),
             icon: AppIcon(

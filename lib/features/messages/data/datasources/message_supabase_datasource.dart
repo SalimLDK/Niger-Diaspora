@@ -808,7 +808,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (audioWaveform != null) 'audioWaveform': audioWaveform,
         if (blurhash != null) 'blurhash': blurhash,
         'mediaExpiresAt':
-            DateTime.now().add(const Duration(days: 15)).toUtc().toIso8601String(),
+            DateTime.now()
+                .add(const Duration(days: 15))
+                .toUtc()
+                .toIso8601String(),
         'mediaExpired': false,
       };
 
@@ -1399,9 +1402,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // un UUID : le cast lève `22P02` et l'exception remontait jusqu'en haut,
       // rendant la discussion de ces groupes impossible à ouvrir. Ces groupes
       // n'ont de toute façon aucune ligne dans `group_members`, donc la RPC
-      // aurait rendu NULL — on la court-circuite au lieu de la faire échouer,
-      // et l'appelant crée la conversation.
-      if (!_isUuid(groupId)) return null;
+      // aurait rendu NULL — on la court-circuite au lieu de la faire échouer.
+      //
+      // Mais rendre `null` ici ne suffisait pas : l'appelant
+      // (`createGroupConversation`) enchaîne alors sur un INSERT, donc CHAQUE
+      // ouverture de la discussion créait une conversation de plus et
+      // fragmentait l'historique — l'écran affichait « Aucun message » alors
+      // que les messages vivaient dans une conversation précédente (constaté
+      // le 2026-08-05 sur `yflqsRLMMhTPpiW0NFHx` : 3 lignes en une session).
+      // `conversations.group_id` étant TEXT, la conversation existante se
+      // retrouve directement, sans cast et sans RPC.
+      if (!_isUuid(groupId)) {
+        return _findLegacyGroupConversation(groupId);
+      }
 
       // RPC SECURITY DEFINER : localise la conversation du groupe SANS filtrer
       // par participant_ids (sinon un membre ayant rejoint le groupe après sa
@@ -1427,6 +1440,35 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     } catch (e) {
       throw ServerException('findGroupConversationByGroupId error: $e');
     }
+  }
+
+  /// Conversation d'un groupe hérité de Firestore (id non-UUID), retrouvée par
+  /// la colonne TEXT `conversations.group_id` — ni la RPC ni `group_members`
+  /// (tous deux typés `uuid`) ne peuvent servir pour ces groupes.
+  ///
+  /// La plus ANCIENNE est retenue : c'est celle qui porte l'historique, les
+  /// éventuels doublons déjà en base ayant été créés par-dessus.
+  ///
+  /// Limite assumée : la policy SELECT de `conversations` est
+  /// `participant_ids @> [firebase_uid()]`, donc un membre qui n'est pas encore
+  /// participant ne verra RIEN ici et l'appelant recréera une conversation.
+  /// La RPC SECURITY DEFINER règle ce cas pour les groupes Supabase en
+  /// vérifiant `group_members` ; pour un groupe hérité cette table est vide
+  /// (appartenance restée côté Firestore), et une RPC qui ajouterait l'appelant
+  /// sans pouvoir vérifier son appartenance ouvrirait n'importe quelle
+  /// conversation de groupe hérité à n'importe qui. À traiter avec la
+  /// migration des groupes hérités, pas ici.
+  Future<ConversationModel?> _findLegacyGroupConversation(
+    String groupId,
+  ) async {
+    final rows = await _supabase
+        .from('conversations')
+        .select()
+        .eq('group_id', groupId)
+        .order('created_at', ascending: true)
+        .limit(1);
+    if (rows.isEmpty) return null;
+    return _convFromRow(rows.first);
   }
 
   @override

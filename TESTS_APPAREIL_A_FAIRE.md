@@ -4310,11 +4310,12 @@ corrigé — c'est ce qui aurait fait perdre le plus de temps au prochain lecteu
 
 ---
 
-## Groupes — deux défauts trouvés en vérifiant les épingles (2026-08-05)
+## Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)
 
-Constatés sur SM A515F en cherchant à épingler dans un groupe ; tous deux
-dépassaient le lot « épingles ». Le **n°2 est corrigé** (2026-08-05, à vérifier
-sur appareil) ; le **n°1 reste ouvert**.
+Les deux premiers constatés sur SM A515F en cherchant à épingler dans un
+groupe, tous deux hors du lot « épingles » ; le troisième trouvé en corrigeant
+le second. **Les trois sont corrigés** (2026-08-05), aucun n'est vérifié sur
+appareil.
 
 **1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
 conversation.** « Groupe de test prive » (`yflqsRLMMhTPpiW0NFHx`) a trois
@@ -4324,8 +4325,45 @@ pendant la session. Conséquence visible : l'écran affiche « Aucun message »
 alors qu'un message existe bel et bien, dans une conversation précédente.
 L'historique du groupe se fragmente à chaque entrée.
 
-- [ ] Ouvrir deux fois de suite la discussion d'un groupe et compter les lignes
-  `conversations` pour ce `group_id` : il ne doit s'en créer qu'une.
+**CORRIGÉ (2026-08-05), non vérifié sur appareil.** Cause :
+`findGroupConversationByGroupId` (`message_supabase_datasource.dart`) faisait
+`if (!_isUuid(groupId)) return null;` — un court-circuit posé pour éviter le
+`22P02` de la RPC `join_group_conversation` (qui caste `p_group_id::uuid`)
+sur les groupes hérités de Firestore, dont l'id fait 20 caractères. Mais il
+rendait `null` **avant toute recherche**, et l'appelant
+`createGroupConversation` enchaîne sur un INSERT : d'où une conversation de
+plus à chaque ouverture, y compris pour le créateur déjà participant. Le
+court-circuit ne saute plus que la RPC : `_findLegacyGroupConversation()`
+cherche la conversation par `conversations.group_id`, colonne **TEXT** (vérifié
+en base), et retient la plus ancienne — celle qui porte l'historique.
+
+État de la base au moment du correctif : plus aucun doublon
+(`group_id` avec `count(*) > 1` → 0 ligne), et il ne reste qu'une conversation
+pour `yflqsRLMMhTPpiW0NFHx`, celle du 05/08 04:13 qui contient le message. Les
+deux doublons de 22:14 et 22:21 ont donc été nettoyés entre-temps — le code
+fautif, lui, était toujours en place.
+
+**Limite assumée, non corrigée :** la policy SELECT de `conversations` est
+`participant_ids @> [firebase_uid()]`. Un membre d'un groupe hérité qui n'est
+pas encore dans `participant_ids` ne verra donc rien et déclenchera quand même
+une recréation. La RPC `SECURITY DEFINER` règle ce cas pour les groupes
+Supabase en vérifiant `group_members` ; pour un groupe hérité cette table est
+vide (appartenance restée côté Firestore), et une RPC qui ajouterait l'appelant
+sans pouvoir vérifier son appartenance ouvrirait n'importe quelle conversation
+de groupe hérité à n'importe qui. À traiter avec la migration des groupes
+hérités.
+
+- [ ] Ouvrir deux fois de suite la discussion d'un groupe **hérité** (id de 20
+  caractères, ex. `yflqsRLMMhTPpiW0NFHx`) et compter les lignes
+  `conversations` pour ce `group_id` : il ne doit s'en créer aucune de plus.
+  ```
+  supabase db query --linked "select id, created_at from conversations where group_id = 'yflqsRLMMhTPpiW0NFHx' order by created_at;"
+  ```
+- [ ] Les messages déjà envoyés doivent réapparaître (l'écran affichait
+  « Aucun message »).
+- [ ] Non-régression sur un groupe **Supabase** (vrai UUID) : la RPC doit
+  toujours être empruntée, et un membre ayant rejoint après la création doit
+  continuer à retrouver la conversation.
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
@@ -4378,6 +4416,23 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 - [ ] Non-régression 1-à-1 : ouvrir un DM par lien profond ne doit RIEN changer
   (en-tête personne, boutons d'appel présents), et depuis la liste des messages
   le retour doit toujours dépiler normalement (pas de saut vers `/messages`).
+
+**3. `isSelfNotes` avait exactement le même défaut** (trouvé en corrigeant le
+n°2, corrigé dans la foulée le 2026-08-05). `app_router.dart` lisait
+`extra?['isSelfNotes'] as bool? ?? false` : ouvrir « Mes notes » par lien
+profond la rendait comme un fil ordinaire — titre tiré du profil au lieu de
+« Mes notes », avatar sans le marque-page, boutons d'appel présents, et menu
+« + » sans le brouillon de sondage. Même correctif : `_isSelfNotes` dérivé de
+`ConversationEntity.isSelfNotesFor(currentUserId)` (participant unique = moi).
+Tant que l'utilisateur courant n'est pas chargé, la valeur connue est
+conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
+
+- [ ] Ouvrir « Mes notes » par lien profond : titre « Mes notes », avatar
+  marque-page, aucun bouton d'appel, pas d'indicateur de présence.
+- [ ] Menu « + » du composer dans ce cas : le brouillon de sondage doit être
+  proposé (et pas l'événement).
+- [ ] Non-régression : depuis la tuile épinglée de la liste des messages, rien
+  ne doit changer.
 
 ---
 
