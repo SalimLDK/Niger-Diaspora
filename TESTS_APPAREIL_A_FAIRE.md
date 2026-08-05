@@ -105,7 +105,9 @@ notifications d'un groupe une par une.
 - [x] **« J'y vais » / « Voir » vérifiés** — carte d'événement conforme à la
   maquette (pastille verte, CTA plein + contour, « À L'INSTANT »), section
   « AUJOURD'HUI » créée d'elle-même. Notification de test fabriquée à la main
-  dans Firestore, le compte n'ayant aucun événement.
+  dans Firestore, le compte n'ayant aucun événement. **Données de test
+  supprimées** après coup (2 événements + 2 notifications) ; la collection
+  `events` est revenue à 0 documents et la liste à son état d'origine.
 - [x] **🔴 Trouvé — personne ne peut s'inscrire à un événement qu'il n'a pas
   créé.** « J'y vais » a répondu « Erreur de chargement ». Cause isolée par un
   témoin : `firestore.rules` n'autorisait l'`update` d'un événement qu'à son
