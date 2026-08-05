@@ -254,10 +254,16 @@ sur `users`, mais bénigne en lecture.
 `events where status == completed order by -startDate` échoue à chaque
 démarrage : l'index composite n'existe pas.
 
-- [ ] La liste des événements passés revient donc **vide en silence**.
-  Ajouter l'index à `firestore.indexes.json` puis
-  `firebase deploy --only firestore:indexes`. Firebase donne le lien de
-  création tout fait dans le message d'erreur.
+- [x] **Corrigé le 2026-08-05.** L'index `status ASC + startDate DESC` a été
+  créé, il est `READY`, et plus aucun `FAILED_PRECONDITION` au démarrage.
+- [ ] ⚠ **Le fichier `firestore.indexes.json` est en retard sur la production
+  — 47 entrées contre 71 déployées.** Même dérive que celle trouvée sur les
+  règles. L'index a donc été créé **par l'API Firestore, pas par
+  `firebase deploy --only firestore:indexes`** : déployer le fichier
+  proposerait de supprimer 24 index en service. À resynchroniser depuis la
+  prod avant tout déploiement d'index, comme on l'a fait pour les règles.
+- [ ] Reste à vérifier avec de vraies données : la liste des événements passés
+  se remplit. Le compte de test n'a aucun événement terminé.
 
 ---
 
@@ -3099,6 +3105,17 @@ pastille était perdue avec la ligne quand l'épingle n'était pas résoluble) :
   bandeau ne s'affiche pas, mais la **pastille ÉCO doit rester** à droite.
 - [ ] **Épingle de sondage / d'événement pendant le chargement** : la pastille
   ne doit pas clignoter hors de l'écran le temps du fetch.
+
+Inventaire des épingles en base (2026-08-05) : 5 au total, toutes de type
+`message`, aucune de sondage ni d'événement. Deux étaient orphelines — leur
+`item_id` était un id **optimiste** `temp_<millis>` (message épinglé avant que
+le serveur ne confirme l'envoi), donc irrésolvable à jamais. `_pinMessage`
+refuse désormais un id `temp_…` :
+
+- [ ] **Épingler un message en cours d'envoi** (couper le réseau, envoyer, puis
+  appui long → Épingler) : doit afficher « Attendez l'envoi du message pour
+  l'épingler » et ne rien écrire en base. Vérifier ensuite qu'une fois le
+  message parti, l'épinglage fonctionne normalement.
 
 ---
 

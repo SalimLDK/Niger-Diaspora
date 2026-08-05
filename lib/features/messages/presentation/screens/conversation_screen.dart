@@ -447,6 +447,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
     if (currentUserId == null) return;
 
+    // Un message encore optimiste porte un id local `temp_…` (message_provider)
+    // qui n'existera JAMAIS côté serveur : l'épingler enregistrait une entrée
+    // définitivement irrésolvable — le bandeau la lisait « Élément
+    // indisponible », ou masquait tout quand c'était la seule épingle. Deux
+    // orphelines de ce type ont été trouvées en base (16 et 17/07/2026).
+    if (message.id.startsWith('temp_')) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Attendez l\'envoi du message pour l\'épingler'),
+          ),
+        );
+      }
+      return;
+    }
+
     // widget.groupId peut être absent (notification/deep link sans extra
     // complet) : widget.conversationId N'EST PAS un groupId valide, l'utiliser
     // en repli garantissait l'échec de l'insertion (violation de clé
