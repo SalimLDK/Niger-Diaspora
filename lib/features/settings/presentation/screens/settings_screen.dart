@@ -193,13 +193,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 1. Qui vous voit
-                  _buildSectionHeader(
-                    l10n.whoSeesYou,
-                    Icons.visibility_outlined,
-                  ),
-                  _SettingsCard(
+                  DesignSectionLabel(l10n.whoSeesYou),
+                  DesignSettingsCard(
                     children: [
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.visibility_outlined),
                         title: l10n.visibleProfile,
                         subtitle: l10n.appearInSearchesDesc,
@@ -210,8 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           _saveSettingsToProfile();
                         },
                       ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.location_on_outlined),
                         title: l10n.myLocation,
                         subtitle: l10n.appearOnMapDesc,
@@ -222,8 +218,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           _saveSettingsToProfile();
                         },
                       ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.circle_outlined),
                         title: l10n.profileShowOnlineStatus,
                         subtitle: l10n.profileShowOnlineStatusSubtitle,
@@ -240,30 +235,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 24),
 
                   // 2. Sécurité
-                  _buildSectionHeader(l10n.security, Icons.shield_outlined),
-                  _SettingsCard(
+                  DesignSectionLabel(l10n.security),
+                  DesignSettingsCard(
                     children: [
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.lock_outline),
                         title: l10n.keyBackup,
                         subtitle: l10n.keyBackupSubtitle,
                         onTap: () => context.push('/settings/security/backup'),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.devices_outlined),
                         title: l10n.connectedDevices,
                         subtitle: l10n.connectedDevicesSubtitle,
                         onTap: () => context.push('/settings/security/devices'),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.block_outlined),
                         title: l10n.blockedUsers,
                         onTap: () => _showBlockedUsers(),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.flag_outlined),
                         title: l10n.myReports,
                         subtitle: l10n.myReportsSubtitle,
@@ -277,14 +269,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   // 3. Application
                   KeyedSubtree(
                     key: _appearanceKey,
-                    child: _buildSectionHeader(
-                      l10n.application,
-                      Icons.tune_outlined,
-                    ),
+                    child: DesignSectionLabel(l10n.application),
                   ),
-                  _SettingsCard(
+                  DesignSettingsCard(
                     children: [
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.notifications_active_outlined),
                         title: l10n.pushNotifications,
                         subtitle: l10n.receiveNotificationsDesc,
@@ -295,8 +284,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           _updateNotificationSettings(value);
                         },
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.tune),
                         // §20d : la ligne ouvrait une feuille modale qui doublait
                         // l'écran de réglages sur les mêmes préférences. Un seul
@@ -307,8 +295,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           context.push('/notifications/settings');
                         },
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.palette_outlined),
                         title: l10n.theme,
                         subtitle: _getThemeLabel(
@@ -317,8 +304,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         onTap: () => _showThemeSelector(l10n),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.translate_outlined),
                         title: l10n.language,
                         subtitle:
@@ -327,8 +313,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .currentLocaleName,
                         onTap: () => _showLanguageSelector(l10n),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.attach_money),
                         title: l10n.displayCurrency,
                         subtitle: _getCurrencyLabel(
@@ -336,66 +321,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         onTap: () => _showCurrencySelector(),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.wallpaper_outlined),
                         title: l10n.chatBackground,
                         subtitle: _backgroundSubtitle(l10n),
                         onTap: () => _showGlobalBackgroundPicker(),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.graphic_eq),
                         title: l10n.noiseSuppression,
                         subtitle: l10n.noiseSuppressionSubtitle,
                         value: _noiseSuppressionEnabled,
                         onChanged: _toggleNoiseSuppression,
                       ),
-                      const _SettingsDivider(),
-                      _SettingsSwitchTile(
+                      DesignSettingsSwitchTile(
                         icon: const Icon(Icons.data_saver_on_outlined),
                         title: l10n.dataSaverMode,
                         subtitle: l10n.dataSaverModeSubtitle,
                         value: _dataSaverMode,
                         onChanged: _toggleDataSaverMode,
                       ),
-                      const _SettingsDivider(),
                       KeyedSubtree(
                         key: _helpKey,
-                        child: _SettingsTile(
+                        child: DesignSettingsTile(
                           icon: const Icon(Icons.support_agent_outlined),
                           title: l10n.helpFaq,
                           onTap: () => _showHelpSupport(l10n),
                         ),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.info_outline),
                         title: l10n.about,
                         subtitle: _versionLabel(l10n),
                         onTap: () => _showAbout(l10n),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.article_outlined),
                         title: l10n.termsOfService,
                         onTap: () => context.push('/settings/terms'),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.privacy_tip_outlined),
                         title: l10n.privacyPolicy,
                         onTap: () => context.push('/settings/privacy'),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.gavel_outlined),
                         title: l10n.codeOfConduct,
                         onTap: () => context.push('/settings/code-of-conduct'),
                       ),
-                      const _SettingsDivider(),
                       // Droit à la portabilité (RGPD art. 20).
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon:
                             _isExportingData
                                 ? const SizedBox(
@@ -420,12 +396,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 24),
 
                   // Zone sensible isolée
-                  _buildSectionHeader(
+                  DesignSectionLabel(
                     l10n.dangerZone,
-                    Icons.warning_amber_rounded,
-                    isWarning: true,
+                    color: context.errorColor,
                   ),
-                  _SettingsCard(
+                  DesignSettingsCard(
                     isDanger: true,
                     children: [
                       // Jetons adaptatifs et non `AppColors.warning`/`.error` bruts :
@@ -433,15 +408,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       // peu lisibles sur le fond #0F0D0A du nocturne. La fiche 11e
                       // demande explicitement le rouge clair #F87171 (`errorDark`)
                       // plutôt que le #C23E2D du mode clair.
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.logout_outlined),
                         title: l10n.logout,
                         iconColor: context.warningColor,
                         titleColor: context.warningColor,
                         onTap: () => _confirmLogout(l10n),
                       ),
-                      const _SettingsDivider(),
-                      _SettingsTile(
+                      DesignSettingsTile(
                         icon: const Icon(Icons.delete_outline),
                         title: l10n.deleteAccount,
                         iconColor: context.errorColor,
@@ -463,13 +437,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// Libellé de section (§10b) : petites capitales en chasse fixe. La
   /// pastille d'icône disparaît ; `isWarning` teinte encore « ZONE SENSIBLE ».
-  Widget _buildSectionHeader(
-    String title,
-    IconData icon, {
-    bool isWarning = false,
-  }) {
-    return DesignSectionLabel(title);
-  }
 
   Future<void> _saveSettingsToProfile() async {
     final user = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -1572,250 +1539,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       );
     }
-  }
-}
-
-class _SettingsCard extends StatelessWidget {
-  final List<Widget> children;
-  final bool isDanger;
-
-  const _SettingsCard({required this.children, this.isDanger = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(kDesignRadius),
-        border: Border.all(
-          // Même correction que les lignes de la zone sensible : le rouge
-          // clair figé donnait un liseré presque invisible en nocturne, là
-          // où la fiche 11e attend un contour rougeâtre net (#4A2620).
-          color:
-              isDanger
-                  ? context.errorColor.withValues(alpha: 0.35)
-                  : context.borderColor,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(children: children),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final Widget icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-  final Color? iconColor;
-  final Color? titleColor;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-    this.iconColor,
-    this.titleColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          if (onTap != null) {
-            HapticFeedback.selectionClick();
-            onTap!();
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      (iconColor ?? context.adaptivePrimaryColor).withValues(
-                        alpha: 0.15,
-                      ),
-                      (iconColor ?? context.adaptivePrimaryColor).withValues(
-                        alpha: 0.05,
-                      ),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: IconTheme.merge(
-                    data: IconThemeData(
-                      size: 18,
-                      color: iconColor ?? context.adaptivePrimaryColor,
-                    ),
-                    child: icon,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: titleColor ?? context.textPrimaryColor,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null)
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: context.surfaceVariantColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: context.textTertiaryColor,
-                    size: 18,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsSwitchTile extends StatelessWidget {
-  final Widget icon;
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _SettingsSwitchTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  (value
-                          ? context.adaptivePrimaryColor
-                          : context.textTertiaryColor)
-                      .withValues(alpha: 0.15),
-                  (value
-                          ? context.adaptivePrimaryColor
-                          : context.textTertiaryColor)
-                      .withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: IconTheme.merge(
-                data: IconThemeData(
-                  size: 18,
-                  color:
-                      value
-                          ? context.adaptivePrimaryColor
-                          : context.textTertiaryColor,
-                ),
-                child: icon,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: context.textTertiaryColor,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: context.adaptivePrimaryColor,
-            activeTrackColor: context.adaptivePrimaryColor.withValues(
-              alpha: 0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsDivider extends StatelessWidget {
-  const _SettingsDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 72),
-      child: Divider(
-        height: 1,
-        color: context.borderColor.withValues(alpha: 0.5),
-      ),
-    );
   }
 }
 
