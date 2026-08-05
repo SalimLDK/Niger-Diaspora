@@ -3049,9 +3049,32 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
   pastille ne touche pas l'angle arrondi. Zéro `RenderFlex … overflowed` dans le
   tampon. ⚠ Le mode nuit du téléphone a été basculé en `no` pour le test puis
   **remis sur `yes` / `ui_night_mode=2`**, son état d'origine.
-- [ ] **Gestes vocaux, encore et toujours** : la géométrie de la ligne a encore
-  changé (tailles et écarts). Le push-to-talk n'a toujours pas été testé au
-  doigt depuis le passage au multi-ligne.
+- [x] **Gestes vocaux — 3 sur 4 vérifiés** (2026-08-05, 06:05 → 06:11, « Mes
+  notes », thème sombre, font_scale 1.1). Injection d'un vrai flux tactile via
+  `input motionevent DOWN/MOVE/UP` chaîné dans **une seule** commande shell —
+  Flutter le traite comme un doigt. La méthode par `input tap` successifs ne
+  marche pas : l'écran bouge entre la capture et l'action.
+  - **Appui long → enregistrement** : bandeau, minuterie, waveform, indicateur
+    de verrouillage. Fonctionne.
+  - **Glisser à gauche → annulation** : bandeau rouge, poubelle, et au
+    relâchement **rien n'est envoyé**. Fonctionne.
+  - **Glisser vers le haut → verrouillage** : « Relâchez pour verrouiller »,
+    puis « Verrouillé — Mains libres, vous pouvez lâcher l'écran », minuterie
+    qui continue sans le doigt. Fonctionne.
+  - **Envoi depuis l'état verrouillé** : bulle audio verte, lecteur, durée
+    1:15, contrôle de vitesse. Fonctionne. ⚠ Un vocal de test de 1:15 traîne
+    dans « Mes notes », à supprimer.
+  - [ ] **Appui long puis simple relâchement** (sans glissement) : NON vérifié.
+    La dernière tentative est tombée sur l'écran Profil, l'app ayant navigué
+    entre-temps. C'est le geste le plus courant, il reste à faire.
+- [ ] ⚠ **Défaut trouvé pendant ce test — libellés tronqués dans le bandeau
+  d'enregistrement**, à font_scale 1.1 sur le A51 : « Relâc… » au lieu de
+  « Relâchez pour annuler », « L'enregi… » au lieu de « L'enregistrement sera
+  supprimé », et « Glisser ‹… » en permanence. Seul « Relâchez pour
+  verrouiller » tient en entier. L'utilisateur ne peut pas lire ce qui va lui
+  arriver au moment où il annule — c'est précisément le moment où il faudrait
+  qu'il comprenne. À corriger dans `_buildCancelHint` /
+  `_buildDefaultRecordingHint` (`message_input.dart`).
 - [ ] **font_scale 1.1 avec un texte réel** : les mesures ci-dessus sont à
   l'échelle 1.0 du banc. Vérifier qu'un vrai message long garde une largeur
   confortable sur l'appareil.
