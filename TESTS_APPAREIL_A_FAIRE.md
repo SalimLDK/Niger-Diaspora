@@ -2730,6 +2730,27 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 
 ---
 
+## Composeur — l'emoji sort du champ (fiche 26b, 2026-08-05)
+
+Le smiley était un `suffixIcon` dans la pilule ; la fiche 26b le pose en
+pastille ronde à part, fond `#F7E9DE`, glyphe `#B85E24`. Le composeur compte
+désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
+
+- [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Une commande de plus
+  dans la ligne : revérifier appui long → enregistrement, glisser à gauche →
+  annulation, glisser vers le haut → verrouillage. La pastille emoji
+  **disparaît** pendant l'enregistrement, vérifier que ça ne décale rien.
+- [ ] **Largeur à font_scale 1.1** : quatre commandes sur une ligne, le champ
+  doit garder assez de place pour un texte lisible sur le A51.
+- [ ] **Bascule emoji ↔ clavier** : la pastille change de glyphe et
+  d'intensité de fond quand le panneau est ouvert ; en nocturne le fond pastel
+  est remplacé par l'accent teinté (`#F4A574` à 18/28 %) — vérifier qu'il ne
+  fait pas un pavé lumineux.
+- [ ] **Le champ est symétrique** : plus rien dans la pilule à part le texte,
+  retrait de 18 px réels de chaque côté.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

@@ -12,9 +12,10 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Non-régression de la mise en page du composer flottant.
 ///
-/// Layout actuel (composer flottant, §4a) : « + » hors du champ à gauche ·
-/// champ texte · emoji à l'intérieur de la pilule à droite. Le bouton d'envoi
-/// porte le badge cadenas E2EE dès qu'il y a du texte.
+/// Layout actuel (fiche 26b) : quatre commandes en ligne — « + » hors de la
+/// pilule à gauche · champ texte · emoji en pastille propre · bouton
+/// micro/envoi. Rien ne vit plus **dans** la pilule à part le texte. Le bouton
+/// d'envoi porte le badge cadenas E2EE dès qu'il y a du texte.
 
 /// Monte le composer seul, localisé en FR.
 Future<void> _pump(WidgetTester tester) async {
@@ -66,19 +67,27 @@ void main() {
     expect(find.byIcon(Icons.photo_camera_outlined), findsNothing);
   });
 
-  testWidgets('le « + » précède le champ, l\'emoji est à l\'intérieur à droite', (
+  testWidgets('le « + », le champ et l\'emoji sont trois blocs distincts', (
     tester,
   ) async {
     await _pump(tester);
 
-    final plusX = tester.getCenter(find.byIcon(Icons.add_rounded)).dx;
-    final fieldX = tester.getCenter(find.byType(TextField)).dx;
-    final emojiX =
-        tester.getCenter(find.byIcon(Icons.emoji_emotions_outlined)).dx;
+    final plus = tester.getRect(find.byIcon(Icons.add_rounded));
+    final champ = tester.getRect(find.byType(TextField));
+    final emoji = tester.getRect(find.byIcon(Icons.emoji_emotions_outlined));
 
-    // « + » hors du champ, à gauche ; emoji dans la pilule, à droite du texte.
-    expect(plusX, lessThan(fieldX));
-    expect(emojiX, greaterThan(fieldX));
+    // Ordre de gauche à droite : « + », champ, emoji.
+    expect(plus.center.dx, lessThan(champ.center.dx));
+    expect(emoji.center.dx, greaterThan(champ.center.dx));
+
+    // Fiche 26b : l'emoji n'empiète plus sur le champ, il est entièrement à sa
+    // droite. C'est ce qui distingue « pastille propre » de « suffixIcon ».
+    expect(
+      emoji.left,
+      greaterThanOrEqualTo(champ.right),
+      reason: 'l\'emoji est retourné à l\'intérieur de la pilule',
+    );
+    expect(plus.right, lessThanOrEqualTo(champ.left));
   });
 
   testWidgets('le badge cadenas E2EE apparaît seulement en mode envoi', (

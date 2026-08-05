@@ -975,6 +975,13 @@ class _MessageInputState extends State<MessageInput>
                           : _buildPillField(context),
                 ),
               ),
+              // Emoji en pastille propre, entre la barre et le bouton d'action
+              // (fiche 26b). Escamotée pendant l'enregistrement : le bouton
+              // d'action y porte toute la gestuelle et a besoin de la place.
+              if (!_isRecording) ...[
+                const SizedBox(width: 8),
+                _buildEmojiButton(context),
+              ],
               // Bouton vocal / envoi HORS de la barre flottante.
               if (!_isLocked) ...[
                 const SizedBox(width: 8),
@@ -1044,6 +1051,43 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
+  /// Emoji en pastille propre, à droite de la barre (fiche 26b : cercle 44,
+  /// fond `#F7E9DE`, glyphe `#B85E24`). Il bascule en icône clavier quand le
+  /// panneau est ouvert, comme lorsqu'il vivait dans le champ.
+  ///
+  /// Les valeurs de la fiche sont la version claire : en nocturne l'aplat
+  /// pastel deviendrait un pavé lumineux, on le remplace par l'accent teinté.
+  Widget _buildEmojiButton(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final glyph = isDark ? const Color(0xFFF4A574) : const Color(0xFFB85E24);
+    final fill =
+        isDark
+            ? glyph.withValues(alpha: _showPicker ? 0.28 : 0.18)
+            : (_showPicker
+                ? const Color(0xFFF0DAC8)
+                : const Color(0xFFF7E9DE));
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
+      child: IconButton(
+        onPressed: () => _togglePicker(),
+        icon: Icon(
+          _showPicker
+              ? Icons.keyboard_rounded
+              : Icons.emoji_emotions_outlined,
+          size: 23,
+        ),
+        tooltip: AppLocalizations.of(context)!.emojis,
+        color: glyph,
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
   /// Bouton « + » hors du champ : ouvre le panneau ancré (grille 3×2).
   /// Pastille circulaire teintée accent (le « + » pivote en « × » à l'ouverture).
   /// Appui long = ancien sheet complet (repli avec audio/vidéo dédiés).
@@ -1079,9 +1123,9 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
-  /// Champ pilule avec l'emoji **à l'intérieur** (à droite du texte).
+  /// Champ pilule. L'emoji n'y est plus : il a rejoint sa propre pastille,
+  /// hors de la barre (fiche 26b).
   Widget _buildPillField(BuildContext context) {
-    final accent = context.adaptivePrimaryColor;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1135,32 +1179,13 @@ class _MessageInputState extends State<MessageInput>
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     filled: false,
-                    // Le « + » est sorti de la pilule : sans lui, un retrait de
-                    // 18 collait le texte trop loin du bord. 10 + les 8 du
-                    // Container = 18 réels, symétriques de l'emoji à droite.
+                    // Le « + » et l'emoji sont tous deux sortis de la pilule :
+                    // 10 + les 8 du Container = 18 réels de chaque côté.
                     contentPadding: const EdgeInsets.only(
                       left: 10,
-                      right: 6,
+                      right: 10,
                       top: 12,
                       bottom: 12,
-                    ),
-                  ),
-                ),
-              ),
-              // Emoji à l'intérieur du champ, centré verticalement.
-              Padding(
-                padding: const EdgeInsets.only(right: 6, bottom: 5),
-                child: InkWell(
-                  onTap: () => _togglePicker(),
-                  customBorder: const CircleBorder(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Icon(
-                      _showPicker
-                          ? Icons.keyboard_rounded
-                          : Icons.emoji_emotions_outlined,
-                      size: 23,
-                      color: _showPicker ? accent : context.textSecondaryColor,
                     ),
                   ),
                 ),
