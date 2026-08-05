@@ -1,10 +1,7 @@
 ﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../messages/domain/entities/message_entity.dart';
-import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Widget for displaying a sticker message
 /// Stickers are displayed without a bubble background (floating style)
@@ -12,10 +9,6 @@ class StickerBubble extends StatefulWidget {
   final String stickerUrl;
   final bool isAnimated;
   final bool isMe;
-  final DateTime? timestamp;
-  final MessageStatus? messageStatus;
-  final List<String> readBy;
-  final List<String> deliveredTo;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final VoidCallback? onDoubleTap;
@@ -23,15 +16,14 @@ class StickerBubble extends StatefulWidget {
   /// Maximum size for the sticker
   static const double maxSize = 180;
 
+  // L'heure et l'accusé de réception vivent dans la ligne de méta posée sous
+  // la bulle par MessageBubble (fiches 4a/6b).
+
   const StickerBubble({
     super.key,
     required this.stickerUrl,
     this.isAnimated = false,
     this.isMe = false,
-    this.timestamp,
-    this.messageStatus,
-    this.readBy = const [],
-    this.deliveredTo = const [],
     this.onTap,
     this.onLongPress,
     this.onDoubleTap,
@@ -58,8 +50,6 @@ class _StickerBubbleState extends State<StickerBubble> {
         children: [
           // Sticker image
           _buildSticker(),
-          // Timestamp and status
-          if (widget.timestamp != null) _buildTimestamp(context),
         ],
       ),
     );
@@ -145,64 +135,4 @@ class _StickerBubbleState extends State<StickerBubble> {
     );
   }
 
-  Widget _buildTimestamp(BuildContext context) {
-    final timeFormat = DateFormat.Hm();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            timeFormat.format(widget.timestamp!),
-            style: TextStyle(
-              fontSize: 11,
-              color: context.textSecondaryColor,
-            ),
-          ),
-          if (widget.isMe) ...[
-            const SizedBox(width: 4),
-            _buildStatusIcon(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusIcon() {
-    final color = context.textSecondaryColor;
-
-    switch (widget.messageStatus) {
-      case MessageStatus.sending:
-        return AppIcon(AppIcon.clock,
-          size: 14,
-          color: color,
-        );
-      case MessageStatus.sent:
-        // Check if delivered or read
-        if (widget.readBy.length > 1) {
-          return AppIcon(AppIcon.doneAll,
-            size: 14,
-            color: context.adaptivePrimaryColor,
-          );
-        } else if (widget.deliveredTo.length > 1) {
-          return AppIcon(AppIcon.doneAll,
-            size: 14,
-            color: color,
-          );
-        }
-        return Icon(
-          Icons.done,
-          size: 14,
-          color: color,
-        );
-      case MessageStatus.failed:
-        return AppIcon(AppIcon.error,
-          size: 14,
-          color: context.errorColor,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
 }

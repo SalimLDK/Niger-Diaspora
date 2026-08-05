@@ -2,11 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
-import '../../domain/entities/message_entity.dart';
 
 /// Bubble pour l'affichage de vidéos dans les messages avec style WhatsApp
 class VideoBubble extends StatelessWidget {
@@ -17,9 +15,9 @@ class VideoBubble extends StatelessWidget {
   final bool isMe;
   final VoidCallback? onTap;
 
-  // WhatsApp-style parameters
-  final DateTime? timestamp;
-  final MessageStatus? messageStatus;
+  // L'heure et l'accusé de réception ne sont plus incrustés sur la vignette :
+  // ils vivent dans la ligne de méta posée sous la bulle par MessageBubble
+  // (fiches 4a/6b).
   final bool showSenderInfo;
   final String? senderName;
   final bool isHD;
@@ -33,8 +31,6 @@ class VideoBubble extends StatelessWidget {
   /// Si fourni, l'appui long ouvre le menu complet du message (Épingler,
   /// Répondre…) au lieu du petit menu média.
   final VoidCallback? onLongPress;
-  final List<String>? readBy;
-  final List<String>? deliveredTo;
   final String? messageId;
   final String? blurhash;
 
@@ -46,8 +42,6 @@ class VideoBubble extends StatelessWidget {
     this.caption,
     required this.isMe,
     this.onTap,
-    this.timestamp,
-    this.messageStatus,
     this.showSenderInfo = false,
     this.senderName,
     this.isHD = false,
@@ -56,8 +50,6 @@ class VideoBubble extends StatelessWidget {
     this.onDelete,
     this.onShare,
     this.onLongPress,
-    this.readBy,
-    this.deliveredTo,
     this.messageId,
     this.blurhash,
   });
@@ -251,13 +243,6 @@ class VideoBubble extends StatelessWidget {
                         child: _buildDurationBadge(context),
                       ),
 
-                    // Time and status overlay (WhatsApp style)
-                    if (timestamp != null)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: _buildTimeStatusOverlay(context),
-                      ),
                   ],
                 ),
               ),
@@ -377,63 +362,6 @@ class VideoBubble extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildTimeStatusOverlay(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                DateFormat.Hm().format(timestamp!),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (isMe && messageStatus != null) ...[
-                const SizedBox(width: 4),
-                _buildStatusIcon(),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusIcon() {
-    switch (messageStatus!) {
-      case MessageStatus.sending:
-        return const SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-          ),
-        );
-
-      case MessageStatus.failed:
-        return const Icon(
-          Icons.warning_amber_rounded,
-          size: 14,
-          color: Colors.red,
-        );
-
-      case MessageStatus.sent:
-        return const Icon(Icons.done_all, size: 14, color: Colors.white);
-    }
   }
 
   Widget _buildThumbnail(BuildContext context) {

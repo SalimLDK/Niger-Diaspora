@@ -182,11 +182,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     '🙏',
   ];
 
-  /// Horodatage bleu clair pour les messages envoyés (style Telegram/Signal).
-  static const Color _kTimestampBlue = Color(0xFFBFD0FF);
-
-  /// Accusé de lecture « lu » : double coche + cercle en bleu.
-  static const Color _kReadReceiptBlue = Color(0xFF5B9BFF);
+  // L'horodatage n'a plus de couleur propre : il est sorti de la bulle et se
+  // lit sur le fond de la conversation, comme celui des messages reçus.
+  // L'accusé de lecture bleu vit désormais dans AppColors.readReceiptBlue.
 
   // ── Bulles opaques (refonte Discussion — contraste AA) ────────────────────
   /// Bulle envoyée : `#1B5E32` (clair) / `#2D7D46` (sombre).
@@ -381,39 +379,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             ),
           // Large emoji
           Text(widget.message.content, style: const TextStyle(fontSize: 42)),
-          // Time and status below emoji (groupage : dernier du groupe seulement)
-          if (_isLastInGroup)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.currentUserId != null &&
-                      widget.message.isStarredBy(widget.currentUserId!)) ...[
-                    AppIcon(
-                      AppIcon.star,
-                      size: 12,
-                      color: context.textTertiaryColor,
-                    ),
-                    const SizedBox(width: 2),
-                  ],
-                  _buildEncryptionIcon(context),
-                  const SizedBox(width: 2),
-                  Text(
-                    _formatTime(widget.message.createdAt),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: context.textTertiaryColor,
-                    ),
-                  ),
-                  if (widget.isMe) ...[
-                    const SizedBox(width: 3),
-                    _buildStatusIcon(context, inline: false),
-                    _buildReadReceiptDot(),
-                  ],
-                ],
-              ),
-            ),
+          // L'heure et l'accusé de réception sont posés par _buildMetaRow,
+          // en dessous : ce bloc ne les réaffiche pas.
         ],
       ),
     );
@@ -509,7 +476,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       height: 8,
       margin: const EdgeInsets.only(left: 4),
       decoration: const BoxDecoration(
-        color: _kReadReceiptBlue,
+        color: AppColors.readReceiptBlue,
         shape: BoxShape.circle,
       ),
     );
@@ -801,12 +768,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                                 ),
                               ),
 
-                          // Reactions display
-                          if (widget.message.reactions.isNotEmpty)
-                            _buildReactionsDisplay(
-                              context,
-                              widget.message.reactions,
-                            ),
+                          // Heure, accusé de réception et réactions : SOUS la
+                          // bulle, jamais dedans (fiches 4a/6b). C'est la
+                          // seule ligne de méta de la discussion, quel que
+                          // soit le type de message.
+                          _buildMetaRow(context),
 
                           // Read avatars for groups
                           if (widget.readByAvatars?.isNotEmpty == true &&
@@ -966,62 +932,55 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  // Reactions display widget - ready for future use when MessageEntity supports reactions
-  Widget _buildReactionsDisplay(BuildContext context, List<String> reactions) {
+  /// Chips de réaction, posés sur la même ligne que l'heure (fiche 6b).
+  List<Widget> _buildReactionChips(
+    BuildContext context,
+    List<String> reactions,
+  ) {
     final reactionCounts = <String, int>{};
     for (final reaction in reactions) {
       reactionCounts[reaction] = (reactionCounts[reaction] ?? 0) + 1;
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Wrap(
-        spacing: 4,
-        children:
-            reactionCounts.entries.map((entry) {
-              // Re-tap sur une réaction = toggle → retire l'emoji déjà posé.
-              return GestureDetector(
-                onTap:
-                    widget.onReact == null
-                        ? null
-                        : () {
-                          HapticFeedback.lightImpact();
-                          widget.onReact?.call(widget.message, entry.key);
-                        },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.surfaceVariantColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: context.outlineColor.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(entry.key, style: const TextStyle(fontSize: 14)),
-                      if (entry.value > 1) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          '${entry.value}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ],
+    return reactionCounts.entries.map((entry) {
+      // Re-tap sur une réaction = toggle → retire l'emoji déjà posé.
+      return GestureDetector(
+        onTap:
+            widget.onReact == null
+                ? null
+                : () {
+                  HapticFeedback.lightImpact();
+                  widget.onReact?.call(widget.message, entry.key);
+                },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: context.surfaceVariantColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: context.outlineColor.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(entry.key, style: const TextStyle(fontSize: 14)),
+              if (entry.value > 1) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '${entry.value}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.textSecondaryColor,
                   ),
                 ),
-              );
-            }).toList(),
-      ),
-    );
+              ],
+            ],
+          ),
+        ),
+      );
+    }).toList();
   }
 
   /// Petit badge « Admin » affiché à côté du nom de l'expéditeur (groupes).
@@ -1742,10 +1701,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   fileName: message.fileName ?? 'Fichier',
                   fileSize: message.fileSize,
                   isMe: widget.isMe,
-                  timestamp: message.createdAt,
-                  messageStatus: message.status,
-                  readBy: message.readBy,
-                  deliveredTo: message.deliveredTo,
                 ),
               ),
             ),
@@ -1821,10 +1776,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   fileName: message.fileName ?? 'Fichier',
                   fileSize: message.fileSize,
                   isMe: widget.isMe,
-                  timestamp: message.createdAt,
-                  messageStatus: message.status,
-                  readBy: message.readBy,
-                  deliveredTo: message.deliveredTo,
                 ),
               ),
             ),
@@ -1865,10 +1816,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   : widget.message.content,
           isMe: widget.isMe,
           heroTag: 'message_image_${widget.message.id}',
-          timestamp: widget.message.createdAt,
-          messageStatus: widget.message.status,
-          readBy: widget.message.readBy,
-          deliveredTo: widget.message.deliveredTo,
           showSenderInfo: widget.showSenderInfo && !widget.isMe,
           senderName: widget.message.senderName,
           blurhash: widget.message.blurhash,
@@ -1894,10 +1841,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           fileName: widget.message.fileName ?? 'Fichier',
           fileSize: widget.message.fileSize,
           isMe: widget.isMe,
-          timestamp: widget.message.createdAt,
-          messageStatus: widget.message.status,
-          readBy: widget.message.readBy,
-          deliveredTo: widget.message.deliveredTo,
           onTap: () => _openFile(widget.message.fileUrl),
           onShare: () => _shareMessage(),
         );
@@ -1919,10 +1862,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ? null
                   : widget.message.content,
           isMe: widget.isMe,
-          timestamp: widget.message.createdAt,
-          messageStatus: widget.message.status,
-          readBy: widget.message.readBy,
-          deliveredTo: widget.message.deliveredTo,
           showSenderInfo: widget.showSenderInfo && !widget.isMe,
           senderName: widget.message.senderName,
           messageId: widget.message.id,
@@ -1966,11 +1905,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           longitude: widget.message.longitude ?? 0,
           address: widget.message.locationAddress ?? '',
           isMe: widget.isMe,
-          createdAt: widget.message.createdAt,
           status: widget.message.status,
-          readBy: widget.message.readBy,
-          deliveredTo: widget.message.deliveredTo,
-          senderId: widget.message.senderId,
           onRetry: widget.onRetry,
         );
 
@@ -1979,10 +1914,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           stickerUrl: widget.message.fileUrl ?? '',
           isAnimated: widget.message.isAnimatedSticker,
           isMe: widget.isMe,
-          timestamp: widget.message.createdAt,
-          messageStatus: widget.message.status,
-          readBy: widget.message.readBy,
-          deliveredTo: widget.message.deliveredTo,
           onLongPress: _onLongPress,
         );
     }
@@ -2382,11 +2313,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(widget.message.content, style: const TextStyle(fontSize: 42)),
-            // Groupage : un seul horodatage sous le dernier message du groupe.
-            if (_isLastInGroup) ...[
-              const SizedBox(height: 4),
-              _buildInlineTimeStatus(context),
-            ],
           ],
         ),
       );
@@ -2407,21 +2333,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           // Event card if attached
           if (eventData != null)
             EventMessageCard(eventData: eventData, isMe: widget.isMe),
-          // Message content with inline time (groupage : horodatage seulement
-          // sous le dernier message d'un groupe consécutif).
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                child: _buildRichTextWithLinks(context, widget.message.content),
-              ),
-              if (_isLastInGroup) ...[
-                const SizedBox(width: 8),
-                _buildInlineTimeStatus(context),
-              ],
-            ],
-          ),
+          // Le texte occupe toute la bulle : l'heure et l'accusé de réception
+          // sont posés sous la bulle par _buildMetaRow (fiches 4a/6b).
+          _buildRichTextWithLinks(context, widget.message.content),
           // Link preview card
           if (hasLinkPreview)
             LinkPreviewBubble.fromMap(linkPreviewData, isMe: widget.isMe),
@@ -2430,18 +2344,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  Widget _buildInlineTimeStatus(BuildContext context) {
+  /// Ligne de méta posée **sous** la bulle : heure, accusé de réception et
+  /// réactions (fiches 4a/6b — « 09:12 👍 1 »).
+  ///
+  /// Elle vit hors de la bulle, donc sur le fond de la conversation : ses
+  /// couleurs ne dépendent plus de `isMe`. C'est la seule ligne de méta de la
+  /// discussion — aucune bulle spécialisée (image, vidéo, document, note
+  /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
+  Widget _buildMetaRow(BuildContext context) {
+    final hasReactions = widget.message.reactions.isNotEmpty;
+    // L'heure ne s'affiche que sous le dernier message d'une grappe ; les
+    // réactions, elles, suivent toujours le message qu'elles décorent.
+    if (!_isLastInGroup && !hasReactions) return const SizedBox.shrink();
+
     final isStarred =
         widget.currentUserId != null &&
         widget.message.isStarredBy(widget.currentUserId!);
     final l10n = AppLocalizations.of(context)!;
-
-    // Sur bulle envoyée (fond vert) : texte clair. Sur bulle reçue (fond
-    // clair opaque) : gris tertiaire, sinon le blanc serait invisible.
-    final metaColor =
-        widget.isMe
-            ? AppColors.white.withValues(alpha: 0.7)
-            : context.textTertiaryColor;
+    final metaColor = context.textTertiaryColor;
 
     // « Vu par N » : sur MES messages de groupe lus par au moins un autre
     // membre (info spécifique aux groupes, en plus de la double coche).
@@ -2455,54 +2375,65 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         !widget.message.deletedForEveryone &&
         groupReadCount > 0;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (showGroupReadCount) ...[
-          Text(
-            'Vu par $groupReadCount',
-            style: const TextStyle(
-              fontSize: 11,
-              color: _kReadReceiptBlue,
-              fontWeight: FontWeight.w500,
+    return Padding(
+      padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: widget.isMe ? WrapAlignment.end : WrapAlignment.start,
+        children: [
+          if (_isLastInGroup)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showGroupReadCount) ...[
+                  Text(
+                    'Vu par $groupReadCount',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.readReceiptBlue,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                if (isStarred) ...[
+                  AppIcon(AppIcon.star, size: 12, color: metaColor),
+                  const SizedBox(width: 2),
+                ],
+                // Edited indicator
+                if (widget.message.isEdited) ...[
+                  Text(
+                    l10n.edited,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                      color: metaColor,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                // Ephemeral indicator
+                if (widget.message.isEphemeral) ...[
+                  Icon(Icons.timer_outlined, size: 12, color: metaColor),
+                  const SizedBox(width: 2),
+                ],
+                Text(
+                  _formatTime(widget.message.createdAt),
+                  style: TextStyle(fontSize: 11, color: metaColor),
+                ),
+                if (widget.isMe && !widget.message.deletedForEveryone) ...[
+                  const SizedBox(width: 3),
+                  _buildStatusIcon(context),
+                  _buildReadReceiptDot(),
+                ],
+              ],
             ),
-          ),
-          const SizedBox(width: 6),
+          if (hasReactions)
+            ..._buildReactionChips(context, widget.message.reactions),
         ],
-        if (isStarred) ...[
-          AppIcon(AppIcon.star, size: 12, color: metaColor),
-          const SizedBox(width: 2),
-        ],
-        // Edited indicator
-        if (widget.message.isEdited) ...[
-          Text(
-            l10n.edited,
-            style: TextStyle(
-              fontSize: 11,
-              fontStyle: FontStyle.italic,
-              color: metaColor,
-            ),
-          ),
-          const SizedBox(width: 4),
-        ],
-        // Ephemeral indicator
-        if (widget.message.isEphemeral) ...[
-          Icon(Icons.timer_outlined, size: 12, color: metaColor),
-          const SizedBox(width: 2),
-        ],
-        Text(
-          _formatTime(widget.message.createdAt),
-          style: TextStyle(
-            fontSize: 11,
-            color: widget.isMe ? _kTimestampBlue : context.textTertiaryColor,
-          ),
-        ),
-        if (widget.isMe && !widget.message.deletedForEveryone) ...[
-          const SizedBox(width: 3),
-          _buildStatusIcon(context, inline: true),
-          _buildReadReceiptDot(),
-        ],
-      ],
+      ),
     );
   }
 
@@ -2538,21 +2469,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         widget.message.status == MessageStatus.sending;
   }
 
-  /// Small lock icon showing the encryption level of this message.
-  ///   🔒 green  = Signal Protocol (E2EE, server cannot read)
-  ///   🔒 grey   = AES-256-GCM (encrypted in transit, server key-encrypted)
-  Widget _buildEncryptionIcon(BuildContext context) {
-    final isE2EE =
-        widget.message.encryptionLevel == MessageEncryptionLevel.e2ee;
-    return Tooltip(
-      message: isE2EE ? 'Chiffré — bout en bout (Signal)' : 'Chiffré',
-      child: AppIcon(
-        AppIcon.lock,
-        size: 10,
-        color: isE2EE ? Colors.green.shade600 : context.textTertiaryColor,
-      ),
-    );
-  }
+  // Le cadenas de chiffrement n'était posé que sur les messages « emoji seul »,
+  // nulle part ailleurs — une incohérence qui disparaît avec la ligne de méta
+  // unique. Le rappel de chiffrement vit dans l'en-tête, à côté du statut
+  // (`_buildStatusWithLock` de conversation_screen), comme le veut la fiche 4a.
 
   /// Coche (simple ou double) entourée d'un cercle — accusé de réception.
   /// Gris pour envoyé/reçu, bleu pour lu. Rendu en gras (cercle épais + coche
@@ -2568,19 +2488,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  Widget _buildStatusIcon(BuildContext context, {bool inline = false}) {
-    final color =
-        inline
-            ? (widget.isMe
-                ? AppColors.white.withValues(alpha: 0.7)
-                : context.textTertiaryColor)
-            : context.textTertiaryColor;
+  Widget _buildStatusIcon(BuildContext context) {
+    // La ligne de méta est hors de la bulle : plus de branche « sur fond
+    // vert », les couleurs sont celles du fond de conversation.
+    final color = context.textTertiaryColor;
 
     // Gris franc (bien visible) pour les accusés « envoyé » / « reçu ».
-    final receiptGrey =
-        (inline && widget.isMe)
-            ? AppColors.white.withValues(alpha: 0.95)
-            : context.textSecondaryColor;
+    final receiptGrey = context.textSecondaryColor;
 
     late final Widget iconWidget;
 
@@ -2664,7 +2578,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
         if (isRead) {
           // Lu : double coche dans un cercle bleu
-          iconWidget = _circledReceipt(AppIcon.doneAll, _kReadReceiptBlue);
+          iconWidget = _circledReceipt(AppIcon.doneAll, AppColors.readReceiptBlue);
         } else if (isDelivered) {
           // Reçu : double coche dans un cercle gris
           iconWidget = _circledReceipt(AppIcon.doneAll, receiptGrey);

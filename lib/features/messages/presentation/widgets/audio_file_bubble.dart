@@ -8,7 +8,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
-import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Compact audio file player (music, podcast, etc.) — Telegram style.
 /// No waveform, only filename, duration and a simple progress bar.
@@ -309,8 +308,10 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
   }
 
   Widget _buildControlsRow(Color color) {
+    // L'heure et l'accusé de réception ont quitté cette ligne : ils sont posés
+    // sous la bulle par MessageBubble (fiches 4a/6b).
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         GestureDetector(
           onTap: _cyclePlaybackSpeed,
@@ -330,70 +331,7 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
             ),
           ),
         ),
-        _buildTimeAndStatus(color),
       ],
     );
-  }
-
-  Widget _buildTimeAndStatus(Color color) {
-    final time = _formatTime(widget.message.createdAt);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          time,
-          style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7)),
-        ),
-        if (widget.isMe) ...[const SizedBox(width: 3), _buildStatusIcon()],
-      ],
-    );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  Widget _buildStatusIcon() {
-    final message = widget.message;
-
-    switch (message.status) {
-      case MessageStatus.sending:
-        return AppIcon(AppIcon.clock,
-          size: 14,
-          color:
-              widget.isMe
-                  ? AppColors.white.withValues(alpha: 0.7)
-                  : Colors.grey,
-        );
-      case MessageStatus.failed:
-        return const AppIcon(AppIcon.error, size: 14, color: Colors.red);
-      case MessageStatus.sent:
-        final otherReadersCount =
-            message.readBy.where((id) => id != message.senderId).length;
-        final isRead = otherReadersCount > 0;
-
-        final otherDeliveredCount =
-            message.deliveredTo.where((id) => id != message.senderId).length;
-        final isDelivered = otherDeliveredCount > 0;
-
-        if (isRead) {
-          return const AppIcon(AppIcon.doneAll, size: 16, color: Colors.blue);
-        } else if (isDelivered) {
-          final deliveredColor =
-              widget.isMe
-                  ? AppColors.white.withValues(alpha: 0.7)
-                  : Colors.grey;
-          return AppIcon(AppIcon.doneAll, size: 16, color: deliveredColor);
-        } else {
-          final sentColor =
-              widget.isMe
-                  ? AppColors.white.withValues(alpha: 0.7)
-                  : Colors.grey;
-          return AppIcon(AppIcon.check, size: 14, color: sentColor);
-        }
-    }
   }
 }

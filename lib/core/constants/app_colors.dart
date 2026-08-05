@@ -108,6 +108,13 @@ class AppColors {
   /// pour ce role precis.
   static const Color bubbleBorderDark = Color(0xFF3D352C);
 
+  /// Accuse de lecture « lu » : double coche cerclee et pastille bleues.
+  ///
+  /// Promue ici avec la ligne de meta qui est sortie de la bulle : elle se
+  /// lit desormais sur le fond de la conversation, plus sur un aplat vert,
+  /// et elle est partagee par toutes les familles de bulles.
+  static const Color readReceiptBlue = Color(0xFF5B9BFF);
+
   // ============================================
   // TEXT COLORS - LIGHT THEME
   // ============================================

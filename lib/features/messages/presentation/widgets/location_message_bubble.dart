@@ -13,11 +13,10 @@ class LocationMessageBubble extends StatelessWidget {
   final double longitude;
   final String address;
   final bool isMe;
-  final DateTime? createdAt;
+
+  /// Conservé pour l'appui « Réessayer » : l'heure et l'accusé de réception,
+  /// eux, sont posés sous la bulle par MessageBubble (fiches 4a/6b).
   final MessageStatus? status;
-  final List<String>? readBy;
-  final List<String>? deliveredTo;
-  final String? senderId;
   final VoidCallback? onRetry;
 
   const LocationMessageBubble({
@@ -26,11 +25,7 @@ class LocationMessageBubble extends StatelessWidget {
     required this.longitude,
     required this.address,
     required this.isMe,
-    this.createdAt,
     this.status,
-    this.readBy,
-    this.deliveredTo,
-    this.senderId,
     this.onRetry,
   });
 
@@ -195,37 +190,13 @@ class LocationMessageBubble extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'Appuyez pour ouvrir',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (createdAt != null)
-                                  Text(
-                                    _formatTime(createdAt!),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.white.withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                if (isMe && status != null) ...[
-                                  const SizedBox(width: 4),
-                                  _buildStatusIcon(),
-                                ],
-                              ],
-                            ),
-                          ],
+                        Text(
+                          'Appuyez pour ouvrir',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -244,39 +215,4 @@ class LocationMessageBubble extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  Widget _buildStatusIcon() {
-    switch (status!) {
-      case MessageStatus.sending:
-        return AppIcon(AppIcon.clock,
-          size: 14,
-          color: Colors.white.withValues(alpha: 0.7),
-        );
-      case MessageStatus.failed:
-        return const AppIcon(AppIcon.error, size: 14, color: Colors.red);
-      case MessageStatus.sent:
-        final otherReadersCount = (readBy ?? [])
-            .where((id) => id != senderId)
-            .length;
-        final isRead = otherReadersCount > 0;
-
-        final otherDeliveredCount = (deliveredTo ?? [])
-            .where((id) => id != senderId)
-            .length;
-        final isDelivered = otherDeliveredCount > 0;
-
-        if (isRead) {
-          return const AppIcon(AppIcon.doneAll, size: 16, color: Colors.blue);
-        } else if (isDelivered) {
-          return AppIcon(AppIcon.doneAll, size: 16, color: Colors.white.withValues(alpha: 0.7));
-        } else {
-          return AppIcon(AppIcon.check, size: 14, color: Colors.white.withValues(alpha: 0.7));
-        }
-    }
-  }
 }

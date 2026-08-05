@@ -2669,6 +2669,40 @@ de conclure quoi que ce soit.
 
 ---
 
+## Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)
+
+L'heure et l'accusé de réception étaient rendus à **sept endroits** : en fin de
+ligne dans le texte, incrustés sur l'image et la vidéo, dans la ligne du
+document, sur la carte de position, sous le lecteur audio, sous le sticker — et
+**nulle part** sur les notes vocales. Ils sont désormais posés une seule fois,
+sous la bulle, par `_buildMetaRow` de `message_bubble.dart`.
+
+Couvert statiquement par `test/features/messages/message_meta_row_test.dart`
+(l'heure n'est plus un descendant de la bulle, elle est sous le texte, la
+réaction partage sa ligne, la note vocale en a une). Ce que le test ne peut pas
+voir :
+
+- [ ] **Lisibilité de l'heure sur fond de conversation**, en clair et en
+  nocturne. Elle était blanche sur l'aplat vert des messages envoyés ; elle est
+  maintenant `textTertiaryColor` sur le fond de l'écran.
+- [ ] ⚠ **Sur fond d'écran personnalisé** (`ChatWallpaper` + les 8 couleurs de
+  `chat_background_colors.dart`) : c'est le cas le plus risqué, l'heure n'a plus
+  d'aplat sombre derrière elle comme l'incrustation des médias en avait un.
+- [ ] **Une heure par grappe** : trois messages consécutifs du même expéditeur
+  ne doivent afficher qu'un seul horodatage, sous le dernier.
+- [ ] **Chaque famille de bulle** : texte, note vocale (elle en a une pour la
+  première fois), photo, photo floutée en mode ÉCO, vidéo, document, sticker,
+  position, message transféré, message cité.
+- [ ] **Coche et pastille d'accusé de lecture** : envoyé / reçu / lu, et le
+  « Vu par N » des groupes — tous relus sur le fond de conversation.
+- [ ] **« Non envoyé · Réessayer »** : le libellé d'échec est passé sous la
+  bulle avec le reste ; vérifier qu'il reste lisible et cliquable.
+- [ ] **Le cadenas de chiffrement par message a disparu.** Il n'était posé que
+  sur les messages « emoji seul » — une incohérence. Le rappel de chiffrement
+  reste dans l'en-tête, à côté de « En ligne ». Confirmer que rien ne manque.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../domain/entities/message_entity.dart';
 
 /// Bubble pour l'affichage de documents/fichiers dans les messages
 /// Avec icônes colorées par type de fichier et animation de succès
@@ -16,11 +14,8 @@ class DocumentBubble extends StatefulWidget {
   final bool isDownloading;
   final double downloadProgress;
 
-  // WhatsApp-style parameters
-  final DateTime? timestamp;
-  final MessageStatus? messageStatus;
-  final List<String>? readBy;
-  final List<String>? deliveredTo;
+  // L'heure et l'accusé de réception vivent dans la ligne de méta posée sous
+  // la bulle par MessageBubble (fiches 4a/6b).
   final VoidCallback? onShare;
 
   const DocumentBubble({
@@ -32,10 +27,6 @@ class DocumentBubble extends StatefulWidget {
     this.onTap,
     this.isDownloading = false,
     this.downloadProgress = 0.0,
-    this.timestamp,
-    this.messageStatus,
-    this.readBy,
-    this.deliveredTo,
     this.onShare,
   });
 
@@ -343,66 +334,10 @@ class _DocumentBubbleState extends State<DocumentBubble>
               ],
             ),
 
-            // Time and status row
-            if (widget.timestamp != null) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    DateFormat.Hm().format(widget.timestamp!),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color:
-                          widget.isMe
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : context.textTertiaryColor,
-                    ),
-                  ),
-                  if (widget.isMe && widget.messageStatus != null) ...[
-                    const SizedBox(width: 4),
-                    _buildStatusIcon(context),
-                  ],
-                ],
-              ),
-            ],
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildStatusIcon(BuildContext context) {
-    final color =
-        widget.isMe
-            ? Colors.white.withValues(alpha: 0.7)
-            : context.textTertiaryColor;
-
-    switch (widget.messageStatus!) {
-      case MessageStatus.sending:
-        return SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-        );
-
-      case MessageStatus.failed:
-        return const AppIcon(
-          AppIcon.warning,
-          size: 14,
-          color: Colors.red,
-        );
-
-      case MessageStatus.sent:
-        return AppIcon(
-          AppIcon.doneAll,
-          size: 14,
-          color: color,
-        );
-    }
   }
 
   _FileTypeInfo _getFileTypeInfo() {

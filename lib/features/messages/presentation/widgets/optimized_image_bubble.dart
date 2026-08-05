@@ -2,11 +2,9 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
-import '../../domain/entities/message_entity.dart';
 import 'full_screen_image_viewer.dart';
 
 class OptimizedImageBubble extends StatefulWidget {
@@ -16,9 +14,9 @@ class OptimizedImageBubble extends StatefulWidget {
   final bool isMe;
   final VoidCallback? onTap;
 
-  // New WhatsApp-style parameters
-  final DateTime? timestamp;
-  final MessageStatus? messageStatus;
+  // L'heure et l'accusé de réception ne sont plus incrustés sur l'image :
+  // ils vivent dans la ligne de méta posée sous la bulle par MessageBubble
+  // (fiches 4a/6b, « une seule ligne d'heure pour tous les types »).
   final bool showSenderInfo;
   final String? senderName;
 
@@ -32,8 +30,6 @@ class OptimizedImageBubble extends StatefulWidget {
   /// Épingler, Transférer…) au lieu du petit menu média — un message photo
   /// est ainsi épinglable comme n'importe quel autre type.
   final VoidCallback? onLongPress;
-  final List<String>? readBy;
-  final List<String>? deliveredTo;
   final String? blurhash;
 
   const OptimizedImageBubble({
@@ -43,8 +39,6 @@ class OptimizedImageBubble extends StatefulWidget {
     required this.heroTag,
     this.isMe = false,
     this.onTap,
-    this.timestamp,
-    this.messageStatus,
     this.showSenderInfo = false,
     this.senderName,
     this.onForward,
@@ -52,8 +46,6 @@ class OptimizedImageBubble extends StatefulWidget {
     this.onDelete,
     this.onShare,
     this.onLongPress,
-    this.readBy,
-    this.deliveredTo,
     this.blurhash,
   });
 
@@ -303,13 +295,6 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                         child: _buildZoomIndicator(context),
                       ),
 
-                    // Time and status overlay (WhatsApp style)
-                    if (widget.timestamp != null && !_isLoading && !_hasError)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: _buildTimeStatusOverlay(context),
-                      ),
                   ],
                 ),
               ),
@@ -457,60 +442,4 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
     );
   }
 
-  Widget _buildTimeStatusOverlay(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                DateFormat.Hm().format(widget.timestamp!),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (widget.isMe && widget.messageStatus != null) ...[
-                const SizedBox(width: 4),
-                _buildStatusIcon(),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusIcon() {
-    switch (widget.messageStatus!) {
-      case MessageStatus.sending:
-        return const SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-          ),
-        );
-
-      case MessageStatus.failed:
-        return const Icon(
-          Icons.warning_amber_rounded,
-          size: 14,
-          color: Colors.red,
-        );
-
-      case MessageStatus.sent:
-        return const Icon(Icons.done_all, size: 14, color: Colors.white);
-    }
-  }
 }
