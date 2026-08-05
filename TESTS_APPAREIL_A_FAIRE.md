@@ -4609,12 +4609,23 @@ le second. **Les trois sont corrigés** (2026-08-05), aucun n'est vérifié sur
 appareil.
 
 **1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
-conversation.** « Groupe de test prive » (`yflqsRLMMhTPpiW0NFHx`) a trois
-lignes dans `conversations` : une du 05/08 à 04:13 (1 message), puis une à
-22:14 et une à 22:21 — les deux créées en ouvrant simplement la discussion
-pendant la session. Conséquence visible : l'écran affiche « Aucun message »
-alors qu'un message existe bel et bien, dans une conversation précédente.
-L'historique du groupe se fragmente à chaque entrée.
+conversation.** ✅ **Corrigé le 2026-08-05** (code ; doublons déjà en base non
+encore fusionnés — décision en attente). « Groupe de test prive »
+(`yflqsRLMMhTPpiW0NFHx`) a trois lignes dans `conversations` : une du 05/08 à
+04:13 (1 message), puis une à 22:14 et une à 22:21 — les deux créées en ouvrant
+simplement la discussion pendant la session. Conséquence visible : l'écran
+affiche « Aucun message » alors qu'un message existe bel et bien, dans une
+conversation précédente. L'historique du groupe se fragmente à chaque entrée.
+
+Cause : `MessageSupabaseDataSource.findGroupConversationByGroupId` rendait
+`null` **sans chercher** dès que le `group_id` n'était pas un UUID. Ce
+court-circuit protège l'appel de la RPC `join_group_conversation`, qui casse le
+`group_id` en `uuid` (`22P02`) — mais il faisait croire à
+`createGroupConversation` qu'aucune conversation n'existait, donc il en
+insérait une neuve à chaque ouverture. Les groupes hérités de Firestore ont un
+id de 20 caractères (`yflqsRLMMhTPpiW0NFHx`), pas un UUID : ils étaient les
+seuls touchés — ce que la base confirme, les 3 groupes à id UUID ont exactement
+une conversation chacun, le groupe hérité en avait trois.
 
 **CORRIGÉ (2026-08-05), non vérifié sur appareil.** Cause :
 `findGroupConversationByGroupId` (`message_supabase_datasource.dart`) faisait
@@ -4655,6 +4666,17 @@ hérités.
 - [ ] Non-régression sur un groupe **Supabase** (vrai UUID) : la RPC doit
   toujours être empruntée, et un membre ayant rejoint après la création doit
   continuer à retrouver la conversation.
+
+**Deuxième filet ajouté (2026-08-06) :** quand la RPC rend `NULL` sur un groupe
+à id UUID — soit qu'aucune conversation n'existe, soit que l'appelant ne soit
+pas encore dans `group_members` —, on retombe sur la même recherche directe au
+lieu de rendre `null` sec. Le RLS la borne aux conversations dont on est déjà
+participant : si l'appelant en est un, sa conversation est réutilisée au lieu
+d'être doublée ; sinon rien ne change.
+
+- [ ] Non-régression du filet : un groupe UUID dont l'appelant est participant
+  de la conversation mais absent de `group_members` doit ouvrir la conversation
+  existante, pas en créer une seconde.
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un

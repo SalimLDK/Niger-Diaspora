@@ -1444,7 +1444,12 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
                 params: {'p_group_id': groupId},
               )
               as String?;
-      if (convId == null) return null;
+      // La RPC rend NULL aussi bien quand la conversation n'existe pas que
+      // quand l'appelant n'est pas (encore) dans `group_members` — cas d'un
+      // groupe dont l'appartenance vit encore côté Firestore. Dernier filet
+      // avant création : si l'appelant est déjà participant d'une conversation
+      // de ce groupe, on la réutilise au lieu d'en ajouter une en double.
+      if (convId == null) return _findLegacyGroupConversation(groupId);
 
       final rows = await _supabase
           .from('conversations')
