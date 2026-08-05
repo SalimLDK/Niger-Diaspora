@@ -8537,7 +8537,7 @@ abstract class AppLocalizations {
   /// No description provided for @groupCallTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Group Call'**
+  /// **'Appel de groupe'**
   String get groupCallTitle;
 
   /// No description provided for @groupCallCreate.
@@ -15017,7 +15017,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinCall.
   ///
   /// In fr, this message translates to:
-  /// **'Join'**
+  /// **'Rejoindre'**
   String get joinCall;
 
   /// No description provided for @groupCall.
@@ -15923,7 +15923,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminLoginWithGoogle.
   ///
   /// In fr, this message translates to:
-  /// **'Sign in with Google'**
+  /// **'Se connecter avec Google'**
   String get adminLoginWithGoogle;
 
   /// No description provided for @adminPasswordLabel.

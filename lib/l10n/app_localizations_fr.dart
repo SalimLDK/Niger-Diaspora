@@ -4606,7 +4606,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get callQualityPoor => 'Mauvaise qualité';
 
   @override
-  String get groupCallTitle => 'Group Call';
+  String get groupCallTitle => 'Appel de groupe';
 
   @override
   String get groupCallCreate => 'Démarrer appel de groupe';
@@ -8115,7 +8115,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get doc => 'DOC';
 
   @override
-  String get joinCall => 'Join';
+  String get joinCall => 'Rejoindre';
 
   @override
   String get groupCall => 'Appel de groupe';
@@ -8603,7 +8603,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous êtes sur le point d\'envoyer une notification à:';
 
   @override
-  String get adminLoginWithGoogle => 'Sign in with Google';
+  String get adminLoginWithGoogle => 'Se connecter avec Google';
 
   @override
   String get adminPasswordLabel => 'Mot de passe';
