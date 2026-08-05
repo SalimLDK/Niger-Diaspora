@@ -1177,6 +1177,18 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
   ses propres `_SettingsDivider` (retrait 72). Le défaut ne se voyait pas comme
   un bug mais comme un trait épais et flou. Vérifier à l'œil qu'il ne reste
   qu'un filet, aligné sur le texte, et que **Réglages n'a pas bougé d'un pixel**.
+- [ ] **Une bascule n'en écrase plus trois** (`settings_screen.dart`) —
+  Réglages → couper **Ma localisation** seule → revenir → rouvrir Réglages :
+  *Profil visible* et *Statut en ligne* doivent être restés dans leur état
+  réel, pas remis à activé. C'est le scénario qui échouait.
+- [ ] **Le sous-titre du Profil suit** (`profile_screen.dart`) — couper
+  *Profil visible* dans Réglages, revenir au Profil : « Confidentialité et
+  sécurité » doit se mettre à jour **sans relancer l'app**.
+- [ ] **Les notifications se coupent vraiment** — réglages fins des
+  notifications → couper l'interrupteur maître → vérifier en base que
+  `profiles.notifications_enabled` est passé à `false`
+  (`supabase db query --linked`). Avant, seul l'affichage local était coupé :
+  le serveur continuait d'envoyer.
 - [ ] **« ZONE SENSIBLE » en couleur d'alerte** (`settings_screen.dart`) — le
   drapeau `isWarning` était passé mais ignoré, le libellé s'affichait à la
   couleur d'accent comme les trois autres sections. À vérifier en clair et en
