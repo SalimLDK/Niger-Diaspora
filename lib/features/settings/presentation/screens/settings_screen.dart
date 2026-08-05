@@ -30,7 +30,13 @@ import '../../../../core/services/app_version_service.dart';
 /// puis une zone sensible isolée pour déconnexion/suppression. ProfileScreen
 /// n'affiche plus que 3 entrées condensées qui renvoient ici.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  /// Section à rejoindre à l'ouverture (`privacy`, `appearance`, `help`).
+  /// Les trois entrées « Réglages » du profil portaient chacune leur état en
+  /// sous-titre — elles se présentaient donc comme des raccourcis ciblés —
+  /// mais atterrissaient toutes les trois en haut de cette page.
+  final String? initialSection;
+
+  const SettingsScreen({super.key, this.initialSection});
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -54,6 +60,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ChatBackgroundEntity? _globalBackground;
   bool _isExportingData = false;
 
+  final _appearanceKey = GlobalKey();
+  final _helpKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +70,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         PreferencesService.instance.noiseSuppressionEnabled;
     _dataSaverMode = PreferencesService.instance.dataSaverMode;
     _loadGlobalBackground();
+    _scrollToInitialSection();
+  }
+
+  /// `privacy` est déjà en tête de page : rien à faire. Les deux autres sont
+  /// amenées à l'écran une fois la première frame posée, sans quoi leur
+  /// contexte n'existe pas encore.
+  void _scrollToInitialSection() {
+    final key = switch (widget.initialSection) {
+      'appearance' => _appearanceKey,
+      'help' => _helpKey,
+      _ => null,
+    };
+    if (key == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        alignment: 0.05,
+      );
+    });
   }
 
   Future<void> _loadGlobalBackground() async {
@@ -243,7 +275,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 24),
 
                   // 3. Application
-                  _buildSectionHeader(l10n.application, Icons.tune_outlined),
+                  KeyedSubtree(
+                    key: _appearanceKey,
+                    child: _buildSectionHeader(
+                      l10n.application,
+                      Icons.tune_outlined,
+                    ),
+                  ),
                   _SettingsCard(
                     children: [
                       _SettingsSwitchTile(
@@ -322,10 +360,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         onChanged: _toggleDataSaverMode,
                       ),
                       const _SettingsDivider(),
-                      _SettingsTile(
-                        icon: const Icon(Icons.support_agent_outlined),
-                        title: l10n.helpFaq,
-                        onTap: () => _showHelpSupport(l10n),
+                      KeyedSubtree(
+                        key: _helpKey,
+                        child: _SettingsTile(
+                          icon: const Icon(Icons.support_agent_outlined),
+                          title: l10n.helpFaq,
+                          onTap: () => _showHelpSupport(l10n),
+                        ),
                       ),
                       const _SettingsDivider(),
                       _SettingsTile(

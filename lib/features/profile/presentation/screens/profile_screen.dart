@@ -117,27 +117,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               // et les deux actions carrées défilent avec le contenu.
               SliverToBoxAdapter(
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      DesignScreenHeader(
-                        title: l10n.myProfile,
-                        actions: [
-                          DesignSquareAction(
-                            icon: Icons.qr_code_2,
-                            tooltip: l10n.shareMyProfile,
-                            onPressed: () => context.push('/profile/share'),
-                          ),
-                          DesignSquareAction(
-                            icon: Icons.settings_outlined,
-                            tooltip: l10n.settings,
-                            onPressed: () => context.push('/settings'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      _buildHeader(user, l10n),
-                    ],
-                  ),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DesignScreenHeader(
+                      title: l10n.myProfile,
+                      actions: [
+                        DesignSquareAction(
+                          icon: Icons.qr_code_2,
+                          tooltip: l10n.shareMyProfile,
+                          onPressed: () => context.push('/profile/share'),
+                        ),
+                        DesignSquareAction(
+                          icon: Icons.settings_outlined,
+                          tooltip: l10n.settings,
+                          onPressed: () => context.push('/settings'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildHeader(user, l10n),
+                  ],
+                ),
               ),
 
               // Statistiques
@@ -238,10 +238,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _SettingsTile(
                     icon: const Icon(Icons.bookmark_outline),
                     title: l10n.savedPostsTitle,
-                    subtitle:
-                        l10n.savedPostsCount(
-                          ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0,
-                        ),
+                    subtitle: l10n.savedPostsCount(
+                      ref.watch(bookmarkedPostsCountProvider).valueOrNull ?? 0,
+                    ),
                     onTap: () => context.push('/profile/saved-posts'),
                   ),
                   const _SettingsDivider(),
@@ -277,8 +276,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   const _SettingsDivider(),
                   _SettingsTile(
                     icon: const Icon(Icons.notifications_outlined),
-                    title: l10n.notifications,
-                    subtitle: l10n.manageAlerts,
+                    // Cette ligne mène à la LISTE des notifications reçues,
+                    // pas aux réglages. Elle s'appelait « Notifications »
+                    // avec « Gérer les notifications » en sous-titre — soit
+                    // exactement le libellé et la promesse de la ligne
+                    // Notifications de l'écran Réglages, qui va ailleurs.
+                    // Qui voulait couper ses alertes tombait sur son
+                    // historique.
+                    title: l10n.myNotifications,
+                    subtitle: l10n.myNotificationsSubtitle,
                     onTap: () => context.push('/notifications'),
                   ),
                 ],
@@ -312,7 +318,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ];
                       return on.isEmpty ? l10n.privacy : on.join(' · ');
                     }(),
-                    onTap: () => context.push('/settings'),
+                    onTap: () => context.push('/settings?section=privacy'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
@@ -320,14 +326,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     title: l10n.settingsAppearanceLanguage,
                     subtitle:
                         '${_getThemeLabel(ref.watch(themeModeNotifierProvider), l10n)} · ${ref.watch(localeNotifierProvider.notifier).currentLocaleName}',
-                    onTap: () => context.push('/settings'),
+                    onTap: () => context.push('/settings?section=appearance'),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
                     icon: const Icon(Icons.help_outline),
                     title: l10n.settingsHelpAbout,
                     subtitle: _versionLabel(l10n),
-                    onTap: () => context.push('/settings'),
+                    onTap: () => context.push('/settings?section=help'),
                   ),
                 ],
               ),
@@ -364,11 +370,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     // Puces du §10a : le trajet « origine → ville actuelle » et le métier.
     final origin = profile?.originCity?.trim();
     final currentCity = profile?.currentCity?.trim();
-    final originChip = (origin != null && origin.isNotEmpty)
-        ? (currentCity != null && currentCity.isNotEmpty
-            ? '$origin → $currentCity'
-            : origin)
-        : null;
+    final originChip =
+        (origin != null && origin.isNotEmpty)
+            ? (currentCity != null && currentCity.isNotEmpty
+                ? '$origin → $currentCity'
+                : origin)
+            : null;
     final professionRaw = profile?.profession?.trim();
     final professionChip =
         (professionRaw != null && professionRaw.isNotEmpty)
@@ -419,23 +426,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         color: context.surfaceVariantColor,
-                        border: photoUrl != null
-                            ? Border.all(color: context.borderColor, width: 2)
-                            : null,
-                        image: photoUrl != null
-                            ? DecorationImage(
-                                image: NetworkImage(photoUrl),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
+                        border:
+                            photoUrl != null
+                                ? Border.all(
+                                  color: context.borderColor,
+                                  width: 2,
+                                )
+                                : null,
+                        image:
+                            photoUrl != null
+                                ? DecorationImage(
+                                  image: NetworkImage(photoUrl),
+                                  fit: BoxFit.cover,
+                                )
+                                : null,
                       ),
-                      child: photoUrl == null
-                          ? Icon(
-                              Icons.add_a_photo_outlined,
-                              size: 30,
-                              color: context.textTertiaryColor,
-                            )
-                          : null,
+                      child:
+                          photoUrl == null
+                              ? Icon(
+                                Icons.add_a_photo_outlined,
+                                size: 30,
+                                color: context.textTertiaryColor,
+                              )
+                              : null,
                     ),
                   ),
                 ),
@@ -838,7 +851,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return DesignSectionLabel(title);
   }
 
-
   void _showShareProfileModal() {
     HapticFeedback.lightImpact();
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -1198,17 +1210,15 @@ class _DottedPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final trace = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          Radius.circular(radius),
-        ),
-      );
-    final crayon = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+    final trace =
+        Path()..addRRect(
+          RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
+        );
+    final crayon =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
 
     // 5 px de trait, 4 px de vide, le long du contour arrondi.
     for (final segment in trace.computeMetrics()) {

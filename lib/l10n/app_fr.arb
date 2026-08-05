@@ -1044,6 +1044,8 @@
   "callHistorySubtitle": "Vos appels passés et manqués",
   "shareMyProfile": "Partager mon profil",
   "qrCodeAndShareLink": "QR code et lien de partage",
+  "myNotifications": "Mes notifications",
+  "myNotificationsSubtitle": "Voir vos alertes reçues",
   "manageAlerts": "Gérer les notifications",
   "appearInSearchesDesc": "Apparaître dans les recherches",
   "appearOnMapDesc": "Apparaître sur la carte",

@@ -2198,6 +2198,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get qrCodeAndShareLink => 'QR code et lien de partage';
 
   @override
+  String get myNotifications => 'Mes notifications';
+
+  @override
+  String get myNotificationsSubtitle => 'Voir vos alertes reçues';
+
+  @override
   String get manageAlerts => 'Gérer les notifications';
 
   @override

@@ -4058,6 +4058,18 @@ abstract class AppLocalizations {
   /// **'QR code et lien de partage'**
   String get qrCodeAndShareLink;
 
+  /// No description provided for @myNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes notifications'**
+  String get myNotifications;
+
+  /// No description provided for @myNotificationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir vos alertes reçues'**
+  String get myNotificationsSubtitle;
+
   /// No description provided for @manageAlerts.
   ///
   /// In fr, this message translates to:

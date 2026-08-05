@@ -1048,6 +1048,8 @@
   "callHistorySubtitle": "Your past and missed calls",
   "shareMyProfile": "Share my profile",
   "qrCodeAndShareLink": "QR code and share link",
+  "myNotifications": "My notifications",
+  "myNotificationsSubtitle": "See the alerts you received",
   "manageAlerts": "Manage notifications",
   "appearInSearchesDesc": "Appear in searches",
   "appearOnMapDesc": "Appear on map",

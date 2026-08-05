@@ -389,8 +389,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         // ?tab=1 ouvre directement l'onglet Repartages (§5a → §5b).
         builder:
             (context, state) => MyPostsScreen(
-              initialTab:
-                  state.uri.queryParameters['tab'] == '1' ? 1 : 0,
+              initialTab: state.uri.queryParameters['tab'] == '1' ? 1 : 0,
             ),
       ),
       GoRoute(
@@ -437,10 +436,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Events routes
       GoRoute(
         path: '/events/create',
-        builder: (context, state) => CreateEventScreen(
-          initialCategory:
-              state.extra is EventCategory ? state.extra as EventCategory : null,
-        ),
+        builder:
+            (context, state) => CreateEventScreen(
+              initialCategory:
+                  state.extra is EventCategory
+                      ? state.extra as EventCategory
+                      : null,
+            ),
       ),
       GoRoute(
         path: '/events/:eventId',
@@ -467,9 +469,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Groups routes
       GoRoute(
         path: '/groups/create',
-        builder: (context, state) => CreateGroupScreen(
-          initialName: state.uri.queryParameters['name'],
-        ),
+        builder:
+            (context, state) => CreateGroupScreen(
+              initialName: state.uri.queryParameters['name'],
+            ),
       ),
       GoRoute(
         path: '/groups/map',
@@ -564,7 +567,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ProfileScreen y renvoient.
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        // ?section=privacy|appearance|help : les trois entrees « Reglages »
+        // du profil arrivent chacune sur sa section (§10a → §10b).
+        builder:
+            (context, state) => SettingsScreen(
+              initialSection: state.uri.queryParameters['section'],
+            ),
       ),
       // Documents légaux (§26c) : 3 routes distinctes pour les liens
       // profonds existants (consentement, inscription...), mais un seul
@@ -702,11 +710,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           final categoryName = state.uri.queryParameters['category'];
           return CreateProductScreen(
             product: product,
-            initialCategory: categoryName == null
-                ? null
-                : ProductCategory.values
-                    .where((c) => c.name == categoryName)
-                    .firstOrNull,
+            initialCategory:
+                categoryName == null
+                    ? null
+                    : ProductCategory.values
+                        .where((c) => c.name == categoryName)
+                        .firstOrNull,
           );
         },
       ),

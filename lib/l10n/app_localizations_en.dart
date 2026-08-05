@@ -2173,6 +2173,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qrCodeAndShareLink => 'QR code and share link';
 
   @override
+  String get myNotifications => 'My notifications';
+
+  @override
+  String get myNotificationsSubtitle => 'See the alerts you received';
+
+  @override
   String get manageAlerts => 'Manage notifications';
 
   @override
