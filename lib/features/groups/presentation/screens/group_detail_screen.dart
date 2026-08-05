@@ -629,9 +629,19 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         },
       );
     } else if (mounted) {
+      // Le dépôt remonte bien la cause de l'échec ; le notifier la range dans
+      // son état et l'écran ne montrait qu'un message générique. On dit ce qui
+      // s'est réellement passé, sinon l'utilisateur n'a rien à rapporter et
+      // nous rien à chercher.
+      final error = ref.read(createConversationProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.errorOpeningDiscussion),
+          content: Text(
+            error == null
+                ? l10n.errorOpeningDiscussion
+                : '${l10n.errorOpeningDiscussion} — $error',
+          ),
+          duration: const Duration(seconds: 8),
           backgroundColor: Colors.red,
         ),
       );
