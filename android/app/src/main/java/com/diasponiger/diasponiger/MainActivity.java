@@ -53,6 +53,8 @@ public class MainActivity extends AudioServiceFragmentActivity {
                             if ("clearSharedIntent".equals(call.method)) {
                                 clearSharedIntent();
                                 result.success(null);
+                            } else if ("getInstallationId".equals(call.method)) {
+                                result.success(getInstallationId());
                             } else {
                                 result.notImplemented();
                             }
@@ -72,6 +74,32 @@ public class MainActivity extends AudioServiceFragmentActivity {
      */
     private void clearSharedIntent() {
         setIntent(new Intent(Intent.ACTION_MAIN));
+    }
+
+    /**
+     * Identifiant d'installation stable (SSAID), pour dériver un identifiant
+     * d'appareil E2EE qui survive à un vidage de données.
+     *
+     * L'identifiant d'appareil était un UUID aléatoire rangé dans le stockage
+     * sécurisé : perdu au moindre vidage de données, il faisait créer une
+     * NOUVELLE ligne dans `e2ee_devices` à chaque régénération de clés. Les
+     * entrées mortes s'accumulaient (2 → 3 le 2026-08-04), et tout message
+     * envoyé au compte doit être chiffré pour chacune.
+     *
+     * Depuis Android 8, le SSAID est propre au triplet (clé de signature,
+     * utilisateur, appareil) : il survit au vidage de données ET à une
+     * réinstallation signée de la même clé, et il n'est pas partagé entre
+     * applications — ce n'est donc pas un identifiant matériel.
+     *
+     * Il n'est jamais envoyé tel quel : le Dart en dérive un condensé salé par
+     * l'identifiant de compte (cf. `stableDeviceId`).
+     *
+     * Peut être null sur des ROM exotiques ; l'appelant retombe alors sur un
+     * UUID aléatoire, c'est-à-dire l'ancien comportement.
+     */
+    private String getInstallationId() {
+        return android.provider.Settings.Secure.getString(
+                getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
     }
 
     /**

@@ -4,12 +4,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 
 import '../supabase_auth_bridge.dart';
 import 'device_label.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
+import 'stable_device_id.dart';
 
 /// Provider pour le service de gestion des clés E2EE
 final keyManagerServiceProvider = Provider<KeyManagerService>((ref) {
@@ -59,10 +59,16 @@ class KeyManagerService {
     return _random.nextInt(0x7FFFFFFF);
   }
 
-  /// Génère un Device ID unique
-  String _generateDeviceId() {
-    return const Uuid().v4();
-  }
+  /// Génère l'identifiant de cet appareil.
+  ///
+  /// Stable entre deux vidages de données (cf. [stableDeviceId]) : sans ça,
+  /// chaque régénération de clés créait une nouvelle ligne dans `e2ee_devices`
+  /// au lieu de réutiliser la sienne, et les identités mortes s'accumulaient.
+  ///
+  /// Les installations existantes ne sont pas migrées : `initializeKeys` sort
+  /// tôt quand des clés locales existent, donc leur identifiant aléatoire est
+  /// conservé et aucune session en cours n'est cassée.
+  Future<String> _generateDeviceId(String userId) => stableDeviceId(userId);
 
   /// Génère une paire de clés Curve25519
   Future<E2EEIdentityKeyPair> _generateKeyPair() async {
@@ -127,7 +133,7 @@ class KeyManagerService {
     await _storage.storeRegistrationId(userId, registrationId);
 
     // 2. Générer Device ID
-    final deviceId = _generateDeviceId();
+    final deviceId = await _generateDeviceId(userId);
     await _storage.storeDeviceId(userId, deviceId);
 
     // 3. Générer Identity Key Pair
