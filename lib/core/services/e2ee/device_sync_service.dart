@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'device_label.dart';
 import 'key_manager_service.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
@@ -36,7 +36,6 @@ class DeviceSyncService {
   final SenderKeyService _senderKeyService;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final SupabaseClient _supabase = Supabase.instance.client;
-  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
   static const int maxDevicesPerUser = 5;
 
@@ -119,21 +118,9 @@ class DeviceSyncService {
     );
   }
 
-  /// Récupère le nom de l'appareil
-  Future<String> _getDeviceName() async {
-    try {
-      if (Platform.isAndroid) {
-        final androidInfo = await _deviceInfo.androidInfo;
-        return '${androidInfo.brand} ${androidInfo.model}';
-      } else if (Platform.isIOS) {
-        final iosInfo = await _deviceInfo.iosInfo;
-        return iosInfo.name;
-      }
-    } catch (e) {
-      debugPrint('DeviceSyncService: Error getting device name: $e');
-    }
-    return 'Unknown Device';
-  }
+  /// Récupère le nom de l'appareil — délègue au libellé partagé, pour que la
+  /// liste des appareils et les métadonnées de sauvegarde ne divergent pas.
+  Future<String> _getDeviceName() => currentDeviceLabel();
 
   /// Récupère la plateforme
   String _getPlatform() {

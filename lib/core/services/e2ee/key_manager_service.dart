@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../supabase_auth_bridge.dart';
+import 'device_label.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
 
@@ -290,6 +291,29 @@ class KeyManagerService {
       'platform': defaultTargetPlatform.name,
       'last_active': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'user_id,device_id',);
+
+    // 1 bis. Renseigner le libellé de l'appareil s'il est encore vide.
+    //
+    // L'upsert ci-dessus n'écrit pas `device_name` : la liste des appareils
+    // retombait donc sur « Appareil Android » pour tout le monde, ce qui rend
+    // impossible de savoir lequel révoquer quand on en a plusieurs.
+    //
+    // Le filtre `isFilter('device_name', null)` est essentiel : sans lui, on
+    // écraserait à chaque lancement le nom choisi par l'utilisateur via
+    // « Renommer » (la publication est rejouée à chaque `initialize`).
+    try {
+      await _supabase
+          .from('e2ee_devices')
+          .update({'device_name': await currentDeviceLabel()})
+          .eq('user_id', userId)
+          .eq('device_id', deviceId!)
+          .isFilter('device_name', null);
+    } catch (e) {
+      // La colonne est arrivée par migration (20260720120200) et peut manquer
+      // au distant : un libellé absent ne doit pas faire échouer la
+      // publication des clés.
+      debugPrint('KeyManagerService: device_name non renseigné ($e)');
+    }
 
     // 2. Atomically add device to active_devices
     await _supabase.rpc('e2ee_add_active_device', params: {
