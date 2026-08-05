@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
@@ -1298,7 +1299,11 @@ class DesignSectionLabel extends StatelessWidget {
   final String text;
   final Widget? trailing;
 
-  const DesignSectionLabel(this.text, {super.key, this.trailing});
+  /// Teinte du libellé. Par défaut la couleur d'accent ; « ZONE SENSIBLE »
+  /// passe `context.errorColor`.
+  final Color? color;
+
+  const DesignSectionLabel(this.text, {super.key, this.trailing, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -1312,7 +1317,9 @@ class DesignSectionLabel extends StatelessWidget {
               fontSize: 10.5,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.1,
-              color: context.adaptivePrimaryColor.withValues(alpha: 0.85),
+              color: (color ?? context.adaptivePrimaryColor).withValues(
+                alpha: 0.85,
+              ),
             ),
           ),
           if (trailing != null) ...[const Spacer(), trailing!],
@@ -1328,10 +1335,20 @@ class DesignListCard extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsets padding;
 
+  /// Retrait gauche du filet posé entre deux lignes. 16 pour les listes
+  /// ordinaires ; [DesignSettingsCard] le pousse à 72 pour l'aligner sur le
+  /// texte des tuiles de réglages.
+  final double dividerIndent;
+
+  /// Couleur de la bordure. Défaut `context.borderColor`.
+  final Color? borderColor;
+
   const DesignListCard({
     super.key,
     required this.children,
     this.padding = EdgeInsets.zero,
+    this.dividerIndent = 16,
+    this.borderColor,
   });
 
   @override
@@ -1341,7 +1358,7 @@ class DesignListCard extends StatelessWidget {
       if (i > 0) {
         rows.add(
           Padding(
-            padding: const EdgeInsets.only(left: 16),
+            padding: EdgeInsets.only(left: dividerIndent),
             child: Divider(
               height: 1,
               thickness: 1,
@@ -1357,10 +1374,250 @@ class DesignListCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(kDesignRadius),
-        border: Border.all(color: context.borderColor),
+        border: Border.all(color: borderColor ?? context.borderColor),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: rows),
+    );
+  }
+}
+
+/// Carte d'un groupe de réglages (Profil, Réglages) : c'est [DesignListCard]
+/// avec le filet aligné sur le texte des tuiles (16 de marge + 42 de
+/// pictogramme + 14 de gouttière = 72).
+///
+/// **Elle pose ses filets elle-même.** Ne lui passez que des tuiles : un
+/// séparateur ajouté à la main viendrait s'empiler sur le sien — c'est
+/// exactement le défaut qui a mis trois filets superposés entre chaque ligne
+/// de l'écran Profil. Aucun widget de filet n'est exposé par ce kit, pour que
+/// l'erreur ne soit plus formulable.
+class DesignSettingsCard extends StatelessWidget {
+  final List<Widget> children;
+
+  /// Bordure teintée alerte, pour la zone sensible (déconnexion, suppression
+  /// de compte).
+  final bool isDanger;
+
+  const DesignSettingsCard({
+    super.key,
+    required this.children,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DesignListCard(
+      dividerIndent: 72,
+      borderColor: isDanger ? context.errorColor.withValues(alpha: 0.35) : null,
+      children: children,
+    );
+  }
+}
+
+/// Ligne de réglage : pictogramme 42 en dégradé, titre, sous-titre, chevron.
+///
+/// À réserver aux cartes [DesignSettingsCard]. Pour une ligne posée sur un
+/// fond sable sans carte, voir [DesignTileGroup].
+class DesignSettingsTile extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onTap;
+
+  /// Teinte le pictogramme (zone sensible). Défaut : couleur d'accent.
+  final Color? iconColor;
+
+  /// Teinte le titre (zone sensible). Défaut : couleur de texte principale.
+  final Color? titleColor;
+
+  const DesignSettingsTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.iconColor,
+    this.titleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (onTap != null) {
+            HapticFeedback.selectionClick();
+            onTap!();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              _DesignSettingsIcon(icon: icon, color: iconColor),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _DesignSettingsLabels(
+                  title: title,
+                  subtitle: subtitle,
+                  titleColor: titleColor,
+                ),
+              ),
+              if (onTap != null)
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.chevron_right,
+                    color: context.textTertiaryColor,
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ligne de réglage à bascule, même gabarit que [DesignSettingsTile].
+///
+/// `onChanged` nul désactive la bascule — c'est au kit de rendre l'état
+/// inerte, pas à l'écran de l'imiter avec un `IgnorePointer`.
+///
+/// Ne pas confondre avec [DesignToggleTile] : celui-ci vit dans une carte
+/// bordée (pictogramme 42 en dégradé, typo 15/13), l'autre sur le fond sable
+/// d'un [DesignTileGroup] (pictogramme 36 aplat, typo 14.5/12). Deux contextes
+/// visuels validés séparément — ils se ressemblent, ils ne se remplacent pas.
+class DesignSettingsSwitchTile extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  const DesignSettingsSwitchTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onChanged != null;
+    final tint =
+        value && enabled
+            ? context.adaptivePrimaryColor
+            : context.textTertiaryColor;
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            _DesignSettingsIcon(icon: icon, color: tint, tintWhenOff: true),
+            const SizedBox(width: 14),
+            Expanded(
+              child: _DesignSettingsLabels(title: title, subtitle: subtitle),
+            ),
+            Switch.adaptive(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: context.adaptivePrimaryColor,
+              activeTrackColor: context.adaptivePrimaryColor.withValues(
+                alpha: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pastille 42×42 en dégradé, commune aux deux tuiles de réglages.
+class _DesignSettingsIcon extends StatelessWidget {
+  final Widget icon;
+  final Color? color;
+
+  /// La tuile à bascule passe déjà une couleur éteinte quand la valeur est
+  /// fausse ; la tuile simple retombe sur l'accent.
+  final bool tintWhenOff;
+
+  const _DesignSettingsIcon({
+    required this.icon,
+    this.color,
+    this.tintWhenOff = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tint =
+        color ??
+        (tintWhenOff ? context.textTertiaryColor : null) ??
+        context.adaptivePrimaryColor;
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [tint.withValues(alpha: 0.15), tint.withValues(alpha: 0.05)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: IconTheme.merge(
+          data: IconThemeData(size: 18, color: tint),
+          child: icon,
+        ),
+      ),
+    );
+  }
+}
+
+/// Titre + sous-titre communs aux deux tuiles de réglages.
+class _DesignSettingsLabels extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Color? titleColor;
+
+  const _DesignSettingsLabels({
+    required this.title,
+    this.subtitle,
+    this.titleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: titleColor ?? context.textPrimaryColor,
+          ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            subtitle!,
+            style: TextStyle(fontSize: 13, color: context.textTertiaryColor),
+          ),
+        ],
+      ],
     );
   }
 }
