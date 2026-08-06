@@ -4558,10 +4558,24 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   que la puce de pays s'arme bien sur « NE » à l'ouverture, et que
 >   « Découvrir » liste alors les deux groupes NE. Le code est analysé sans
 >   erreur et la donnée vérifiée, mais l'écran n'a pas été revu.
-> - [ ] À décider : le doublon vide « Diaspora Niger — CA » est déclassé, pas
->   supprimé — il reste visible dans « Découvrir ». Sa suppression serait sans
->   perte (0 membre, 0 conversation, 0 épingle, vérifié) mais irréversible :
->   c'est un choix qui revient à Salim, pas un nettoyage à faire en passant.
+> - [x] **Doublon supprimé** (2026-08-06, sur décision explicite de Salim).
+>   `25463f01-a148-4304-8f35-a38e6d7efcfb` — « Diaspora Niger — CA », créé le
+>   20/07 par la recherche qui échouait. Avant suppression, les **neuf** tables
+>   portant un `group_id` ont été contrôlées, pas seulement les trois évidentes :
+>   `conversations`, `e2ee_sender_key_distributions`, `events`,
+>   `group_invites`, `group_members`, `group_pinned_items`, `group_requests`,
+>   `post_polls`, `posts` — **toutes à 0**. La ligne a été relevée avant
+>   l'ordre, elle figure dans l'historique de la session si besoin de la
+>   recréer.
+>
+>   Inventaire final — 4 groupes, un seul officiel par pays :
+>
+>   | Groupe | code | officiel | membres |
+>   |---|---|---|---|
+>   | Diaspora Niger — Canada | `CA` | ✅ | 1 |
+>   | teste | `NE` | — | 1 |
+>   | Testeurs | `NE` | — | 1 |
+>   | Groupe de test prive | `null` | — | 1 |
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 
