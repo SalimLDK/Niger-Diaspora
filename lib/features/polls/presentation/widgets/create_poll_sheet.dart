@@ -224,7 +224,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Choix multiple'),
+                title: Text(l10n.pollMultipleChoice),
                 subtitle: const Text('Les membres peuvent voter pour plusieurs options'),
                 value: _allowMultiple,
                 onChanged: (v) => setState(() => _allowMultiple = v),

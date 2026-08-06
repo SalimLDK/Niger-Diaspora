@@ -751,7 +751,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 children: [
                   Expanded(
                     child: _buildFormatOption(
-                      label: 'Sur place',
+                      label: l10n.eventOnSite,
                       active: !_isOnline,
                       onTap: () => setState(() => _isOnline = false),
                     ),

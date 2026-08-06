@@ -164,7 +164,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.bedtime_outlined),
                 title: 'Silence la nuit',
-                subtitle: 'Utile avec le décalage Niamey – Paris',
+                subtitle: l10n.notifTimezoneHint,
                 value: preferences.quietHoursEnabled,
                 onChanged: gated(notifier.setQuietHoursEnabled),
               ),

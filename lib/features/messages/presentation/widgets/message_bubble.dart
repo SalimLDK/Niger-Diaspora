@@ -1547,12 +1547,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         color: Colors.black54,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.lock_clock, color: Colors.white70, size: 12),
           SizedBox(width: 3),
-          Text('Expiré', style: TextStyle(color: Colors.white70, fontSize: 10)),
+          Text(l10n.messageExpired, style: TextStyle(color: Colors.white70, fontSize: 10)),
         ],
       ),
     );
@@ -1698,12 +1698,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         color: Colors.black54,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.phone_android, color: Colors.white70, size: 12),
           SizedBox(width: 3),
-          Text('Local', style: TextStyle(color: Colors.white70, fontSize: 10)),
+          Text(l10n.messageLocalCopy, style: TextStyle(color: Colors.white70, fontSize: 10)),
         ],
       ),
     );

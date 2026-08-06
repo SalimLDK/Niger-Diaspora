@@ -847,7 +847,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   ),
                   IconButton(
                     icon: Icon(Icons.location_on_outlined, color: tokens.accent),
-                    tooltip: 'Lieu',
+                    tooltip: l10n.feedPlaceLabel,
                     onPressed:
                         (_isPublishing || _isEditing) ? null : _pickLocation,
                   ),

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/models/country.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/group_model.dart';
 import '../models/group_pinned_item_model.dart';
@@ -249,7 +250,14 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
       'p_is_private': group.isPrivate,
       'p_group_location': group.location,
       'p_tags': group.tags,
-      'p_country_code': group.country,
+      // Point de passage unique de toute création côté app : un groupe sans
+      // pays serait invisible dans « Découvrir » dès qu'un filtre pays est
+      // actif, et l'écran en pose un tout seul. Le défaut est aussi posé côté
+      // base (`insert_group`, et le `DEFAULT` de la colonne) pour les écrivains
+      // qui ne passeraient pas par ici.
+      'p_country_code': group.country?.trim().isNotEmpty == true
+          ? group.country
+          : kDefaultCountryCode,
       'p_origin_region': group.originRegion,
     },) as Map<String, dynamic>?;
 

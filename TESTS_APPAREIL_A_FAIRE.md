@@ -1024,8 +1024,38 @@ anonyme est fermé.
   règles strictes, anonyme et tiers sont tenus à l'écart sur les deux.
   Donc le chiffrement de bout en bout des appels **n'en est pas un** tant que
   le durcissement n'est pas déployé.
-- [ ] 🔴 **Les règles strictes NE SONT PAS déployées, et ne doivent pas l'être
-  avant un nouveau build de l'app.** Le dépôt porte volontairement la version
+- [x] ✅ **Règles strictes DÉPLOYÉES le 2026-08-06**, dans l'ordre imposé :
+  1. **App rebâtie et réinstallée** sur le SM_A515F (`R58N91XBA7B`).
+     ⚠️ **En debug, pas en release** : l'app présente était `DEBUGGABLE`, donc
+     signée avec la clé de debug. Une APK release a une autre signature et ne
+     s'installe pas par-dessus — il aurait fallu désinstaller, donc perdre la
+     session, les brouillons et **les clés d'identité E2EE locales**. Refusé.
+     L'APK release existe si besoin (`build/app/outputs/flutter-apk/`, 166,7 Mo)
+     mais exige une désinstallation préalable.
+     Preuve de l'installation : `lastUpdateTime` passé de 06:49:48 à 06:56:27.
+  2. Banc rejoué contre la cible : « Parcours nominal : INTACT », étanchéité
+     fermée sur le 1:1 **et** le groupe, clé E2EE hors de portée d'un anonyme
+     comme d'un tiers.
+  3. `firebase deploy --only database`, puis relecture des règles en ligne :
+     **en ligne == dépôt == `database.rules.strict-cible.json`**.
+- [ ] 🔴 **À VÉRIFIER EN PRIORITÉ, ET C'EST LA SEULE CHOSE QUI MANQUE** : un
+  appel 1:1 et un appel de groupe, à deux comptes. Le banc prouve que les
+  règles laissent passer le parcours réel ; il ne prouve pas qu'un appel
+  aboutit (FCM, CallKit, coturn, WebRTC).
+  **Si ça ne sonne plus**, retour arrière immédiat :
+  ```
+  cp database.rules.prod-avant-2026-08-06.json database.rules.json
+  firebase deploy --only database
+  ```
+  (ça annule aussi l'index et le correctif de signalisation de groupe — dans
+  l'urgence c'est sans importance, on redéploiera proprement ensuite.)
+- [ ] **`e2ee_key` des appels de groupe est écrite mais JAMAIS LUE.** Une seule
+  occurrence dans tout `lib/` (`group_call_service.dart`, `_shareE2EEKey`), et
+  c'est l'écriture. Personne ne récupère la clé en rejoignant. Le chiffrement
+  de bout en bout des appels de groupe n'est donc pas câblé — la clé est
+  publiée dans le vide. Même motif que les champs d'état jamais alimentés déjà
+  rencontrés sur ce projet. Sans effet sur le durcissement (durcir la lecture
+  de quelque chose que personne ne lit ne casse rien), mais à traiter. Le dépôt porte volontairement la version
   stricte corrigée ; la production reste permissive. Deux préconditions, toutes
   deux liées au parc installé :
   - l'APK doit écrire `callerId`/`calleeId` (acquis depuis `135ae92`,
@@ -5329,6 +5359,117 @@ La branche courante n'a qu'un commit propre en face (`6ff6438`). **Décider
 explicitement d'un rapatriement** — sinon chaque correctif sera retrouvé une
 troisième fois. Non fait ici : c'est une fusion de 16 commits sur une branche
 qu'un agent tiers réécrit en parallèle.
+
+✅ **Rapatriement fait le 2026-08-06** — pas par la fusion préparée ici mais
+par une session parallèle, dans l'autre sens (`098414c`, `7d0758c` : la
+branche partagée fusionnée dans `claude/silly-liskov-1e9d62`, puis ramenée).
+Vérifié : `git merge-base --is-ancestor claude/silly-liskov-1e9d62 HEAD` répond
+oui. La branche de fusion préparée est devenue **en retard de 511 lignes** sur
+HEAD et aurait annulé la passe l10n de Jules ; elle a été supprimée (locale,
+distante, worktree). Leçon retenue en mémoire : deux sessions sur la même
+branche doivent avoir des périmètres disjoints.
+
+---
+
+## Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)
+
+`_buildConversationList` branchait sur `filtered.isEmpty`, c'est-à-dire la
+liste **après** application de la puce de filtre, et rendait alors la fiche 9e :
+« Aucune conversation », « Commencez à discuter avec les membres de la
+diaspora », le bouton « Nouvelle conversation », la ligne sur le chiffrement.
+
+Sur la puce **« Non lus »** d'un compte dont tout est lu, les trois phrases
+étaient fausses et l'action ne répondait pas au problème : il n'y avait rien à
+commencer, il fallait revenir à « Tous ». Idem pour **« Groupes »** sur un
+compte sans conversation de groupe — et c'est le cas du compte de test.
+
+Les libellés justes existaient déjà dans les **deux** `.arb` —
+`noUnreadMessages`, `noGroupConversations`, `showAllConversations` — mais
+**aucun n'était référencé nulle part dans `lib/`**. La branche avait été prévue
+puis oubliée. Aucun `.arb` n'a donc été touché (donc aucune collision avec la
+passe l10n en cours).
+
+Verrouillé par `test/features/messages/etat_vide_filtre_test.dart` (6 cas,
+dont l'ordre des gardes et la non-mort des trois clés). Test de structure,
+comme `reglages_sans_doublon_test.dart` : monter `MessagesScreen` exigerait
+l10n, GoRouter, une session Supabase et une dizaine de providers, et
+`_buildConversationList` est privée.
+
+- [ ] **Puce « Non lus », tout étant lu** : « Aucun message non lu » + le lien
+      « Afficher toutes les conversations », et **pas** la fiche 9e. Le lien
+      doit ramener sur « Tous » avec la liste complète.
+- [ ] **Puce « Groupes » sur un compte sans groupe** : « Aucune conversation de
+      groupe », même sortie.
+- [ ] **Messagerie réellement vide** (compte neuf) : la fiche 9e s'affiche
+      toujours, elle — c'est elle qu'on ne voulait pas perdre.
+- [ ] **Archives vides** et **recherche sans résultat** : inchangés, ils ont
+      leurs propres états vides depuis toujours.
+- [ ] **Thème sombre** sur les deux nouveaux états : l'icône est posée à
+      `textTertiaryColor` à 50 %, le texte à `textSecondaryColor` — vérifier
+      qu'ils restent lisibles.
+
+### Le `country_code` n'est plus un problème (vérifié en base le 2026-08-06)
+
+Signalé plus haut comme défaut ouvert « les codes pays mélangent ISO et noms ».
+**C'est faux depuis la fusion** : `6627217` normalise à l'écriture et `a1a7190`
+a repris l'existant. Relevé en base ce jour :
+
+| table | valeurs |
+|---|---|
+| `groups.country_code` | `NE` ×3, `CA` ×1, `null` ×1 |
+| `users.country_code` | `null` ×5, `CA` ×2, `NE` ×2, `BF` ×1 |
+
+Et le mappage du profil est cohérent des deux côtés :
+`profile_supabase_datasource.dart` lit `'currentCountry': row['country_code']`
+et écrit via `CountryExtension.toIsoCode(...)`. Rien à corriger.
+
+**Arête tranchée le 2026-08-06 : un groupe sans pays vaut désormais `NE`.**
+
+Un groupe dont `country_code` est `null` est invisible dans « Découvrir » dès
+qu'un filtre pays est actif — et l'app en pose un **toute seule** au premier
+affichage (`_loadDefaultCountryFilter`). `_applyFilters` fait `g.country ==
+_selectedCountry`, ce qui écarte les nuls sans que l'utilisateur ait rien
+demandé, et rien à l'écran ne le dit. Un groupe était dans ce cas
+(`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test prive »).
+
+Le défaut vit en une seule constante, `kDefaultCountryCode`
+(`lib/core/models/country.dart`), qui remplace aussi les deux `'NE'` en dur de
+`groups_screen.dart` — trois endroits décidaient du Niger séparément.
+
+| Verrou | Où | Couvre |
+|---|---|---|
+| `kDefaultCountryCode` | `GroupSupabaseDataSource.createGroup` | toute création passant par l'app |
+| idem | `create_group_screen.dart` | l'affichage immédiat, avant l'aller-retour |
+| `UPDATE` | migration | le groupe déjà nul en base |
+| `SET DEFAULT 'NE'` | migration | colonne omise à l'insertion |
+| déclencheur `trg_groups_country_code_defaut` | migration | colonne fournie **nulle ou vide** — ce que `insert_group` fait, puisqu'il passe toujours `p_country_code` |
+
+Le déclencheur plutôt qu'un `COALESCE` dans `insert_group` : la fonction est
+`SECURITY DEFINER`, et la reproduire depuis `pg_proc` pour n'y changer qu'une
+ligne fait courir un risque de dérive sans rapport avec le sujet.
+
+⛔ **La migration n'est PAS appliquée** :
+`supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql` est
+versionnée, mais l'écriture en base a été refusée depuis la session. Tant
+qu'elle n'est pas passée, **le groupe déjà nul reste invisible** — le côté app
+ne couvre que les créations à venir. À lancer :
+
+```bash
+supabase db query --linked "$(cat supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql)"
+```
+
+Vérifié par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut vaut
+bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
+chemins de création le posent, plus aucun `'NE'` en dur dans l'écran des
+groupes, et la migration est présente).
+
+- [ ] **Créer un groupe sans choisir de pays** : il doit apparaître dans
+      « Découvrir » avec le filtre `NE`, et la fiche doit afficher « Niger ».
+- [ ] **Après application de la migration** : « Groupe de test prive »
+      réapparaît (c'est un groupe **privé**, donc le vérifier dans
+      « Mes groupes » côté créateur, pas dans « Découvrir »).
+- [ ] **Un groupe créé AVEC un pays** garde bien le sien — le défaut ne doit
+      écraser personne.
 
 ---
 
