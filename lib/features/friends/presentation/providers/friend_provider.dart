@@ -114,7 +114,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
     required String receiverName,
     String? receiverPhotoUrl,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = AsyncValue.error(
         'Utilisateur non authentifié',
@@ -206,7 +206,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
   }
 
   Future<bool> removeFriend(String friendId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
