@@ -207,11 +207,49 @@ async function createNotification(doc) {
   return true;
 }
 
+/**
+ * Destinataires d'un événement local : les profils situés à moins de
+ * [radiusKm] du point donné et qui acceptent ces notifications.
+ *
+ * L'ancienne sélection comparait `users.city` à la ville de l'événement, dans
+ * **Firestore**. Double impasse : les profils vivent dans Supabase, et `city`
+ * y est vide pour tout le monde. La latitude/longitude, elle, est publiée par
+ * la carte « membres autour ».
+ *
+ * Le filtrage (préférences comprises) est fait par le RPC `users_near_point`,
+ * pour ne pas rapatrier la table.
+ *
+ * @param {number} lat
+ * @param {number} lng
+ * @param {number} radiusKm
+ * @returns {Promise<string[]>} identifiants des destinataires
+ */
+async function getLocalEventRecipients(lat, lng, radiusKm = 50) {
+  if (!isConfigured()) {
+    console.error("Supabase non configuré : pas de destinataires locaux");
+    return [];
+  }
+  if (typeof lat !== "number" || typeof lng !== "number") return [];
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/users_near_point`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ p_lat: lat, p_lng: lng, p_radius_km: radiusKm }),
+  });
+  if (!res.ok) {
+    console.error(`Supabase users_near_point ${res.status}: ${await res.text()}`);
+    return [];
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows.map((r) => r.id).filter(Boolean) : [];
+}
+
 module.exports = {
   getFcmTokens,
   removeFcmTokens,
   getConversation,
   getUsersForPush,
   createNotification,
+  getLocalEventRecipients,
   isConfigured,
 };

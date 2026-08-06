@@ -14,6 +14,7 @@ const {
   getConversation,
   getUsersForPush,
   createNotification,
+  getLocalEventRecipients,
 } = require("./supabase");
 
 admin.initializeApp();
@@ -2511,91 +2512,74 @@ exports.onOrderUpdated = functions.firestore
     });
 
 /**
- * Triggered when a new event is created.
- * Sends push notifications to users in the same city/country who have enabled local events notifications.
+ * Nouvel événement créé → notifie les membres proches du lieu.
+ *
+ * L'ancienne version comparait `users.currentCity` à la ville de l'événement,
+ * dans **Firestore**. Deux impasses cumulées : les profils vivent désormais
+ * dans Supabase, et la colonne ville y est vide pour TOUS les comptes (le
+ * champ existe dans deux écrans de profil, personne ne le remplit). La requête
+ * ne renvoyait donc jamais personne — aucune notification d'événement local
+ * n'est jamais partie, sans la moindre erreur.
+ *
+ * On apparie maintenant sur la latitude/longitude, que la carte « membres
+ * autour » publie réellement. Le RPC `users_near_point` fait le filtrage
+ * (rayon + préférences) côté base.
  */
+const LOCAL_EVENT_RADIUS_KM = 50;
+
 exports.notifyLocalEventCreated = functions.firestore
     .document("events/{eventId}")
     .onCreate(async (snapshot, context) => {
         const eventData = snapshot.data();
         const eventId = context.params.eventId;
 
-        // console.log(`New event created: ${eventId} - ${eventData.title}`);
-
-        const eventCity = eventData.city || eventData.location?.city;
-        const eventCountry = eventData.country || eventData.location?.country;
+        const lat = eventData.latitude ?? eventData.location?.latitude;
+        const lng = eventData.longitude ?? eventData.location?.longitude;
         const organizerId = eventData.organizerId;
+        const placeLabel =
+            eventData.city || eventData.location?.city ||
+            eventData.country || eventData.location?.country || "";
 
-        if (!eventCity && !eventCountry) {
-            // console.log("Event has no location info, skipping local notifications");
+        if (typeof lat !== "number" || typeof lng !== "number") {
+            console.log(`notifyLocalEventCreated: ${eventId} sans coordonnées, ignoré`);
             return null;
         }
 
         try {
-            // Find users in the same city or country who want local event notifications
-            let usersQuery = admin.firestore().collection("users")
-                .where("notifyLocalEvents", "==", true);
-
-            // Add location filter - prefer city if available, otherwise country
-            if (eventCity) {
-                usersQuery = usersQuery.where("currentCity", "==", eventCity);
-            } else if (eventCountry) {
-                usersQuery = usersQuery.where("currentCountry", "==", eventCountry);
-            }
-
-            const usersSnapshot = await usersQuery.get();
-
-            // console.log(`Found ${usersSnapshot.size} users in the same location`);
-
-            if (usersSnapshot.empty) {
-                return null;
+            const recipientIds = await getLocalEventRecipients(
+                lat, lng, LOCAL_EVENT_RADIUS_KM,
+            );
+            if (recipientIds.length === 0) {
+                return { success: true, count: 0 };
             }
 
             const promises = [];
             let notificationCount = 0;
 
-            for (const userDoc of usersSnapshot.docs) {
-                const userId = userDoc.id;
-
-                // Skip the event organizer
-                if (userId === organizerId) {
-                    continue;
-                }
-
-                const userData = userDoc.data();
-
-                // Double-check notifications are enabled
-                if (userData.notificationsEnabled === false) {
-                    continue;
-                }
+            for (const userId of recipientIds) {
+                // L'organisateur n'a pas besoin d'être averti de son propre événement.
+                if (userId === organizerId) continue;
 
                 notificationCount++;
-
-                // Create notification document
-                const notificationData = {
-                    userId: userId,
-                    title: "Nouvel événement dans votre ville",
-                    body: `"${eventData.title}" - ${eventCity || eventCountry}`,
+                promises.push(createNotification({
+                    userId,
+                    title: "Nouvel événement près de chez vous",
+                    body: placeLabel
+                        ? `"${eventData.title}" - ${placeLabel}`
+                        : `"${eventData.title}"`,
                     type: "localEvent",
                     targetId: eventId,
                     data: {
-                        eventId: eventId,
+                        eventId,
                         eventTitle: eventData.title,
-                        city: eventCity || "",
-                        country: eventCountry || "",
+                        city: eventData.city || eventData.location?.city || "",
+                        country: eventData.country || eventData.location?.country || "",
                     },
                     isRead: false,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                };
-
-                // This will trigger sendNotificationOnCreate
-                // Supabase, pas Firestore : la collection Firestore n'est plus lue
-                // par personne, ces rappels partaient dans le vide.
-                promises.push(createNotification(notificationData));
+                }));
             }
 
             await Promise.all(promises);
-            // console.log(`Created ${notificationCount} local event notifications`);
 
             return { success: true, count: notificationCount };
         } catch (error) {

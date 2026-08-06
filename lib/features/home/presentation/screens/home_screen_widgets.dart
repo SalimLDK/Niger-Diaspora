@@ -1276,12 +1276,10 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
 class _EventsPastCard extends StatelessWidget {
   final EventEntity event;
   final String subtitle;
-  final String notifyTopic;
 
   const _EventsPastCard({
     required this.event,
     required this.subtitle,
-    required this.notifyTopic,
   });
 
   @override
@@ -1376,45 +1374,37 @@ class _EventsPastCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Divider(height: 1, color: context.borderColor),
-          _NotifyNextToggle(topic: notifyTopic),
+          const _NotifyNextToggle(),
         ],
       ),
     );
   }
 }
 
-/// Bascule « M'avertir du prochain » : persiste le choix et (dés)abonne au
-/// topic FCM des événements (même mécanisme que les groupes).
-class _NotifyNextToggle extends StatefulWidget {
-  final String topic;
-  const _NotifyNextToggle({required this.topic});
+/// Bascule « M'avertir du prochain ».
+///
+/// Elle (dés)abonnait à un topic FCM que **personne n'alimente** : ni les
+/// Cloud Functions, ni send-push qui ne vise que des tokens. Et elle gardait
+/// sa propre copie `bool` dans les SharedPreferences, une quatrième source
+/// pour un réglage qui en avait déjà trop.
+///
+/// Elle délègue désormais au propriétaire du réglage,
+/// `NotificationPreferencesNotifier.setLocalEventsEnabled`, qui écrit la
+/// préférence locale **et** la colonne serveur `users.notify_local_events`.
+/// C'est cette colonne que lit `users_near_point`, donc le RPC qui choisit les
+/// destinataires de `notifyLocalEventCreated` : la bascule commande enfin
+/// quelque chose.
+///
+/// Aucun champ `bool` local ici : l'état vient du provider (cf. `CLAUDE.md`).
+class _NotifyNextToggle extends ConsumerWidget {
+  const _NotifyNextToggle();
 
   @override
-  State<_NotifyNextToggle> createState() => _NotifyNextToggleState();
-}
-
-class _NotifyNextToggleState extends State<_NotifyNextToggle> {
-  static const _prefKey = 'home_notify_next_event';
-  bool _on = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _on = PreferencesService.instance.prefs.getBool(_prefKey) ?? false;
-  }
-
-  Future<void> _set(bool value) async {
-    setState(() => _on = value);
-    await PreferencesService.instance.prefs.setBool(_prefKey, value);
-    // L'abonnement au topic FCM `widget.topic` a été retiré : aucun back-end
-    // n'émet vers un topic (ni les Cloud Functions, ni send-push qui ne vise
-    // que des tokens). Il donnait l'illusion d'une bascule active. Le choix
-    // reste persisté localement, prêt pour l'émetteur qui reste à écrire.
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final enabled = ref.watch(
+      notificationPreferencesNotifierProvider.select((p) => p.localEventsEnabled),
+    );
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Row(
@@ -1433,8 +1423,10 @@ class _NotifyNextToggleState extends State<_NotifyNextToggle> {
             ),
           ),
           Switch.adaptive(
-            value: _on,
-            onChanged: _set,
+            value: enabled,
+            onChanged: (v) => ref
+                .read(notificationPreferencesNotifierProvider.notifier)
+                .setLocalEventsEnabled(v),
             activeThumbColor: _homeGreen,
           ),
         ],

@@ -13,7 +13,6 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
-import '../../../../core/services/preferences_service.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -28,6 +27,7 @@ import '../../../notifications/presentation/providers/notification_provider.dart
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
+import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 import '../providers/home_provider.dart';
 
 import '../widgets/home_section_header.dart';
@@ -581,15 +581,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Événement passé le plus récent, pour l'état vide « rien à venir, mais un
     // passé » des Événements (maquette 1c/CAS 3).
     final recentPastEvent = ref.watch(recentPastEventProvider).valueOrNull;
-    // Topic FCM pour « M'avertir du prochain » (par pays si connu).
-    final rawCc = (profile?.countryCode?.trim().isNotEmpty ?? false)
-        ? profile!.countryCode!.trim()
-        : (profile?.currentCountry?.trim().isNotEmpty ?? false)
-            ? profile!.currentCountry!.trim()
-            : 'all';
-    final eventsTopic =
-        'events_${rawCc.replaceAll(RegExp(r"[^A-Za-z0-9_-]"), "")}';
-
     // Retour du réseau : réarmer le bandeau et rafraîchir le contenu.
     ref.listen(connectivityNotifierProvider, (previous, next) {
       if (next == true) {
@@ -1106,7 +1097,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               event: recentPastEvent,
                               subtitle:
                                   'Terminé · ${l10n.participants(recentPastEvent.attendeeIds.length)}',
-                              notifyTopic: eventsTopic,
                             );
                           }
                           return _EventsEmptyCard(city: placeCity);

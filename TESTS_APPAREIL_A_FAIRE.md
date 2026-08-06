@@ -335,17 +335,47 @@ déclencheur qu'il faudrait porter, ou la fonction qu'il faudrait supprimer.
 - [ ] **Commande passée** : le vendeur reçoit la notification (`onOrderCreated`).
 - [ ] **Appel manqué** : la notification arrive (`onCallUpdated`).
 
-### Événements locaux : la donnée manque, mais pas totalement
+### Événements locaux + « M'avertir du prochain » — branchés (2026-08-06)
 
-`users.city` est vide pour **les 10 comptes** — pourtant le champ est éditable
-dans `edit_profile_screen` et `profile_config_screen`, donc c'est un trou de
-saisie, pas de code. En revanche **5 comptes sur 10 ont des coordonnées GPS et
-un `country_code`**, et les 10 ont `notify_local_events = true`.
+Les deux ne faisaient rien, pour deux raisons différentes. Ils partagent
+désormais le même mécanisme.
 
-`notifyLocalEventCreated` reste donc réparable — mais pas sans choisir une
-règle d'appariement (pays ? rayon GPS ? les deux ?), et l'événement Firestore
-porte un **nom** de pays là où `users.country_code` porte un ISO-2. Décision à
-prendre avant d'écrire quoi que ce soit.
+**L'appariement se fait au rayon GPS, plus à la ville.** `users.city` est vide
+pour les 10 comptes — le champ existe dans deux écrans de profil, personne ne
+le remplit. La latitude/longitude, elle, est publiée par la carte « membres
+autour » (5 comptes sur 10). Nouveau RPC `users_near_point(lat, lng, rayon)`
+(migration `20260806100000`) : boîte englobante puis haversine, filtrage des
+deux préférences inclus, `SECURITY DEFINER` et révoqué pour `anon` et
+`authenticated`. Rayon retenu : **50 km**.
+
+Vérifié sur la base **et** depuis l'environnement réel des Cloud Functions,
+mêmes chiffres des deux côtés :
+
+| Requête | Destinataires |
+|---|---|
+| Niamey, 50 km | 1 |
+| Montréal, 50 km | 3 |
+| Rayon 20 000 km | 5 (tous ceux qui ont des coordonnées) |
+| Niamey, 1 km | 0 |
+
+**« M'avertir du prochain » délègue au propriétaire du réglage.** Elle gardait
+sa propre copie `bool` dans les SharedPreferences — une quatrième source pour
+un réglage qui en avait déjà trop — et s'abonnait à un topic FCM que personne
+n'alimente. Elle appelle maintenant
+`NotificationPreferencesNotifier.setLocalEventsEnabled`, qui écrit la
+préférence locale **et** `users.notify_local_events` : exactement la colonne
+que lit `users_near_point`. Plus aucun champ `bool` local (cf. `CLAUDE.md`).
+Le calcul de topic par pays et le paramètre `notifyTopic` de `_EventsPastCard`,
+devenus sans objet, sont supprimés.
+
+- [ ] **Créer un événement avec un lieu** à moins de 50 km d'un autre compte :
+      celui-ci reçoit « Nouvel événement près de chez vous ».
+- [ ] **L'organisateur ne reçoit rien** pour son propre événement.
+- [ ] **Événement sans coordonnées** : rien n'est envoyé, et la fonction le
+      journalise au lieu d'échouer.
+- [ ] **Basculer « M'avertir du prochain »** : `users.notify_local_events`
+      change côté serveur (la carte n'apparaît que s'il n'y a aucun événement
+      à venir mais au moins un passé — état difficile à provoquer).
 
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
