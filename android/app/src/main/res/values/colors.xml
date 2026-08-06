@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#E97424</color>
+    <!-- Teinte de la petite icône et du filet des notifications système.
+         Même orange que AppColors.primary côté Dart. -->
+    <color name="notification_accent">#E97424</color>
 </resources>

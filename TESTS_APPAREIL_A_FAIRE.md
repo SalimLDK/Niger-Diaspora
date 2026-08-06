@@ -47,6 +47,33 @@ un appareil + le compte de test) **une fois la migration appliquée** :
 - [ ] **Bascule push du profil sur `off`** : plus rien n'arrive côté FCM alors
       que la cloche in-app continue de se remplir.
 
+### Deuxième défaut, indépendant : l'icône de barre d'état n'existait pas
+
+`notification_service.dart` référence `@drawable/ic_stat_notification` six fois
+— dont dans `_showLocalNotification` (ligne 1805), le chemin d'affichage de
+**toute** notification au premier plan. Le fichier n'existait dans aucun
+dossier `res/` : `getResources().getIdentifier()` renvoyait 0, et Android
+refuse de poster une notification sans petite icône valide. Les `try/catch` du
+service (tous leurs `debugPrint` commentés) avalaient l'exception.
+
+Autrement dit : même une fois le SQL appliqué, aucune notification au premier
+plan ne se serait affichée. Corrigé par un vector drawable monochrome
+(`res/drawable/ic_stat_notification.xml`) et les deux `meta-data` FCM
+(`default_notification_icon` / `default_notification_color`) qui manquaient au
+manifeste. `:app:processDebugResources` passe.
+
+- [ ] **Icône visible** : la barre d'état montre la cloche blanche, pas un
+      carré blanc ni rien du tout — au premier plan **et** app tuée (deux
+      chemins de rendu différents : le plugin et le SDK Firebase).
+- [ ] **Filet orange** : la notification dépliée est teintée `#E97424`.
+- [ ] **Résumé de groupe** (`_showGroupSummaryNotification`) et **notification
+      de proximité** : mêmes chemins, même icône, à voir au moins une fois.
+- [ ] **Réponse rapide depuis la notification** : la confirmation « Message
+      envoyé » s'affiche (elle aussi utilisait l'icône manquante).
+
+Le glyphe est le « notifications » de Material, posé comme placeholder : à
+remplacer si une version blanche monochrome de la marque est produite.
+
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la

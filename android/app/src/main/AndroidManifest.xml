@@ -219,6 +219,18 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713" />
+
+        <!-- Notifications affichées par le SDK Firebase (app en arrière-plan ou
+             tuée) : sans ces deux lignes, il retombait sur @mipmap/ic_launcher,
+             que la barre d'état réduit à un carré blanc (elle ne lit que le
+             canal alpha). Le chemin flutter_local_notifications, lui, pointe
+             déjà sur la même icône. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
