@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -145,7 +146,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
 
-    if (profile == null || profile.displayName == l10n.deletedUser) {
+    if (profile == null || profile.displayName == DeletedAccount.storedName) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.profileCannotChatDeleted),
@@ -180,7 +181,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     // Use the same provider as the screen display (userStreamProvider)
     final profileAsync = ref.read(userStreamProvider(widget.userId));
     final profile = profileAsync.valueOrNull;
-    if (profile == null || profile.displayName == l10n.deletedUser) {
+    if (profile == null || profile.displayName == DeletedAccount.storedName) {
       return;
     }
 
@@ -559,7 +560,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 },
               ),
               actions: [
-                if (profile.displayName != l10n.deletedUser)
+                if (profile.displayName != DeletedAccount.storedName)
                   IconButton(
                     icon: AppIcon(
                       AppIcon.share,
@@ -575,7 +576,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       );
                     },
                   ),
-                if (!_isCurrentUser && profile.displayName != l10n.deletedUser)
+                if (!_isCurrentUser && profile.displayName != DeletedAccount.storedName)
                   PopupMenuButton<String>(
                     icon: Container(
                       padding: const EdgeInsets.all(8),
