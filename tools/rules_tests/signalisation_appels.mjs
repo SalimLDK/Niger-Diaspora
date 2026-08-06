@@ -57,12 +57,13 @@ function jeton(uid) {
 }
 
 const ADMIN = Symbol("admin");
+const ANON = Symbol("anon");   // aucun jeton du tout
 
 function requete(chemin, auth, init = {}) {
     const entetes = { ...(init.headers || {}) };
     let u = `${HOST}/${chemin}.json?ns=${NS}`;
     if (auth === ADMIN) entetes.Authorization = "Bearer owner";
-    else u += `&auth=${encodeURIComponent(auth)}`;
+    else if (auth !== ANON) u += `&auth=${encodeURIComponent(auth)}`;
     return fetch(u, { ...init, headers: entetes });
 }
 
@@ -178,7 +179,38 @@ function constater(intitule, obtenu) {
         await lire("group_calls/GC/signaling/userA/userB/offer", C));
 
     // ------------------------------------------------------------------
+    // La cle E2EE d'un appel. Son `.write` commence par `!data.exists()`, ce
+    // qui accorde l'ecriture des que la cle est absente — y compris, avant le
+    // 2026-08-06, a un client NON AUTHENTIFIE. Mesure a chaque changement.
+    console.log("\n=== 5. Cle E2EE ===\n");
+
+    await ecrire("group_calls/GK", ADMIN, {
+        hostId: "userA", status: "active", participants: { userA: { joinedAt: 1 } },
+    });
+    const anonPose = constater("un ANONYME pose la cle absente",
+        await ecrire("group_calls/GK/e2ee_key", ANON,
+            { keyId: "k", encryptedKey: "x" }));
+
+    await ecrire("group_calls/GK/e2ee_key", ADMIN, null);
+    exiger("l'hote pose la cle (avant meme d'etre inscrit — ordre reel)",
+        await ecrire("group_calls/GK/e2ee_key", A,
+            { keyId: "vraie", encryptedKey: "ok" }), true);
+
+    const tiersRemplace = constater("un TIERS remplace la cle existante",
+        await ecrire("group_calls/GK/e2ee_key", C, { keyId: "k", encryptedKey: "x" }));
+    const tiersLitCle = constater("un TIERS lit la cle",
+        await lire("group_calls/GK/e2ee_key", C));
+
+    // ------------------------------------------------------------------
     console.log("\n--- Verdict ---");
+    if (anonPose || tiersRemplace || tiersLitCle) {
+        console.log("  🔴 Cle E2EE exposee :" +
+            (anonPose ? " un anonyme peut la poser." : "") +
+            (tiersRemplace ? " un tiers peut la remplacer." : "") +
+            (tiersLitCle ? " un tiers peut la lire." : ""));
+    } else {
+        console.log("  Cle E2EE : anonyme et tiers tenus a l'ecart.");
+    }
     if (!ecouteAvant) {
         console.log("  Lecture de `participants` reservee aux inscrits : c'est voulu.");
         console.log("  ⚠ Exige que l'app s'inscrive AVANT d'ecouter. Corrige le");

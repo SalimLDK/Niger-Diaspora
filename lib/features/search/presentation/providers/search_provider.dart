@@ -7,7 +7,7 @@ import '../../../groups/data/datasources/group_supabase_datasource.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../messages/data/datasources/message_remote_datasource.dart';
 import '../../../messages/domain/entities/conversation_entity.dart';
-import '../../../profile/data/datasources/profile_remote_datasource.dart';
+import '../../../profile/data/datasources/profile_supabase_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../data/datasources/search_remote_datasource.dart';
 
@@ -76,7 +76,14 @@ class SearchNotifier extends _$SearchNotifier {
     try {
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-      final profileDataSource = ProfileRemoteDataSourceImpl();
+      // Recherche de personnes : source Supabase, pas Firestore.
+      //
+      // Le provider principal des profils est passé à Supabase, mais ce chemin
+      // instanciait encore `ProfileRemoteDataSourceImpl`, qui lit Firestore.
+      // Relevé le 2026-08-06 : 10 profils dans Supabase, 2 documents dans
+      // Firestore dont **un seul** avec un nom renseigné. La recherche ne
+      // pouvait donc trouver qu'une personne sur dix, sans erreur ni log.
+      final profileDataSource = ProfileSupabaseDataSource();
       // Supabase, comme `groupRemoteDataSourceProvider` : la collection
       // Firestore `groups` est vide depuis la migration, donc la recherche
       // ne remontait jamais aucun groupe.

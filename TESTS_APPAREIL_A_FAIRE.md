@@ -14,6 +14,68 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)
+
+Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
+34 utilisait `l10n`), `businesses` (0/40), `embassies`, `transfers`,
+`marketplace`, puis les 19 modules restants, `lib/shared/` et `lib/core/`.
+`dart analyze` est propre et les **207 tests passent**, mais aucun de ces
+contrôles ne regarde un écran.
+
+**Comment basculer** : Réglages → choix de la langue
+([settings_screen.dart:721](lib/features/settings/presentation/screens/settings_screen.dart:721),
+`localeNotifierProvider.setLocale`). Les deux locales sont `fr` et `en`.
+
+### Ce qui n'a jamais été vu en anglais
+
+- [ ] **Le back-office en entier.** C'est le plus gros risque : 432 chaînes
+  d'un coup, et il affichait du français en dur à un anglophone jusqu'ici.
+  Parcourir les 18 écrans, en cherchant les libellés restés français.
+- [ ] **Les écrans de profil**, notamment `edit_profile_screen` et
+  `profile_config_screen` : les listes profession / région / ville viennent de
+  `lib/core/constants/profile_options.dart` et restent **en français dans les
+  deux langues** (ce sont des valeurs persistées, pas des libellés). Vérifier
+  surtout que choisir « Autre » ouvre bien le champ libre — c'est exactement ce
+  que ma régression `l10n.other` cassait, corrigée en `66248d2`.
+- [ ] **Les 5 écrans qui utilisent `ErrorView`** : son « Réessayer » était en
+  dur jusqu'à `4d6bc1b`.
+- [ ] **La barre de navigation et le rail paysage** : leurs libellés sont
+  passés sur `l10n` et c'est ce qui a cassé les tests du rail.
+
+### Ce qui change aussi en français
+
+- [ ] **141 accents restaurés** : « Reessayer » → « Réessayer », « Systeme » →
+  « Système », « Echoue » → « Échoué », « Evenements par Categorie »… Séquelles
+  de la réparation d'encodage CP850, invisibles jusqu'ici parce que ces chaînes
+  n'étaient pas branchées. Un coup d'œil sur l'admin et les transferts suffit.
+
+### Deux corrections de comportement, invisibles à l'analyse
+
+- [ ] **Suppression de compte** : la demande de ré-authentification était
+  détectée en cherchant « mot de passe » dans le message d'erreur — donc jamais
+  en anglais, et à tort sur « Email ou mot de passe incorrect ». Elle se fie
+  maintenant au code Firebase `requires-recent-login` (`9b7e69d`). Tester le
+  parcours complet de suppression, en français **et** en anglais.
+- [ ] **Compte supprimé** : `displayName == l10n.deletedUser` ne pouvait être
+  vrai qu'en français. Passé sur `DeletedAccount.storedName`, le marqueur que
+  le backend écrit réellement (`af44df0`, `4c32c01`). Vérifier qu'une
+  conversation avec un compte supprimé affiche bien l'état « compte supprimé »
+  et bloque le chat, dans les deux langues.
+
+### Connu, non corrigé
+
+- Les messages d'erreur voyagent comme **texte** dans `Failure(...)` : ils
+  resteront en français en anglais. 207 sites de construction, 327 de lecture.
+  ⚠ `lib/core/errors/app_error_messages.dart` contient **déjà** des messages
+  FR/EN avec un `setLocale` — l'infrastructure existe, elle n'est simplement
+  reliée à rien. C'est un raccordement, pas une création.
+- Des libellés d'affichage vivent dans les entités (`requestTypeLabel`, statut
+  de transaction, moyen de paiement) : pas de `context`, donc pas traduits.
+- ~30 chaînes affichées n'ont aucune clé ARB, dont plusieurs ne doivent pas
+  être traduites (séparateurs ` · `, gabarit `+227 XX XX XX XX`, badge `ÉCO`).
+
+---
+
 ## Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)
 
 Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une sonde
@@ -747,6 +809,15 @@ supplémentaire** à créer.
   alimenté** — impossible de savoir où le nettoyage s'était arrêté.
   Chaque étape est désormais enveloppée par un helper `etape(nom, travail)` qui
   journalise et pousse dans `results.firestore.errors`, puis continue.
+  **Garde-fou ajouté le 2026-08-06** : `tools/rules_tests/nettoyage_isole.mjs`
+  vérifie que les 17 étapes `// 1.N` sont bien chacune dans un
+  `await etape(…)`. 17 annoncées, 17 enveloppes. Contre-épreuve faite — pointé
+  sur `git show 8d769d3:functions/index.js`, il sort 1 et liste les 16 étapes
+  nues : **il sait échouer**.
+  ⚠️ Ce banc prouve la **couverture**, pas le comportement à l'exécution. Le
+  risque réel était qu'une étape soit ajoutée hors enveloppe, pas qu'un
+  `try/catch` cesse de fonctionner — mais il ne remplace pas un vrai échec
+  provoqué en conditions réelles, qui reste à faire.
   **À faire** : redéployer `cleanupUserData` **seul** (cf. l'entrée ci-dessus
   sur les orphelines, et ne jamais `--force`), puis rejouer le scénario à deux
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
@@ -896,6 +967,63 @@ justifie pas de risquer ça.
      présents. `flutter analyze` sur le fichier : aucun problème.
   Après correctifs, le banc passe intégralement contre les règles strictes :
   parcours nominal 1:1 **et** groupe intacts, étanchéité fermée des deux côtés.
+### 🔴 La signalisation des appels de groupe était refusée EN PRODUCTION
+
+Trouvé le 2026-08-06 en passant le banc contre les règles **déployées**, pas
+contre une hypothèse. Deux échecs du parcours nominal là où il ne devait y en
+avoir aucun.
+
+Le `.validate` posé sur `group_calls/$callId/signaling/$fromId/$toId` exigeait
+un enfant `type` **directement** sous `$toId`. Or l'app écrit
+`$toId/offer = {type, sdp}` et `$toId/candidates/<clé>`. Toute écriture de
+signalisation de groupe était donc refusée — offres, réponses et candidats ICE
+compris. **Introduit par `81ba52c` le 2026-08-03 et déployé depuis** : trois
+jours pendant lesquels aucun appel de groupe ne pouvait établir sa connexion.
+Sans erreur visible, comme toujours ici.
+
+Rien à voir avec le durcissement d'aujourd'hui : le défaut est dans les règles
+permissives comme dans les strictes.
+
+- [x] **Correctif déployé le 2026-08-06** — le `.validate` descend sur les
+  enfants réels (`offer`, `answer`, en `['type', 'sdp']`), les candidats ICE
+  n'ont plus de contrainte de forme au mauvais niveau.
+  **Aucune précondition sur le parc installé** : ce correctif ne fait que lever
+  une validation qui refusait des écritures légitimes. C'est pourquoi il a pu
+  partir tout de suite, contrairement au durcissement.
+  Diff par rapport à la production exacte, vérifié champ par champ : **3
+  changements, pas un de plus** — le `.validate` déplacé, la garde `auth` sur
+  `e2ee_key`, et l'index déjà en place. En ligne == dépôt après coup.
+- [ ] **À vérifier sur appareil** : un appel de groupe à deux comptes doit
+  maintenant se connecter. C'est la seule preuve qui manque — le banc prouve
+  que les règles laissent passer, pas que la connexion WebRTC aboutit.
+
+### 🔴 La clé E2EE des appels est lisible et remplaçable par n'importe qui
+
+Mesuré le 2026-08-06 contre les règles déployées, après une lecture de code
+que je ne voulais pas vendre comme un fait. Le résultat est pire que la lecture.
+
+| | avant | après le correctif du jour |
+|---|---|---|
+| un **anonyme** pose la clé absente (groupe) | AUTORISÉ | refusé |
+| un **tiers** connecté pose la clé absente | AUTORISÉ | autorisé |
+| un **tiers** remplace la clé existante | AUTORISÉ | **autorisé** |
+| un **tiers** lit la clé | AUTORISÉ | **autorisé** |
+| un anonyme / tiers pose la clé d'un 1:1 | anon refusé, tiers AUTORISÉ | idem |
+
+La garde `auth != null` manquait sur `e2ee_key/.write` : `!data.exists()`
+suffisait à accorder l'écriture. Elle est ajoutée et déployée — le trou
+anonyme est fermé.
+
+- [ ] 🔴 **Mais l'essentiel reste ouvert** : un compte connecté quelconque peut
+  toujours **lire et remplacer** la clé E2EE de n'importe quel appel dont il
+  connaît l'identifiant. La cause n'est pas la règle `e2ee_key` mais son
+  **parent** `group_calls/$callId` (et `calls/$callId`) à `auth != null` : dans
+  RTDB une autorisation accordée plus haut cascade vers le bas, donc la règle
+  fille plus stricte ne sert à rien tant que le parent est permissif.
+  **C'est exactement ce que le durcissement ferme** — vérifié : contre les
+  règles strictes, anonyme et tiers sont tenus à l'écart sur les deux.
+  Donc le chiffrement de bout en bout des appels **n'en est pas un** tant que
+  le durcissement n'est pas déployé.
 - [ ] 🔴 **Les règles strictes NE SONT PAS déployées, et ne doivent pas l'être
   avant un nouveau build de l'app.** Le dépôt porte volontairement la version
   stricte corrigée ; la production reste permissive. Deux préconditions, toutes
@@ -907,6 +1035,11 @@ justifie pas de risquer ça.
   **Donc : rebâtir et réinstaller l'app d'abord, déployer les règles ensuite.**
   Vérifier entre les deux que `node tools/rules_tests/signalisation_appels.mjs`
   affiche « Parcours nominal : INTACT ».
+  Le fichier cible est versionné à part : **`database.rules.strict-cible.json`**.
+  `database.rules.json` reste donc le reflet exact de ce qui est **déployé** —
+  c'est le seul moyen de ne pas refabriquer la dérive qui a coûté la journée.
+  Pour déployer le jour venu : remplacer l'un par l'autre, relancer le banc,
+  puis `firebase deploy --only database`.
 - [x] 🔴🔴 ~~**ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**~~
   Le test de non-régression a finalement été fait — pas avec deux téléphones,
   mais **en émulateur RTDB**, ce qui suffit largement pour des règles.

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/tablet_navigation_rail.dart';
 
 /// Le rail latéral n'apparaît pas qu'en tablette : un téléphone en paysage
@@ -16,6 +18,13 @@ void main() {
     return MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
       child: MaterialApp(
+        // Les libelles du rail viennent de l10n depuis 4d6bc1b : sans les
+        // delegues, `AppLocalizations.of(context)!` leve et le rail ne se
+        // construit pas. On force le francais, les assertions portant sur
+        // « Profil ».
+        locale: const Locale('fr'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SizedBox(
             height: bodyHeight,
