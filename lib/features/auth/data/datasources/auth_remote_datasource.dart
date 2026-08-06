@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+// AuthException est masquee : celle du projet (core/errors) porte le code
+// Firebase, celle de Supabase n est pas utilisee ici.
+import 'package:supabase_flutter/supabase_flutter.dart' hide User, AuthException;
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/secure_preferences_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -348,8 +350,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await SecurePreferencesService.instance.clearAll();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        throw ServerException(
+        // Le code Firebase est conserve : c est lui qui doit declencher la
+        // re-authentification en amont. Le message ne sert qu a l affichage
+        // et ne doit jamais etre relu pour decider quoi que ce soit.
+        throw AuthException(
           'Pour des raisons de sécurité, veuillez confirmer votre mot de passe',
+          code: e.code,
         );
       }
       throw ServerException(_mapFirebaseAuthError(e.code));

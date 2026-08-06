@@ -141,6 +141,17 @@ class GroupCallService {
       final otherParticipants =
           participantIds.where((id) => id != oderId).toList();
 
+      // S'inscrire AVANT d'ecouter. L'ordre inverse marche tant que les regles
+      // RTDB laissent lire `group_calls/<id>` a tout compte connecte, mais des
+      // qu'elles reservent la lecture aux participants — ce qui est le but —
+      // ecouter avant de s'inscrire est refuse, et la detection des arrivees
+      // meurt en silence. Verifie en emulateur le 2026-08-06
+      // (tools/rules_tests/signalisation_appels.mjs).
+      //
+      // S'inscrire d'abord ne fait rien perdre : `onChildAdded` emet aussi
+      // pour les enfants deja presents.
+      await _registerParticipant(callId, oderId);
+
       // Listen for new participants joining
       _listenForParticipants(callId, oderId);
 
@@ -152,9 +163,6 @@ class GroupCallService {
           isInitiator: oderId.compareTo(participantId) > 0,
         );
       }
-
-      // Register ourselves as a participant
-      await _registerParticipant(callId, oderId);
 
       debugPrint(
         'GroupCallService: Joined call $callId with ${otherParticipants.length} participants',
@@ -222,6 +230,11 @@ class GroupCallService {
       final otherParticipants =
           participantIds.where((id) => id != userId).toList();
 
+      // S'inscrire AVANT d'ecouter — meme raison qu'au-dessus : sous des regles
+      // qui reservent la lecture aux participants, ecouter avant de s'inscrire
+      // est refuse et la detection des arrivees meurt en silence.
+      await _registerParticipant(callId, userId);
+
       // Listen for new participants joining
       _listenForParticipants(callId, userId);
 
@@ -233,9 +246,6 @@ class GroupCallService {
           isInitiator: userId.compareTo(participantId) > 0,
         );
       }
-
-      // Register ourselves as a participant
-      await _registerParticipant(callId, userId);
 
       debugPrint(
         'GroupCallService: Joined call $callId with existing stream, '

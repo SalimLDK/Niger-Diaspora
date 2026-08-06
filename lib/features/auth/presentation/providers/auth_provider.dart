@@ -322,9 +322,12 @@ class AuthNotifier extends _$AuthNotifier {
 
     return result.fold(
       (failure) {
-        // Check if reauthentication is required
-        if (failure.message.contains('mot de passe') ||
-            failure.message.contains('sécurité')) {
+        // Re-authentification requise : on se fie au code Firebase remonte
+        // par le repository. L ancienne detection cherchait « mot de passe »
+        // ou « sécurité » dans le message — elle ne tenait qu en francais,
+        // et « Email ou mot de passe incorrect » la declenchait a tort.
+        if (failure is AuthFailure &&
+            failure.code == 'requires-recent-login') {
           // Reauthentication needed - set a special error state
           state = AuthState.error('REAUTH_REQUIRED:${failure.message}');
           return false;

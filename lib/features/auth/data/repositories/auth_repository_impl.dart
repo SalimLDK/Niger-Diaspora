@@ -95,6 +95,9 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.deleteAccount();
       return const Right(null);
+    } on AuthException catch (e) {
+      // Porte le code (`requires-recent-login`) jusqu a la presentation.
+      return Left(AuthFailure(e.message, code: e.code));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
