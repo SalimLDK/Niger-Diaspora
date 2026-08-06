@@ -5682,6 +5682,56 @@ que la lecture d'appartenance ait réussi.
 
 ---
 
+## La porte d'entrée des groupes était grande ouverte (2026-08-06)
+
+`group_members_own` est une policy `FOR ALL` dont le `USING` vaut
+`firebase_uid() = user_id`, **sans `WITH CHECK` explicite** — la même expression
+sert donc au contrôle d'insertion. Elle vérifie qu'on s'inscrit *soi-même*, et
+rien d'autre : ni le groupe, ni une invitation, ni une approbation.
+
+Mesuré sous une vraie identité avant correction : l'insertion d'une ligne
+d'appartenance est **acceptée pour un groupe inexistant** (`group_id` n'a
+d'ailleurs aucune clé étrangère — 7 lignes orphelines dorment déjà dans la
+table). A fortiori pour un groupe privé dont on n'a jamais reçu d'invitation :
+il suffit d'en connaître l'uuid et d'appeler l'API. Les uuid des groupes privés
+ne sont pas listés, mais c'est de l'obscurité, pas un contrôle.
+
+Fermé par `20260806210000_group_members_porte_d_entree.sql` : une policy
+**RESTRICTIVE `FOR INSERT`**, qui s'ajoute en ET aux permissives sans toucher au
+reste. `SELECT` / `UPDATE` / `DELETE` gardent `group_members_own` — quitter un
+groupe privé reste possible, ce qu'une condition sur l'invitation aurait cassé.
+
+Mesures après application, sous l'identité réelle du compte de test :
+
+| Cas | Attendu | Obtenu |
+|---|---|---|
+| groupe inexistant (ou privé sans invitation) | refusé | `42501` refusé |
+| groupe **public** (`joinGroup`) | accepté | accepté |
+| groupe privé **avec invitation** | accepté | `23505` doublon — la policy a laissé passer, `has_group_invite` = `t` |
+| quitter un groupe (`DELETE`) | accepté | 1 ligne supprimée |
+
+Et dans l'app, sur SM A515F : « Découvrir » → « Rejoindre » sur un groupe
+public fonctionne toujours — c'est le chemin que cette policy aurait pu casser,
+et il a été exercé pour de vrai, pas seulement en SQL. Adhésion retirée après
+coup.
+
+- [ ] **Reste à voir** : rejoindre un groupe public depuis un compte qui n'y a
+      jamais mis les pieds (le test l'a fait avec le compte administrateur d'un
+      autre groupe), et vérifier qu'un groupe privé sans invitation ne propose
+      bien que « Demander à rejoindre ».
+
+Deux voisins **non corrigés**, repérés en lisant ces policies :
+
+- **`removeMember` ne peut pas fonctionner** :
+  [group_supabase_datasource.dart:337](lib/features/groups/data/datasources/group_supabase_datasource.dart:337)
+  délègue à `leaveGroup`, donc un `DELETE` sur la ligne de *quelqu'un d'autre*,
+  que `group_members_own` (`firebase_uid() = user_id`) refuse. Un
+  administrateur ne peut pas exclure un membre.
+- **Aucune clé étrangère sur `group_members.group_id`** : supprimer un groupe
+  laisse ses membres derrière (7 orphelins sur 11 lignes aujourd'hui).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
