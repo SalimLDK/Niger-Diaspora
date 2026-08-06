@@ -36,7 +36,7 @@ Trois niveaux, à ne pas confondre :
 | 7d | Carte — couches, panneau 3 positions | ✅ | ✅ | ✅ | `map/…/map_screen.dart` |
 | 6a | Fil — Nocturne | ✅ | ✅ | ✅ | `feed/…/feed_screen.dart`, `feed/…/theme/feed_tokens.dart` |
 | 11d | Mon profil — Nocturne | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart`, `core/theme/design_kit.dart` |
-| 11e | Réglages — Nocturne | ✅ | ✅ | — | `settings/…/settings_screen.dart` |
+| 11e | Réglages — Nocturne | ✅ | ✅ | ◐ | `settings/…/settings_screen.dart` |
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
@@ -1018,6 +1018,25 @@ Ce qu'on voit est donc un CTA qui tombe au pli a l'arrivee parce que la carte
 la hauteur d'ecran et de la longueur de la carte. Ne pas « corriger » en
 retirant `extendBody` : ce serait echanger un desagrement de cadrage contre la
 perte d'un effet choisi.
+
+---
+
+## 11e — Reglages, Nocturne
+
+Palette conforme : fond `#0F0D0A`, cartes `#1A1714` bordees `#2A241E`,
+sur-titres monospace `#C08A5A`, pastilles d'icone carrees, chevrons encadres.
+
+**Validation partielle.** Reste ouvert, releve a l'ecran :
+
+- **« Notifications push » et « Notifications » cohabitent** dans la section
+  Application. Le premier est l'interrupteur maitre, le second ouvre 20d — qui
+  porte *aussi* cet interrupteur maitre en tete. C'est le doublon que la
+  reprise de 20d avait supprime cote feuille modale ; il subsiste ici sous
+  forme de deux lignes voisines. On coupe donc les notifications a deux
+  endroits differents.
+- Le sous-titre de « Afficher mon statut en ligne » tient sur trois lignes et
+  desequilibre la carte. Justifie (c'est le seul endroit qui explique la
+  reciprocite), mais ca se voit.
 
 ---
 

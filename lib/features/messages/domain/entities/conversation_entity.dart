@@ -116,8 +116,15 @@ class ConversationEntity extends Equatable {
 
   /// « Mes notes » : conversation avec soi-même (unique participant = moi).
   /// Sert de brouillon/scratchpad ; chiffrée au repos avec la clé AES globale.
+  ///
+  /// `!isGroup` est indispensable : un groupe dont on est le seul membre — le
+  /// cas de tout groupe qu'on vient de créer — a lui aussi un unique
+  /// participant. Sans cette garde il passait pour « Mes notes » : compté dans
+  /// « N groupes actifs » en en-tête, retiré de la liste comme doublon, et son
+  /// dernier message s'affichait sous la tuile Mes notes. La liste disait donc
+  /// le contraire de son propre en-tête.
   bool isSelfNotesFor(String userId) =>
-      participantIds.length == 1 && participantIds.first == userId;
+      !isGroup && participantIds.length == 1 && participantIds.first == userId;
 
   int getUnreadCountFor(String userId) => unreadCount[userId] ?? 0;
   bool hasUnreadFor(String userId) => getUnreadCountFor(userId) > 0;
