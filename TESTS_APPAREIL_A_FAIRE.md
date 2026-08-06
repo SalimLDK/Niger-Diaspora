@@ -4480,20 +4480,31 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   transaction** puis réactivé : `ALTER TABLE` étant transactionnel, un échec
 >   le rétablit par ROLLBACK — aucune fenêtre sans garde-fou. Vérifié après
 >   coup : `tgenabled = 'O'`.
-> - [ ] Incohérence de donnée repérée : `groups.member_count` vaut 0 alors que
->   `group_members` a des lignes (la fiche affiche « Membres · 0 » tout en
->   listant le créateur, et propose « Rejoindre » à quelqu'un déjà membre).
->   Sans effet sur les droits. Un trigger `group_members_count_trigger` existe
->   pourtant sur `group_members` — il n'a donc pas rattrapé les lignes
->   antérieures à sa création. Un simple recompte global suffirait.
-> - [ ] ❓ **Non élucidé** : après migration, « Mes groupes » n'affiche qu'UN
->   groupe (« Groupe de test prive ») alors que `group_members` m'en donne
->   DEUX — « Diaspora Niger — Canada » y figure aussi, et il s'affichait avant
->   la migration. La RPC `get_my_groups` (membre OU créateur) devrait rendre
->   les deux, et la migration n'a fait qu'insérer, jamais supprimer. Piste la
->   plus probable : le filtre pays par défaut de `groups_screen`
->   (`_loadDefaultCountryFilter`, laissé en lecture synchrone car non `async`)
->   qui masquerait les groupes hors du pays du profil. À confirmer.
+> - [x] **`member_count` recalé** (`tools/recount_group_members.sql`). Il valait
+>   0 alors que `group_members` avait des lignes : la fiche affichait
+>   « Membres · 0 » tout en listant le créateur, et proposait « Rejoindre » à
+>   quelqu'un déjà membre. Le trigger `group_members_count_trigger` existe mais
+>   n'avait jamais rattrapé les lignes antérieures à sa création. Script
+>   idempotent, contrôle à 0 ligne d'écart.
+> - [x] ✅ **Le « décalage » 1 groupe vs 2 N'EXISTAIT PAS.** Instrumentation :
+>   la RPC `get_my_groups` rendait bien **3 lignes**, et l'écran les affiche
+>   toutes — « 3 rejoints ». Mes relevés précédents étaient pris **trop tôt**,
+>   avant la fin d'un chargement asynchrone. Leçon : sur cet écran, lire l'état
+>   APRÈS une capture d'écran qui montre la liste peuplée, pas au bout d'un
+>   délai fixe.
+> - [x] **Marqueur de migration retiré de la description.** La description est
+>   affichée à l'utilisateur sous le nom du groupe : le
+>   `[migré de yflqsRLMMhTPpiW0NFHx]` que le script y posait apparaissait en
+>   clair dans la liste (constaté sur appareil). Il est désormais effacé en fin
+>   de migration — il ne servait qu'au rapprochement interne.
+> - [ ] Donnée hétérogène, non traitée : `groups.country_code` mélange codes
+>   ISO et noms complets (`CA`, `Canada`, `Niger`, `null`). Le filtre pays
+>   compare `g.country == _selectedCountry` et
+>   `availableGroupCountriesProvider` dérive de cette colonne — un commentaire
+>   du code signale déjà que le repli sur `'NE'` ne se déclenchait jamais avec
+>   `'Niger'`. Normaliser demanderait de savoir ce que contient
+>   `profiles.currentCountry` (un nom, semble-t-il) : à traiter ensemble, pas à
+>   moitié.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 

@@ -94,6 +94,17 @@ update groups g
    set member_count = (select count(*) from group_members m where m.group_id = g.id)
  where g.description like '[migré de %';
 
+-- 4bis) Effacer le marqueur : il a fini son office.
+--    La description est AFFICHÉE À L'UTILISATEUR, sous le nom du groupe dans
+--    la liste — un « [migré de yflqsRLMMhTPpiW0NFHx] » y apparaissait en clair
+--    (constaté sur appareil). Le marqueur ne sert qu'au rapprochement de
+--    l'étape 2 ; la traçabilité vit dans ce script et dans l'historique git.
+--    On laisse une description vide plutôt qu'un texte inventé : Firestore
+--    n'expose pas la sienne à ce script.
+update groups
+   set description = ''
+ where description like '[migré de %';
+
 -- 5) Remettre le garde-fou.
 alter table groups enable trigger enforce_group_creator_trigger;
 
@@ -111,11 +122,13 @@ select c.id as conversation, c.group_id as group_id_orphelin
    and not exists (select 1 from groups g where g.id::text = c.group_id);
 
 -- CONTRÔLE 2 : inventaire des groupes migrés.
+--    Le marqueur ayant été effacé à l'étape 4bis, on retrouve les groupes par
+--    leur date de création (l'insert date de cette exécution).
 select g.id, g.name, g.member_count,
-       substring(g.description from '\[migré de ([^\]]+)\]') as ancien_id,
        (select count(*) from conversations c where c.group_id = g.id::text) as conversations,
        (select count(*) from messages m
          join conversations c2 on c2.id = m.conversation_id
         where c2.group_id = g.id::text) as messages
   from groups g
- where g.description like '[migré de %';
+ where g.created_at > now() - interval '5 minutes'
+ order by g.created_at desc;
