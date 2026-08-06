@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -161,24 +162,31 @@ class ReportRemoteDataSourceImpl implements ReportRemoteDataSource {
     required bool contentRemoved,
   }) async {
     try {
-      // Créer une notification pour l'utilisateur signalé
-      await _firestore.collection(FirebaseCollections.notifications).add({
-        'userId': reportedUserId,
-        'type': 'report_resolved',
-        'title': contentRemoved
-            ? 'Contenu supprimé'
-            : 'Signalement traité',
-        'body': contentRemoved
-            ? 'Un contenu que vous avez publié a été signalé et supprimé pour violation de nos règles communautaires.'
-            : 'Un signalement concernant votre contenu a été examiné. Aucune action n\'a été prise.',
-        'data': {
-          'reportId': reportId,
-          'resolution': resolution,
-          'contentRemoved': contentRemoved,
+      // Créer une notification pour l'utilisateur signalé.
+      //
+      // Écrite dans Supabase, pas dans Firestore : c'est Supabase que lit
+      // l'écran des notifications. Ce `.add()` déposait la notification dans
+      // une collection que plus personne n'affiche — l'utilisateur signalé
+      // n'apprenait donc jamais que son signalement avait été traité.
+      //
+      // La RPC est `SECURITY DEFINER` : elle autorise l'écriture d'une
+      // notification destinée à quelqu'un d'autre, que la RLS refuserait.
+      await Supabase.instance.client.rpc(
+        'create_user_notification',
+        params: {
+          'p_user_id': reportedUserId,
+          'p_type': 'report_resolved',
+          'p_title': contentRemoved ? 'Contenu supprimé' : 'Signalement traité',
+          'p_body': contentRemoved
+              ? 'Un contenu que vous avez publié a été signalé et supprimé pour violation de nos règles communautaires.'
+              : 'Un signalement concernant votre contenu a été examiné. Aucune action n\'a été prise.',
+          'p_data': {
+            'reportId': reportId,
+            'resolution': resolution,
+            'contentRemoved': contentRemoved,
+          },
         },
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      );
 
       // Marquer le report comme notifié
       await _reportsCollection.doc(reportId).update({

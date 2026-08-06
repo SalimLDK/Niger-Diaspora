@@ -5,6 +5,7 @@ import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../data/datasources/notification_remote_datasource.dart';
+import '../../data/datasources/notification_supabase_datasource.dart';
 import '../../domain/entities/notification_entity.dart';
 
 part 'notification_provider.g.dart';
@@ -16,7 +17,18 @@ NotificationService notificationService(Ref ref) {
 
 @riverpod
 NotificationRemoteDataSource notificationDataSource(Ref ref) {
-  return NotificationRemoteDataSourceImpl();
+  // Source Supabase, pas Firestore.
+  //
+  // La chaine push ecrit les notifications dans Supabase (declencheurs SQL,
+  // puis `send-push`), mais cet ecran lisait Firestore. Releve le 2026-08-06 :
+  // 44 notifications dans Supabase, 34 dans Firestore. Celles produites par le
+  // pipeline — dont les messages — n apparaissaient donc JAMAIS dans la liste
+  // in-app : la personne recevait le push, ouvrait l ecran, et n y trouvait
+  // rien.
+  //
+  // `NotificationSupabaseDataSource` implemente la meme interface (7 methodes,
+  // toutes surchargees) : la bascule est un changement d instanciation.
+  return NotificationSupabaseDataSource();
 }
 
 @riverpod
