@@ -1025,7 +1025,18 @@ class _GroupCard extends ConsumerWidget {
                               // largeur de la carte.
                               Flexible(
                                 child: Text(
-                                  (group.location ?? group.country)!,
+                                  // `country` est un code ISO en base : la
+                                  // pastille affichait « CA » et « NE » là où
+                                  // les puces de filtre, juste au-dessus,
+                                  // écrivent « 🇨🇦 Canada » et « 🇳🇪 Niger ».
+                                  // Deux graphies pour la même donnée dans le
+                                  // même écran. `location` (saisie libre) est
+                                  // affichée telle quelle.
+                                  group.location?.trim().isNotEmpty ?? false
+                                      ? group.location!
+                                      : CountryCodeLookup.labelForCode(
+                                        group.country,
+                                      ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
