@@ -4524,20 +4524,36 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 > `ensureOfficialGroup` a cherché par `CA`, n'a pas trouvé le groupe rangé sous
 > `Canada`, et en a créé un second.
 >
-> - [ ] **À lancer** : `tools/normalize_country_codes.sql`. Il déclasse le
->   doublon vide (`is_official = false` — l'index étant partiel, ça suffit à
->   lever le conflit, et rien n'est supprimé), puis normalise `users` et
->   `groups` vers l'ISO-2. Idempotent ; ce qui n'est pas reconnu est laissé
->   intact plutôt que deviné. L'exécution a été refusée par le garde-fou de
->   sécurité, elle doit être lancée à la main :
->   ```
->   supabase db query --linked --file tools/normalize_country_codes.sql
->   ```
-> - [ ] Ensuite seulement : vérifier sur appareil que le filtre par pays de la
->   liste des groupes retient bien tous les groupes du pays choisi.
+> - [x] **Données normalisées le 2026-08-06.** Le script complet ayant été
+>   refusé par le garde-fou de sécurité (son `UPDATE` conditionnel), les
+>   opérations ont été passées une par une, en clair :
+>   `groups.Canada→CA`, `groups.Niger→NE`, `users.Niger→NE`,
+>   `users.''→NULL`, et déclassement du doublon.
+>   **Contrôle : plus aucune valeur de plus de 2 caractères** dans les deux
+>   tables. État final — un seul groupe officiel par pays :
+>
+>   | Groupe | code | officiel | membres |
+>   |---|---|---|---|
+>   | Diaspora Niger — Canada | `CA` | ✅ | 1 |
+>   | Diaspora Niger — CA | `CA` | déclassé | 0 |
+>   | teste | `NE` | — | 1 |
+>   | Testeurs | `NE` | — | 1 |
+>   | Groupe de test prive | `null` | — | 1 |
+>
+>   `tools/normalize_country_codes.sql` reste au dépôt : il est idempotent et
+>   couvre bien plus de libellés que les trois rencontrés ici — il servira si
+>   d'autres apparaissent.
+>
+> - [ ] ⚠️ **NON VÉRIFIÉ SUR APPAREIL** : le téléphone s'est déconnecté juste
+>   après le build (`adb devices` vide, `kill-server`/`start-server` sans
+>   effet). Reste donc à confirmer, une fois rebranché, que le filtre par pays
+>   de la liste des groupes retient bien tous les groupes du pays choisi — et
+>   que « Découvrir » les montre. Le code est analysé sans erreur et la donnée
+>   est vérifiée en base, mais l'écran lui-même n'a pas été revu.
 > - [ ] À décider : le doublon vide « Diaspora Niger — CA » est déclassé, pas
->   supprimé. Il restera visible dans « Découvrir ». Sa suppression est sans
->   perte (0 membre, 0 conversation, 0 épingle, vérifié) mais irréversible.
+>   supprimé — il reste visible dans « Découvrir ». Sa suppression serait sans
+>   perte (0 membre, 0 conversation, 0 épingle, vérifié) mais irréversible :
+>   c'est un choix qui revient à Salim, pas un nettoyage à faire en passant.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 
