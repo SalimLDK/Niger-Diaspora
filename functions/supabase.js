@@ -148,10 +148,70 @@ async function getUsersForPush(userIds) {
   return map;
 }
 
+/**
+ * Crée une ligne `notifications` dans Supabase.
+ *
+ * Les fonctions planifiées de rappel écrivaient dans la collection **Firestore**
+ * `notifications`, que plus personne ne lit depuis que l'app a basculé sur
+ * Supabase : les rappels d'événement, de salon audio et de transfert étaient
+ * donc muets, sans la moindre erreur. Écrire ici rebranche tout le reste de la
+ * chaîne — l'INSERT déclenche `trg_notify_push` → Edge Function send-push → FCM.
+ *
+ * Accepte la forme Firestore historique pour que les appelants ne changent que
+ * d'appel : `{ userId, title, body, type, targetId, data, isRead }`.
+ * `targetId` part dans la colonne `data` (il n'y a pas de colonne dédiée), et
+ * `createdAt` est ignoré — c'est Postgres qui date la ligne.
+ *
+ * @param {{userId:string,title:string,body:string,type:string,targetId?:string,
+ *          data?:Object,isRead?:boolean}} doc
+ * @returns {Promise<boolean>} vrai si la ligne est créée
+ */
+async function createNotification(doc) {
+  if (!isConfigured()) {
+    console.error("Supabase non configuré : notification non créée");
+    return false;
+  }
+  if (!doc || !doc.userId || !doc.type) {
+    console.error("createNotification : userId et type sont requis");
+    return false;
+  }
+
+  const data = Object.assign({}, doc.data || {});
+  if (doc.targetId && data.targetId === undefined) {
+    data.targetId = doc.targetId;
+  }
+  if (data.type === undefined) {
+    data.type = doc.type;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+    method: "POST",
+    headers: authHeaders({
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    }),
+    body: JSON.stringify({
+      user_id: doc.userId,
+      type: doc.type,
+      title: doc.title || "Diaspo Niger",
+      body: doc.body || "",
+      data,
+      is_read: doc.isRead === true,
+    }),
+  });
+
+  if (!res.ok) {
+    console.error(`Supabase createNotification ${res.status}: ${await res.text()}`);
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   getFcmTokens,
   removeFcmTokens,
   getConversation,
   getUsersForPush,
+  createNotification,
   isConfigured,
 };

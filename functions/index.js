@@ -13,6 +13,7 @@ const {
   removeFcmTokens,
   getConversation,
   getUsersForPush,
+  createNotification,
 } = require("./supabase");
 
 admin.initializeApp();
@@ -1423,9 +1424,9 @@ exports.processReminders = functions.pubsub
                 }
 
                 // Create notification (triggers sendNotificationOnCreate)
-                promises.push(
-                    admin.firestore().collection("notifications").add(notificationData)
-                );
+                // Supabase, pas Firestore : la collection Firestore n'est plus lue
+                // par personne, ces rappels partaient dans le vide.
+                promises.push(createNotification(notificationData));
 
                 // Mark reminder as sent
                 promises.push(
@@ -1526,9 +1527,8 @@ exports.sendEventReminders = functions.pubsub
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     };
 
-                    promises.push(
-                        admin.firestore().collection("notifications").add(notificationData)
-                    );
+                    // Supabase, pas Firestore (cf. createNotification).
+                    promises.push(createNotification(notificationData));
                 }
             }
 
@@ -1609,9 +1609,9 @@ exports.onPodcastEpisodeCreated = functions.firestore
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 };
 
-                promises.push(
-                    admin.firestore().collection("notifications").add(notificationData)
-                );
+                // Supabase, pas Firestore : la collection Firestore n'est plus lue
+                // par personne, ces rappels partaient dans le vide.
+                promises.push(createNotification(notificationData));
             }
 
             await Promise.all(promises);
@@ -1677,9 +1677,9 @@ exports.onAudioRoomStatusChanged = functions.firestore
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 };
 
-                promises.push(
-                    admin.firestore().collection("notifications").add(notificationData)
-                );
+                // Supabase, pas Firestore : la collection Firestore n'est plus lue
+                // par personne, ces rappels partaient dans le vide.
+                promises.push(createNotification(notificationData));
 
                 // Mark reminder as sent
                 promises.push(
@@ -1880,9 +1880,8 @@ exports.sendTransferReminders = functions.pubsub
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     };
 
-                    promises.push(
-                        admin.firestore().collection("notifications").add(notificationData)
-                    );
+                    // Supabase, pas Firestore (cf. createNotification).
+                    promises.push(createNotification(notificationData));
                 }
             }
 
@@ -2590,9 +2589,9 @@ exports.notifyLocalEventCreated = functions.firestore
                 };
 
                 // This will trigger sendNotificationOnCreate
-                promises.push(
-                    admin.firestore().collection("notifications").add(notificationData)
-                );
+                // Supabase, pas Firestore : la collection Firestore n'est plus lue
+                // par personne, ces rappels partaient dans le vide.
+                promises.push(createNotification(notificationData));
             }
 
             await Promise.all(promises);

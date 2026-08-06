@@ -171,6 +171,42 @@ cochée sans un Mac et un appareil iOS.
 - [ ] Token FCM enregistré sur iOS après connexion (ligne `users.fcm_tokens`).
 - [ ] `users.voip_token` renseigné, et vidé à la déconnexion.
 
+### Rappels planifiés — écrivaient dans une collection morte (2026-08-06)
+
+Six émetteurs de notifications des Cloud Functions écrivaient dans la
+collection **Firestore** `notifications`, que plus personne ne lit depuis que
+l'app est passée à Supabase. Ils tournaient, ne levaient aucune erreur, et ne
+produisaient rien :
+
+| Fonction | Déclencheur | Notifications |
+|---|---|---|
+| `processReminders` | toutes les 15 min | rappels génériques (événement, transfert) |
+| `sendEventReminders` | toutes les heures | « commence demain » |
+| `sendTransferReminders` | tous les jours à 09:00 | transferts programmés |
+| `onPodcastEpisodeCreated` | Firestore | nouvel épisode |
+| `onAudioRoomStatusChanged` | Firestore | salon passé en direct |
+| `notifyLocalEventCreated` | Firestore | événement dans ta ville |
+
+Corrigé par un helper `createNotification` dans `functions/supabase.js` : il
+accepte la forme Firestore historique (`userId`/`isRead`/`targetId`) et écrit
+la ligne Supabase, ce qui rebranche `trg_notify_push` → send-push → FCM. Les
+six appels ont été basculés, les fonctions déployées, et le helper exercé avec
+l'environnement réel des Cloud Functions → `{"sent":1,"removed":0}` en HTTP 200.
+Ligne de test supprimée.
+
+⚠️ **`notifyLocalEventCreated` reste inerte, pour une autre raison.** Il
+sélectionne ses destinataires sur la localisation, et sur le distant
+`users.city` est **null ou vide pour tout le monde**, `country_code` ne contient
+que des codes ISO-2 (`NE`, `BF`, `CA`) là où l'événement porte un nom de pays.
+Aucun destinataire ne peut matcher — ni côté Firestore, ni côté Supabase. Je
+n'ai pas porté la requête : ça n'aurait rien réparé tout en en donnant l'air.
+Le vrai préalable est de peupler la localisation des profils.
+
+- [ ] **Rappel d'événement** : créer un événement à ~24 h, s'y inscrire,
+      attendre le passage horaire de `sendEventReminders`.
+- [ ] **Salon audio passé en direct** : les abonnés reçoivent la bannière.
+- [ ] **Nouvel épisode de podcast** : idem pour les abonnés du podcast.
+
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
