@@ -15918,4 +15918,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get messageEcoBadge => 'ÉCO';
+
+  @override
+  String get reportStatusUnderReview => 'En cours d\'examen';
+
+  @override
+  String get reportReasonPrefix => 'Motif';
 }

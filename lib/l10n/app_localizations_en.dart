@@ -15769,4 +15769,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageEcoBadge => 'ECO';
+
+  @override
+  String get reportStatusUnderReview => 'Under review';
+
+  @override
+  String get reportReasonPrefix => 'Reason';
 }

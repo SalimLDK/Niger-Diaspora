@@ -29125,6 +29125,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'ÉCO'**
   String get messageEcoBadge;
+
+  /// No description provided for @reportStatusUnderReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours d\'examen'**
+  String get reportStatusUnderReview;
+
+  /// No description provided for @reportReasonPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif'**
+  String get reportReasonPrefix;
 }
 
 class _AppLocalizationsDelegate

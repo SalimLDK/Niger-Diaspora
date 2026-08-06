@@ -6950,5 +6950,7 @@
   "profileYourCurrentCity": "Your current city",
   "profileYourProfession": "Your profession",
   "transferMobileOperatorRequired": "Mobile operator *",
-  "messageEcoBadge": "ECO"
+  "messageEcoBadge": "ECO",
+  "reportStatusUnderReview": "Under review",
+  "reportReasonPrefix": "Reason"
 }

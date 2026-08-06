@@ -8095,5 +8095,7 @@
   "profileYourCurrentCity": "Votre ville actuelle",
   "profileYourProfession": "Votre métier",
   "transferMobileOperatorRequired": "Opérateur mobile *",
-  "messageEcoBadge": "ÉCO"
+  "messageEcoBadge": "ÉCO",
+  "reportStatusUnderReview": "En cours d'examen",
+  "reportReasonPrefix": "Motif"
 }

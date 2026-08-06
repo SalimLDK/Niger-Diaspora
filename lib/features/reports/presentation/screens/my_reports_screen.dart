@@ -7,6 +7,8 @@ import '../../domain/entities/report_entity.dart';
 import '../providers/report_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+import '../report_labels.dart';
+
 class MyReportsScreen extends ConsumerWidget {
   const MyReportsScreen({super.key});
 
@@ -111,6 +113,7 @@ class _ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(
@@ -135,7 +138,7 @@ class _ReportCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        report.targetTypeLabel,
+                        report.targetType.label(l10n),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -170,7 +173,7 @@ class _ReportCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Motif: ${report.reasonLabel}',
+                  '${l10n.reportReasonPrefix}: ${report.reason.label(l10n)}',
                   style: TextStyle(
                     fontSize: 14,
                     color: context.textSecondaryColor,
@@ -340,6 +343,7 @@ class _ReportCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -359,7 +363,7 @@ class _ReportCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            report.statusLabel,
+            report.status.label(l10n),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
