@@ -14,49 +14,68 @@
 -- en base) : la conversation, ses messages et ses épingles suivent le
 -- changement sans migration de schéma.
 --
--- PÉRIMÈTRE AU MOMENT DE L'ÉCRITURE
--- Un seul groupe hérité est référencé par une conversation :
---   yflqsRLMMhTPpiW0NFHx — « Groupe de test prive », 1 membre (son créateur).
--- La requête de contrôle en fin de fichier vérifie qu'il n'en reste aucun.
+-- TRAÇABILITÉ
+-- L'ancien identifiant est conservé dans la description, sous la forme
+-- `[migré de <ancien_id>]`. C'est ce marqueur — et non le nom du groupe — qui
+-- sert à réaligner les conversations : deux groupes homonymes casseraient un
+-- rapprochement par nom. Il documente aussi l'origine après coup.
 --
 -- ⚠️ Ce script ne transfère PAS l'appartenance restée dans Firestore : il
 -- recrée `group_members` à partir des participants de la conversation, seule
 -- source d'appartenance disponible côté Supabase. Un membre du groupe qui
 -- n'aurait jamais rejoint la conversation devra rejoindre à nouveau.
+--
+-- IDEMPOTENT : relancer le script ne recrée rien (le `not exists` sur
+-- `groups` ne voit plus les group_id déjà réalignés).
 
 begin;
 
--- 1) Créer la ligne `groups` pour chaque group_id hérité encore référencé.
---    Le nom, la description et le créateur sont repris de la conversation.
+-- 0) Neutraliser le garde-fou de création, le temps de la transaction.
+--
+--    `enforce_group_creator_trigger` force `creator_id` depuis le JWT vérifié
+--    et REFUSE l'insertion s'il n'y a ni claim `firebase_uid` ni entrée dans
+--    `auth_mappings`. C'est une protection réelle — elle empêche de créer un
+--    groupe au nom d'autrui — mais une migration passe par un rôle admin, sans
+--    JWT utilisateur : sans ça, l'insert échoue avec P0001.
+--
+--    Le `ALTER TABLE` est transactionnel dans PostgreSQL : si quoi que ce soit
+--    échoue plus bas, le ROLLBACK réactive le trigger. Il n'y a donc aucune
+--    fenêtre où la base resterait sans son garde-fou.
+--
+--    `group_members_count_trigger` (sur group_members) est laissé ACTIF : il
+--    tient `member_count` à jour tout seul.
+alter table groups disable trigger enforce_group_creator_trigger;
+
+-- 1) Une ligne `groups` par group_id hérité encore référencé.
+--    Le GROUP BY est indispensable AVANT `gen_random_uuid()` : avec un
+--    `select distinct`, l'uuid étant calculé par ligne, un groupe portant
+--    deux conversations aurait reçu deux identifiants différents.
 with herites as (
-  select distinct
-         c.group_id                          as ancien_id,
-         gen_random_uuid()                   as nouvel_id,
-         coalesce(c.data->>'name', 'Groupe') as nom,
-         c.created_by                        as createur
+  select c.group_id                                  as ancien_id,
+         min(coalesce(c.data->>'name', 'Groupe'))    as nom,
+         min(c.created_by)                           as createur
     from conversations c
    where c.group_id is not null
      and not exists (select 1 from groups g where g.id::text = c.group_id)
+   group by c.group_id
 )
 insert into groups (id, name, description, category, creator_id,
                     country_code, is_private, member_count,
                     created_at, updated_at)
-select h.nouvel_id, h.nom,
-       'Groupe migré depuis Firestore le ' || current_date,
+select gen_random_uuid(), h.nom,
+       '[migré de ' || h.ancien_id || '] Groupe transféré depuis Firestore le '
+         || current_date,
        'general', h.createur, null, true, 0, now(), now()
   from herites h;
 
--- 2) Réaligner les conversations sur le nouvel identifiant.
---    On rapproche par le NOM, seul lien commun entre l'ancien et le nouveau.
+-- 2) Réaligner les conversations, en s'appuyant sur le marqueur d'origine.
 update conversations c
    set group_id = g.id::text
   from groups g
  where c.group_id is not null
-   and g.description like 'Groupe migré depuis Firestore%'
-   and g.name = coalesce(c.data->>'name', 'Groupe')
-   and not exists (select 1 from groups g2 where g2.id::text = c.group_id);
+   and g.description like '[migré de ' || c.group_id || ']%';
 
--- 3) Recréer l'appartenance à partir des participants de la conversation.
+-- 3) Recréer l'appartenance depuis les participants de la conversation.
 --    Le créateur de la conversation devient admin, les autres membres.
 insert into group_members (group_id, user_id, role, joined_at)
 select g.id,
@@ -66,24 +85,37 @@ select g.id,
   from conversations c
   join groups g on g.id::text = c.group_id
  cross join lateral unnest(c.participant_ids) as p(participant)
- where g.description like 'Groupe migré depuis Firestore%'
+ where g.description like '[migré de %'
 on conflict do nothing;
 
--- 4) Recompter les membres.
+-- 4) Recompter les membres des groupes migrés (filet : le trigger
+--    `group_members_count_trigger` l'a normalement déjà fait).
 update groups g
    set member_count = (select count(*) from group_members m where m.group_id = g.id)
- where g.description like 'Groupe migré depuis Firestore%';
+ where g.description like '[migré de %';
+
+-- 5) Remettre le garde-fou.
+alter table groups enable trigger enforce_group_creator_trigger;
 
 commit;
 
--- CONTRÔLE : doit rendre 0 ligne.
-select c.group_id as encore_orphelin
+-- CONTRÔLE 0 : le garde-fou doit être réactivé — `tgenabled` = 'O'.
+select tgname, tgenabled
+  from pg_trigger
+ where tgname = 'enforce_group_creator_trigger';
+
+-- CONTRÔLE 1 : doit rendre 0 ligne (plus aucune conversation orpheline).
+select c.id as conversation, c.group_id as group_id_orphelin
   from conversations c
  where c.group_id is not null
    and not exists (select 1 from groups g where g.id::text = c.group_id);
 
--- Inventaire des groupes migrés.
+-- CONTRÔLE 2 : inventaire des groupes migrés.
 select g.id, g.name, g.member_count,
-       (select count(*) from conversations c where c.group_id = g.id::text) as conversations
+       substring(g.description from '\[migré de ([^\]]+)\]') as ancien_id,
+       (select count(*) from conversations c where c.group_id = g.id::text) as conversations,
+       (select count(*) from messages m
+         join conversations c2 on c2.id = m.conversation_id
+        where c2.group_id = g.id::text) as messages
   from groups g
- where g.description like 'Groupe migré depuis Firestore%';
+ where g.description like '[migré de %';

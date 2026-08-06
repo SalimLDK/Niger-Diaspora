@@ -4457,15 +4457,43 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   mort » de ces deux méthodes fonctionne — elles n'étaient pas testables
 >   jusqu'ici.
 >
-> - [ ] ⚠️ **Migration des groupes hérités à lancer** :
->   `tools/migrate_legacy_groups.sql`. Tant qu'elle n'est pas passée, le seul
->   groupe hérité (`yflqsRLMMhTPpiW0NFHx`, « Groupe de test prive ») **n'est
->   plus visible** — il vit dans Firestore, que l'app ne lit plus. Sa
->   conversation et ses messages, eux, sont intacts.
+> - [x] **Migration des groupes hérités : PASSÉE le 2026-08-06.**
+>   `yflqsRLMMhTPpiW0NFHx` → `2b24986f-08b5-4840-9931-dbe046ffb394`, avec sa
+>   conversation (1), son message (1) et son membre (Sim A, rôle `admin`).
+>   Contrôles : 0 conversation orpheline, garde-fou réactivé. Vérifié sur
+>   appareil : « Groupe de test prive » réapparaît dans « Mes groupes », servi
+>   cette fois par Supabase.
+>
+>   Deux corrections apportées au script AVANT de le lancer :
+>   1. `select distinct … gen_random_uuid()` calculait l'uuid **par ligne** :
+>      un groupe portant deux conversations aurait reçu deux identifiants
+>      différents. Remplacé par un `GROUP BY` en amont.
+>   2. Le réalignement se faisait par **nom** — deux groupes homonymes
+>      l'auraient cassé. L'ancien identifiant est désormais conservé dans la
+>      description (`[migré de <id>]`) et sert de clé de rapprochement.
+>
+>   Et un obstacle rencontré à l'exécution : le trigger
+>   `enforce_group_creator_trigger` refuse tout insert sans `firebase_uid` dans
+>   le JWT (il force `creator_id` depuis le jeton vérifié — c'est ce qui
+>   empêche de créer un groupe au nom d'autrui). Une migration passe par un
+>   rôle admin, sans JWT utilisateur. Il est donc désactivé **dans la
+>   transaction** puis réactivé : `ALTER TABLE` étant transactionnel, un échec
+>   le rétablit par ROLLBACK — aucune fenêtre sans garde-fou. Vérifié après
+>   coup : `tgenabled = 'O'`.
 > - [ ] Incohérence de donnée repérée : `groups.member_count` vaut 0 alors que
 >   `group_members` a des lignes (la fiche affiche « Membres · 0 » tout en
->   listant le créateur). Sans effet sur les droits, mais à recaler — le script
->   de migration recompte pour les groupes qu'il crée.
+>   listant le créateur, et propose « Rejoindre » à quelqu'un déjà membre).
+>   Sans effet sur les droits. Un trigger `group_members_count_trigger` existe
+>   pourtant sur `group_members` — il n'a donc pas rattrapé les lignes
+>   antérieures à sa création. Un simple recompte global suffirait.
+> - [ ] ❓ **Non élucidé** : après migration, « Mes groupes » n'affiche qu'UN
+>   groupe (« Groupe de test prive ») alors que `group_members` m'en donne
+>   DEUX — « Diaspora Niger — Canada » y figure aussi, et il s'affichait avant
+>   la migration. La RPC `get_my_groups` (membre OU créateur) devrait rendre
+>   les deux, et la migration n'a fait qu'insérer, jamais supprimer. Piste la
+>   plus probable : le filtre pays par défaut de `groups_screen`
+>   (`_loadDefaultCountryFilter`, laissé en lecture synchrone car non `async`)
+>   qui masquerait les groupes hors du pays du profil. À confirmer.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 
