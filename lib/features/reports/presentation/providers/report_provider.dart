@@ -76,7 +76,7 @@ class SubmitReportNotifier extends _$SubmitReportNotifier {
     ContentSnapshot? contentSnapshot,
     String? reportedUserId,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = AsyncValue.error(
         'Utilisateur non authentifié',
@@ -121,7 +121,7 @@ class SubmitReportNotifier extends _$SubmitReportNotifier {
     required ReportTargetType targetType,
     required String targetId,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     final repository = ref.read(reportRepositoryProvider);
@@ -151,7 +151,7 @@ class AdminReportNotifier extends _$AdminReportNotifier {
     String? reportedUserId,
     bool notifyUser = true,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = AsyncValue.error(
         'Utilisateur non authentifié',
@@ -198,7 +198,7 @@ class AdminReportNotifier extends _$AdminReportNotifier {
     required String reportId,
     required String reason,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = AsyncValue.error(
         'Utilisateur non authentifié',
@@ -239,7 +239,7 @@ class AdminReportNotifier extends _$AdminReportNotifier {
     String? reportedUserId,
     bool notifyUser = true,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = AsyncValue.error(
         'Utilisateur non authentifié',

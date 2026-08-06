@@ -257,7 +257,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
 
   /// Cleanup stale calls from previous session (crash recovery)
   Future<void> _cleanupStaleCalls() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {
@@ -289,7 +289,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       return null;
     }
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return null;

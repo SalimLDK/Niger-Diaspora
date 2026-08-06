@@ -66,7 +66,7 @@ class SupportTicketNotifier extends Notifier<AsyncValue<void>> {
     required TicketCategory category,
     String? relatedTransactionId,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) throw Exception('User not authenticated');
 
     final ticket = SupportTicketEntity(
@@ -88,7 +88,7 @@ class SupportTicketNotifier extends Notifier<AsyncValue<void>> {
 
   /// Send a user message
   Future<void> sendUserMessage(String ticketId, String content) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final message = TicketMessage(
@@ -109,7 +109,7 @@ class SupportTicketNotifier extends Notifier<AsyncValue<void>> {
     String content,
     String adminName,
   ) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final message = TicketMessage(

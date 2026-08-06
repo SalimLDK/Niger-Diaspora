@@ -71,7 +71,7 @@ class ProfilePreferences {
   /// variante multi-champs : c'en était une qui écrasait les bascules
   /// voisines.
   Future<void> set(ProfilePreference pref, bool value) async {
-    final userId = _ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    final userId = (await _ref.read(currentUserAsyncProvider.future))?.id;
     if (userId == null) return;
     final notifier = _ref.read(profileNotifierProvider(userId).notifier);
     final profile = _ref.read(profileNotifierProvider(userId)).valueOrNull;
