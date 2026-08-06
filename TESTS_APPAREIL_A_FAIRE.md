@@ -747,6 +747,15 @@ supplémentaire** à créer.
   alimenté** — impossible de savoir où le nettoyage s'était arrêté.
   Chaque étape est désormais enveloppée par un helper `etape(nom, travail)` qui
   journalise et pousse dans `results.firestore.errors`, puis continue.
+  **Garde-fou ajouté le 2026-08-06** : `tools/rules_tests/nettoyage_isole.mjs`
+  vérifie que les 17 étapes `// 1.N` sont bien chacune dans un
+  `await etape(…)`. 17 annoncées, 17 enveloppes. Contre-épreuve faite — pointé
+  sur `git show 8d769d3:functions/index.js`, il sort 1 et liste les 16 étapes
+  nues : **il sait échouer**.
+  ⚠️ Ce banc prouve la **couverture**, pas le comportement à l'exécution. Le
+  risque réel était qu'une étape soit ajoutée hors enveloppe, pas qu'un
+  `try/catch` cesse de fonctionner — mais il ne remplace pas un vrai échec
+  provoqué en conditions réelles, qui reste à faire.
   **À faire** : redéployer `cleanupUserData` **seul** (cf. l'entrée ci-dessus
   sur les orphelines, et ne jamais `--force`), puis rejouer le scénario à deux
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
