@@ -187,3 +187,35 @@ npx firebase functions:log --only stripeWebhook -n 20
 
 Un webhook accepté ne doit plus produire ni « Webhook secret not configured »
 ni « signature verification failed ».
+
+---
+
+## Garde d'administration unifié — déployé et vérifié (2026-08-05)
+
+`seedLegalContentHttp` et `migrateDisplayNameLower` comparaient chacun la clé
+avec `!==`, dans leur propre copie du garde. Les deux passent désormais par
+`cleAdminValide()` (`functions/index.js`), aligné sur `revenueCatWebhook` :
+
+- refus si `ADMIN_API_KEY` est absente **ou laissée au placeholder** — ce
+  second cas n'était couvert par aucun des deux, alors que c'est exactement
+  ce qui avait coûté les webhooks Stripe (voir `isPlaceholderSecret`) ;
+- contrôle de longueur **avant** `timingSafeEqual`, qui lève une exception sur
+  des tampons de tailles différentes ;
+- comparaison à temps constant.
+
+**Déploiement neutre en comportement** : `ADMIN_API_KEY` étant absente de
+`.env`, l'ancien garde renvoyait déjà 401 à tout le monde. Aucun script
+d'administration légitime ne pouvait fonctionner avant, donc aucun n'a été
+cassé.
+
+Déployées une par une, sans `--force`. Vérifié depuis l'extérieur :
+
+| Endpoint | POST sans autorisation | POST clé bidon |
+|---|:--:|:--:|
+| `seedLegalContentHttp` | **401** | **401** |
+| `migrateDisplayNameLower` | **401** | **401** |
+
+`getLegalContent` n'a rien à corriger : son `Access-Control-Allow-Origin: *`
+porte sur un GET public en lecture seule, dont le paramètre `type` est sur
+liste blanche, et **aucun `Access-Control-Allow-Credentials` n'existe dans le
+backend** — un navigateur refuse donc d'envoyer des identifiants vers `*`.
