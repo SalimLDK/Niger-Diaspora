@@ -5110,51 +5110,62 @@ exports.cleanupStaleParticipants = functions.pubsub
 
             let totalCleaned = 0;
 
+            // Un salon qui casse ne doit pas emporter les suivants : sans ce
+            // filet, le premier salon en echec arretait le balayage, et tous
+            // les autres gardaient leurs participants fantomes et restaient
+            // « en direct » indefiniment. Meme motif que `cleanupStaleCalls`.
             for (const roomDoc of roomsSnapshot.docs) {
                 const roomId = roomDoc.id;
 
-                // Get stale participants
-                const staleParticipants = await admin.firestore()
-                    .collection("audioRooms")
-                    .doc(roomId)
-                    .collection("participants")
-                    .where("status", "==", "active")
-                    .where("lastHeartbeat", "<", staleThreshold)
-                    .get();
+                try {
+                    // Get stale participants
+                    const staleParticipants = await admin.firestore()
+                        .collection("audioRooms")
+                        .doc(roomId)
+                        .collection("participants")
+                        .where("status", "==", "active")
+                        .where("lastHeartbeat", "<", staleThreshold)
+                        .get();
 
-                if (!staleParticipants.empty) {
-                    const batch = admin.firestore().batch();
+                    if (!staleParticipants.empty) {
+                        const batch = admin.firestore().batch();
 
-                    staleParticipants.docs.forEach(doc => {
-                        batch.update(doc.ref, {
-                            status: "stale",
-                            markedStaleAt: admin.firestore.FieldValue.serverTimestamp(),
+                        staleParticipants.docs.forEach(doc => {
+                            batch.update(doc.ref, {
+                                status: "stale",
+                                markedStaleAt: admin.firestore.FieldValue.serverTimestamp(),
+                            });
                         });
-                    });
 
-                    // Update room participant count
-                    batch.update(roomDoc.ref, {
-                        participantCount: admin.firestore.FieldValue.increment(-staleParticipants.size),
-                    });
+                        // Update room participant count
+                        batch.update(roomDoc.ref, {
+                            participantCount: admin.firestore.FieldValue.increment(-staleParticipants.size),
+                        });
 
-                    await batch.commit();
-                    totalCleaned += staleParticipants.size;
+                        await batch.commit();
+                        totalCleaned += staleParticipants.size;
 
-                    console.log(`Cleaned up ${staleParticipants.size} stale participants from room ${roomId}`);
-                }
+                        console.log(`Cleaned up ${staleParticipants.size} stale participants from room ${roomId}`);
+                    }
 
-                // End the room if no active participants remain after cleanup
-                const remaining = await roomDoc.ref.collection("participants")
-                    .where("status", "==", "active")
-                    .get();
+                    // End the room if no active participants remain after cleanup
+                    const remaining = await roomDoc.ref.collection("participants")
+                        .where("status", "==", "active")
+                        .get();
 
-                if (remaining.empty) {
-                    await roomDoc.ref.update({
-                        status: "ended",
-                        endedAt: admin.firestore.FieldValue.serverTimestamp(),
-                        endReason: "all_participants_disconnected",
-                    });
-                    console.log(`Room ${roomId}: no active participants left, marked as ended`);
+                    if (remaining.empty) {
+                        await roomDoc.ref.update({
+                            status: "ended",
+                            endedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            endReason: "all_participants_disconnected",
+                        });
+                        console.log(`Room ${roomId}: no active participants left, marked as ended`);
+                    }
+                } catch (erreurSalon) {
+                    console.warn(
+                        `[cleanupStaleParticipants] Salon ${roomId} KO (on continue) :`,
+                        erreurSalon.message,
+                    );
                 }
             }
 
@@ -5605,76 +5616,104 @@ exports.cleanupExpiredMessages = functions.pubsub
                 .collection("conversations")
                 .get();
 
+            // Une conversation qui casse ne doit pas emporter les suivantes.
+            //
+            // Ce balayage est la SEULE chose qui fait disparaitre les messages
+            // ephemeres : sans filet par conversation, la premiere qui leve
+            // arretait le balayage, et toutes celles d'apres gardaient leurs
+            // messages expires. Pire, le `throw` final fait rejouer la
+            // fonction par pub/sub — qui retombait sur la meme conversation
+            // fautive, indefiniment. La promesse « ce message disparait »
+            // etait donc rompue en silence, et definitivement.
+            //
+            // Meme motif que `cleanupExpiredMediaFiles` et `cleanupStaleCalls`
+            // plus bas, qui ont deja ce filet.
+            let conversationsEnEchec = 0;
             for (const convDoc of conversationsSnapshot.docs) {
                 const conversationId = convDoc.id;
 
-                // Get messages from RTDB for this conversation
-                const messagesRef = db.ref(`messages/${conversationId}`);
-                const messagesSnapshot = await messagesRef
-                    .orderByChild("expiresAt")
-                    .endAt(now)
-                    .once("value");
+                try {
+                    // Get messages from RTDB for this conversation
+                    const messagesRef = db.ref(`messages/${conversationId}`);
+                    const messagesSnapshot = await messagesRef
+                        .orderByChild("expiresAt")
+                        .endAt(now)
+                        .once("value");
 
-                if (!messagesSnapshot.exists()) continue;
+                    if (!messagesSnapshot.exists()) continue;
 
-                const messagesToDelete = [];
-                const filesToDelete = [];
+                    const messagesToDelete = [];
+                    const filesToDelete = [];
 
-                messagesSnapshot.forEach((messageSnap) => {
-                    const message = messageSnap.val();
-                    if (message.expiresAt && message.expiresAt <= now) {
-                        messagesToDelete.push(messageSnap.key);
+                    messagesSnapshot.forEach((messageSnap) => {
+                        const message = messageSnap.val();
+                        if (message.expiresAt && message.expiresAt <= now) {
+                            messagesToDelete.push(messageSnap.key);
 
-                        // Collect files to delete
-                        if (message.fileUrl) {
-                            try {
-                                const urlMatch = message.fileUrl.match(/o\/(.+?)\?/);
-                                if (urlMatch) {
-                                    const filePath = decodeURIComponent(urlMatch[1]);
-                                    filesToDelete.push(filePath);
+                            // Collect files to delete
+                            if (message.fileUrl) {
+                                try {
+                                    const urlMatch = message.fileUrl.match(/o\/(.+?)\?/);
+                                    if (urlMatch) {
+                                        const filePath = decodeURIComponent(urlMatch[1]);
+                                        filesToDelete.push(filePath);
+                                    }
+                                } catch (e) {
+                                    console.warn("Failed to parse file URL:", e.message);
                                 }
-                            } catch (e) {
-                                console.warn("Failed to parse file URL:", e.message);
+                            }
+
+                            // Also delete thumbnail if exists
+                            if (message.thumbnailUrl) {
+                                try {
+                                    const urlMatch = message.thumbnailUrl.match(/o\/(.+?)\?/);
+                                    if (urlMatch) {
+                                        const filePath = decodeURIComponent(urlMatch[1]);
+                                        filesToDelete.push(filePath);
+                                    }
+                                } catch (e) {
+                                    console.warn("Failed to parse thumbnail URL:", e.message);
+                                }
                             }
                         }
+                    });
 
-                        // Also delete thumbnail if exists
-                        if (message.thumbnailUrl) {
-                            try {
-                                const urlMatch = message.thumbnailUrl.match(/o\/(.+?)\?/);
-                                if (urlMatch) {
-                                    const filePath = decodeURIComponent(urlMatch[1]);
-                                    filesToDelete.push(filePath);
-                                }
-                            } catch (e) {
-                                console.warn("Failed to parse thumbnail URL:", e.message);
-                            }
+                    // Delete messages from RTDB
+                    const updates = {};
+                    for (const messageId of messagesToDelete) {
+                        updates[messageId] = null;
+                    }
+
+                    if (Object.keys(updates).length > 0) {
+                        await messagesRef.update(updates);
+                        totalDeleted += messagesToDelete.length;
+                        console.log(`Deleted ${messagesToDelete.length} expired messages from conversation ${conversationId}`);
+                    }
+
+                    // Delete files from Storage
+                    for (const filePath of filesToDelete) {
+                        try {
+                            await storage.file(filePath).delete();
+                            totalFilesDeleted++;
+                        } catch (e) {
+                            // File may already be deleted or not exist
+                            console.warn(`Failed to delete file ${filePath}:`, e.message);
                         }
                     }
-                });
-
-                // Delete messages from RTDB
-                const updates = {};
-                for (const messageId of messagesToDelete) {
-                    updates[messageId] = null;
+                } catch (erreurConversation) {
+                    conversationsEnEchec++;
+                    console.warn(
+                        `[cleanupExpiredMessages] Conversation ${conversationId} KO (on continue) :`,
+                        erreurConversation.message,
+                    );
                 }
+            }
 
-                if (Object.keys(updates).length > 0) {
-                    await messagesRef.update(updates);
-                    totalDeleted += messagesToDelete.length;
-                    console.log(`Deleted ${messagesToDelete.length} expired messages from conversation ${conversationId}`);
-                }
-
-                // Delete files from Storage
-                for (const filePath of filesToDelete) {
-                    try {
-                        await storage.file(filePath).delete();
-                        totalFilesDeleted++;
-                    } catch (e) {
-                        // File may already be deleted or not exist
-                        console.warn(`Failed to delete file ${filePath}:`, e.message);
-                    }
-                }
+            if (conversationsEnEchec > 0) {
+                console.error(
+                    `[cleanupExpiredMessages] ${conversationsEnEchec} conversation(s) non balayee(s) — ` +
+                    "leurs messages ephemeres n'ont PAS ete supprimes.",
+                );
             }
 
             console.log(`Cleanup complete. Deleted ${totalDeleted} messages and ${totalFilesDeleted} files.`);
@@ -6308,54 +6347,65 @@ exports.cleanupStaleGroupCalls = functions.pubsub
 
             let cleaned = 0;
 
+            // Un appel qui casse ne doit pas emporter les suivants : sans ce
+            // filet, le premier en echec arretait le balayage et tous les
+            // autres appels de groupe orphelins restaient « actifs ».
+            // Meme motif que `cleanupStaleCalls` juste au-dessus.
             for (const doc of snapshot.docs) {
-                const data = doc.data();
-                const createdAt = data.createdAt?.toDate?.()?.getTime() ?? 0;
-                const age = now - createdAt;
+                try {
+                    const data = doc.data();
+                    const createdAt = data.createdAt?.toDate?.()?.getTime() ?? 0;
+                    const age = now - createdAt;
 
-                // Max duration exceeded
-                if (age > MAX_DURATION) {
-                    await doc.ref.update({
-                        status: "ended",
-                        endedAt: admin.firestore.FieldValue.serverTimestamp(),
-                        endReason: "max_duration_exceeded",
+                    // Max duration exceeded
+                    if (age > MAX_DURATION) {
+                        await doc.ref.update({
+                            status: "ended",
+                            endedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            endReason: "max_duration_exceeded",
+                        });
+                        cleaned++;
+                        console.log(`Group call ${doc.id}: max duration exceeded`);
+                        continue;
+                    }
+
+                    // Check active participants
+                    const activeParticipants = await doc.ref.collection("participants")
+                        .where("status", "==", "active")
+                        .get();
+
+                    if (activeParticipants.empty) {
+                        await doc.ref.update({
+                            status: "ended",
+                            endedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            endReason: "all_participants_gone",
+                        });
+                        cleaned++;
+                        console.log(`Group call ${doc.id}: no active participants`);
+                        continue;
+                    }
+
+                    // Check if all active participants have stale heartbeats
+                    const staleThreshold = new Date(now - HEARTBEAT_TIMEOUT);
+                    const allStale = activeParticipants.docs.every(p => {
+                        const hb = p.data().lastHeartbeat?.toDate?.();
+                        return !hb || hb < staleThreshold;
                     });
-                    cleaned++;
-                    console.log(`Group call ${doc.id}: max duration exceeded`);
-                    continue;
-                }
 
-                // Check active participants
-                const activeParticipants = await doc.ref.collection("participants")
-                    .where("status", "==", "active")
-                    .get();
-
-                if (activeParticipants.empty) {
-                    await doc.ref.update({
-                        status: "ended",
-                        endedAt: admin.firestore.FieldValue.serverTimestamp(),
-                        endReason: "all_participants_gone",
-                    });
-                    cleaned++;
-                    console.log(`Group call ${doc.id}: no active participants`);
-                    continue;
-                }
-
-                // Check if all active participants have stale heartbeats
-                const staleThreshold = new Date(now - HEARTBEAT_TIMEOUT);
-                const allStale = activeParticipants.docs.every(p => {
-                    const hb = p.data().lastHeartbeat?.toDate?.();
-                    return !hb || hb < staleThreshold;
-                });
-
-                if (allStale) {
-                    await doc.ref.update({
-                        status: "ended",
-                        endedAt: admin.firestore.FieldValue.serverTimestamp(),
-                        endReason: "heartbeat_timeout",
-                    });
-                    cleaned++;
-                    console.log(`Group call ${doc.id}: all participants heartbeat stale`);
+                    if (allStale) {
+                        await doc.ref.update({
+                            status: "ended",
+                            endedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            endReason: "heartbeat_timeout",
+                        });
+                        cleaned++;
+                        console.log(`Group call ${doc.id}: all participants heartbeat stale`);
+                    }
+                } catch (erreurAppel) {
+                    console.warn(
+                        `[cleanupStaleGroupCalls] Appel ${doc.id} KO (on continue) :`,
+                        erreurAppel.message,
+                    );
                 }
             }
 

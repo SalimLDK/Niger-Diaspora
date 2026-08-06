@@ -752,6 +752,31 @@ supplémentaire** à créer.
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
   les étapes suivantes s'exécutent quand même et que l'étape fautive apparaît
   nommée dans les journaux.
+- [ ] 🔴 **Le même défaut dans trois balayages périodiques — corrigé le
+  2026-08-06, NON déployé.** En cherchant le motif « N opérations
+  indépendantes sous un `try` unique » dans le reste de `functions/index.js` :
+  `cleanupExpiredMessages`, `cleanupStaleParticipants` et
+  `cleanupStaleGroupCalls` bouclaient sur des éléments **indépendants** sans
+  filet par élément. Le premier qui lève arrêtait le balayage entier.
+  Deux voisines, `cleanupExpiredMediaFiles` et `cleanupStaleCalls`, avaient
+  **déjà** ce filet — le bon motif existait dans le fichier, il manquait juste
+  à trois endroits. Les trois s'y alignent maintenant.
+  - **Le plus grave est `cleanupExpiredMessages`** (toutes les heures) : c'est
+    la seule chose qui fait disparaître les messages éphémères. Une
+    conversation fautive et toutes les suivantes gardaient leurs messages
+    expirés — et comme la fonction **relance l'erreur**, pub/sub la rejouait
+    en retombant sur la même conversation, indéfiniment. La promesse « ce
+    message disparaît » était rompue en silence et durablement. Un
+    `console.error` récapitulatif compte désormais les conversations non
+    balayées.
+  - `cleanupStaleParticipants` : un salon fautif laissait tous les autres avec
+    leurs participants fantômes, « en direct » indéfiniment.
+  - `cleanupStaleGroupCalls` : idem, appels de groupe orphelins restés actifs.
+  - Vérifié sans suite : `onReviewDeleted` (opération unique, rien à isoler).
+  **À faire** : après déploiement, lire les journaux d'une exécution de
+  `cleanupExpiredMessages` et vérifier qu'elle parcourt bien **toutes** les
+  conversations (le compte de conversations balayées doit correspondre), là où
+  elle pouvait s'arrêter à la première en échec.
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais
