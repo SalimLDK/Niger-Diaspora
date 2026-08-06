@@ -3581,13 +3581,32 @@ transaction annulée :
 Sans le contrôle négatif, le premier résultat n'aurait rien voulu dire : une
 politique trop permissive aurait donné 1 aussi. Table laissée à zéro ligne.
 
-**Ce qui reste non exercé** : le rendu. La base ne contient aucun blocage et
-seulement 2 comptes, donc rien de tout ceci n'a été vu à l'écran.
+✅ **La livraison temps réel jusqu'à l'UI est vue à l'écran** (2026-08-06).
+Blocage inséré en base pendant que la conversation était ouverte : quelques
+secondes plus tard, la ligne « Vu il y a 4 heures » avait **disparu** de
+l'en-tête. C'est `online_status_indicator` qui a réagi au provider. La chaîne
+`blocked_users` → realtime → `usersWhoBlockedMeProvider` → UI fonctionne.
+Blocage retiré aussitôt, table revenue à zéro ligne.
 
-- [ ] **Poser un vrai blocage entre les deux comptes** et vérifier sur
-  l'appareil : la personne disparaît de la carte, de l'accueil, du statut
-  « en ligne » et des notifications, **et le composeur de la conversation se
-  ferme** (`isBlockedByOther`, six branches de l'écran).
+⚠️ **Correction d'une description fausse écrite plus haut dans ce fichier.**
+Une version précédente de ce point disait « le composeur se ferme ». **C'est
+faux**, et la capture l'a montré : `isBlockedByOther` ne masque pas le
+composeur. Le champ de saisie reste visible et éditable ; ce sont les
+**actions** qui sont refusées (six branches, toutes dans des gestionnaires
+d'envoi, pas dans le rendu). Ce qui masque le composeur, c'est `isBlocked` —
+l'autre sens, quand c'est *vous* qui avez bloqué.
+
+Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
+
+- [ ] **Ce qui reste à vérifier : le refus effectif de l'envoi.** Conversation
+  ouverte avec un compte qui vous a bloqué, taper un message, appuyer sur
+  envoyer — l'envoi doit être refusé avec un message, et rien ne doit partir.
+  C'est le seul maillon non prouvé de toute la chaîne.
+  *Deux tentatives ont échoué non sur le code mais sur l'appareil : l'app est
+  passée en arrière-plan au moment du tap. Aucun plantage — process vivant,
+  ni `FATAL`, ni exception Dart, ni mise à mort `lmkd`.*
+- [ ] **Vérifier aussi la carte, l'accueil et les notifications** sous
+  blocage : la personne doit disparaître des quatre.
 - [ ] **Débloquer** et vérifier que tout revient — la table est publiée en
   realtime avec `REPLICA IDENTITY FULL` précisément pour que la suppression
   soit livrée ; sans ça le déblocage n'aurait pris effet qu'au relancement.
